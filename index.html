@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>My Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAF6EE; --paper: #FFFCF5; --paper-soft: #F5EEDC;
+    --ink: #1A1F2C; --ink-soft: #4A4A55; --muted: #8A8478;
+    --rule: #E5DDC8; --rule-strong: #C9BEA0;
+    --accent: #B5421C; --accent-soft: #F5E5D8; --accent-ink: #6E2811;
+    --moss: #3F6648; --moss-soft: #DEE8DC;
+    --warn: #B85040;
+    --green-soft: #DCE8D4; --green-border: #B8CFA8; --green-ink: #2D5230;
+    --red-soft: #F4DDD3; --red-border: #D6A593; --red-ink: #8B3520;
+    --shadow: 0 1px 0 rgba(26,31,44,0.04), 0 8px 24px rgba(26,31,44,0.05);
+    --serif: 'Fraunces', 'Georgia', serif;
+    --sans: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-weight: 400; line-height: 1.5; min-height: 100vh; }
+  body { padding: 16px 12px 80px; background-image: radial-gradient(rgba(181,66,28,0.025) 1px, transparent 1px); background-size: 20px 20px; }
+  main { max-width: 520px; margin: 0 auto; }
+  input, textarea, button, select { font-family: inherit; font-size: inherit; color: inherit; }
+  textarea { resize: vertical; }
+
+  .masthead { text-align: center; padding: 8px 0 20px; border-bottom: 1px solid var(--rule-strong); margin-bottom: 16px; }
+  .masthead .kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .masthead h1 { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: 28px; letter-spacing: -0.01em; color: var(--ink); }
+  .masthead .rule { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+  .masthead .rule span { width: 4px; height: 4px; border-radius: 50%; background: var(--rule-strong); }
+
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 4px; margin-bottom: 16px; }
+  .tab { background: transparent; border: 0; padding: 10px 8px; font-size: 13px; font-weight: 500; color: var(--ink-soft); border-radius: 999px; cursor: pointer; transition: all 0.18s; letter-spacing: 0.02em; }
+  .tab.active { background: var(--ink); color: var(--paper); }
+
+  .datenav { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 14px 12px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .datenav .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .datenav .arrow { background: transparent; border: 1px solid var(--rule); border-radius: 10px; width: 38px; height: 38px; display: grid; place-items: center; cursor: pointer; color: var(--ink-soft); font-size: 18px; transition: all 0.15s; }
+  .datenav .arrow:active { background: var(--paper-soft); transform: scale(0.96); }
+  .datenav .center { text-align: center; flex: 1; }
+  .datenav .day { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 2px; }
+  .datenav .date { font-family: var(--serif); font-weight: 500; font-size: 22px; letter-spacing: -0.01em; }
+  .datenav .picker { display: flex; gap: 8px; margin-top: 10px; }
+  .datenav input[type="date"] { flex: 1; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; font-family: var(--mono); font-size: 13px; color: var(--ink); }
+  .datenav .today-btn { background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .datenav .today-btn:active { background: var(--accent); color: var(--paper); }
+  .savestate { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 8px; min-height: 12px; }
+  .savestate.saving { color: var(--accent); }
+  .savestate.saved { color: var(--moss); }
+  .savestate.failed { color: var(--warn); white-space: normal; line-height: 1.4; padding: 4px 8px; background: #FCE9E2; border-radius: 6px; text-transform: none; letter-spacing: normal; font-family: var(--sans); font-size: 11px; }
+
+  .section { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 16px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+  .section-head h2 { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); }
+  .section-head .num { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--accent); font-weight: 400; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label { display: block; font-size: 11px; font-weight: 500; color: var(--ink-soft); letter-spacing: 0.04em; margin-bottom: 6px; }
+  .field label .sub { color: var(--muted); font-weight: 400; font-size: 10px; margin-left: 4px; }
+
+  .input, .textarea {
+    width: 100%; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 11px 12px; font-size: 15px; color: var(--ink); transition: border-color 0.15s, background 0.15s;
+  }
+  .input:focus, .textarea:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+  .textarea { min-height: 64px; line-height: 1.4; font-size: 14px; }
+
+  /* CALCULATOR FIELDS */
+  .calc-row { display: flex; gap: 6px; align-items: stretch; }
+  .currency-wrap { flex: 1; position: relative; display: flex; align-items: center; }
+  .currency-symbol {
+    position: absolute; left: 12px; font-family: var(--mono); font-weight: 500; color: var(--muted); pointer-events: none; font-size: 15px;
+  }
+  .calc-row .input { padding-left: 28px; font-family: var(--mono); font-variant-numeric: tabular-nums; width: 100%; }
+  .plus-btn {
+    width: 46px; flex-shrink: 0; border: 1px solid var(--rule); border-radius: 10px;
+    background: var(--paper-soft); font-family: var(--mono); font-size: 20px; color: var(--accent);
+    cursor: pointer; transition: all 0.15s; font-weight: 500;
+  }
+  .plus-btn:active { background: var(--accent-soft); border-color: var(--accent); transform: scale(0.96); }
+  .calc-total {
+    font-family: var(--mono); font-size: 13px; color: var(--accent-ink); font-weight: 500;
+    margin-top: 6px; padding: 5px 10px; background: var(--accent-soft); border-radius: 6px;
+    letter-spacing: 0.01em; display: inline-block;
+  }
+  .calc-total.error { color: var(--warn); background: transparent; padding-left: 0; }
+
+  /* TOGGLES */
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-btn {
+    flex: 1; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 11px 10px; font-size: 14px; font-weight: 500; color: var(--ink-soft); cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .toggle-btn:active { transform: scale(0.97); }
+  .toggle-btn.yes.active { background: var(--moss); color: var(--paper); border-color: var(--moss); }
+  .toggle-btn.no.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* LEGACY NOTE (for free-text introspection from old data) */
+  .legacy-note {
+    margin-top: 8px; padding: 8px 10px; background: var(--paper-soft); border-left: 3px solid var(--rule-strong);
+    font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--ink-soft); border-radius: 4px;
+  }
+  .legacy-note strong { font-family: var(--mono); font-style: normal; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 2px; }
+
+  /* SLIDER */
+  .slider-wrap { padding-top: 4px; }
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-value {
+    font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 500;
+    background: var(--accent-soft); color: var(--accent-ink); padding: 6px 10px; border-radius: 8px; min-width: 58px; text-align: center;
+  }
+  input[type="range"] {
+    flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px;
+    background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--pct, 95%), var(--rule) var(--pct, 95%), var(--rule) 100%);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--paper); border: 2px solid var(--accent); cursor: pointer; box-shadow: var(--shadow);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--paper); border: 2px solid var(--accent); cursor: pointer;
+  }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip {
+    background: transparent; border: 1px dashed var(--rule-strong); border-radius: 999px;
+    padding: 5px 11px; font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em;
+  }
+  .chip:active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); transform: scale(0.96); }
+  .chip.bulk { border-style: solid; border-color: var(--ink); color: var(--ink); }
+
+  /* TIME SLOT */
+  .slot { margin-bottom: 12px; }
+  .slot:last-child { margin-bottom: 0; }
+  .slot-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  .slot-time { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; color: var(--accent); font-weight: 500; }
+  .slot-period { font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--muted); }
+
+  /* FOOD */
+  .meal { margin-bottom: 12px; }
+  .meal:last-child { margin-bottom: 0; }
+  .meal-label { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  .meal-label .name { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink); }
+  .meal-label .time { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+
+  /* MONTH */
+  .month-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 8px; }
+  .month-title { font-family: var(--serif); font-size: 22px; font-weight: 500; flex: 1; text-align: center; }
+  .month-arrow { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; }
+  .totals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .total-card { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px; }
+  .total-card .lbl { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .total-card .val { font-family: var(--serif); font-size: 22px; font-weight: 500; color: var(--ink); }
+  .total-card .sub { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+  .total-card.accent { background: var(--accent-soft); border-color: var(--accent); }
+  .total-card.accent .val { color: var(--accent-ink); }
+  .total-card.green { background: var(--green-soft); border-color: var(--green-border); }
+  .total-card.green .val { color: var(--green-ink); }
+  .total-card.green .lbl { color: var(--green-ink); opacity: 0.65; }
+  .total-card.red { background: var(--red-soft); border-color: var(--red-border); }
+  .total-card.red .val { color: var(--red-ink); }
+  .total-card.red .lbl { color: var(--red-ink); opacity: 0.65; }
+  .total-card.full { grid-column: 1 / -1; }
+
+  .day-list { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .day-row { display: grid; grid-template-columns: 70px 1fr 80px; gap: 10px; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--rule); cursor: pointer; transition: background 0.12s; }
+  .day-row:last-child { border-bottom: none; }
+  .day-row:active { background: var(--paper-soft); }
+  .day-row .dt { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+  .day-row .dt strong { display: block; font-family: var(--serif); font-size: 16px; color: var(--ink); font-weight: 500; }
+  .day-row .summary { font-size: 12px; color: var(--muted); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .day-row .sat { font-family: var(--mono); font-size: 13px; text-align: right; color: var(--moss); font-weight: 500; }
+  .day-row .sat.low { color: var(--accent); }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-state .e-icon { font-family: var(--serif); font-size: 32px; font-style: italic; color: var(--rule-strong); margin-bottom: 8px; }
+
+  /* EXPORT */
+  .export-card { text-align: center; }
+  .export-card .big-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--ink); color: var(--paper); border: none; border-radius: 12px;
+    padding: 14px 28px; font-size: 14px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    cursor: pointer; margin-top: 8px; transition: all 0.15s;
+  }
+  .export-card .big-btn:active { transform: scale(0.97); background: var(--accent); }
+  .export-meta { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  .export-meta strong { color: var(--ink); font-weight: 500; }
+
+  .import-overlay {
+    position: fixed; inset: 0; background: rgba(250, 246, 238, 0.96); z-index: 200;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+    backdrop-filter: blur(8px);
+  }
+  .import-overlay .spinner {
+    width: 36px; height: 36px; border: 3px solid var(--rule); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  .import-overlay .msg-main { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink); }
+  .import-overlay .msg-sub { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* AUTH OVERLAY */
+  .auth-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 250;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background-image: radial-gradient(rgba(181,66,28,0.04) 1px, transparent 1px); background-size: 20px 20px;
+  }
+  .auth-box {
+    width: 100%; max-width: 380px; background: var(--paper); border: 1px solid var(--rule-strong);
+    border-radius: 16px; padding: 28px 22px; box-shadow: 0 20px 50px rgba(26,31,44,0.12);
+    text-align: center;
+  }
+  .auth-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.7; }
+  .auth-title {
+    font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 26px; color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .auth-subtitle {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 22px;
+  }
+  .auth-form { display: flex; flex-direction: column; gap: 10px; }
+  .auth-input {
+    width: 100%; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 13px 14px; font-size: 15px; color: var(--ink); font-family: var(--mono); letter-spacing: 0.05em;
+  }
+  .auth-input:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+  .auth-strength {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-align: left; margin-top: -4px; padding-left: 4px;
+  }
+  .auth-strength[data-level="too-short"], .auth-strength[data-level="weak"] { color: var(--warn); }
+  .auth-strength[data-level="ok"] { color: var(--accent); }
+  .auth-strength[data-level="strong"], .auth-strength[data-level="excellent"] { color: var(--moss); }
+  .auth-error {
+    font-family: var(--mono); font-size: 11px; color: var(--warn); padding: 6px 10px;
+    background: #FCE9E2; border-radius: 6px; letter-spacing: 0.02em;
+  }
+  .auth-submit {
+    background: var(--ink); color: var(--paper); border: none; border-radius: 10px;
+    padding: 13px; font-size: 14px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.15s; margin-top: 4px;
+  }
+  .auth-submit:active { transform: scale(0.98); background: var(--accent); }
+  .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .auth-skip {
+    background: transparent; border: none; color: var(--muted); font-size: 12px; padding: 10px;
+    cursor: pointer; letter-spacing: 0.02em;
+  }
+  .auth-skip:hover { color: var(--ink-soft); }
+  .auth-warning {
+    margin-top: 14px; padding: 10px 12px; background: var(--paper-soft); border-left: 3px solid var(--accent);
+    font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--ink-soft); border-radius: 4px;
+    text-align: left; line-height: 1.5;
+  }
+
+  .hidden { display: none !important; }
+  .quiet { color: var(--muted); font-size: 12px; font-style: italic; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); transition: transform 0.3s; z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 360px) {
+    .totals-grid { grid-template-columns: 1fr; }
+    .masthead h1 { font-size: 24px; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="import-overlay hidden" id="importOverlay">
+  <div class="spinner"></div>
+  <div class="msg-main" id="importMsgMain">Setting up your archive…</div>
+  <div class="msg-sub" id="importMsgSub">First-time import</div>
+</div>
+
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-icon">🔑</div>
+    <div class="auth-title">My Day</div>
+    <div class="auth-subtitle">Sign in to your tracker</div>
+    <div class="auth-form">
+      <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="auth-input" id="authPw1" placeholder="Password" autocomplete="current-password">
+      <div class="auth-error hidden" id="authError"></div>
+      <button class="auth-submit" id="authSubmit">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="masthead">
+    <div class="kicker">Personal Daily Tracker</div>
+    <h1>My Day</h1>
+    <div class="rule"><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="today">Today</button>
+    <button class="tab" data-tab="month">Calendar</button>
+    <button class="tab" data-tab="export">Export</button>
+  </div>
+
+  <!-- TODAY TAB -->
+  <div id="tab-today">
+    <div class="datenav">
+      <div class="row">
+        <button class="arrow" id="prevDay" aria-label="Previous day">‹</button>
+        <div class="center">
+          <div class="day" id="dayName">—</div>
+          <div class="date" id="dateLabel">—</div>
+        </div>
+        <button class="arrow" id="nextDay" aria-label="Next day">›</button>
+      </div>
+      <div class="picker">
+        <input type="date" id="datePicker">
+        <button class="today-btn" id="todayBtn">Today</button>
+      </div>
+      <div class="savestate" id="saveState">&nbsp;</div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Investments &amp; Expenses</h2>
+        <span class="num">i.</span>
+      </div>
+      <div class="field">
+        <label>Top-Up Investment</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_topUp" placeholder="0  or  500+1000"></div>
+          <button class="plus-btn" data-calc-plus="f_topUp">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_topUp_calc"></div>
+      </div>
+      <div class="field">
+        <label>Food Expence <span class="sub">[Dineout / Swiggy / Zomato]</span></label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_food" placeholder="0  or  30+50+20"></div>
+          <button class="plus-btn" data-calc-plus="f_food">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_food_calc"></div>
+      </div>
+      <div class="field">
+        <label>Dmart / Instamart / Zepto / Blinkit</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_dmart" placeholder="0"></div>
+          <button class="plus-btn" data-calc-plus="f_dmart">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_dmart_calc"></div>
+      </div>
+      <div class="field">
+        <label>Uber / Petrol / Metro / Parking</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_uber" placeholder="0"></div>
+          <button class="plus-btn" data-calc-plus="f_uber">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_uber_calc"></div>
+      </div>
+      <div class="field">
+        <label>Other Expence</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_other" placeholder="0"></div>
+          <button class="plus-btn" data-calc-plus="f_other">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_other_calc"></div>
+      </div>
+      <div class="field">
+        <label>Other Expense Note</label>
+        <input class="input" type="text" id="f_otherNote" placeholder="e.g., Movie + Shopping (axis cc)">
+        <div class="chips">
+          <button class="chip" data-fill="f_otherNote" data-text="NA">NA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH & MIND -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Health &amp; Mind</h2>
+        <span class="num">ii.</span>
+      </div>
+      <div class="field">
+        <label>Walk <span class="sub">(minutes)</span></label>
+        <input class="input" type="number" inputmode="numeric" step="1" id="f_walk" placeholder="0" style="font-family: var(--mono); font-variant-numeric: tabular-nums;">
+      </div>
+      <div class="field">
+        <label>Google Heart Points</label>
+        <input class="input" type="number" inputmode="numeric" id="f_heart" placeholder="0" style="font-family: var(--mono); font-variant-numeric: tabular-nums;">
+      </div>
+      <div class="field">
+        <label>Reading / Podcasts / Audible</label>
+        <div class="toggle-row">
+          <button class="toggle-btn yes" data-toggle="f_reading" data-val="Yes">Yes</button>
+          <button class="toggle-btn no" data-toggle="f_reading" data-val="No">No</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Improve</label>
+        <div class="toggle-row">
+          <button class="toggle-btn yes" data-toggle="f_improve" data-val="Yes">Yes</button>
+          <button class="toggle-btn no" data-toggle="f_improve" data-val="No">No</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Satisfaction</label>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <input type="range" min="0" max="1" step="0.01" id="f_satisfaction" value="0.95">
+            <div class="slider-value" id="satVal">0.95</div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Introspection: Learning / Any regrets / New Ideas</label>
+        <div class="toggle-row">
+          <button class="toggle-btn yes" data-toggle="f_introspection" data-val="Yes">Yes</button>
+          <button class="toggle-btn no" data-toggle="f_introspection" data-val="No">No</button>
+        </div>
+        <div class="legacy-note hidden" id="introspectionLegacy"><strong>Original entry</strong><span></span></div>
+      </div>
+    </div>
+
+    <!-- TIME SLOTS -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Time Slots</h2>
+        <span class="num">iii.</span>
+      </div>
+      <div class="chips" style="margin-bottom: 14px;">
+        <button class="chip bulk" id="bulkSleep">↺ Fill 12–8 AM with 'Sleep'</button>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">12 AM — 3 AM</span><span class="slot-period">small hours</span></div>
+        <textarea class="textarea" id="f_slot1" placeholder="Sleep / activity..."></textarea>
+        <div class="chips">
+          <button class="chip" data-fill="f_slot1" data-text="Sleep">Sleep</button>
+          <button class="chip" data-fill="f_slot1" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">3 AM — 8 AM</span><span class="slot-period">dawn</span></div>
+        <textarea class="textarea" id="f_slot2" placeholder="Sleep / activity..."></textarea>
+        <div class="chips">
+          <button class="chip" data-fill="f_slot2" data-text="Sleep">Sleep</button>
+          <button class="chip" data-fill="f_slot2" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">8 AM — 12 PM</span><span class="slot-period">morning</span></div>
+        <textarea class="textarea" id="f_slot3" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip" data-fill="f_slot3" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">12 PM — 4 PM</span><span class="slot-period">afternoon</span></div>
+        <textarea class="textarea" id="f_slot4" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip" data-fill="f_slot4" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">4 PM — 8 PM</span><span class="slot-period">evening</span></div>
+        <textarea class="textarea" id="f_slot5" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip" data-fill="f_slot5" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">8 PM — 12 PM</span><span class="slot-period">night</span></div>
+        <textarea class="textarea" id="f_slot6" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip" data-fill="f_slot6" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOD JOURNAL -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Food Journal</h2>
+        <span class="num">iv.</span>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Breakfast</span><span class="time">first meal</span></div>
+        <textarea class="textarea" id="f_breakfast" placeholder="9.30: poha + coffee"></textarea>
+        <div class="chips"><button class="chip" data-fill="f_breakfast" data-text="NA">NA</button></div>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Lunch</span><span class="time">midday</span></div>
+        <textarea class="textarea" id="f_lunch" placeholder="2.00: ..."></textarea>
+        <div class="chips"><button class="chip" data-fill="f_lunch" data-text="NA">NA</button></div>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Dinner</span><span class="time">evening</span></div>
+        <textarea class="textarea" id="f_dinner" placeholder="9.00: ..."></textarea>
+        <div class="chips"><button class="chip" data-fill="f_dinner" data-text="NA">NA</button></div>
+      </div>
+    </div>
+
+    <!-- NIGHT STAY -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Night Stay</h2>
+        <span class="num">v.</span>
+      </div>
+      <div class="field">
+        <label>Where you stayed</label>
+        <input class="input" type="text" id="f_nightStay" placeholder="2004/A3, Ganaga Legend @ Pune">
+        <div class="chips">
+          <button class="chip" data-fill="f_nightStay" data-text="2004/A3, Ganaga Legend @ Pune">Home (Ganaga Legend)</button>
+          <button class="chip" id="copyYesterdayStay">↶ Same as yesterday</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MONTH TAB -->
+  <div id="tab-month" class="hidden">
+    <div class="month-head">
+      <button class="month-arrow" id="monthPrev">‹</button>
+      <div class="month-title" id="monthTitle">—</div>
+      <button class="month-arrow" id="monthNext">›</button>
+    </div>
+    <div class="totals-grid" id="totalsGrid"></div>
+    <div id="dayListWrap"></div>
+  </div>
+
+  <!-- EXPORT TAB -->
+  <div id="tab-export" class="hidden">
+    <div class="section" id="securitySection"></div>
+
+    <div class="section export-card">
+      <div class="section-head"><h2>Export to CSV</h2><span class="num">⇣</span></div>
+      <p class="quiet" style="margin-bottom: 12px;">Drops directly into <strong style="font-family: var(--mono); font-style: normal; color: var(--ink);">My_Day.xlsx</strong> — same 23 columns, same headings. Calculator expressions evaluate to totals on export.</p>
+      <button class="big-btn" id="exportAllBtn">⇣ Download all entries</button>
+      <button class="big-btn" id="exportMonthBtn" style="background: var(--paper-soft); color: var(--ink); border: 1px solid var(--rule); margin-top: 8px;">⇣ Current month only</button>
+      <div class="export-meta">
+        <div><strong id="totalEntries">0</strong> entries saved</div>
+        <div id="exportRange">No data yet</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>How to use the export</h2><span class="num">?</span></div>
+      <ol style="padding-left: 20px; font-size: 13px; line-height: 1.7; color: var(--ink-soft);">
+        <li>Tap <strong>Download all entries</strong> — saves <code style="font-family: var(--mono); font-size: 11px; background: var(--paper-soft); padding: 1px 4px; border-radius: 3px;">myday_all.csv</code> to your phone.</li>
+        <li>Open <strong style="font-family: var(--mono); font-style: normal;">My_Day.xlsx</strong> in Excel.</li>
+        <li>Open the CSV in Excel as a separate sheet.</li>
+        <li>Copy rows from CSV and paste below the header row of <strong style="font-family: var(--mono); font-style: normal;">My_Day.xlsx</strong> — your monthly totals continue to work.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Diagnostics</h2><span class="num">⚡</span></div>
+      <p class="quiet" style="margin-bottom: 10px;">Run a storage health check. Useful when saves fail.</p>
+      <button class="chip" id="runDiagBtn">Run storage diagnostics</button>
+      <pre id="diagResults" style="margin-top: 12px; font-family: var(--mono); font-size: 11px; line-height: 1.5; color: var(--ink-soft); background: var(--paper-soft); padding: 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-word; display: none;"></pre>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =========== SUPABASE CLIENT ===========
+if (typeof window.MYDAY_CONFIG === 'undefined') {
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#B5421C;text-align:center;"><h2>Configuration error</h2><p>config.js is missing or didn\'t load.</p><p style="font-size:13px;color:#666;">Make sure you uploaded both <code>myday.html</code> and <code>config.js</code> to your repository.</p></div>';
+  throw new Error('config.js missing');
+}
+const supa = window.supabase.createClient(
+  window.MYDAY_CONFIG.SUPABASE_URL,
+  window.MYDAY_CONFIG.SUPABASE_ANON_KEY,
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+);
+
+// =========== CONSTANTS ===========
+// 23 entry fields (matches the database schema and CSV export columns)
+const FIELDS = ['topUp','food','dmart','uber','other','otherNote','walk','heart','reading','improve','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay'];
+const CALC_FIELDS = ['topUp','food','dmart','uber','other'];
+const TOGGLE_FIELDS = ['reading','improve','introspection'];
+const TEXT_FIELDS = ['otherNote','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// Maps app-side camelCase keys to database snake_case columns
+const FIELD_TO_COL = {
+  topUp:'top_up', food:'food', dmart:'dmart', uber:'uber', other:'other_exp', otherNote:'other_note',
+  walk:'walk', heart:'heart', reading:'reading', improve:'improve', satisfaction:'satisfaction', introspection:'introspection',
+  slot1:'slot1', slot2:'slot2', slot3:'slot3', slot4:'slot4', slot5:'slot5', slot6:'slot6',
+  breakfast:'breakfast', lunch:'lunch', dinner:'dinner', nightStay:'night_stay'
+};
+const COL_TO_FIELD = Object.fromEntries(Object.entries(FIELD_TO_COL).map(([k,v]) => [v,k]));
+
+// =========== STATE ===========
+let allEntries = {};       // {YYYY-MM-DD: entry} — in-memory cache
+let currentDate = isoToday();
+let currentEntry = blankEntry();
+let saveTimer = null;
+let monthCursor = null;
+let userId = null;         // Supabase user.id once signed in
+
+function isoToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function blankEntry() {
+  const e = {};
+  FIELDS.forEach(f => e[f] = '');
+  return e;
+}
+
+// =========== CALCULATOR ===========
+function evalExpr(v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return v;
+  const s = String(v).trim();
+  if (!s) return null;
+  if (!/^[\d+.\s]+$/.test(s)) return null;
+  const parts = s.split('+').map(p => p.trim()).filter(Boolean);
+  if (parts.length === 0) return null;
+  let sum = 0;
+  for (const p of parts) {
+    const n = parseFloat(p);
+    if (isNaN(n)) return null;
+    sum += n;
+  }
+  return sum;
+}
+
+function updateCalcDisplay(fieldId) {
+  const input = document.getElementById(fieldId);
+  const display = document.getElementById(fieldId + '_calc');
+  const v = (input.value || '').trim();
+  if (v === '' || !v.includes('+')) {
+    display.classList.add('hidden');
+    return;
+  }
+  const total = evalExpr(v);
+  display.classList.remove('hidden');
+  if (total === null) {
+    display.classList.add('error');
+    display.textContent = 'invalid expression';
+  } else {
+    display.classList.remove('error');
+    display.textContent = v.replace(/\s+/g,'') + ' = ₹' + total.toLocaleString('en-IN');
+  }
+}
+
+function appendPlus(fieldId) {
+  const el = document.getElementById(fieldId);
+  let v = (el.value || '').trim();
+  if (v === '' || v.endsWith('+')) { el.focus(); return; }
+  el.value = v + '+';
+  el.focus();
+  setTimeout(() => { el.setSelectionRange(el.value.length, el.value.length); }, 0);
+  updateCalcDisplay(fieldId);
+  scheduleSave();
+}
+
+// =========== ROW <-> ENTRY CONVERSION ===========
+function rowToEntry(row) {
+  const e = blankEntry();
+  for (const [col, field] of Object.entries(COL_TO_FIELD)) {
+    if (row[col] !== null && row[col] !== undefined) e[field] = row[col];
+  }
+  return e;
+}
+function entryToRow(entry, dateIso) {
+  const row = { user_id: userId, entry_date: dateIso, updated_at: new Date().toISOString() };
+  for (const [field, col] of Object.entries(FIELD_TO_COL)) {
+    let v = entry[field];
+    if (v === undefined || v === null) v = '';
+    // numbers stored as strings to preserve calculator expressions and consistency
+    row[col] = String(v);
+  }
+  return row;
+}
+
+// =========== ENTRY HELPERS ===========
+function entryHasContent(e) {
+  for (const f of FIELDS) {
+    const v = e[f];
+    if (v === undefined || v === null || v === '') continue;
+    if (typeof v === 'number' && v === 0) continue;
+    return true;
+  }
+  return false;
+}
+
+// =========== SUPABASE STORAGE ===========
+async function fetchAllEntries() {
+  // Supabase enforces a maximum row limit per query (default 1000).
+  // We paginate by entry_date to retrieve all rows regardless of total count.
+  const result = {};
+  const PAGE = 1000;
+  let from = 0;
+  while (true) {
+    const { data, error } = await supa
+      .from('entries')
+      .select('*')
+      .eq('user_id', userId)
+      .order('entry_date', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    for (const row of data) {
+      result[row.entry_date] = rowToEntry(row);
+    }
+    if (data.length < PAGE) break; // last page
+    from += PAGE;
+  }
+  return result;
+}
+
+async function upsertEntry(dateIso, entry) {
+  const row = entryToRow(entry, dateIso);
+  const { error } = await supa.from('entries').upsert(row, { onConflict: 'user_id,entry_date' });
+  if (error) throw error;
+}
+
+async function deleteEntryForDate(dateIso) {
+  const { error } = await supa.from('entries').delete()
+    .eq('user_id', userId).eq('entry_date', dateIso);
+  if (error) throw error;
+}
+
+// =========== UI: DATE NAV ===========
+function formatDateLong(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  return d + ' ' + MONTH_NAMES[m-1] + ' ' + y;
+}
+function formatDayName(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  return DAY_NAMES[new Date(y, m-1, d).getDay()];
+}
+function shiftDate(iso, days) {
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate() + days);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+function renderDateNav() {
+  document.getElementById('dayName').textContent = formatDayName(currentDate);
+  document.getElementById('dateLabel').textContent = formatDateLong(currentDate);
+  document.getElementById('datePicker').value = currentDate;
+}
+
+// =========== UI: FORM RENDERING ===========
+function renderEntry() {
+  CALC_FIELDS.forEach(f => {
+    const el = document.getElementById('f_' + f);
+    const v = currentEntry[f];
+    el.value = (v === '' || v === undefined || v === null) ? '' : String(v);
+    updateCalcDisplay('f_' + f);
+  });
+  ['walk','heart'].forEach(f => {
+    const el = document.getElementById('f_' + f);
+    const v = currentEntry[f];
+    el.value = (v === '' || v === undefined || v === null) ? '' : v;
+  });
+  TEXT_FIELDS.forEach(f => {
+    document.getElementById('f_' + f).value = currentEntry[f] || '';
+  });
+  let sat = currentEntry.satisfaction;
+  if (sat === '' || sat === undefined || sat === null) sat = 0.95;
+  sat = Number(sat); if (isNaN(sat)) sat = 0.95;
+  const slider = document.getElementById('f_satisfaction');
+  slider.value = sat;
+  document.getElementById('satVal').textContent = (sat * 100).toFixed(0) + '%';
+  slider.style.setProperty('--pct', (sat * 100) + '%');
+  TOGGLE_FIELDS.forEach(f => {
+    const val = currentEntry[f];
+    document.querySelectorAll(`[data-toggle="f_${f}"]`).forEach(b => {
+      b.classList.toggle('active', b.dataset.val === val);
+    });
+  });
+  // Legacy free-text introspection note (only for imported old entries)
+  const introVal = currentEntry.introspection;
+  const legacyEl = document.getElementById('introspectionLegacy');
+  if (introVal && introVal !== 'Yes' && introVal !== 'No') {
+    legacyEl.classList.remove('hidden');
+    legacyEl.querySelector('span').textContent = introVal;
+  } else {
+    legacyEl.classList.add('hidden');
+  }
+}
+
+function readEntryFromForm() {
+  const e = {};
+  CALC_FIELDS.forEach(f => {
+    const v = (document.getElementById('f_' + f).value || '').trim();
+    e[f] = v === '' ? '' : v;
+  });
+  ['walk','heart'].forEach(f => {
+    const v = document.getElementById('f_' + f).value;
+    e[f] = v === '' ? '' : Number(v);
+  });
+  e.satisfaction = Number(document.getElementById('f_satisfaction').value);
+  TEXT_FIELDS.forEach(f => { e[f] = document.getElementById('f_' + f).value; });
+  ['reading','improve'].forEach(f => {
+    const active = document.querySelector(`[data-toggle="f_${f}"].active`);
+    e[f] = active ? active.dataset.val : '';
+  });
+  const introActive = document.querySelector(`[data-toggle="f_introspection"].active`);
+  if (introActive) {
+    e.introspection = introActive.dataset.val;
+  } else {
+    const orig = currentEntry.introspection;
+    e.introspection = (orig && orig !== 'Yes' && orig !== 'No') ? orig : '';
+  }
+  return e;
+}
+
+// =========== AUTO-SAVE ===========
+function setSaveState(state, detail) {
+  const el = document.getElementById('saveState');
+  el.classList.remove('saving','saved','failed');
+  if (state === 'saving') { el.classList.add('saving'); el.textContent = 'Saving…'; }
+  else if (state === 'saved') {
+    el.classList.add('saved');
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0'); const mm = String(now.getMinutes()).padStart(2,'0');
+    el.textContent = '✓ Saved ' + hh + ':' + mm;
+  } else if (state === 'failed') {
+    el.classList.add('failed');
+    el.textContent = '⚠ Save failed' + (detail ? ' — ' + detail : '') + '. Data kept in form. Will retry on next edit.';
+  } else { el.innerHTML = '&nbsp;'; }
+}
+
+function scheduleSave() {
+  setSaveState('saving');
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    currentEntry = readEntryFromForm();
+    try {
+      if (entryHasContent(currentEntry)) {
+        allEntries[currentDate] = currentEntry;
+        await upsertEntry(currentDate, currentEntry);
+        setSaveState('saved');
+      } else {
+        if (allEntries[currentDate]) {
+          delete allEntries[currentDate];
+          await deleteEntryForDate(currentDate);
+        }
+        setSaveState('');
+      }
+    } catch (e) {
+      console.error('save failed', e);
+      setSaveState('failed', (e && e.message) ? e.message.slice(0, 80) : '');
+    }
+  }, 600);
+}
+
+// =========== TOAST ===========
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =========== EVENT WIRING ===========
+function bindForm() {
+  CALC_FIELDS.forEach(f => {
+    const el = document.getElementById('f_' + f);
+    el.addEventListener('input', () => { updateCalcDisplay('f_' + f); scheduleSave(); });
+  });
+  document.querySelectorAll('[data-calc-plus]').forEach(b => {
+    b.addEventListener('click', () => appendPlus(b.dataset.calcPlus));
+  });
+  ['walk','heart'].concat(TEXT_FIELDS).forEach(f => {
+    document.getElementById('f_' + f).addEventListener('input', scheduleSave);
+  });
+  const slider = document.getElementById('f_satisfaction');
+  slider.addEventListener('input', () => {
+    const v = Number(slider.value);
+    document.getElementById('satVal').textContent = (v * 100).toFixed(0) + '%';
+    slider.style.setProperty('--pct', (v * 100) + '%');
+    scheduleSave();
+  });
+  document.querySelectorAll('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const tgt = b.dataset.toggle;
+      document.querySelectorAll(`[data-toggle="${tgt}"]`).forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      if (tgt === 'f_introspection') {
+        document.getElementById('introspectionLegacy').classList.add('hidden');
+      }
+      scheduleSave();
+    });
+  });
+  document.querySelectorAll('.chip[data-fill]').forEach(c => {
+    c.addEventListener('click', () => {
+      const target = document.getElementById(c.dataset.fill);
+      target.value = c.dataset.text;
+      target.focus();
+      scheduleSave();
+    });
+  });
+  document.getElementById('bulkSleep').addEventListener('click', () => {
+    document.getElementById('f_slot1').value = 'Sleep';
+    document.getElementById('f_slot2').value = 'Sleep';
+    scheduleSave();
+    toast('Filled 12–8 AM with Sleep');
+  });
+  document.getElementById('copyYesterdayStay').addEventListener('click', () => {
+    const y = shiftDate(currentDate, -1);
+    const yEntry = allEntries[y];
+    if (yEntry && yEntry.nightStay) {
+      document.getElementById('f_nightStay').value = yEntry.nightStay;
+      scheduleSave();
+      toast('Copied from ' + formatDateLong(y).split(' ').slice(0,2).join(' '));
+    } else {
+      toast('No night-stay recorded for yesterday');
+    }
+  });
+  document.getElementById('prevDay').addEventListener('click', () => selectDate(shiftDate(currentDate, -1)));
+  document.getElementById('nextDay').addEventListener('click', () => selectDate(shiftDate(currentDate, 1)));
+  document.getElementById('todayBtn').addEventListener('click', () => selectDate(isoToday()));
+  document.getElementById('datePicker').addEventListener('change', e => selectDate(e.target.value));
+}
+
+async function selectDate(iso) {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    const e = readEntryFromForm();
+    try {
+      if (entryHasContent(e)) {
+        allEntries[currentDate] = e;
+        await upsertEntry(currentDate, e);
+      } else if (allEntries[currentDate]) {
+        delete allEntries[currentDate];
+        await deleteEntryForDate(currentDate);
+      }
+    } catch (err) { console.warn('flush save before date change failed', err); }
+  }
+  currentDate = iso;
+  currentEntry = allEntries[iso] ? Object.assign(blankEntry(), allEntries[iso]) : blankEntry();
+  renderDateNav();
+  renderEntry();
+  setSaveState('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =========== TABS ===========
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  ['today','month','export'].forEach(n => {
+    document.getElementById('tab-' + n).classList.toggle('hidden', n !== name);
+  });
+  if (name === 'month') renderMonth();
+  if (name === 'export') renderExportPanel();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// =========== MONTH VIEW ===========
+function ymOfIso(iso) { return iso.slice(0,7); }
+function ymTitle(ym) { const [y,m] = ym.split('-').map(Number); return MONTH_NAMES[m-1] + ' ' + y; }
+function shiftYM(ym, delta) {
+  const [y,m] = ym.split('-').map(Number);
+  const dt = new Date(y, m-1+delta, 1);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0');
+}
+
+function renderMonth() {
+  if (!monthCursor) monthCursor = ymOfIso(currentDate);
+  document.getElementById('monthTitle').textContent = ymTitle(monthCursor);
+  const datesInMonth = Object.keys(allEntries).filter(d => d.startsWith(monthCursor)).sort();
+  const entries = datesInMonth.map(d => ({ date: d, entry: allEntries[d] }));
+
+  const totals = { topUp:0, food:0, dmart:0, uber:0, other:0, walkSum:0, walkCount:0, heartSum:0, heartCount:0, satSum:0, satCount:0, readingYes:0, improveYes:0, introspectionYes:0 };
+  entries.forEach(({entry: e}) => {
+    CALC_FIELDS.forEach(f => {
+      const n = evalExpr(e[f]);
+      if (n !== null) totals[f] += n;
+    });
+    if (e.walk !== '' && e.walk !== undefined && e.walk !== null && !isNaN(Number(e.walk))) {
+      totals.walkSum += Number(e.walk); totals.walkCount++;
+    }
+    if (e.heart !== '' && e.heart !== undefined && e.heart !== null && !isNaN(Number(e.heart))) {
+      totals.heartSum += Number(e.heart); totals.heartCount++;
+    }
+    if (e.satisfaction !== '' && e.satisfaction !== undefined && e.satisfaction !== null && !isNaN(Number(e.satisfaction))) {
+      totals.satSum += Number(e.satisfaction); totals.satCount++;
+    }
+    if (e.reading === 'Yes') totals.readingYes++;
+    if (e.improve === 'Yes') totals.improveYes++;
+    if (e.introspection === 'Yes') totals.introspectionYes++;
+  });
+
+  const fmt = n => Math.round(n).toLocaleString('en-IN');
+  const totalSpend = totals.food + totals.dmart + totals.uber + totals.other;
+  const grid = document.getElementById('totalsGrid');
+  grid.innerHTML = `
+    <div class="total-card red full">
+      <div class="lbl">Total Spend (excl. Top-Up)</div>
+      <div class="val">₹${fmt(totalSpend)}</div>
+      <div class="sub">${entries.length} day${entries.length===1?'':'s'} logged</div>
+    </div>
+    <div class="total-card green"><div class="lbl">Top-Up Investment</div><div class="val">₹${fmt(totals.topUp)}</div></div>
+    <div class="total-card red"><div class="lbl">Food / Dineout</div><div class="val">₹${fmt(totals.food)}</div></div>
+    <div class="total-card red"><div class="lbl">Quick-comm / DMart</div><div class="val">₹${fmt(totals.dmart)}</div></div>
+    <div class="total-card red"><div class="lbl">Transport</div><div class="val">₹${fmt(totals.uber)}</div></div>
+    <div class="total-card red"><div class="lbl">Other</div><div class="val">₹${fmt(totals.other)}</div></div>
+    <div class="total-card"><div class="lbl">Walk (sum)</div><div class="val">${totals.walkSum.toFixed(0)} min</div><div class="sub">${totals.walkCount} day${totals.walkCount===1?'':'s'}</div></div>
+    <div class="total-card"><div class="lbl">Heart Points</div><div class="val">${totals.heartSum}</div><div class="sub">avg ${totals.heartCount? (totals.heartSum/totals.heartCount).toFixed(1):'—'}/day</div></div>
+    <div class="total-card"><div class="lbl">Avg Satisfaction</div><div class="val">${totals.satCount ? ((totals.satSum/totals.satCount) * 100).toFixed(1) + '%' : '—'}</div></div>
+    <div class="total-card"><div class="lbl">Reading / Improve</div><div class="val" style="font-size:18px;">${totals.readingYes} / ${totals.improveYes}</div><div class="sub">days yes (of ${entries.length})</div></div>
+  `;
+
+  const wrap = document.getElementById('dayListWrap');
+  if (entries.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="e-icon">∅</div><div>No entries this month.</div></div>`;
+    return;
+  }
+  const sorted = entries.slice().sort((a,b) => b.date.localeCompare(a.date));
+  let listHtml = '<div class="day-list">';
+  sorted.forEach(({date, entry: e}) => {
+    const [y,m,d] = date.split('-').map(Number);
+    const dayName = DAY_NAMES[new Date(y,m-1,d).getDay()].slice(0,3);
+    const summaryParts = [];
+    if (e.slot3 && e.slot3 !== 'Not Any Specific Thing') summaryParts.push(e.slot3.split('\n')[0]);
+    if (e.slot5 && e.slot5 !== 'Not Any Specific Thing') summaryParts.push(e.slot5.split('\n')[0]);
+    if (!summaryParts.length && e.lunch && e.lunch !== 'NA') summaryParts.push('🍽 ' + e.lunch.split('\n')[0]);
+    const summary = summaryParts.join(' · ').slice(0, 120);
+    const sat = (e.satisfaction !== '' && e.satisfaction !== undefined && e.satisfaction !== null && !isNaN(Number(e.satisfaction))) ? (Number(e.satisfaction) * 100).toFixed(0) + '%' : '—';
+    const satClass = (e.satisfaction !== '' && !isNaN(Number(e.satisfaction)) && Number(e.satisfaction) < 0.94) ? ' low' : '';
+    listHtml += `<div class="day-row" data-date="${date}">
+      <div class="dt">${dayName}<strong>${d}</strong></div>
+      <div class="summary">${summary || '<span class="quiet">No notes</span>'}</div>
+      <div class="sat${satClass}">${sat}</div>
+    </div>`;
+  });
+  listHtml += '</div>';
+  wrap.innerHTML = listHtml;
+  wrap.querySelectorAll('.day-row').forEach(r => {
+    r.addEventListener('click', () => {
+      selectDate(r.dataset.date);
+      showTab('today');
+    });
+  });
+}
+
+// =========== EXPORT (CSV) ===========
+const CSV_HEADERS = [
+  'Date','Top-Up Investment','Food Expence [Dineout /Swiggy/Zomato]','Dmart / Instamart / Zepto / Blinkit',
+  'Uber / Petrol /Metro / Parking','Other Expence','Other Expense Note','Walk','Google Heart Points',
+  'Reading /Podcasts/ /Audible','Improve','Satisfaction','Introspection: Learning /Any regrets / New Ideas',
+  '12 AM - 3 AM','3 AM - 8 AM','8 AM - 12 PM','12 PM - 4 PM','4 PM - 8 PM','8 PM - 12 PM',
+  'Food Journal: Breakfast','Food Journal: Lunch','Food Journal: Dinner','Night Stay Information'
+];
+const CSV_FIELD_ORDER = ['__date','topUp','food','dmart','uber','other','otherNote','walk','heart','reading','improve','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay'];
+
+function csvEscape(v) {
+  if (v === undefined || v === null || v === '') return '';
+  const s = String(v);
+  if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+function buildCsv(filterPrefix) {
+  const dates = Object.keys(allEntries).filter(d => !filterPrefix || d.startsWith(filterPrefix)).sort();
+  const rows = [CSV_HEADERS.join(',')];
+  for (const d of dates) {
+    const e = allEntries[d];
+    const cells = CSV_FIELD_ORDER.map(f => {
+      if (f === '__date') return d;
+      if (CALC_FIELDS.includes(f)) {
+        const n = evalExpr(e[f]);
+        return n === null ? '' : csvEscape(n);
+      }
+      return csvEscape(e[f]);
+    });
+    rows.push(cells.join(','));
+  }
+  return { csv: rows.join('\n'), count: dates.length };
+}
+function downloadFile(filename, content) {
+  const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderExportPanel() {
+  const dates = Object.keys(allEntries).sort();
+  const totalEntriesEl = document.getElementById('totalEntries');
+  const exportRangeEl = document.getElementById('exportRange');
+  if (totalEntriesEl) totalEntriesEl.textContent = dates.length;
+  if (exportRangeEl) exportRangeEl.textContent = dates.length ? `${dates[0]} → ${dates[dates.length-1]}` : 'No data yet';
+
+  const sec = document.getElementById('securitySection');
+  if (sec) {
+    const userEmail = (window.__myday_user_email) || 'signed in';
+    sec.innerHTML = `
+      <div class="section-head"><h2>Account</h2><span class="num">👤</span></div>
+      <p class="quiet" style="margin-bottom: 12px;">Signed in as <strong style="color: var(--ink); font-style: normal;">${userEmail}</strong>. Data lives in your private Supabase database.</p>
+      <button class="chip" id="signOutBtn">Sign out</button>
+    `;
+    document.getElementById('signOutBtn').addEventListener('click', handleSignOut);
+  }
+}
+
+// =========== AUTH ===========
+async function handleSignIn() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPw1').value;
+  const errorEl = document.getElementById('authError');
+  const submitBtn = document.getElementById('authSubmit');
+  errorEl.classList.add('hidden');
+  if (!email || !pw) {
+    errorEl.textContent = 'Email and password required';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password: pw });
+    if (error) throw error;
+    if (!data || !data.user) throw new Error('No user returned');
+    userId = data.user.id;
+    window.__myday_user_email = data.user.email;
+    document.getElementById('authPw1').value = '';
+    document.getElementById('authOverlay').classList.add('hidden');
+    await loadAndStart();
+  } catch (e) {
+    console.error('sign in failed', e);
+    errorEl.textContent = (e && e.message) ? e.message : 'Sign in failed';
+    errorEl.classList.remove('hidden');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign in';
+  }
+}
+
+async function handleSignOut() {
+  if (!confirm('Sign out? You\'ll need to enter your email and password to come back.')) return;
+  await supa.auth.signOut();
+  window.location.reload();
+}
+
+// =========== INIT ===========
+async function loadAndStart() {
+  showImport('Loading your entries…', 'From Supabase');
+  try {
+    allEntries = await fetchAllEntries();
+  } catch (e) {
+    console.error('initial fetch failed', e);
+    hideImport();
+    toast('Failed to load entries: ' + (e.message || 'unknown'));
+    allEntries = {};
+  }
+  hideImport();
+  currentEntry = allEntries[currentDate] ? Object.assign(blankEntry(), allEntries[currentDate]) : blankEntry();
+  renderDateNav();
+  renderEntry();
+  setSaveState('');
+  renderExportPanel();
+}
+
+function showImport(main, sub) {
+  document.getElementById('importMsgMain').textContent = main;
+  document.getElementById('importMsgSub').textContent = sub;
+  document.getElementById('importOverlay').classList.remove('hidden');
+}
+function hideImport() {
+  document.getElementById('importOverlay').classList.add('hidden');
+}
+
+async function init() {
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+  document.getElementById('monthPrev').addEventListener('click', () => { monthCursor = shiftYM(monthCursor, -1); renderMonth(); });
+  document.getElementById('monthNext').addEventListener('click', () => { monthCursor = shiftYM(monthCursor, 1); renderMonth(); });
+  document.getElementById('exportAllBtn').addEventListener('click', () => {
+    const { csv, count } = buildCsv(null);
+    if (!count) { toast('No entries to export'); return; }
+    downloadFile('myday_all.csv', csv);
+    toast(`Exported ${count} entries`);
+  });
+  document.getElementById('exportMonthBtn').addEventListener('click', () => {
+    const ym = ymOfIso(currentDate);
+    const { csv, count } = buildCsv(ym);
+    if (!count) { toast('No entries this month'); return; }
+    downloadFile(`myday_${ym}.csv`, csv);
+    toast(`Exported ${count} entries for ${ymTitle(ym)}`);
+  });
+
+  bindForm();
+
+  // Auth wiring
+  document.getElementById('authSubmit').addEventListener('click', handleSignIn);
+  document.getElementById('authEmail').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('authPw1').focus();
+  });
+  document.getElementById('authPw1').addEventListener('keypress', e => {
+    if (e.key === 'Enter') handleSignIn();
+  });
+
+  // Check for existing session
+  const { data: { session } } = await supa.auth.getSession();
+  if (session && session.user) {
+    userId = session.user.id;
+    window.__myday_user_email = session.user.email;
+    document.getElementById('authOverlay').classList.add('hidden');
+    await loadAndStart();
+  } else {
+    // No session — auth overlay is already visible by default
+    document.getElementById('authEmail').focus();
+  }
+}
+
+init().catch(err => {
+  console.error('init failed', err);
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#B5421C;text-align:center;"><h2>Failed to start</h2><p>' + (err && err.message ? err.message : 'Unknown error') + '</p></div>';
+});
+</script>
+</body>
+</html>
