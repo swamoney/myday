@@ -21,5 +21,5 @@ window.MYDAY_CONFIG = {
   // Paste your anon (public) key here, between the quotes.
   // Looks like: "eyJhbGciOiJI..." (very long string starting with eyJ)
   // Or newer format: "sb_publishable_..."
-  SUPABASE_ANON_KEY: "sb_publishable_o9CWGFZ4XrY6v7WOtJU5cA_3S-rbgOE"
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh4Y2dyeWNrd2Ftenlrendjc3JwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3MTQwOTQsImV4cCI6MjA5MzI5MDA5NH0.ZH47nNGe0kxLnOnpnartcH2H9zdAfEqDimiy1X-ezWQ"
 };
