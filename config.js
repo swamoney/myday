@@ -16,7 +16,7 @@
 window.MYDAY_CONFIG = {
   // Paste your Project URL here, between the quotes.
   // Looks like: "https://abcdefghijk.supabase.co"
-  SUPABASE_URL: "https://xxcgryckwamzykzwcsrp.supabase.co/rest/v1/",
+  SUPABASE_URL: "https://xxcgryckwamzykzwcsrp.supabase.co",
 
   // Paste your anon (public) key here, between the quotes.
   // Looks like: "eyJhbGciOiJI..." (very long string starting with eyJ)
