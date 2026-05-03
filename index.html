@@ -1,0 +1,3656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>My Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
+<!-- jsPDF for annual PDF export — loaded lazily; only fetched when PDF is generated -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
+<style>
+  :root {
+    /* D4 Midnight & Ember palette */
+    --bg: #E0E7F0; --paper: #F8FAFC; --paper-soft: #ECF1F7;
+    --ink: #0A1325; --ink-soft: #28324B; --muted: #3D4866;
+    --rule: #BDC9DC; --rule-strong: #95A4BB;
+    --accent: #0F2D5C; --accent-soft: #DCE5F2; --accent-ink: #0A1F45;
+    --ember: #8A1F1A; --ember-soft: #F2D9D6; --ember-ink: #571412;
+    --moss: #356B4E; --moss-soft: #DCE8DF;
+    --warn: #8A1F1A;
+    --green-soft: #DCE8DF; --green-border: #9DB8A6; --green-ink: #1F4630;
+    --red-soft: #F2D9D6; --red-border: #C49992; --red-ink: #571412;
+    --shadow: 0 1px 0 rgba(10,19,37,0.03), 0 8px 24px rgba(10,19,37,0.07);
+    --serif: 'Fraunces', 'Georgia', serif;
+    --sans: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', 'SF Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: var(--bg); color: var(--ink); font-family: var(--sans); font-weight: 400; line-height: 1.5; min-height: 100vh; }
+  body { padding: 16px 12px 80px; background-image: radial-gradient(rgba(15,45,92,0.030) 1px, transparent 1px); background-size: 20px 20px; }
+  main { max-width: 520px; margin: 0 auto; }
+  input, textarea, button, select { font-family: inherit; font-size: inherit; color: inherit; }
+  textarea { resize: vertical; }
+
+  .masthead { text-align: center; padding: 8px 0 22px; border-bottom: 1px solid var(--rule-strong); margin-bottom: 16px; position: relative; }
+  .masthead .kicker {
+    font-family: var(--serif); font-style: italic; font-weight: 400;
+    font-size: 14px; letter-spacing: 0.005em; text-transform: none;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .masthead h1 { font-family: var(--serif); font-weight: 500; font-style: italic; font-size: 38px; letter-spacing: -0.015em; color: var(--ink); line-height: 1.05; }
+  .masthead .rule { display: flex; justify-content: center; gap: 8px; margin-top: 6px; }
+  .masthead .rule span { width: 4px; height: 4px; border-radius: 50%; background: var(--rule-strong); }
+  .masthead-search-btn {
+    position: absolute; top: 14px; right: 4px;
+    background: transparent; border: 1px solid var(--rule-strong);
+    color: var(--ink-soft); cursor: pointer;
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; padding: 0;
+  }
+  .masthead-search-btn svg { width: 16px; height: 16px; }
+  .masthead-search-btn:hover { color: var(--ink); border-color: var(--ink); background: var(--paper); }
+  .masthead-search-btn:active { transform: scale(0.94); }
+
+  /* Search overlay */
+  .search-overlay {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 14px; padding: 0; margin-bottom: 16px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .search-overlay.hidden { display: none; }
+  .search-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-bottom: 1px solid var(--rule);
+  }
+  .search-bar .search-icon {
+    width: 18px; height: 18px; color: var(--muted); flex-shrink: 0;
+  }
+  .search-input {
+    flex: 1; border: none; outline: none; background: transparent;
+    font-family: var(--serif); font-style: italic; font-size: 18px;
+    color: var(--ink); padding: 4px 0;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-close-btn {
+    background: transparent; border: none; color: var(--muted);
+    cursor: pointer; padding: 4px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; transition: all 0.15s;
+  }
+  .search-close-btn svg { width: 16px; height: 16px; }
+  .search-close-btn:hover { color: var(--ink); background: var(--paper-soft); }
+  .search-meta {
+    padding: 8px 14px; font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--rule);
+  }
+  .search-meta.hidden { display: none; }
+  .search-results { max-height: 60vh; overflow-y: auto; }
+  .search-results:empty { display: none; }
+  .search-result {
+    padding: 12px 14px; border-bottom: 1px solid var(--rule);
+    cursor: pointer; transition: background 0.12s;
+    display: grid; grid-template-columns: 64px 1fr 56px;
+    gap: 12px; align-items: start;
+  }
+  .search-result:last-child { border-bottom: none; }
+  .search-result:hover { background: var(--paper-soft); }
+  .search-result .sr-date {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+    color: var(--muted); text-transform: uppercase; line-height: 1.2;
+  }
+  .search-result .sr-date strong {
+    display: block; font-family: var(--serif); font-style: italic;
+    font-size: 18px; font-weight: 700; color: var(--ink);
+    margin-top: 2px; letter-spacing: -0.01em;
+  }
+  .search-result .sr-snippet {
+    font-family: var(--sans); font-size: 13px; color: var(--ink);
+    line-height: 1.45; word-wrap: break-word; overflow-wrap: break-word;
+  }
+  .search-result .sr-snippet .field-name {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+    color: var(--muted); text-transform: uppercase; display: block;
+    margin-bottom: 2px;
+  }
+  .search-result .sr-snippet mark {
+    background: #F2DEE2; color: #6E2D40; padding: 0 2px;
+    border-radius: 2px; font-weight: 600;
+  }
+  .search-result .sr-sat {
+    font-family: var(--serif); font-style: italic;
+    font-size: 14px; font-weight: 700; color: var(--moss);
+    text-align: right; line-height: 1.2;
+  }
+  .search-result .sr-sat.low { color: var(--ember); }
+  .search-result .sr-sat.empty { color: var(--muted); font-weight: 400; }
+  .search-empty {
+    padding: 24px 14px; text-align: center;
+    font-family: var(--serif); font-style: italic; color: var(--muted);
+    font-size: 14px;
+  }
+
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 4px; margin-bottom: 16px; }
+  .tab { background: transparent; border: 0; padding: 10px 8px; font-size: 13px; font-weight: 500; color: var(--ink-soft); border-radius: 999px; cursor: pointer; transition: all 0.18s; letter-spacing: 0.02em; }
+  .tab.active { background: var(--ink); color: var(--paper); }
+
+  .datenav { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 14px 14px 12px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .datenav .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .datenav .arrow { background: transparent; border: 1px solid var(--rule); border-radius: 10px; width: 38px; height: 38px; display: grid; place-items: center; cursor: pointer; color: var(--ink-soft); font-size: 18px; transition: all 0.15s; }
+  .datenav .arrow:active { background: var(--paper-soft); transform: scale(0.96); }
+  .datenav .center { text-align: center; flex: 1; }
+  .datenav-hint { font-family: var(--mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); padding: 6px 0; }
+  .datenav .picker { display: flex; gap: 8px; margin-top: 10px; }
+  .datenav input[type="date"] { flex: 1; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 10px; font-family: var(--mono); font-size: 13px; color: var(--ink); }
+  .datenav .today-btn { background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+  .datenav .today-btn:active { background: var(--accent); color: var(--paper); }
+  .savestate {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted); text-align: center;
+    margin-top: 8px; min-height: 16px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%;
+  }
+  .savestate::before {
+    content: ''; display: inline-block; width: 6px; height: 6px;
+    border-radius: 50%; background: transparent; flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .savestate.saving { color: var(--accent); }
+  .savestate.saving::before {
+    background: var(--accent);
+    animation: save-pulse 1.0s ease-in-out infinite;
+  }
+  .savestate.saved { color: var(--moss); }
+  .savestate.saved::before {
+    background: var(--moss);
+    animation: save-pulse-once 0.6s ease-out 1;
+  }
+  .savestate.failed {
+    color: var(--warn); white-space: normal; line-height: 1.4; padding: 4px 8px;
+    background: #FCE9E2; border-radius: 6px; text-transform: none;
+    letter-spacing: normal; font-family: var(--sans); font-size: 11px;
+    display: block; min-height: auto;
+  }
+  .savestate.failed::before { display: none; }
+  @keyframes save-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.6); opacity: 0.4; }
+  }
+  @keyframes save-pulse-once {
+    0% { transform: scale(0.4); opacity: 0; }
+    50% { transform: scale(1.6); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .section.s-expenses .input, .section.s-expenses .textarea { background: #FAEFEC; }
+  /* Expense fields (NOT Top-Up) — subtle red fill to signal money-out */
+  .section.s-expenses #f_food,
+  .section.s-expenses #f_dmart,
+  .section.s-expenses #f_uber,
+  .section.s-expenses #f_other {
+    background: #F5DDD5; border-color: #D9B5AC;
+  }
+  .section.s-expenses #f_food:focus,
+  .section.s-expenses #f_dmart:focus,
+  .section.s-expenses #f_uber:focus,
+  .section.s-expenses #f_other:focus {
+    background: #F8E4DD; border-color: var(--ember);
+  }
+  /* Top-Up Investment field — deep navy to signal money-IN (wealth deployment).
+     Inverts the rose treatment of expense fields; uses the palette's --accent. */
+  .section.s-expenses #f_topUp {
+    background: #0F2D5C; color: #F2EFE7;
+    border-color: #0F2D5C;
+    caret-color: #F2EFE7;
+  }
+  .section.s-expenses #f_topUp::placeholder {
+    color: rgba(242,239,231,0.42);
+  }
+  .section.s-expenses #f_topUp:focus {
+    background: #1A3D70; border-color: #C9A35E;
+  }
+  /* The currency symbol, plus button, and total all live alongside the dark input —
+     style them to match the navy treatment for visual coherence */
+  .section.s-expenses .currency-symbol:has(+ #f_topUp),
+  .section.s-expenses #f_topUp ~ .currency-symbol {
+    color: rgba(242,239,231,0.65);
+  }
+  .section.s-expenses .plus-btn[data-calc-plus="f_topUp"] {
+    background: #0F2D5C; border-color: #0F2D5C; color: #F2EFE7;
+  }
+  .section.s-expenses .plus-btn[data-calc-plus="f_topUp"]:active {
+    background: #1A3D70; border-color: #C9A35E; transform: scale(0.96);
+  }
+  .section.s-expenses #f_topUp_calc {
+    color: #F2EFE7; background: #0F2D5C;
+  }
+  .section.s-health .input, .section.s-health .textarea { background: #ECF3EB; }
+  /* The Hours runs in dark mode — its inputs use a dark input field with light text */
+  .section.s-time .input, .section.s-time .textarea {
+    background: rgba(255,255,255,0.04); color: #F8F8F8;
+    border-color: rgba(248,248,248,0.18);
+  }
+  .section.s-time .input::placeholder, .section.s-time .textarea::placeholder {
+    color: rgba(248,248,248,0.42);
+  }
+  .section.s-time .input:focus, .section.s-time .textarea:focus {
+    background: rgba(255,255,255,0.06); border-color: rgba(232,223,201,0.55);
+  }
+  .section.s-food .input, .section.s-food .textarea { background: #F5EDDB; }
+  .section.s-night .input, .section.s-night .textarea { background: #ECEAF6; }
+  .section { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 16px; margin-bottom: 14px; box-shadow: var(--shadow); --section-accent: var(--accent); }
+
+  /* Per-section colour identity (Variant B) — subtle tinted backgrounds + matching accent */
+  .section.s-expenses { background: #FDF7F6; border-color: #E0CFCC; --section-accent: #8A1F1A; }
+  .section.s-health   { background: #F4F8F3; border-color: #C9D8C9; --section-accent: #356B4E; }
+  .section.s-time     { background: #0B0B0E; border-color: #0B0B0E; --section-accent: #E8DFC9; }
+  .section.s-food     { background: #FBF6EC; border-color: #DDCCAB; --section-accent: #BA7517; }
+  .section.s-verdict  { background: #FAF1F1; border-color: #E5C9CC; --section-accent: #A04A60; }
+  .section.s-night    { background: #F5F4FB; border-color: #CECBE5; --section-accent: #534AB7; }
+
+  /* Dark-mode internals for The Hours section — flips ink + muted to light tones
+     so all section content remains legible against the #0B0B0E background */
+  .section.s-time .section-head h2 { color: #F8F8F8; }
+  .section.s-time .section-head .rule-fill { background: rgba(248,248,248,0.20); }
+  .section.s-time .field label { color: #F8F8F8; }
+  .section.s-time .field label .sub { color: rgba(248,248,248,0.55); }
+  .section.s-time .slot-time { color: #F8F8F8; }
+  .section.s-time .slot-period { color: rgba(248,248,248,0.55); }
+  .section.s-time .chip {
+    color: rgba(248,248,248,0.78); border-color: rgba(248,248,248,0.30);
+    background: rgba(255,255,255,0.04);
+  }
+  .section.s-time .chip:active {
+    background: rgba(232,223,201,0.18); border-color: #E8DFC9; color: #F8F8F8;
+  }
+  .section.s-time .chip.bulk {
+    border-style: solid; border-color: rgba(248,248,248,0.50); color: #F8F8F8;
+  }
+  .section.s-time .chip.suggest {
+    border-style: dotted; border-color: rgba(232,223,201,0.55); color: rgba(232,223,201,0.85);
+    background: rgba(232,223,201,0.06);
+  }
+  .section-head {
+    display: flex; align-items: baseline; gap: 10px;
+    margin-bottom: 14px; padding-bottom: 0;
+    border-bottom: none;
+  }
+  .section-head .icon {
+    flex-shrink: 0; align-self: center;
+    width: 18px; height: 18px;
+    color: var(--section-accent, var(--accent));
+  }
+
+  /* Decorative section illustration — centered above the heading.
+     Single-line ink drawing, ~50px tall, picks up the section's own accent colour. */
+  .section-illustration {
+    display: flex; justify-content: center; align-items: center;
+    margin: 4px auto 14px; padding: 0;
+    color: var(--section-accent, var(--accent)); opacity: 0.85;
+  }
+  .section-illustration svg {
+    height: 50px; width: auto; display: block;
+  }
+  .section-head h2 {
+    font-family: var(--serif); font-style: italic; font-size: 19px;
+    font-weight: 700; color: var(--ink); letter-spacing: -0.005em;
+    text-transform: none;
+  }
+  .section-head .rule-fill { flex: 1; height: 1px; background: var(--rule-strong); margin: 0 4px; align-self: center; }
+  .section-head .num {
+    font-family: var(--serif); font-style: italic; font-size: 14px;
+    color: var(--section-accent, var(--ember)); font-weight: 400;
+  }
+
+  /* Editorial framed-banner kicker for daily entry header */
+  .editorial-kicker {
+    text-align: center; padding: 16px 14px; margin-bottom: 14px;
+    border-top: none;
+    border-bottom: none;
+    position: relative;
+    background: #2A2D34;
+    border-radius: 8px;
+  }
+  .editorial-kicker .meta {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.32em;
+    text-transform: uppercase; color: rgba(255,255,255,0.60); margin-bottom: 6px;
+  }
+  .editorial-kicker .kicker-line {
+    font-family: var(--serif); font-style: normal; font-weight: 500;
+    font-size: 22px; color: #FFFFFF; line-height: 1.15;
+    letter-spacing: 0.005em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .editorial-kicker .kicker-line .day-part {
+    font-weight: 600;
+  }
+  .editorial-kicker .kicker-line .sep {
+    color: rgba(255,255,255,0.50); margin: 0 4px;
+  }
+  .editorial-kicker .kicker-line .date-part {
+    font-weight: 400; color: rgba(255,255,255,0.88);
+  }
+  .editorial-kicker .glyph-stamp {
+    position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
+    background: var(--bg); padding: 0 10px;
+    color: #C7484A; font-family: var(--serif); font-style: italic; font-size: 16px;
+    line-height: 1; border-radius: 4px;
+  }
+  /* Old ornament class kept for masthead use */
+  .editorial-ornament {
+    display: flex; justify-content: center; align-items: center;
+    gap: 8px; margin: 8px 0 4px;
+  }
+  .editorial-ornament .line { height: 1px; width: 28px; background: var(--rule-strong); }
+  .editorial-ornament .glyph {
+    font-family: var(--serif); font-style: italic;
+    color: var(--ember); font-size: 13px;
+  }
+
+  /* Morning Prompt card at top of Today tab — labelless, ornament + prompt */
+  .morning-card {
+    margin-bottom: 16px; padding: 0;
+    background: #FCFAF6; border: 1px solid #E8DFC9;
+    border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .morning-ornament-top {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 20px 16px 0;
+  }
+  .morning-ornament-top .line {
+    flex: 1; max-width: 70px; height: 1px; background: #C9BC95;
+  }
+  .morning-ornament-top .glyph {
+    font-family: var(--serif); font-style: italic;
+    color: #B8853E; font-size: 14px; line-height: 1;
+  }
+  .morning-body {
+    padding: 14px 28px 24px; text-align: center;
+    font-family: 'Kalam', 'Fraunces', cursive; font-weight: 400;
+    font-size: 19px; color: #2A1F0A; line-height: 1.55;
+  }
+
+  /* Daily Reflection card at bottom of Today tab */
+  .reflection-card {
+    margin-top: 24px; padding: 0;
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 14px; overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .reflection-kicker {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 18px 16px 4px;
+  }
+  .reflection-kicker .line { flex: 1; max-width: 60px; height: 1px; background: var(--rule-strong); }
+  .reflection-kicker .label {
+    font-family: var(--mono); font-size: 9px; letter-spacing: 0.32em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .reflection-kicker .glyph {
+    font-family: var(--serif); font-style: italic;
+    color: var(--ember); font-size: 13px;
+  }
+  .reflection-kicker .dots {
+    font-family: var(--serif); font-size: 14px; font-weight: 700;
+    color: var(--ember); letter-spacing: 0.18em;
+    line-height: 1; padding-bottom: 2px;
+  }
+  .reflection-body { padding: 0; min-height: 80px; }
+  .reflection-quote {
+    padding: 18px 28px 28px; text-align: center;
+    font-family: var(--serif); font-style: italic; font-size: 18px;
+    color: var(--ink); line-height: 1.55; font-weight: 400;
+    position: relative;
+  }
+  .reflection-quote .reflection-mark {
+    color: var(--ember); font-size: 28px; font-weight: 600;
+    line-height: 0; position: relative; top: 6px; margin-right: 2px;
+  }
+  .reflection-quote .reflection-text {
+    /* nothing extra — inherits from blockquote */
+  }
+  .reflection-quote .attr {
+    display: block; margin-top: 14px;
+    font-family: var(--mono); font-style: normal; font-size: 10px;
+    letter-spacing: 0.20em; text-transform: uppercase; color: var(--muted);
+    font-weight: 500;
+  }
+  .reflection-quote .attr::before {
+    content: '— '; color: var(--ember); margin-right: 2px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 14px; font-weight: 700;
+    color: var(--ink); letter-spacing: 0.005em; margin-bottom: 8px;
+    font-family: var(--sans);
+  }
+  .field label .sub { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 4px; letter-spacing: 0; }
+
+  .input, .textarea {
+    width: 100%; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 11px 12px; font-size: 15px; color: var(--ink); transition: border-color 0.15s, background 0.15s;
+  }
+  .input:focus, .textarea:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+  .textarea { min-height: 64px; line-height: 1.4; font-size: 14px; }
+
+  /* CALCULATOR FIELDS */
+  .calc-row { display: flex; gap: 6px; align-items: stretch; }
+  .currency-wrap { flex: 1; position: relative; display: flex; align-items: center; }
+  .currency-symbol {
+    position: absolute; left: 12px; font-family: var(--mono); font-weight: 500; color: var(--muted); pointer-events: none; font-size: 15px;
+  }
+  .calc-row .input { padding-left: 28px; font-family: var(--mono); font-variant-numeric: tabular-nums; width: 100%; }
+  .plus-btn {
+    width: 46px; flex-shrink: 0; border: 1px solid var(--rule); border-radius: 10px;
+    background: var(--paper-soft); font-family: var(--mono); font-size: 20px; color: var(--accent);
+    cursor: pointer; transition: all 0.15s; font-weight: 500;
+  }
+  .plus-btn:active { background: var(--accent-soft); border-color: var(--accent); transform: scale(0.96); }
+  .calc-total {
+    font-family: var(--mono); font-size: 13px; color: var(--accent-ink); font-weight: 500;
+    margin-top: 6px; padding: 5px 10px; background: var(--accent-soft); border-radius: 6px;
+    letter-spacing: 0.01em; display: inline-block;
+  }
+  .calc-total.error { color: var(--warn); background: transparent; padding-left: 0; }
+
+  /* TOGGLES */
+  .toggle-row { display: flex; gap: 8px; }
+  .toggle-btn {
+    flex: 1; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 11px 10px; font-size: 14px; font-weight: 500; color: var(--ink-soft); cursor: pointer; transition: all 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .toggle-btn:active { transform: scale(0.97); }
+  .toggle-btn.yes.active { background: var(--moss); color: var(--paper); border-color: var(--moss); font-weight: 600; }
+  .toggle-btn.no.active { background: #B22222; color: var(--paper); border-color: #B22222; font-weight: 600; }
+  .toggle-btn.no.active:hover { background: #C53030; border-color: #C53030; }
+
+  /* LEGACY NOTE (for free-text introspection from old data) */
+  .legacy-note {
+    margin-top: 8px; padding: 8px 10px; background: var(--paper-soft); border-left: 3px solid var(--rule-strong);
+    font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--ink-soft); border-radius: 4px;
+  }
+  .legacy-note strong { font-family: var(--mono); font-style: normal; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 2px; }
+
+  /* SLIDER */
+  .slider-wrap { padding-top: 4px; }
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-value {
+    font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 500;
+    background: #F2DEE2; color: #6E2D40; padding: 6px 10px; border-radius: 8px; min-width: 58px; text-align: center;
+  }
+  input[type="range"] {
+    flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px;
+    background: linear-gradient(to right, #A04A60 0%, #A04A60 var(--pct, 95%), #E5C9CC var(--pct, 95%), #E5C9CC 100%);
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--paper); border: 2px solid #A04A60; cursor: pointer; box-shadow: var(--shadow);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 22px; height: 22px; border-radius: 50%; background: var(--paper); border: 2px solid #A04A60; cursor: pointer;
+  }
+
+  /* Yesterday's verdict ghost — quiet reference point shown below the slider */
+  .yesterday-ghost {
+    margin-top: 8px; text-align: right;
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em;
+    color: #A04A60; opacity: 0.65;
+  }
+  .yesterday-ghost span { font-weight: 600; }
+  .yesterday-ghost.hidden { display: none; }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip {
+    background: transparent; border: 1px dashed var(--rule-strong); border-radius: 999px;
+    padding: 5px 11px; font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+    cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em;
+  }
+  .chip:active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); transform: scale(0.96); }
+  .chip.bulk { border-style: solid; border-color: var(--ink); color: var(--ink); }
+
+  /* Suggest chip — appears when last 5 days had a repeating slot value */
+  .chip.suggest {
+    border-style: dotted; border-color: #3A3833; color: #3A3833;
+    background: rgba(58,56,51,0.04);
+    font-style: italic;
+  }
+  .chip.suggest::before {
+    content: '↺ '; opacity: 0.7;
+  }
+  .chip.suggest.hidden { display: none; }
+
+  /* TIME SLOT */
+  .slot { margin-bottom: 14px; }
+  .slot:last-child { margin-bottom: 0; }
+  .slot-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .slot-time {
+    font-family: var(--sans); font-size: 14px; font-weight: 700;
+    letter-spacing: 0.005em; color: var(--ink);
+  }
+  .slot-period { font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--muted); }
+
+  /* FOOD */
+  .meal { margin-bottom: 14px; }
+  .meal:last-child { margin-bottom: 0; }
+  .meal-label { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .meal-label .name { font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: 0.005em; }
+  .meal-label .time { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+
+  /* MONTH */
+  .month-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 8px; }
+  .month-quickjump {
+    display: flex; gap: 8px; margin-bottom: 16px; align-items: stretch;
+  }
+  .month-quick-input {
+    flex: 1; background: var(--paper); border: 1px solid var(--rule); border-radius: 8px;
+    padding: 8px 10px; font-family: var(--mono); font-size: 13px; color: var(--ink);
+  }
+  .month-quick-input:focus { outline: none; border-color: var(--accent); }
+  .month-quick-btn {
+    background: transparent; border: 1px solid var(--accent); color: var(--accent);
+    border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 500;
+    letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .month-quick-btn:active { background: var(--accent); color: var(--paper); }
+  .month-title {
+    font-family: var(--serif); font-size: 22px; font-weight: 500; flex: 1; text-align: center;
+    background: transparent; border: none; padding: 8px 12px; border-radius: 10px;
+    cursor: pointer; transition: background 0.15s; color: var(--ink);
+  }
+  .month-title:hover, .month-title:active { background: var(--paper); }
+  .month-title::after { content: ' ▾'; font-size: 14px; color: var(--muted); }
+  .month-arrow { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; }
+
+  /* SUB-TABS (inside Calendar) */
+  .subtabs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 999px;
+    padding: 3px; margin-bottom: 14px;
+  }
+  .subtab {
+    background: transparent; border: 0; padding: 8px 6px; font-size: 12px; font-weight: 500;
+    color: var(--ink-soft); border-radius: 999px; cursor: pointer; letter-spacing: 0.02em;
+    transition: all 0.18s;
+  }
+  .subtab.active { background: var(--accent); color: var(--paper); }
+
+  /* CHART CARDS */
+  .chart-card {
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 14px 14px 10px; margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .chart-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .chart-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+  .chart-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .chart-meta strong { color: var(--ink); font-weight: 500; }
+  .chart-svg-wrap { width: 100%; overflow: visible; }
+  .chart-svg-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart-empty { padding: 30px 10px; text-align: center; color: var(--muted); font-style: italic; font-size: 13px; }
+
+  /* CHART ELEMENTS */
+  .ch-axis { stroke: var(--rule); stroke-width: 1; }
+  .ch-axis-label { font-family: var(--mono); font-size: 9px; fill: var(--muted); letter-spacing: 0.04em; }
+  .ch-grid-line { stroke: var(--rule); stroke-width: 0.5; stroke-dasharray: 2,3; }
+  .ch-bar { transition: opacity 0.15s; cursor: pointer; }
+  .ch-bar:hover { opacity: 0.75; }
+  .ch-bar-spend { fill: var(--accent); }
+  .ch-bar-spend-food { fill: #8A1F1A; }
+  .ch-bar-spend-dmart { fill: #A04A45; }
+  .ch-bar-spend-uber { fill: #BD7570; }
+  .ch-bar-spend-other { fill: #D9A09B; }
+  .ch-bar-topup { fill: var(--green-ink); }
+  .ch-bar-walk { fill: var(--moss); }
+  .ch-bar-sat { fill: var(--accent); }
+  .ch-bar-sat-low { fill: var(--warn); }
+  .ch-line { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+  .ch-line-secondary { fill: none; stroke: var(--moss); stroke-width: 1.5; }
+  .ch-dot { fill: var(--accent); }
+  .ch-dot-secondary { fill: var(--moss); }
+  .ch-tooltip-target { cursor: pointer; }
+  .ch-tooltip-target:hover { opacity: 0.8; }
+  .ch-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; padding: 0 4px; }
+  .ch-legend-item { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 10px; color: var(--ink-soft); letter-spacing: 0.02em; }
+  .ch-legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+  .ch-x-marker { font-family: var(--mono); font-size: 9px; fill: var(--muted); }
+  .ch-y-marker { font-family: var(--mono); font-size: 9px; fill: var(--muted); text-anchor: end; }
+  .ch-tooltip {
+    position: fixed; pointer-events: none; background: var(--ink); color: var(--paper);
+    padding: 6px 9px; border-radius: 6px; font-family: var(--mono); font-size: 11px;
+    transform: translate(-50%, -120%); white-space: nowrap; z-index: 150;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: none;
+  }
+  .ch-tooltip.visible { display: block; }
+
+  /* YEAR + MONTH PICKER */
+  .ym-picker {
+    position: fixed; inset: 0; background: rgba(26,31,44,0.45); z-index: 220;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    backdrop-filter: blur(4px);
+  }
+  .ym-picker-box {
+    background: var(--paper); border: 1px solid var(--rule-strong); border-radius: 16px;
+    width: 100%; max-width: 380px; max-height: 80vh; overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+  }
+  .ym-picker-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 12px; border-bottom: 1px solid var(--rule);
+  }
+  .ym-picker-title { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink); }
+  .ym-picker-close {
+    background: transparent; border: none; font-size: 24px; color: var(--muted);
+    cursor: pointer; line-height: 1; padding: 0 6px;
+  }
+  .ym-picker-close:hover { color: var(--ink); }
+  .ym-picker-body { padding: 14px 16px 18px; overflow-y: auto; }
+  .ym-picker-section { margin-bottom: 4px; }
+  .ym-picker-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+  }
+  .ym-picker-label span { color: var(--accent); }
+  .ym-picker-grid { display: grid; gap: 6px; }
+  .ym-picker-years { grid-template-columns: repeat(3, 1fr); }
+  .ym-picker-months { grid-template-columns: repeat(3, 1fr); margin-bottom: 12px; }
+  .ym-picker-cell {
+    background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 12px 8px; font-family: var(--mono); font-size: 14px; color: var(--ink);
+    cursor: pointer; transition: all 0.12s; text-align: center; font-weight: 500;
+  }
+  .ym-picker-cell:active { transform: scale(0.96); }
+  .ym-picker-cell:hover { background: var(--paper); border-color: var(--rule-strong); }
+  .ym-picker-cell.has-data { border-color: var(--accent); color: var(--accent-ink); }
+  .ym-picker-cell.has-data:hover { background: var(--accent-soft); }
+  .ym-picker-cell.empty { opacity: 0.4; }
+  .ym-picker-cell.current { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .ym-picker-back {
+    background: transparent; border: none; color: var(--muted); cursor: pointer;
+    font-size: 12px; padding: 8px; width: 100%; text-align: center; letter-spacing: 0.02em;
+  }
+  .ym-picker-back:hover { color: var(--ink-soft); }
+  .totals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .total-card { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px; }
+  .total-card .lbl {
+    font-family: var(--sans); font-size: 13px; letter-spacing: 0;
+    color: var(--ink); text-transform: none; margin-bottom: 8px;
+    font-weight: 700; line-height: 1.2;
+  }
+  .total-card .val { font-family: var(--sans); font-size: 19px; font-weight: 700; color: var(--ink); letter-spacing: -0.005em; line-height: 1.15; }
+  .total-card .sub { font-family: var(--sans); font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; letter-spacing: 0.01em; }
+  .total-card.accent { background: var(--accent-soft); border-color: var(--accent); }
+  .total-card.accent .val { color: var(--accent-ink); }
+  .total-card.green { background: var(--green-soft); border-color: var(--green-border); }
+  .total-card.green .val { color: var(--green-ink); }
+  .total-card.green .lbl { color: var(--green-ink); }
+  .total-card.red { background: var(--red-soft); border-color: var(--red-border); }
+  .total-card.red .val { color: var(--red-ink); }
+  .total-card.red .lbl { color: var(--red-ink); }
+  .total-card.full { grid-column: 1 / -1; }
+  .total-card.full .lbl { font-size: 14px; }
+  .total-card.full .val { font-size: 24px; }
+
+  .day-list { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+  .day-row { display: grid; grid-template-columns: 60px 1fr 64px; gap: 12px; align-items: center; padding: 14px 14px; border-bottom: 1px solid var(--rule); cursor: pointer; transition: background 0.12s; }
+  .day-row:last-child { border-bottom: none; }
+  .day-row:hover { background: var(--paper-soft); }
+  .day-row:active { background: var(--paper-soft); }
+  .day-row .dt {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    color: var(--muted); text-transform: uppercase; line-height: 1.1;
+  }
+  .day-row .dt strong {
+    display: block; font-family: var(--serif); font-size: 22px;
+    color: var(--ink); font-weight: 700; font-style: italic;
+    letter-spacing: -0.01em; margin-top: 2px;
+  }
+  .day-row .summary {
+    font-family: var(--sans); font-size: 14px; font-weight: 500;
+    color: var(--ink); line-height: 1.4;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .day-row .summary .quiet {
+    color: var(--muted); font-style: italic; font-weight: 400;
+  }
+  .day-row .sat {
+    font-family: var(--serif); font-size: 16px;
+    text-align: right; color: var(--moss); font-weight: 700;
+    font-style: italic; letter-spacing: -0.01em;
+  }
+  .day-row .sat.low { color: var(--ember); }
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-state .e-icon { font-family: var(--serif); font-size: 32px; font-style: italic; color: var(--rule-strong); margin-bottom: 8px; }
+
+  /* EXPORT */
+  .export-card { text-align: center; }
+  .export-card .big-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--ink); color: var(--paper); border: none; border-radius: 12px;
+    padding: 14px 28px; font-size: 14px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    cursor: pointer; margin-top: 8px; transition: all 0.15s;
+  }
+  .export-card .big-btn:active { transform: scale(0.97); background: var(--accent); }
+  .export-card .big-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .export-card .big-btn:disabled:active { transform: none; background: var(--ink); }
+  .export-meta { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5; }
+  .export-meta strong { color: var(--ink); font-weight: 500; }
+
+  /* Annual PDF controls */
+  .pdf-controls {
+    display: flex; flex-direction: column; align-items: stretch; gap: 0;
+    max-width: 320px; margin: 0 auto;
+  }
+  .pdf-year-label {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px;
+    text-align: left; font-weight: 600;
+  }
+  .pdf-year-select {
+    background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 10px 14px; font-family: var(--mono); font-size: 14px; color: var(--ink);
+    cursor: pointer; appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%233D4866' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    padding-right: 32px;
+  }
+  .pdf-year-select:focus { outline: none; border-color: var(--accent); }
+  .pdf-status {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+    color: var(--muted); margin-top: 12px; min-height: 14px; line-height: 1.4;
+  }
+  .pdf-status.working { color: var(--accent); }
+  .pdf-status.done { color: var(--moss); }
+  .pdf-status.failed { color: var(--ember); }
+  .pdf-progress { margin-top: 8px; max-width: 320px; margin-left: auto; margin-right: auto; }
+  .pdf-progress.hidden { display: none; }
+  .pdf-progress-bar {
+    height: 4px; background: var(--rule); border-radius: 999px; overflow: hidden;
+  }
+  .pdf-progress-fill {
+    height: 100%; width: 0; background: var(--accent);
+    border-radius: 999px; transition: width 0.25s ease;
+  }
+
+  .import-overlay {
+    position: fixed; inset: 0; background: rgba(250, 246, 238, 0.96); z-index: 200;
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+    backdrop-filter: blur(8px);
+  }
+  .import-overlay .spinner {
+    width: 36px; height: 36px; border: 3px solid var(--rule); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  .import-overlay .msg-main { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--ink); }
+  .import-overlay .msg-sub { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* AUTH OVERLAY */
+  .auth-overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 250;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    background-image: radial-gradient(rgba(181,66,28,0.04) 1px, transparent 1px); background-size: 20px 20px;
+  }
+  .auth-box {
+    width: 100%; max-width: 380px; background: var(--paper); border: 1px solid var(--rule-strong);
+    border-radius: 16px; padding: 28px 22px; box-shadow: 0 20px 50px rgba(26,31,44,0.12);
+    text-align: center;
+  }
+  .auth-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.7; }
+  .auth-title {
+    font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 26px; color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .auth-subtitle {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 22px;
+  }
+  .auth-form { display: flex; flex-direction: column; gap: 10px; }
+  .auth-input {
+    width: 100%; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 13px 14px; font-size: 15px; color: var(--ink); font-family: var(--mono); letter-spacing: 0.05em;
+  }
+  .auth-input:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+  .auth-strength {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); text-align: left; margin-top: -4px; padding-left: 4px;
+  }
+  .auth-strength[data-level="too-short"], .auth-strength[data-level="weak"] { color: var(--warn); }
+  .auth-strength[data-level="ok"] { color: var(--accent); }
+  .auth-strength[data-level="strong"], .auth-strength[data-level="excellent"] { color: var(--moss); }
+  .auth-error {
+    font-family: var(--mono); font-size: 11px; color: var(--warn); padding: 6px 10px;
+    background: #FCE9E2; border-radius: 6px; letter-spacing: 0.02em;
+  }
+  .auth-submit {
+    background: var(--ink); color: var(--paper); border: none; border-radius: 10px;
+    padding: 13px; font-size: 14px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.15s; margin-top: 4px;
+  }
+  .auth-submit:active { transform: scale(0.98); background: var(--accent); }
+  .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .auth-skip {
+    background: transparent; border: none; color: var(--muted); font-size: 12px; padding: 10px;
+    cursor: pointer; letter-spacing: 0.02em;
+  }
+  .auth-skip:hover { color: var(--ink-soft); }
+  .auth-warning {
+    margin-top: 14px; padding: 10px 12px; background: var(--paper-soft); border-left: 3px solid var(--accent);
+    font-family: var(--serif); font-style: italic; font-size: 12px; color: var(--ink-soft); border-radius: 4px;
+    text-align: left; line-height: 1.5;
+  }
+
+  .hidden { display: none !important; }
+  .quiet { color: var(--muted); font-size: 12px; font-style: italic; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); transition: transform 0.3s; z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 360px) {
+    .totals-grid { grid-template-columns: 1fr; }
+    .masthead h1 { font-size: 24px; }
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+</head>
+<body>
+<div class="import-overlay hidden" id="importOverlay">
+  <div class="spinner"></div>
+  <div class="msg-main" id="importMsgMain">Setting up your archive…</div>
+  <div class="msg-sub" id="importMsgSub">First-time import</div>
+</div>
+
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-icon">🔑</div>
+    <div class="auth-title">My Day</div>
+    <div class="auth-subtitle">Sign in to your tracker</div>
+    <div class="auth-form">
+      <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="auth-input" id="authPw1" placeholder="Password" autocomplete="current-password">
+      <div class="auth-error hidden" id="authError"></div>
+      <button class="auth-submit" id="authSubmit">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="masthead">
+    <button class="masthead-search-btn" id="searchBtn" aria-label="Search entries" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+      </svg>
+    </button>
+    <h1>My Day</h1>
+    <div class="editorial-ornament" style="margin: 6px 0 0;">
+      <span class="line"></span>
+      <span class="glyph">❦</span>
+      <span class="line"></span>
+    </div>
+  </div>
+
+  <!-- SEARCH OVERLAY -->
+  <div class="search-overlay hidden" id="searchOverlay">
+    <div class="search-bar">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/>
+        <line x1="16.5" y1="16.5" x2="21" y2="21"/>
+      </svg>
+      <input type="search" id="searchInput" class="search-input" placeholder="Search across all entries…" autocomplete="off" spellcheck="false">
+      <button class="search-close-btn" id="searchCloseBtn" aria-label="Close search" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="6" y1="6" x2="18" y2="18"/>
+          <line x1="6" y1="18" x2="18" y2="6"/>
+        </svg>
+      </button>
+    </div>
+    <div class="search-meta hidden" id="searchMeta"></div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="today">Today</button>
+    <button class="tab" data-tab="month">Calendar</button>
+    <button class="tab" data-tab="export">Export</button>
+  </div>
+
+  <!-- TODAY TAB -->
+  <div id="tab-today">
+    <div class="editorial-kicker">
+      <div class="kicker-line" id="kickerLine">—</div>
+      <span class="glyph-stamp">❦</span>
+    </div>
+    <div class="datenav">
+      <div class="row">
+        <button class="arrow" id="prevDay" aria-label="Previous day">‹</button>
+        <div class="center">
+          <div class="datenav-hint">Navigate</div>
+        </div>
+        <button class="arrow" id="nextDay" aria-label="Next day">›</button>
+      </div>
+      <div class="picker">
+        <input type="date" id="datePicker">
+        <button class="today-btn" id="todayBtn">Today</button>
+      </div>
+      <div class="savestate" id="saveState">&nbsp;</div>
+    </div>
+
+    <!-- MORNING PROMPT — quiet companion to the closing Daily Reflection -->
+    <div class="morning-card">
+      <div class="morning-ornament-top">
+        <span class="line"></span>
+        <span class="glyph">✶</span>
+        <span class="line"></span>
+      </div>
+      <div class="morning-body" id="morningPromptBody">—</div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div class="section s-expenses">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <ellipse cx="38" cy="40" rx="22" ry="5"/>
+          <path d="M16 40v-6c0 2.8 9.85 5 22 5s22-2.2 22-5v6c0 2.8-9.85 5-22 5s-22-2.2-22-5z"/>
+          <ellipse cx="38" cy="34" rx="22" ry="5"/>
+          <path d="M18 34v-6c0 2.8 8.95 5 20 5s20-2.2 20-5v6"/>
+          <ellipse cx="38" cy="28" rx="20" ry="4.5"/>
+          <path d="M75 36 L91 14"/>
+          <path d="M89 13 L94 12 L93 17 Z" fill="currentColor" fill-opacity="0.15"/>
+          <path d="M75 36 L78 32"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9 12h6M12 9v6"/>
+        </svg>
+        <h2>Investments &amp; Expenses</h2>
+        <span class="rule-fill"></span>
+        <span class="num">i.</span>
+      </div>
+      <div class="field">
+        <label>Top-Up Investment</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_topUp" placeholder="0  or  500+1000"></div>
+          <button class="plus-btn" data-calc-plus="f_topUp">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_topUp_calc"></div>
+      </div>
+      <div class="field">
+        <label>Food Expence <span class="sub">[Dineout / Swiggy / Zomato]</span></label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_food" placeholder="0  or  30+50+20"></div>
+          <button class="plus-btn" data-calc-plus="f_food">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_food_calc"></div>
+      </div>
+      <div class="field">
+        <label>Dmart / Instamart / Zepto / Blinkit</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_dmart" placeholder="0"></div>
+          <button class="plus-btn" data-calc-plus="f_dmart">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_dmart_calc"></div>
+      </div>
+      <div class="field">
+        <label>Uber / Petrol / Metro / Parking</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_uber" placeholder="0"></div>
+          <button class="plus-btn" data-calc-plus="f_uber">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_uber_calc"></div>
+      </div>
+      <div class="field">
+        <label>Other Expence</label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_other" placeholder="0"></div>
+          <button class="plus-btn" data-calc-plus="f_other">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_other_calc"></div>
+      </div>
+      <div class="field">
+        <label>Other Expense Note</label>
+        <input class="input" type="text" id="f_otherNote" placeholder="e.g., Movie + Shopping (axis cc)">
+        <div class="chips">
+          <button class="chip" data-fill="f_otherNote" data-text="NA">NA</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH & MIND -->
+    <div class="section s-health">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="8" y1="44" x2="102" y2="44"/>
+          <path d="M55 44 a16 16 0 0 1 32 0" transform="translate(-13 0)"/>
+          <line x1="42" y1="20" x2="42" y2="14"/>
+          <line x1="42" y1="50" x2="42" y2="44"/>
+          <line x1="22" y1="32" x2="28" y2="32"/>
+          <line x1="56" y1="32" x2="62" y2="32"/>
+          <line x1="27" y1="17" x2="32" y2="22"/>
+          <line x1="52" y1="22" x2="57" y2="17"/>
+          <path d="M70 44 L78 32 L84 38 L92 28 L98 36"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+        <h2>Health &amp; Mind</h2>
+        <span class="rule-fill"></span>
+        <span class="num">ii.</span>
+      </div>
+      <div class="field">
+        <label>Walk <span class="sub">(minutes)</span></label>
+        <input class="input" type="number" inputmode="numeric" step="1" id="f_walk" placeholder="0" style="font-family: var(--mono); font-variant-numeric: tabular-nums;">
+      </div>
+      <div class="field">
+        <label>Google Heart Points</label>
+        <input class="input" type="number" inputmode="numeric" id="f_heart" placeholder="0" style="font-family: var(--mono); font-variant-numeric: tabular-nums;">
+      </div>
+      <div class="field">
+        <label>Reading / Podcasts / Audible</label>
+        <div class="toggle-row">
+          <button class="toggle-btn yes" data-toggle="f_reading" data-val="Yes">Yes</button>
+          <button class="toggle-btn no" data-toggle="f_reading" data-val="No">No</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Improve</label>
+        <div class="toggle-row">
+          <button class="toggle-btn yes" data-toggle="f_improve" data-val="Yes">Yes</button>
+          <button class="toggle-btn no" data-toggle="f_improve" data-val="No">No</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIME SLOTS -->
+    <div class="section s-time">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 60" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="40" y1="6" x2="70" y2="6"/>
+          <line x1="40" y1="54" x2="70" y2="54"/>
+          <path d="M40 6 Q40 22 55 30 Q70 22 70 6"/>
+          <path d="M40 54 Q40 38 55 30 Q70 38 70 54"/>
+          <path d="M48 12 Q48 22 55 28 Q62 22 62 12 Z" fill="currentColor" fill-opacity="0.25" stroke="none"/>
+          <line x1="55" y1="30" x2="55" y2="44" stroke-dasharray="0,3.5"/>
+          <ellipse cx="55" cy="48" rx="5" ry="2" fill="currentColor" fill-opacity="0.25" stroke="none"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 2"/>
+        </svg>
+        <h2>The Hours</h2>
+        <span class="rule-fill"></span>
+        <span class="num">iii.</span>
+      </div>
+      <div class="chips" style="margin-bottom: 14px;">
+        <button class="chip bulk" id="bulkSleep">↺ Fill 12–8 AM with 'Sleep'</button>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">12 AM — 3 AM</span><span class="slot-period">small hours</span></div>
+        <textarea class="textarea" id="f_slot1" placeholder="Sleep / activity..."></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="1"></button>
+          <button class="chip" data-fill="f_slot1" data-text="Sleep">Sleep</button>
+          <button class="chip" data-fill="f_slot1" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">3 AM — 8 AM</span><span class="slot-period">dawn</span></div>
+        <textarea class="textarea" id="f_slot2" placeholder="Sleep / activity..."></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="2"></button>
+          <button class="chip" data-fill="f_slot2" data-text="Sleep">Sleep</button>
+          <button class="chip" data-fill="f_slot2" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">8 AM — 12 PM</span><span class="slot-period">morning</span></div>
+        <textarea class="textarea" id="f_slot3" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="3"></button>
+          <button class="chip" data-fill="f_slot3" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">12 PM — 4 PM</span><span class="slot-period">afternoon</span></div>
+        <textarea class="textarea" id="f_slot4" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="4"></button>
+          <button class="chip" data-fill="f_slot4" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">4 PM — 8 PM</span><span class="slot-period">evening</span></div>
+        <textarea class="textarea" id="f_slot5" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="5"></button>
+          <button class="chip" data-fill="f_slot5" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">8 PM — 12 PM</span><span class="slot-period">night</span></div>
+        <textarea class="textarea" id="f_slot6" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="6"></button>
+          <button class="chip" data-fill="f_slot6" data-text="Not Any Specific Thing">Not Any Specific Thing</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOD JOURNAL -->
+    <div class="section s-food">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M48 14 Q46 11 48 8 Q50 5 48 2"/>
+          <path d="M55 14 Q53 11 55 8 Q57 5 55 2"/>
+          <path d="M62 14 Q60 11 62 8 Q64 5 62 2"/>
+          <line x1="35" y1="22" x2="75" y2="22"/>
+          <path d="M33 22 a22 14 0 0 0 44 0"/>
+          <line x1="28" y1="44" x2="82" y2="44"/>
+          <line x1="32" y1="44" x2="29" y2="48"/>
+          <line x1="78" y1="44" x2="81" y2="48"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 0 0 18 0z"/>
+          <path d="M2 12h20"/>
+          <path d="M9 6c0-1.5 1.5-2 3-2s3 0.5 3 2"/>
+        </svg>
+        <h2>Food Journal</h2>
+        <span class="rule-fill"></span>
+        <span class="num">iv.</span>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Breakfast</span><span class="time">first meal</span></div>
+        <textarea class="textarea" id="f_breakfast" placeholder="9.30: poha + coffee"></textarea>
+        <div class="chips"><button class="chip" data-fill="f_breakfast" data-text="NA">NA</button></div>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Lunch</span><span class="time">midday</span></div>
+        <textarea class="textarea" id="f_lunch" placeholder="2.00: ..."></textarea>
+        <div class="chips"><button class="chip" data-fill="f_lunch" data-text="NA">NA</button></div>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Dinner</span><span class="time">evening</span></div>
+        <textarea class="textarea" id="f_dinner" placeholder="9.00: ..."></textarea>
+        <div class="chips"><button class="chip" data-fill="f_dinner" data-text="NA">NA</button></div>
+      </div>
+    </div>
+
+    <!-- NIGHT STAY -->
+    <div class="section s-night">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M62 8 a18 18 0 1 0 0 34 a14 14 0 1 1 0 -34 z"/>
+          <path d="M28 16 l1 3 l3 1 l-3 1 l-1 3 l-1 -3 l-3 -1 l3 -1 z" fill="currentColor" fill-opacity="0.3"/>
+          <path d="M88 28 l0.7 2.2 l2.2 0.8 l-2.2 0.8 l-0.7 2.2 l-0.7 -2.2 l-2.2 -0.8 l2.2 -0.8 z" fill="currentColor" fill-opacity="0.3"/>
+          <path d="M22 36 l0.5 1.5 l1.5 0.5 l-1.5 0.5 l-0.5 1.5 l-0.5 -1.5 l-1.5 -0.5 l1.5 -0.5 z" fill="currentColor" fill-opacity="0.3"/>
+          <path d="M96 12 l0.5 1.5 l1.5 0.5 l-1.5 0.5 l-0.5 1.5 l-0.5 -1.5 l-1.5 -0.5 l1.5 -0.5 z" fill="currentColor" fill-opacity="0.3"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
+        </svg>
+        <h2>Night Stay</h2>
+        <span class="rule-fill"></span>
+        <span class="num">v.</span>
+      </div>
+      <div class="field">
+        <label>Where you stayed</label>
+        <input class="input" type="text" id="f_nightStay" placeholder="2004/A3, Ganaga Legend @ Pune">
+        <div class="chips">
+          <button class="chip" data-fill="f_nightStay" data-text="2004/A3, Ganaga Legend @ Pune">Home (Ganaga Legend)</button>
+          <button class="chip" id="copyYesterdayStay">↶ Same as yesterday</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE DAY'S VERDICT -->
+    <div class="section s-verdict">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 60" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M55 14 L60 28 L75 28 L63 36 L67 50 L55 42 L43 50 L47 36 L35 28 L50 28 Z" fill="currentColor" fill-opacity="0.18"/>
+          <line x1="20" y1="30" x2="26" y2="30"/>
+          <line x1="84" y1="30" x2="90" y2="30"/>
+          <line x1="22" y1="20" x2="26" y2="22"/>
+          <line x1="84" y1="22" x2="88" y2="20"/>
+          <line x1="22" y1="40" x2="26" y2="38"/>
+          <line x1="84" y1="38" x2="88" y2="40"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2 L14.5 9 L22 9 L16 13.5 L18 21 L12 16.5 L6 21 L8 13.5 L2 9 L9.5 9 Z"/>
+        </svg>
+        <h2>The Day's Verdict</h2>
+        <span class="rule-fill"></span>
+        <span class="num">vi.</span>
+      </div>
+      <div class="field">
+        <label>Overall Satisfaction</label>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <input type="range" min="0" max="1" step="0.01" id="f_satisfaction" value="0.95">
+            <div class="slider-value" id="satVal">0.95</div>
+          </div>
+          <div class="yesterday-ghost hidden" id="yesterdayGhost">yesterday: <span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAILY REFLECTION -->
+    <div class="reflection-card">
+      <div class="reflection-kicker">
+        <span class="line"></span>
+        <span class="label">Today's Reflection</span>
+        <span class="dots">· · ·</span>
+        <span class="line"></span>
+      </div>
+      <div class="reflection-body" id="reflectionBody">
+        <!-- populated by JS: either an <img> or a <blockquote> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MONTH TAB (Calendar) -->
+  <div id="tab-month" class="hidden">
+    <div class="subtabs">
+      <button class="subtab active" data-subtab="month-view">Month</button>
+      <button class="subtab" data-subtab="trends-view">Trends</button>
+    </div>
+
+    <!-- MONTH SUB-VIEW -->
+    <div id="subview-month-view">
+      <div class="month-head">
+        <button class="month-arrow" id="monthPrev">‹</button>
+        <button class="month-title" id="monthTitle" type="button">—</button>
+        <button class="month-arrow" id="monthNext">›</button>
+      </div>
+      <div class="month-quickjump">
+        <input type="month" id="monthQuickInput" class="month-quick-input">
+        <button class="month-quick-btn" id="monthQuickToday" type="button">This month</button>
+      </div>
+      <div id="monthChartsWrap"></div>
+      <div class="totals-grid" id="totalsGrid"></div>
+      <div id="dayListWrap"></div>
+    </div>
+
+    <!-- TRENDS SUB-VIEW -->
+    <div id="subview-trends-view" class="hidden">
+      <div id="trendsWrap"></div>
+    </div>
+  </div>
+
+  <!-- YEAR + MONTH PICKER OVERLAY -->
+  <div class="ym-picker hidden" id="ymPicker">
+    <div class="ym-picker-box">
+      <div class="ym-picker-head">
+        <div class="ym-picker-title" id="ymPickerTitle">Select year</div>
+        <button class="ym-picker-close" id="ymPickerClose" aria-label="Close">×</button>
+      </div>
+      <div class="ym-picker-body">
+        <div class="ym-picker-section" id="ymPickerYearSection">
+          <div class="ym-picker-label">Year</div>
+          <div class="ym-picker-grid ym-picker-years" id="ymPickerYears"></div>
+        </div>
+        <div class="ym-picker-section hidden" id="ymPickerMonthSection">
+          <div class="ym-picker-label">Month in <span id="ymPickerYearLabel"></span></div>
+          <div class="ym-picker-grid ym-picker-months" id="ymPickerMonths"></div>
+          <button class="ym-picker-back" id="ymPickerBack">‹ Pick a different year</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT TAB -->
+  <div id="tab-export" class="hidden">
+    <div class="section" id="securitySection"></div>
+
+    <div class="section export-card">
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="5" y="3" width="14" height="18" rx="1.5"/>
+          <line x1="9" y1="8" x2="15" y2="8"/>
+          <line x1="9" y1="12" x2="15" y2="12"/>
+          <line x1="9" y1="16" x2="13" y2="16"/>
+        </svg>
+        <h2>Annual PDF</h2>
+        <span class="rule-fill"></span>
+        <span class="num">▦</span>
+      </div>
+      <p class="quiet" style="margin-bottom: 14px;">A printable, bound-volume version of your year — every day, every field, with monthly chapter dividers.</p>
+      <div class="pdf-controls">
+        <label class="pdf-year-label">Year</label>
+        <select class="pdf-year-select" id="pdfYearSelect"></select>
+        <button class="big-btn" id="generatePdfBtn" style="margin-top: 10px;">⇣ Generate PDF</button>
+      </div>
+      <div class="pdf-status" id="pdfStatus" aria-live="polite">&nbsp;</div>
+      <div class="pdf-progress hidden" id="pdfProgressWrap">
+        <div class="pdf-progress-bar"><div class="pdf-progress-fill" id="pdfProgressFill"></div></div>
+      </div>
+    </div>
+
+    <div class="section export-card">
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 4v12"/>
+          <path d="M7 11l5 5 5-5"/>
+          <path d="M5 20h14"/>
+        </svg>
+        <h2>Export to CSV</h2>
+        <span class="rule-fill"></span>
+        <span class="num">⇣</span>
+      </div>
+      <p class="quiet" style="margin-bottom: 12px;">Drops directly into <strong style="font-family: var(--mono); font-style: normal; color: var(--ink);">My_Day.xlsx</strong> — same 23 columns, same headings. Calculator expressions evaluate to totals on export.</p>
+      <button class="big-btn" id="exportAllBtn">⇣ Download all entries</button>
+      <button class="big-btn" id="exportMonthBtn" style="background: var(--paper-soft); color: var(--ink); border: 1px solid var(--rule); margin-top: 8px;">⇣ Current month only</button>
+      <div class="export-meta">
+        <div><strong id="totalEntries">0</strong> entries saved</div>
+        <div id="exportRange">No data yet</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 4"/>
+          <circle cx="12" cy="17" r="0.5" fill="currentColor"/>
+        </svg>
+        <h2>How to use the export</h2>
+        <span class="rule-fill"></span>
+        <span class="num">?</span>
+      </div>
+      <ol style="padding-left: 20px; font-size: 13px; line-height: 1.7; color: var(--ink-soft);">
+        <li>Tap <strong>Download all entries</strong> — saves <code style="font-family: var(--mono); font-size: 11px; background: var(--paper-soft); padding: 1px 4px; border-radius: 3px;">myday_all.csv</code> to your phone.</li>
+        <li>Open <strong style="font-family: var(--mono); font-style: normal;">My_Day.xlsx</strong> in Excel.</li>
+        <li>Open the CSV in Excel as a separate sheet.</li>
+        <li>Copy rows from CSV and paste below the header row of <strong style="font-family: var(--mono); font-style: normal;">My_Day.xlsx</strong> — your monthly totals continue to work.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M13 2L4 14h7l-1 8 9-12h-7z"/>
+        </svg>
+        <h2>Diagnostics</h2>
+        <span class="rule-fill"></span>
+        <span class="num">⚡</span>
+      </div>
+      <p class="quiet" style="margin-bottom: 10px;">Run a storage health check. Useful when saves fail.</p>
+      <button class="chip" id="runDiagBtn">Run storage diagnostics</button>
+      <pre id="diagResults" style="margin-top: 12px; font-family: var(--mono); font-size: 11px; line-height: 1.5; color: var(--ink-soft); background: var(--paper-soft); padding: 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-word; display: none;"></pre>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+<div class="ch-tooltip" id="chTooltip"></div>
+
+<script>
+// =========== SUPABASE CLIENT ===========
+if (typeof window.MYDAY_CONFIG === 'undefined') {
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Configuration error</h2><p>config.js is missing or didn\'t load.</p><p style="font-size:13px;color:#666;">Make sure you uploaded both <code>myday.html</code> and <code>config.js</code> to your repository.</p></div>';
+  throw new Error('config.js missing');
+}
+const supa = window.supabase.createClient(
+  window.MYDAY_CONFIG.SUPABASE_URL,
+  window.MYDAY_CONFIG.SUPABASE_ANON_KEY,
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+);
+
+// =========== CONSTANTS ===========
+// 23 entry fields (matches the database schema and CSV export columns)
+const FIELDS = ['topUp','food','dmart','uber','other','otherNote','walk','heart','reading','improve','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay'];
+const CALC_FIELDS = ['topUp','food','dmart','uber','other'];
+const TOGGLE_FIELDS = ['reading','improve'];
+const TEXT_FIELDS = ['otherNote','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay'];
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// Maps app-side camelCase keys to database snake_case columns
+const FIELD_TO_COL = {
+  topUp:'top_up', food:'food', dmart:'dmart', uber:'uber', other:'other_exp', otherNote:'other_note',
+  walk:'walk', heart:'heart', reading:'reading', improve:'improve', satisfaction:'satisfaction', introspection:'introspection',
+  slot1:'slot1', slot2:'slot2', slot3:'slot3', slot4:'slot4', slot5:'slot5', slot6:'slot6',
+  breakfast:'breakfast', lunch:'lunch', dinner:'dinner', nightStay:'night_stay'
+};
+const COL_TO_FIELD = Object.fromEntries(Object.entries(FIELD_TO_COL).map(([k,v]) => [v,k]));
+
+// =========== STATE ===========
+let allEntries = {};       // {YYYY-MM-DD: entry} — in-memory cache
+let currentDate = isoToday();
+let currentEntry = blankEntry();
+let saveTimer = null;
+let monthCursor = null;
+let userId = null;         // Supabase user.id once signed in
+
+function isoToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function blankEntry() {
+  const e = {};
+  FIELDS.forEach(f => e[f] = '');
+  return e;
+}
+
+// =========== CALCULATOR ===========
+function evalExpr(v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return v;
+  const s = String(v).trim();
+  if (!s) return null;
+  if (!/^[\d+.\s]+$/.test(s)) return null;
+  const parts = s.split('+').map(p => p.trim()).filter(Boolean);
+  if (parts.length === 0) return null;
+  let sum = 0;
+  for (const p of parts) {
+    const n = parseFloat(p);
+    if (isNaN(n)) return null;
+    sum += n;
+  }
+  return sum;
+}
+
+function updateCalcDisplay(fieldId) {
+  const input = document.getElementById(fieldId);
+  const display = document.getElementById(fieldId + '_calc');
+  const v = (input.value || '').trim();
+  if (v === '' || !v.includes('+')) {
+    display.classList.add('hidden');
+    return;
+  }
+  const total = evalExpr(v);
+  display.classList.remove('hidden');
+  if (total === null) {
+    display.classList.add('error');
+    display.textContent = 'invalid expression';
+  } else {
+    display.classList.remove('error');
+    display.textContent = v.replace(/\s+/g,'') + ' = ₹' + total.toLocaleString('en-IN');
+  }
+}
+
+function appendPlus(fieldId) {
+  const el = document.getElementById(fieldId);
+  let v = (el.value || '').trim();
+  if (v === '' || v.endsWith('+')) { el.focus(); return; }
+  el.value = v + '+';
+  el.focus();
+  setTimeout(() => { el.setSelectionRange(el.value.length, el.value.length); }, 0);
+  updateCalcDisplay(fieldId);
+  scheduleSave();
+}
+
+// =========== ROW <-> ENTRY CONVERSION ===========
+function rowToEntry(row) {
+  const e = blankEntry();
+  for (const [col, field] of Object.entries(COL_TO_FIELD)) {
+    if (row[col] !== null && row[col] !== undefined) e[field] = row[col];
+  }
+  return e;
+}
+function entryToRow(entry, dateIso) {
+  const row = { user_id: userId, entry_date: dateIso, updated_at: new Date().toISOString() };
+  for (const [field, col] of Object.entries(FIELD_TO_COL)) {
+    let v = entry[field];
+    if (v === undefined || v === null) v = '';
+    // numbers stored as strings to preserve calculator expressions and consistency
+    row[col] = String(v);
+  }
+  return row;
+}
+
+// =========== ENTRY HELPERS ===========
+function entryHasContent(e) {
+  for (const f of FIELDS) {
+    const v = e[f];
+    if (v === undefined || v === null || v === '') continue;
+    if (typeof v === 'number' && v === 0) continue;
+    return true;
+  }
+  return false;
+}
+
+// =========== SUPABASE STORAGE ===========
+async function fetchAllEntries() {
+  // Supabase enforces a maximum row limit per query (default 1000).
+  // We paginate by entry_date to retrieve all rows regardless of total count.
+  const result = {};
+  const PAGE = 1000;
+  let from = 0;
+  while (true) {
+    const { data, error } = await supa
+      .from('entries')
+      .select('*')
+      .eq('user_id', userId)
+      .order('entry_date', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    for (const row of data) {
+      result[row.entry_date] = rowToEntry(row);
+    }
+    if (data.length < PAGE) break; // last page
+    from += PAGE;
+  }
+  return result;
+}
+
+async function upsertEntry(dateIso, entry) {
+  const row = entryToRow(entry, dateIso);
+  const { error } = await supa.from('entries').upsert(row, { onConflict: 'user_id,entry_date' });
+  if (error) throw error;
+}
+
+async function deleteEntryForDate(dateIso) {
+  const { error } = await supa.from('entries').delete()
+    .eq('user_id', userId).eq('entry_date', dateIso);
+  if (error) throw error;
+}
+
+// =========== UI: DATE NAV ===========
+function formatDateLong(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  return d + ' ' + MONTH_NAMES[m-1] + ' ' + y;
+}
+function formatDayName(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  return DAY_NAMES[new Date(y, m-1, d).getDay()];
+}
+function shiftDate(iso, days) {
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  dt.setDate(dt.getDate() + days);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+}
+// Day 1 of the record is the first archive entry: 2 January 2019
+const RECORD_START_ISO = '2019-01-02';
+
+// =========== MORNING PROMPT ===========
+// 33 prompts spanning frameworks (Dunbar, Me/We/Financial, 10X), Stoic, Buddhist,
+// Kabir, and Naval Ravikant. Same deterministic-by-day rotation as the Reflection
+// card, so each calendar date always shows the same prompt — but with a 33-day
+// cycle so a given prompt returns roughly once a month.
+
+const MORNING_PROMPTS = [
+  "Which of your Dunbar 150 deserves a message today?",
+  "Visualize the process, not the prize.",
+  "Truth matters. So does usefulness.",
+  "In an age of infinite leverage, judgment matters most—and comes from intellect and experience.",
+  "What is an extension of you, no one can copy.",
+];
+
+function renderMorningPrompt(iso) {
+  const body = document.getElementById('morningPromptBody');
+  if (!body) return;
+  const dayCount = dayCountFromStart(iso);
+  const effectiveDay = Math.max(1, dayCount);
+  const idx = (effectiveDay - 1) % MORNING_PROMPTS.length;
+  // Use textContent to avoid any HTML-injection surface from prompt strings
+  body.textContent = MORNING_PROMPTS[idx] || MORNING_PROMPTS[0];
+}
+
+// =========== DAILY REFLECTION ===========
+// 100 curated quotes spanning Stoic, Sufi/mystical, Indian, Eastern, Western
+// literary, and modern thinkers. With 100 quotes and ~365 days/year, each quote
+// recurs roughly once every 3.3 months — fresh enough to feel discovered.
+const QUOTES = [
+  { t: "You have power over your mind — not outside events. Realize this, and you will find strength.", a: "Marcus Aurelius" },
+  { t: "Confine yourself to the present.", a: "Marcus Aurelius" },
+  { t: "Waste no more time arguing what a good man should be. Be one.", a: "Marcus Aurelius" },
+  { t: "It is not death that a man should fear, but he should fear never beginning to live.", a: "Marcus Aurelius" },
+  { t: "It is not that we have a short time to live, but that we waste much of it.", a: "Seneca" },
+  { t: "Begin at once to live, and count each separate day as a separate life.", a: "Seneca" },
+  { t: "Wherever there is a human being, there is an opportunity for a kindness.", a: "Seneca" },
+  { t: "No man is free who is not master of himself.", a: "Epictetus" },
+  { t: "Excellence is not an act, but a habit.", a: "Aristotle" },
+  { t: "Knowing yourself is the beginning of all wisdom.", a: "Aristotle" },
+  { t: "Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.", a: "Rumi" },
+  { t: "What you seek is seeking you.", a: "Rumi" },
+  { t: "Be a lamp, or a lifeboat, or a ladder. Help someone's soul heal.", a: "Rumi" },
+  { t: "Sell your cleverness and buy bewilderment.", a: "Rumi" },
+  { t: "You are not a drop in the ocean. You are the entire ocean in a drop.", a: "Rumi" },
+  { t: "Even after all this time the sun never says to the earth, 'You owe me.'", a: "Hafiz" },
+  { t: "Don't surrender your loneliness so quickly. Let it cut more deep.", a: "Hafiz" },
+  { t: "Wherever you are, and whatever you do, be in love.", a: "Rumi" },
+  { t: "Nature does not hurry, yet everything is accomplished.", a: "Lao Tzu" },
+  { t: "If you are lonely when you're alone, you are in bad company.", a: "Jean-Paul Sartre" },
+  { t: "Above all, don't lie to yourself.", a: "Fyodor Dostoevsky" },
+  { t: "The mystery of human existence lies not in just staying alive, but in finding something to live for.", a: "Fyodor Dostoevsky" },
+  { t: "Beauty will save the world.", a: "Fyodor Dostoevsky" },
+];
+
+function renderReflection(iso) {
+  const body = document.getElementById('reflectionBody');
+  if (!body) return;
+  const dayCount = dayCountFromStart(iso);
+  const effectiveDay = Math.max(1, dayCount);
+  const idx = (effectiveDay - 1) % QUOTES.length;
+  const q = QUOTES[idx] || QUOTES[0];
+  // Build the quote with safe DOM construction (no innerHTML for user-controllable content)
+  body.innerHTML = '';
+  const block = document.createElement('blockquote');
+  block.className = 'reflection-quote';
+  const openMark = document.createElement('span');
+  openMark.className = 'reflection-mark';
+  openMark.textContent = '“';
+  block.appendChild(openMark);
+  const text = document.createElement('span');
+  text.className = 'reflection-text';
+  text.textContent = q.t;
+  block.appendChild(text);
+  const closeMark = document.createElement('span');
+  closeMark.textContent = '”';
+  block.appendChild(closeMark);
+  const attr = document.createElement('span');
+  attr.className = 'attr';
+  attr.textContent = q.a;
+  block.appendChild(attr);
+  body.appendChild(block);
+}
+
+function dayCountFromStart(iso) {
+  const [y1, m1, d1] = RECORD_START_ISO.split('-').map(Number);
+  const [y2, m2, d2] = iso.split('-').map(Number);
+  // Use UTC math to avoid timezone drift across the date arithmetic
+  const start = Date.UTC(y1, m1 - 1, d1);
+  const end = Date.UTC(y2, m2 - 1, d2);
+  return Math.floor((end - start) / 86400000) + 1;
+}
+function formatDayCount(n) {
+  if (n < 1) return '—';
+  return n.toLocaleString('en-IN');
+}
+
+function renderDateNav() {
+  const dayName = formatDayName(currentDate);
+  document.getElementById('datePicker').value = currentDate;
+  // Editorial banner — one line: "Sunday, 3 May 2026"
+  const kl = document.getElementById('kickerLine');
+  if (kl) {
+    // Build with safe DOM nodes (no innerHTML for any user-derived text)
+    kl.textContent = '';
+    const dayPart = document.createElement('span');
+    dayPart.className = 'day-part';
+    dayPart.textContent = dayName;
+    kl.appendChild(dayPart);
+    const sep = document.createElement('span');
+    sep.className = 'sep';
+    sep.textContent = ',';
+    kl.appendChild(sep);
+    kl.appendChild(document.createTextNode(' '));
+    const datePart = document.createElement('span');
+    datePart.className = 'date-part';
+    datePart.textContent = formatDateLong(currentDate);
+    kl.appendChild(datePart);
+  }
+}
+
+// =========== UI: FORM RENDERING ===========
+function renderEntry() {
+  CALC_FIELDS.forEach(f => {
+    const el = document.getElementById('f_' + f);
+    const v = currentEntry[f];
+    el.value = (v === '' || v === undefined || v === null) ? '' : String(v);
+    updateCalcDisplay('f_' + f);
+  });
+  ['walk','heart'].forEach(f => {
+    const el = document.getElementById('f_' + f);
+    const v = currentEntry[f];
+    el.value = (v === '' || v === undefined || v === null) ? '' : v;
+  });
+  TEXT_FIELDS.forEach(f => {
+    document.getElementById('f_' + f).value = currentEntry[f] || '';
+  });
+  let sat = currentEntry.satisfaction;
+  if (sat === '' || sat === undefined || sat === null) sat = 0.95;
+  sat = Number(sat); if (isNaN(sat)) sat = 0.95;
+  const slider = document.getElementById('f_satisfaction');
+  slider.value = sat;
+  document.getElementById('satVal').textContent = (sat * 100).toFixed(0) + '%';
+  slider.style.setProperty('--pct', (sat * 100) + '%');
+  TOGGLE_FIELDS.forEach(f => {
+    const val = currentEntry[f];
+    document.querySelectorAll(`[data-toggle="f_${f}"]`).forEach(b => {
+      b.classList.toggle('active', b.dataset.val === val);
+    });
+  });
+  // Legacy free-text introspection note (only for imported old entries) — element removed; safely no-op
+  const legacyEl = document.getElementById('introspectionLegacy');
+  if (legacyEl) {
+    const introVal = currentEntry.introspection;
+    if (introVal && introVal !== 'Yes' && introVal !== 'No') {
+      legacyEl.classList.remove('hidden');
+      legacyEl.querySelector('span').textContent = introVal;
+    } else {
+      legacyEl.classList.add('hidden');
+    }
+  }
+  // Daily reflection — pick poster (or fallback quote) for this entry's date
+  renderReflection(currentDate);
+  // Morning prompt — companion at the top of Today
+  renderMorningPrompt(currentDate);
+  // Yesterday's Verdict ghost — quiet reference point under the slider
+  renderYesterdayGhost(currentDate);
+  // Soft auto-fill suggestions for repeating slot values
+  renderSlotSuggestions(currentDate);
+}
+
+// Compute previous ISO date (handles month/year boundaries via UTC)
+function prevDateIso(iso) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  date.setUTCDate(date.getUTCDate() - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function renderYesterdayGhost(iso) {
+  const ghostEl = document.getElementById('yesterdayGhost');
+  if (!ghostEl) return;
+  const prev = allEntries[prevDateIso(iso)];
+  // Show only when yesterday has a meaningful satisfaction value
+  if (!prev || prev.satisfaction === '' || prev.satisfaction === undefined || prev.satisfaction === null) {
+    ghostEl.classList.add('hidden');
+    return;
+  }
+  const sat = Number(prev.satisfaction);
+  if (isNaN(sat) || sat < 0 || sat > 1) {
+    ghostEl.classList.add('hidden');
+    return;
+  }
+  ghostEl.querySelector('span').textContent = (sat * 100).toFixed(0) + '%';
+  ghostEl.classList.remove('hidden');
+}
+
+// Soft auto-fill for repeating slots: if 4+ of last 5 days had the same value
+// for slot N (case-insensitive, normalized), show it as a "suggest" chip on
+// today's slot N (only if today's slot N is currently empty).
+function renderSlotSuggestions(iso) {
+  const LOOKBACK = 5;
+  const MIN_MATCHES = 4;
+  // Build the list of last LOOKBACK ISO dates (excluding today)
+  const dates = [];
+  let cur = iso;
+  for (let i = 0; i < LOOKBACK; i++) {
+    cur = prevDateIso(cur);
+    dates.push(cur);
+  }
+  for (let n = 1; n <= 6; n++) {
+    const fieldKey = 'slot' + n;
+    const todayInputEl = document.getElementById('f_' + fieldKey);
+    const chipEl = document.querySelector(`.chip.suggest[data-suggest-slot="${n}"]`);
+    if (!chipEl) continue;
+    // Hide if today's field is already filled (don't pester the user)
+    const todayVal = (todayInputEl && todayInputEl.value || '').trim();
+    if (todayVal !== '') { chipEl.classList.add('hidden'); continue; }
+    // Tally values over the lookback window
+    const tally = {};
+    for (const d of dates) {
+      const e = allEntries[d];
+      if (!e) continue;
+      const raw = (e[fieldKey] || '').trim();
+      if (raw === '') continue;
+      const norm = raw.toLowerCase();
+      if (!tally[norm]) tally[norm] = { count: 0, original: raw };
+      tally[norm].count++;
+    }
+    // Find the most-repeated value
+    let best = null;
+    for (const k in tally) {
+      if (!best || tally[k].count > best.count) best = tally[k];
+    }
+    if (!best || best.count < MIN_MATCHES) {
+      chipEl.classList.add('hidden');
+      continue;
+    }
+    // Show it. Trim long values for chip display.
+    const display = best.original.length > 28 ? best.original.slice(0, 26) + '…' : best.original;
+    chipEl.textContent = display;
+    chipEl.dataset.suggestText = best.original;
+    chipEl.classList.remove('hidden');
+  }
+}
+
+function readEntryFromForm() {
+  const e = {};
+  CALC_FIELDS.forEach(f => {
+    const v = (document.getElementById('f_' + f).value || '').trim();
+    e[f] = v === '' ? '' : v;
+  });
+  ['walk','heart'].forEach(f => {
+    const v = document.getElementById('f_' + f).value;
+    e[f] = v === '' ? '' : Number(v);
+  });
+  e.satisfaction = Number(document.getElementById('f_satisfaction').value);
+  TEXT_FIELDS.forEach(f => { e[f] = document.getElementById('f_' + f).value; });
+  ['reading','improve'].forEach(f => {
+    const active = document.querySelector(`[data-toggle="f_${f}"].active`);
+    e[f] = active ? active.dataset.val : '';
+  });
+  const introActive = document.querySelector(`[data-toggle="f_introspection"].active`);
+  if (introActive) {
+    e.introspection = introActive.dataset.val;
+  } else {
+    const orig = currentEntry.introspection;
+    e.introspection = (orig && orig !== 'Yes' && orig !== 'No') ? orig : '';
+  }
+  return e;
+}
+
+// =========== AUTO-SAVE ===========
+function setSaveState(state, detail) {
+  const el = document.getElementById('saveState');
+  el.classList.remove('saving','saved','failed');
+  if (state === 'saving') { el.classList.add('saving'); el.textContent = 'Saving'; }
+  else if (state === 'saved') {
+    el.classList.add('saved');
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0'); const mm = String(now.getMinutes()).padStart(2,'0');
+    el.textContent = 'Saved ' + hh + ':' + mm;
+  } else if (state === 'failed') {
+    el.classList.add('failed');
+    el.textContent = '⚠ Save failed' + (detail ? ' — ' + detail : '') + '. Data kept in form. Will retry on next edit.';
+  } else { el.innerHTML = '&nbsp;'; }
+}
+
+function scheduleSave() {
+  setSaveState('saving');
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    currentEntry = readEntryFromForm();
+    try {
+      if (entryHasContent(currentEntry)) {
+        allEntries[currentDate] = currentEntry;
+        await upsertEntry(currentDate, currentEntry);
+        setSaveState('saved');
+      } else {
+        if (allEntries[currentDate]) {
+          delete allEntries[currentDate];
+          await deleteEntryForDate(currentDate);
+        }
+        setSaveState('');
+      }
+    } catch (e) {
+      console.error('save failed', e);
+      setSaveState('failed', (e && e.message) ? e.message.slice(0, 80) : '');
+    }
+  }, 600);
+}
+
+// =========== TOAST ===========
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =========== EVENT WIRING ===========
+function bindForm() {
+  CALC_FIELDS.forEach(f => {
+    const el = document.getElementById('f_' + f);
+    el.addEventListener('input', () => { updateCalcDisplay('f_' + f); scheduleSave(); });
+  });
+  document.querySelectorAll('[data-calc-plus]').forEach(b => {
+    b.addEventListener('click', () => appendPlus(b.dataset.calcPlus));
+  });
+  ['walk','heart'].concat(TEXT_FIELDS).forEach(f => {
+    document.getElementById('f_' + f).addEventListener('input', scheduleSave);
+  });
+  const slider = document.getElementById('f_satisfaction');
+  slider.addEventListener('input', () => {
+    const v = Number(slider.value);
+    document.getElementById('satVal').textContent = (v * 100).toFixed(0) + '%';
+    slider.style.setProperty('--pct', (v * 100) + '%');
+    scheduleSave();
+  });
+  document.querySelectorAll('.toggle-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const tgt = b.dataset.toggle;
+      document.querySelectorAll(`[data-toggle="${tgt}"]`).forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      if (tgt === 'f_introspection') {
+        const introLegacy = document.getElementById('introspectionLegacy');
+        if (introLegacy) introLegacy.classList.add('hidden');
+      }
+      scheduleSave();
+    });
+  });
+  document.querySelectorAll('.chip[data-fill]').forEach(c => {
+    c.addEventListener('click', () => {
+      const target = document.getElementById(c.dataset.fill);
+      target.value = c.dataset.text;
+      target.focus();
+      scheduleSave();
+    });
+  });
+  document.querySelectorAll('.chip.suggest[data-suggest-slot]').forEach(c => {
+    c.addEventListener('click', () => {
+      const n = c.dataset.suggestSlot;
+      const target = document.getElementById('f_slot' + n);
+      const text = c.dataset.suggestText || '';
+      if (!target || !text) return;
+      target.value = text;
+      target.focus();
+      c.classList.add('hidden'); // hide once accepted
+      scheduleSave();
+    });
+  });
+  document.getElementById('bulkSleep').addEventListener('click', () => {
+    document.getElementById('f_slot1').value = 'Sleep';
+    document.getElementById('f_slot2').value = 'Sleep';
+    scheduleSave();
+    toast('Filled 12–8 AM with Sleep');
+  });
+  document.getElementById('copyYesterdayStay').addEventListener('click', () => {
+    const y = shiftDate(currentDate, -1);
+    const yEntry = allEntries[y];
+    if (yEntry && yEntry.nightStay) {
+      document.getElementById('f_nightStay').value = yEntry.nightStay;
+      scheduleSave();
+      toast('Copied from ' + formatDateLong(y).split(' ').slice(0,2).join(' '));
+    } else {
+      toast('No night-stay recorded for yesterday');
+    }
+  });
+  document.getElementById('prevDay').addEventListener('click', () => selectDate(shiftDate(currentDate, -1)));
+  document.getElementById('nextDay').addEventListener('click', () => selectDate(shiftDate(currentDate, 1)));
+  document.getElementById('todayBtn').addEventListener('click', () => selectDate(isoToday()));
+  document.getElementById('datePicker').addEventListener('change', e => selectDate(e.target.value));
+}
+
+async function selectDate(iso) {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    const e = readEntryFromForm();
+    try {
+      if (entryHasContent(e)) {
+        allEntries[currentDate] = e;
+        await upsertEntry(currentDate, e);
+      } else if (allEntries[currentDate]) {
+        delete allEntries[currentDate];
+        await deleteEntryForDate(currentDate);
+      }
+    } catch (err) { console.warn('flush save before date change failed', err); }
+  }
+  currentDate = iso;
+  currentEntry = allEntries[iso] ? Object.assign(blankEntry(), allEntries[iso]) : blankEntry();
+  renderDateNav();
+  renderEntry();
+  setSaveState('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// =========== TABS ===========
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  ['today','month','export'].forEach(n => {
+    document.getElementById('tab-' + n).classList.toggle('hidden', n !== name);
+  });
+  if (name === 'month') renderMonth();
+  if (name === 'export') renderExportPanel();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// =========== MONTH VIEW ===========
+function ymOfIso(iso) { return iso.slice(0,7); }
+function ymTitle(ym) { const [y,m] = ym.split('-').map(Number); return MONTH_NAMES[m-1] + ' ' + y; }
+function shiftYM(ym, delta) {
+  const [y,m] = ym.split('-').map(Number);
+  const dt = new Date(y, m-1+delta, 1);
+  return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0');
+}
+
+// =========== YEAR + MONTH PICKER ===========
+function openYmPicker() {
+  document.getElementById('ymPicker').classList.remove('hidden');
+  // Always start with year view
+  document.getElementById('ymPickerYearSection').classList.remove('hidden');
+  document.getElementById('ymPickerMonthSection').classList.add('hidden');
+  document.getElementById('ymPickerTitle').textContent = 'Select year';
+  renderYmPickerYears();
+}
+function closeYmPicker() {
+  document.getElementById('ymPicker').classList.add('hidden');
+}
+function renderYmPickerYears() {
+  // Determine year range from current data + current calendar position
+  const years = new Set();
+  Object.keys(allEntries).forEach(d => years.add(d.slice(0,4)));
+  // Always include current year and the cursor year
+  years.add(String(new Date().getFullYear()));
+  if (monthCursor) years.add(monthCursor.slice(0,4));
+  const sorted = [...years].map(Number).sort((a,b) => b - a); // newest first
+
+  const cursorYear = monthCursor ? monthCursor.slice(0,4) : '';
+  // For each year, count whether it has any entries (for the dotted style)
+  const yearHasData = {};
+  Object.keys(allEntries).forEach(d => { yearHasData[d.slice(0,4)] = true; });
+
+  const grid = document.getElementById('ymPickerYears');
+  grid.innerHTML = sorted.map(y => {
+    const ys = String(y);
+    const cls = ['ym-picker-cell'];
+    if (yearHasData[ys]) cls.push('has-data');
+    if (ys === cursorYear) cls.push('current');
+    return `<button type="button" class="${cls.join(' ')}" data-year="${ys}">${ys}</button>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-year]').forEach(btn => {
+    btn.addEventListener('click', () => showMonthsForYear(btn.dataset.year));
+  });
+}
+function showMonthsForYear(year) {
+  document.getElementById('ymPickerYearSection').classList.add('hidden');
+  document.getElementById('ymPickerMonthSection').classList.remove('hidden');
+  document.getElementById('ymPickerYearLabel').textContent = year;
+  document.getElementById('ymPickerTitle').textContent = 'Select month';
+
+  const cursorYM = monthCursor || '';
+  // Months that have data in this year
+  const monthsWithData = new Set();
+  Object.keys(allEntries).forEach(d => {
+    if (d.slice(0,4) === year) monthsWithData.add(d.slice(5,7));
+  });
+
+  const grid = document.getElementById('ymPickerMonths');
+  grid.innerHTML = MONTH_NAMES.map((name, i) => {
+    const mm = String(i + 1).padStart(2, '0');
+    const ym = year + '-' + mm;
+    const cls = ['ym-picker-cell'];
+    if (monthsWithData.has(mm)) cls.push('has-data');
+    else cls.push('empty');
+    if (ym === cursorYM) cls.push('current');
+    return `<button type="button" class="${cls.join(' ')}" data-ym="${ym}">${name.slice(0,3)}</button>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-ym]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      monthCursor = btn.dataset.ym;
+      closeYmPicker();
+      renderMonth();
+    });
+  });
+}
+
+// =========== CHART HELPERS (inline SVG, no library) ===========
+const CH = {
+  pad: { top: 10, right: 8, bottom: 22, left: 32 },
+  // Default plot dimensions, can be overridden per chart
+  defaultWidth: 380,
+  defaultHeight: 140,
+};
+function escAttr(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function nicemax(v) {
+  if (v <= 0) return 1;
+  const exp = Math.pow(10, Math.floor(Math.log10(v)));
+  const f = v / exp;
+  let m;
+  if (f <= 1) m = 1;
+  else if (f <= 2) m = 2;
+  else if (f <= 5) m = 5;
+  else m = 10;
+  return m * exp;
+}
+function fmtINR(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+function chartTooltipShow(evt, html) {
+  const t = document.getElementById('chTooltip');
+  t.innerHTML = html;
+  t.classList.add('visible');
+  const x = evt.touches ? evt.touches[0].clientX : evt.clientX;
+  const y = evt.touches ? evt.touches[0].clientY : evt.clientY;
+  t.style.left = x + 'px';
+  t.style.top = y + 'px';
+}
+function chartTooltipHide() {
+  document.getElementById('chTooltip').classList.remove('visible');
+}
+
+// Shared chart-card builder. Returns the wrapping HTML around an SVG body.
+function chartCard(title, meta, svg) {
+  return `<div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">${title}</div>
+      ${meta ? `<div class="chart-meta">${meta}</div>` : ''}
+    </div>
+    <div class="chart-svg-wrap">${svg}</div>
+  </div>`;
+}
+
+// =========== MONTH CHARTS (within current calendar month) ===========
+function renderMonthCharts(monthYM, entries) {
+  const wrap = document.getElementById('monthChartsWrap');
+  if (!entries.length) { wrap.innerHTML = ''; return; }
+
+  const [y, m] = monthYM.split('-').map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  // Build per-day arrays: index 0..daysInMonth-1
+  const sat = new Array(daysInMonth).fill(null);
+  const spend = new Array(daysInMonth).fill(0);
+  const walk = new Array(daysInMonth).fill(0);
+  const dateForDay = (d) => `${monthYM}-${String(d).padStart(2,'0')}`;
+  for (const { date, entry } of entries) {
+    const d = parseInt(date.slice(8, 10), 10);
+    const idx = d - 1;
+    const s = Number(entry.satisfaction);
+    if (!isNaN(s) && entry.satisfaction !== '' && entry.satisfaction !== null) sat[idx] = s;
+    let dailySpend = 0;
+    ['food','dmart','uber','other'].forEach(f => {
+      const n = evalExpr(entry[f]);
+      if (n !== null) dailySpend += n;
+    });
+    spend[idx] = dailySpend;
+    const w = Number(entry.walk);
+    if (!isNaN(w)) walk[idx] = w;
+  }
+
+  let html = '';
+  html += renderDailySatisfactionChart(monthYM, sat, daysInMonth);
+  html += renderDailySpendChart(monthYM, spend, daysInMonth);
+  html += renderDailyWalkChart(monthYM, walk, daysInMonth);
+  wrap.innerHTML = html;
+
+  // Wire bar clicks to jump to that day
+  wrap.querySelectorAll('[data-month-day]').forEach(el => {
+    el.addEventListener('click', () => {
+      const d = el.dataset.monthDay;
+      selectDate(d);
+      showTab('today');
+    });
+    // Tooltip on hover/touch
+    el.addEventListener('mouseenter', e => chartTooltipShow(e, el.dataset.tip || ''));
+    el.addEventListener('mousemove', e => chartTooltipShow(e, el.dataset.tip || ''));
+    el.addEventListener('mouseleave', chartTooltipHide);
+    el.addEventListener('touchstart', e => chartTooltipShow(e, el.dataset.tip || ''));
+    el.addEventListener('touchend', chartTooltipHide);
+  });
+}
+
+function renderDailySatisfactionChart(monthYM, sat, daysInMonth) {
+  const W = 380, H = 130, P = CH.pad;
+  const innerW = W - P.left - P.right;
+  const innerH = H - P.top - P.bottom;
+  const barW = innerW / daysInMonth;
+  let bars = '';
+  let count = 0, sum = 0;
+  for (let i = 0; i < daysInMonth; i++) {
+    if (sat[i] === null) continue;
+    count++; sum += sat[i];
+    const v = sat[i]; // 0..1
+    const h = Math.max(2, v * innerH);
+    const x = P.left + i * barW + 1;
+    const yy = P.top + (innerH - h);
+    const cls = v < 0.94 ? 'ch-bar-sat-low' : 'ch-bar-sat';
+    const date = `${monthYM}-${String(i+1).padStart(2,'0')}`;
+    const tip = `${i+1}: ${(v*100).toFixed(0)}%`;
+    bars += `<rect class="ch-bar ${cls}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${(barW-2).toFixed(1)}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
+  }
+  // Y-axis labels at 0%, 50%, 100%
+  let yLabels = '';
+  [0, 50, 100].forEach(pct => {
+    const yy = P.top + innerH - (pct/100) * innerH;
+    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${pct}%</text>`;
+    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
+  });
+  // X-axis day markers (every 5th day)
+  let xLabels = '';
+  for (let d = 1; d <= daysInMonth; d += 5) {
+    const x = P.left + (d-1) * barW + barW/2;
+    xLabels += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 6).toFixed(1)}" text-anchor="middle">${d}</text>`;
+  }
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
+  const meta = count ? `<strong>${(sum/count*100).toFixed(0)}%</strong> avg over ${count} days` : '';
+  return chartCard('Daily satisfaction', meta, svg);
+}
+
+function renderDailySpendChart(monthYM, spend, daysInMonth) {
+  const W = 380, H = 110, P = { ...CH.pad, top: 6, bottom: 18 };
+  const innerW = W - P.left - P.right;
+  const innerH = H - P.top - P.bottom;
+  const max = nicemax(Math.max(1, ...spend));
+  const barW = innerW / daysInMonth;
+  let bars = '';
+  let total = 0, daysWithSpend = 0;
+  for (let i = 0; i < daysInMonth; i++) {
+    if (spend[i] <= 0) continue;
+    daysWithSpend++; total += spend[i];
+    const h = Math.max(2, (spend[i]/max) * innerH);
+    const x = P.left + i * barW + 1;
+    const yy = P.top + (innerH - h);
+    const date = `${monthYM}-${String(i+1).padStart(2,'0')}`;
+    const tip = `${i+1}: ${fmtINR(spend[i])}`;
+    bars += `<rect class="ch-bar ch-bar-spend" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${(barW-2).toFixed(1)}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
+  }
+  let yLabels = '';
+  [0, max/2, max].forEach(v => {
+    const yy = P.top + innerH - (v/max) * innerH;
+    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${v >= 1000 ? (v/1000).toFixed(0) + 'k' : Math.round(v)}</text>`;
+    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
+  });
+  let xLabels = '';
+  for (let d = 1; d <= daysInMonth; d += 5) {
+    const x = P.left + (d-1) * barW + barW/2;
+    xLabels += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 4).toFixed(1)}" text-anchor="middle">${d}</text>`;
+  }
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
+  const meta = daysWithSpend ? `Avg <strong>${fmtINR(total/daysWithSpend)}</strong>/day` : '';
+  return chartCard('Daily spend', meta, svg);
+}
+
+function renderDailyWalkChart(monthYM, walk, daysInMonth) {
+  const W = 380, H = 100, P = { ...CH.pad, top: 6, bottom: 18 };
+  const innerW = W - P.left - P.right;
+  const innerH = H - P.top - P.bottom;
+  const max = nicemax(Math.max(1, ...walk));
+  const barW = innerW / daysInMonth;
+  let bars = '';
+  let total = 0, count = 0;
+  for (let i = 0; i < daysInMonth; i++) {
+    if (walk[i] <= 0) continue;
+    count++; total += walk[i];
+    const h = Math.max(2, (walk[i]/max) * innerH);
+    const x = P.left + i * barW + 1;
+    const yy = P.top + (innerH - h);
+    const date = `${monthYM}-${String(i+1).padStart(2,'0')}`;
+    const tip = `${i+1}: ${walk[i]} min`;
+    bars += `<rect class="ch-bar ch-bar-walk" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${(barW-2).toFixed(1)}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
+  }
+  let yLabels = '';
+  [0, max].forEach(v => {
+    const yy = P.top + innerH - (v/max) * innerH;
+    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${Math.round(v)}m</text>`;
+    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
+  });
+  let xLabels = '';
+  for (let d = 1; d <= daysInMonth; d += 5) {
+    const x = P.left + (d-1) * barW + barW/2;
+    xLabels += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 4).toFixed(1)}" text-anchor="middle">${d}</text>`;
+  }
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
+  const meta = count ? `<strong>${total}</strong> min total · ${count} days walked` : '';
+  return chartCard('Daily walk (minutes)', meta, svg);
+}
+
+// =========== TRENDS (multi-year monthly aggregations) ===========
+// Returns array of {ym, sat, satCount, spendByCat:{food,dmart,uber,other}, topUp, walk, readingYes, improveYes}
+function aggregateMonthly() {
+  const months = {};
+  for (const date of Object.keys(allEntries)) {
+    const ym = date.slice(0, 7);
+    if (!months[ym]) {
+      months[ym] = {
+        ym, satSum: 0, satCount: 0,
+        food: 0, dmart: 0, uber: 0, other: 0, topUp: 0,
+        walk: 0, walkDays: 0,
+        readingYes: 0, improveYes: 0, daysLogged: 0
+      };
+    }
+    const e = allEntries[date];
+    const m = months[ym];
+    m.daysLogged++;
+    const s = Number(e.satisfaction);
+    if (!isNaN(s) && e.satisfaction !== '' && e.satisfaction !== null) {
+      m.satSum += s; m.satCount++;
+    }
+    ['food','dmart','uber','other','topUp'].forEach(f => {
+      const n = evalExpr(e[f]);
+      if (n !== null) {
+        const key = f === 'topUp' ? 'topUp' : f;
+        m[key] += n;
+      }
+    });
+    const w = Number(e.walk);
+    if (!isNaN(w) && w > 0) { m.walk += w; m.walkDays++; }
+    if (e.reading === 'Yes') m.readingYes++;
+    if (e.improve === 'Yes') m.improveYes++;
+  }
+  // Sorted ascending by ym
+  return Object.values(months).sort((a, b) => a.ym.localeCompare(b.ym));
+}
+
+function renderTrends() {
+  const wrap = document.getElementById('trendsWrap');
+  const months = aggregateMonthly();
+  if (!months.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="e-icon">∅</div><div>No data to chart yet.</div></div>';
+    return;
+  }
+  let html = '';
+  html += renderTrendSpend(months);
+  html += renderTrendWalk(months);
+  wrap.innerHTML = html;
+
+  // Wire monthly bars/dots — click to jump to that month
+  wrap.querySelectorAll('[data-jump-ym]').forEach(el => {
+    el.addEventListener('click', () => {
+      monthCursor = el.dataset.jumpYm;
+      // Switch to month sub-view
+      document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.subtab === 'month-view'));
+      document.getElementById('subview-month-view').classList.remove('hidden');
+      document.getElementById('subview-trends-view').classList.add('hidden');
+      renderMonth();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    el.addEventListener('mouseenter', e => chartTooltipShow(e, el.dataset.tip || ''));
+    el.addEventListener('mousemove', e => chartTooltipShow(e, el.dataset.tip || ''));
+    el.addEventListener('mouseleave', chartTooltipHide);
+    el.addEventListener('touchstart', e => chartTooltipShow(e, el.dataset.tip || ''));
+    el.addEventListener('touchend', chartTooltipHide);
+  });
+}
+
+// Common helper: build year-tick markers across the bottom of a multi-year x-axis
+function buildYearTicks(months, P, W, innerW, H) {
+  const total = months.length;
+  if (!total) return '';
+  let ticks = '';
+  let lastYear = '';
+  months.forEach((m, i) => {
+    const year = m.ym.slice(0, 4);
+    if (year !== lastYear && (i === 0 || months[i-1].ym.slice(0,4) !== year)) {
+      // Show year label at the position of January (or first month of that year in data)
+      const x = P.left + (i + 0.5) / total * innerW;
+      ticks += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 4).toFixed(1)}" text-anchor="middle">${year}</text>`;
+      lastYear = year;
+    }
+  });
+  return ticks;
+}
+
+function renderTrendSatisfaction(months) {
+  const W = 380, H = 160, P = { top: 10, right: 8, bottom: 22, left: 32 };
+  const innerW = W - P.left - P.right;
+  const innerH = H - P.top - P.bottom;
+  const total = months.length;
+  // y-axis: 0..1 (0%..100%). For visual clarity, find the meaningful range
+  const validVals = months.filter(m => m.satCount > 0).map(m => m.satSum / m.satCount);
+  if (!validVals.length) {
+    return chartCard('Satisfaction trend', '', '<div class="chart-empty">No satisfaction data</div>');
+  }
+  const minV = Math.max(0, Math.min(...validVals) - 0.05);
+  const maxV = Math.min(1, Math.max(...validVals) + 0.05);
+  const range = maxV - minV;
+  const barW = innerW / total;
+  // Build path (skip months with no data — stop and restart)
+  let path = '';
+  let dots = '';
+  let pen = null;
+  months.forEach((m, i) => {
+    const x = P.left + (i + 0.5) / total * innerW;
+    if (m.satCount === 0) { pen = null; return; }
+    const v = m.satSum / m.satCount;
+    const yy = P.top + innerH - ((v - minV) / range) * innerH;
+    if (pen === null) path += `M${x.toFixed(1)},${yy.toFixed(1)} `;
+    else path += `L${x.toFixed(1)},${yy.toFixed(1)} `;
+    pen = { x, y: yy };
+    const tip = `${ymTitle(m.ym)}: ${(v*100).toFixed(1)}%`;
+    dots += `<circle class="ch-dot ch-tooltip-target" cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="2.5" data-jump-ym="${m.ym}" data-tip="${escAttr(tip)}"/>`;
+  });
+  // Y-axis labels — pick clean stops
+  const ySteps = 4;
+  let yLabels = '';
+  for (let i = 0; i <= ySteps; i++) {
+    const v = minV + (range * i / ySteps);
+    const yy = P.top + innerH - (i / ySteps) * innerH;
+    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${(v*100).toFixed(0)}%</text>`;
+    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
+  }
+  const xLabels = buildYearTicks(months, P, W, innerW, H);
+  const overall = validVals.reduce((a,b) => a+b, 0) / validVals.length;
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}<path class="ch-line" d="${path}"/>${dots}${xLabels}</svg>`;
+  return chartCard('Satisfaction trend', `Overall avg <strong>${(overall*100).toFixed(1)}%</strong> · ${validVals.length} months`, svg);
+}
+
+function renderTrendSpend(months) {
+  const W = 380, H = 180, P = { top: 10, right: 8, bottom: 22, left: 38 };
+  const innerW = W - P.left - P.right;
+  const innerH = H - P.top - P.bottom;
+  const total = months.length;
+  const stackTotals = months.map(m => m.food + m.dmart + m.uber + m.other);
+  const max = nicemax(Math.max(1, ...stackTotals));
+  const barW = innerW / total;
+
+  let bars = '';
+  const cats = [
+    { key: 'food', cls: 'ch-bar-spend-food', label: 'Food' },
+    { key: 'dmart', cls: 'ch-bar-spend-dmart', label: 'DMart' },
+    { key: 'uber', cls: 'ch-bar-spend-uber', label: 'Transport' },
+    { key: 'other', cls: 'ch-bar-spend-other', label: 'Other' },
+  ];
+  months.forEach((m, i) => {
+    const x = P.left + i * barW + 1;
+    let yCursor = P.top + innerH; // start at bottom
+    for (const c of cats) {
+      const v = m[c.key];
+      if (v <= 0) continue;
+      const h = (v / max) * innerH;
+      yCursor -= h;
+      const w = Math.max(1, barW - 1.5);
+      bars += `<rect class="ch-bar ${c.cls} ch-tooltip-target" x="${x.toFixed(1)}" y="${yCursor.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" data-jump-ym="${m.ym}" data-tip="${escAttr(ymTitle(m.ym) + ' ' + c.label + ': ' + fmtINR(v))}"/>`;
+    }
+  });
+  // Y labels
+  let yLabels = '';
+  const ySteps = 4;
+  for (let i = 0; i <= ySteps; i++) {
+    const v = max * i / ySteps;
+    const yy = P.top + innerH - (i / ySteps) * innerH;
+    const lbl = v >= 100000 ? (v/100000).toFixed(1) + 'L' : v >= 1000 ? Math.round(v/1000) + 'k' : Math.round(v);
+    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">₹${lbl}</text>`;
+    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
+  }
+  const xLabels = buildYearTicks(months, P, W, innerW, H);
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
+  const grandTotal = stackTotals.reduce((a,b) => a+b, 0);
+  const legend = `<div class="ch-legend">
+    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#8A1F1A"></span>Food</div>
+    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#A04A45"></span>DMart</div>
+    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#BD7570"></span>Transport</div>
+    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#D9A09B"></span>Other</div>
+  </div>`;
+  return chartCard('Monthly spend', `<strong>${fmtINR(grandTotal)}</strong> total over ${total} months`, svg + legend);
+}
+
+function renderTrendWalk(months) {
+  const W = 380, H = 130, P = { top: 8, right: 8, bottom: 22, left: 38 };
+  const innerW = W - P.left - P.right;
+  const innerH = H - P.top - P.bottom;
+  const total = months.length;
+  const vals = months.map(m => m.walk);
+  const max = nicemax(Math.max(1, ...vals));
+  const barW = innerW / total;
+  let bars = '';
+  let total_min = 0, monthsWithWalk = 0;
+  months.forEach((m, i) => {
+    if (m.walk <= 0) return;
+    monthsWithWalk++; total_min += m.walk;
+    const h = Math.max(1, (m.walk / max) * innerH);
+    const x = P.left + i * barW + 1;
+    const yy = P.top + (innerH - h);
+    const w = Math.max(1, barW - 1.5);
+    const tip = `${ymTitle(m.ym)}: ${m.walk} min · ${m.walkDays} days`;
+    bars += `<rect class="ch-bar ch-bar-walk ch-tooltip-target" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" data-jump-ym="${m.ym}" data-tip="${escAttr(tip)}"/>`;
+  });
+  let yLabels = '';
+  [0, max/2, max].forEach(v => {
+    const yy = P.top + innerH - (v/max) * innerH;
+    const lbl = v >= 1000 ? (v/1000).toFixed(1) + 'k' : Math.round(v);
+    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${lbl}m</text>`;
+    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
+  });
+  const xLabels = buildYearTicks(months, P, W, innerW, H);
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
+  const meta = monthsWithWalk ? `Avg <strong>${Math.round(total_min/monthsWithWalk)}</strong> min/month over ${monthsWithWalk} months` : '';
+  return chartCard('Walk total per month', meta, svg);
+}
+
+function renderTrendHabits(months) {
+  const W = 380, H = 150, P = { top: 8, right: 8, bottom: 22, left: 32 };
+  const innerW = W - P.left - P.right;
+  const innerH = H - P.top - P.bottom;
+  const total = months.length;
+  // Plot reading + improve as % of days logged
+  const max = 100;
+  let pathR = '', pathI = '';
+  let dotsR = '', dotsI = '';
+  let penR = null, penI = null;
+  months.forEach((m, i) => {
+    const x = P.left + (i + 0.5) / total * innerW;
+    if (m.daysLogged === 0) { penR = null; penI = null; return; }
+    const r = (m.readingYes / m.daysLogged) * 100;
+    const ii = (m.improveYes / m.daysLogged) * 100;
+    const yR = P.top + innerH - (r / max) * innerH;
+    const yI = P.top + innerH - (ii / max) * innerH;
+    pathR += (penR === null ? 'M' : 'L') + x.toFixed(1) + ',' + yR.toFixed(1) + ' ';
+    pathI += (penI === null ? 'M' : 'L') + x.toFixed(1) + ',' + yI.toFixed(1) + ' ';
+    penR = { x, y: yR }; penI = { x, y: yI };
+    const tipR = `${ymTitle(m.ym)} reading: ${m.readingYes}/${m.daysLogged} days (${r.toFixed(0)}%)`;
+    const tipI = `${ymTitle(m.ym)} improve: ${m.improveYes}/${m.daysLogged} days (${ii.toFixed(0)}%)`;
+    dotsR += `<circle class="ch-dot ch-tooltip-target" cx="${x.toFixed(1)}" cy="${yR.toFixed(1)}" r="2" data-jump-ym="${m.ym}" data-tip="${escAttr(tipR)}"/>`;
+    dotsI += `<circle class="ch-dot-secondary ch-tooltip-target" cx="${x.toFixed(1)}" cy="${yI.toFixed(1)}" r="2" data-jump-ym="${m.ym}" data-tip="${escAttr(tipI)}"/>`;
+  });
+  let yLabels = '';
+  [0, 25, 50, 75, 100].forEach(v => {
+    const yy = P.top + innerH - (v/max) * innerH;
+    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${v}%</text>`;
+    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
+  });
+  const xLabels = buildYearTicks(months, P, W, innerW, H);
+  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}<path class="ch-line" d="${pathR}"/><path class="ch-line-secondary" d="${pathI}"/>${dotsR}${dotsI}${xLabels}</svg>`;
+  const legend = `<div class="ch-legend">
+    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:var(--accent)"></span>Reading</div>
+    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:var(--moss)"></span>Improve</div>
+  </div>`;
+  return chartCard('Habit consistency', '% of logged days marked Yes', svg + legend);
+}
+
+// =========== SEARCH ACROSS ALL ENTRIES ===========
+// Client-side full-text search. Narrow scope: only free-text fields.
+// Searches on every keystroke after a tiny debounce; returns up to 50 matches
+// (renders 50 in the dropdown, scrollable). Case-insensitive substring match.
+
+const SEARCH_FIELDS = [
+  // [field key, human label]
+  ['slot1', '12 AM — 3 AM'],
+  ['slot2', '3 AM — 8 AM'],
+  ['slot3', '8 AM — 12 PM'],
+  ['slot4', '12 PM — 4 PM'],
+  ['slot5', '4 PM — 8 PM'],
+  ['slot6', '8 PM — 12 AM'],
+  ['breakfast', 'Breakfast'],
+  ['lunch', 'Lunch'],
+  ['dinner', 'Dinner'],
+  ['otherNote', 'Other expense note'],
+  ['nightStay', 'Night stay'],
+];
+const SEARCH_RESULT_LIMIT = 50;
+const SEARCH_SNIPPET_RADIUS = 40; // chars on either side of match
+
+let searchDebounceTimer = null;
+
+function openSearch() {
+  const overlay = document.getElementById('searchOverlay');
+  const input = document.getElementById('searchInput');
+  if (!overlay || !input) return;
+  overlay.classList.remove('hidden');
+  input.value = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchMeta').classList.add('hidden');
+  // Defer focus until after the show transition so mobile keyboards don't fight us
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeSearch() {
+  const overlay = document.getElementById('searchOverlay');
+  if (!overlay) return;
+  overlay.classList.add('hidden');
+  const input = document.getElementById('searchInput');
+  if (input) input.value = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchMeta').classList.add('hidden');
+}
+
+// Escape user input for safe insertion as plain text (we use textContent
+// for query value, so this is only used for HTML in snippet rendering).
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Build a snippet around the first match of `query` in `text`, with the match
+// wrapped in <mark>. Returns safe HTML.
+function buildSnippet(text, query, fieldLabel) {
+  const lower = text.toLowerCase();
+  const q = query.toLowerCase();
+  const idx = lower.indexOf(q);
+  let displayText;
+  if (idx < 0 || query === '') {
+    displayText = text.length > 100 ? text.slice(0, 100) + '…' : text;
+    return '<span class="field-name">' + escHtml(fieldLabel) + '</span>' + escHtml(displayText);
+  }
+  const start = Math.max(0, idx - SEARCH_SNIPPET_RADIUS);
+  const end = Math.min(text.length, idx + query.length + SEARCH_SNIPPET_RADIUS);
+  const before = (start > 0 ? '…' : '') + text.slice(start, idx);
+  const matchPart = text.slice(idx, idx + query.length);
+  const after = text.slice(idx + query.length, end) + (end < text.length ? '…' : '');
+  return '<span class="field-name">' + escHtml(fieldLabel) + '</span>'
+    + escHtml(before) + '<mark>' + escHtml(matchPart) + '</mark>' + escHtml(after);
+}
+
+function performSearch(query) {
+  const resultsEl = document.getElementById('searchResults');
+  const metaEl = document.getElementById('searchMeta');
+  if (!resultsEl || !metaEl) return;
+  const trimmed = query.trim();
+  if (trimmed.length < 2) {
+    resultsEl.innerHTML = '';
+    metaEl.classList.add('hidden');
+    return;
+  }
+  const q = trimmed.toLowerCase();
+  // Walk allEntries — match if ANY of the search fields contains the query.
+  // For ranking, prefer most recent first.
+  const matches = [];
+  const dates = Object.keys(allEntries).sort().reverse(); // newest first
+  for (const date of dates) {
+    const e = allEntries[date];
+    if (!e) continue;
+    let matchedField = null;
+    let matchedText = null;
+    for (const [key, label] of SEARCH_FIELDS) {
+      const v = e[key];
+      if (typeof v !== 'string' || v === '') continue;
+      if (v.toLowerCase().indexOf(q) >= 0) {
+        matchedField = label;
+        matchedText = v;
+        break;
+      }
+    }
+    if (matchedField) {
+      matches.push({ date, entry: e, fieldLabel: matchedField, matchedText });
+      if (matches.length >= SEARCH_RESULT_LIMIT) break;
+    }
+  }
+  // Render
+  metaEl.classList.remove('hidden');
+  if (matches.length === 0) {
+    metaEl.textContent = 'No matches';
+    resultsEl.innerHTML = '<div class="search-empty">No entries match "' + escHtml(trimmed) + '"</div>';
+    return;
+  }
+  metaEl.textContent = matches.length + (matches.length === SEARCH_RESULT_LIMIT ? '+' : '') + ' match' + (matches.length === 1 ? '' : 'es');
+  let html = '';
+  for (const m of matches) {
+    const [y, mo, d] = m.date.split('-').map(Number);
+    const dayName = DAY_NAMES[new Date(y, mo - 1, d).getDay()].slice(0, 3);
+    const sat = m.entry.satisfaction;
+    let satText = '—';
+    let satClass = 'empty';
+    if (sat !== '' && sat !== undefined && sat !== null && !isNaN(Number(sat))) {
+      const s = Number(sat);
+      satText = (s * 100).toFixed(0) + '%';
+      satClass = s < 0.94 ? 'low' : '';
+    }
+    const snippet = buildSnippet(m.matchedText, trimmed, m.fieldLabel);
+    const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mo - 1];
+    html += '<div class="search-result" data-date="' + m.date + '">'
+      + '<div class="sr-date">' + dayName + ' · ' + monthShort + ' ' + y + '<strong>' + d + '</strong></div>'
+      + '<div class="sr-snippet">' + snippet + '</div>'
+      + '<div class="sr-sat ' + satClass + '">' + satText + '</div>'
+      + '</div>';
+  }
+  resultsEl.innerHTML = html;
+  // Wire result clicks
+  resultsEl.querySelectorAll('.search-result[data-date]').forEach(row => {
+    row.addEventListener('click', () => {
+      const iso = row.getAttribute('data-date');
+      if (!iso) return;
+      currentDate = iso;
+      currentEntry = allEntries[iso] || blankEntry();
+      closeSearch();
+      showTab('today');
+      renderDateNav();
+      renderEntry();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+}
+
+function renderMonth() {
+  if (!monthCursor) monthCursor = ymOfIso(currentDate);
+  document.getElementById('monthTitle').textContent = ymTitle(monthCursor);
+  // Keep the quick-jump input in sync with the current cursor
+  const monthInput = document.getElementById('monthQuickInput');
+  if (monthInput) monthInput.value = monthCursor;
+  const datesInMonth = Object.keys(allEntries).filter(d => d.startsWith(monthCursor)).sort();
+  const entries = datesInMonth.map(d => ({ date: d, entry: allEntries[d] }));
+
+  const totals = { topUp:0, food:0, dmart:0, uber:0, other:0, walkSum:0, walkCount:0, heartSum:0, heartCount:0, satSum:0, satCount:0, readingYes:0, improveYes:0, introspectionYes:0 };
+  entries.forEach(({entry: e}) => {
+    CALC_FIELDS.forEach(f => {
+      const n = evalExpr(e[f]);
+      if (n !== null) totals[f] += n;
+    });
+    if (e.walk !== '' && e.walk !== undefined && e.walk !== null && !isNaN(Number(e.walk))) {
+      totals.walkSum += Number(e.walk); totals.walkCount++;
+    }
+    if (e.heart !== '' && e.heart !== undefined && e.heart !== null && !isNaN(Number(e.heart))) {
+      totals.heartSum += Number(e.heart); totals.heartCount++;
+    }
+    if (e.satisfaction !== '' && e.satisfaction !== undefined && e.satisfaction !== null && !isNaN(Number(e.satisfaction))) {
+      totals.satSum += Number(e.satisfaction); totals.satCount++;
+    }
+    if (e.reading === 'Yes') totals.readingYes++;
+    if (e.improve === 'Yes') totals.improveYes++;
+    if (e.introspection === 'Yes') totals.introspectionYes++;
+  });
+
+  const fmt = n => Math.round(n).toLocaleString('en-IN');
+  const totalSpend = totals.food + totals.dmart + totals.uber + totals.other;
+
+  // Render daily charts (satisfaction / spend / walk) at the top
+  renderMonthCharts(monthCursor, entries);
+
+  const grid = document.getElementById('totalsGrid');
+  grid.innerHTML = `
+    <div class="total-card red full">
+      <div class="lbl">Total Spend (excl. Top-Up)</div>
+      <div class="val">₹${fmt(totalSpend)}</div>
+      <div class="sub">${entries.length} day${entries.length===1?'':'s'} logged</div>
+    </div>
+    <div class="total-card green"><div class="lbl">Top-Up Investment</div><div class="val">₹${fmt(totals.topUp)}</div></div>
+    <div class="total-card red"><div class="lbl">Food / Dineout</div><div class="val">₹${fmt(totals.food)}</div></div>
+    <div class="total-card red"><div class="lbl">Quick-comm / DMart</div><div class="val">₹${fmt(totals.dmart)}</div></div>
+    <div class="total-card red"><div class="lbl">Transport</div><div class="val">₹${fmt(totals.uber)}</div></div>
+    <div class="total-card red"><div class="lbl">Other</div><div class="val">₹${fmt(totals.other)}</div></div>
+    <div class="total-card"><div class="lbl">Walk (sum)</div><div class="val">${totals.walkSum.toFixed(0)} min</div><div class="sub">${totals.walkCount} day${totals.walkCount===1?'':'s'}</div></div>
+    <div class="total-card"><div class="lbl">Heart Points</div><div class="val">${totals.heartSum}</div><div class="sub">avg ${totals.heartCount? (totals.heartSum/totals.heartCount).toFixed(1):'—'}/day</div></div>
+    <div class="total-card"><div class="lbl">Avg Satisfaction</div><div class="val">${totals.satCount ? ((totals.satSum/totals.satCount) * 100).toFixed(1) + '%' : '—'}</div></div>
+    <div class="total-card"><div class="lbl">Reading / Improve</div><div class="val" style="font-size:18px;">${totals.readingYes} / ${totals.improveYes}</div><div class="sub">days yes (of ${entries.length})</div></div>
+  `;
+
+  const wrap = document.getElementById('dayListWrap');
+  if (entries.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="e-icon">∅</div><div>No entries this month.</div></div>`;
+    return;
+  }
+  const sorted = entries.slice().sort((a,b) => b.date.localeCompare(a.date));
+  let listHtml = '<div class="day-list">';
+  sorted.forEach(({date, entry: e}) => {
+    const [y,m,d] = date.split('-').map(Number);
+    const dayName = DAY_NAMES[new Date(y,m-1,d).getDay()].slice(0,3);
+    const summaryParts = [];
+    if (e.slot3 && e.slot3 !== 'Not Any Specific Thing') summaryParts.push(e.slot3.split('\n')[0]);
+    if (e.slot5 && e.slot5 !== 'Not Any Specific Thing') summaryParts.push(e.slot5.split('\n')[0]);
+    if (!summaryParts.length && e.lunch && e.lunch !== 'NA') summaryParts.push('🍽 ' + e.lunch.split('\n')[0]);
+    const summary = summaryParts.join(' · ').slice(0, 120);
+    const sat = (e.satisfaction !== '' && e.satisfaction !== undefined && e.satisfaction !== null && !isNaN(Number(e.satisfaction))) ? (Number(e.satisfaction) * 100).toFixed(0) + '%' : '—';
+    const satClass = (e.satisfaction !== '' && !isNaN(Number(e.satisfaction)) && Number(e.satisfaction) < 0.94) ? ' low' : '';
+    listHtml += `<div class="day-row" data-date="${date}">
+      <div class="dt">${dayName}<strong>${d}</strong></div>
+      <div class="summary">${summary || '<span class="quiet">No notes</span>'}</div>
+      <div class="sat${satClass}">${sat}</div>
+    </div>`;
+  });
+  listHtml += '</div>';
+  wrap.innerHTML = listHtml;
+  wrap.querySelectorAll('.day-row').forEach(r => {
+    r.addEventListener('click', () => {
+      selectDate(r.dataset.date);
+      showTab('today');
+    });
+  });
+}
+
+// =========== EXPORT (CSV) ===========
+const CSV_HEADERS = [
+  'Date','Top-Up Investment','Food Expence [Dineout /Swiggy/Zomato]','Dmart / Instamart / Zepto / Blinkit',
+  'Uber / Petrol /Metro / Parking','Other Expence','Other Expense Note','Walk','Google Heart Points',
+  'Reading /Podcasts/ /Audible','Improve','Satisfaction','Introspection: Learning /Any regrets / New Ideas',
+  '12 AM - 3 AM','3 AM - 8 AM','8 AM - 12 PM','12 PM - 4 PM','4 PM - 8 PM','8 PM - 12 PM',
+  'Food Journal: Breakfast','Food Journal: Lunch','Food Journal: Dinner','Night Stay Information'
+];
+const CSV_FIELD_ORDER = ['__date','topUp','food','dmart','uber','other','otherNote','walk','heart','reading','improve','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay'];
+
+function csvEscape(v) {
+  if (v === undefined || v === null || v === '') return '';
+  const s = String(v);
+  if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+function buildCsv(filterPrefix) {
+  const dates = Object.keys(allEntries).filter(d => !filterPrefix || d.startsWith(filterPrefix)).sort();
+  const rows = [CSV_HEADERS.join(',')];
+  for (const d of dates) {
+    const e = allEntries[d];
+    const cells = CSV_FIELD_ORDER.map(f => {
+      if (f === '__date') return d;
+      if (CALC_FIELDS.includes(f)) {
+        const n = evalExpr(e[f]);
+        return n === null ? '' : csvEscape(n);
+      }
+      return csvEscape(e[f]);
+    });
+    rows.push(cells.join(','));
+  }
+  return { csv: rows.join('\n'), count: dates.length };
+}
+function downloadFile(filename, content) {
+  const blob = new Blob(['\ufeff' + content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderExportPanel() {
+  const dates = Object.keys(allEntries).sort();
+  const totalEntriesEl = document.getElementById('totalEntries');
+  const exportRangeEl = document.getElementById('exportRange');
+  if (totalEntriesEl) totalEntriesEl.textContent = dates.length;
+  if (exportRangeEl) exportRangeEl.textContent = dates.length ? `${dates[0]} → ${dates[dates.length-1]}` : 'No data yet';
+
+  const sec = document.getElementById('securitySection');
+  if (sec) {
+    const userEmail = (window.__myday_user_email) || 'signed in';
+    sec.innerHTML = `
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>
+        </svg>
+        <h2>Account</h2>
+        <span class="rule-fill"></span>
+        <span class="num">·</span>
+      </div>
+      <p class="quiet" style="margin-bottom: 12px;">Signed in as <strong style="color: var(--ink); font-style: normal;">${userEmail}</strong>. Data lives in your private Supabase database.</p>
+      <button class="chip" id="signOutBtn">Sign out</button>
+    `;
+    document.getElementById('signOutBtn').addEventListener('click', handleSignOut);
+  }
+}
+
+// =========== ANNUAL PDF EXPORT ===========
+// Generates a printable, full-detail PDF of one year. Each daily entry gets its
+// own page; each month gets a chapter-divider page; cover is minimal (year only).
+// Uses jsPDF (loaded in head as deferred script). Standard Helvetica + Times base
+// fonts — no custom font file needed since entries are ASCII-clean (verified
+// via sample of 1000 imported entries).
+
+const PDF_PAGE = {
+  // A4 portrait in mm: 210 × 297
+  width: 210,
+  height: 297,
+  marginX: 22,        // generous editorial side margins
+  marginTop: 24,
+  marginBottom: 22,
+};
+PDF_PAGE.contentWidth = PDF_PAGE.width - 2 * PDF_PAGE.marginX;
+PDF_PAGE.contentHeight = PDF_PAGE.height - PDF_PAGE.marginTop - PDF_PAGE.marginBottom;
+
+const PDF_COLORS = {
+  ink: [10, 19, 37],          // --ink
+  inkSoft: [40, 50, 75],      // --ink-soft
+  muted: [100, 110, 130],
+  rule: [189, 201, 220],
+  ember: [138, 31, 26],
+  moss: [53, 107, 78],
+  page: [255, 255, 255],      // pure white pages for printing
+};
+
+const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// Populate the year-picker dropdown with years for which we have entries.
+function populatePdfYearOptions() {
+  const select = document.getElementById('pdfYearSelect');
+  if (!select) return;
+  const years = new Set();
+  Object.keys(allEntries).forEach(iso => {
+    const y = iso.slice(0, 4);
+    if (/^\d{4}$/.test(y)) years.add(y);
+  });
+  const sorted = Array.from(years).sort((a, b) => b.localeCompare(a)); // newest first
+  select.innerHTML = '';
+  if (sorted.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'No data yet';
+    select.appendChild(opt);
+    select.disabled = true;
+    return;
+  }
+  select.disabled = false;
+  for (const y of sorted) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    // Count entries this year for context
+    const yearCount = Object.keys(allEntries).filter(iso => iso.startsWith(y)).length;
+    opt.textContent = `${y}  ·  ${yearCount} ${yearCount === 1 ? 'entry' : 'entries'}`;
+    select.appendChild(opt);
+  }
+}
+
+// Wait for jsPDF to be ready (it's loaded with `defer` so may not be ready immediately)
+function waitForJsPdf(maxWaitMs = 10000) {
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    function check() {
+      if (window.jspdf && window.jspdf.jsPDF) return resolve(window.jspdf.jsPDF);
+      if (Date.now() - start > maxWaitMs) return reject(new Error('jsPDF failed to load'));
+      setTimeout(check, 80);
+    }
+    check();
+  });
+}
+
+let pdfGenerationCancel = false;
+
+function setPdfStatus(message, state) {
+  const el = document.getElementById('pdfStatus');
+  if (!el) return;
+  el.classList.remove('working', 'done', 'failed');
+  if (state) el.classList.add(state);
+  el.textContent = message || '\u00A0';
+}
+
+function setPdfProgress(pct) {
+  const wrap = document.getElementById('pdfProgressWrap');
+  const fill = document.getElementById('pdfProgressFill');
+  if (!wrap || !fill) return;
+  if (pct === null) {
+    wrap.classList.add('hidden');
+    fill.style.width = '0%';
+  } else {
+    wrap.classList.remove('hidden');
+    fill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+  }
+}
+
+// Helper: yield to browser between heavy chunks so UI stays responsive
+function yieldToUi() { return new Promise(r => setTimeout(r, 0)); }
+
+// =========== PDF DRAWING PRIMITIVES ===========
+
+// Set a fill color from a [r,g,b] tuple
+function pdfSetFill(doc, c) { doc.setFillColor(c[0], c[1], c[2]); }
+function pdfSetText(doc, c) { doc.setTextColor(c[0], c[1], c[2]); }
+function pdfSetDraw(doc, c) { doc.setDrawColor(c[0], c[1], c[2]); }
+
+// Draw a horizontal rule across the content area at given y
+function pdfHRule(doc, y, weight) {
+  pdfSetDraw(doc, PDF_COLORS.rule);
+  doc.setLineWidth(weight || 0.2);
+  doc.line(PDF_PAGE.marginX, y, PDF_PAGE.width - PDF_PAGE.marginX, y);
+}
+
+// Wrap text to fit within a max width and return the array of lines
+function pdfWrapText(doc, text, maxWidth) {
+  if (!text) return [];
+  const safe = String(text).replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
+  return doc.splitTextToSize(safe, maxWidth);
+}
+
+// =========== PAGE 1: COVER ===========
+function pdfDrawCoverPage(doc, year, entryCount) {
+  pdfSetFill(doc, PDF_COLORS.page);
+  doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
+
+  // Composition centered around vertical position 45% of page height
+  // (slightly above true center = better visual balance)
+  const composeY = PDF_PAGE.height * 0.45;
+
+  // Title — italic Times
+  doc.setFont('times', 'italic');
+  doc.setFontSize(36);
+  pdfSetText(doc, PDF_COLORS.ink);
+  doc.text('My Day', PDF_PAGE.width / 2, composeY - 16, { align: 'center' });
+
+  // Single rule between title and year
+  pdfSetDraw(doc, PDF_COLORS.ink);
+  doc.setLineWidth(0.4);
+  doc.line(PDF_PAGE.width / 2 - 18, composeY - 6, PDF_PAGE.width / 2 + 18, composeY - 6);
+
+  // Year — large Times Roman
+  doc.setFont('times', 'normal');
+  doc.setFontSize(72);
+  pdfSetText(doc, PDF_COLORS.ink);
+  doc.text(String(year), PDF_PAGE.width / 2, composeY + 30, { align: 'center' });
+
+  // Footer: just "printed [Month Year]"
+  const footerY = PDF_PAGE.height - 18;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  pdfSetText(doc, PDF_COLORS.muted);
+  const now = new Date();
+  const printedStr = 'printed ' + MONTH_NAMES_FULL[now.getMonth()] + ' ' + now.getFullYear();
+  doc.text(printedStr, PDF_PAGE.width / 2, footerY, { align: 'center' });
+}
+
+// =========== MONTH DIVIDER PAGE ===========
+function pdfDrawMonthDivider(doc, year, monthIdx, monthEntries) {
+  pdfSetFill(doc, PDF_COLORS.page);
+  doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
+
+  const cy = PDF_PAGE.height / 2;
+  const monthName = MONTH_NAMES_FULL[monthIdx];
+
+  // Top mono kicker (e.g., "MAY · 2025")
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  pdfSetText(doc, PDF_COLORS.muted);
+  doc.text(`${monthName.toUpperCase()}  \u00B7  ${year}`, PDF_PAGE.width / 2, cy - 56, { align: 'center' });
+  doc.setCharSpace(0);
+
+  // Top rule
+  pdfSetDraw(doc, PDF_COLORS.ink);
+  doc.setLineWidth(0.6);
+  const ruleY1 = cy - 48;
+  doc.line(PDF_PAGE.width/2 - 30, ruleY1, PDF_PAGE.width/2 + 30, ruleY1);
+
+  // Big serif italic month name
+  doc.setFont('times', 'italic');
+  doc.setFontSize(56);
+  pdfSetText(doc, PDF_COLORS.ink);
+  doc.text(monthName, PDF_PAGE.width / 2, cy - 8, { align: 'center' });
+
+  // Compact monthly stats — total spend, walk total, avg satisfaction, days logged
+  const stats = computeMonthStats(monthEntries);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  pdfSetText(doc, PDF_COLORS.inkSoft);
+  let statsY = cy + 18;
+  const lines = [
+    `${stats.daysLogged} ${stats.daysLogged === 1 ? 'day' : 'days'} logged`,
+    `Total spend  Rs. ${stats.totalSpend.toLocaleString('en-IN')}`,
+    `Walked  ${stats.walkTotal.toLocaleString('en-IN')} minutes`,
+    stats.satCount > 0
+      ? `Average satisfaction  ${(stats.satAvg * 100).toFixed(1)}%`
+      : 'Satisfaction  not logged',
+  ];
+  for (const line of lines) {
+    doc.text(line, PDF_PAGE.width / 2, statsY, { align: 'center' });
+    statsY += 6;
+  }
+
+  // Bottom rule
+  pdfSetDraw(doc, PDF_COLORS.rule);
+  doc.setLineWidth(0.3);
+  const ruleY2 = cy + 60;
+  doc.line(PDF_PAGE.width/2 - 30, ruleY2, PDF_PAGE.width/2 + 30, ruleY2);
+
+  // Tiny ember asterisk below the bottom rule (PDF base fonts don't include ❦)
+  doc.setFont('times', 'italic');
+  doc.setFontSize(14);
+  pdfSetText(doc, PDF_COLORS.ember);
+  doc.text('*', PDF_PAGE.width / 2, ruleY2 + 8, { align: 'center' });
+}
+
+function computeMonthStats(entries) {
+  const stats = { daysLogged: 0, totalSpend: 0, walkTotal: 0, satSum: 0, satCount: 0, satAvg: 0 };
+  for (const e of entries) {
+    if (!e.entry) continue;
+    stats.daysLogged++;
+    const r = e.entry;
+    ['food','dmart','uber','other'].forEach(f => {
+      const n = evalExpr(r[f]);
+      if (n !== null) stats.totalSpend += n;
+    });
+    if (r.walk !== '' && r.walk !== undefined && r.walk !== null && !isNaN(Number(r.walk))) {
+      stats.walkTotal += Number(r.walk);
+    }
+    if (r.satisfaction !== '' && r.satisfaction !== undefined && r.satisfaction !== null && !isNaN(Number(r.satisfaction))) {
+      stats.satSum += Number(r.satisfaction);
+      stats.satCount++;
+    }
+  }
+  if (stats.satCount > 0) stats.satAvg = stats.satSum / stats.satCount;
+  return stats;
+}
+
+// =========== DAILY ENTRY PAGE (one day per page) ===========
+function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
+  pdfSetFill(doc, PDF_COLORS.page);
+  doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
+
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const jsDate = new Date(y, m - 1, d);
+  const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][jsDate.getDay()];
+  const monthName = MONTH_NAMES_FULL[m - 1];
+
+  let cursorY = PDF_PAGE.marginTop;
+
+  // ===== HEADER =====
+  // Mono micro-kicker
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  pdfSetText(doc, PDF_COLORS.muted);
+  doc.text(`${monthName.toUpperCase()}  \u00B7  ${y}`, PDF_PAGE.marginX, cursorY);
+
+  // Day-count on the right
+  const dayCount = dayCountFromStart(isoDate);
+  if (dayCount >= 1) {
+    doc.text('Day ' + dayCount.toLocaleString('en-IN'), PDF_PAGE.width - PDF_PAGE.marginX, cursorY, { align: 'right' });
+  }
+  cursorY += 8;
+
+  // Big day name + date
+  doc.setFont('times', 'italic');
+  doc.setFontSize(28);
+  pdfSetText(doc, PDF_COLORS.ink);
+  doc.text(dayName, PDF_PAGE.marginX, cursorY);
+  cursorY += 9;
+  doc.setFont('times', 'normal');
+  doc.setFontSize(16);
+  pdfSetText(doc, PDF_COLORS.inkSoft);
+  doc.text(`${d} ${monthName} ${y}`, PDF_PAGE.marginX, cursorY);
+  cursorY += 4;
+
+  // Header rule
+  pdfHRule(doc, cursorY + 4, 0.4);
+  cursorY += 12;
+
+  // ===== Section helper =====
+  function sectionHeading(title) {
+    // No silent skip — we always draw the heading. Layout is sized so this is safe.
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    pdfSetText(doc, PDF_COLORS.ember);
+    doc.text(title.toUpperCase(), PDF_PAGE.marginX, cursorY);
+    pdfSetDraw(doc, PDF_COLORS.rule);
+    doc.setLineWidth(0.15);
+    const titleW = doc.getTextWidth(title.toUpperCase());
+    doc.line(PDF_PAGE.marginX + titleW + 4, cursorY - 1, PDF_PAGE.width - PDF_PAGE.marginX, cursorY - 1);
+    cursorY += 6;
+    return true;
+  }
+  function fieldLine(label, value, opts) {
+    opts = opts || {};
+    if (!value && value !== 0) value = '—';
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    pdfSetText(doc, PDF_COLORS.muted);
+    doc.text(label, PDF_PAGE.marginX, cursorY);
+    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
+    doc.setFontSize(9.5);
+    pdfSetText(doc, PDF_COLORS.ink);
+    const valStr = String(value);
+    const labelW = 36; // mm reserved for the label column
+    const valX = PDF_PAGE.marginX + labelW;
+    const valMaxW = PDF_PAGE.contentWidth - labelW;
+    const lines = pdfWrapText(doc, valStr, valMaxW);
+    for (let i = 0; i < lines.length; i++) {
+      doc.text(lines[i], valX, cursorY);
+      if (i < lines.length - 1) cursorY += 4.0;
+    }
+    cursorY += 5;
+  }
+  function multilineField(label, value) {
+    // For empty values, use the compact fieldLine layout (label and "—" on same line)
+    // to save vertical space — an empty multiline shouldn't take more room than a regular field.
+    if (!value || value === '—' || (typeof value === 'string' && value.trim() === '')) {
+      fieldLine(label, '—');
+      return;
+    }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    pdfSetText(doc, PDF_COLORS.muted);
+    doc.text(label, PDF_PAGE.marginX, cursorY);
+    cursorY += 3.8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    pdfSetText(doc, PDF_COLORS.ink);
+    const lines = pdfWrapText(doc, String(value), PDF_PAGE.contentWidth);
+    for (const line of lines) {
+      if (cursorY > PDF_PAGE.height - PDF_PAGE.marginBottom - 6) break;
+      doc.text(line, PDF_PAGE.marginX, cursorY);
+      cursorY += 4.0;
+    }
+    cursorY += 1.5;
+  }
+
+  const fmt = (raw) => {
+    if (raw === '' || raw === undefined || raw === null) return '—';
+    const n = evalExpr(raw);
+    if (n === null) return String(raw);
+    return 'Rs. ' + Math.round(n).toLocaleString('en-IN');
+  };
+
+  // ===== I. INVESTMENTS & EXPENSES =====
+  sectionHeading('I  Investments & Expenses');
+  fieldLine('Top-Up Inv.', fmt(entry.topUp));
+  fieldLine('Food', fmt(entry.food));
+  fieldLine('DMart/QC', fmt(entry.dmart));
+  fieldLine('Transport', fmt(entry.uber));
+  fieldLine('Other', fmt(entry.other));
+  if (entry.otherNote && entry.otherNote.trim() && entry.otherNote.trim() !== 'NA') {
+    fieldLine('Note', entry.otherNote);
+  }
+
+  cursorY += 1;
+
+  // ===== II. HEALTH & MIND =====
+  sectionHeading('II  Health & Mind');
+  const walkVal = (entry.walk !== '' && entry.walk !== undefined && entry.walk !== null) ? `${entry.walk} min` : '—';
+  const heartVal = (entry.heart !== '' && entry.heart !== undefined && entry.heart !== null) ? `${entry.heart}` : '—';
+  fieldLine('Walk', walkVal);
+  fieldLine('Heart Pts', heartVal);
+  fieldLine('Reading', entry.reading || '—');
+  fieldLine('Improve', entry.improve || '—');
+
+  cursorY += 1;
+
+  // ===== III. THE HOURS =====
+  sectionHeading('III  The Hours');
+  const slots = [
+    ['12 AM – 3 AM', entry.slot1],
+    ['3 AM – 8 AM', entry.slot2],
+    ['8 AM – 12 PM', entry.slot3],
+    ['12 PM – 4 PM', entry.slot4],
+    ['4 PM – 8 PM', entry.slot5],
+    ['8 PM – 12 AM', entry.slot6],
+  ];
+  for (const [label, val] of slots) {
+    multilineField(label, val);
+  }
+
+  cursorY += 1;
+
+  // ===== IV. FOOD JOURNAL =====
+  sectionHeading('IV  Food Journal');
+  multilineField('Breakfast', entry.breakfast);
+  multilineField('Lunch', entry.lunch);
+  multilineField('Dinner', entry.dinner);
+
+  cursorY += 1;
+
+  // ===== V. NIGHT STAY =====
+  sectionHeading('V  Night Stay');
+  fieldLine('Stayed at', entry.nightStay || '—');
+
+  cursorY += 2;
+
+  // ===== VI. THE DAY'S VERDICT =====
+  sectionHeading("VI  The Day's Verdict");
+  let satStr = '—';
+  if (entry.satisfaction !== '' && entry.satisfaction !== undefined && entry.satisfaction !== null && !isNaN(Number(entry.satisfaction))) {
+    const s = Number(entry.satisfaction);
+    satStr = (s * 100).toFixed(0) + '%';
+  }
+  fieldLine('Satisfaction', satStr, { bold: true });
+
+  // Legacy introspection (only if present from imported entries)
+  if (entry.introspection && entry.introspection !== 'Yes' && entry.introspection !== 'No' && entry.introspection.length > 0) {
+    cursorY += 2;
+    multilineField('Introspection', entry.introspection);
+  }
+
+  // ===== MORNING PROMPT + DAILY REFLECTION (mirror of app's top + bottom cards) =====
+  // These are deterministic by date — the same prompt/quote that would have shown in the app.
+  // We've finished the form sections; now decide where to place the reflection block.
+  // The block lives in the bottom strip; if cursor is already past that strip's start,
+  // it sits just below cursor with a small gap. Otherwise, jumps to fixed position.
+  const reflectionBlockHeight = 32; // mm reserved
+  const footerHeight = 12; // mm
+  const reflectionStartY = PDF_PAGE.height - PDF_PAGE.marginBottom - footerHeight - reflectionBlockHeight;
+  // Anchor to the LATER of (current cursor + small gap) or (fixed bottom strip)
+  cursorY = Math.max(cursorY + 6, reflectionStartY);
+
+  // Hairline divider above the reflection block
+  pdfHRule(doc, cursorY, 0.2);
+  cursorY += 6;
+
+  // Morning prompt block
+  const promptIdx = (Math.max(1, dayCount) - 1) % MORNING_PROMPTS.length;
+  const promptText = MORNING_PROMPTS[promptIdx] || MORNING_PROMPTS[0];
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  pdfSetText(doc, PDF_COLORS.ember);
+  doc.text('MORNING', PDF_PAGE.marginX, cursorY);
+  doc.setFont('times', 'italic');
+  doc.setFontSize(9.5);
+  pdfSetText(doc, PDF_COLORS.inkSoft);
+  const promptLines = pdfWrapText(doc, promptText, PDF_PAGE.contentWidth - 22);
+  let py = cursorY;
+  // Cap at 2 lines; use compact 4mm leading
+  const promptShown = Math.min(promptLines.length, 2);
+  for (let i = 0; i < promptShown; i++) {
+    doc.text(promptLines[i], PDF_PAGE.marginX + 22, py);
+    py += 4;
+  }
+  // Advance cursor by exactly the lines used + small gap
+  cursorY += Math.max(5, promptShown * 4) + 2;
+
+  // Daily reflection (quote) block
+  if (typeof QUOTES !== 'undefined' && Array.isArray(QUOTES) && QUOTES.length > 0) {
+    const quoteIdx = (Math.max(1, dayCount) - 1) % QUOTES.length;
+    const q = QUOTES[quoteIdx] || QUOTES[0];
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    pdfSetText(doc, PDF_COLORS.ember);
+    doc.text('REFLECTION', PDF_PAGE.marginX, cursorY);
+    doc.setFont('times', 'italic');
+    doc.setFontSize(9.5);
+    pdfSetText(doc, PDF_COLORS.ink);
+    const quoteText = '"' + q.t + '"';
+    const quoteLines = pdfWrapText(doc, quoteText, PDF_PAGE.contentWidth - 22);
+    let qy = cursorY;
+    const quoteShown = Math.min(quoteLines.length, 2);
+    for (let i = 0; i < quoteShown; i++) {
+      doc.text(quoteLines[i], PDF_PAGE.marginX + 22, qy);
+      qy += 4;
+    }
+    // Attribution — compact, just below last quote line
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    pdfSetText(doc, PDF_COLORS.muted);
+    doc.text('— ' + q.a.toUpperCase(), PDF_PAGE.marginX + 22, qy + 0.5);
+  }
+
+  // ===== FOOTER (page number + day-of-year + year) =====
+  const footerLineY = PDF_PAGE.height - 8;
+  // Compute day-of-year and total days in year (leap-year correct)
+  const startOfYear = new Date(Date.UTC(y, 0, 1));
+  const dateUtc = new Date(Date.UTC(y, m - 1, d));
+  const dayOfYear = Math.floor((dateUtc - startOfYear) / 86400000) + 1;
+  const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+  const totalDays = isLeap ? 366 : 365;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  pdfSetText(doc, PDF_COLORS.muted);
+  doc.text(`Day ${dayOfYear} / ${totalDays}`, PDF_PAGE.marginX, footerLineY);
+  doc.text(String(runningPageNum), PDF_PAGE.width / 2, footerLineY, { align: 'center' });
+  doc.text(`My Day · ${y}`, PDF_PAGE.width - PDF_PAGE.marginX, footerLineY, { align: 'right' });
+}
+
+// =========== ORCHESTRATOR ===========
+async function generateAnnualPdf(year) {
+  const yearStr = String(year);
+  // Gather entries for this year, sorted by date
+  const yearEntries = [];
+  Object.keys(allEntries)
+    .filter(iso => iso.startsWith(yearStr + '-'))
+    .sort()
+    .forEach(iso => yearEntries.push({ date: iso, entry: allEntries[iso] }));
+
+  if (yearEntries.length === 0) {
+    setPdfStatus('No entries found for ' + yearStr, 'failed');
+    return;
+  }
+
+  // Group entries by month index (0-11)
+  const byMonth = {};
+  for (let i = 0; i < 12; i++) byMonth[i] = [];
+  for (const item of yearEntries) {
+    const m = parseInt(item.date.slice(5, 7), 10) - 1;
+    byMonth[m].push(item);
+  }
+
+  // Wait for jsPDF
+  setPdfStatus('Loading PDF library…', 'working');
+  setPdfProgress(2);
+  let JsPDF;
+  try {
+    JsPDF = await waitForJsPdf();
+  } catch (e) {
+    setPdfStatus('PDF library failed to load. Check your internet and try again.', 'failed');
+    setPdfProgress(null);
+    return;
+  }
+  await yieldToUi();
+
+  const doc = new JsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+  // Doc-level metadata
+  doc.setProperties({
+    title: 'My Day · ' + yearStr,
+    subject: 'Personal daily journal',
+    author: 'My Day',
+    creator: 'My Day app',
+  });
+
+  let runningPage = 1;
+  pdfGenerationCancel = false;
+
+  // ===== COVER =====
+  setPdfStatus('Drawing cover…', 'working');
+  setPdfProgress(4);
+  pdfDrawCoverPage(doc, year, yearEntries.length);
+  runningPage++;
+  await yieldToUi();
+
+  // ===== 12 MONTHS =====
+  // Total work units for progress: 12 month dividers + N daily pages
+  const totalUnits = 12 + yearEntries.length;
+  let unitsDone = 0;
+
+  for (let m = 0; m < 12; m++) {
+    if (pdfGenerationCancel) {
+      setPdfStatus('Cancelled.', 'failed');
+      setPdfProgress(null);
+      return;
+    }
+    const monthEntries = byMonth[m];
+    // Skip months with no entries (don't generate empty chapter dividers)
+    if (monthEntries.length === 0) {
+      unitsDone++;
+      continue;
+    }
+
+    // Month divider page
+    doc.addPage();
+    pdfDrawMonthDivider(doc, year, m, monthEntries);
+    runningPage++;
+    unitsDone++;
+    setPdfStatus(`Drawing ${MONTH_NAMES_FULL[m]} ${yearStr}…`, 'working');
+    setPdfProgress(4 + (unitsDone / totalUnits) * 92);
+    await yieldToUi();
+
+    // Each day in this month
+    for (let i = 0; i < monthEntries.length; i++) {
+      const item = monthEntries[i];
+      doc.addPage();
+      pdfDrawDailyEntry(doc, item.date, item.entry, runningPage);
+      runningPage++;
+      unitsDone++;
+      // Yield every 10 pages so the UI stays responsive
+      if ((i & 7) === 0) {
+        setPdfStatus(`Drawing ${MONTH_NAMES_FULL[m]} ${yearStr} · day ${i + 1} of ${monthEntries.length}…`, 'working');
+        setPdfProgress(4 + (unitsDone / totalUnits) * 92);
+        await yieldToUi();
+      }
+    }
+  }
+
+  // ===== SAVE =====
+  setPdfStatus('Finalising PDF…', 'working');
+  setPdfProgress(98);
+  await yieldToUi();
+  const filename = `My Day · ${yearStr}.pdf`;
+  doc.save(filename);
+
+  const sizeMb = (doc.output('blob').size / 1048576).toFixed(1);
+  setPdfStatus(`Saved as “${filename}”  ·  ${runningPage - 1} pages  ·  ${sizeMb} MB`, 'done');
+  setPdfProgress(100);
+  setTimeout(() => { setPdfProgress(null); }, 2000);
+}
+
+
+// =========== AUTH ===========
+async function handleSignIn() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPw1').value;
+  const errorEl = document.getElementById('authError');
+  const submitBtn = document.getElementById('authSubmit');
+  errorEl.classList.add('hidden');
+  if (!email || !pw) {
+    errorEl.textContent = 'Email and password required';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password: pw });
+    if (error) throw error;
+    if (!data || !data.user) throw new Error('No user returned');
+    userId = data.user.id;
+    window.__myday_user_email = data.user.email;
+    document.getElementById('authPw1').value = '';
+    document.getElementById('authOverlay').classList.add('hidden');
+    await loadAndStart();
+  } catch (e) {
+    console.error('sign in failed', e);
+    errorEl.textContent = (e && e.message) ? e.message : 'Sign in failed';
+    errorEl.classList.remove('hidden');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign in';
+  }
+}
+
+async function handleSignOut() {
+  if (!confirm('Sign out? You\'ll need to enter your email and password to come back.')) return;
+  await supa.auth.signOut();
+  window.location.reload();
+}
+
+// =========== INIT ===========
+async function loadAndStart() {
+  showImport('Loading your entries…', 'From Supabase');
+  try {
+    allEntries = await fetchAllEntries();
+  } catch (e) {
+    console.error('initial fetch failed', e);
+    hideImport();
+    toast('Failed to load entries: ' + (e.message || 'unknown'));
+    allEntries = {};
+  }
+  hideImport();
+  currentEntry = allEntries[currentDate] ? Object.assign(blankEntry(), allEntries[currentDate]) : blankEntry();
+  renderDateNav();
+  renderEntry();
+  setSaveState('');
+  renderExportPanel();
+  // Populate the PDF year-picker now that allEntries is loaded
+  // (it was called earlier in init() too, before data arrived — refresh now)
+  populatePdfYearOptions();
+}
+
+function showImport(main, sub) {
+  document.getElementById('importMsgMain').textContent = main;
+  document.getElementById('importMsgSub').textContent = sub;
+  document.getElementById('importOverlay').classList.remove('hidden');
+}
+function hideImport() {
+  document.getElementById('importOverlay').classList.add('hidden');
+}
+
+async function init() {
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+  // Search wiring
+  const searchBtn = document.getElementById('searchBtn');
+  if (searchBtn) searchBtn.addEventListener('click', openSearch);
+  const searchCloseBtn = document.getElementById('searchCloseBtn');
+  if (searchCloseBtn) searchCloseBtn.addEventListener('click', closeSearch);
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (ev) => {
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => performSearch(ev.target.value), 120);
+    });
+    searchInput.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape') closeSearch();
+    });
+  }
+  // Sub-tabs (Calendar -> Month / Trends)
+  document.querySelectorAll('.subtab').forEach(t => t.addEventListener('click', () => {
+    const which = t.dataset.subtab;
+    document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s === t));
+    document.getElementById('subview-month-view').classList.toggle('hidden', which !== 'month-view');
+    document.getElementById('subview-trends-view').classList.toggle('hidden', which !== 'trends-view');
+    if (which === 'trends-view') renderTrends();
+    if (which === 'month-view') renderMonth();
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }));
+  document.getElementById('monthPrev').addEventListener('click', () => { monthCursor = shiftYM(monthCursor, -1); renderMonth(); });
+  document.getElementById('monthNext').addEventListener('click', () => { monthCursor = shiftYM(monthCursor, 1); renderMonth(); });
+  document.getElementById('monthQuickInput').addEventListener('change', (e) => {
+    const v = e.target.value; // YYYY-MM
+    if (/^\d{4}-\d{2}$/.test(v)) {
+      monthCursor = v;
+      renderMonth();
+    }
+  });
+  document.getElementById('monthQuickToday').addEventListener('click', () => {
+    monthCursor = ymOfIso(isoToday());
+    renderMonth();
+  });
+  document.getElementById('monthTitle').addEventListener('click', openYmPicker);
+  document.getElementById('ymPickerClose').addEventListener('click', closeYmPicker);
+  document.getElementById('ymPickerBack').addEventListener('click', () => {
+    document.getElementById('ymPickerMonthSection').classList.add('hidden');
+    document.getElementById('ymPickerYearSection').classList.remove('hidden');
+    document.getElementById('ymPickerTitle').textContent = 'Select year';
+  });
+  // Close picker when tapping the backdrop
+  document.getElementById('ymPicker').addEventListener('click', (e) => {
+    if (e.target.id === 'ymPicker') closeYmPicker();
+  });
+  document.getElementById('exportAllBtn').addEventListener('click', () => {
+    const { csv, count } = buildCsv(null);
+    if (!count) { toast('No entries to export'); return; }
+    downloadFile('myday_all.csv', csv);
+    toast(`Exported ${count} entries`);
+  });
+  document.getElementById('exportMonthBtn').addEventListener('click', () => {
+    const ym = ymOfIso(currentDate);
+    const { csv, count } = buildCsv(ym);
+    if (!count) { toast('No entries this month'); return; }
+    downloadFile(`myday_${ym}.csv`, csv);
+    toast(`Exported ${count} entries for ${ymTitle(ym)}`);
+  });
+
+  // Annual PDF wiring
+  populatePdfYearOptions();
+  const generatePdfBtn = document.getElementById('generatePdfBtn');
+  if (generatePdfBtn) {
+    generatePdfBtn.addEventListener('click', async () => {
+      const select = document.getElementById('pdfYearSelect');
+      const year = select && select.value;
+      if (!year) { setPdfStatus('No year selected', 'failed'); return; }
+      generatePdfBtn.disabled = true;
+      try {
+        await generateAnnualPdf(year);
+      } catch (err) {
+        console.error('PDF generation failed:', err);
+        setPdfStatus('Generation failed: ' + (err && err.message ? err.message : 'unknown error'), 'failed');
+        setPdfProgress(null);
+      } finally {
+        generatePdfBtn.disabled = false;
+      }
+    });
+  }
+
+  bindForm();
+
+  // Auth wiring
+  document.getElementById('authSubmit').addEventListener('click', handleSignIn);
+  document.getElementById('authEmail').addEventListener('keypress', e => {
+    if (e.key === 'Enter') document.getElementById('authPw1').focus();
+  });
+  document.getElementById('authPw1').addEventListener('keypress', e => {
+    if (e.key === 'Enter') handleSignIn();
+  });
+
+  // Check for existing session
+  const { data: { session } } = await supa.auth.getSession();
+  if (session && session.user) {
+    userId = session.user.id;
+    window.__myday_user_email = session.user.email;
+    document.getElementById('authOverlay').classList.add('hidden');
+    await loadAndStart();
+  } else {
+    // No session — auth overlay is already visible by default
+    document.getElementById('authEmail').focus();
+  }
+}
+
+init().catch(err => {
+  console.error('init failed', err);
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Failed to start</h2><p>' + (err && err.message ? err.message : 'Unknown error') + '</p></div>';
+});
+</script>
+</body>
+</html>
