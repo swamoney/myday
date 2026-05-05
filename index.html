@@ -3926,12 +3926,14 @@ function recInitUi() {
       }
     });
   }
-  // Restore persisted state (default: collapsed)
+  // Phase 9: always start collapsed on every load (privacy/clean-startup
+  // preference). User can still expand any section during the session, but
+  // the expanded state does NOT persist across page loads.
+  // Note: this intentionally ignores any 'expanded' value stored from earlier
+  // sessions — the parent Recurring section starts closed every time.
   try {
-    const stored = localStorage.getItem(recCollapsedStorageKey());
     const sec = document.getElementById('recSection');
-    if (sec && stored === 'expanded') sec.classList.remove('collapsed');
-    // (default markup already has .collapsed — no-op for first-time / 'collapsed' state)
+    if (sec) sec.classList.add('collapsed');
   } catch {}
 
   // Default tab is "Manage items" (Phase 2 will default to "This month")
@@ -3952,12 +3954,10 @@ function recGroupCollapsedStorageKey(groupKey) {
   return 'myday.recGroupCollapsed.' + (userId || 'anon') + '.' + groupKey;
 }
 function recGroupIsCollapsed(groupKey) {
-  try {
-    const stored = localStorage.getItem(recGroupCollapsedStorageKey(groupKey));
-    if (stored === 'expanded') return false;
-    if (stored === 'collapsed') return true;
-  } catch {}
-  // Default: collapsed
+  // Phase 9: always start collapsed on every page load. The user can expand
+  // groups during the session via tap, but the expanded state does NOT persist
+  // across reloads. This matches the parent section's start-collapsed behavior
+  // for a consistent "clean-on-open" experience.
   return true;
 }
 function recGroupSetCollapsed(groupKey, collapsed) {
