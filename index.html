@@ -389,10 +389,9 @@
   .future-banner .future-back-btn:active { transform: scale(0.96); }
 
   /* When future-locked: dim the whole form and disable interactivity. The
-     priorities/reflection cards still show (they're static), but every input
+     reflection card still shows (it's static), but every input
      reads as visually disabled and won't accept input. The :first-child
      future-banner stays at full opacity above the dimmed form. */
-  .future-locked .priorities-card,
   .future-locked .reflection-card,
   .future-locked .section,
   .future-locked .editorial-kicker,
@@ -1594,51 +1593,6 @@
   .editorial-ornament .glyph {
     font-family: var(--serif); font-style: italic;
     color: var(--ember); font-size: 13px;
-  }
-
-  /* Daily Priorities card at top of Today tab — static life-framework anchor */
-  .priorities-card {
-    margin-bottom: 16px; padding: 0;
-    background: #ECF1F7; border: 1px solid #C8D2E0;
-    border-radius: 14px; overflow: hidden;
-    box-shadow: var(--shadow);
-  }
-  .priorities-title {
-    text-align: center;
-    padding: 16px 16px 0;
-    font-family: var(--serif); font-style: italic; font-weight: 600;
-    font-size: 16px; color: #0F2D5C; letter-spacing: 0.005em;
-  }
-  .priorities-illu {
-    display: flex; justify-content: center;
-    padding: 10px 0 6px;
-    color: #1E4A8C;
-  }
-  .priorities-illu svg {
-    width: 30px; height: 30px;
-  }
-  .priorities-body {
-    padding: 4px 22px 18px;
-  }
-  .priorities-body .p-row {
-    font-family: var(--mono); font-size: 14px;
-    color: #1A2B45; padding: 5px 0; letter-spacing: 0.01em;
-    display: flex; align-items: baseline; gap: 8px;
-  }
-  .priorities-body .p-row .p-tag {
-    color: #1E4A8C; font-weight: 600; font-size: 13px;
-    flex-shrink: 0; min-width: 60px;
-    font-family: var(--mono); letter-spacing: 0.02em;
-  }
-  .priorities-body .p-row .p-val {
-    font-variant-numeric: tabular-nums;
-  }
-  .priorities-body .p-row.p-coda {
-    margin-top: 4px; padding-top: 8px; border-top: 1px dashed #C8D2E0;
-    color: #0F2D5C; font-size: 13px;
-  }
-  .priorities-body .p-row.p-coda .p-tag-inline {
-    min-width: 0;
   }
 
   /* Daily Reflection card at bottom of Today tab */
@@ -5847,25 +5801,6 @@
       </div>
     </div>
 
-    <!-- DAILY PRIORITIES — static framework anchor; same view every morning -->
-    <div class="priorities-card">
-      <div class="priorities-title">Always Remember Your Why</div>
-      <div class="priorities-illu">
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="16" cy="16" r="13"/>
-          <circle cx="16" cy="16" r="9"/>
-          <circle cx="16" cy="16" r="5"/>
-          <circle cx="16" cy="16" r="1.5" fill="currentColor"/>
-        </svg>
-      </div>
-      <div class="priorities-body">
-        <div class="p-row"><span class="p-tag">#H77</span><span class="p-val">40 × 20 × 20</span></div>
-        <div class="p-row"><span class="p-tag">#F150</span><span class="p-val">1 × 1 × 1</span></div>
-        <div class="p-row"><span class="p-tag">#IN125</span><span class="p-val">85 × 85 × 5</span></div>
-        <div class="p-row p-coda">And Then, <span class="p-tag p-tag-inline">#T75</span> &amp; <span class="p-tag p-tag-inline">#S25+</span></div>
-      </div>
-    </div>
-
     <!-- EXPENSES -->
     <div class="section s-expenses">
       <div class="section-illustration">
@@ -7917,26 +7852,6 @@ function shiftDate(iso, days) {
 // Day 1 of the record is the first archive entry: 2 January 2019
 const RECORD_START_ISO = '2019-01-02';
 
-// =========== DAILY PRIORITIES ===========
-// The Today tab's top card now displays a static life-framework block (rendered
-// directly in the HTML markup as a `.priorities-card`). For the annual PDF,
-// the same priorities are rendered at the bottom of each daily page so the
-// printed journal carries the same daily anchor.
-//
-// This single-line representation is for PDF use only; the in-app card uses
-// its own structured HTML.
-
-const DAILY_PRIORITIES_TEXT = "#H77: 40 × 20 × 20  ·  #F150: 1 × 1 × 1  ·  #IN125: 85 × 85 × 5  ·  And Then, #T75 & #S25+";
-
-// Kept for backwards compatibility with the PDF generator below — it references
-// MORNING_PROMPTS as an array.
-const MORNING_PROMPTS = [DAILY_PRIORITIES_TEXT];
-
-function renderMorningPrompt(iso) {
-  // Static priorities are rendered directly in the HTML markup as a `.priorities-card`.
-  // This function is retained as a no-op so existing call sites don't error.
-}
-
 // =========== DAILY REFLECTION ===========
 // 100 curated quotes spanning Stoic, Sufi/mystical, Indian, Eastern, Western
 // literary, and modern thinkers. With 100 quotes and ~365 days/year, each quote
@@ -8221,8 +8136,6 @@ function renderEntry() {
   }
   // Daily reflection — pick poster (or fallback quote) for this entry's date
   renderReflection(currentDate);
-  // Morning prompt — companion at the top of Today
-  renderMorningPrompt(currentDate);
   // Yesterday's Verdict ghost — quiet reference point under the slider
   renderYesterdayGhost(currentDate);
   // Soft auto-fill suggestions for repeating slot values
