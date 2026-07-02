@@ -1000,6 +1000,105 @@
     font-family: var(--sans);
   }
 
+  /* ===== Ship C: Section focus mode =====
+     Applied when a hub button is clicked. Body gets `hub-focused` class +
+     `data-hub-focus` attribute with the section class. Hub grid hides;
+     stacked sections all hide EXCEPT the focused one. Nav bars at top/bottom
+     of the focused section handle back-to-hub + next-section-in-sequence. */
+
+  body.hub-view.hub-focused .today-hub > .hub-ring-wrap,
+  body.hub-view.hub-focused .today-hub > .hub-grid {
+    display: none;
+  }
+  /* By default in focused mode, ALL sections hidden — CSS below unhides
+     the one matching data-hub-focus. Investments has a companion (Recurring
+     Payments) which also shows when Expenses is focused. */
+  body.hub-view.hub-focused #tab-today .section { display: none; }
+  body.hub-view.hub-focused[data-hub-focus="s-expenses"] #tab-today .section.s-expenses,
+  body.hub-view.hub-focused[data-hub-focus="s-expenses"] #tab-today .section.s-recurring,
+  body.hub-view.hub-focused[data-hub-focus="s-health"] #tab-today .section.s-health,
+  body.hub-view.hub-focused[data-hub-focus="s-time"] #tab-today .section.s-time,
+  body.hub-view.hub-focused[data-hub-focus="s-food"] #tab-today .section.s-food,
+  body.hub-view.hub-focused[data-hub-focus="s-night"] #tab-today .section.s-night,
+  body.hub-view.hub-focused[data-hub-focus="s-verdict"] #tab-today .section.s-verdict {
+    display: block;
+  }
+
+  /* Focus nav bar (top + bottom) — back + progress + next */
+  .hub-focus-nav {
+    display: none; /* only visible when in hub-focused mode */
+    align-items: center; gap: 10px;
+    background: #fff;
+    border: 1px solid var(--rs-line, #e3e7ec);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    font-family: var(--sans);
+  }
+  .hub-focus-nav.hub-focus-nav-bottom {
+    margin-top: 14px; margin-bottom: 40px;
+  }
+  body.hub-view.hub-focused .hub-focus-nav {
+    display: flex;
+  }
+  .hub-focus-nav-back {
+    background: transparent; border: 1px solid var(--rs-line, #e3e7ec);
+    border-radius: 6px; padding: 6px 12px;
+    font-size: 12px; color: var(--rs-brand, #0b4f6c);
+    cursor: pointer; font-family: var(--sans);
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: background 0.15s;
+  }
+  .hub-focus-nav-back:hover { background: var(--rs-line, #e3e7ec); }
+  .hub-focus-nav-title {
+    font-size: 13px; font-weight: 700;
+    color: var(--rs-brand, #0b4f6c);
+    font-family: var(--sans);
+    margin: 0 auto;
+    letter-spacing: -0.15px;
+  }
+  .hub-focus-nav-progress {
+    font-size: 10px; color: var(--rs-sub, #5a6570);
+    font-family: var(--sans); font-weight: 500;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+  }
+  .hub-focus-nav-next {
+    background: var(--rs-brand, #0b4f6c); border: 0;
+    border-radius: 6px; padding: 7px 14px;
+    font-size: 12px; color: #fff; font-weight: 600;
+    cursor: pointer; font-family: var(--sans);
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: background 0.15s;
+  }
+  .hub-focus-nav-next:hover { background: #1a7fa8; }
+  .hub-focus-nav-next.is-last {
+    background: #55c17c;
+  }
+  .hub-focus-nav-next.is-last:hover { background: #4ba86b; }
+
+  /* Force focused section to be expanded, no collapsibility */
+  body.hub-view.hub-focused .section.is-collapsible {
+    cursor: default;
+  }
+  body.hub-view.hub-focused .section.is-collapsible .section-head {
+    cursor: default;
+  }
+  body.hub-view.hub-focused .section.is-collapsible .section-chevron {
+    display: none;
+  }
+  /* Hide the section-status-dot on the section head when focused —
+     redundant since the same info is in the nav bar title. */
+  body.hub-view.hub-focused .section.is-collapsible .section-status-dot {
+    display: none;
+  }
+  /* Top-of-page today-progress ring is also hidden in focus mode (context
+     shifted to the specific section). */
+  body.hub-view.hub-focused #todayProgress { display: none; }
+  /* The reflection card at bottom of Today is also hidden in focus mode. */
+  body.hub-view.hub-focused .reflection-card { display: none; }
+  /* View mode toggle stays visible so user can escape to Classic */
+
   /* [A] Today progress ring + collapsible sections */
   .today-progress {
     display: flex; align-items: center; gap: 12px;
@@ -6020,6 +6119,18 @@
       </div>
     </div>
 
+    <!-- ==================================================================
+         Ship C: Focus mode nav bar (top). Shown only when body.hub-focused.
+         Back button returns to hub. Progress "N of 6". Title reflects the
+         focused section. Placed BEFORE the sections so it renders on top
+         when its target section is visible. Only visible via CSS.
+         ================================================================== -->
+    <div class="hub-focus-nav hub-focus-nav-top" id="hubFocusNavTop">
+      <button type="button" class="hub-focus-nav-back" id="hubFocusBackTop" aria-label="Back to hub">← Hub</button>
+      <div class="hub-focus-nav-title" id="hubFocusTitleTop">—</div>
+      <div class="hub-focus-nav-progress" id="hubFocusProgressTop">— of 6</div>
+    </div>
+
     <!-- EXPENSES -->
     <div class="section s-expenses">
       <div class="section-illustration">
@@ -6656,6 +6767,12 @@
           <div class="yesterday-ghost hidden" id="yesterdayGhost">yesterday: <span></span></div>
         </div>
       </div>
+    </div>
+
+    <!-- Ship C: Focus mode nav bar (bottom). Back button + Next/Return button. -->
+    <div class="hub-focus-nav hub-focus-nav-bottom" id="hubFocusNavBottom">
+      <button type="button" class="hub-focus-nav-back" id="hubFocusBackBottom" aria-label="Back to hub">← Hub</button>
+      <button type="button" class="hub-focus-nav-next" id="hubFocusNext">Next →</button>
     </div>
 
     <!-- DAILY REFLECTION -->
@@ -9399,6 +9516,11 @@ function setTodayViewMode(mode) {
     body.classList.add('hub-view');
   } else {
     body.classList.remove('hub-view');
+    // Also exit focus mode if we were inside a section
+    body.classList.remove('hub-focused');
+    body.removeAttribute('data-hub-focus');
+    // Restore normal Today hero
+    if (typeof updateRsHero === 'function') updateRsHero('today');
   }
   // Update toggle button active state
   document.querySelectorAll('.today-view-toggle button').forEach(b => {
@@ -9508,9 +9630,112 @@ function setupTodayHub() {
       if (mode) setTodayViewMode(mode);
     });
   });
+  // Ship C: wire hub button clicks to focus that section
+  document.querySelectorAll('.hub-btn[data-hub-section]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cls = btn.dataset.hubSection;
+      if (cls) focusHubSection(cls);
+    });
+  });
+  // Ship C: wire back + next nav buttons
+  const backTop = document.getElementById('hubFocusBackTop');
+  const backBottom = document.getElementById('hubFocusBackBottom');
+  const nextBtn = document.getElementById('hubFocusNext');
+  if (backTop) backTop.addEventListener('click', unfocusHubSection);
+  if (backBottom) backBottom.addEventListener('click', unfocusHubSection);
+  if (nextBtn) nextBtn.addEventListener('click', advanceToNextSection);
   // Initial state = classic (body has no .hub-view class). But paint the
   // hub anyway so it's ready when user toggles.
   refreshHubState();
+}
+
+// ============ TODAY HUB — Ship C: focus mode ============
+// The 6-section sequence used for auto-advance. Order matches the visual
+// order sections appear in Today and matches TODAY_SECTIONS. Recurring
+// Payments is not its own step — it's shown alongside Expenses.
+const HUB_SECTION_ORDER = [
+  { cls: 's-expenses', label: 'Investments & Expenses' },
+  { cls: 's-health',   label: 'Health & Mind' },
+  { cls: 's-time',     label: 'The Hours' },
+  { cls: 's-food',     label: 'Food Journal' },
+  { cls: 's-night',    label: 'Night Stay' },
+  { cls: 's-verdict',  label: "The Day's Verdict" },
+];
+
+// Enter focus mode for a specific section. Sets body class + data attribute
+// which triggers all the CSS visibility changes. Also expands the focused
+// section (so its content is visible if it was collapsed), updates the nav
+// bar title + progress, updates the hero, and scrolls to top.
+function focusHubSection(cls) {
+  if (!cls) return;
+  const body = document.body;
+  body.classList.add('hub-focused');
+  body.setAttribute('data-hub-focus', cls);
+  // Expand the focused section so its content is visible (in case classic
+  // view had collapsed it).
+  if (typeof expandTodaySection === 'function') expandTodaySection(cls);
+  // Recurring Payments is a companion of Expenses — expand it too so it
+  // renders in the same detail page.
+  if (cls === 's-expenses') {
+    const rec = document.querySelector('.section.s-recurring');
+    if (rec) {
+      rec.classList.add('is-expanded');
+      rec.classList.remove('is-collapsed');
+    }
+  }
+  // Update nav bar title + progress
+  const idx = HUB_SECTION_ORDER.findIndex(s => s.cls === cls);
+  const sec = HUB_SECTION_ORDER[idx];
+  const titleEl = document.getElementById('hubFocusTitleTop');
+  const progressEl = document.getElementById('hubFocusProgressTop');
+  const nextBtn = document.getElementById('hubFocusNext');
+  if (titleEl && sec) titleEl.textContent = sec.label;
+  if (progressEl) progressEl.textContent = (idx + 1) + ' of 6';
+  if (nextBtn) {
+    const isLast = idx === HUB_SECTION_ORDER.length - 1;
+    nextBtn.classList.toggle('is-last', isLast);
+    if (isLast) {
+      nextBtn.textContent = 'Done — back to hub ✓';
+    } else {
+      const nextLabel = HUB_SECTION_ORDER[idx + 1].label;
+      nextBtn.textContent = 'Next: ' + nextLabel + ' →';
+    }
+  }
+  // Update hero title to reflect the breadcrumb
+  const heroTitle = document.getElementById('rsHeroTitle');
+  const heroSub = document.getElementById('rsHeroSubtitle');
+  if (heroTitle && sec) heroTitle.textContent = 'Today · ' + sec.label;
+  if (heroSub) heroSub.textContent = 'Section ' + (idx + 1) + ' of 6 · edit fields and tap next when done';
+  // Scroll to top of the content area
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// Exit focus mode — return to hub grid.
+function unfocusHubSection() {
+  const body = document.body;
+  body.classList.remove('hub-focused');
+  body.removeAttribute('data-hub-focus');
+  // Restore normal Today hero
+  if (typeof updateRsHero === 'function') updateRsHero('today');
+  // Repaint hub state (status pills may have changed while in section)
+  if (typeof refreshHubState === 'function') refreshHubState();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// Advance to the next section in HUB_SECTION_ORDER. If already at the last
+// section (Verdict), returns to the hub instead.
+function advanceToNextSection() {
+  const body = document.body;
+  const currentCls = body.getAttribute('data-hub-focus');
+  if (!currentCls) return;
+  const idx = HUB_SECTION_ORDER.findIndex(s => s.cls === currentCls);
+  if (idx < 0) return;
+  if (idx === HUB_SECTION_ORDER.length - 1) {
+    // Last section — return to hub
+    unfocusHubSection();
+  } else {
+    focusHubSection(HUB_SECTION_ORDER[idx + 1].cls);
+  }
 }
 
 // =========== MONTH VIEW ===========
