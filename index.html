@@ -908,68 +908,58 @@
     .hub-grid { gap: 14px; }
   }
 
-  /* Hub buttons — Item 3 revamp variant D: left-edge colored stripe.
-     Research-report vibe: each button has a 4px colored bar down the LEFT
-     edge instead of across the top. Stripe is rendered via ::before pseudo
-     driven by data-hub-section attribute (no HTML change needed).
-     Border-radius asymmetry: left corners squared to align with the stripe,
-     right corners rounded (12px). Background stays white; content padding
-     restored (14px all around) with a small left inset so the stripe
-     doesn't crowd the text. */
+  /* Hub buttons — data-forward layout (Direction A).
+     Structure per card:
+       [Category tag with colored dot]          [Status pill top-right]
+       ₹8,248        ← big serif number (repurposed .hub-btn-title)
+       out today · ₹5,000 in ← small caption (repurposed .hub-btn-sub)
+     Icon and dashed preview removed. The card lets the DATA be the visual. */
   .hub-btn {
     background: #ffffff; border: 1px solid var(--rs-line, #e3e7ec);
-    border-radius: 8px 12px 12px 8px;
-    padding: 14px 14px 14px 14px;
+    border-radius: 14px;
+    padding: 14px 16px 14px 16px;
     text-align: left; cursor: pointer;
     transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
     font-family: inherit;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-    overflow: hidden;
     position: relative;
+    min-height: 100px;
   }
   .hub-btn:hover {
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
     border-color: #d0d7e0;
+    transform: translateY(-1px);
   }
   .hub-btn:active {
     transform: scale(0.98);
   }
-  /* Left-edge colored stripe — 4px wide, full height of the button, absolutely
-     positioned at left:0. Set via data-hub-section attribute so no per-button
-     class needed. */
-  .hub-btn::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 4px;
-    background: #B0B4BC; /* fallback neutral */
-  }
-  .hub-btn[data-hub-section="s-expenses"]::before { background: #8A1F1A; }
-  .hub-btn[data-hub-section="s-health"]::before   { background: #356B4E; }
-  .hub-btn[data-hub-section="s-time"]::before     { background: #BA7517; }
-  .hub-btn[data-hub-section="s-food"]::before     { background: #BA7517; }
-  .hub-btn[data-hub-section="s-night"]::before    { background: #534AB7; }
-  .hub-btn[data-hub-section="s-verdict"]::before  { background: #A04A60; }
-  /* Icon tinting per section — subtle accent color that harmonizes with the
-     left-edge stripe. Creates a visual through-line from stripe → icon. */
-  .hub-btn[data-hub-section="s-expenses"] .hub-btn-icon { color: #8A1F1A; }
-  .hub-btn[data-hub-section="s-health"] .hub-btn-icon   { color: #356B4E; }
-  .hub-btn[data-hub-section="s-time"] .hub-btn-icon     { color: #BA7517; }
-  .hub-btn[data-hub-section="s-food"] .hub-btn-icon     { color: #BA7517; }
-  .hub-btn[data-hub-section="s-night"] .hub-btn-icon    { color: #534AB7; }
-  .hub-btn[data-hub-section="s-verdict"] .hub-btn-icon  { color: #A04A60; }
-  /* Head + content: all padding is now on .hub-btn itself, so internal
-     children reset their added padding from the top-strip variant. */
+  /* Category tag on the top-left — small uppercase label with a colored dot
+     indicating the section. */
   .hub-btn-head {
     display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px;
     padding: 0;
-    margin-bottom: 8px;
   }
-  .hub-btn-icon {
-    width: 20px; height: 20px;
-    color: var(--rs-brand, #0b4f6c);
+  .hub-btn-tag {
+    font-size: 9px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #5a6570; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--sans);
+  }
+  .hub-btn-tag-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #B0B4BC; /* fallback */
     flex-shrink: 0;
   }
+  /* Per-section dot color */
+  .hub-btn[data-hub-section="s-expenses"] .hub-btn-tag-dot { background: #8A1F1A; }
+  .hub-btn[data-hub-section="s-health"] .hub-btn-tag-dot   { background: #356B4E; }
+  .hub-btn[data-hub-section="s-time"] .hub-btn-tag-dot     { background: #BA7517; }
+  .hub-btn[data-hub-section="s-food"] .hub-btn-tag-dot     { background: #BA7517; }
+  .hub-btn[data-hub-section="s-night"] .hub-btn-tag-dot    { background: #534AB7; }
+  .hub-btn[data-hub-section="s-verdict"] .hub-btn-tag-dot  { background: #A04A60; }
+  /* Status pill on the top-right — same styling as before but tighter */
   .hub-btn-status {
     font-size: 8px; padding: 2px 7px;
     border-radius: 10px;
@@ -977,6 +967,7 @@
     text-transform: uppercase;
     font-weight: 600;
     font-family: var(--sans);
+    flex-shrink: 0;
   }
   .hub-btn-status.done {
     background: rgba(85, 193, 124, 0.15); color: #1f8a4c;
@@ -987,25 +978,57 @@
   .hub-btn-status.empty {
     background: rgba(192, 198, 208, 0.25); color: #5a6570;
   }
+  /* THE BIG NUMBER — this is what "data-forward" means. Serif for the
+     editorial-warmth carry-over, large font size, tight letter-spacing. */
   .hub-btn-title {
-    font-size: 13px; font-weight: 700; color: var(--rs-brand, #0b4f6c);
-    margin: 0 0 3px; padding: 0;
-    font-family: var(--sans);
-    letter-spacing: -0.15px;
-    line-height: 1.25;
+    font-family: var(--serif);
+    font-size: 26px; font-weight: 500;
+    color: var(--rs-brand, #0b4f6c);
+    margin: 6px 0 2px; padding: 0;
+    letter-spacing: -0.5px;
+    line-height: 1.05;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  /* Muted title when the section is empty (title === "—"). Applied by JS
+     via .is-empty class on the title element. */
+  .hub-btn-title.is-empty {
+    color: #b0b4bc;
+    font-weight: 400;
+  }
+  /* Currency prefix inside title — smaller and lighter than the number itself */
+  .hub-btn-title .cur {
+    font-size: 15px;
+    color: #5a6570;
+    font-weight: 400;
+    margin-right: 1px;
+    letter-spacing: 0;
+  }
+  /* Unit suffix inside title — e.g. "min", "/ 6", "/ 10" */
+  .hub-btn-title .unit {
+    font-size: 14px;
+    color: #5a6570;
+    font-weight: 400;
+    margin-left: 3px;
+    letter-spacing: 0;
+  }
+  /* SMALL CAPTION under the number */
   .hub-btn-sub {
     font-size: 11px; color: #5a6570;
-    font-family: var(--serif); font-style: italic;
-    margin: 0; padding: 0;
-    line-height: 1.35;
-  }
-  .hub-btn-preview {
-    font-size: 10px; color: #3D4866;
-    margin-top: 8px; padding: 6px 0 0;
-    border-top: 1px dashed var(--rs-line, #e3e7ec);
     font-family: var(--sans);
+    font-style: normal;
+    font-weight: 500;
+    margin: 0; padding: 0;
+    line-height: 1.4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  /* Preview element is now redundant (data is in the title/sub); hide it */
+  .hub-btn-preview {
+    display: none;
+  }
+  /* Verdict sub-label tone coloring — used by renderHubDataValues */
+  .hub-btn-sub .verdict-tone-good { color: #1f8a4c; font-weight: 600; }
+  .hub-btn-sub .verdict-tone-mid { color: #A66A00; font-weight: 600; }
+  .hub-btn-sub .verdict-tone-tough { color: #8A1F1A; font-weight: 600; }
   /* E3.4: Verdict preview color-coded by score */
   .hub-btn-preview .verdict-preview-good {
     color: #1f8a4c; font-weight: 600;
@@ -1851,6 +1874,71 @@
     background: #0F2D5C;
     border-radius: 8px;
   }
+  /* Nav variant — Date navigation embedded in the hero. Prev/next arrows
+     sit at the edges, tappable date title in the middle. Whole thing
+     replaces the previous separate gray .datenav bar. */
+  .editorial-kicker-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 14px 12px;
+  }
+  .hero-arrow {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+    border: 0;
+    color: rgba(255,255,255,0.85);
+    font-size: 20px; line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    font-family: var(--sans);
+  }
+  .hero-arrow:hover { background: rgba(255,255,255,0.20); color: #fff; }
+  .hero-arrow:active { transform: scale(0.94); }
+  .hero-date-trigger {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    padding: 4px 8px;
+    cursor: pointer;
+    position: relative;
+    color: inherit;
+    font-family: inherit;
+  }
+  .hero-date-trigger:hover .kicker-line { opacity: 0.9; }
+  .hero-date-trigger .save-dot {
+    position: absolute;
+    top: -4px; right: 12px;
+  }
+  /* Small standalone Today chip that sits under the hero. Shown only when
+     the user has navigated away from today's date. */
+  .today-chip-wrap {
+    text-align: center;
+    margin-top: -6px; margin-bottom: 12px;
+    min-height: 0;
+  }
+  .today-chip-pill {
+    background: #fff;
+    border: 1px solid var(--rs-line, #e3e7ec);
+    border-radius: 999px;
+    padding: 5px 16px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--rs-brand, #0b4f6c);
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: var(--sans);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .today-chip-pill:hover { background: #f5f6f8; }
+  .today-chip-pill:active { transform: scale(0.96); }
+  .today-chip-pill.hidden { display: none; }
   .editorial-kicker .meta {
     font-family: var(--mono); font-size: 9px; letter-spacing: 0.32em;
     text-transform: uppercase; color: rgba(255,255,255,0.60); margin-bottom: 6px;
@@ -1860,6 +1948,7 @@
     font-size: 22px; color: #FFFFFF; line-height: 1.15;
     letter-spacing: 0.005em;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: opacity 0.15s;
   }
   .editorial-kicker .kicker-line .day-part {
     font-weight: 600;
@@ -6029,19 +6118,28 @@
       </div>
       <button class="future-back-btn" type="button" id="futureBackBtn">Back to today</button>
     </div>
-    <div class="editorial-kicker">
-      <div class="kicker-line" id="kickerLine">—</div>
-      <span class="glyph-stamp">❦</span>
-    </div>
-    <div class="datenav datenav-compact">
-      <button class="arrow" id="prevDay" aria-label="Previous day">‹</button>
-      <button class="date-trigger" id="dateTrigger" type="button" aria-label="Pick a date">
-        <span class="date-text" id="dateTriggerText">—</span>
-        <svg class="date-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <!-- ================================================================
+         Hero + date navigation combined.
+         Structure: [prev arrow] [tap-to-pick date title] [next arrow]
+         Below hero: small TODAY chip shown when currentDate !== today.
+         The whole hero doubles as the date picker trigger — tap the date
+         text to open the picker overlay. Prev/next chevrons on the sides
+         navigate ±1 day. This replaces the previous separate gray
+         .datenav bar which duplicated the date visually.
+         ================================================================ -->
+    <div class="editorial-kicker editorial-kicker-nav">
+      <button class="hero-arrow hero-arrow-prev" id="prevDay" type="button" aria-label="Previous day">‹</button>
+      <button class="hero-date-trigger" id="dateTrigger" type="button" aria-label="Pick a date">
+        <div class="kicker-line" id="kickerLine">—</div>
         <span class="save-dot" id="saveDot" aria-hidden="true"></span>
       </button>
-      <button class="today-chip hidden" id="todayBtn" type="button">Today</button>
-      <button class="arrow" id="nextDay" aria-label="Next day">›</button>
+      <button class="hero-arrow hero-arrow-next" id="nextDay" type="button" aria-label="Next day">›</button>
+      <span class="glyph-stamp">❦</span>
+    </div>
+    <!-- Small "TODAY" chip beneath the hero, shown only when navigated away.
+         Anchors the user visually back to the current day. -->
+    <div class="today-chip-wrap">
+      <button class="today-chip-pill hidden" id="todayBtn" type="button">Today</button>
     </div>
     <!-- Hidden native date input — used to drive the date picker on tap.
          The visible UI is the dateTrigger above; tapping it triggers this. -->
@@ -6087,61 +6185,65 @@
       </div>
       <div class="hub-grid" id="hubGrid">
         <!-- 6 hub buttons; last one is Verdict. Investments button also covers
-             Recurring Payments (they open together as one detail page). -->
+             Recurring Payments (they open together as one detail page).
+             Data-forward layout: category tag with colored dot (top-left),
+             status pill (top-right), BIG number in the middle (populated via
+             JS by renderHubDataValue), small label below the number.
+             The button title and sub elements are repurposed as the big
+             number and label respectively — no HTML change needed per-button
+             for data population, just JS updates. -->
         <button type="button" class="hub-btn" data-hub-section="s-expenses">
           <div class="hub-btn-head">
-            <!-- Cash bill icon — rectangular note with central mark, INR-appropriate.
-                 (Previously a "$" glyph which read wrong on a rupee tracker.) -->
-            <svg class="hub-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Expenses</span>
             <span class="hub-btn-status empty" data-hub-status="s-expenses">Empty</span>
           </div>
-          <div class="hub-btn-title">Investments &amp; Expenses</div>
-          <div class="hub-btn-sub">what came in, what went out · recurring included</div>
+          <div class="hub-btn-title" data-hub-value="s-expenses">—</div>
+          <div class="hub-btn-sub" data-hub-label="s-expenses">no entries yet</div>
           <div class="hub-btn-preview" data-hub-preview="s-expenses" hidden></div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-health">
           <div class="hub-btn-head">
-            <svg class="hub-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 0 1 0-6.364z"/></svg>
+            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Health</span>
             <span class="hub-btn-status empty" data-hub-status="s-health">Empty</span>
           </div>
-          <div class="hub-btn-title">Health &amp; Mind</div>
-          <div class="hub-btn-sub">walk, heart, reading</div>
+          <div class="hub-btn-title" data-hub-value="s-health">—</div>
+          <div class="hub-btn-sub" data-hub-label="s-health">no activity</div>
           <div class="hub-btn-preview" data-hub-preview="s-health" hidden></div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-time">
           <div class="hub-btn-head">
-            <svg class="hub-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Hours</span>
             <span class="hub-btn-status empty" data-hub-status="s-time">Empty</span>
           </div>
-          <div class="hub-btn-title">The Hours</div>
-          <div class="hub-btn-sub">time slots across the day</div>
+          <div class="hub-btn-title" data-hub-value="s-time">0 / 6</div>
+          <div class="hub-btn-sub" data-hub-label="s-time">no slots yet</div>
           <div class="hub-btn-preview" data-hub-preview="s-time" hidden></div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-food">
           <div class="hub-btn-head">
-            <svg class="hub-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2V2M7 2v20M21 15V2a4 4 0 0 0-4 4v9c0 1.1.9 2 2 2h1v5"/></svg>
+            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Food</span>
             <span class="hub-btn-status empty" data-hub-status="s-food">Empty</span>
           </div>
-          <div class="hub-btn-title">Food Journal</div>
-          <div class="hub-btn-sub">breakfast, lunch, dinner</div>
+          <div class="hub-btn-title" data-hub-value="s-food">0 / 3</div>
+          <div class="hub-btn-sub" data-hub-label="s-food">no meals yet</div>
           <div class="hub-btn-preview" data-hub-preview="s-food" hidden></div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-night">
           <div class="hub-btn-head">
-            <svg class="hub-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Night</span>
             <span class="hub-btn-status empty" data-hub-status="s-night">Empty</span>
           </div>
-          <div class="hub-btn-title">Night Stay</div>
-          <div class="hub-btn-sub">where the night rested</div>
+          <div class="hub-btn-title" data-hub-value="s-night">—</div>
+          <div class="hub-btn-sub" data-hub-label="s-night">where tonight?</div>
           <div class="hub-btn-preview" data-hub-preview="s-night" hidden></div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-verdict">
           <div class="hub-btn-head">
-            <svg class="hub-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Verdict</span>
             <span class="hub-btn-status empty" data-hub-status="s-verdict">Empty</span>
           </div>
-          <div class="hub-btn-title">The Day's Verdict</div>
-          <div class="hub-btn-sub">how did the day feel</div>
+          <div class="hub-btn-title" data-hub-value="s-verdict">—</div>
+          <div class="hub-btn-sub" data-hub-label="s-verdict">how did it feel?</div>
           <div class="hub-btn-preview" data-hub-preview="s-verdict" hidden></div>
         </button>
       </div>
@@ -8394,18 +8496,9 @@ function renderDateNav() {
     datePart.textContent = formatDateLong(currentDate);
     kl.appendChild(datePart);
   }
-  // Phase 11: Compact date-trigger text (e.g., "Sat, 3 May 2026") + show/hide
-  // the Today chip based on whether currentDate equals today.
-  const triggerText = document.getElementById('dateTriggerText');
-  if (triggerText) {
-    // Short day + full date — fits in the trigger button at most widths.
-    const dt = new Date(currentDate + 'T00:00:00');
-    const shortDay = dt.toLocaleDateString('en-IN', { weekday: 'short' });
-    const dayNum = dt.getDate();
-    const monthShort = dt.toLocaleDateString('en-IN', { month: 'short' });
-    const year = dt.getFullYear();
-    triggerText.textContent = `${shortDay}, ${dayNum} ${monthShort} ${year}`;
-  }
+  // Ship-date-E: standalone Today chip below the hero. Shown only when
+  // navigated away from today. Formerly lived inside the gray .datenav
+  // bar; now sits under the hero (bar removed).
   const todayChip = document.getElementById('todayBtn');
   if (todayChip) {
     todayChip.classList.toggle('hidden', currentDate === isoToday());
@@ -9730,30 +9823,147 @@ function computeHubPreview(cls) {
 }
 
 // Ship E1: refresh preview lines under each hub button.
+// NOTE (Data-forward variant): The old preview element is now display:none.
+// Preview text is instead rendered into the .hub-btn-title (BIG NUMBER) and
+// .hub-btn-sub (small caption) via renderHubDataValues below. This function
+// is retained as a no-op for backwards-compat but does nothing.
 function refreshHubButtonPreviews() {
-  document.querySelectorAll('.hub-btn-preview[data-hub-preview]').forEach(el => {
-    const cls = el.dataset.hubPreview;
-    const preview = computeHubPreview(cls);
-    if (preview) {
-      // E3.4: Verdict returns HTML with a color-coded span; other sections
-      // return plain text. Set innerHTML so the color span renders.
-      // Safe because computeHubPreview is our own function and doesn't
-      // include any user-provided strings that could contain HTML — the
-      // exception is Night Stay which uses textContent-safe truncation.
-      // For Night Stay we explicitly escape below just to be defensive.
-      if (cls === 's-verdict') {
-        el.innerHTML = preview;
-      } else if (cls === 's-night') {
-        // Escape any HTML in the address string
-        el.textContent = preview;
-      } else {
-        el.textContent = preview;
-      }
-      el.hidden = false;
-    } else {
-      el.textContent = '';
-      el.hidden = true;
+  // Intentionally empty — data-forward rendering handled by renderHubDataValues.
+}
+
+// Data-forward hub value rendering (Direction A). For each of the 6 hub
+// buttons, compute a { title, sub, tone } object from currentEntry and
+// paint into the button's .hub-btn-title (BIG NUMBER) and .hub-btn-sub
+// (small caption) elements. Called from refreshHubState.
+function renderHubDataValues() {
+  if (typeof currentEntry !== 'object' || !currentEntry) return;
+  const e = currentEntry;
+  const num = v => { const n = Number(v); return isFinite(n) ? n : 0; };
+  const filled = v => {
+    if (v === undefined || v === null || v === '') return false;
+    if (typeof v === 'number') return v > 0;
+    return String(v).trim().length > 0;
+  };
+  // Escape HTML in user-provided strings (nightStay address) before
+  // inserting into innerHTML.
+  const esc = s => String(s || '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+
+  const values = {};
+
+  // ==== Expenses ====
+  const spendKeys = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','other'];
+  let outTotal = 0;
+  spendKeys.forEach(k => { outTotal += num(e[k]); });
+  let recTotal = 0;
+  try {
+    const rec = JSON.parse(e.recurringLog || '[]');
+    if (Array.isArray(rec)) rec.forEach(r => { recTotal += num(r.amount); });
+  } catch {}
+  outTotal += recTotal;
+  const invest = num(e.regularInvestment) + num(e.topUp);
+  if (outTotal === 0 && invest === 0) {
+    values['s-expenses'] = { title: '—', sub: 'no entries yet' };
+  } else if (outTotal > 0 && invest > 0) {
+    values['s-expenses'] = {
+      title: `<span class="cur">₹</span>${outTotal.toLocaleString('en-IN')}`,
+      sub: `out today · ₹${invest.toLocaleString('en-IN')} in`
+    };
+  } else if (invest > 0) {
+    values['s-expenses'] = {
+      title: `<span class="cur">₹</span>${invest.toLocaleString('en-IN')}`,
+      sub: 'invested today'
+    };
+  } else {
+    values['s-expenses'] = {
+      title: `<span class="cur">₹</span>${outTotal.toLocaleString('en-IN')}`,
+      sub: 'spent today'
+    };
+  }
+
+  // ==== Health ====
+  const walk = num(e.walk);
+  const heart = num(e.heart);
+  const reading = e.reading === 'Yes' || e.reading === 'yes' || e.reading === true;
+  if (walk === 0 && heart === 0 && !reading) {
+    values['s-health'] = { title: '—', sub: 'no activity' };
+  } else if (walk > 0) {
+    const parts = [];
+    parts.push(`walk`);
+    if (heart > 0) parts.push(`${heart} hp`);
+    if (reading) parts.push('read ✓');
+    values['s-health'] = {
+      title: `${walk}<span class="unit">min</span>`,
+      sub: parts.join(' · ')
+    };
+  } else if (heart > 0) {
+    values['s-health'] = {
+      title: `${heart}<span class="unit">hp</span>`,
+      sub: reading ? 'heart pts · read ✓' : 'heart points'
+    };
+  } else {
+    values['s-health'] = { title: 'read ✓', sub: 'today' };
+  }
+
+  // ==== Hours ====
+  const slots = ['slot1','slot2','slot3','slot4','slot5','slot6'];
+  const slotCount = slots.filter(k => filled(e[k])).length;
+  values['s-time'] = {
+    title: `${slotCount}<span class="unit">/ 6</span>`,
+    sub: slotCount === 0 ? 'no slots yet'
+       : slotCount === 6 ? 'time slots filled'
+       : 'time slots so far'
+  };
+
+  // ==== Food ====
+  const meals = ['breakfast','lunch','dinner'].filter(k => filled(e[k]));
+  values['s-food'] = {
+    title: `${meals.length}<span class="unit">/ 3</span>`,
+    sub: meals.length === 0 ? 'no meals yet'
+       : meals.length === 3 ? 'meals logged'
+       : 'meals so far'
+  };
+
+  // ==== Night ====
+  const stay = String(e.nightStay || '').trim();
+  if (!stay) {
+    values['s-night'] = { title: '—', sub: 'where tonight?' };
+  } else {
+    // Try to pull a short label — first word/segment
+    const parts = stay.split(/[@,]/).map(s => s.trim()).filter(Boolean);
+    const short = parts.length > 1
+      ? parts[parts.length - 1]  // if "2004/A3, Ganga Legend @ Pune" → "Pune"
+      : (parts[0] || stay).slice(0, 14);
+    values['s-night'] = { title: esc(short), sub: esc(stay.length > 32 ? stay.slice(0, 30) + '…' : stay) };
+  }
+
+  // ==== Verdict ====
+  const sat = num(e.satisfaction);
+  if (sat <= 0) {
+    values['s-verdict'] = { title: '—', sub: 'how did it feel?' };
+  } else {
+    const outOfTen = (sat * 10).toFixed(1);
+    let subLabel = 'good day';
+    let tone = 'good';
+    if (sat < 0.4) { subLabel = 'tough day'; tone = 'tough'; }
+    else if (sat < 0.7) { subLabel = 'quiet day'; tone = 'mid'; }
+    values['s-verdict'] = {
+      title: `${outOfTen}<span class="unit">/ 10</span>`,
+      sub: `<span class="verdict-tone-${tone}">${subLabel}</span>`
+    };
+  }
+
+  // Paint into the DOM
+  Object.entries(values).forEach(([cls, val]) => {
+    const titleEl = document.querySelector('.hub-btn-title[data-hub-value="' + cls + '"]');
+    const subEl = document.querySelector('.hub-btn-sub[data-hub-label="' + cls + '"]');
+    if (titleEl) {
+      titleEl.innerHTML = val.title;
+      // Muted styling when the value is the empty placeholder
+      titleEl.classList.toggle('is-empty', val.title === '—');
     }
+    if (subEl) subEl.innerHTML = val.sub;
   });
 }
 
@@ -9767,7 +9977,9 @@ function refreshHubState() {
   renderHubRing(booleanStates);
   updateHubRingMeta(booleanStates, detailedStates);
   refreshHubButtonStatuses(detailedStates);
-  // Ship E1: refresh per-button preview text
+  // Data-forward hub: populate BIG numbers + small captions into each card
+  if (typeof renderHubDataValues === 'function') renderHubDataValues();
+  // Ship E1: refresh per-button preview text (now a no-op — kept for compat)
   refreshHubButtonPreviews();
 }
 
