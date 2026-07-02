@@ -7077,7 +7077,9 @@ const RES_KEYS = {
   //   { addresses: [ { value: 'Pune @ ...', tagged_at: ISOString } ] }
   // Comparison is case-insensitive + trimmed. Local to this device — if
   // you switch devices, you'd re-seed.
-  homeAddresses: () => `myday.homeAddresses.${userId || 'anon'}`,
+  // Ship E2: persist Today view mode ('hub' or 'classic') across reloads.
+  // Value: 'hub' | 'classic' (default 'classic').
+  todayViewMode: () => `myday.todayViewMode.${userId || 'anon'}`,
 };
 
 // Home addresses registry — Supabase-backed user prefs with in-memory cache
@@ -9488,6 +9490,12 @@ function setTodayViewMode(mode) {
   });
   // Refresh hub state now that it may be visible
   if (mode === 'hub') refreshHubState();
+  // Ship E2: persist the preference so it survives reload.
+  try {
+    if (typeof RES_KEYS !== 'undefined' && RES_KEYS.todayViewMode) {
+      localStorage.setItem(RES_KEYS.todayViewMode(), mode);
+    }
+  } catch { /* private-mode/no-storage — non-fatal */ }
 }
 
 // Render the shrunk 6-segment ring in the hub. Reuses the same segment
@@ -9567,6 +9575,96 @@ function refreshHubButtonStatuses(detailedStates) {
   });
 }
 
+// Ship E1: compute a short preview string per section, shown under the title
+// on the hub button. Returns '' if section is empty (in which case the
+// preview element is hidden).
+function computeHubPreview(cls) {
+  if (typeof currentEntry !== 'object' || !currentEntry) return '';
+  const e = currentEntry;
+  // Helper: coerce to number, return 0 for non-numeric
+  const num = v => {
+    const n = Number(v);
+    return isFinite(n) ? n : 0;
+  };
+  // Helper: filled if not empty/null/undefined/zero
+  const filled = v => {
+    if (v === undefined || v === null || v === '') return false;
+    if (typeof v === 'number') return v > 0;
+    return String(v).trim().length > 0;
+  };
+  if (cls === 's-expenses') {
+    // Sum of daily spend fields + recurring log
+    const spendKeys = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','other'];
+    let total = 0;
+    spendKeys.forEach(k => { total += num(e[k]); });
+    // Recurring log: array of {name, amount}
+    let recTotal = 0;
+    try {
+      const rec = JSON.parse(e.recurringLog || '[]');
+      if (Array.isArray(rec)) rec.forEach(r => { recTotal += num(r.amount); });
+    } catch { /* malformed — ignore */ }
+    total += recTotal;
+    // Investments too
+    const invest = num(e.regularInvestment) + num(e.topUp);
+    if (total === 0 && invest === 0) return '';
+    if (invest > 0 && total > 0) return fmtINR(invest) + ' in · ' + fmtINR(total) + ' out';
+    if (invest > 0) return fmtINR(invest) + ' invested';
+    return fmtINR(total) + ' spent';
+  }
+  if (cls === 's-health') {
+    const walk = num(e.walk);
+    const heart = num(e.heart);
+    const reading = e.reading;
+    const parts = [];
+    if (walk > 0) parts.push(walk + ' min walk');
+    if (heart > 0) parts.push(heart + ' hp');
+    if (reading === 'Yes' || reading === 'yes' || reading === true) parts.push('read');
+    return parts.join(' · ');
+  }
+  if (cls === 's-time') {
+    const slots = ['slot1','slot2','slot3','slot4','slot5','slot6'];
+    const count = slots.filter(k => filled(e[k])).length;
+    if (count === 0) return '';
+    return count + ' of 6 slots';
+  }
+  if (cls === 's-food') {
+    const meals = ['breakfast','lunch','dinner'].filter(k => filled(e[k]));
+    if (meals.length === 0) return '';
+    if (meals.length === 3) return 'all 3 meals logged';
+    return meals.length + ' meal' + (meals.length === 1 ? '' : 's') + ' logged';
+  }
+  if (cls === 's-night') {
+    const stay = String(e.nightStay || '').trim();
+    if (!stay) return '';
+    // Truncate long addresses
+    if (stay.length > 32) return stay.slice(0, 30) + '…';
+    return stay;
+  }
+  if (cls === 's-verdict') {
+    const sat = num(e.satisfaction);
+    if (sat <= 0) return '';
+    // satisfaction is 0-1 range; show as X.X / 10
+    const outOfTen = (sat * 10).toFixed(1);
+    return outOfTen + ' / 10';
+  }
+  return '';
+}
+
+// Ship E1: refresh preview lines under each hub button.
+function refreshHubButtonPreviews() {
+  document.querySelectorAll('.hub-btn-preview[data-hub-preview]').forEach(el => {
+    const cls = el.dataset.hubPreview;
+    const preview = computeHubPreview(cls);
+    if (preview) {
+      el.textContent = preview;
+      el.hidden = false;
+    } else {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  });
+}
+
 // Master hub state refresh — called on every render/save. Cheap enough to
 // run always; refactor if perf ever becomes an issue.
 function refreshHubState() {
@@ -9577,6 +9675,8 @@ function refreshHubState() {
   renderHubRing(booleanStates);
   updateHubRingMeta(booleanStates, detailedStates);
   refreshHubButtonStatuses(detailedStates);
+  // Ship E1: refresh per-button preview text
+  refreshHubButtonPreviews();
 }
 
 // Wire the view toggle at boot. Also runs an initial hub state paint so
@@ -9605,6 +9705,13 @@ function setupTodayHub() {
   // Initial state = classic (body has no .hub-view class). But paint the
   // hub anyway so it's ready when user toggles.
   refreshHubState();
+  // Ship E2: restore persisted view mode preference (defaults to 'classic').
+  try {
+    if (typeof RES_KEYS !== 'undefined' && RES_KEYS.todayViewMode) {
+      const saved = localStorage.getItem(RES_KEYS.todayViewMode());
+      if (saved === 'hub') setTodayViewMode('hub');
+    }
+  } catch { /* non-fatal */ }
 }
 
 // ============ TODAY HUB — Ship C: focus mode ============
