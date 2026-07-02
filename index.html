@@ -846,46 +846,25 @@
   .section { background: var(--paper); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 16px; margin-bottom: 14px; box-shadow: var(--shadow); --section-accent: var(--accent); }
 
   /* ==================================================================
-     TODAY HUB — new view mode. Ship B experiment: an alternative Today
-     layout where the 6 sections become a grid of button cards instead
-     of stacked collapsible blocks. This ship only adds the hub as a
-     PARALLEL VIEW you can toggle to; the classic stacked view is
-     unchanged and still functional. Ship C will wire buttons to
-     actually navigate into per-section detail pages.
-
-     Key state: body.hub-view class → show hub, hide stacked sections
-                (default = classic view, hub hidden)
+     TODAY HUB — Ship D+ final: this is now the ONLY view. body.hub-view
+     class is applied unconditionally at boot. Classic (stacked sections)
+     view + toggle removed.
      ================================================================== */
 
-  /* View mode toggle at top of Today tab */
-  .today-view-toggle {
-    display: flex; gap: 4px;
-    background: #eef1f4; border: 1px solid #e3e7ec; border-radius: 999px;
-    padding: 3px; margin-bottom: 14px;
-    max-width: 300px;
-  }
-  .today-view-toggle button {
-    flex: 1; background: transparent; border: 0; padding: 6px 12px;
-    font-size: 12px; font-weight: 500; color: #5a6570;
-    border-radius: 999px; cursor: pointer; letter-spacing: 0.02em;
-    transition: all 0.15s;
-    font-family: var(--sans);
-  }
-  .today-view-toggle button.active {
-    background: var(--rs-brand, #0b4f6c); color: #fff;
-  }
-
-  /* Hub container — hidden by default; shown when body has .hub-view */
+  /* Hub container — always shown; body.hub-view is always on. */
   .today-hub { display: none; }
   body.hub-view .today-hub { display: block; }
   /* Hide stacked sections + their illustrations when in hub view */
   body.hub-view #tab-today .section { display: none; }
 
-  /* Hub ring row — shrunk ring + summary text beside it */
+  /* Hub ring row — E3.1: wrapped in a white card matching research aesthetic */
   .hub-ring-wrap {
     display: flex; align-items: center; gap: 14px;
-    padding: 10px 4px 16px;
-    border-bottom: 1px dashed var(--rs-line, #e3e7ec);
+    background: #ffffff;
+    border: 1px solid var(--rs-line, #e3e7ec);
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     margin-bottom: 16px;
   }
   .hub-ring-shrunk {
@@ -980,6 +959,16 @@
     border-top: 1px dashed #E8E0D3;
     font-family: var(--sans);
   }
+  /* E3.4: Verdict preview color-coded by score */
+  .hub-btn-preview .verdict-preview-good {
+    color: #1f8a4c; font-weight: 600;
+  }
+  .hub-btn-preview .verdict-preview-mid {
+    color: #A66A00; font-weight: 600;
+  }
+  .hub-btn-preview .verdict-preview-tough {
+    color: #8A1F1A; font-weight: 600;
+  }
 
   /* ===== Ship C: Section focus mode =====
      Applied when a hub button is clicked. Body gets `hub-focused` class +
@@ -1050,13 +1039,33 @@
     font-size: 12px; color: #fff; font-weight: 600;
     cursor: pointer; font-family: var(--sans);
     display: inline-flex; align-items: center; gap: 5px;
-    transition: background 0.15s;
+    transition: background 0.15s, transform 0.1s;
   }
   .hub-focus-nav-next:hover { background: #1a7fa8; }
   .hub-focus-nav-next.is-last {
-    background: #55c17c;
+    background: rgba(85, 193, 124, 0.15);
+    color: #1f8a4c;
+    border: 1px solid #55c17c;
   }
-  .hub-focus-nav-next.is-last:hover { background: #4ba86b; }
+  .hub-focus-nav-next.is-last:hover {
+    background: rgba(85, 193, 124, 0.25);
+  }
+  /* E3.2: Bottom nav's Next button is the primary action — make it larger
+     and shadowed. Top-nav Next stays subtle (or is absent) since the top
+     bar is more about breadcrumb than action. */
+  .hub-focus-nav-bottom .hub-focus-nav-next {
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 700;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(11,79,108,0.3);
+    letter-spacing: -0.15px;
+  }
+  .hub-focus-nav-bottom .hub-focus-nav-next.is-last {
+    box-shadow: 0 1px 3px rgba(85,193,124,0.15);
+  }
+  .hub-focus-nav-bottom .hub-focus-nav-next:active {
+    transform: translateY(1px);
+  }
 
   /* Force focused section to be expanded, no collapsibility */
   body.hub-view.hub-focused .section.is-collapsible {
@@ -1080,6 +1089,26 @@
   body.hub-view.hub-focused .reflection-card { display: none; }
   /* View mode toggle stays visible so user can escape to Classic */
 
+  /* E3.3: Fade transition when swapping sections. Sections fade in when
+     they become visible via the [data-hub-focus] selector. The nav bars
+     also fade for consistency. Transition triggered by a body class
+     `hub-transitioning` that JS applies briefly. Keep durations tight so
+     it never feels laggy — a 120ms fade is fast enough that most users
+     read it as "smooth" rather than "waiting". */
+  body.hub-view.hub-focused #tab-today .section {
+    animation: hubFocusFadeIn 150ms ease-out;
+  }
+  body.hub-view.hub-focused .hub-focus-nav {
+    animation: hubFocusFadeIn 150ms ease-out;
+  }
+  @keyframes hubFocusFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* Hub buttons also fade in when we return from focus */
+  body.hub-view:not(.hub-focused) .hub-grid {
+    animation: hubFocusFadeIn 150ms ease-out;
+  }
   /* [A] Today progress ring + collapsible sections */
   .today-progress {
     display: flex; align-items: center; gap: 12px;
@@ -5989,36 +6018,13 @@
          Replaces the always-visible savestate row. -->
     <div class="savefailed hidden" id="saveFailedBanner"></div>
 
-    <!-- [A] Today progress ring — six segments, one per form section.
-         Each segment lights moss-green when its section has any field with
-         content. Center label shows "X/6". Pure visual indicator. -->
-    <div class="today-progress" id="todayProgress" role="status" aria-label="Today progress">
-      <div class="today-progress-ring" id="todayProgressRing">
-        <svg viewBox="0 0 60 60" aria-hidden="true">
-          <!-- 6 arc segments, each 60° of a 360° circle, with a small gap between.
-               r=24, circumference ≈ 150.8. Each segment ≈ 25.13 of arc length. -->
-          <circle class="track" cx="30" cy="30" r="24" fill="none"/>
-          <g class="segments" id="todayProgressSegments"></g>
-        </svg>
-        <span class="today-progress-label" id="todayProgressLabel">0/6</span>
-      </div>
-      <div class="today-progress-meta">
-        <div class="line1" id="todayProgressLine1">Start logging</div>
-        <div class="line2" id="todayProgressLine2">No sections logged yet</div>
-      </div>
-    </div>
+    <!-- Classic Today progress ring removed — Hub has its own shrunk ring
+         inside .today-hub .hub-ring-wrap. All updateTodayProgressRing()
+         call sites remain but no-op safely (element ids not found). -->
 
-    <!-- ==================================================================
-         VIEW MODE TOGGLE — switch between Classic (stacked sections) and
-         Hub (button grid). Default: Classic. State persists via body class
-         and updates on click. Ship B: hub buttons don't route yet.
-         ================================================================== -->
-    <div class="today-view-toggle" role="tablist" aria-label="Today view mode">
-      <button type="button" class="active" data-viewmode="classic" role="tab" aria-selected="true">Classic</button>
-      <button type="button" data-viewmode="hub" role="tab" aria-selected="false">Hub</button>
-    </div>
-
-    <!-- HUB VIEW — hidden by default; shown when body has .hub-view class.
+    <!-- HUB VIEW — Ship D+: Classic view removed; Hub is now the only view.
+         body.hub-view class is applied unconditionally at boot so all the
+         existing hub-view-gated CSS rules stay effective.
          Ring shrunk + placed alongside a summary line. 6 button cards below,
          each opens the corresponding section detail page (Ship C). -->
     <div class="today-hub" id="todayHub" aria-label="Today hub">
@@ -7077,9 +7083,7 @@ const RES_KEYS = {
   //   { addresses: [ { value: 'Pune @ ...', tagged_at: ISOString } ] }
   // Comparison is case-insensitive + trimmed. Local to this device — if
   // you switch devices, you'd re-seed.
-  // Ship E2: persist Today view mode ('hub' or 'classic') across reloads.
-  // Value: 'hub' | 'classic' (default 'classic').
-  todayViewMode: () => `myday.todayViewMode.${userId || 'anon'}`,
+  homeAddresses: () => `myday.homeAddresses.${userId || 'anon'}`,
 };
 
 // Home addresses registry — Supabase-backed user prefs with in-memory cache
@@ -9470,37 +9474,29 @@ function toggleRsSidebar() {
 
 // Set the view mode ('classic' or 'hub'). Adds/removes body class that
 // controls which container is visible via CSS.
+// Ship D+ final: Classic view removed. This function is retained as a
+// backwards-compat stub in case anything still calls it, but there's no
+// longer a "classic" mode — the body always has .hub-view class. Left in
+// so old call sites don't error; can be fully removed once we're sure
+// nothing references it.
 function setTodayViewMode(mode) {
-  const body = document.body;
-  if (mode === 'hub') {
-    body.classList.add('hub-view');
-  } else {
-    body.classList.remove('hub-view');
-    // Also exit focus mode if we were inside a section
-    body.classList.remove('hub-focused');
-    body.removeAttribute('data-hub-focus');
-    // Restore normal Today hero
+  // Always ensure hub-view is on; ignore requests to switch to classic.
+  document.body.classList.add('hub-view');
+  // If somehow called with a section focused, respect an unfocus request
+  // when mode is not 'hub-focused' (e.g., a lingering caller).
+  if (mode !== 'hub') {
+    document.body.classList.remove('hub-focused');
+    document.body.removeAttribute('data-hub-focus');
     if (typeof updateRsHero === 'function') updateRsHero('today');
   }
-  // Update toggle button active state
-  document.querySelectorAll('.today-view-toggle button').forEach(b => {
-    const isActive = b.dataset.viewmode === mode;
-    b.classList.toggle('active', isActive);
-    b.setAttribute('aria-selected', isActive ? 'true' : 'false');
-  });
-  // Refresh hub state now that it may be visible
-  if (mode === 'hub') refreshHubState();
-  // Ship E2: persist the preference so it survives reload.
-  try {
-    if (typeof RES_KEYS !== 'undefined' && RES_KEYS.todayViewMode) {
-      localStorage.setItem(RES_KEYS.todayViewMode(), mode);
-    }
-  } catch { /* private-mode/no-storage — non-fatal */ }
+  if (typeof refreshHubState === 'function') refreshHubState();
 }
 
 // Render the shrunk 6-segment ring in the hub. Reuses the same segment
 // geometry as the classic Today ring (renderTodayProgressRing) but on the
 // smaller SVG element inside the hub.
+// E3.5: Segments use each section's own accent color instead of all-moss,
+// so at a glance you see WHICH sections are filled by color.
 function renderHubRing(booleanStates) {
   const segGroup = document.getElementById('hubRingSegments');
   const label = document.getElementById('hubRingLabel');
@@ -9510,6 +9506,15 @@ function renderHubRing(booleanStates) {
   const segLen = circ / 6;
   const gap = 2;
   const drawnLen = segLen - gap;
+  // Per-section accent colors — order matches TODAY_SECTIONS + HUB_SECTION_ORDER.
+  const SEGMENT_COLORS = [
+    '#8A1F1A', // s-expenses (ember)
+    '#356B4E', // s-health (forest)
+    '#BA7517', // s-time (amber)
+    '#BA7517', // s-food (amber)
+    '#534AB7', // s-night (indigo)
+    '#A04A60', // s-verdict (rose)
+  ];
   let svg = '';
   // Track circle (light background)
   svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#E8E0D3" stroke-width="4" />`;
@@ -9517,8 +9522,9 @@ function renderHubRing(booleanStates) {
     const filled = booleanStates[i];
     if (!filled) continue;
     const offset = -i * segLen;
+    const color = SEGMENT_COLORS[i] || '#55c17c';
     svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none"
-      stroke="#55c17c" stroke-width="4"
+      stroke="${color}" stroke-width="4"
       stroke-dasharray="${drawnLen.toFixed(1)} ${(circ - drawnLen).toFixed(1)}"
       stroke-dashoffset="${offset.toFixed(1)}"
       transform="rotate(-90 ${cx} ${cy})"/>`;
@@ -9645,7 +9651,16 @@ function computeHubPreview(cls) {
     if (sat <= 0) return '';
     // satisfaction is 0-1 range; show as X.X / 10
     const outOfTen = (sat * 10).toFixed(1);
-    return outOfTen + ' / 10';
+    // E3.4: Color-code + short adjective by score
+    // 0.7-1.0 → good (moss), 0.4-0.7 → mid (amber), <0.4 → tough (ember)
+    let tone = 'good';
+    let label = 'good day';
+    if (sat < 0.4) { tone = 'tough'; label = 'tough day'; }
+    else if (sat < 0.7) { tone = 'mid'; label = 'quiet day'; }
+    // Return a marker string that CSS can style — we pass via a data attr
+    // rather than embedding classes in the text. Encode as HTML span so the
+    // caller can just innerHTML it.
+    return `<span class="verdict-preview-${tone}">${outOfTen} / 10 · ${label}</span>`;
   }
   return '';
 }
@@ -9656,7 +9671,20 @@ function refreshHubButtonPreviews() {
     const cls = el.dataset.hubPreview;
     const preview = computeHubPreview(cls);
     if (preview) {
-      el.textContent = preview;
+      // E3.4: Verdict returns HTML with a color-coded span; other sections
+      // return plain text. Set innerHTML so the color span renders.
+      // Safe because computeHubPreview is our own function and doesn't
+      // include any user-provided strings that could contain HTML — the
+      // exception is Night Stay which uses textContent-safe truncation.
+      // For Night Stay we explicitly escape below just to be defensive.
+      if (cls === 's-verdict') {
+        el.innerHTML = preview;
+      } else if (cls === 's-night') {
+        // Escape any HTML in the address string
+        el.textContent = preview;
+      } else {
+        el.textContent = preview;
+      }
       el.hidden = false;
     } else {
       el.textContent = '';
@@ -9682,12 +9710,9 @@ function refreshHubState() {
 // Wire the view toggle at boot. Also runs an initial hub state paint so
 // switching to Hub isn't a blank flash.
 function setupTodayHub() {
-  document.querySelectorAll('.today-view-toggle button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const mode = btn.dataset.viewmode;
-      if (mode) setTodayViewMode(mode);
-    });
-  });
+  // Ship D+ final: Classic view removed. Hub is the only mode. Force the
+  // body class on unconditionally so all hub-view-gated CSS activates.
+  document.body.classList.add('hub-view');
   // Ship C: wire hub button clicks to focus that section
   document.querySelectorAll('.hub-btn[data-hub-section]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -9702,16 +9727,8 @@ function setupTodayHub() {
   if (backTop) backTop.addEventListener('click', unfocusHubSection);
   if (backBottom) backBottom.addEventListener('click', unfocusHubSection);
   if (nextBtn) nextBtn.addEventListener('click', advanceToNextSection);
-  // Initial state = classic (body has no .hub-view class). But paint the
-  // hub anyway so it's ready when user toggles.
+  // Initial hub state paint
   refreshHubState();
-  // Ship E2: restore persisted view mode preference (defaults to 'classic').
-  try {
-    if (typeof RES_KEYS !== 'undefined' && RES_KEYS.todayViewMode) {
-      const saved = localStorage.getItem(RES_KEYS.todayViewMode());
-      if (saved === 'hub') setTodayViewMode('hub');
-    }
-  } catch { /* non-fatal */ }
 }
 
 // ============ TODAY HUB — Ship C: focus mode ============
