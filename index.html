@@ -5695,8 +5695,9 @@
   <div class="rs-sidenav">
     <div class="rs-grp">VIEW</div>
     <button class="rs-navi tab active" data-tab="today" type="button" title="Today"><i class="ti ti-calendar-time" aria-hidden="true"></i><span>Today</span></button>
-    <button class="rs-navi tab" data-tab="month" type="button" title="Calendar"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>Calendar</span></button>
-    <button class="rs-navi tab" data-tab="export" type="button" title="Export"><i class="ti ti-file-export" aria-hidden="true"></i><span>Export</span></button>
+    <button class="rs-navi rs-subview" data-subview="week-view" type="button" title="Week"><i class="ti ti-calendar-week" aria-hidden="true"></i><span>Week</span></button>
+    <button class="rs-navi rs-subview" data-subview="month-view" type="button" title="Month"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>Month</span></button>
+    <button class="rs-navi rs-subview" data-subview="year-view" type="button" title="Year"><i class="ti ti-calendar-stats" aria-hidden="true"></i><span>Year</span></button>
 
     <div class="rs-grp">TODAY'S SECTIONS</div>
     <button class="rs-navi rs-section" data-section="s-expenses" type="button" title="Investments & Expenses"><i class="ti ti-coin" aria-hidden="true"></i><span>Expenses</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
@@ -5706,8 +5707,13 @@
     <button class="rs-navi rs-section" data-section="s-night" type="button" title="Night Stay"><i class="ti ti-moon" aria-hidden="true"></i><span>Night Stay</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
     <button class="rs-navi rs-section" data-section="s-verdict" type="button" title="The Day's Verdict"><i class="ti ti-star" aria-hidden="true"></i><span>Verdict</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
 
+    <!-- Trends is analysis (not a time-scoped view) so it lives in TOOLS
+         alongside Search and Export. Same pattern: clicks into the Calendar
+         tab and activates its trends sub-view. -->
     <div class="rs-grp">TOOLS</div>
+    <button class="rs-navi rs-subview" data-subview="trends-view" type="button" title="Trends"><i class="ti ti-chart-line" aria-hidden="true"></i><span>Trends</span></button>
     <button class="rs-navi" id="rsSearchNav" type="button" title="Search"><i class="ti ti-search" aria-hidden="true"></i><span>Search</span></button>
+    <button class="rs-navi tab" data-tab="export" type="button" title="Export"><i class="ti ti-file-export" aria-hidden="true"></i><span>Export</span></button>
   </div>
 </aside>
 
@@ -9099,32 +9105,45 @@ function showTab(name) {
   if (name === 'export') renderExportPanel();
   // Research shell: update hero title + chips to reflect the active tab.
   if (typeof updateRsHero === 'function') updateRsHero(name);
+  // Sync sidebar's active class — showTab is only called for today/export
+  // in the new architecture (month tab is reached via switchToSubview).
+  if (typeof refreshRsNavActive === 'function') refreshRsNavActive(name);
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 // ============ RESEARCH SHELL (rs-*) JS ============
 // Hero title changes based on active tab + entry date.
 // Chip 1: date · Chip 2: day-of-year · Chip 3: total entry count.
-function updateRsHero(tabName) {
+function updateRsHero(viewKey) {
+  // viewKey can be 'today', 'export', or a sub-view key like 'week-view',
+  // 'month-view', 'year-view', 'trends-view'. Sub-views live inside the
+  // Calendar (#tab-month) container but are addressed directly from the
+  // sidebar.
   const title = document.getElementById('rsHeroTitle');
   const sub = document.getElementById('rsHeroSubtitle');
   const chipDate = document.getElementById('rsChipDate');
   const chipDay = document.getElementById('rsChipDay');
   const chipEntries = document.getElementById('rsChipEntries');
   if (!title) return; // shell not present (very old builds)
-  // Titles per tab
+  // Titles per view
   const titles = {
     today: 'Today',
-    month: 'Calendar',
+    'week-view': 'Week',
+    'month-view': 'Month',
+    'year-view': 'Year',
+    'trends-view': 'Trends',
     export: 'Export'
   };
   const subs = {
     today: 'Log expenses, vitals, time, food, and reflection · one life, live it well',
-    month: 'Browse past days by week, month, or year',
+    'week-view': 'Browse the current week day-by-day',
+    'month-view': 'Overview of the month with expense breakdowns',
+    'year-view': 'Annual summary across all categories',
+    'trends-view': 'Patterns and long-term trends over months',
     export: 'Download CSVs and PDFs of your entries'
   };
-  title.textContent = titles[tabName || 'today'] || 'OneLife';
-  sub.textContent = subs[tabName || 'today'] || 'Daily tracker · one life, live it well';
+  title.textContent = titles[viewKey || 'today'] || 'OneLife';
+  sub.textContent = subs[viewKey || 'today'] || 'Daily tracker · one life, live it well';
   // Chips
   try {
     const iso = (typeof currentDate === 'string' && currentDate) ? currentDate : new Date().toISOString().slice(0,10);
@@ -9149,6 +9168,56 @@ function updateRsHero(tabName) {
     }
   } catch (e) {
     // Non-fatal — leave chips as-is
+  }
+}
+
+// Switch to a Calendar sub-view directly from the sidebar (bypasses the
+// Calendar top-tab nav). Ensures the Calendar tab is active, hides all
+// other sub-views, shows and renders the target one. Reuses existing
+// render* functions so no duplicated logic.
+function switchToSubview(subview) {
+  // First activate the Calendar tab (subviews live in #tab-month)
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'month'));
+  ['today','month','export'].forEach(n => {
+    const el = document.getElementById('tab-' + n);
+    if (el) el.classList.toggle('hidden', n !== 'month');
+  });
+  // Sync sub-tab active state (in case the sub-tab bar is visible on mobile)
+  document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.subtab === subview));
+  // Hide all sub-views, show the target
+  ['week-view','month-view','year-view','trends-view'].forEach(v => {
+    const el = document.getElementById('subview-' + v);
+    if (el) el.classList.toggle('hidden', v !== subview);
+  });
+  // Trigger the appropriate render
+  if (subview === 'week-view') renderWeek();
+  else if (subview === 'month-view') renderMonth();
+  else if (subview === 'year-view') renderYear();
+  else if (subview === 'trends-view') renderTrends();
+  // Update hero + sidebar active state
+  if (typeof updateRsHero === 'function') updateRsHero(subview);
+  refreshRsNavActive(subview);
+  // Compact masthead (like showTab does for non-today)
+  const masthead = document.querySelector('.masthead');
+  if (masthead) masthead.classList.toggle('compact', true);
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// Refresh sidebar's .active class across VIEW + TOOLS items to reflect the
+// current view. Called by showTab (for today/export) and switchToSubview
+// (for week/month/year/trends). Ensures only ONE .rs-navi is active.
+function refreshRsNavActive(currentKey) {
+  // Clear all sidebar tabs + subviews
+  document.querySelectorAll('.rs-navi.tab, .rs-navi.rs-subview').forEach(item => {
+    item.classList.remove('active');
+  });
+  // Set active — either a tab (today/export) or a subview
+  if (currentKey === 'today' || currentKey === 'export') {
+    const el = document.querySelector('.rs-navi.tab[data-tab="' + currentKey + '"]');
+    if (el) el.classList.add('active');
+  } else {
+    const el = document.querySelector('.rs-navi.rs-subview[data-subview="' + currentKey + '"]');
+    if (el) el.classList.add('active');
   }
 }
 
@@ -16366,6 +16435,13 @@ async function init() {
       if (typeof expandTodaySection === 'function') expandTodaySection(cls);
     });
   });
+  // Sidebar sub-view items — switch directly to Week/Month/Year/Trends
+  document.querySelectorAll('.rs-subview').forEach(item => {
+    item.addEventListener('click', () => {
+      const subview = item.dataset.subview;
+      if (subview) switchToSubview(subview);
+    });
+  });
   // Sidebar Search item — opens the existing search overlay
   const rsSearchNav = document.getElementById('rsSearchNav');
   if (rsSearchNav) rsSearchNav.addEventListener('click', () => {
@@ -16408,6 +16484,10 @@ async function init() {
     if (which === 'month-view') renderMonth();
     if (which === 'week-view') renderWeek();
     if (which === 'year-view') renderYear();
+    // Keep sidebar + hero in sync when the internal sub-tab bar is used
+    // (only visible on mobile since sidebar is preferred nav on desktop).
+    if (typeof refreshRsNavActive === 'function') refreshRsNavActive(which);
+    if (typeof updateRsHero === 'function') updateRsHero(which);
     window.scrollTo({ top: 0, behavior: 'instant' });
   }));
   // Week nav buttons
