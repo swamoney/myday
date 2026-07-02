@@ -222,10 +222,14 @@
     main > .tabs { display: none; }
   }
 
-  /* ---------- MOBILE: auto-collapse sidebar to icon rail (<900px) ----------
-     Reference file's exact pattern: sidebar always visible but shrunk.
-     No drawer, no hamburger. Just icon rail on left. */
-  @media (max-width: 899.98px) {
+  /* ---------- COLLAPSED SIDEBAR: everything below desktop (<1024px) ----------
+     Original design assumed a "tablet" middle tier (900-1023px) with the
+     expanded sidebar, but on real devices that range often applies to phones
+     in landscape or high-density displays — leaving ~180px for content and
+     making the sidebar overwhelm the screen. Collapsing to an icon rail
+     under every non-desktop width is safer: content always gets the majority
+     of the viewport, sidebar functions as a nav accessory. */
+  @media (max-width: 1023.98px) {
     body {
       padding: 0;
       background: var(--rs-bg);
@@ -243,7 +247,7 @@
     }
     main > .masthead,
     main > .tabs { display: none; }
-    /* Sidebar auto-collapses on mobile — reference behavior */
+    /* Sidebar collapsed to 58px icon rail — reference behavior */
     .rs-side { width: 58px; flex-basis: 58px; }
     .rs-side .rs-side-title,
     .rs-side .rs-side-subtitle { display: none; }
@@ -251,25 +255,6 @@
     .rs-side .rs-navi { justify-content: center; padding: 10px 0; gap: 0; }
     .rs-side .rs-navi span { display: none; }
     .rs-side .rs-navi-dot { display: none; }
-  }
-
-  /* Tablet range (900-1023px): sidebar expanded */
-  @media (min-width: 900px) and (max-width: 1023.98px) {
-    body {
-      padding: 0;
-      background: var(--rs-bg);
-      background-image: none;
-    }
-    .rs-hero { display: block; }
-    .rs-layout { display: flex; }
-    main {
-      max-width: none; margin: 0;
-      flex: 1; min-width: 0;
-      background: var(--rs-bg);
-      padding: 20px 20px 70px;
-    }
-    main > .masthead,
-    main > .tabs { display: none; }
   }
 
   .masthead { text-align: center; padding: 8px 0 22px; border-bottom: 1px solid var(--rule-strong); margin-bottom: 16px; position: relative; transition: padding 0.2s ease; }
