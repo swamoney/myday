@@ -21,6 +21,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="OneLife">
+<!-- Tabler icons webfont — used by the research-aesthetic sidebar navigation.
+     Same version and CDN as the reference research report file. Loaded via
+     stylesheet link; each icon rendered inline as <i class="ti ti-*"></i>. -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Kalam:wght@300;400;700&display=swap" rel="stylesheet">
@@ -49,6 +53,224 @@
   main { max-width: 520px; margin: 0 auto; }
   input, textarea, button, select { font-family: inherit; font-size: inherit; color: inherit; }
   textarea { resize: vertical; }
+
+  /* ==================================================================
+     RESEARCH SHELL — outer layout ported from research-report aesthetic.
+     Named "rs-*" for research-shell to keep it isolated from the existing
+     class namespace. This block adds the hero + sidebar + gray page BG.
+     It does NOT modify the interior of Today/Calendar/Export views yet.
+     Palette matches the reference file exactly:
+       --rs-bg:#f5f6f8   soft gray page background
+       --rs-card:#fff    white card surface
+       --rs-ink:#161b22  primary text
+       --rs-sub:#5a6570  secondary text
+       --rs-line:#e3e7ec hairline borders
+       --rs-brand:#0b4f6c primary navy (used for sidebar + h2 accents)
+       --rs-brand2:#1a7fa8 lighter navy (used in hero gradient stop)
+       --rs-accent:#e8853a orange (used for sidebar active accent)
+     ================================================================== */
+  :root {
+    --rs-bg: #f5f6f8;
+    --rs-card: #ffffff;
+    --rs-ink: #161b22;
+    --rs-sub: #5a6570;
+    --rs-line: #e3e7ec;
+    --rs-brand: #0b4f6c;
+    --rs-brand2: #1a7fa8;
+    --rs-accent: #e8853a;
+  }
+
+  /* Hero header — full-width navy gradient across the very top.
+     Shows OneLife brand + subtitle + a chip row with current date/entry count.
+     JS updates the chip contents based on which tab is active (later stage). */
+  .rs-hero {
+    background: linear-gradient(135deg, #0b4f6c, #1a7fa8);
+    color: #ffffff;
+    padding: 26px 18px 22px;
+    display: none; /* mobile default is hidden; enabled at ≥1024px OR always? see decision below */
+  }
+  .rs-hero-in { max-width: 1180px; margin: 0 auto; }
+  .rs-hero h1 {
+    margin: 0 0 4px; font-size: 23px; letter-spacing: -0.3px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 600; font-style: normal; color: #ffffff;
+  }
+  .rs-hero p {
+    margin: 2px 0; opacity: 0.92; font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 400; color: #ffffff;
+  }
+  .rs-hero .rs-chips {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+  }
+  .rs-hero .rs-chip {
+    background: rgba(255,255,255,0.16);
+    border: 1px solid rgba(255,255,255,0.28);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: #ffffff;
+  }
+
+  /* Layout wrapper — sidebar + main content in flex row.
+     Sidebar collapses to 58px icon rail on mobile automatically. */
+  .rs-layout {
+    display: none; /* mobile default hidden; shown at ≥1024px OR always? decision below */
+    align-items: flex-start;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  /* Sidebar — solid navy, sticky to top on desktop.
+     On mobile (<900px), auto-collapses to 58px icon rail (matches reference). */
+  .rs-side {
+    position: sticky; top: 0; align-self: flex-start;
+    width: 210px; flex: 0 0 210px;
+    background: #0b4f6c; color: #ffffff;
+    height: 100vh; overflow-y: auto;
+    transition: width 0.18s ease, flex-basis 0.18s ease;
+    z-index: 30;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .rs-side.rs-collapsed { width: 58px; flex-basis: 58px; }
+  .rs-side-head {
+    display: flex; align-items: center; gap: 9px;
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.14);
+    position: sticky; top: 0; background: #0b4f6c;
+  }
+  .rs-side-head button {
+    background: none; border: none; color: #ffffff;
+    cursor: pointer; font-size: 19px; padding: 2px 3px;
+    line-height: 1; border-radius: 6px;
+  }
+  .rs-side-head button:hover { background: rgba(255,255,255,0.14); }
+  .rs-side-title { font-size: 12.5px; font-weight: 600; line-height: 1.2; }
+  .rs-side-subtitle { font-size: 10.5px; color: rgba(255,255,255,0.55); }
+  .rs-side.rs-collapsed .rs-side-title,
+  .rs-side.rs-collapsed .rs-side-subtitle { display: none; }
+  .rs-sidenav { padding-bottom: 20px; }
+  .rs-grp {
+    font-size: 11px; letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.42);
+    padding: 12px 12px 4px;
+    text-transform: uppercase;
+    white-space: nowrap; overflow: hidden;
+    font-weight: 500;
+  }
+  .rs-navi {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12.5px; color: rgba(255,255,255,0.78);
+    padding: 8px 12px;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+    white-space: nowrap; overflow: hidden;
+    background: none; border-top: 0; border-right: 0; border-bottom: 0;
+    width: 100%; text-align: left;
+    font-family: inherit;
+  }
+  .rs-navi:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
+  .rs-navi.active {
+    background: rgba(255,255,255,0.14);
+    border-left-color: var(--rs-accent);
+    color: #ffffff;
+    font-weight: 500;
+  }
+  .rs-navi i {
+    font-size: 17px; width: 18px; text-align: center;
+    flex: 0 0 18px;
+  }
+  .rs-side.rs-collapsed .rs-grp { visibility: hidden; height: 0; padding: 0; }
+  .rs-side.rs-collapsed .rs-navi {
+    justify-content: center; padding: 10px 0; gap: 0;
+  }
+  .rs-side.rs-collapsed .rs-navi span { display: none; }
+
+  /* Sidebar section-status dot — mirrors Today section state.
+     Sits on the right side of the .rs-navi row. */
+  .rs-navi .rs-navi-dot {
+    margin-left: auto;
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px dashed rgba(255,255,255,0.35);
+    background: transparent;
+  }
+  .rs-navi.rs-has-some .rs-navi-dot { background: #f2b04a; border-color: #f2b04a; }
+  .rs-navi.rs-has-content .rs-navi-dot { background: #55c17c; border-color: #55c17c; }
+  .rs-side.rs-collapsed .rs-navi-dot { display: none; }
+
+  /* ---------- DESKTOP: enable full research shell (≥1024px) ---------- */
+  @media (min-width: 1024px) {
+    body {
+      padding: 0;
+      background: var(--rs-bg);
+      background-image: none;
+    }
+    .rs-hero { display: block; }
+    .rs-layout { display: flex; }
+    /* main becomes the content column inside .rs-layout.
+       Its max-width cap is removed; padding matches research report. */
+    main {
+      max-width: none; margin: 0;
+      flex: 1; min-width: 0;
+      background: var(--rs-bg);
+      padding: 22px 32px 80px;
+    }
+    /* Hide MyDay's original masthead + top tab bar on desktop.
+       Navigation lives in the sidebar. Title/branding live in the hero. */
+    main > .masthead,
+    main > .tabs { display: none; }
+  }
+
+  /* ---------- MOBILE: auto-collapse sidebar to icon rail (<900px) ----------
+     Reference file's exact pattern: sidebar always visible but shrunk.
+     No drawer, no hamburger. Just icon rail on left. */
+  @media (max-width: 899.98px) {
+    body {
+      padding: 0;
+      background: var(--rs-bg);
+      background-image: none;
+    }
+    .rs-hero { display: block; padding: 18px 14px 16px; }
+    .rs-hero h1 { font-size: 18px; }
+    .rs-hero p { font-size: 12px; }
+    .rs-layout { display: flex; }
+    main {
+      max-width: none; margin: 0;
+      flex: 1; min-width: 0;
+      background: var(--rs-bg);
+      padding: 18px 14px 70px;
+    }
+    main > .masthead,
+    main > .tabs { display: none; }
+    /* Sidebar auto-collapses on mobile — reference behavior */
+    .rs-side { width: 58px; flex-basis: 58px; }
+    .rs-side .rs-side-title,
+    .rs-side .rs-side-subtitle { display: none; }
+    .rs-side .rs-grp { visibility: hidden; height: 0; padding: 0; }
+    .rs-side .rs-navi { justify-content: center; padding: 10px 0; gap: 0; }
+    .rs-side .rs-navi span { display: none; }
+    .rs-side .rs-navi-dot { display: none; }
+  }
+
+  /* Tablet range (900-1023px): sidebar expanded */
+  @media (min-width: 900px) and (max-width: 1023.98px) {
+    body {
+      padding: 0;
+      background: var(--rs-bg);
+      background-image: none;
+    }
+    .rs-hero { display: block; }
+    .rs-layout { display: flex; }
+    main {
+      max-width: none; margin: 0;
+      flex: 1; min-width: 0;
+      background: var(--rs-bg);
+      padding: 20px 20px 70px;
+    }
+    main > .masthead,
+    main > .tabs { display: none; }
+  }
 
   .masthead { text-align: center; padding: 8px 0 22px; border-bottom: 1px solid var(--rule-strong); margin-bottom: 16px; position: relative; transition: padding 0.2s ease; }
   /* [O] Compact masthead variant — applied when on Calendar/Export tabs.
@@ -5371,6 +5593,57 @@
   </div>
 </div>
 
+<!-- ==================================================================
+     RESEARCH SHELL — outer chrome. Hero header at top, sidebar navigation
+     to the left of main content. Ported from research-report aesthetic.
+     Structure:
+       <rs-hero> — full-width navy gradient with title + chips
+       <rs-layout>
+         <rs-side> — navy sidebar with tab list + section states
+         <main>    — existing MyDay content flows here as the flex-grow column
+       </rs-layout>
+     On mobile (<900px) sidebar auto-collapses to 58px icon rail.
+     On mobile the original MyDay masthead + tabs are hidden via CSS. ================================================================== -->
+<header class="rs-hero">
+  <div class="rs-hero-in">
+    <h1 id="rsHeroTitle">OneLife</h1>
+    <p id="rsHeroSubtitle">Daily tracker · one life, live it well</p>
+    <div class="rs-chips">
+      <span class="rs-chip" id="rsChipDate">—</span>
+      <span class="rs-chip" id="rsChipDay">—</span>
+      <span class="rs-chip" id="rsChipEntries">—</span>
+    </div>
+  </div>
+</header>
+
+<div class="rs-layout">
+<aside class="rs-side" id="rsSide">
+  <div class="rs-side-head">
+    <button id="rsCollapseBtn" aria-label="Toggle sidebar" type="button"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+    <div>
+      <div class="rs-side-title">OneLife</div>
+      <div class="rs-side-subtitle">daily tracker</div>
+    </div>
+  </div>
+  <div class="rs-sidenav">
+    <div class="rs-grp">VIEW</div>
+    <button class="rs-navi tab active" data-tab="today" type="button" title="Today"><i class="ti ti-calendar-time" aria-hidden="true"></i><span>Today</span></button>
+    <button class="rs-navi tab" data-tab="month" type="button" title="Calendar"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>Calendar</span></button>
+    <button class="rs-navi tab" data-tab="export" type="button" title="Export"><i class="ti ti-file-export" aria-hidden="true"></i><span>Export</span></button>
+
+    <div class="rs-grp">TODAY'S SECTIONS</div>
+    <button class="rs-navi rs-section" data-section="s-expenses" type="button" title="Investments & Expenses"><i class="ti ti-coin" aria-hidden="true"></i><span>Expenses</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
+    <button class="rs-navi rs-section" data-section="s-health" type="button" title="Health & Mind"><i class="ti ti-heartbeat" aria-hidden="true"></i><span>Health &amp; Mind</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
+    <button class="rs-navi rs-section" data-section="s-time" type="button" title="The Hours"><i class="ti ti-clock-hour-4" aria-hidden="true"></i><span>The Hours</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
+    <button class="rs-navi rs-section" data-section="s-food" type="button" title="Food Journal"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i><span>Food Journal</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
+    <button class="rs-navi rs-section" data-section="s-night" type="button" title="Night Stay"><i class="ti ti-moon" aria-hidden="true"></i><span>Night Stay</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
+    <button class="rs-navi rs-section" data-section="s-verdict" type="button" title="The Day's Verdict"><i class="ti ti-star" aria-hidden="true"></i><span>Verdict</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
+
+    <div class="rs-grp">TOOLS</div>
+    <button class="rs-navi" id="rsSearchNav" type="button" title="Search"><i class="ti ti-search" aria-hidden="true"></i><span>Search</span></button>
+  </div>
+</aside>
+
 <main>
   <div class="masthead">
     <button class="masthead-search-btn" id="searchBtn" aria-label="Search entries" type="button">
@@ -6385,6 +6658,7 @@
 
   </div>
 </main>
+</div>
 
 <div class="toast" id="toast"></div>
 <div class="ch-tooltip" id="chTooltip"></div>
@@ -7806,6 +8080,11 @@ function renderEntry() {
   // The form still gets populated (in case the user navigates back), but
   // every input is visually disabled and accepts no edits via CSS.
   applyFutureLockState();
+  // Research shell: refresh hero chips to reflect the current date
+  if (typeof updateRsHero === 'function') {
+    const active = document.querySelector('.tab.active');
+    updateRsHero(active ? active.dataset.tab : 'today');
+  }
   CALC_FIELDS.forEach(f => {
     const el = document.getElementById('f_' + f);
     const v = currentEntry[f];
@@ -8394,6 +8673,8 @@ function refreshSectionStatusDots() {
     if (states[cls] === 'full') sec.classList.add('has-content');
     else if (states[cls] === 'partial') sec.classList.add('has-some');
   });
+  // Research shell: sync sidebar section-status dots to the same states.
+  if (typeof refreshRsSidebarSectionStates === 'function') refreshRsSidebarSectionStates();
 }
 
 // Collapse all Today sections — used on date navigation so each new day
@@ -8749,7 +9030,78 @@ function showTab(name) {
   // Tab-open render kicks off the active sub-view; user can switch via subtabs.
   if (name === 'month') renderWeek();
   if (name === 'export') renderExportPanel();
+  // Research shell: update hero title + chips to reflect the active tab.
+  if (typeof updateRsHero === 'function') updateRsHero(name);
   window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ============ RESEARCH SHELL (rs-*) JS ============
+// Hero title changes based on active tab + entry date.
+// Chip 1: date · Chip 2: day-of-year · Chip 3: total entry count.
+function updateRsHero(tabName) {
+  const title = document.getElementById('rsHeroTitle');
+  const sub = document.getElementById('rsHeroSubtitle');
+  const chipDate = document.getElementById('rsChipDate');
+  const chipDay = document.getElementById('rsChipDay');
+  const chipEntries = document.getElementById('rsChipEntries');
+  if (!title) return; // shell not present (very old builds)
+  // Titles per tab
+  const titles = {
+    today: 'Today',
+    month: 'Calendar',
+    export: 'Export'
+  };
+  const subs = {
+    today: 'Log expenses, vitals, time, food, and reflection · one life, live it well',
+    month: 'Browse past days by week, month, or year',
+    export: 'Download CSVs and PDFs of your entries'
+  };
+  title.textContent = titles[tabName || 'today'] || 'OneLife';
+  sub.textContent = subs[tabName || 'today'] || 'Daily tracker · one life, live it well';
+  // Chips
+  try {
+    const iso = (typeof currentDate === 'string' && currentDate) ? currentDate : new Date().toISOString().slice(0,10);
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m-1, d));
+    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dayName = dayNames[dt.getUTCDay()];
+    const dateStr = dayName + ', ' + d + ' ' + monthNames[m-1] + ' ' + y;
+    if (chipDate) chipDate.textContent = dateStr;
+    // Day-of-year
+    const startOfYear = new Date(Date.UTC(y, 0, 1));
+    const dayOfYear = Math.floor((dt - startOfYear) / 86400000) + 1;
+    const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+    const totalDays = isLeap ? 366 : 365;
+    const pct = Math.round((dayOfYear / totalDays) * 100);
+    if (chipDay) chipDay.textContent = 'Day ' + dayOfYear + ' of ' + totalDays + ' · ' + pct + '%';
+    // Entry count
+    if (chipEntries) {
+      const count = (typeof allEntries === 'object' && allEntries) ? Object.keys(allEntries).length : 0;
+      chipEntries.textContent = count.toLocaleString() + ' entries logged';
+    }
+  } catch (e) {
+    // Non-fatal — leave chips as-is
+  }
+}
+
+// Sidebar collapse toggle (desktop only). Persists via a body class.
+function toggleRsSidebar() {
+  const side = document.getElementById('rsSide');
+  if (side) side.classList.toggle('rs-collapsed');
+}
+
+// Sync sidebar section-status dots from the same source as Today's headers.
+function refreshRsSidebarSectionStates() {
+  if (typeof computeTodaySectionStateDetailed !== 'function') return;
+  const states = computeTodaySectionStateDetailed();
+  document.querySelectorAll('.rs-section').forEach(item => {
+    const cls = item.dataset.section;
+    if (!cls) return;
+    item.classList.remove('rs-has-content', 'rs-has-some');
+    if (states[cls] === 'full') item.classList.add('rs-has-content');
+    else if (states[cls] === 'partial') item.classList.add('rs-has-some');
+  });
 }
 
 // =========== MONTH VIEW ===========
@@ -15933,6 +16285,28 @@ async function init() {
   // chevron in each header. All sections start collapsed on every page load.
   // Status dot encodes empty / partial / complete state per-section.
   setupSectionCollapse();
+
+  // ============ Research shell wiring ============
+  // Sidebar collapse toggle
+  const rsCollapseBtn = document.getElementById('rsCollapseBtn');
+  if (rsCollapseBtn) rsCollapseBtn.addEventListener('click', toggleRsSidebar);
+  // Sidebar section items — jump to Today + expand that section
+  document.querySelectorAll('.rs-section').forEach(item => {
+    item.addEventListener('click', () => {
+      const cls = item.dataset.section;
+      if (!cls) return;
+      showTab('today');
+      if (typeof expandTodaySection === 'function') expandTodaySection(cls);
+    });
+  });
+  // Sidebar Search item — opens the existing search overlay
+  const rsSearchNav = document.getElementById('rsSearchNav');
+  if (rsSearchNav) rsSearchNav.addEventListener('click', () => {
+    if (typeof openSearch === 'function') openSearch();
+  });
+  // Initial paints
+  updateRsHero('today');
+  refreshRsSidebarSectionStates();
 
   // Search wiring
   const searchBtn = document.getElementById('searchBtn');
