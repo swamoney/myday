@@ -2925,10 +2925,17 @@
   .month-arrow { background: var(--paper); border: 1px solid var(--rule); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; }
 
   /* SUB-TABS (inside Calendar) — 3 columns since Week was added */
+  /* Sub-tab bar (Week/Month/Year/Trends inside Calendar) — hidden globally.
+     Navigation now happens exclusively through the sidebar: Week/Month/Year
+     as top-level items in VIEW, Trends in TOOLS. The bar became redundant
+     on desktop (sidebar labels visible) and was chosen to be removed on
+     mobile too, accepting the tradeoff of icon-only sub-view switching
+     (see rs-navi icons: calendar-week, calendar-month, calendar-stats,
+     chart-line). If mobile users struggle to distinguish the calendar
+     icons, revert to `@media (max-width: 1023.98px) { .subtabs { display: grid; } }`
+     to restore the labeled bar on mobile only. */
   .subtabs {
-    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px;
-    background: var(--paper); border: 1px solid var(--rule); border-radius: 999px;
-    padding: 3px; margin-bottom: 14px;
+    display: none !important;
   }
   .subtab {
     background: transparent; border: 0; padding: 8px 4px; font-size: 12px; font-weight: 500;
