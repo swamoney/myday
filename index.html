@@ -908,127 +908,172 @@
     .hub-grid { gap: 14px; }
   }
 
-  /* Hub buttons — data-forward layout (Direction A).
-     Structure per card:
-       [Category tag with colored dot]          [Status pill top-right]
-       ₹8,248        ← big serif number (repurposed .hub-btn-title)
-       out today · ₹5,000 in ← small caption (repurposed .hub-btn-sub)
-     Icon and dashed preview removed. The card lets the DATA be the visual. */
+  /* ======================================================================
+     Hub buttons — Frosted-glass Apple-style (Direction B).
+     Key ideas:
+       - Subtle gradient on the Today tab bg — cards read as "glass on gradient"
+       - Cards use rgba(255,255,255,0.65) + backdrop-filter blur for the
+         frosted effect (safari + chrome). Fallback bg for older browsers.
+       - Icon tile has a per-section radial gradient (light → deep accent)
+         with a matching soft shadow. Icon glyph in white.
+       - Status is a small colored dot with a halo (not a text pill), sits
+         top-right of the card.
+       - Larger corner radius (18px) for the Apple pill-card feel.
+       - Larger box-shadow layered soft.
+     ====================================================================== */
+
+  /* Subtle gradient background applied to Today tab when in hub view.
+     This is what the frosted cards blur against. Keeps the app's other
+     tabs (Calendar, Export) on the standard f5f6f8 bg unchanged. */
+  body.hub-view #tab-today {
+    background: linear-gradient(155deg, #f7f8fb 0%, #ebeef4 55%, #f0f2f7 100%);
+    padding: 2px;
+    border-radius: 12px;
+  }
+
   .hub-btn {
-    background: #ffffff; border: 1px solid var(--rs-line, #e3e7ec);
-    border-radius: 14px;
-    padding: 14px 16px 14px 16px;
+    /* Fallback bg for browsers without backdrop-filter */
+    background: rgba(255,255,255,0.72);
+    /* Frosted glass — Safari + Chrome */
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 18px;
+    padding: 16px 16px 14px;
     text-align: left; cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
     font-family: inherit;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    /* Layered soft shadow — depth + subtle contact */
+    box-shadow:
+      0 8px 24px rgba(30, 47, 82, 0.06),
+      0 1px 2px rgba(30, 47, 82, 0.04);
     position: relative;
-    min-height: 100px;
+    min-height: 108px;
+    overflow: hidden;
   }
   .hub-btn:hover {
-    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
-    border-color: #d0d7e0;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 32px rgba(30, 47, 82, 0.10),
+      0 2px 4px rgba(30, 47, 82, 0.05);
   }
   .hub-btn:active {
-    transform: scale(0.98);
+    transform: translateY(-1px) scale(0.99);
+    box-shadow:
+      0 4px 12px rgba(30, 47, 82, 0.08),
+      0 1px 2px rgba(30, 47, 82, 0.04);
   }
-  /* Category tag on the top-left — small uppercase label with a colored dot
-     indicating the section. */
+
+  /* Head row — icon tile + status dot */
   .hub-btn-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 4px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 12px;
     padding: 0;
   }
-  .hub-btn-tag {
-    font-size: 9px; letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #5a6570; font-weight: 600;
-    display: flex; align-items: center; gap: 6px;
-    font-family: var(--sans);
-  }
-  .hub-btn-tag-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: #B0B4BC; /* fallback */
-    flex-shrink: 0;
-  }
-  /* Per-section dot color */
-  .hub-btn[data-hub-section="s-expenses"] .hub-btn-tag-dot { background: #8A1F1A; }
-  .hub-btn[data-hub-section="s-health"] .hub-btn-tag-dot   { background: #356B4E; }
-  .hub-btn[data-hub-section="s-time"] .hub-btn-tag-dot     { background: #BA7517; }
-  .hub-btn[data-hub-section="s-food"] .hub-btn-tag-dot     { background: #BA7517; }
-  .hub-btn[data-hub-section="s-night"] .hub-btn-tag-dot    { background: #534AB7; }
-  .hub-btn[data-hub-section="s-verdict"] .hub-btn-tag-dot  { background: #A04A60; }
-  /* Status pill on the top-right — same styling as before but tighter */
-  .hub-btn-status {
-    font-size: 8px; padding: 2px 7px;
+
+  /* Gradient icon tile — Apple-style rounded square with soft interior glow */
+  .hub-btn-icon-wrap {
+    width: 34px; height: 34px;
     border-radius: 10px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    font-weight: 600;
-    font-family: var(--sans);
+    display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    /* Fallback (also base color) */
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    box-shadow:
+      0 2px 6px rgba(30, 47, 82, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+  .hub-btn-icon-wrap svg {
+    width: 18px; height: 18px; color: #ffffff;
+    /* Slight text shadow on the glyph to help contrast on lighter gradients */
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+  }
+  /* Per-section gradient tile colors — lighter tint → deeper accent.
+     Selected to feel Apple-adjacent without being a copy: warm coral for
+     expenses, sage for health, honey for time/food, twilight indigo for
+     night, rose for verdict. */
+  .hub-btn[data-hub-section="s-expenses"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #E8A29C 0%, #C05948 100%);
+    box-shadow: 0 2px 6px rgba(192, 89, 72, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-health"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #7FB599 0%, #4A8E6A 100%);
+    box-shadow: 0 2px 6px rgba(74, 142, 106, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-time"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #E7B770 0%, #C08A2C 100%);
+    box-shadow: 0 2px 6px rgba(192, 138, 44, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-food"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #E7B770 0%, #C08A2C 100%);
+    box-shadow: 0 2px 6px rgba(192, 138, 44, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-night"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #8B84D9 0%, #5D54C7 100%);
+    box-shadow: 0 2px 6px rgba(93, 84, 199, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-verdict"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #D090A0 0%, #A04A60 100%);
+    box-shadow: 0 2px 6px rgba(160, 74, 96, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+
+  /* Status dot (not pill) with a halo — sits top-right */
+  .hub-btn-status {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    padding: 0;
+    background: #C6CBD3;
+    flex-shrink: 0;
+    margin-top: 12px;
+    /* Halo drawn via box-shadow */
+    box-shadow: 0 0 0 4px rgba(198, 203, 211, 0.18);
+    /* Suppress inherited text styles */
+    font-size: 0; letter-spacing: 0;
+    transition: background 0.15s, box-shadow 0.15s;
   }
   .hub-btn-status.done {
-    background: rgba(85, 193, 124, 0.15); color: #1f8a4c;
+    background: #4CAF50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
   }
   .hub-btn-status.partial {
-    background: rgba(242, 176, 74, 0.2); color: #A66A00;
+    background: #FFA726;
+    box-shadow: 0 0 0 4px rgba(255, 167, 38, 0.18);
   }
   .hub-btn-status.empty {
-    background: rgba(192, 198, 208, 0.25); color: #5a6570;
+    background: #C6CBD3;
+    box-shadow: 0 0 0 4px rgba(198, 203, 211, 0.16);
   }
-  /* THE BIG NUMBER — this is what "data-forward" means. Serif for the
-     editorial-warmth carry-over, large font size, tight letter-spacing. */
+
+  /* Title — sans, semi-bold, tight tracking (Apple-style label) */
   .hub-btn-title {
-    font-family: var(--serif);
-    font-size: 26px; font-weight: 500;
-    color: var(--rs-brand, #0b4f6c);
-    margin: 6px 0 2px; padding: 0;
-    letter-spacing: -0.5px;
-    line-height: 1.05;
+    font-family: var(--sans);
+    font-size: 13px; font-weight: 700;
+    color: #1e2f52;
+    letter-spacing: -0.2px;
+    line-height: 1.25;
+    margin: 0 0 4px; padding: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  /* Muted title when the section is empty (title === "—"). Applied by JS
-     via .is-empty class on the title element. */
-  .hub-btn-title.is-empty {
-    color: #b0b4bc;
-    font-weight: 400;
-  }
-  /* Currency prefix inside title — smaller and lighter than the number itself */
-  .hub-btn-title .cur {
-    font-size: 15px;
-    color: #5a6570;
-    font-weight: 400;
-    margin-right: 1px;
-    letter-spacing: 0;
-  }
-  /* Unit suffix inside title — e.g. "min", "/ 6", "/ 10" */
-  .hub-btn-title .unit {
-    font-size: 14px;
-    color: #5a6570;
-    font-weight: 400;
-    margin-left: 3px;
-    letter-spacing: 0;
-  }
-  /* SMALL CAPTION under the number */
-  .hub-btn-sub {
-    font-size: 11px; color: #5a6570;
+  /* Preview — the actual data value, slightly larger + darker than
+     research-report subhead. In empty state, muted with the placeholder text. */
+  .hub-btn-preview {
+    font-size: 12px; color: #4A5568;
     font-family: var(--sans);
-    font-style: normal;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: -0.1px;
     margin: 0; padding: 0;
     line-height: 1.4;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: block;
   }
-  /* Preview element is now redundant (data is in the title/sub); hide it */
-  .hub-btn-preview {
-    display: none;
+  .hub-btn-preview.is-empty {
+    color: #8B94A3;
+    font-weight: 500;
   }
-  /* Verdict sub-label tone coloring — used by renderHubDataValues */
-  .hub-btn-sub .verdict-tone-good { color: #1f8a4c; font-weight: 600; }
-  .hub-btn-sub .verdict-tone-mid { color: #A66A00; font-weight: 600; }
-  .hub-btn-sub .verdict-tone-tough { color: #8A1F1A; font-weight: 600; }
+  /* Verdict tone spans inside preview — color-coded when Verdict shows a score */
+  .hub-btn-preview .verdict-tone-good { color: #1f8a4c; }
+  .hub-btn-preview .verdict-tone-mid { color: #A66A00; }
+  .hub-btn-preview .verdict-tone-tough { color: #8A1F1A; }
   /* E3.4: Verdict preview color-coded by score */
   .hub-btn-preview .verdict-preview-good {
     color: #1f8a4c; font-weight: 600;
@@ -6186,65 +6231,72 @@
       <div class="hub-grid" id="hubGrid">
         <!-- 6 hub buttons; last one is Verdict. Investments button also covers
              Recurring Payments (they open together as one detail page).
-             Data-forward layout: category tag with colored dot (top-left),
-             status pill (top-right), BIG number in the middle (populated via
-             JS by renderHubDataValue), small label below the number.
-             The button title and sub elements are repurposed as the big
-             number and label respectively — no HTML change needed per-button
-             for data population, just JS updates. -->
+             Frosted-glass layout (Direction B):
+               [gradient icon tile]          [status dot top-right]
+               Title
+               Preview line (populated via JS)
+             The icon tile has a per-section gradient background + soft shadow.
+             The status dot is a small colored circle with a halo (not a pill).
+             Preview text populated by refreshHubButtonPreviews. -->
         <button type="button" class="hub-btn" data-hub-section="s-expenses">
           <div class="hub-btn-head">
-            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Expenses</span>
-            <span class="hub-btn-status empty" data-hub-status="s-expenses">Empty</span>
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-expenses" aria-label="status"></span>
           </div>
-          <div class="hub-btn-title" data-hub-value="s-expenses">—</div>
-          <div class="hub-btn-sub" data-hub-label="s-expenses">no entries yet</div>
-          <div class="hub-btn-preview" data-hub-preview="s-expenses" hidden></div>
+          <div class="hub-btn-title">Investments &amp; Expenses</div>
+          <div class="hub-btn-preview" data-hub-preview="s-expenses">no entries yet</div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-health">
           <div class="hub-btn-head">
-            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Health</span>
-            <span class="hub-btn-status empty" data-hub-status="s-health">Empty</span>
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 0 1 0-6.364z"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-health" aria-label="status"></span>
           </div>
-          <div class="hub-btn-title" data-hub-value="s-health">—</div>
-          <div class="hub-btn-sub" data-hub-label="s-health">no activity</div>
-          <div class="hub-btn-preview" data-hub-preview="s-health" hidden></div>
+          <div class="hub-btn-title">Health &amp; Mind</div>
+          <div class="hub-btn-preview" data-hub-preview="s-health">no activity</div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-time">
           <div class="hub-btn-head">
-            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Hours</span>
-            <span class="hub-btn-status empty" data-hub-status="s-time">Empty</span>
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-time" aria-label="status"></span>
           </div>
-          <div class="hub-btn-title" data-hub-value="s-time">0 / 6</div>
-          <div class="hub-btn-sub" data-hub-label="s-time">no slots yet</div>
-          <div class="hub-btn-preview" data-hub-preview="s-time" hidden></div>
+          <div class="hub-btn-title">The Hours</div>
+          <div class="hub-btn-preview" data-hub-preview="s-time">no slots yet</div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-food">
           <div class="hub-btn-head">
-            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Food</span>
-            <span class="hub-btn-status empty" data-hub-status="s-food">Empty</span>
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2V2M7 2v20M21 15V2a4 4 0 0 0-4 4v9c0 1.1.9 2 2 2h1v5"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-food" aria-label="status"></span>
           </div>
-          <div class="hub-btn-title" data-hub-value="s-food">0 / 3</div>
-          <div class="hub-btn-sub" data-hub-label="s-food">no meals yet</div>
-          <div class="hub-btn-preview" data-hub-preview="s-food" hidden></div>
+          <div class="hub-btn-title">Food Journal</div>
+          <div class="hub-btn-preview" data-hub-preview="s-food">no meals yet</div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-night">
           <div class="hub-btn-head">
-            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Night</span>
-            <span class="hub-btn-status empty" data-hub-status="s-night">Empty</span>
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-night" aria-label="status"></span>
           </div>
-          <div class="hub-btn-title" data-hub-value="s-night">—</div>
-          <div class="hub-btn-sub" data-hub-label="s-night">where tonight?</div>
-          <div class="hub-btn-preview" data-hub-preview="s-night" hidden></div>
+          <div class="hub-btn-title">Night Stay</div>
+          <div class="hub-btn-preview" data-hub-preview="s-night">where tonight?</div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-verdict">
           <div class="hub-btn-head">
-            <span class="hub-btn-tag"><span class="hub-btn-tag-dot"></span>Verdict</span>
-            <span class="hub-btn-status empty" data-hub-status="s-verdict">Empty</span>
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-verdict" aria-label="status"></span>
           </div>
-          <div class="hub-btn-title" data-hub-value="s-verdict">—</div>
-          <div class="hub-btn-sub" data-hub-label="s-verdict">how did it feel?</div>
-          <div class="hub-btn-preview" data-hub-preview="s-verdict" hidden></div>
+          <div class="hub-btn-title">The Day's Verdict</div>
+          <div class="hub-btn-preview" data-hub-preview="s-verdict">how did it feel?</div>
         </button>
       </div>
     </div>
@@ -9822,149 +9874,49 @@ function computeHubPreview(cls) {
   return '';
 }
 
-// Ship E1: refresh preview lines under each hub button.
-// NOTE (Data-forward variant): The old preview element is now display:none.
-// Preview text is instead rendered into the .hub-btn-title (BIG NUMBER) and
-// .hub-btn-sub (small caption) via renderHubDataValues below. This function
-// is retained as a no-op for backwards-compat but does nothing.
+// Populate the preview text under each hub card title. In frosted-glass
+// layout (Direction B), .hub-btn-preview is the ONLY data readout on the
+// card — the title stays as the fixed section name, the preview shows the
+// live value (₹8,248 spent · 59 min walk · 6 of 6 slots · etc).
+// When the section is empty, we keep a placeholder text (populated in HTML
+// as the initial value) and add .is-empty for muted styling.
 function refreshHubButtonPreviews() {
-  // Intentionally empty — data-forward rendering handled by renderHubDataValues.
+  if (typeof computeHubPreview !== 'function') return;
+  document.querySelectorAll('.hub-btn-preview[data-hub-preview]').forEach(el => {
+    const cls = el.dataset.hubPreview;
+    const preview = computeHubPreview(cls);
+    if (preview) {
+      // Verdict returns HTML with a color-coded span; safe because
+      // computeHubPreview is our own function and Night Stay's address
+      // (the only user string) is escaped/truncated there.
+      if (cls === 's-verdict') {
+        el.innerHTML = preview;
+      } else {
+        el.textContent = preview;
+      }
+      el.classList.remove('is-empty');
+    } else {
+      // Empty state — restore the placeholder text from the initial HTML.
+      // Since we don't want to hard-code that here, use a per-section map.
+      const placeholders = {
+        's-expenses': 'no entries yet',
+        's-health': 'no activity',
+        's-time': 'no slots yet',
+        's-food': 'no meals yet',
+        's-night': 'where tonight?',
+        's-verdict': 'how did it feel?',
+      };
+      el.textContent = placeholders[cls] || '—';
+      el.classList.add('is-empty');
+    }
+  });
 }
 
-// Data-forward hub value rendering (Direction A). For each of the 6 hub
-// buttons, compute a { title, sub, tone } object from currentEntry and
-// paint into the button's .hub-btn-title (BIG NUMBER) and .hub-btn-sub
-// (small caption) elements. Called from refreshHubState.
+// Direction A (data-forward) renderer — retained as a no-op stub. HTML no
+// longer has [data-hub-value] / [data-hub-label] targets, so this function
+// has nothing to write to. Left in so any stale caller doesn't error.
 function renderHubDataValues() {
-  if (typeof currentEntry !== 'object' || !currentEntry) return;
-  const e = currentEntry;
-  const num = v => { const n = Number(v); return isFinite(n) ? n : 0; };
-  const filled = v => {
-    if (v === undefined || v === null || v === '') return false;
-    if (typeof v === 'number') return v > 0;
-    return String(v).trim().length > 0;
-  };
-  // Escape HTML in user-provided strings (nightStay address) before
-  // inserting into innerHTML.
-  const esc = s => String(s || '').replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-
-  const values = {};
-
-  // ==== Expenses ====
-  const spendKeys = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','other'];
-  let outTotal = 0;
-  spendKeys.forEach(k => { outTotal += num(e[k]); });
-  let recTotal = 0;
-  try {
-    const rec = JSON.parse(e.recurringLog || '[]');
-    if (Array.isArray(rec)) rec.forEach(r => { recTotal += num(r.amount); });
-  } catch {}
-  outTotal += recTotal;
-  const invest = num(e.regularInvestment) + num(e.topUp);
-  if (outTotal === 0 && invest === 0) {
-    values['s-expenses'] = { title: '—', sub: 'no entries yet' };
-  } else if (outTotal > 0 && invest > 0) {
-    values['s-expenses'] = {
-      title: `<span class="cur">₹</span>${outTotal.toLocaleString('en-IN')}`,
-      sub: `out today · ₹${invest.toLocaleString('en-IN')} in`
-    };
-  } else if (invest > 0) {
-    values['s-expenses'] = {
-      title: `<span class="cur">₹</span>${invest.toLocaleString('en-IN')}`,
-      sub: 'invested today'
-    };
-  } else {
-    values['s-expenses'] = {
-      title: `<span class="cur">₹</span>${outTotal.toLocaleString('en-IN')}`,
-      sub: 'spent today'
-    };
-  }
-
-  // ==== Health ====
-  const walk = num(e.walk);
-  const heart = num(e.heart);
-  const reading = e.reading === 'Yes' || e.reading === 'yes' || e.reading === true;
-  if (walk === 0 && heart === 0 && !reading) {
-    values['s-health'] = { title: '—', sub: 'no activity' };
-  } else if (walk > 0) {
-    const parts = [];
-    parts.push(`walk`);
-    if (heart > 0) parts.push(`${heart} hp`);
-    if (reading) parts.push('read ✓');
-    values['s-health'] = {
-      title: `${walk}<span class="unit">min</span>`,
-      sub: parts.join(' · ')
-    };
-  } else if (heart > 0) {
-    values['s-health'] = {
-      title: `${heart}<span class="unit">hp</span>`,
-      sub: reading ? 'heart pts · read ✓' : 'heart points'
-    };
-  } else {
-    values['s-health'] = { title: 'read ✓', sub: 'today' };
-  }
-
-  // ==== Hours ====
-  const slots = ['slot1','slot2','slot3','slot4','slot5','slot6'];
-  const slotCount = slots.filter(k => filled(e[k])).length;
-  values['s-time'] = {
-    title: `${slotCount}<span class="unit">/ 6</span>`,
-    sub: slotCount === 0 ? 'no slots yet'
-       : slotCount === 6 ? 'time slots filled'
-       : 'time slots so far'
-  };
-
-  // ==== Food ====
-  const meals = ['breakfast','lunch','dinner'].filter(k => filled(e[k]));
-  values['s-food'] = {
-    title: `${meals.length}<span class="unit">/ 3</span>`,
-    sub: meals.length === 0 ? 'no meals yet'
-       : meals.length === 3 ? 'meals logged'
-       : 'meals so far'
-  };
-
-  // ==== Night ====
-  const stay = String(e.nightStay || '').trim();
-  if (!stay) {
-    values['s-night'] = { title: '—', sub: 'where tonight?' };
-  } else {
-    // Try to pull a short label — first word/segment
-    const parts = stay.split(/[@,]/).map(s => s.trim()).filter(Boolean);
-    const short = parts.length > 1
-      ? parts[parts.length - 1]  // if "2004/A3, Ganga Legend @ Pune" → "Pune"
-      : (parts[0] || stay).slice(0, 14);
-    values['s-night'] = { title: esc(short), sub: esc(stay.length > 32 ? stay.slice(0, 30) + '…' : stay) };
-  }
-
-  // ==== Verdict ====
-  const sat = num(e.satisfaction);
-  if (sat <= 0) {
-    values['s-verdict'] = { title: '—', sub: 'how did it feel?' };
-  } else {
-    const outOfTen = (sat * 10).toFixed(1);
-    let subLabel = 'good day';
-    let tone = 'good';
-    if (sat < 0.4) { subLabel = 'tough day'; tone = 'tough'; }
-    else if (sat < 0.7) { subLabel = 'quiet day'; tone = 'mid'; }
-    values['s-verdict'] = {
-      title: `${outOfTen}<span class="unit">/ 10</span>`,
-      sub: `<span class="verdict-tone-${tone}">${subLabel}</span>`
-    };
-  }
-
-  // Paint into the DOM
-  Object.entries(values).forEach(([cls, val]) => {
-    const titleEl = document.querySelector('.hub-btn-title[data-hub-value="' + cls + '"]');
-    const subEl = document.querySelector('.hub-btn-sub[data-hub-label="' + cls + '"]');
-    if (titleEl) {
-      titleEl.innerHTML = val.title;
-      // Muted styling when the value is the empty placeholder
-      titleEl.classList.toggle('is-empty', val.title === '—');
-    }
-    if (subEl) subEl.innerHTML = val.sub;
-  });
+  // no-op
 }
 
 // Master hub state refresh — called on every render/save. Cheap enough to
