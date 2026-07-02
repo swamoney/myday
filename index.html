@@ -50,148 +50,6 @@
   input, textarea, button, select { font-family: inherit; font-size: inherit; color: inherit; }
   textarea { resize: vertical; }
 
-  /* ========== SIDEBAR LAYOUT (desktop ≥1024px) ==========
-     On desktop, the app becomes a two-column grid:
-       [ sidebar 220px | main content flex ]
-     Sidebar carries the top-level tabs (Today/Calendar/Export) plus a
-     compact status readout for Today's sections. The existing .tabs bar
-     at the top becomes redundant on desktop; we hide it via .desktop-hide.
-     On mobile (<1024px), the sidebar is a slide-out drawer opened by a
-     hamburger button. The default (mobile) layout stays exactly as it
-     was — this whole block is additive. */
-
-  /* Sidebar element — hidden by default on mobile.
-     Sits inside <main> as the first child so we can grid it against the
-     rest of the content without restructuring the whole app. */
-  .app-sidebar {
-    display: none; /* mobile: hidden by default; drawer JS toggles .is-open */
-    background: var(--paper);
-    border-right: 1px solid var(--rule-strong);
-    padding: 20px 12px 24px;
-    overflow-y: auto;
-  }
-  .app-sidebar .sb-brand {
-    font-family: var(--serif); font-style: italic; font-size: 22px;
-    font-weight: 700; color: var(--ink); letter-spacing: -0.005em;
-    padding: 0 8px 6px;
-  }
-  .app-sidebar .sb-subtitle {
-    font-family: var(--serif); font-style: italic; font-size: 11px;
-    color: var(--muted); padding: 0 8px 18px;
-  }
-  .app-sidebar .sb-label {
-    font-size: 10px; letter-spacing: 0.14em; color: var(--muted);
-    text-transform: uppercase; padding: 12px 8px 4px; font-weight: 500;
-  }
-  .app-sidebar .sb-item {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 8px; padding: 9px 10px; margin: 1px 0;
-    background: transparent; border: 0; width: 100%;
-    color: var(--ink-soft); font-size: 13px; font-weight: 500;
-    border-radius: 6px; cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    text-align: left;
-  }
-  .app-sidebar .sb-item:hover { background: rgba(15,45,92,0.04); color: var(--ink); }
-  .app-sidebar .sb-item.active { background: var(--ink); color: var(--paper); }
-  .app-sidebar .sb-item.active .sb-dot { border-color: var(--paper); }
-  .app-sidebar .sb-item .sb-icon {
-    width: 16px; height: 16px; flex-shrink: 0; opacity: 0.8;
-  }
-  .app-sidebar .sb-item .sb-dot {
-    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-    border: 1px dashed var(--muted); background: transparent;
-    transition: background 0.2s, border-color 0.2s;
-  }
-  /* Sidebar section states — mirror the Today section status dots.
-     JS sets .has-content / .has-some on each .sb-item[data-section=xxx]. */
-  .app-sidebar .sb-item.has-some .sb-dot { background: #BA7517; border-color: #BA7517; }
-  .app-sidebar .sb-item.has-content .sb-dot { background: var(--moss); border-color: var(--moss); }
-
-  /* Hamburger button (mobile only) — sits in the masthead's top-left.
-     Hidden on desktop (sidebar is always visible then). */
-  .drawer-toggle-btn {
-    display: none; /* JS-shown on mobile only */
-    position: absolute; top: 6px; left: 6px;
-    width: 32px; height: 32px; padding: 0;
-    background: transparent; border: 0; cursor: pointer;
-    color: var(--ink-soft);
-    align-items: center; justify-content: center;
-    border-radius: 6px;
-    z-index: 5;
-  }
-  .drawer-toggle-btn:hover { background: rgba(15,45,92,0.05); }
-  .drawer-toggle-btn svg { width: 20px; height: 20px; }
-
-  /* Drawer backdrop — dark scrim behind slide-out sidebar (mobile only) */
-  .drawer-backdrop {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(15,45,92,0.35);
-    z-index: 30;
-    animation: drawerFade 0.2s ease;
-  }
-  .drawer-backdrop.is-open { display: block; }
-  @keyframes drawerFade { from { opacity: 0; } to { opacity: 1; } }
-
-  /* ---------- DESKTOP layout (≥1024px) ---------- */
-  @media (min-width: 1024px) {
-    body { padding: 0; }
-    main {
-      max-width: 1400px;
-      display: grid;
-      grid-template-columns: 220px minmax(0, 1fr);
-      gap: 0;
-      min-height: 100vh;
-      background: var(--paper);
-      box-shadow: 0 0 40px rgba(15,45,92,0.06);
-    }
-    /* Sidebar is permanent on desktop */
-    .app-sidebar {
-      display: block;
-      position: sticky; top: 0;
-      max-height: 100vh;
-      height: 100vh;
-    }
-    /* Main content column — padding matches original mobile edge spacing */
-    .desktop-main {
-      padding: 16px 32px 80px;
-      min-width: 0; /* prevent grid overflow from long content */
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    /* Hide the top .tabs bar — sidebar carries navigation now */
-    .desktop-hide { display: none !important; }
-    /* Hamburger button — never shown on desktop */
-    .drawer-toggle-btn { display: none !important; }
-    /* Masthead — desktop: no big centered "My Day" branding.
-       Brand lives in sidebar; masthead becomes compact. */
-    .masthead { padding: 0 0 12px; margin-bottom: 12px; border-bottom: none; }
-    .masthead h1 { display: none; }
-    .masthead .editorial-ornament { display: none; }
-  }
-
-  /* ---------- MOBILE drawer state ---------- */
-  @media (max-width: 1023.98px) {
-    /* Hamburger button shown on mobile */
-    .drawer-toggle-btn { display: inline-flex; }
-    /* Sidebar slides in from left when .is-open */
-    .app-sidebar.is-open {
-      display: block;
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      width: 260px;
-      z-index: 40;
-      box-shadow: 4px 0 24px rgba(15,45,92,0.12);
-      animation: drawerSlide 0.22s ease-out;
-    }
-    @keyframes drawerSlide {
-      from { transform: translateX(-100%); }
-      to { transform: translateX(0); }
-    }
-  }
-
-
   .masthead { text-align: center; padding: 8px 0 22px; border-bottom: 1px solid var(--rule-strong); margin-bottom: 16px; position: relative; transition: padding 0.2s ease; }
   /* [O] Compact masthead variant — applied when on Calendar/Export tabs.
      Halves the vertical real estate by collapsing kicker into title row and
@@ -5514,74 +5372,7 @@
 </div>
 
 <main>
-  <!-- Drawer backdrop (mobile only) — dark scrim behind slide-out sidebar.
-       Clicking closes the drawer. Hidden by default; toggled by JS. -->
-  <div class="drawer-backdrop" id="drawerBackdrop"></div>
-
-  <!-- Sidebar — permanent on desktop (≥1024px), slide-out drawer on mobile.
-       Contains: brand mark, main tab list, and Today's section states.
-       On mobile it opens via the hamburger button in the masthead. -->
-  <aside class="app-sidebar" id="appSidebar" aria-label="Main navigation">
-    <div class="sb-brand">OneLife</div>
-    <div class="sb-subtitle">one life, live it well</div>
-    <div class="sb-label">VIEW</div>
-    <button class="sb-item tab active" data-tab="today" type="button">
-      <span style="display: inline-flex; align-items: center; gap: 10px;">
-        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        Today
-      </span>
-    </button>
-    <button class="sb-item tab" data-tab="month" type="button">
-      <span style="display: inline-flex; align-items: center; gap: 10px;">
-        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/></svg>
-        Calendar
-      </span>
-    </button>
-    <button class="sb-item tab" data-tab="export" type="button">
-      <span style="display: inline-flex; align-items: center; gap: 10px;">
-        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
-        Export
-      </span>
-    </button>
-
-    <!-- Sidebar section states — mirror Today's section status dots.
-         Clicking a section: switches to Today tab + expands that section.
-         Each item's .has-content / .has-some classes are refreshed by
-         refreshSidebarSectionStates() alongside refreshSectionStatusDots(). -->
-    <div class="sb-label">TODAY'S SECTIONS</div>
-    <button class="sb-item sb-section" data-section="s-expenses" type="button">
-      Investments &amp; Expenses <span class="sb-dot" aria-hidden="true"></span>
-    </button>
-    <button class="sb-item sb-section" data-section="s-health" type="button">
-      Health &amp; Mind <span class="sb-dot" aria-hidden="true"></span>
-    </button>
-    <button class="sb-item sb-section" data-section="s-time" type="button">
-      The Hours <span class="sb-dot" aria-hidden="true"></span>
-    </button>
-    <button class="sb-item sb-section" data-section="s-food" type="button">
-      Food Journal <span class="sb-dot" aria-hidden="true"></span>
-    </button>
-    <button class="sb-item sb-section" data-section="s-night" type="button">
-      Night Stay <span class="sb-dot" aria-hidden="true"></span>
-    </button>
-    <button class="sb-item sb-section" data-section="s-verdict" type="button">
-      The Day's Verdict <span class="sb-dot" aria-hidden="true"></span>
-    </button>
-  </aside>
-
-  <!-- Main content column — wraps everything the mobile app had.
-       On desktop this becomes the right column of the grid (sidebar on left).
-       On mobile it takes full width — sidebar is drawer. -->
-  <div class="desktop-main">
   <div class="masthead">
-    <!-- Hamburger button — visible only on mobile (<1024px) to open drawer -->
-    <button class="drawer-toggle-btn" id="drawerToggleBtn" aria-label="Open navigation menu" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <line x1="4" y1="7" x2="20" y2="7"/>
-        <line x1="4" y1="12" x2="20" y2="12"/>
-        <line x1="4" y1="17" x2="20" y2="17"/>
-      </svg>
-    </button>
     <button class="masthead-search-btn" id="searchBtn" aria-label="Search entries" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="11" cy="11" r="7"/>
@@ -5616,7 +5407,7 @@
     <div class="search-results" id="searchResults"></div>
   </div>
 
-  <div class="tabs desktop-hide">
+  <div class="tabs">
     <button class="tab active" data-tab="today">Today</button>
     <button class="tab" data-tab="month">Calendar</button>
     <button class="tab" data-tab="export">Export</button>
@@ -6592,7 +6383,6 @@
       </ol>
     </div>
 
-  </div>
   </div>
 </main>
 
@@ -8604,8 +8394,6 @@ function refreshSectionStatusDots() {
     if (states[cls] === 'full') sec.classList.add('has-content');
     else if (states[cls] === 'partial') sec.classList.add('has-some');
   });
-  // Sidebar section states share the same source of truth — sync here.
-  if (typeof refreshSidebarSectionStates === 'function') refreshSidebarSectionStates();
 }
 
 // Collapse all Today sections — used on date navigation so each new day
@@ -8961,47 +8749,7 @@ function showTab(name) {
   // Tab-open render kicks off the active sub-view; user can switch via subtabs.
   if (name === 'month') renderWeek();
   if (name === 'export') renderExportPanel();
-  // Close mobile drawer if it's open — user just picked a tab, dismiss nav
-  closeDrawer();
   window.scrollTo({ top: 0, behavior: 'instant' });
-}
-
-// Drawer helpers — open/close/toggle the mobile slide-out sidebar.
-// No-op on desktop where sidebar is always visible.
-function openDrawer() {
-  const sb = document.getElementById('appSidebar');
-  const bd = document.getElementById('drawerBackdrop');
-  if (sb) sb.classList.add('is-open');
-  if (bd) bd.classList.add('is-open');
-}
-function closeDrawer() {
-  const sb = document.getElementById('appSidebar');
-  const bd = document.getElementById('drawerBackdrop');
-  if (sb) sb.classList.remove('is-open');
-  if (bd) bd.classList.remove('is-open');
-}
-function toggleDrawer() {
-  const sb = document.getElementById('appSidebar');
-  if (sb && sb.classList.contains('is-open')) closeDrawer();
-  else openDrawer();
-}
-
-// Sidebar section-state sync — mirrors Today's section status dots into
-// the sidebar's TODAY'S SECTIONS list. Called from refreshSectionStatusDots
-// so both source of truth stays in one place. Sidebar items carry the same
-// .has-content / .has-some class semantics as Today's section headers.
-function refreshSidebarSectionStates() {
-  if (typeof computeTodaySectionStateDetailed !== 'function') return;
-  const states = computeTodaySectionStateDetailed();
-  const sb = document.getElementById('appSidebar');
-  if (!sb) return;
-  Object.keys(states).forEach(cls => {
-    const item = sb.querySelector('.sb-section[data-section="' + cls + '"]');
-    if (!item) return;
-    item.classList.remove('has-content', 'has-some');
-    if (states[cls] === 'full') item.classList.add('has-content');
-    else if (states[cls] === 'partial') item.classList.add('has-some');
-  });
 }
 
 // =========== MONTH VIEW ===========
@@ -16186,25 +15934,6 @@ async function init() {
   // Status dot encodes empty / partial / complete state per-section.
   setupSectionCollapse();
 
-  // Drawer wiring — hamburger button toggles the mobile drawer, backdrop
-  // closes it, and each sidebar-section item jumps to Today + expands the
-  // matching section. No-ops on desktop (buttons/backdrop are hidden).
-  const drawerBtn = document.getElementById('drawerToggleBtn');
-  if (drawerBtn) drawerBtn.addEventListener('click', toggleDrawer);
-  const drawerBd = document.getElementById('drawerBackdrop');
-  if (drawerBd) drawerBd.addEventListener('click', closeDrawer);
-  // Sidebar section items — clicking one takes user to Today view and
-  // expands the corresponding section (reuses existing expandTodaySection).
-  document.querySelectorAll('.sb-section').forEach(item => {
-    item.addEventListener('click', () => {
-      const cls = item.dataset.section;
-      if (!cls) return;
-      showTab('today');
-      if (typeof expandTodaySection === 'function') expandTodaySection(cls);
-    });
-  });
-  // Initial sidebar state paint — reflects current entry's fill state
-  if (typeof refreshSidebarSectionStates === 'function') refreshSidebarSectionStates();
   // Search wiring
   const searchBtn = document.getElementById('searchBtn');
   if (searchBtn) searchBtn.addEventListener('click', openSearch);
