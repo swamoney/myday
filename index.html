@@ -904,18 +904,19 @@
     .hub-grid { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   }
 
-  /* Hub buttons — Item 3 revamp: white cards with colored top strip.
-     Each button gets a 4px colored strip at the top matching its section
-     accent color. The strip is rendered via CSS ::before pseudo-element
-     driven by data-hub-section attribute, so the HTML markup stays clean.
-     Background switched from cream (#FDFAF6) to white for maximum
-     brightness and to let the colored strips pop. Editorial mood is
-     preserved inside the button via italic serif subtitles + dashed
-     divider above the preview line. */
+  /* Hub buttons — Item 3 revamp variant D: left-edge colored stripe.
+     Research-report vibe: each button has a 4px colored bar down the LEFT
+     edge instead of across the top. Stripe is rendered via ::before pseudo
+     driven by data-hub-section attribute (no HTML change needed).
+     Border-radius asymmetry: left corners squared to align with the stripe,
+     right corners rounded (12px). Background stays white; content padding
+     restored (14px all around) with a small left inset so the stripe
+     doesn't crowd the text. */
   .hub-btn {
     background: #ffffff; border: 1px solid var(--rs-line, #e3e7ec);
-    border-radius: 12px;
-    padding: 0; text-align: left; cursor: pointer;
+    border-radius: 8px 12px 12px 8px;
+    padding: 14px 14px 14px 14px;
+    text-align: left; cursor: pointer;
     transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
     font-family: inherit;
     box-shadow: 0 1px 3px rgba(0,0,0,0.03);
@@ -929,13 +930,14 @@
   .hub-btn:active {
     transform: scale(0.98);
   }
-  /* Colored top strip — 4px band matching the section accent color. Set
-     via data-hub-section attribute so no per-button class needed. */
+  /* Left-edge colored stripe — 4px wide, full height of the button, absolutely
+     positioned at left:0. Set via data-hub-section attribute so no per-button
+     class needed. */
   .hub-btn::before {
     content: '';
-    display: block;
-    height: 4px;
-    width: 100%;
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
     background: #B0B4BC; /* fallback neutral */
   }
   .hub-btn[data-hub-section="s-expenses"]::before { background: #8A1F1A; }
@@ -944,19 +946,19 @@
   .hub-btn[data-hub-section="s-food"]::before     { background: #BA7517; }
   .hub-btn[data-hub-section="s-night"]::before    { background: #534AB7; }
   .hub-btn[data-hub-section="s-verdict"]::before  { background: #A04A60; }
-  /* Icon tinting per section — subtle accent color instead of all-navy so
-     the button head visually anchors to the top strip. */
+  /* Icon tinting per section — subtle accent color that harmonizes with the
+     left-edge stripe. Creates a visual through-line from stripe → icon. */
   .hub-btn[data-hub-section="s-expenses"] .hub-btn-icon { color: #8A1F1A; }
   .hub-btn[data-hub-section="s-health"] .hub-btn-icon   { color: #356B4E; }
   .hub-btn[data-hub-section="s-time"] .hub-btn-icon     { color: #BA7517; }
   .hub-btn[data-hub-section="s-food"] .hub-btn-icon     { color: #BA7517; }
   .hub-btn[data-hub-section="s-night"] .hub-btn-icon    { color: #534AB7; }
   .hub-btn[data-hub-section="s-verdict"] .hub-btn-icon  { color: #A04A60; }
-  /* Head + content wrapper — all internal content now needs padding since
-     .hub-btn padding was zeroed out to let the ::before strip touch the edge. */
+  /* Head + content: all padding is now on .hub-btn itself, so internal
+     children reset their added padding from the top-strip variant. */
   .hub-btn-head {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 14px 0;
+    padding: 0;
     margin-bottom: 8px;
   }
   .hub-btn-icon {
@@ -983,7 +985,7 @@
   }
   .hub-btn-title {
     font-size: 13px; font-weight: 700; color: var(--rs-brand, #0b4f6c);
-    margin: 0 0 3px; padding: 0 14px;
+    margin: 0 0 3px; padding: 0;
     font-family: var(--sans);
     letter-spacing: -0.15px;
     line-height: 1.25;
@@ -991,12 +993,12 @@
   .hub-btn-sub {
     font-size: 11px; color: #5a6570;
     font-family: var(--serif); font-style: italic;
-    margin: 0; padding: 0 14px 14px;
+    margin: 0; padding: 0;
     line-height: 1.35;
   }
   .hub-btn-preview {
     font-size: 10px; color: #3D4866;
-    margin-top: 0; padding: 6px 14px 14px;
+    margin-top: 8px; padding: 6px 0 0;
     border-top: 1px dashed var(--rs-line, #e3e7ec);
     font-family: var(--sans);
   }
