@@ -8464,6 +8464,11 @@ function renderEntry() {
   // refresh from the current entry's filled state.
   if (typeof collapseAllTodaySections === 'function') collapseAllTodaySections();
   if (typeof refreshSectionStatusDots === 'function') refreshSectionStatusDots();
+  // Ship-fix (Bug 2): refresh Hub state on every date change so the ring,
+  // button status pills, and previews reflect the newly-loaded entry's data.
+  // renderEntry() only ran refreshSectionStatusDots before which handled the
+  // classic-view section header dots but not the Hub landing page.
+  if (typeof refreshHubState === 'function') refreshHubState();
   // Phase 11+: reset unlock flag + re-apply Verdict lock state for current date.
   // Each navigation re-locks past dates (the unlock state doesn't persist).
   if (typeof verdictUnlockedThisRender !== 'undefined') verdictUnlockedThisRender = false;
@@ -9343,6 +9348,14 @@ function showTab(name) {
   // Tab-open render kicks off the active sub-view; user can switch via subtabs.
   if (name === 'month') renderWeek();
   if (name === 'export') renderExportPanel();
+  // Ship-fix (Bug 1): clicking Today in the sidebar should always return the
+  // user to the hub landing page, not leave them inside a focused section.
+  // If we're navigating to Today AND currently in focus mode, exit focus.
+  if (name === 'today' && document.body.classList.contains('hub-focused')) {
+    document.body.classList.remove('hub-focused');
+    document.body.removeAttribute('data-hub-focus');
+    if (typeof refreshHubState === 'function') refreshHubState();
+  }
   // Research shell: update hero title + chips to reflect the active tab.
   if (typeof updateRsHero === 'function') updateRsHero(name);
   // Sync sidebar's active class — showTab is only called for today/export
