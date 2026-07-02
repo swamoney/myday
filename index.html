@@ -212,19 +212,6 @@
   }
   .rs-side.rs-collapsed .rs-navi span { display: none; }
 
-  /* Sidebar section-status dot — mirrors Today section state.
-     Sits on the right side of the .rs-navi row. */
-  .rs-navi .rs-navi-dot {
-    margin-left: auto;
-    width: 8px; height: 8px; border-radius: 50%;
-    flex-shrink: 0;
-    border: 1px dashed rgba(255,255,255,0.35);
-    background: transparent;
-  }
-  .rs-navi.rs-has-some .rs-navi-dot { background: #f2b04a; border-color: #f2b04a; }
-  .rs-navi.rs-has-content .rs-navi-dot { background: #55c17c; border-color: #55c17c; }
-  .rs-side.rs-collapsed .rs-navi-dot { display: none; }
-
   /* ---------- DESKTOP: enable full research shell (≥1024px) ---------- */
   @media (min-width: 1024px) {
     body {
@@ -280,12 +267,6 @@
     .rs-side .rs-grp { visibility: hidden; height: 0; padding: 0; }
     .rs-side .rs-navi { justify-content: center; padding: 10px 0; gap: 0; }
     .rs-side .rs-navi span { display: none; }
-    .rs-side .rs-navi-dot { display: none; }
-    /* Mobile declutter — 13 icons stacked in a 58px rail was too crowded.
-       Hide the section shortcuts on mobile since sections are always
-       reachable by scrolling within the Today view anyway. Keeps sidebar
-       focused on time-scope navigation (Today/Week/Month/Year) + tools. */
-    .rs-side .rs-navi.rs-section { display: none; }
   }
 
   .masthead { text-align: center; padding: 8px 0 22px; border-bottom: 1px solid var(--rule-strong); margin-bottom: 16px; position: relative; transition: padding 0.2s ease; }
@@ -5899,14 +5880,6 @@
     <button class="rs-navi rs-subview" data-subview="month-view" type="button" title="Month"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>Month</span></button>
     <button class="rs-navi rs-subview" data-subview="year-view" type="button" title="Year"><i class="ti ti-calendar-stats" aria-hidden="true"></i><span>Year</span></button>
 
-    <div class="rs-grp">TODAY'S SECTIONS</div>
-    <button class="rs-navi rs-section" data-section="s-expenses" type="button" title="Investments & Expenses"><i class="ti ti-coin" aria-hidden="true"></i><span>Expenses</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
-    <button class="rs-navi rs-section" data-section="s-health" type="button" title="Health & Mind"><i class="ti ti-heartbeat" aria-hidden="true"></i><span>Health &amp; Mind</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
-    <button class="rs-navi rs-section" data-section="s-time" type="button" title="The Hours"><i class="ti ti-clock-hour-4" aria-hidden="true"></i><span>The Hours</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
-    <button class="rs-navi rs-section" data-section="s-food" type="button" title="Food Journal"><i class="ti ti-tools-kitchen-2" aria-hidden="true"></i><span>Food Journal</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
-    <button class="rs-navi rs-section" data-section="s-night" type="button" title="Night Stay"><i class="ti ti-moon" aria-hidden="true"></i><span>Night Stay</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
-    <button class="rs-navi rs-section" data-section="s-verdict" type="button" title="The Day's Verdict"><i class="ti ti-star" aria-hidden="true"></i><span>Verdict</span><span class="rs-navi-dot" aria-hidden="true"></span></button>
-
     <!-- Trends is analysis (not a time-scoped view) so it lives in TOOLS
          alongside Search and Export. Same pattern: clicks into the Calendar
          tab and activates its trends sub-view. -->
@@ -9007,8 +8980,6 @@ function refreshSectionStatusDots() {
     if (states[cls] === 'full') sec.classList.add('has-content');
     else if (states[cls] === 'partial') sec.classList.add('has-some');
   });
-  // Research shell: sync sidebar section-status dots to the same states.
-  if (typeof refreshRsSidebarSectionStates === 'function') refreshRsSidebarSectionStates();
 }
 
 // Collapse all Today sections — used on date navigation so each new day
@@ -9482,19 +9453,6 @@ function refreshRsNavActive(currentKey) {
 function toggleRsSidebar() {
   const side = document.getElementById('rsSide');
   if (side) side.classList.toggle('rs-collapsed');
-}
-
-// Sync sidebar section-status dots from the same source as Today's headers.
-function refreshRsSidebarSectionStates() {
-  if (typeof computeTodaySectionStateDetailed !== 'function') return;
-  const states = computeTodaySectionStateDetailed();
-  document.querySelectorAll('.rs-section').forEach(item => {
-    const cls = item.dataset.section;
-    if (!cls) return;
-    item.classList.remove('rs-has-content', 'rs-has-some');
-    if (states[cls] === 'full') item.classList.add('rs-has-content');
-    else if (states[cls] === 'partial') item.classList.add('rs-has-some');
-  });
 }
 
 // ============ TODAY HUB (Ship B) ============
@@ -16924,15 +16882,6 @@ async function init() {
   // Sidebar collapse toggle
   const rsCollapseBtn = document.getElementById('rsCollapseBtn');
   if (rsCollapseBtn) rsCollapseBtn.addEventListener('click', toggleRsSidebar);
-  // Sidebar section items — jump to Today + expand that section
-  document.querySelectorAll('.rs-section').forEach(item => {
-    item.addEventListener('click', () => {
-      const cls = item.dataset.section;
-      if (!cls) return;
-      showTab('today');
-      if (typeof expandTodaySection === 'function') expandTodaySection(cls);
-    });
-  });
   // Sidebar sub-view items — switch directly to Week/Month/Year/Trends
   document.querySelectorAll('.rs-subview').forEach(item => {
     item.addEventListener('click', () => {
@@ -16947,7 +16896,6 @@ async function init() {
   });
   // Initial paints
   updateRsHero('today');
-  refreshRsSidebarSectionStates();
   // Ship B: wire Today hub toggle + initial paint
   if (typeof setupTodayHub === 'function') setupTodayHub();
 
