@@ -163,18 +163,44 @@
     font-size: 12.5px; color: rgba(255,255,255,0.78);
     padding: 8px 12px;
     border-left: 3px solid transparent;
+    border-top: 0; border-right: 0; border-bottom: 0;
+    border-radius: 0;
     cursor: pointer;
     white-space: nowrap; overflow: hidden;
-    background: none; border-top: 0; border-right: 0; border-bottom: 0;
+    background: none;
     width: 100%; text-align: left;
     font-family: inherit;
+    letter-spacing: 0;
+    transition: background 0.15s ease, color 0.15s ease;
   }
-  .rs-navi:hover { background: rgba(255,255,255,0.08); color: #ffffff; }
-  .rs-navi.active {
-    background: rgba(255,255,255,0.14);
-    border-left-color: var(--rs-accent);
-    color: #ffffff;
+  /* Extra guard — MyDay's .tab base rule (border-radius 999px, ink-soft
+     color, 13px etc.) will otherwise apply to sidebar buttons because they
+     carry class="tab" for showTab() detection. Force override the ones that
+     visually matter. */
+  .rs-side .rs-navi {
+    border-radius: 0 !important;
+    color: rgba(255,255,255,0.78) !important;
+    padding: 8px 12px !important;
+    background: none !important;
+    letter-spacing: 0 !important;
+    font-size: 12.5px !important;
+  }
+  .rs-side .rs-navi:hover {
+    background: rgba(255,255,255,0.08) !important;
+    color: #ffffff !important;
+  }
+  /* Active state — use extra specificity + !important to override MyDay's
+     existing .tab.active rule (`background: var(--ink)` = dark navy) which
+     would otherwise paint the button invisible-on-navy. */
+  .rs-side .rs-navi.active,
+  .rs-side .rs-navi.tab.active {
+    background: rgba(255,255,255,0.14) !important;
+    border-left: 3px solid var(--rs-accent) !important;
+    color: #ffffff !important;
     font-weight: 500;
+    /* Also reset inherited MyDay properties that would break look */
+    border-radius: 0 !important;
+    padding: 8px 12px !important;
   }
   .rs-navi i {
     font-size: 17px; width: 18px; text-align: center;
