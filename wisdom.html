@@ -569,8 +569,30 @@ function openReader(id) {
   readerCurrentId = id;
   el('readerTitle').textContent = r.title || 'Untitled';
   // Render stored HTML inside a sandboxed iframe (isolated from this page).
-  el('readerFrame').srcdoc = r.content || '<!doctype html><body style="font-family:system-ui;padding:40px;color:#3D4866;"><p><em>No content saved for this piece yet. Tap Edit to add it.</em></p></body>';
+  const raw = r.content || '<!doctype html><body style="font-family:system-ui;padding:40px;color:#3D4866;"><p><em>No content saved for this piece yet. Tap Edit to add it.</em></p></body>';
+  el('readerFrame').srcdoc = prepareForMobile(raw);
   el('readerOverlay').classList.remove('hidden');
+}
+
+// Many saved wisdom files were made for desktop and lack a mobile viewport
+// tag, so phones render them at ~980px inside the narrow frame (content runs
+// off-screen). This ensures a device-width viewport + a safety rule so wide
+// elements (images, tables, pre) wrap/shrink to fit instead of overflowing.
+function prepareForMobile(html) {
+  const viewportTag = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+  const fitCss = '<style>html,body{max-width:100%;overflow-x:hidden;}' +
+    'img,video,table,pre,iframe{max-width:100%;height:auto;}' +
+    'body{word-wrap:break-word;overflow-wrap:break-word;}</style>';
+  const inject = viewportTag + fitCss;
+  const hasViewport = /<meta[^>]+name=["']?viewport["']?/i.test(html);
+  const headMatch = /<head[^>]*>/i.exec(html);
+  if (headMatch) {
+    // Insert right after <head>. Skip the viewport tag if one already exists.
+    const toInsert = hasViewport ? fitCss : inject;
+    return html.slice(0, headMatch.index + headMatch[0].length) + toInsert + html.slice(headMatch.index + headMatch[0].length);
+  }
+  // No <head> — prepend the tags (browsers still honor a leading meta/style).
+  return (hasViewport ? fitCss : inject) + html;
 }
 function closeReader() {
   el('readerOverlay').classList.add('hidden');
