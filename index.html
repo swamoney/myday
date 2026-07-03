@@ -3569,6 +3569,60 @@
   .intro-textarea {
     min-height: 72px;
   }
+
+  /* ==================================================================
+     Introspection in the Verdict — restyle to match the warm rose verdict
+     identity (#A04A60) instead of the Day Diary moss. The closing reflection
+     should feel like a continuation of the verdict's mood: a little richer,
+     a little more ceremonial than the utilitarian diary slot. */
+  .intro-in-verdict {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #EAD3D8;
+  }
+  .intro-in-verdict .intro-slot-title {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 500;
+    color: #7E3B4C;
+    letter-spacing: 0.01em;
+  }
+  .intro-in-verdict .intro-slot-sub {
+    color: #A87A85;
+  }
+  .intro-in-verdict .slot-period {
+    color: #B98A94;
+    font-style: italic;
+  }
+  /* Empty pill — warm rose dashed border on the verdict's soft pink field. */
+  .intro-in-verdict .intro-collapse-pill {
+    border: 1px dashed #DBB3BB;
+    color: #A87A85;
+    background: rgba(255,255,255,0.4);
+  }
+  .intro-in-verdict .intro-collapse-pill:hover {
+    background: #FFFFFF;
+    color: #7E3B4C;
+    border-color: #A04A60;
+  }
+  /* Filled pill — solid rose left stripe (replaces moss), white card, rose dot. */
+  .intro-in-verdict.is-filled .intro-collapse-pill {
+    border: 1px solid #E5C9CC;
+    border-left: 3px solid #A04A60;
+    background: #FFFFFF;
+    color: #5A2A38;
+  }
+  .intro-in-verdict .intro-pill-dot {
+    background: #A04A60;
+  }
+  /* Expanded textarea — rose focus ring + filled stripe to match. */
+  .intro-in-verdict .intro-textarea:focus {
+    border-color: #A04A60;
+  }
+  .intro-in-verdict.is-filled .intro-textarea {
+    border-left: 3px solid #A04A60;
+    background: #FFFFFF;
+  }
   /* Bulk-fill pill at top of section — distinct visual treatment so it reads
      as an action rather than a category chip. Compact, slate-grey when empty,
      moss-green when applied. */
@@ -7128,30 +7182,8 @@
           <button class="chip suggest hidden" data-suggest-slot="6"></button>
         </div>
       </div>
-      <!-- Introspection — sits at the end of Day Diary as a "closing reflection."
-           Same visual structure as the slots (slot-head + textarea), and uses
-           the same is-empty / is-filled state classes so the dashed-empty /
-           solid-moss-stripe-filled pattern carries over.
-           Auto-collapse rule: empty + blurred → collapses to the pill button.
-           Filled OR focused → expanded textarea. State on load: expanded if
-           there's existing content, collapsed otherwise. -->
-      <div class="slot intro-slot" id="introSlot">
-        <div class="slot-head">
-          <span class="slot-time intro-slot-title">Introspection <span class="intro-slot-sub">&middot; learnings, regrets, new ideas</span></span>
-          <span class="slot-period">journal</span>
-        </div>
-        <!-- Collapsed pill — appears when textarea is empty AND not focused.
-             Tapping it expands the textarea + focuses it. Both pill and
-             textarea live in the DOM; visibility is toggled via classes. -->
-        <button type="button" class="intro-collapse-pill" id="introCollapsePill" aria-expanded="false">
-          <span>learnings &middot; regrets &middot; new ideas</span>
-          <span class="intro-pill-right">
-            <span class="intro-pill-dot" aria-hidden="true" title="Has content"></span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-          </span>
-        </button>
-        <textarea class="textarea intro-textarea" id="f_introspection" placeholder="What did you learn today? Any regrets? New ideas?"></textarea>
-      </div>
+      <!-- Introspection moved to the end of The Day's Verdict (closing
+           reflection after rating the day). See the .s-verdict section. -->
     </div>
 
     <!-- FOOD JOURNAL -->
@@ -7311,6 +7343,25 @@
           </div>
           <div class="yesterday-ghost hidden" id="yesterdayGhost">yesterday: <span></span></div>
         </div>
+      </div>
+
+      <!-- Introspection — the closing reflection of the day, now living at the
+           end of the Verdict (rate the day, then reflect on it). Same collapse
+           mechanism + IDs as before; restyled via .intro-in-verdict to pick up
+           the verdict's warm rose accent instead of the Day Diary moss. -->
+      <div class="slot intro-slot intro-in-verdict" id="introSlot">
+        <div class="slot-head">
+          <span class="slot-time intro-slot-title">Introspection <span class="intro-slot-sub">&middot; learnings, regrets, new ideas</span></span>
+          <span class="slot-period">reflection</span>
+        </div>
+        <button type="button" class="intro-collapse-pill" id="introCollapsePill" aria-expanded="false">
+          <span>learnings &middot; regrets &middot; new ideas</span>
+          <span class="intro-pill-right">
+            <span class="intro-pill-dot" aria-hidden="true" title="Has content"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </button>
+        <textarea class="textarea intro-textarea" id="f_introspection" placeholder="What did you learn today? Any regrets? New ideas?"></textarea>
       </div>
     </div>
 
