@@ -115,6 +115,11 @@
   .field input, .field textarea, .field select { width:100%; background:var(--paper-soft); border:1px solid var(--rule); border-radius:9px; padding:10px 12px; font-size:14px; color:var(--ink); }
   .field input:focus, .field textarea:focus, .field select:focus { outline:none; border-color:var(--accent); background:var(--paper); }
   .field textarea.content { min-height:150px; font-family:var(--mono); font-size:12.5px; line-height:1.5; }
+  .upload-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .upload-btn { display:inline-flex; align-items:center; gap:6px; background:var(--accent-soft); color:var(--accent-ink); border:1px solid var(--rule); border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap; transition:border-color .15s, background .15s; }
+  .upload-btn:hover { border-color:var(--accent); background:#D2DEF0; }
+  .upload-name { font-size:11.5px; color:var(--muted); font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .upload-name.loaded { color:var(--moss); font-style:normal; font-weight:600; }
   .field .hint { font-size:11px; color:var(--muted); margin-top:4px; font-style:italic; }
   .field-row { display:flex; gap:10px; }
   .field-row .field { flex:1; }
@@ -227,8 +232,13 @@
     </div>
     <div class="field">
       <label>Content — your wisdom HTML</label>
-      <textarea class="content" id="fContent" placeholder="Paste the full HTML of this piece here…"></textarea>
-      <div class="hint">Paste the HTML file you made. It's stored privately and rendered when you open the card.</div>
+      <div class="upload-row">
+        <label class="upload-btn" for="fFile">⬆ Upload HTML file</label>
+        <input type="file" id="fFile" accept=".html,.htm,text/html" class="hidden">
+        <span class="upload-name" id="fFileName">or paste below</span>
+      </div>
+      <textarea class="content" id="fContent" placeholder="Paste the full HTML here — or use Upload above…"></textarea>
+      <div class="hint">Upload the .html file from your computer, or paste it. Stored privately, rendered when you open the card.</div>
     </div>
     <div class="modal-error hidden" id="modalError"></div>
     <div class="modal-actions">
@@ -514,6 +524,8 @@ function openModal(id) {
     el('fEssence').value = r.essence || '';
     el('fTags').value = (r.tags || []).join(', ');
     el('fContent').value = r.content || '';
+    el('fFileName').textContent = 'or paste below';
+    el('fFileName').classList.remove('loaded');
     el('deleteBtn').classList.remove('hidden');
   } else {
     el('modalTitle').textContent = 'New wisdom';
@@ -523,6 +535,8 @@ function openModal(id) {
     el('fEssence').value = '';
     el('fTags').value = '';
     el('fContent').value = '';
+    el('fFileName').textContent = 'or paste below';
+    el('fFileName').classList.remove('loaded');
     el('deleteBtn').classList.add('hidden');
   }
   el('modalOverlay').classList.remove('hidden');
@@ -602,6 +616,33 @@ el('modalClose').addEventListener('click', closeModal);
 el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });
 el('saveBtn').addEventListener('click', saveWisdom);
 el('deleteBtn').addEventListener('click', deleteWisdom);
+
+// File upload → read the chosen .html and fill the content box.
+el('fFile').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const nameEl = el('fFileName');
+  const reader = new FileReader();
+  reader.onload = () => {
+    el('fContent').value = reader.result || '';
+    nameEl.textContent = file.name;
+    nameEl.classList.add('loaded');
+    // Convenience: if the title is empty, seed it from the file's <title> or filename.
+    const titleInput = el('fTitle');
+    if (!titleInput.value.trim()) {
+      let guess = '';
+      const m = (reader.result || '').match(/<title[^>]*>([^<]+)<\/title>/i);
+      if (m && m[1].trim()) guess = m[1].trim();
+      else guess = file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ').trim();
+      if (guess) titleInput.value = guess;
+    }
+    toast('File loaded');
+  };
+  reader.onerror = () => { toast('Could not read file'); };
+  reader.readAsText(file);
+  // Allow re-selecting the same file next time.
+  e.target.value = '';
+});
 el('readerBack').addEventListener('click', closeReader);
 el('readerEdit').addEventListener('click', () => { const id = readerCurrentId; closeReader(); openModal(id); });
 el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
