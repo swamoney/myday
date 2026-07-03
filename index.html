@@ -1976,6 +1976,9 @@
       font-size: 14px;
       line-height: 1.2;
     }
+    /* Ship-fix: on mobile show short month ("30 Sep") not long ("30 September"). */
+    .editorial-kicker .kicker-line .date-part-long { display: none; }
+    .editorial-kicker .kicker-line .date-part-short { display: inline; }
     .editorial-kicker .glyph-stamp {
       font-size: 13px;
       bottom: -7px;
@@ -2027,6 +2030,13 @@
   .editorial-kicker .kicker-line .date-part {
     font-weight: 400; color: #FFFFFF;
   }
+  /* Ship-fix (long-date overflow): both long and short month spans are
+     always emitted; media query below shows only one at a time. Desktop
+     keeps the full editorial "30 September 2026". Mobile shows the compact
+     "30 Sep 2026" so long day+month combos ("Wednesday, 30 September") never
+     overflow the hero at 14px. */
+  .editorial-kicker .kicker-line .date-part-short { display: none; }
+  .editorial-kicker .kicker-line .date-part-long { display: inline; }
   .editorial-kicker .glyph-stamp {
     position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%);
     background: var(--bg); padding: 0 10px;
@@ -8380,6 +8390,14 @@ function formatDateLong(iso) {
   const [y,m,d] = iso.split('-').map(Number);
   return d + ' ' + MONTH_NAMES[m-1] + ' ' + y;
 }
+// Ship-fix (long-date overflow): compact date form for mobile hero.
+// "30 Sep 2026" instead of "30 September 2026". Same info, ~6 chars shorter.
+// Used only in renderDateNav — everything else keeps the full month name.
+function formatDateLongShortMonth(iso) {
+  const [y,m,d] = iso.split('-').map(Number);
+  const short = MONTH_NAMES[m-1].slice(0, 3);
+  return d + ' ' + short + ' ' + y;
+}
 function formatDayName(iso) {
   const [y,m,d] = iso.split('-').map(Number);
   return DAY_NAMES[new Date(y, m-1, d).getDay()];
@@ -8553,9 +8571,12 @@ function renderDateNav() {
   const dayName = formatDayName(currentDate);
   document.getElementById('datePicker').value = currentDate;
   // Editorial banner — one line: "Sunday, 3 May 2026"
+  // Ship-fix (long-date overflow): emit both a long-month ("30 September 2026")
+  // and short-month ("30 Sep 2026") span. CSS media query hides one; mobile
+  // shows the short form so long day+month combos ("Wednesday, 30 September")
+  // never overflow.
   const kl = document.getElementById('kickerLine');
   if (kl) {
-    // Build with safe DOM nodes (no innerHTML for any user-derived text)
     kl.textContent = '';
     const dayPart = document.createElement('span');
     dayPart.className = 'day-part';
@@ -8566,10 +8587,14 @@ function renderDateNav() {
     sep.textContent = ',';
     kl.appendChild(sep);
     kl.appendChild(document.createTextNode(' '));
-    const datePart = document.createElement('span');
-    datePart.className = 'date-part';
-    datePart.textContent = formatDateLong(currentDate);
-    kl.appendChild(datePart);
+    const datePartLong = document.createElement('span');
+    datePartLong.className = 'date-part date-part-long';
+    datePartLong.textContent = formatDateLong(currentDate);
+    kl.appendChild(datePartLong);
+    const datePartShort = document.createElement('span');
+    datePartShort.className = 'date-part date-part-short';
+    datePartShort.textContent = formatDateLongShortMonth(currentDate);
+    kl.appendChild(datePartShort);
   }
   // Ship-date-E: standalone Today chip below the hero. Shown only when
   // navigated away from today. Formerly lived inside the gray .datenav
