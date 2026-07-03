@@ -894,69 +894,6 @@
     font-size: 10.5px; color: var(--rs-sub, #5a6570); margin: 0; line-height: 1.35;
   }
 
-  /* ==================================================================
-     Rec iii: living week strip. Seven squares, today outlined. Each
-     square's shade reflects how many of the 6 sections were touched that
-     day. Sits below the hub grid; whole strip is a button that opens the
-     full Week view. Styled to sit quietly — glanceable, not a dashboard. */
-  .hub-week-strip {
-    display: block;
-    width: 100%;
-    background: #ffffff;
-    border: 1px solid var(--rs-line, #e3e7ec);
-    border-radius: 12px;
-    padding: 12px 14px;
-    margin-top: 14px;
-    cursor: pointer;
-    text-align: left;
-    font-family: var(--sans);
-    transition: border-color 0.15s, box-shadow 0.15s;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-  }
-  .hub-week-strip:hover {
-    border-color: var(--rs-brand, #0b4f6c);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  }
-  .hub-week-strip:active { transform: scale(0.995); }
-  .hub-week-strip-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .hub-week-strip-title {
-    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--rs-sub, #5a6570); font-weight: 700;
-  }
-  .hub-week-strip-link {
-    font-size: 11px; color: var(--rs-brand, #0b4f6c); font-weight: 500;
-  }
-  .hub-week-strip-days {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
-  }
-  .hub-week-day { text-align: center; }
-  .hub-week-day-sq {
-    width: 100%; aspect-ratio: 1; max-width: 40px; margin: 0 auto;
-    border-radius: 6px;
-    background: #eef0f2;
-    transition: background 0.15s;
-  }
-  /* Intensity shades — 0 (untouched) → 4 (all/most sections). Uses a
-     brand-adjacent blue ramp so it matches the research-report palette. */
-  .hub-week-day-sq.i0 { background: #eef0f2; }
-  .hub-week-day-sq.i1 { background: #d3e0ee; }
-  .hub-week-day-sq.i2 { background: #a7c4dd; }
-  .hub-week-day-sq.i3 { background: #6b9bc9; }
-  .hub-week-day-sq.i4 { background: #33689e; }
-  /* Today gets an ember outline so "you are here" is obvious. */
-  .hub-week-day-sq.is-today {
-    outline: 2px solid var(--ember, #8A1F1A);
-    outline-offset: 1px;
-  }
-  .hub-week-day-lbl {
-    font-size: 9px; color: var(--rs-sub, #a89e8d); margin-top: 5px;
-    font-weight: 500;
-  }
-  .hub-week-day-lbl.is-today { color: var(--ember, #8A1F1A); font-weight: 700; }
-
   /* Button grid — responsive: 2 cols on mobile, 3 cols on desktop */
   .hub-grid {
     display: grid;
@@ -1265,8 +1202,6 @@
   body.hub-view.hub-focused #todayProgress { display: none; }
   /* The reflection card at bottom of Today is also hidden in focus mode. */
   body.hub-view.hub-focused .reflection-card { display: none; }
-  /* Rec iii: week strip is hub-landing only — hide it in section focus mode. */
-  body.hub-view.hub-focused .hub-week-strip { display: none; }
   /* View mode toggle stays visible so user can escape to Classic */
 
   /* E3.3: Fade transition when swapping sections. Sections fade in when
@@ -6491,19 +6426,6 @@
           <div class="hub-btn-preview" data-hub-preview="s-verdict">how did it feel?</div>
         </button>
       </div>
-      <!-- Rec iii: living week strip — 7 squares for this week's logging,
-           today outlined. Each square's shade = how many of the 6 sections
-           were touched that day (reuses TODAY_SECTIONS + allEntries). Puts the
-           payoff where the effort is. Populated by renderWeekStrip(); tapping
-           the strip opens the full Week view. Hidden in focus mode via the
-           existing body.hub-focused CSS. -->
-      <button type="button" class="hub-week-strip" id="hubWeekStrip" aria-label="This week — open full trends">
-        <div class="hub-week-strip-head">
-          <span class="hub-week-strip-title">This week</span>
-          <span class="hub-week-strip-link">full view ›</span>
-        </div>
-        <div class="hub-week-strip-days" id="hubWeekStripDays"></div>
-      </button>
     </div>
 
     <!-- ==================================================================
@@ -10257,79 +10179,6 @@ function refreshHubState() {
   if (typeof renderHubDataValues === 'function') renderHubDataValues();
   // Ship E1: refresh per-button preview text (now a no-op — kept for compat)
   refreshHubButtonPreviews();
-  // Rec iii: repaint the week strip (7-day completion squares).
-  if (typeof renderWeekStrip === 'function') renderWeekStrip();
-}
-
-// Rec iii: paint the living week strip. For each of the last 7 days (Mon→Sun
-// containing today), compute how many of the 6 sections were touched, map that
-// to an intensity 0–4, and render a square. Today gets an ember outline.
-// Reuses TODAY_SECTIONS + allEntries — no new data model.
-function renderWeekStrip() {
-  const wrap = document.getElementById('hubWeekStripDays');
-  if (!wrap) return;
-  const today = (typeof currentDate === 'string' && currentDate) ? currentDate : isoToday();
-
-  // Build the 7 dates of the week CONTAINING today, starting Monday.
-  const [ty, tm, td] = today.split('-').map(Number);
-  const base = new Date(ty, tm - 1, td);
-  // JS getDay(): 0=Sun..6=Sat. Shift so Monday is the first column.
-  const dow = base.getDay();
-  const mondayOffset = (dow === 0) ? -6 : (1 - dow);
-  const weekDates = [];
-  for (let i = 0; i < 7; i++) {
-    const dt = new Date(base.getFullYear(), base.getMonth(), base.getDate() + mondayOffset + i);
-    const iso = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
-    weekDates.push(iso);
-  }
-
-  const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-  const todayIso = isoToday();
-
-  // Count how many sections were touched for a given date's entry.
-  const sectionsTouched = (iso) => {
-    const e = allEntries[iso];
-    if (!e) return 0;
-    let touched = 0;
-    TODAY_SECTIONS.forEach(sec => {
-      const any = sec.fields.some(f => {
-        const v = e[f];
-        if (v === undefined || v === null || v === '') return false;
-        if (f === 'satisfaction') return Number(v) > 0;
-        if (typeof v === 'number') return v > 0;
-        return String(v).trim().length > 0;
-      });
-      if (any) touched++;
-    });
-    return touched;
-  };
-
-  // Map 0..6 sections → 0..4 intensity buckets.
-  const intensity = (n) => {
-    if (n <= 0) return 0;
-    if (n <= 1) return 1;
-    if (n <= 3) return 2;
-    if (n <= 5) return 3;
-    return 4;
-  };
-
-  wrap.innerHTML = '';
-  weekDates.forEach((iso, i) => {
-    const n = sectionsTouched(iso);
-    const lvl = intensity(n);
-    const isToday = (iso === todayIso);
-    const cell = document.createElement('div');
-    cell.className = 'hub-week-day';
-    const sq = document.createElement('div');
-    sq.className = 'hub-week-day-sq i' + lvl + (isToday ? ' is-today' : '');
-    sq.title = iso + ' — ' + n + '/6 sections';
-    const lbl = document.createElement('div');
-    lbl.className = 'hub-week-day-lbl' + (isToday ? ' is-today' : '');
-    lbl.textContent = DAY_LETTERS[i];
-    cell.appendChild(sq);
-    cell.appendChild(lbl);
-    wrap.appendChild(cell);
-  });
 }
 
 // Wire the view toggle at boot. Also runs an initial hub state paint so
@@ -10345,13 +10194,6 @@ function setupTodayHub() {
       if (cls) focusHubSection(cls);
     });
   });
-  // Rec iii: tapping the week strip opens the full Week view.
-  const weekStrip = document.getElementById('hubWeekStrip');
-  if (weekStrip) {
-    weekStrip.addEventListener('click', () => {
-      if (typeof switchToSubview === 'function') switchToSubview('week-view');
-    });
-  }
   // Ship C: wire back + next nav buttons
   const backTop = document.getElementById('hubFocusBackTop');
   const backBottom = document.getElementById('hubFocusBackBottom');
