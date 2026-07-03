@@ -574,44 +574,32 @@ function openReader(id) {
   el('readerOverlay').classList.remove('hidden');
 }
 
-// Many saved wisdom files were made for desktop and lack a mobile viewport
-// tag, so phones render them at ~980px inside the narrow frame (content runs
-// off-screen). This ensures a device-width viewport + a safety rule so wide
-// elements (images, tables, pre) wrap/shrink to fit instead of overflowing.
+// Wisdom files come in two shapes: (a) responsive docs, and (b) fixed-width
+// "posters" (e.g. .poster{width:1024px}) built for desktop. Crushing (b) with
+// max-width:100% wrecks its layout. Instead we inject a small script that
+// measures the content's natural width and, if it's wider than the screen,
+// rewrites the viewport to that width — so the browser scales the whole design
+// down to fit (like zoom-out), preserving the layout. Responsive files fall
+// back to width=device-width. Pinch-zoom stays available to read details.
 function prepareForMobile(html) {
-  const viewportTag = '<meta name="viewport" content="width=device-width, initial-scale=1">';
-  // Neutralize desktop fixed widths: max-width:100% overrides an explicit
-  // width:900px, so hard-coded wide containers shrink to fit. !important beats
-  // the file's own styles. overflow-x:hidden on root kills sideways scroll.
-  const fitCss = '<style id="__wisdom_mobile_fit">' +
-    'html,body{max-width:100%!important;margin:0!important;overflow-x:hidden!important;}' +
-    '*{max-width:100%!important;box-sizing:border-box!important;}' +
-    'img,video,canvas,svg,iframe,table,pre{height:auto!important;}' +
-    'body{word-wrap:break-word;overflow-wrap:break-word;}' +
-    '</style>';
-  const inject = viewportTag + fitCss;
-  const hasViewport = /<meta[^>]+name=["']?viewport["']?/i.test(html);
-  const headMatch = /<head[^>]*>/i.exec(html);
-  if (headMatch) {
-    // Insert right after <head> — but AFTER the file's own styles would be
-    // loaded, our block still wins because it's appended at the end of <head>?
-    // No: to reliably beat the file's CSS, inject just before </head> so ours
-    // is the last stylesheet parsed.
-    const closeHead = /<\/head>/i.exec(html);
-    const toInsert = hasViewport ? fitCss : inject;
-    if (closeHead) {
-      // viewport must be in head early; styles must be late. Split them.
-      let out = html;
-      if (!hasViewport) {
-        out = out.slice(0, headMatch.index + headMatch[0].length) + viewportTag + out.slice(headMatch.index + headMatch[0].length);
-      }
-      const ch = /<\/head>/i.exec(out);
-      return out.slice(0, ch.index) + fitCss + out.slice(ch.index);
-    }
-    return html.slice(0, headMatch.index + headMatch[0].length) + toInsert + html.slice(headMatch.index + headMatch[0].length);
-  }
-  // No <head> — prepend the tags (browsers still honor a leading meta/style).
-  return (hasViewport ? fitCss : inject) + html;
+  var safeCss = '<style>img,video,canvas{max-width:100%;height:auto;}</style>';
+  var fitScript =
+    '<scr' + 'ipt>(function(){' +
+    'function f(){try{' +
+    'var d=document,b=d.body,e=d.documentElement;' +
+    'var cw=Math.max(b?b.scrollWidth:0,e?e.scrollWidth:0,b?b.offsetWidth:0,e?e.offsetWidth:0);' +
+    'var sw=window.innerWidth||e.clientWidth;' +
+    'var vp=d.querySelector("meta[name=viewport]");' +
+    'if(!vp){vp=d.createElement("meta");vp.setAttribute("name","viewport");(d.head||e).appendChild(vp);}' +
+    'if(cw>sw+2){vp.setAttribute("content","width="+cw+",initial-scale="+(sw/cw)+",maximum-scale=5");}' +
+    'else{vp.setAttribute("content","width=device-width,initial-scale=1,maximum-scale=5");}' +
+    '}catch(x){}}' +
+    'window.addEventListener("load",f);setTimeout(f,120);setTimeout(f,400);setTimeout(f,900);' +
+    '})();</scr' + 'ipt>';
+  var inject = safeCss + fitScript;
+  if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, inject + '</body>');
+  if (/<\/html>/i.test(html)) return html.replace(/<\/html>/i, inject + '</html>');
+  return html + inject;
 }
 function closeReader() {
   el('readerOverlay').classList.add('hidden');
