@@ -3190,6 +3190,10 @@
   }
 
 
+  /* Collapsed by default (matches recurring): the entry panel is hidden until
+     .is-expanded is toggled on the .s-other-field wrapper. This base rule was
+     missing, which left the panel always open despite the toggle being wired. */
+  .other-entry { display: none; }
   .s-other-field.is-expanded .other-entry {
     display: block;
   }
@@ -9089,6 +9093,9 @@ function renderEntry() {
   // Nested collapse: recurring starts collapsed each visit (like "8 more").
   const recCollapseField = document.querySelector('.rec-collapse-field');
   if (recCollapseField) recCollapseField.classList.remove('is-expanded');
+  // Other Expenses collapses on date change too (same pattern as recurring).
+  const otherCollapseField = document.querySelector('.s-other-field');
+  if (otherCollapseField) otherCollapseField.classList.remove('is-expanded');
   // Ship 2: refresh the itemized Other Expenses running log for the viewed date.
   if (typeof renderOtherLog === 'function') renderOtherLog();
   // Home addresses: refresh the status banner + manage-row count whenever
