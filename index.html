@@ -9127,6 +9127,15 @@ function renderSlotSuggestions(iso) {
     // Clear any previously-rendered history chips (avoid duplicates on re-render).
     chipsWrap.querySelectorAll('.chip.suggest.hist').forEach(el => el.remove());
 
+    // Collect values already offered as MANUAL chips in this slot (e.g. the
+    // hardcoded "Sleep" chip on slots 1–2), so history chips don't duplicate
+    // them. Compare case-insensitively on the chip's data-text or label.
+    const manualValues = new Set();
+    chipsWrap.querySelectorAll('.chip[data-fill]').forEach(mc => {
+      const t = (mc.dataset.text || mc.textContent || '').trim().toLowerCase();
+      if (t) manualValues.add(t);
+    });
+
     // Hide suggestions entirely if today's field is already filled.
     const todayVal = (todayInputEl && todayInputEl.value || '').trim();
     if (todayVal !== '') { placeholder.classList.add('hidden'); continue; }
@@ -9142,9 +9151,11 @@ function renderSlotSuggestions(iso) {
       if (!tally[norm]) tally[norm] = { count: 0, original: raw };
       tally[norm].count++;
     }
-    // Rank by count desc, keep only those meeting the threshold, take top N.
+    // Rank by count desc, keep only those meeting the threshold, exclude any
+    // value already offered as a manual chip, take top N.
     const ranked = Object.values(tally)
       .filter(t => t.count >= MIN_MATCHES)
+      .filter(t => !manualValues.has(t.original.trim().toLowerCase()))
       .sort((a, b) => b.count - a.count)
       .slice(0, MAX_CHIPS);
 
