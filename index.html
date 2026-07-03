@@ -2915,38 +2915,61 @@
      whole section reads consistently: white pill, ember hover, chevron
      that rotates when open. */
   .exp-more-toggle {
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: 9px;
     width: 100%;
-    background: #FFFFFF;
+    /* Toggle B: soft ember tint + 4px ember left-stripe so the hidden fields
+       register as "important, don't forget" — matching the app's has-data
+       stripe convention. Collapsed state is the attention-getting one; when
+       expanded it calms down (see [aria-expanded="true"] below). */
+    background: #FDF3F1;
     border: 1px solid #E5CFC9;
+    border-left: 4px solid var(--ember);
     border-radius: 8px;
-    padding: 10px 12px;
-    margin: 4px 0 2px;
+    padding: 11px 13px 11px 11px;
+    margin: 6px 0 2px;
     font-family: var(--sans);
     font-size: 13.5px;
-    font-weight: 500;
-    color: var(--muted);
+    font-weight: 600;
+    color: var(--ember-ink);
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s, color 0.15s;
     -webkit-user-select: none; user-select: none;
     text-align: left;
   }
   .exp-more-toggle:hover {
+    background: #FBE9E6;
     border-color: var(--ember);
-    background: #FCFAF8;
-    color: var(--ink-soft);
+  }
+  /* The "+N" count pill — exact number of hidden fields. */
+  .exp-more-count {
+    flex-shrink: 0;
+    background: var(--ember);
+    color: #fff;
+    font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.02em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    line-height: 1.4;
   }
   .exp-more-label { flex: 1; min-width: 0; }
   .exp-more-chev {
-    color: var(--muted); font-size: 12px; flex-shrink: 0;
+    color: var(--ember); font-size: 12px; flex-shrink: 0;
     transition: transform 0.2s;
   }
+  /* When expanded, the fields are visible — no need to shout anymore. Calm it
+     down to a plain pill so it doesn't compete with the revealed fields. */
   .exp-more-toggle[aria-expanded="true"] {
-    border-color: var(--ember);
     background: #FCFAF8;
-    color: var(--ink);
+    border-color: #E5CFC9;
+    border-left-color: #E5CFC9;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .exp-more-toggle[aria-expanded="true"] .exp-more-count {
+    background: #CBB8B2;
   }
   .exp-more-toggle[aria-expanded="true"] .exp-more-chev {
+    color: var(--muted);
     transform: rotate(180deg);
   }
   /* The revealed field block. Hidden via [hidden] attribute when collapsed. */
@@ -6535,7 +6558,8 @@
            Other Expenses inner disclosure are identical to before; they're
            just wrapped in a container that toggles visibility. -->
       <button type="button" class="exp-more-toggle" id="expMoreToggle" aria-expanded="false" aria-controls="expMoreFields">
-        <span class="exp-more-label" id="expMoreLabel">7 more &mdash; shopping, travel, taxes &amp; more</span>
+        <span class="exp-more-count" aria-hidden="true">+7</span>
+        <span class="exp-more-label" id="expMoreLabel">more &mdash; shopping, travel, taxes &amp; more</span>
         <span class="exp-more-chev" aria-hidden="true">&#9662;</span>
       </button>
       <div class="exp-more-fields" id="expMoreFields" hidden>
