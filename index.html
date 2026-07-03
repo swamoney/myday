@@ -2934,6 +2934,65 @@
   }
 
   /* ==================================================================
+     Recurring nested collapse (mirrors Other Expenses). The summary line
+     shows the month's recurring total + bill count; tapping expands the
+     full add-payment panel (.recurring-card). Plum-themed to match the
+     recurring identity. Collapsed by default each visit. */
+  .rec-summary {
+    display: flex; align-items: center; gap: 6px;
+    background: #FFFFFF;
+    border: 1px solid #E0D4D9;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-user-select: none; user-select: none;
+  }
+  .rec-summary:hover {
+    border-color: var(--plum, #5C2E40);
+    background: #FCFAFB;
+  }
+  /* When bills exist, a 3px plum left-stripe marks "has data". */
+  .rec-summary.has-items {
+    border-left: 3px solid var(--plum, #5C2E40);
+    color: var(--ink);
+    padding-left: 10px;
+  }
+  .rec-summary-text { flex: 1; min-width: 0; }
+  .rec-summary.has-items .rec-summary-text {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+  }
+  .rec-summary-text .rec-summary-cta {
+    color: var(--muted); font-family: var(--sans); font-weight: 500;
+    margin-left: 6px;
+  }
+  .rec-summary-chev {
+    color: var(--muted); font-size: 12px; flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  /* Collapse the full panel by default; reveal only when .is-expanded. */
+  .rec-collapse-field .recurring-card { display: none; }
+  .rec-collapse-field.is-expanded .recurring-card { display: block; margin-top: 8px; }
+  .rec-collapse-field.is-expanded .rec-summary-chev { transform: rotate(180deg); }
+  .rec-collapse-field.is-expanded .rec-summary {
+    border-color: var(--plum, #5C2E40);
+    background: #FCFAFB;
+  }
+  /* Collapse link inside the panel — mirrors .other-collapse-link. */
+  .rec-collapse-link { text-align: center; margin-top: 8px; }
+  .rec-collapse-link button {
+    background: none; border: 0; cursor: pointer;
+    font-family: var(--sans); font-size: 11px; color: var(--muted);
+    padding: 4px 8px;
+  }
+  .rec-collapse-link button:hover { color: var(--plum, #5C2E40); }
+
+  /* ==================================================================
      Progressive disclosure toggle (Rec iv) — "7 more" reveal for the
      less-frequent expense fields. Styled to match .other-summary so the
      whole section reads consistently: white pill, ember hover, chevron
@@ -6809,10 +6868,18 @@
            The .s-recurring wrapper is kept (some CSS/JS scopes to it) but it no
            longer needs the focus-mode reveal rule since it lives inside
            s-expenses now. -->
-      <div class="s-recurring s-recurring-merged">
+      <div class="s-recurring s-recurring-merged rec-collapse-field">
         <div class="subhead recu rec-merged-head">
           Recurring payments
           <span class="rec-merged-tag" title="These land on the exact date paid — log rent on the 1st even while viewing today">dated · lands on paid date</span>
+        </div>
+        <!-- Nested collapse (mirrors Other Expenses). Collapsed by default: a
+             summary line shows the month's recurring total + bill count. Tap to
+             expand the full add-payment panel below. Keeps the "8 more" reveal
+             light. Summary text set by renderRecurringSummary(). -->
+        <div class="rec-summary" id="recSummary" role="button" tabindex="0" aria-expanded="false">
+          <span class="rec-summary-text" id="recSummaryText">no bills yet &middot; tap to add rent, subscriptions…</span>
+          <span class="rec-summary-chev" id="recSummaryChev" aria-hidden="true">&#9662;</span>
         </div>
         <div class="recurring-card">
           <div class="subhead first rec rec-subhead">What did you pay today?</div>
@@ -6839,6 +6906,7 @@
           </div>
           <button type="button" class="rec-add-btn" id="recLogBtn">Log payment</button>
           <div class="rec-error hidden" id="recError"></div>
+          <div class="rec-collapse-link"><button type="button" id="recCollapseBtn">&#9652; collapse</button></div>
 
           <!-- Running log of this month's payments -->
           <div class="rec-log" id="recLog">
@@ -9018,6 +9086,9 @@ function renderEntry() {
   // Refresh the recurring payments running log — scoped to the month of the
   // date currently being viewed.
   if (typeof renderRecurringLog === 'function') renderRecurringLog();
+  // Nested collapse: recurring starts collapsed each visit (like "8 more").
+  const recCollapseField = document.querySelector('.rec-collapse-field');
+  if (recCollapseField) recCollapseField.classList.remove('is-expanded');
   // Ship 2: refresh the itemized Other Expenses running log for the viewed date.
   if (typeof renderOtherLog === 'function') renderOtherLog();
   // Home addresses: refresh the status banner + manage-row count whenever
@@ -17261,6 +17332,38 @@ function renderRecurringLog() {
       }
     });
   });
+  // Nested collapse: refresh the summary line (month total + count) whenever
+  // the log re-renders.
+  if (typeof renderRecurringSummary === 'function') renderRecurringSummary();
+}
+
+// Nested collapse summary line. Shows the CURRENT MONTH's recurring total +
+// bill count (matching the month log below). Empty → a calm "tap to add" hint.
+function renderRecurringSummary() {
+  const summaryEl = document.getElementById('recSummary');
+  const textEl = document.getElementById('recSummaryText');
+  if (!summaryEl || !textEl) return;
+
+  const monthPrefix = (currentDate || isoToday()).slice(0, 7); // YYYY-MM
+  let total = 0, count = 0;
+  Object.keys(allEntries).forEach(d => {
+    if (!d.startsWith(monthPrefix)) return;
+    parseRecurring(allEntries[d]).forEach(p => {
+      const amt = Number(p.amt) || 0;
+      if (amt > 0) { total += amt; count++; }
+    });
+  });
+
+  if (count === 0) {
+    summaryEl.classList.remove('has-items');
+    textEl.innerHTML = 'no bills yet &middot; tap to add rent, subscriptions…';
+    return;
+  }
+  summaryEl.classList.add('has-items');
+  const billWord = count === 1 ? 'bill' : 'bills';
+  textEl.innerHTML =
+    recFmt(total) +
+    ' <span class="rec-summary-cta">&middot; ' + count + ' ' + billWord + ' this month &middot; add more</span>';
 }
 
 function setupRecurring() {
@@ -17269,6 +17372,36 @@ function setupRecurring() {
   const logBtn = document.getElementById('recLogBtn');
   const errorEl = document.getElementById('recError');
   if (!nameInput || !amtInput || !logBtn) return;
+
+  // Nested collapse wiring (mirrors Other Expenses). The summary line toggles
+  // the .is-expanded class on the .rec-collapse-field wrapper, which shows /
+  // hides the full .recurring-card panel. Collapsed by default each visit.
+  const recFieldEl = document.querySelector('.rec-collapse-field');
+  const recSummaryEl = document.getElementById('recSummary');
+  const recCollapseBtn = document.getElementById('recCollapseBtn');
+  function expandRec() {
+    if (!recFieldEl) return;
+    recFieldEl.classList.add('is-expanded');
+    if (recSummaryEl) recSummaryEl.setAttribute('aria-expanded', 'true');
+    setTimeout(() => { if (nameInput) nameInput.focus(); }, 0);
+  }
+  function collapseRec() {
+    if (!recFieldEl) return;
+    recFieldEl.classList.remove('is-expanded');
+    if (recSummaryEl) recSummaryEl.setAttribute('aria-expanded', 'false');
+  }
+  function toggleRec() {
+    if (!recFieldEl) return;
+    if (recFieldEl.classList.contains('is-expanded')) collapseRec();
+    else expandRec();
+  }
+  if (recSummaryEl) {
+    recSummaryEl.addEventListener('click', toggleRec);
+    recSummaryEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleRec(); }
+    });
+  }
+  if (recCollapseBtn) recCollapseBtn.addEventListener('click', collapseRec);
 
   // Quick-chips fill the name field (replace, since a payment has one name).
   // Free-text typing in the name field is also supported for ad-hoc payment
