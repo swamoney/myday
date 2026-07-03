@@ -909,156 +909,171 @@
   }
 
   /* ======================================================================
-     Hub layout — Journal rows (fully editorial direction, step 1).
-     Structure:
-       .hub-grid    → single-column list on a cream "paper" backdrop
-       .hub-btn     → journal row (grid: index · body · value · mark)
-       .hub-btn-num → roman numeral index (italic Fraunces)
-       .hub-btn-body → title + italic caption stack
-       .hub-btn-preview → right-aligned value in serif figures
-       .hub-btn-mark → subtle chevron
-     Cards, shadows, gradients, icons, and status pills are all removed —
-     this is the editorial commitment. Hairline rules do the work borders
-     used to. Status still lives in the DOM (as a hidden span) so
-     refreshHubButtonStatuses does not need modification; the visible
-     state indicator is now the value text itself (populated by
-     computeHubPreview / refreshHubButtonPreviews).
+     Hub buttons — Frosted-glass Apple-style (Direction B).
+     Key ideas:
+       - Subtle gradient on the Today tab bg — cards read as "glass on gradient"
+       - Cards use rgba(255,255,255,0.65) + backdrop-filter blur for the
+         frosted effect (safari + chrome). Fallback bg for older browsers.
+       - Icon tile has a per-section radial gradient (light → deep accent)
+         with a matching soft shadow. Icon glyph in white.
+       - Status is a small colored dot with a halo (not a text pill), sits
+         top-right of the card.
+       - Larger corner radius (18px) for the Apple pill-card feel.
+       - Larger box-shadow layered soft.
      ====================================================================== */
 
-  /* The paper backdrop — makes the rows read as "journal spread" against
-     the surrounding page. #FDFAF6 is the cream we've been using elsewhere.
-     Padded generously; hairline color = #E8DDC5 (warm paper). */
-  .hub-grid {
-    display: block;
-    background: #FDFAF6;
-    border-radius: 6px;
-    padding: 4px 20px;
-    border: 1px solid #E8DDC5;
-    box-shadow: 0 1px 2px rgba(60,40,20,0.03);
+  /* Subtle gradient background applied to Today tab when in hub view.
+     This is what the frosted cards blur against. Keeps the app's other
+     tabs (Calendar, Export) on the standard f5f6f8 bg unchanged. */
+  body.hub-view #tab-today {
+    background: linear-gradient(155deg, #f7f8fb 0%, #ebeef4 55%, #f0f2f7 100%);
+    padding: 2px;
+    border-radius: 12px;
   }
-  /* Journal row */
+
   .hub-btn {
-    display: grid;
-    grid-template-columns: 22px 1fr auto 10px;
-    gap: 14px;
-    align-items: baseline;
-    padding: 14px 0;
-    border-bottom: 1px solid #E8DDC5;
-    background: transparent;
-    border-top: 0; border-left: 0; border-right: 0;
-    border-radius: 0;
-    box-shadow: none;
-    cursor: pointer;
-    text-align: left;
-    font-family: var(--serif);
-    color: #1a1815;
-    transition: background 0.15s;
-    /* remove any focus outline artifacts from earlier variants */
-    min-height: 0;
+    /* Fallback bg for browsers without backdrop-filter */
+    background: rgba(255,255,255,0.72);
+    /* Frosted glass — Safari + Chrome */
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid rgba(255,255,255,0.9);
+    border-radius: 18px;
+    padding: 16px 16px 14px;
+    text-align: left; cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    font-family: inherit;
+    /* Layered soft shadow — depth + subtle contact */
+    box-shadow:
+      0 8px 24px rgba(30, 47, 82, 0.06),
+      0 1px 2px rgba(30, 47, 82, 0.04);
+    position: relative;
+    min-height: 108px;
+    overflow: hidden;
   }
-  .hub-btn:last-child { border-bottom: 0; }
   .hub-btn:hover {
-    background: rgba(200, 170, 120, 0.06);
-    transform: none;
-    box-shadow: none;
-    border-color: #E8DDC5;
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 32px rgba(30, 47, 82, 0.10),
+      0 2px 4px rgba(30, 47, 82, 0.05);
   }
   .hub-btn:active {
-    background: rgba(200, 170, 120, 0.10);
-    transform: none;
+    transform: translateY(-1px) scale(0.99);
+    box-shadow:
+      0 4px 12px rgba(30, 47, 82, 0.08),
+      0 1px 2px rgba(30, 47, 82, 0.04);
   }
-  /* Roman numeral index — small italic serif, warm brown accent */
-  .hub-btn-num {
-    font-family: var(--serif);
-    font-style: italic;
-    font-weight: 400;
-    font-size: 12.5px;
-    color: #A88A5A;
-    letter-spacing: 0.02em;
-    text-align: left;
-  }
-  /* Body stack — title + italic caption */
-  .hub-btn-body {
-    min-width: 0;
-  }
-  .hub-btn-title {
-    font-family: var(--serif);
-    font-size: 16px;
-    font-weight: 500;
-    color: #1a1815;
-    letter-spacing: -0.1px;
-    line-height: 1.25;
-    margin: 0 0 2px;
-    /* clear frosted-glass-era rules */
+
+  /* Head row — icon tile + status dot */
+  .hub-btn-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 12px;
     padding: 0;
-    white-space: normal;
   }
-  .hub-btn-cap {
-    font-family: var(--serif);
-    font-style: italic;
-    font-weight: 400;
-    font-size: 11.5px;
-    color: #7A6D57;
-    line-height: 1.35;
-    margin: 0;
+
+  /* Gradient icon tile — Apple-style rounded square with soft interior glow */
+  .hub-btn-icon-wrap {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    /* Fallback (also base color) */
+    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+    box-shadow:
+      0 2px 6px rgba(30, 47, 82, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
-  /* Value column (right-aligned) — populated by refreshHubButtonPreviews */
+  .hub-btn-icon-wrap svg {
+    width: 18px; height: 18px; color: #ffffff;
+    /* Slight text shadow on the glyph to help contrast on lighter gradients */
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+  }
+  /* Per-section gradient tile colors — lighter tint → deeper accent.
+     Selected to feel Apple-adjacent without being a copy: warm coral for
+     expenses, sage for health, honey for time/food, twilight indigo for
+     night, rose for verdict. */
+  .hub-btn[data-hub-section="s-expenses"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #E8A29C 0%, #C05948 100%);
+    box-shadow: 0 2px 6px rgba(192, 89, 72, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-health"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #7FB599 0%, #4A8E6A 100%);
+    box-shadow: 0 2px 6px rgba(74, 142, 106, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-time"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #E7B770 0%, #C08A2C 100%);
+    box-shadow: 0 2px 6px rgba(192, 138, 44, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-food"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #E7B770 0%, #C08A2C 100%);
+    box-shadow: 0 2px 6px rgba(192, 138, 44, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-night"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #8B84D9 0%, #5D54C7 100%);
+    box-shadow: 0 2px 6px rgba(93, 84, 199, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+  .hub-btn[data-hub-section="s-verdict"] .hub-btn-icon-wrap {
+    background: linear-gradient(135deg, #D090A0 0%, #A04A60 100%);
+    box-shadow: 0 2px 6px rgba(160, 74, 96, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
+  }
+
+  /* Status dot (not pill) with a halo — sits top-right */
+  .hub-btn-status {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    padding: 0;
+    background: #C6CBD3;
+    flex-shrink: 0;
+    margin-top: 12px;
+    /* Halo drawn via box-shadow */
+    box-shadow: 0 0 0 4px rgba(198, 203, 211, 0.18);
+    /* Suppress inherited text styles */
+    font-size: 0; letter-spacing: 0;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+  .hub-btn-status.done {
+    background: #4CAF50;
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.18);
+  }
+  .hub-btn-status.partial {
+    background: #FFA726;
+    box-shadow: 0 0 0 4px rgba(255, 167, 38, 0.18);
+  }
+  .hub-btn-status.empty {
+    background: #C6CBD3;
+    box-shadow: 0 0 0 4px rgba(198, 203, 211, 0.16);
+  }
+
+  /* Title — sans, semi-bold, tight tracking (Apple-style label) */
+  .hub-btn-title {
+    font-family: var(--sans);
+    font-size: 13px; font-weight: 700;
+    color: #1e2f52;
+    letter-spacing: -0.2px;
+    line-height: 1.25;
+    margin: 0 0 4px; padding: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* Preview — the actual data value, slightly larger + darker than
+     research-report subhead. In empty state, muted with the placeholder text. */
   .hub-btn-preview {
-    font-family: var(--serif);
-    font-size: 14px;
-    font-weight: 500;
-    color: #1a1815;
-    letter-spacing: -0.15px;
-    text-align: right;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 180px;
-    /* clear previous variants */
+    font-size: 12px; color: #4A5568;
+    font-family: var(--sans);
+    font-weight: 600;
+    letter-spacing: -0.1px;
     margin: 0; padding: 0;
-    border: 0;
+    line-height: 1.4;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     display: block;
   }
-  /* Empty state — italic muted text, softer than filled */
   .hub-btn-preview.is-empty {
-    color: #B3A382;
-    font-style: italic;
-    font-weight: 400;
-    font-size: 12.5px;
+    color: #8B94A3;
+    font-weight: 500;
   }
-  /* Filled state coloring — the value shows the state naturally, but we
-     tint filled-and-complete a moss-adjacent hue when the section is fully
-     logged. This is driven by the sibling .hub-btn-status class (kept in
-     DOM but visually hidden) — sibling combinator picks it up. */
-  .hub-btn .hub-btn-status.done ~ .hub-btn-preview,
-  .hub-btn .hub-btn-status.done + .hub-btn-preview {
-    color: #4A6B45;
-  }
-  .hub-btn .hub-btn-status.partial ~ .hub-btn-preview,
-  .hub-btn .hub-btn-status.partial + .hub-btn-preview {
-    color: #A66A00;
-  }
-  /* Status span is present for the JS status refresher, hidden visually.
-     Order it last in DOM so it lives at the end of the row and doesn't
-     take grid space. */
-  .hub-btn-status {
-    display: none;
-  }
-  /* Chevron mark — subtle warm color */
-  .hub-btn-mark {
-    font-family: var(--serif);
-    color: #A88A5A;
-    font-size: 14px;
-    text-align: center;
-    line-height: 1;
-  }
-  /* Verdict tone spans inside the preview */
-  .hub-btn-preview .verdict-tone-good,
-  .hub-btn-preview .verdict-preview-good  { color: #4A6B45; font-weight: 500; }
-  .hub-btn-preview .verdict-tone-mid,
-  .hub-btn-preview .verdict-preview-mid   { color: #A66A00; font-weight: 500; }
-  .hub-btn-preview .verdict-tone-tough,
-  .hub-btn-preview .verdict-preview-tough { color: #8A1F1A; font-weight: 500; }
+  /* Verdict tone spans inside preview — color-coded when Verdict shows a score */
+  .hub-btn-preview .verdict-tone-good { color: #1f8a4c; }
+  .hub-btn-preview .verdict-tone-mid { color: #A66A00; }
+  .hub-btn-preview .verdict-tone-tough { color: #8A1F1A; }
   /* E3.4: Verdict preview color-coded by score */
   .hub-btn-preview .verdict-preview-good {
     color: #1f8a4c; font-weight: 600;
@@ -6256,77 +6271,74 @@
         </div>
       </div>
       <div class="hub-grid" id="hubGrid">
-        <!-- 6 hub buttons rendered as journal rows (fully editorial direction).
-             Structure per row:
-               [i.]  Title              value  ›
-                     italic caption
-             Roman numeral acts as the section index — replaces the icon.
-             Status pill is removed entirely; state reads from the value text
-             (populated by refreshHubButtonPreviews via computeHubPreview).
-             Empty state shows italic placeholder text in muted paper-brown.
-             .hub-btn wrapper stays so click routing (focusHubSection) still
-             works — only the interior + the flex layout changed. -->
+        <!-- 6 hub buttons; last one is Verdict. Investments button also covers
+             Recurring Payments (they open together as one detail page).
+             Frosted-glass layout (Direction B):
+               [gradient icon tile]          [status dot top-right]
+               Title
+               Preview line (populated via JS)
+             The icon tile has a per-section gradient background + soft shadow.
+             The status dot is a small colored circle with a halo (not a pill).
+             Preview text populated by refreshHubButtonPreviews. -->
         <button type="button" class="hub-btn" data-hub-section="s-expenses">
-          <div class="hub-btn-num">i.</div>
-          <div class="hub-btn-body">
-            <div class="hub-btn-title">Investments &amp; Expenses</div>
-            <div class="hub-btn-cap">what came in, what went out</div>
+          <div class="hub-btn-head">
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-expenses" aria-label="status"></span>
           </div>
+          <div class="hub-btn-title">Investments &amp; Expenses</div>
           <div class="hub-btn-preview" data-hub-preview="s-expenses">no entries yet</div>
-          <span class="hub-btn-mark">›</span>
-          <!-- status pill retained but display:none so refreshHubButtonStatuses
-               keeps working without needing conditional branches. -->
-          <span class="hub-btn-status empty" data-hub-status="s-expenses" aria-hidden="true"></span>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-health">
-          <div class="hub-btn-num">ii.</div>
-          <div class="hub-btn-body">
-            <div class="hub-btn-title">Health &amp; Mind</div>
-            <div class="hub-btn-cap">walk, heart, reading</div>
+          <div class="hub-btn-head">
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 0 1 0-6.364z"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-health" aria-label="status"></span>
           </div>
+          <div class="hub-btn-title">Health &amp; Mind</div>
           <div class="hub-btn-preview" data-hub-preview="s-health">no activity</div>
-          <span class="hub-btn-mark">›</span>
-          <span class="hub-btn-status empty" data-hub-status="s-health" aria-hidden="true"></span>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-time">
-          <div class="hub-btn-num">iii.</div>
-          <div class="hub-btn-body">
-            <div class="hub-btn-title">The Hours</div>
-            <div class="hub-btn-cap">time slots across the day</div>
+          <div class="hub-btn-head">
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-time" aria-label="status"></span>
           </div>
+          <div class="hub-btn-title">The Hours</div>
           <div class="hub-btn-preview" data-hub-preview="s-time">no slots yet</div>
-          <span class="hub-btn-mark">›</span>
-          <span class="hub-btn-status empty" data-hub-status="s-time" aria-hidden="true"></span>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-food">
-          <div class="hub-btn-num">iv.</div>
-          <div class="hub-btn-body">
-            <div class="hub-btn-title">Food Journal</div>
-            <div class="hub-btn-cap">breakfast, lunch, dinner</div>
+          <div class="hub-btn-head">
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2V2M7 2v20M21 15V2a4 4 0 0 0-4 4v9c0 1.1.9 2 2 2h1v5"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-food" aria-label="status"></span>
           </div>
+          <div class="hub-btn-title">Food Journal</div>
           <div class="hub-btn-preview" data-hub-preview="s-food">no meals yet</div>
-          <span class="hub-btn-mark">›</span>
-          <span class="hub-btn-status empty" data-hub-status="s-food" aria-hidden="true"></span>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-night">
-          <div class="hub-btn-num">v.</div>
-          <div class="hub-btn-body">
-            <div class="hub-btn-title">Night Stay</div>
-            <div class="hub-btn-cap">where the night rested</div>
+          <div class="hub-btn-head">
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-night" aria-label="status"></span>
           </div>
+          <div class="hub-btn-title">Night Stay</div>
           <div class="hub-btn-preview" data-hub-preview="s-night">where tonight?</div>
-          <span class="hub-btn-mark">›</span>
-          <span class="hub-btn-status empty" data-hub-status="s-night" aria-hidden="true"></span>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-verdict">
-          <div class="hub-btn-num">vi.</div>
-          <div class="hub-btn-body">
-            <div class="hub-btn-title">The Day's Verdict</div>
-            <div class="hub-btn-cap">how did the day feel</div>
+          <div class="hub-btn-head">
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-verdict" aria-label="status"></span>
           </div>
+          <div class="hub-btn-title">The Day's Verdict</div>
           <div class="hub-btn-preview" data-hub-preview="s-verdict">how did it feel?</div>
-          <span class="hub-btn-mark">›</span>
-          <span class="hub-btn-status empty" data-hub-status="s-verdict" aria-hidden="true"></span>
         </button>
       </div>
     </div>
