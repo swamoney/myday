@@ -3026,6 +3026,86 @@
     margin-top: 1px;
   }
 
+  /* ==================================================================
+     Request 2: past-day clean summary. When .s-expenses has the
+     .past-summary-active class, hide the normal editable fields and show
+     only the injected .exp-past-summary panel (a receipt of what was
+     logged). The "show all fields" button removes the class for that
+     visit, revealing the full form again. */
+  .s-expenses.past-summary-active > .subhead,
+  .s-expenses.past-summary-active > .field,
+  .s-expenses.past-summary-active > .exp-more-toggle,
+  .s-expenses.past-summary-active > .exp-more-fields,
+  .s-expenses.past-summary-active > .exp-footer {
+    display: none !important;
+  }
+  .exp-past-summary[hidden] { display: none; }
+  .exp-past-summary {
+    background: #fff;
+    border: 1px solid #e8e2d8;
+    border-radius: 10px;
+    padding: 4px 14px 14px;
+    margin-top: 4px;
+  }
+  .eps-subh {
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    font-weight: 700; margin: 14px 0 5px;
+    font-family: var(--sans);
+  }
+  .eps-subh.inv { color: #1f5c3a; }
+  .eps-subh.spent { color: var(--ember); }
+  .eps-subh.recu { color: #3a5a7a; }
+  .eps-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px; padding: 6px 0;
+    border-bottom: 1px dashed #f2ede5;
+  }
+  .eps-row:last-child { border-bottom: 0; }
+  .eps-name { font-size: 13px; color: var(--ink-soft); font-family: var(--sans); }
+  .eps-note { font-size: 11px; color: #a89e8d; font-style: italic; }
+  .eps-tag {
+    font-size: 8.5px; background: #eef2f6; color: #3a5a7a;
+    padding: 1px 6px; border-radius: 4px; margin-left: 5px;
+    font-weight: 600; letter-spacing: 0.03em;
+  }
+  .eps-tag.tracking { background: #f4f1ec; color: #8a8172; }
+  .eps-amt {
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .eps-amt.invest { color: #1f5c3a; }
+  .eps-amt.spend { color: var(--ember); }
+  .eps-amt.tracking { color: #8a8172; font-weight: 500; }
+  .eps-foot {
+    display: flex; margin-top: 14px; padding-top: 12px;
+    border-top: 1px solid #f0ece6;
+  }
+  .eps-foot-item { flex: 1; text-align: center; border-right: 1px solid #f0ece6; }
+  .eps-foot-item:last-child { border-right: 0; }
+  .eps-foot-lbl {
+    font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: #a89e8d; font-weight: 600; font-family: var(--sans);
+  }
+  .eps-foot-val {
+    font-family: var(--mono); font-size: 17px; font-weight: 600; margin-top: 3px;
+  }
+  .eps-foot-val.spend { color: var(--ember); }
+  .eps-foot-val.invest { color: #1f5c3a; }
+  .eps-showall {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; margin-top: 14px; padding: 10px;
+    background: #f7f4ef; border: 1px dashed #d8cfc0; border-radius: 8px;
+    font-size: 12px; color: var(--muted); font-weight: 600;
+    font-family: var(--sans); cursor: pointer;
+  }
+  .eps-showall:hover { background: #f0ebe2; border-color: #c9bda9; }
+  .eps-empty { text-align: center; padding: 20px 12px; }
+  .eps-empty-icon { font-size: 20px; opacity: 0.3; }
+  .eps-empty-txt {
+    font-size: 12.5px; color: #a89e8d; font-style: italic; margin-top: 6px;
+    font-family: var(--sans);
+  }
+
 
   .s-other-field.is-expanded .other-entry {
     display: block;
@@ -6486,6 +6566,13 @@
         <span class="rule-fill"></span>
         <span class="num">i.</span>
       </div>
+      <!-- Request 2: past-day clean summary. On past dates this panel shows only
+           the fields that were actually logged (grouped Invested / Spent /
+           Recurring), hiding the ₹0 wall. Rendered by renderExpensePastSummary().
+           The normal fields below are hidden via .s-expenses.past-summary-active
+           CSS. A "show all fields" button here flips to the full editable form
+           for that visit. On today/future this panel stays hidden. -->
+      <div class="exp-past-summary" id="expPastSummary" hidden></div>
       <div class="subhead first invest">Investments</div>
       <div class="field">
         <label>Regular Investment <span class="sub">SIP / RD / monthly auto</span></label>
@@ -8882,6 +8969,10 @@ function renderEntry() {
   // and re-collapse the "7 more" reveal so each day starts calm.
   if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
   if (typeof collapseExpenseDisclosure === 'function') collapseExpenseDisclosure();
+  // Request 2: on each date change, reset the per-visit "show all" flag and
+  // re-apply the past-day summary (summary is the default on past dates).
+  if (typeof expShowAllThisVisit !== 'undefined') expShowAllThisVisit = false;
+  if (typeof refreshExpensePastSummary === 'function') refreshExpensePastSummary();
   // Phase 11+: reset unlock flag + re-apply Verdict lock state for current date.
   // Each navigation re-locks past dates (the unlock state doesn't persist).
   if (typeof verdictUnlockedThisRender !== 'undefined') verdictUnlockedThisRender = false;
@@ -10320,6 +10411,179 @@ function updateExpenseFooter() {
   }
 }
 
+// ============ Request 2: past-day clean expense summary ============
+// On a past date, render a receipt of only what was logged in Investments &
+// Expenses (+ that date's recurring payments), hiding the ₹0 wall. The full
+// editable form is one tap away via "show all fields". Summary is the default
+// on past dates; "show all" is per-visit (renderEntry re-applies summary on
+// each date change).
+
+// Field spec: label + value key + optional note key + group.
+// creditCardBill is TRACKING-ONLY — shown with a marker, excluded from Spent.
+const EXP_SUMMARY_SPEC = [
+  { key: 'regularInvestment',    label: 'Regular Investment', group: 'invest' },
+  { key: 'topUp',                label: 'Top-Up Investment',  group: 'invest' },
+  { key: 'food',        label: 'Food',           note: 'foodNote',           group: 'spend' },
+  { key: 'dmart',       label: 'Groceries',      note: 'dmartNote',          group: 'spend' },
+  { key: 'uber',        label: 'Transport',      note: 'uberNote',           group: 'spend' },
+  { key: 'shopping',    label: 'Shopping',       note: 'shoppingNote',       group: 'spend' },
+  { key: 'entertainment', label: 'Entertainment', note: 'entertainmentNote', group: 'spend' },
+  { key: 'hotelStay',   label: 'Hotel Stay',     note: 'hotelStayNote',      group: 'spend' },
+  { key: 'travel',      label: 'Travel Booking', note: 'travelNote',         group: 'spend' },
+  { key: 'taxes',       label: 'Taxes',          note: 'taxesNote',          group: 'spend' },
+  { key: 'creditCardBill', label: 'Credit Card Bill', note: 'creditCardBillNote', group: 'tracking' },
+];
+
+// Track whether the user chose "show all" for the current visit.
+let expShowAllThisVisit = false;
+
+// Decide whether the summary applies right now, and paint or clear it.
+function refreshExpensePastSummary() {
+  const section = document.querySelector('.section.s-expenses');
+  const panel = document.getElementById('expPastSummary');
+  if (!section || !panel) return;
+
+  const applySummary = (typeof isPastDate === 'function' && isPastDate()) && !expShowAllThisVisit;
+  if (!applySummary) {
+    section.classList.remove('past-summary-active');
+    panel.hidden = true;
+    panel.innerHTML = '';
+    return;
+  }
+  renderExpensePastSummary(panel);
+  section.classList.add('past-summary-active');
+  panel.hidden = false;
+}
+
+function renderExpensePastSummary(panel) {
+  const e = currentEntry || {};
+  const val = (k) => evalExpr(e[k]) || 0;
+  const noteText = (k) => (k && e[k] ? String(e[k]).trim() : '');
+
+  // Gather logged rows by group.
+  const investRows = [], spendRows = [], trackRows = [];
+  EXP_SUMMARY_SPEC.forEach(spec => {
+    const v = val(spec.key);
+    if (v <= 0) return;
+    const row = { label: spec.label, amt: v, note: noteText(spec.note) };
+    if (spec.group === 'invest') investRows.push(row);
+    else if (spec.group === 'tracking') trackRows.push(row);
+    else spendRows.push(row);
+  });
+
+  // Other Expenses items (itemized) → spend rows.
+  let otherTotal = 0;
+  if (typeof parseOtherItems === 'function') {
+    parseOtherItems(e).forEach(it => {
+      const amt = Number(it.amt) || 0;
+      if (amt <= 0) return;
+      otherTotal += amt;
+      spendRows.push({ label: 'Other', amt, note: String(it.name || '').trim() });
+    });
+  }
+
+  // Recurring payments for this date.
+  const recurRows = [];
+  if (typeof parseRecurring === 'function') {
+    parseRecurring(e).forEach(r => {
+      const amt = Number(r.amt) || 0;
+      if (amt <= 0) return;
+      recurRows.push({ label: String(r.name || '').trim() || 'Payment', amt });
+    });
+  }
+
+  // Investment redemption — money in; show as its own note line if present.
+  const redemption = val('investmentRedemption');
+
+  // Totals. Spent = spend rows + other + recurring. Tracking excluded.
+  const investTotal = investRows.reduce((s, r) => s + r.amt, 0);
+  const spendTotal =
+    spendRows.reduce((s, r) => s + r.amt, 0) +
+    recurRows.reduce((s, r) => s + r.amt, 0);
+
+  const anyLogged = investRows.length || spendRows.length || recurRows.length ||
+                    trackRows.length || redemption > 0;
+
+  // Empty past day → calm empty state + show-all path.
+  if (!anyLogged) {
+    panel.innerHTML =
+      '<div class="eps-empty">' +
+        '<div class="eps-empty-icon" aria-hidden="true">\u25CB</div>' +
+        '<div class="eps-empty-txt">Nothing logged for this day.</div>' +
+      '</div>' +
+      '<button type="button" class="eps-showall" id="expShowAllBtn">' +
+        '\u2195 open the full form to add</button>';
+    wireExpShowAll();
+    return;
+  }
+
+  const rowHtml = (r, cls, extraTag) => {
+    const note = r.note ? ' <span class="eps-note">\u00B7 ' + escHtml(r.note) + '</span>' : '';
+    const tag = extraTag || '';
+    return '<div class="eps-row"><span class="eps-name">' + escHtml(r.label) + tag + note +
+      '</span><span class="eps-amt ' + cls + '">' + fmtINR(r.amt) + '</span></div>';
+  };
+
+  let html = '';
+
+  if (investRows.length || redemption > 0) {
+    html += '<div class="eps-subh inv">Invested</div>';
+    investRows.forEach(r => { html += rowHtml(r, 'invest'); });
+    if (redemption > 0) {
+      html += '<div class="eps-row"><span class="eps-name">Investment Redemption ' +
+        '<span class="eps-note">\u00B7 credited back</span></span>' +
+        '<span class="eps-amt invest">' + fmtINR(redemption) + '</span></div>';
+    }
+  }
+
+  if (spendRows.length) {
+    html += '<div class="eps-subh spent">Spent</div>';
+    spendRows.forEach(r => { html += rowHtml(r, 'spend'); });
+  }
+
+  if (recurRows.length) {
+    html += '<div class="eps-subh recu">Recurring</div>';
+    recurRows.forEach(r => {
+      html += rowHtml(r, 'spend', ' <span class="eps-tag">recurring</span>');
+    });
+  }
+
+  if (trackRows.length) {
+    html += '<div class="eps-subh spent" style="color:#8a8172;">Tracking only</div>';
+    trackRows.forEach(r => {
+      html += rowHtml(r, 'tracking', ' <span class="eps-tag tracking">not in total</span>');
+    });
+  }
+
+  // Footer totals
+  html += '<div class="eps-foot">' +
+    '<div class="eps-foot-item"><div class="eps-foot-lbl">Spent</div>' +
+      '<div class="eps-foot-val spend">' + fmtINR(spendTotal) + '</div></div>' +
+    '<div class="eps-foot-item"><div class="eps-foot-lbl">Invested</div>' +
+      '<div class="eps-foot-val invest">' + fmtINR(investTotal) + '</div></div>' +
+  '</div>';
+
+  html += '<button type="button" class="eps-showall" id="expShowAllBtn">' +
+    '\u2195 show all fields (to add or fix)</button>';
+
+  panel.innerHTML = html;
+  wireExpShowAll();
+}
+
+function wireExpShowAll() {
+  const btn = document.getElementById('expShowAllBtn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    expShowAllThisVisit = true;
+    const section = document.querySelector('.section.s-expenses');
+    const panel = document.getElementById('expPastSummary');
+    if (section) section.classList.remove('past-summary-active');
+    if (panel) { panel.hidden = true; panel.innerHTML = ''; }
+    // Refresh footer since full form is now visible.
+    if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
+  });
+}
+
 // Enter focus mode for a specific section. Sets body class + data attribute
 // which triggers all the CSS visibility changes. Also expands the focused
 // section (so its content is visible if it was collapsed), updates the nav
@@ -10334,6 +10598,7 @@ function focusHubSection(cls) {
   if (cls === 's-expenses') {
     if (typeof collapseExpenseDisclosure === 'function') collapseExpenseDisclosure();
     if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
+    if (typeof refreshExpensePastSummary === 'function') refreshExpensePastSummary();
   }
   // Expand the focused section so its content is visible (in case classic
   // view had collapsed it).
