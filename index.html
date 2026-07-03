@@ -1976,9 +1976,12 @@
       font-size: 14px;
       line-height: 1.2;
     }
-    /* Ship-fix: on mobile show short month ("30 Sep") not long ("30 September"). */
-    .editorial-kicker .kicker-line .date-part-long { display: none; }
-    .editorial-kicker .kicker-line .date-part-short { display: inline; }
+    /* Ship-fix: on mobile show short month ("30 Sep") not long ("30 September").
+       !important is required because the base defaults for these classes live
+       AFTER this media query in the file (near the other .date-part styling)
+       and would otherwise win the cascade. */
+    .editorial-kicker .kicker-line .date-part-long { display: none !important; }
+    .editorial-kicker .kicker-line .date-part-short { display: inline !important; }
     .editorial-kicker .glyph-stamp {
       font-size: 13px;
       bottom: -7px;
@@ -2031,10 +2034,10 @@
     font-weight: 400; color: #FFFFFF;
   }
   /* Ship-fix (long-date overflow): both long and short month spans are
-     always emitted; media query below shows only one at a time. Desktop
-     keeps the full editorial "30 September 2026". Mobile shows the compact
-     "30 Sep 2026" so long day+month combos ("Wednesday, 30 September") never
-     overflow the hero at 14px. */
+     always emitted; media query above (at line ~1966) swaps them on mobile.
+     Because this base block appears AFTER that media query in file order,
+     equal-specificity mobile rules would lose the cascade. The mobile rules
+     use !important to reliably win regardless of source order. */
   .editorial-kicker .kicker-line .date-part-short { display: none; }
   .editorial-kicker .kicker-line .date-part-long { display: inline; }
   .editorial-kicker .glyph-stamp {
