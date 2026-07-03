@@ -10059,6 +10059,13 @@ function showTab(name) {
     document.body.removeAttribute('data-hub-focus');
     if (typeof refreshHubState === 'function') refreshHubState();
   }
+  // Bug fix: "Today" must actually go to TODAY. If the user had navigated to a
+  // past/future date, tapping Today should reset to the current day — not show
+  // that other date's hub. selectDate() flushes any pending save first, so this
+  // is safe. Guarded so we don't re-render when already on today.
+  if (name === 'today' && typeof isoToday === 'function' && currentDate !== isoToday()) {
+    selectDate(isoToday());
+  }
   // Research shell: update hero title + chips to reflect the active tab.
   if (typeof updateRsHero === 'function') updateRsHero(name);
   // Sync sidebar's active class — showTab is only called for today/export
