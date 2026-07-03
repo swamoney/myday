@@ -1982,6 +1982,9 @@
        and would otherwise win the cascade. */
     .editorial-kicker .kicker-line .date-part-long { display: none !important; }
     .editorial-kicker .kicker-line .date-part-short { display: inline !important; }
+    /* Same trick for day name: "Wed" on mobile instead of "Wednesday". */
+    .editorial-kicker .kicker-line .day-part-long { display: none !important; }
+    .editorial-kicker .kicker-line .day-part-short { display: inline !important; }
     .editorial-kicker .glyph-stamp {
       font-size: 13px;
       bottom: -7px;
@@ -2027,6 +2030,9 @@
   .editorial-kicker .kicker-line .day-part {
     font-weight: 600;
   }
+  /* Day-name long/short swap (mirrors date-part-long/short below) */
+  .editorial-kicker .kicker-line .day-part-short { display: none; }
+  .editorial-kicker .kicker-line .day-part-long { display: inline; }
   .editorial-kicker .kicker-line .sep {
     color: rgba(255,255,255,0.50); margin: 0 4px;
   }
@@ -8405,6 +8411,13 @@ function formatDayName(iso) {
   const [y,m,d] = iso.split('-').map(Number);
   return DAY_NAMES[new Date(y, m-1, d).getDay()];
 }
+// Ship-fix (long-date overflow): compact 3-letter day name for mobile hero.
+// "Wed" instead of "Wednesday". Same info, 6 chars shorter on the worst-case
+// day. Used only in renderDateNav — the full name is preserved everywhere
+// else (calendar labels, past-day toasts, etc.) for editorial voice.
+function formatDayNameShort(iso) {
+  return formatDayName(iso).slice(0, 3);
+}
 function shiftDate(iso, days) {
   const [y,m,d] = iso.split('-').map(Number);
   const dt = new Date(y, m-1, d);
@@ -8581,10 +8594,18 @@ function renderDateNav() {
   const kl = document.getElementById('kickerLine');
   if (kl) {
     kl.textContent = '';
-    const dayPart = document.createElement('span');
-    dayPart.className = 'day-part';
-    dayPart.textContent = dayName;
-    kl.appendChild(dayPart);
+    // Ship-fix (long-date overflow): emit BOTH long ("Wednesday") and short
+    // ("Wed") day-name spans. CSS media query below hides one. Combined with
+    // the long/short month spans below, mobile shows "Wed, 30 Sep 2026"
+    // while desktop shows "Wednesday, 30 September 2026".
+    const dayPartLong = document.createElement('span');
+    dayPartLong.className = 'day-part day-part-long';
+    dayPartLong.textContent = dayName;
+    kl.appendChild(dayPartLong);
+    const dayPartShort = document.createElement('span');
+    dayPartShort.className = 'day-part day-part-short';
+    dayPartShort.textContent = formatDayNameShort(currentDate);
+    kl.appendChild(dayPartShort);
     const sep = document.createElement('span');
     sep.className = 'sep';
     sep.textContent = ',';
