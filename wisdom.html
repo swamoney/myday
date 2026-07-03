@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wisdom Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#E0E7F0; --paper:#F8FAFC; --paper-soft:#ECF1F7;
+    --ink:#0A1325; --ink-soft:#28324B; --muted:#3D4866;
+    --rule:#BDC9DC; --rule-strong:#95A4BB;
+    --accent:#0F2D5C; --accent-soft:#DCE5F2; --accent-ink:#0A1F45;
+    --ember:#8A1F1A; --ember-soft:#F2D9D6;
+    --moss:#356B4E; --moss-soft:#DCE8DF;
+    --warn:#8A1F1A;
+    --serif:'Fraunces',Georgia,serif;
+    --sans:'IBM Plex Sans',-apple-system,system-ui,sans-serif;
+    --mono:'IBM Plex Mono','SF Mono',monospace;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.5; min-height:100vh; }
+  body { padding:20px 14px 70px; background-image:radial-gradient(rgba(15,45,92,0.03) 1px, transparent 1px); background-size:20px 20px; }
+  main { max-width:660px; margin:0 auto; }
+  input, textarea, button, select { font-family:inherit; font-size:inherit; color:inherit; }
+  textarea { resize:vertical; }
+  .hidden { display:none !important; }
+
+  /* ---- AUTH (mirrors OneLife) ---- */
+  .auth-overlay {
+    position:fixed; inset:0; background:var(--bg); z-index:250;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    background-image:radial-gradient(rgba(181,66,28,0.04) 1px, transparent 1px); background-size:20px 20px;
+  }
+  .auth-box {
+    width:100%; max-width:380px; background:var(--paper); border:1px solid var(--rule-strong);
+    border-radius:16px; padding:28px 22px; box-shadow:0 20px 50px rgba(26,31,44,0.12); text-align:center;
+  }
+  .auth-icon { font-size:28px; margin-bottom:8px; opacity:0.7; }
+  .auth-title { font-family:var(--serif); font-style:italic; font-weight:400; font-size:26px; color:var(--ink); margin-bottom:4px; }
+  .auth-subtitle { font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); margin-bottom:22px; }
+  .auth-form { display:flex; flex-direction:column; gap:10px; }
+  .auth-input { width:100%; background:var(--paper-soft); border:1px solid var(--rule); border-radius:10px; padding:13px 14px; font-size:15px; color:var(--ink); font-family:var(--mono); letter-spacing:0.05em; }
+  .auth-input:focus { outline:none; border-color:var(--accent); background:var(--paper); }
+  .auth-error { font-family:var(--mono); font-size:11px; color:var(--warn); padding:6px 10px; background:#FCE9E2; border-radius:6px; letter-spacing:0.02em; }
+  .auth-submit { background:var(--ink); color:var(--paper); border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:500; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; margin-top:4px; }
+  .auth-submit:active { transform:scale(0.98); background:var(--accent); }
+  .auth-submit:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* ---- HEADER ---- */
+  .lib-shell { background:var(--paper); border:1px solid var(--rule); border-radius:16px; padding:22px 20px; box-shadow:0 8px 24px rgba(10,19,37,0.07); }
+  .lib-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+  .lib-title { font-family:var(--serif); font-size:27px; font-weight:600; letter-spacing:-0.01em; color:var(--ink); line-height:1.1; }
+  .lib-sub { font-family:var(--serif); font-style:italic; font-size:13px; color:var(--muted); margin-top:3px; }
+  .lib-head-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+  .lib-count { font-family:var(--mono); font-size:11px; color:var(--muted); white-space:nowrap; }
+  .signout-btn { background:transparent; border:1px solid var(--rule); border-radius:7px; padding:4px 10px; font-size:11px; color:var(--muted); cursor:pointer; }
+  .signout-btn:hover { border-color:var(--ember); color:var(--ember); }
+
+  .toolbar { display:flex; gap:8px; margin:18px 0 12px; }
+  .search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper-soft); border:1px solid var(--rule); border-radius:9px; padding:9px 12px; }
+  .search input { border:0; background:transparent; outline:none; width:100%; font-size:13.5px; color:var(--ink); }
+  .search .ic { color:var(--muted); font-size:14px; }
+  .btn-primary { display:flex; align-items:center; gap:5px; background:var(--accent); color:#fff; border:0; border-radius:9px; padding:9px 14px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn-primary:active { transform:scale(0.98); }
+  .btn-ghost { background:transparent; border:1px solid var(--rule); border-radius:9px; padding:9px 12px; font-size:12px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
+  .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+
+  .tags-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; align-items:center; }
+  .tag { font-size:12px; padding:5px 12px; border-radius:20px; border:1px solid var(--rule); background:var(--paper); color:var(--ink-soft); cursor:pointer; font-weight:500; }
+  .tag:hover { border-color:var(--rule-strong); }
+  .tag.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .tag.all.active { background:var(--accent); border-color:var(--accent); }
+
+  /* ---- CARDS ---- */
+  .cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:560px){ .cards { grid-template-columns:1fr; } }
+  .card { border:1px solid var(--rule); border-radius:12px; padding:14px; background:var(--paper); display:flex; flex-direction:column; gap:9px; cursor:pointer; transition:border-color .15s, box-shadow .15s; }
+  .card:hover { border-color:var(--accent); box-shadow:0 4px 12px rgba(10,19,37,0.06); }
+  .src { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:3px 8px; border-radius:5px; align-self:flex-start; }
+  .src.book { background:#EAF0E9; color:var(--moss); }
+  .src.podcast { background:#F2E7E6; color:var(--ember); }
+  .src.movie { background:#E6EAF2; color:var(--accent); }
+  .src.article { background:#F0ECDD; color:#7a5a1a; }
+  .src.talk { background:#E9E6F2; color:#4a3a7a; }
+  .src.other { background:var(--paper-soft); color:var(--muted); }
+  .card-title { font-family:var(--serif); font-size:16.5px; font-weight:600; line-height:1.25; color:var(--ink); }
+  .card-essence { font-size:12.5px; color:var(--muted); line-height:1.5; font-style:italic; }
+  .card-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto; }
+  .card-tags { display:flex; flex-wrap:wrap; gap:4px; }
+  .ctag { font-size:10px; color:var(--ink-soft); background:var(--paper-soft); border:1px solid var(--rule); border-radius:12px; padding:2px 7px; }
+  .open { font-size:11px; color:var(--accent); font-weight:600; white-space:nowrap; }
+  .card-source-name { font-size:10.5px; color:var(--rule-strong); font-family:var(--mono); }
+  .card.add { align-items:center; justify-content:center; border-style:dashed; color:var(--muted); min-height:130px; gap:5px; }
+  .card.add:hover { color:var(--accent); border-color:var(--accent); }
+  .card.add .plus { font-size:26px; font-weight:300; line-height:1; }
+  .card.add .t { font-size:12.5px; font-weight:600; }
+
+  .empty { text-align:center; padding:40px 20px; color:var(--muted); }
+  .empty .big { font-family:var(--serif); font-style:italic; font-size:18px; color:var(--ink-soft); margin-bottom:6px; }
+  .empty .small { font-size:13px; }
+
+  .loading { text-align:center; padding:50px 20px; color:var(--muted); font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
+
+  /* ---- MODAL (add / edit) ---- */
+  .modal-overlay { position:fixed; inset:0; background:rgba(10,19,37,0.45); backdrop-filter:blur(4px); z-index:200; display:flex; align-items:flex-start; justify-content:center; padding:24px 14px; overflow-y:auto; }
+  .modal { width:100%; max-width:560px; background:var(--paper); border-radius:16px; box-shadow:0 20px 60px rgba(10,19,37,0.25); padding:22px; margin:auto; }
+  .modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .modal-title { font-family:var(--serif); font-size:20px; font-weight:600; }
+  .modal-close { background:transparent; border:0; font-size:22px; color:var(--muted); cursor:pointer; line-height:1; }
+  .field { margin-bottom:13px; }
+  .field label { display:block; font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px; }
+  .field input, .field textarea, .field select { width:100%; background:var(--paper-soft); border:1px solid var(--rule); border-radius:9px; padding:10px 12px; font-size:14px; color:var(--ink); }
+  .field input:focus, .field textarea:focus, .field select:focus { outline:none; border-color:var(--accent); background:var(--paper); }
+  .field textarea.content { min-height:150px; font-family:var(--mono); font-size:12.5px; line-height:1.5; }
+  .field .hint { font-size:11px; color:var(--muted); margin-top:4px; font-style:italic; }
+  .field-row { display:flex; gap:10px; }
+  .field-row .field { flex:1; }
+  .modal-actions { display:flex; gap:8px; margin-top:18px; align-items:center; }
+  .modal-actions .spacer { flex:1; }
+  .btn-save { background:var(--ink); color:#fff; border:0; border-radius:9px; padding:11px 20px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-save:active { transform:scale(0.98); }
+  .btn-save:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-delete { background:transparent; border:1px solid var(--ember-soft); color:var(--ember); border-radius:9px; padding:11px 16px; font-size:13px; cursor:pointer; }
+  .btn-delete:hover { background:var(--ember-soft); }
+  .modal-error { font-family:var(--mono); font-size:11px; color:var(--warn); padding:6px 10px; background:#FCE9E2; border-radius:6px; margin-top:10px; }
+
+  /* ---- READER ---- */
+  .reader-overlay { position:fixed; inset:0; background:var(--bg); z-index:220; display:flex; flex-direction:column; }
+  .reader-bar { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--paper); border-bottom:1px solid var(--rule); flex-shrink:0; }
+  .reader-back { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:13px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
+  .reader-back:hover { border-color:var(--accent); color:var(--accent); }
+  .reader-title { flex:1; font-family:var(--serif); font-size:16px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .reader-edit { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:12px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
+  .reader-edit:hover { border-color:var(--accent); color:var(--accent); }
+  .reader-frame { flex:1; border:0; width:100%; background:#fff; }
+
+  .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,0.2); transition:transform 0.3s; z-index:300; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- CONFIG GUARD -->
+<script src="config.js"></script>
+
+<!-- AUTH -->
+<div class="auth-overlay hidden" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-icon">📚</div>
+    <div class="auth-title">Wisdom Library</div>
+    <div class="auth-subtitle">Sign in to your library</div>
+    <div class="auth-form">
+      <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="auth-input" id="authPw" placeholder="Password" autocomplete="current-password">
+      <div class="auth-error hidden" id="authError"></div>
+      <button class="auth-submit" id="authSubmit">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<main id="app" class="hidden">
+  <div class="lib-shell">
+    <div class="lib-head">
+      <div>
+        <div class="lib-title">Wisdom Library</div>
+        <div class="lib-sub">what I've learned, kept close</div>
+      </div>
+      <div class="lib-head-right">
+        <span class="lib-count" id="libCount">—</span>
+        <button class="signout-btn" id="signOutBtn">Sign out</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search"><span class="ic">⌕</span><input id="searchInput" placeholder="Search titles, sources, ideas…"></div>
+      <button class="btn-primary" id="newBtn">＋ New</button>
+      <button class="btn-ghost" id="exportBtn" title="Export all pieces as HTML files">↓ Export</button>
+    </div>
+
+    <div class="tags-row" id="tagsRow"></div>
+
+    <div id="cardsWrap">
+      <div class="loading" id="loadingState">Loading your library…</div>
+    </div>
+  </div>
+</main>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title" id="modalTitle">New wisdom</span>
+      <button class="modal-close" id="modalClose">×</button>
+    </div>
+    <div class="field">
+      <label>Title</label>
+      <input id="fTitle" placeholder="e.g., The obstacle is the way">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Source type</label>
+        <select id="fSourceType">
+          <option value="book">Book</option>
+          <option value="podcast">Podcast</option>
+          <option value="movie">Movie</option>
+          <option value="article">Article</option>
+          <option value="talk">Talk</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Source name</label>
+        <input id="fSourceName" placeholder="e.g., Atomic Habits">
+      </div>
+    </div>
+    <div class="field">
+      <label>Essence — the one-line takeaway</label>
+      <input id="fEssence" placeholder="The core idea in a sentence">
+    </div>
+    <div class="field">
+      <label>Tags — comma separated</label>
+      <input id="fTags" placeholder="Discipline, Focus, Money">
+      <div class="hint">Themes to filter by later.</div>
+    </div>
+    <div class="field">
+      <label>Content — your wisdom HTML</label>
+      <textarea class="content" id="fContent" placeholder="Paste the full HTML of this piece here…"></textarea>
+      <div class="hint">Paste the HTML file you made. It's stored privately and rendered when you open the card.</div>
+    </div>
+    <div class="modal-error hidden" id="modalError"></div>
+    <div class="modal-actions">
+      <button class="btn-delete hidden" id="deleteBtn">Delete</button>
+      <span class="spacer"></span>
+      <button class="btn-save" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- READER -->
+<div class="reader-overlay hidden" id="readerOverlay">
+  <div class="reader-bar">
+    <button class="reader-back" id="readerBack">← Library</button>
+    <span class="reader-title" id="readerTitle"></span>
+    <button class="reader-edit" id="readerEdit">Edit</button>
+  </div>
+  <iframe class="reader-frame" id="readerFrame" sandbox="allow-scripts allow-popups" referrerpolicy="no-referrer"></iframe>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+// ===== CONFIG GUARD =====
+if (typeof window.MYDAY_CONFIG === 'undefined') {
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Configuration error</h2><p>config.js is missing or didn\'t load.</p><p style="font-size:13px;color:#666;">Upload <code>wisdom.html</code> and <code>config.js</code> to the same repo.</p></div>';
+  throw new Error('config.js missing');
+}
+
+// ===== SUPABASE (same project + session as OneLife) =====
+const supa = window.supabase.createClient(
+  window.MYDAY_CONFIG.SUPABASE_URL,
+  window.MYDAY_CONFIG.SUPABASE_ANON_KEY,
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+);
+
+let userId = null;
+let rows = [];          // all wisdom rows for this user
+let activeTag = null;   // null = All
+let searchTerm = '';
+let editingId = null;   // null = adding new
+
+const SRC_META = {
+  book:    { label: 'Book',    icon: '📖' },
+  podcast: { label: 'Podcast', icon: '🎧' },
+  movie:   { label: 'Movie',   icon: '🎬' },
+  article: { label: 'Article', icon: '✎' },
+  talk:    { label: 'Talk',    icon: '🎙' },
+  other:   { label: 'Note',    icon: '•' },
+};
+
+// ===== HELPERS =====
+function el(id) { return document.getElementById(id); }
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function toast(msg) {
+  const t = el('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function slugify(s) {
+  return String(s || 'untitled').toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'untitled';
+}
+function parseTags(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string') {
+    try { const p = JSON.parse(raw); if (Array.isArray(p)) return p; } catch (e) {}
+    return raw.split(',').map(t => t.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+// ===== AUTH =====
+async function boot() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session && session.user) {
+    userId = session.user.id;
+    showApp();
+    await loadRows();
+  } else {
+    el('authOverlay').classList.remove('hidden');
+  }
+}
+function showApp() {
+  el('authOverlay').classList.add('hidden');
+  el('app').classList.remove('hidden');
+}
+async function handleSignIn() {
+  const email = el('authEmail').value.trim();
+  const pw = el('authPw').value;
+  const errorEl = el('authError');
+  const btn = el('authSubmit');
+  errorEl.classList.add('hidden');
+  if (!email || !pw) { errorEl.textContent = 'Email and password required'; errorEl.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password: pw });
+    if (error) throw error;
+    if (!data || !data.user) throw new Error('No user returned');
+    userId = data.user.id;
+    el('authPw').value = '';
+    showApp();
+    await loadRows();
+  } catch (e) {
+    errorEl.textContent = (e && e.message) ? e.message : 'Sign in failed';
+    errorEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+}
+async function handleSignOut() {
+  if (!confirm('Sign out?')) return;
+  await supa.auth.signOut();
+  window.location.reload();
+}
+
+// ===== DATA =====
+async function loadRows() {
+  try {
+    const { data, error } = await supa
+      .from('wisdom')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    rows = (data || []).map(r => ({ ...r, tags: parseTags(r.tags) }));
+    render();
+  } catch (e) {
+    el('cardsWrap').innerHTML = '<div class="empty"><div class="big">Couldn\'t load</div><div class="small">' + escHtml(e.message || 'Error') + '<br>If this is the first run, make sure the <code>wisdom</code> table exists.</div></div>';
+    console.error(e);
+  }
+}
+
+async function saveWisdom() {
+  const title = el('fTitle').value.trim();
+  const errorEl = el('modalError');
+  errorEl.classList.add('hidden');
+  if (!title) { errorEl.textContent = 'Title is required'; errorEl.classList.remove('hidden'); return; }
+  const tags = el('fTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const record = {
+    user_id: userId,
+    title,
+    source_type: el('fSourceType').value,
+    source_name: el('fSourceName').value.trim(),
+    essence: el('fEssence').value.trim(),
+    tags: tags,
+    content: el('fContent').value,
+    updated_at: new Date().toISOString(),
+  };
+  const btn = el('saveBtn'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    if (editingId) {
+      const { error } = await supa.from('wisdom').update(record).eq('id', editingId).eq('user_id', userId);
+      if (error) throw error;
+      toast('Updated');
+    } else {
+      const { error } = await supa.from('wisdom').insert(record);
+      if (error) throw error;
+      toast('Added to library');
+    }
+    closeModal();
+    await loadRows();
+  } catch (e) {
+    errorEl.textContent = (e && e.message) ? e.message : 'Save failed';
+    errorEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save';
+  }
+}
+
+async function deleteWisdom() {
+  if (!editingId) return;
+  if (!confirm('Delete this piece? This can\'t be undone.')) return;
+  try {
+    const { error } = await supa.from('wisdom').delete().eq('id', editingId).eq('user_id', userId);
+    if (error) throw error;
+    toast('Deleted');
+    closeModal();
+    await loadRows();
+  } catch (e) {
+    el('modalError').textContent = (e && e.message) ? e.message : 'Delete failed';
+    el('modalError').classList.remove('hidden');
+  }
+}
+
+// ===== RENDER =====
+function allTags() {
+  const set = new Set();
+  rows.forEach(r => (r.tags || []).forEach(t => set.add(t)));
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+}
+
+function filteredRows() {
+  let out = rows;
+  if (activeTag) out = out.filter(r => (r.tags || []).includes(activeTag));
+  if (searchTerm) {
+    const q = searchTerm.toLowerCase();
+    out = out.filter(r =>
+      (r.title || '').toLowerCase().includes(q) ||
+      (r.source_name || '').toLowerCase().includes(q) ||
+      (r.essence || '').toLowerCase().includes(q) ||
+      (r.tags || []).some(t => t.toLowerCase().includes(q))
+    );
+  }
+  return out;
+}
+
+function renderTags() {
+  const tags = allTags();
+  const row = el('tagsRow');
+  let html = '<span class="tag all' + (activeTag === null ? ' active' : '') + '" data-tag="__all">All</span>';
+  tags.forEach(t => {
+    html += '<span class="tag' + (activeTag === t ? ' active' : '') + '" data-tag="' + escHtml(t) + '">' + escHtml(t) + '</span>';
+  });
+  row.innerHTML = html;
+  row.querySelectorAll('.tag').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const t = chip.dataset.tag;
+      activeTag = (t === '__all') ? null : t;
+      render();
+    });
+  });
+}
+
+function render() {
+  el('loadingState') && el('loadingState').remove();
+  el('libCount').textContent = rows.length + (rows.length === 1 ? ' piece' : ' pieces');
+  renderTags();
+
+  const list = filteredRows();
+  const wrap = el('cardsWrap');
+
+  if (rows.length === 0) {
+    wrap.innerHTML = '<div class="empty"><div class="big">Your library is empty</div><div class="small">Add the first piece of wisdom you want to keep.</div></div>' +
+      '<div class="cards"><div class="card add" id="addCardEmpty"><span class="plus">＋</span><span class="t">Add a wisdom</span></div></div>';
+    el('addCardEmpty').addEventListener('click', () => openModal(null));
+    return;
+  }
+
+  let html = '<div class="cards">';
+  list.forEach(r => {
+    const meta = SRC_META[r.source_type] || SRC_META.other;
+    const tagsHtml = (r.tags || []).slice(0, 3).map(t => '<span class="ctag">' + escHtml(t) + '</span>').join('');
+    html += '<div class="card" data-id="' + escHtml(r.id) + '">' +
+      '<span class="src ' + escHtml(r.source_type || 'other') + '">' + meta.icon + ' ' + meta.label + '</span>' +
+      '<div class="card-title">' + escHtml(r.title) + '</div>' +
+      (r.essence ? '<div class="card-essence">' + escHtml(r.essence) + '</div>' : '') +
+      '<div class="card-tags">' + tagsHtml + '</div>' +
+      '<div class="card-meta"><span class="card-source-name">' + escHtml(r.source_name || '') + '</span><span class="open">open →</span></div>' +
+      '</div>';
+  });
+  html += '<div class="card add" id="addCard"><span class="plus">＋</span><span class="t">Add a wisdom</span></div>';
+  html += '</div>';
+
+  if (list.length === 0) {
+    html = '<div class="empty"><div class="big">No matches</div><div class="small">Nothing under this filter or search.</div></div>' + html;
+  }
+
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.card[data-id]').forEach(card => {
+    card.addEventListener('click', () => openReader(card.dataset.id));
+  });
+  const addCard = el('addCard');
+  if (addCard) addCard.addEventListener('click', () => openModal(null));
+}
+
+// ===== MODAL =====
+function openModal(id) {
+  editingId = id;
+  el('modalError').classList.add('hidden');
+  if (id) {
+    const r = rows.find(x => x.id === id);
+    if (!r) return;
+    el('modalTitle').textContent = 'Edit wisdom';
+    el('fTitle').value = r.title || '';
+    el('fSourceType').value = r.source_type || 'book';
+    el('fSourceName').value = r.source_name || '';
+    el('fEssence').value = r.essence || '';
+    el('fTags').value = (r.tags || []).join(', ');
+    el('fContent').value = r.content || '';
+    el('deleteBtn').classList.remove('hidden');
+  } else {
+    el('modalTitle').textContent = 'New wisdom';
+    el('fTitle').value = '';
+    el('fSourceType').value = 'book';
+    el('fSourceName').value = '';
+    el('fEssence').value = '';
+    el('fTags').value = '';
+    el('fContent').value = '';
+    el('deleteBtn').classList.add('hidden');
+  }
+  el('modalOverlay').classList.remove('hidden');
+}
+function closeModal() {
+  el('modalOverlay').classList.add('hidden');
+  editingId = null;
+}
+
+// ===== READER =====
+let readerCurrentId = null;
+function openReader(id) {
+  const r = rows.find(x => x.id === id);
+  if (!r) return;
+  readerCurrentId = id;
+  el('readerTitle').textContent = r.title || 'Untitled';
+  // Render stored HTML inside a sandboxed iframe (isolated from this page).
+  el('readerFrame').srcdoc = r.content || '<!doctype html><body style="font-family:system-ui;padding:40px;color:#3D4866;"><p><em>No content saved for this piece yet. Tap Edit to add it.</em></p></body>';
+  el('readerOverlay').classList.remove('hidden');
+}
+function closeReader() {
+  el('readerOverlay').classList.add('hidden');
+  el('readerFrame').srcdoc = '';
+  readerCurrentId = null;
+}
+
+// ===== EXPORT (portability insurance) =====
+async function exportAll() {
+  if (!rows.length) { toast('Nothing to export yet'); return; }
+  if (typeof JSZip === 'undefined') { toast('Export library not loaded'); return; }
+  const btn = el('exportBtn'); const old = btn.textContent; btn.textContent = 'Exporting…'; btn.disabled = true;
+  try {
+    const zip = new JSZip();
+    const folder = zip.folder('wisdom');
+    const index = [];
+    const usedNames = {};
+    rows.forEach(r => {
+      let base = slugify(r.title);
+      if (usedNames[base]) { usedNames[base]++; base = base + '-' + usedNames[base]; } else { usedNames[base] = 1; }
+      const fname = base + '.html';
+      // Wrap bare content in a minimal doc if it doesn't look like a full page.
+      let content = r.content || '';
+      if (!/<html|<!doctype/i.test(content)) {
+        content = '<!doctype html><html><head><meta charset="utf-8"><title>' + escHtml(r.title) +
+          '</title></head><body>' + content + '</body></html>';
+      }
+      folder.file(fname, content);
+      index.push({
+        title: r.title, source_type: r.source_type, source_name: r.source_name,
+        essence: r.essence, tags: r.tags, file: 'wisdom/' + fname,
+        created_at: r.created_at, updated_at: r.updated_at,
+      });
+    });
+    zip.file('index.json', JSON.stringify(index, null, 2));
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+    a.href = url; a.download = 'wisdom-library-' + stamp + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('Exported ' + rows.length + ' pieces');
+  } catch (e) {
+    console.error(e); toast('Export failed');
+  } finally {
+    btn.textContent = old; btn.disabled = false;
+  }
+}
+
+// ===== WIRING =====
+el('authSubmit').addEventListener('click', handleSignIn);
+el('authPw').addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
+el('signOutBtn').addEventListener('click', handleSignOut);
+el('newBtn').addEventListener('click', () => openModal(null));
+el('exportBtn').addEventListener('click', exportAll);
+el('modalClose').addEventListener('click', closeModal);
+el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });
+el('saveBtn').addEventListener('click', saveWisdom);
+el('deleteBtn').addEventListener('click', deleteWisdom);
+el('readerBack').addEventListener('click', closeReader);
+el('readerEdit').addEventListener('click', () => { const id = readerCurrentId; closeReader(); openModal(id); });
+el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!el('readerOverlay').classList.contains('hidden')) closeReader();
+    else if (!el('modalOverlay').classList.contains('hidden')) closeModal();
+  }
+});
+
+boot();
+</script>
+</body>
+</html>
