@@ -92,6 +92,9 @@
   .card-tags { display:flex; flex-wrap:wrap; gap:4px; }
   .ctag { font-size:10px; color:var(--ink-soft); background:var(--paper-soft); border:1px solid var(--rule); border-radius:12px; padding:2px 7px; }
   .open { font-size:11px; color:var(--accent); font-weight:600; white-space:nowrap; }
+  .card-actions { display:inline-flex; align-items:center; gap:10px; }
+  .card-edit { background:transparent; border:0; padding:0; font-size:11px; color:var(--muted); font-weight:600; cursor:pointer; white-space:nowrap; }
+  .card-edit:hover { color:var(--accent); text-decoration:underline; }
   .card-source-name { font-size:10.5px; color:var(--rule-strong); font-family:var(--mono); }
   .card.add { align-items:center; justify-content:center; border-style:dashed; color:var(--muted); min-height:130px; gap:5px; }
   .card.add:hover { color:var(--accent); border-color:var(--accent); }
@@ -492,7 +495,9 @@ function render() {
       '<div class="card-title">' + escHtml(r.title) + '</div>' +
       (r.essence ? '<div class="card-essence">' + escHtml(r.essence) + '</div>' : '') +
       '<div class="card-tags">' + tagsHtml + '</div>' +
-      '<div class="card-meta"><span class="card-source-name">' + escHtml(r.source_name || '') + '</span><span class="open">open →</span></div>' +
+      '<div class="card-meta"><span class="card-source-name">' + escHtml(r.source_name || '') + '</span>' +
+        '<span class="card-actions"><button type="button" class="card-edit" data-edit="' + escHtml(r.id) + '">Edit</button><span class="open">open →</span></span>' +
+      '</div>' +
       '</div>';
   });
   html += '<div class="card add" id="addCard"><span class="plus">＋</span><span class="t">Add a wisdom</span></div>';
@@ -505,6 +510,13 @@ function render() {
   wrap.innerHTML = html;
   wrap.querySelectorAll('.card[data-id]').forEach(card => {
     card.addEventListener('click', () => openReader(card.dataset.id));
+  });
+  // Edit button on each card → open the edit form directly (don't open reader).
+  wrap.querySelectorAll('.card-edit').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openModal(btn.dataset.edit);
+    });
   });
   const addCard = el('addCard');
   if (addCard) addCard.addEventListener('click', () => openModal(null));
