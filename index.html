@@ -1096,11 +1096,10 @@
     display: none;
   }
   /* By default in focused mode, ALL sections hidden — CSS below unhides
-     the one matching data-hub-focus. Investments has a companion (Recurring
-     Payments) which also shows when Expenses is focused. */
+     the one matching data-hub-focus. Recurring now lives INSIDE s-expenses
+     (moved into the "8 more" disclosure), so it no longer needs its own rule. */
   body.hub-view.hub-focused #tab-today .section { display: none; }
   body.hub-view.hub-focused[data-hub-focus="s-expenses"] #tab-today .section.s-expenses,
-  body.hub-view.hub-focused[data-hub-focus="s-expenses"] #tab-today .section.s-recurring,
   body.hub-view.hub-focused[data-hub-focus="s-health"] #tab-today .section.s-health,
   body.hub-view.hub-focused[data-hub-focus="s-time"] #tab-today .section.s-time,
   body.hub-view.hub-focused[data-hub-focus="s-food"] #tab-today .section.s-food,
@@ -1287,12 +1286,13 @@
      header used in the Outflow Breakdown card. The two-color story across
      the app: ember = discretionary daily spend, plum = fixed recurring
      commitments. */
-  .section.s-recurring { background: #F5EEF1; border-color: #D9C5CC; --section-accent: #5C2E40; }
-  /* Merge (Option A): when recurring is presented as a continuation of the
-     Expenses section, drop the separate card chrome (background, border,
-     padding, margin) so it flows as one section. The plum input accent is
-     kept as a subtle signal that these are the "committed" payments. */
-  .section.s-recurring.s-recurring-merged {
+  .s-recurring { --section-accent: #5C2E40; }
+  /* Merge (Option A): recurring is presented inside the Expenses "8 more"
+     disclosure — no separate card chrome. Plum input accent kept as a subtle
+     "committed payments" signal. (Selectors use .s-recurring, not
+     .section.s-recurring, since the relocated element dropped the .section
+     class when it moved inside s-expenses.) */
+  .s-recurring.s-recurring-merged {
     background: transparent;
     border: 0;
     padding: 0;
@@ -1322,28 +1322,26 @@
     letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--ink-soft); margin-bottom: 5px;
   }
-  .section.s-recurring .input {
+  .s-recurring .input {
     background: #F0E6EB; border: 1px solid #D9C5CC;
   }
-  .section.s-recurring .input:focus {
+  .s-recurring .input:focus {
     background: #FFFFFF; border-color: #A87E8E;
   }
-  .section.s-recurring .input:not(:placeholder-shown) {
+  .s-recurring .input:not(:placeholder-shown) {
     background: #FFFFFF; border-left: 3px solid #5C2E40;
   }
   .rec-name-input { font-size: 14px; }
   .rec-chips { margin-top: 6px; }
   .rec-amt-wrap { display: flex; align-items: center; position: relative; }
-  /* Scoped under .section.s-recurring (0,2,1) so it beats the base .input
-     shorthand padding (0,1,0) which would otherwise reset padding-left to 12px
-     and make the rupee symbol overlap the value. Full padding set explicitly
-     (not just padding-left) so the later base shorthand can't clobber it. */
-  .section.s-recurring .input.rec-amt-input {
+  /* Full padding set explicitly (not just padding-left) so the later base
+     .input shorthand can't clobber it and overlap the rupee symbol. */
+  .s-recurring .input.rec-amt-input {
     font-family: var(--mono); font-variant-numeric: tabular-nums;
     width: 100%;
     padding: 11px 12px 11px 30px;
   }
-  .section.s-recurring .currency-symbol { color: #5C2E40; }
+  .s-recurring .currency-symbol { color: #5C2E40; }
   .rec-add-btn {
     width: 100%; margin-top: 4px;
     background: #5C2E40; color: #FFF; border: none;
@@ -6671,8 +6669,8 @@
            Other Expenses inner disclosure are identical to before; they're
            just wrapped in a container that toggles visibility. -->
       <button type="button" class="exp-more-toggle" id="expMoreToggle" aria-expanded="false" aria-controls="expMoreFields">
-        <span class="exp-more-count" aria-hidden="true">+7</span>
-        <span class="exp-more-label" id="expMoreLabel">more &mdash; shopping, travel, taxes &amp; more</span>
+        <span class="exp-more-count" aria-hidden="true">+8</span>
+        <span class="exp-more-label" id="expMoreLabel">more &mdash; shopping, travel, recurring bills &amp; more</span>
         <span class="exp-more-chev" aria-hidden="true">&#9662;</span>
       </button>
       <div class="exp-more-fields" id="expMoreFields" hidden>
@@ -6804,13 +6802,58 @@
           <input class="input field-note-input" type="text" id="f_creditCardBillNote" placeholder="add a note (optional) — e.g., HDFC Regalia bill paid">
         </div>
       </div>
+
+      <!-- Recurring payments — now the last group INSIDE the "8 more" disclosure.
+           Cross-date logging engine + all IDs unchanged; only the DOM location
+           moved (from a standalone .s-recurring section into the disclosure).
+           The .s-recurring wrapper is kept (some CSS/JS scopes to it) but it no
+           longer needs the focus-mode reveal rule since it lives inside
+           s-expenses now. -->
+      <div class="s-recurring s-recurring-merged">
+        <div class="subhead recu rec-merged-head">
+          Recurring payments
+          <span class="rec-merged-tag" title="These land on the exact date paid — log rent on the 1st even while viewing today">dated · lands on paid date</span>
+        </div>
+        <div class="recurring-card">
+          <div class="subhead first rec rec-subhead">What did you pay today?</div>
+          <div class="rec-hint hidden" id="recHint"></div>
+          <div class="rec-field">
+            <input class="input rec-name-input" type="text" id="recName" placeholder="e.g., Flat Rent" autocomplete="off" aria-label="What did you pay today?">
+            <div class="chips rec-chips" id="recChips">
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Flat Rent"><span class="chip-plus" aria-hidden="true">+</span>Flat Rent</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Flat Light Bill"><span class="chip-plus" aria-hidden="true">+</span>Flat Light Bill</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="MNGL Gas"><span class="chip-plus" aria-hidden="true">+</span>MNGL Gas</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Netflix"><span class="chip-plus" aria-hidden="true">+</span>Netflix</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Mobile Bill"><span class="chip-plus" aria-hidden="true">+</span>Mobile Bill</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Office Rent"><span class="chip-plus" aria-hidden="true">+</span>Office Rent</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Office Light Bill"><span class="chip-plus" aria-hidden="true">+</span>Office Light Bill</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Workspace Gmail"><span class="chip-plus" aria-hidden="true">+</span>Workspace Gmail</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="Workspace Com"><span class="chip-plus" aria-hidden="true">+</span>Workspace Com</button>
+              <button type="button" class="chip chip-preset rec-chip" data-rec-name="ChatGPT"><span class="chip-plus" aria-hidden="true">+</span>ChatGPT</button>
+            </div>
+          </div>
+          <div class="rec-field">
+            <label class="rec-label">Amount</label>
+            <div class="currency-wrap rec-amt-wrap"><span class="currency-symbol">₹</span><input class="input rec-amt-input" type="text" inputmode="decimal" id="recAmt" placeholder="0"></div>
+            <div class="rec-suggest hidden" id="recSuggest"></div>
+          </div>
+          <button type="button" class="rec-add-btn" id="recLogBtn">Log payment</button>
+          <div class="rec-error hidden" id="recError"></div>
+
+          <!-- Running log of this month's payments -->
+          <div class="rec-log" id="recLog">
+            <div class="rec-log-title" id="recLogTitle">This month's payments</div>
+            <div class="rec-log-rows" id="recLogRows"></div>
+            <div class="rec-log-total" id="recLogTotal"></div>
+          </div>
+        </div>
+      </div>
       </div><!-- /.exp-more-fields -->
 
-      <!-- Live running total footer (Rec iv). Updates as the user types.
-           Two figures: Spent (all expense fields + other log) and Invested
-           (regular + top-up). Redemption is shown as a separate note when
-           present. Computed by updateExpenseFooter(), hooked into the form's
-           input handler. -->
+      <!-- Live running total footer (Rec iv). Now the LAST element in the
+           section — after all disclosure fields including recurring. Two
+           figures: Spent (all expense fields + other log + recurring) and
+           Invested (regular + top-up). Redemption shown as a note when present. -->
       <div class="exp-footer" id="expFooter" aria-live="polite">
         <div class="exp-footer-item exp-footer-spent">
           <span class="exp-footer-label">Spent</span>
@@ -6820,57 +6863,6 @@
         <div class="exp-footer-item exp-footer-invested">
           <span class="exp-footer-label">Invested</span>
           <span class="exp-footer-value" id="expFooterInvested">₹0</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- RECURRING / DATED PAYMENTS (Phase 11+) ===========================
-         Quick log for recurring bills (rent, EMIs, subscriptions, utilities).
-         Each payment has a name + amount + the EXACT date paid. The payment
-         lands on that date's entry (cross-date write) and feeds into that
-         date's expense total. A running list shows the current calendar
-         month's logged payments, each removable. Quick-chips fill the name. -->
-    <!-- Merge (Option A): Recurring reads as a continuation of Expenses, not a
-         separate section. The big section-head is replaced with a subhead-style
-         header that matches the Investments/Discretionary groups. The section
-         wrapper + all IDs stay (focus-mode CSS at ~line 1103 already shows this
-         alongside s-expenses; cross-date logging engine untouched). -->
-    <div class="section s-recurring s-recurring-merged">
-      <div class="subhead recu rec-merged-head">
-        Recurring payments
-        <span class="rec-merged-tag" title="These land on the exact date paid — log rent on the 1st even while viewing today">dated · lands on paid date</span>
-      </div>
-      <div class="recurring-card">
-        <div class="subhead first rec rec-subhead">What did you pay today?</div>
-        <div class="rec-hint hidden" id="recHint"></div>
-        <div class="rec-field">
-          <input class="input rec-name-input" type="text" id="recName" placeholder="e.g., Flat Rent" autocomplete="off" aria-label="What did you pay today?">
-          <div class="chips rec-chips" id="recChips">
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Flat Rent"><span class="chip-plus" aria-hidden="true">+</span>Flat Rent</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Flat Light Bill"><span class="chip-plus" aria-hidden="true">+</span>Flat Light Bill</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="MNGL Gas"><span class="chip-plus" aria-hidden="true">+</span>MNGL Gas</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Netflix"><span class="chip-plus" aria-hidden="true">+</span>Netflix</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Mobile Bill"><span class="chip-plus" aria-hidden="true">+</span>Mobile Bill</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Office Rent"><span class="chip-plus" aria-hidden="true">+</span>Office Rent</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Office Light Bill"><span class="chip-plus" aria-hidden="true">+</span>Office Light Bill</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Workspace Gmail"><span class="chip-plus" aria-hidden="true">+</span>Workspace Gmail</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="Workspace Com"><span class="chip-plus" aria-hidden="true">+</span>Workspace Com</button>
-            <button type="button" class="chip chip-preset rec-chip" data-rec-name="ChatGPT"><span class="chip-plus" aria-hidden="true">+</span>ChatGPT</button>
-          </div>
-        </div>
-        <div class="rec-field">
-          <label class="rec-label">Amount</label>
-          <div class="currency-wrap rec-amt-wrap"><span class="currency-symbol">₹</span><input class="input rec-amt-input" type="text" inputmode="decimal" id="recAmt" placeholder="0"></div>
-          <div class="rec-suggest hidden" id="recSuggest"></div>
-        </div>
-        <button type="button" class="rec-add-btn" id="recLogBtn">Log payment</button>
-        <div class="rec-error hidden" id="recError"></div>
-
-        <!-- Running log of this month's payments -->
-        <div class="rec-log" id="recLog">
-          <div class="rec-log-title" id="recLogTitle">This month's payments</div>
-          <div class="rec-log-rows" id="recLogRows"></div>
-          <div class="rec-log-total" id="recLogTotal"></div>
         </div>
       </div>
     </div>
@@ -10635,15 +10627,9 @@ function focusHubSection(cls) {
   // Expand the focused section so its content is visible (in case classic
   // view had collapsed it).
   if (typeof expandTodaySection === 'function') expandTodaySection(cls);
-  // Recurring Payments is a companion of Expenses — expand it too so it
-  // renders in the same detail page.
-  if (cls === 's-expenses') {
-    const rec = document.querySelector('.section.s-recurring');
-    if (rec) {
-      rec.classList.add('is-expanded');
-      rec.classList.remove('is-collapsed');
-    }
-  }
+  // (Recurring Payments used to be a separate companion section expanded here;
+  // it now lives inside the Expenses "8 more" disclosure, so expanding
+  // s-expenses already covers it.)
   // Update nav bar title + progress
   const idx = HUB_SECTION_ORDER.findIndex(s => s.cls === cls);
   const sec = HUB_SECTION_ORDER[idx];
