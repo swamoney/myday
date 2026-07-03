@@ -145,7 +145,7 @@
   .reader-title { flex:1; font-family:var(--serif); font-size:16px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .reader-edit { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:12px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
   .reader-edit:hover { border-color:var(--accent); color:var(--accent); }
-  .reader-frame { flex:1; border:0; width:100%; background:#fff; }
+  .reader-frame { flex:1; border:0; width:1px; min-width:100%; max-width:100%; background:#fff; }
 
   .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,0.2); transition:transform 0.3s; z-index:300; }
   .toast.show { transform:translateX(-50%) translateY(0); }
@@ -580,15 +580,34 @@ function openReader(id) {
 // elements (images, tables, pre) wrap/shrink to fit instead of overflowing.
 function prepareForMobile(html) {
   const viewportTag = '<meta name="viewport" content="width=device-width, initial-scale=1">';
-  const fitCss = '<style>html,body{max-width:100%;overflow-x:hidden;}' +
-    'img,video,table,pre,iframe{max-width:100%;height:auto;}' +
-    'body{word-wrap:break-word;overflow-wrap:break-word;}</style>';
+  // Neutralize desktop fixed widths: max-width:100% overrides an explicit
+  // width:900px, so hard-coded wide containers shrink to fit. !important beats
+  // the file's own styles. overflow-x:hidden on root kills sideways scroll.
+  const fitCss = '<style id="__wisdom_mobile_fit">' +
+    'html,body{max-width:100%!important;margin:0!important;overflow-x:hidden!important;}' +
+    '*{max-width:100%!important;box-sizing:border-box!important;}' +
+    'img,video,canvas,svg,iframe,table,pre{height:auto!important;}' +
+    'body{word-wrap:break-word;overflow-wrap:break-word;}' +
+    '</style>';
   const inject = viewportTag + fitCss;
   const hasViewport = /<meta[^>]+name=["']?viewport["']?/i.test(html);
   const headMatch = /<head[^>]*>/i.exec(html);
   if (headMatch) {
-    // Insert right after <head>. Skip the viewport tag if one already exists.
+    // Insert right after <head> — but AFTER the file's own styles would be
+    // loaded, our block still wins because it's appended at the end of <head>?
+    // No: to reliably beat the file's CSS, inject just before </head> so ours
+    // is the last stylesheet parsed.
+    const closeHead = /<\/head>/i.exec(html);
     const toInsert = hasViewport ? fitCss : inject;
+    if (closeHead) {
+      // viewport must be in head early; styles must be late. Split them.
+      let out = html;
+      if (!hasViewport) {
+        out = out.slice(0, headMatch.index + headMatch[0].length) + viewportTag + out.slice(headMatch.index + headMatch[0].length);
+      }
+      const ch = /<\/head>/i.exec(out);
+      return out.slice(0, ch.index) + fitCss + out.slice(ch.index);
+    }
     return html.slice(0, headMatch.index + headMatch[0].length) + toInsert + html.slice(headMatch.index + headMatch[0].length);
   }
   // No <head> — prepend the tags (browsers still honor a leading meta/style).
