@@ -2909,16 +2909,101 @@
     background: #FCFAF8;
   }
 
-  /* Expanded entry panel — chips + name + amount + log button.
-     Hidden by default; .is-expanded on .field reveals it. */
-  .other-entry {
-    display: none;
-    margin-top: 8px;
-    padding: 12px;
-    background: rgba(138, 31, 26, 0.04);
-    border: 1px solid rgba(229, 207, 201, 0.7);
+  /* ==================================================================
+     Progressive disclosure toggle (Rec iv) — "7 more" reveal for the
+     less-frequent expense fields. Styled to match .other-summary so the
+     whole section reads consistently: white pill, ember hover, chevron
+     that rotates when open. */
+  .exp-more-toggle {
+    display: flex; align-items: center; gap: 8px;
+    width: 100%;
+    background: #FFFFFF;
+    border: 1px solid #E5CFC9;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 4px 0 2px;
+    font-family: var(--sans);
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    -webkit-user-select: none; user-select: none;
+    text-align: left;
+  }
+  .exp-more-toggle:hover {
+    border-color: var(--ember);
+    background: #FCFAF8;
+    color: var(--ink-soft);
+  }
+  .exp-more-label { flex: 1; min-width: 0; }
+  .exp-more-chev {
+    color: var(--muted); font-size: 12px; flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+  .exp-more-toggle[aria-expanded="true"] {
+    border-color: var(--ember);
+    background: #FCFAF8;
+    color: var(--ink);
+  }
+  .exp-more-toggle[aria-expanded="true"] .exp-more-chev {
+    transform: rotate(180deg);
+  }
+  /* The revealed field block. Hidden via [hidden] attribute when collapsed. */
+  .exp-more-fields[hidden] { display: none; }
+  .exp-more-fields {
+    /* subtle fade-in when revealed */
+    animation: expMoreFadeIn 180ms ease-out;
+  }
+  @keyframes expMoreFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Live running-total footer (Rec iv) — Spent + Invested, updates as you
+     type. Sticky-feeling summary at the bottom of the section. Uses mono
+     tabular figures so the numbers don't jitter while typing. */
+  .exp-footer {
+    display: flex; align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #FDF7F6;
+    border: 1px solid var(--ember-soft);
     border-radius: 10px;
   }
+  .exp-footer-item {
+    display: flex; flex-direction: column; gap: 2px;
+    flex: 1;
+  }
+  .exp-footer-label {
+    font-family: var(--sans);
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  .exp-footer-value {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 18px; font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .exp-footer-spent .exp-footer-value { color: var(--ember-ink); }
+  .exp-footer-invested .exp-footer-value { color: #1f5c3a; }
+  .exp-footer-divider {
+    width: 1px; align-self: stretch;
+    background: var(--ember-soft);
+    flex-shrink: 0;
+  }
+  /* A small redemption note appears under Invested when redemption > 0 */
+  .exp-footer-redemption {
+    font-family: var(--sans);
+    font-size: 10px; color: var(--muted);
+    font-style: italic;
+    margin-top: 1px;
+  }
+
+
   .s-other-field.is-expanded .other-entry {
     display: block;
   }
@@ -6438,6 +6523,22 @@
           <input class="input field-note-input" type="text" id="f_uberNote" placeholder="add a note (optional) — e.g., Pune to Mumbai · Uber">
         </div>
       </div>
+      <!-- ==================================================================
+           Progressive disclosure (Rec iv): the 7 less-frequent fields —
+           Shopping, Entertainment, Hotel Stay, Travel Booking, Other Expenses,
+           Taxes, Credit Card Bill — collapse behind a "more" toggle. The
+           always-visible fields above (Investments ×3 + Daily ×3) cover most
+           days; the rest are one tap away. The existing "Discretionary"
+           subhead is preserved INSIDE the reveal. Re-collapses on each
+           section entry (no persisted state) per user preference.
+           Data flow unchanged — all field IDs, calc buttons, notes, and the
+           Other Expenses inner disclosure are identical to before; they're
+           just wrapped in a container that toggles visibility. -->
+      <button type="button" class="exp-more-toggle" id="expMoreToggle" aria-expanded="false" aria-controls="expMoreFields">
+        <span class="exp-more-label" id="expMoreLabel">7 more &mdash; shopping, travel, taxes &amp; more</span>
+        <span class="exp-more-chev" aria-hidden="true">&#9662;</span>
+      </button>
+      <div class="exp-more-fields" id="expMoreFields" hidden>
       <div class="subhead disc">Discretionary</div>
       <div class="field">
         <label>Shopping</label>
@@ -6564,6 +6665,24 @@
         <div class="field-note">
           <span class="field-note-arrow" aria-hidden="true">↳</span>
           <input class="input field-note-input" type="text" id="f_creditCardBillNote" placeholder="add a note (optional) — e.g., HDFC Regalia bill paid">
+        </div>
+      </div>
+      </div><!-- /.exp-more-fields -->
+
+      <!-- Live running total footer (Rec iv). Updates as the user types.
+           Two figures: Spent (all expense fields + other log) and Invested
+           (regular + top-up). Redemption is shown as a separate note when
+           present. Computed by updateExpenseFooter(), hooked into the form's
+           input handler. -->
+      <div class="exp-footer" id="expFooter" aria-live="polite">
+        <div class="exp-footer-item exp-footer-spent">
+          <span class="exp-footer-label">Spent</span>
+          <span class="exp-footer-value" id="expFooterSpent">₹0</span>
+        </div>
+        <div class="exp-footer-divider" aria-hidden="true"></div>
+        <div class="exp-footer-item exp-footer-invested">
+          <span class="exp-footer-label">Invested</span>
+          <span class="exp-footer-value" id="expFooterInvested">₹0</span>
         </div>
       </div>
     </div>
@@ -8735,6 +8854,10 @@ function renderEntry() {
   // renderEntry() only ran refreshSectionStatusDots before which handled the
   // classic-view section header dots but not the Hub landing page.
   if (typeof refreshHubState === 'function') refreshHubState();
+  // Rec iv: refresh the live expense footer (Spent/Invested) on date change,
+  // and re-collapse the "7 more" reveal so each day starts calm.
+  if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
+  if (typeof collapseExpenseDisclosure === 'function') collapseExpenseDisclosure();
   // Phase 11+: reset unlock flag + re-apply Verdict lock state for current date.
   // Each navigation re-locks past dates (the unlock state doesn't persist).
   if (typeof verdictUnlockedThisRender !== 'undefined') verdictUnlockedThisRender = false;
@@ -9378,6 +9501,9 @@ function bindForm() {
     todayTab.addEventListener('input', e => {
       const t = e.target;
       if (t && t.id && t.id.startsWith('f_')) markFieldSaving(t.id);
+      // Rec iv: live expense footer — recompute Spent/Invested as the user
+      // types in any expense/investment field.
+      if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
     });
     // Toggle buttons emit 'click', not 'input'. Map a clicked toggle button
     // to its target field id.
@@ -10044,6 +10170,84 @@ const HUB_SECTION_ORDER = [
   { cls: 's-verdict',  label: "The Day's Verdict" },
 ];
 
+// ============ Rec iv: Expense progressive disclosure + live footer ============
+// Wire the "7 more" toggle and compute the running Spent/Invested totals.
+// Called once at boot (setupExpenseDisclosure) and on every input event
+// (updateExpenseFooter).
+
+function setupExpenseDisclosure() {
+  const toggle = document.getElementById('expMoreToggle');
+  const fields = document.getElementById('expMoreFields');
+  if (toggle && fields) {
+    toggle.addEventListener('click', () => {
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+      fields.hidden = isOpen;
+    });
+  }
+  // Initial footer paint
+  updateExpenseFooter();
+}
+
+// Re-collapse the "7 more" reveal. Called on each section (re)entry so the
+// user always starts from the calm 6-field view (per user preference: no
+// persisted open state).
+function collapseExpenseDisclosure() {
+  const toggle = document.getElementById('expMoreToggle');
+  const fields = document.getElementById('expMoreFields');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  if (fields) fields.hidden = true;
+}
+
+// Compute Spent + Invested from the current form values and paint the footer.
+// Mirrors the canonical monthly aggregation:
+//   Spent  = food+dmart+uber+shopping+hotelStay+travel+entertainment+taxes+other
+//            (creditCardBill excluded — it's tracking-only, already counted)
+//   Invested = regularInvestment + topUp   (redemption shown separately)
+// Reads live input values via evalExpr so "30+50" style entries sum correctly.
+function updateExpenseFooter() {
+  const spentEl = document.getElementById('expFooterSpent');
+  const investedEl = document.getElementById('expFooterInvested');
+  if (!spentEl || !investedEl) return;
+
+  // Read a field's live value from the DOM input (falls back to currentEntry
+  // for derived fields like 'other' which has no direct input).
+  const liveVal = (id) => {
+    const el = document.getElementById('f_' + id);
+    if (el) return evalExpr(el.value) || 0;
+    return 0;
+  };
+
+  const spendFields = ['food','dmart','uber','shopping','hotelStay','travel','entertainment','taxes'];
+  let spent = 0;
+  spendFields.forEach(f => { spent += liveVal(f); });
+  // 'other' is derived from otherLog into currentEntry.other — read that.
+  if (typeof currentEntry === 'object' && currentEntry) {
+    spent += evalExpr(currentEntry.other) || 0;
+  }
+
+  const invested = liveVal('regularInvestment') + liveVal('topUp');
+  const redemption = liveVal('investmentRedemption');
+
+  spentEl.textContent = fmtINR(spent);
+  investedEl.textContent = fmtINR(invested);
+
+  // Redemption note under Invested (only when present)
+  let redNote = document.getElementById('expFooterRedemption');
+  const investedItem = investedEl.closest('.exp-footer-item');
+  if (redemption > 0) {
+    if (!redNote && investedItem) {
+      redNote = document.createElement('span');
+      redNote.className = 'exp-footer-redemption';
+      redNote.id = 'expFooterRedemption';
+      investedItem.appendChild(redNote);
+    }
+    if (redNote) redNote.textContent = fmtINR(redemption) + ' redeemed';
+  } else if (redNote) {
+    redNote.remove();
+  }
+}
+
 // Enter focus mode for a specific section. Sets body class + data attribute
 // which triggers all the CSS visibility changes. Also expands the focused
 // section (so its content is visible if it was collapsed), updates the nav
@@ -10053,6 +10257,12 @@ function focusHubSection(cls) {
   const body = document.body;
   body.classList.add('hub-focused');
   body.setAttribute('data-hub-focus', cls);
+  // Rec iv: whenever we enter Investments/Expenses, start with the "7 more"
+  // reveal collapsed (fresh calm view) and refresh the footer total.
+  if (cls === 's-expenses') {
+    if (typeof collapseExpenseDisclosure === 'function') collapseExpenseDisclosure();
+    if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
+  }
   // Expand the focused section so its content is visible (in case classic
   // view had collapsed it).
   if (typeof expandTodaySection === 'function') expandTodaySection(cls);
@@ -16808,6 +17018,8 @@ function renderOtherLog() {
   if (items.length === 0) {
     rowsEl.innerHTML = '';
     if (totalEl) totalEl.innerHTML = '';
+    // Rec iv: keep the live footer in sync when the last other-item is removed.
+    if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
     return;
   }
 
@@ -16843,6 +17055,8 @@ function renderOtherLog() {
       }
     });
   });
+  // Rec iv: refresh the live Spent total after the other-log re-renders.
+  if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
 }
 
 function setupOther() {
@@ -17482,6 +17696,8 @@ async function init() {
   bindForm();
   // [P] Inject per-field save indicator spans into every Today-tab field label.
   setupFieldSaveIndicators();
+  // Rec iv: wire the expense "7 more" disclosure toggle + initial footer paint.
+  if (typeof setupExpenseDisclosure === 'function') setupExpenseDisclosure();
 
   // Auth wiring
   document.getElementById('authSubmit').addEventListener('click', handleSignIn);
