@@ -86,6 +86,27 @@
   }
 
   .foot-note { text-align:center; font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#a8b2c4; margin-top:20px; }
+
+  /* selectable rows (read mode) */
+  .snode { cursor:pointer; border-radius:10px; }
+  body:not(.editing) .snode:hover { background:#f6f8fb; }
+  .snode.active { background:#fbf6ec; }
+  .snode.active .smark { background:#f4c430; color:#1c2436; }
+  .open-cue { position:absolute; right:6px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#c39a45; background:linear-gradient(90deg, rgba(251,246,236,0) 0%, #fbf6ec 30%); padding:6px 6px 6px 22px; opacity:0; transition:opacity .15s; pointer-events:none; }
+  body:not(.editing) .snode:hover .open-cue, .snode.active .open-cue { opacity:1; }
+  body.editing .open-cue { display:none; }
+
+  /* whiteboard panel — warm paper, one free space per why */
+  .notes-panel { margin-top:20px; }
+  .wb-empty { text-align:center; font-family:var(--serif); font-style:italic; color:#aab4c8; padding:22px; border-top:1px dashed #e0e6ef; }
+  .wb { border-top:2px solid #f0e6d0; padding-top:18px; }
+  .wb-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .wb-mk { width:32px; height:32px; border-radius:50%; background:#f4c430; color:#1c2436; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; font-weight:700; }
+  .wb-title { font-family:var(--serif); font-size:18px; font-weight:600; color:#182233; }
+  .wb-status { margin-left:auto; font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:#9aa4ba; min-height:12px; }
+  .wb-paper { width:100%; min-height:220px; resize:vertical; border:1px solid #ece0c8; border-radius:12px; padding:16px 20px; font-family:var(--serif); font-size:15px; line-height:28px; color:#5c4a2c; box-shadow:0 6px 18px rgba(120,90,40,0.08); background:#fdfaf3; background-image:repeating-linear-gradient(#fdfaf3 0px, #fdfaf3 27px, #efe3cb 28px); }
+  .wb-paper:focus { outline:none; border-color:#d8c08a; box-shadow:0 6px 20px rgba(120,90,40,0.14); }
+  .wb-paper::placeholder { color:#c2ad82; font-style:italic; }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
 
   /* ===== MODAL ===== */
@@ -146,6 +167,7 @@
       <div class="spine-line"></div>
       <div id="spine"></div>
       <div class="add-row"><button class="add-why" id="addBtn">&#43; Add a why</button></div>
+      <div id="notesPanel" class="notes-panel"></div>
     </div>
   </div>
   <div class="foot-note">one life, live it well</div>
@@ -207,6 +229,8 @@ const supa = window.supabase.createClient(
 let userId = null;
 let pillars = [];
 let editingId = null;
+let selectedId = null;
+let notesTimer = null;
 
 function el(id) { return document.getElementById(id); }
 function escHtml(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -214,11 +238,11 @@ function toast(msg) { const t = el('toast'); t.textContent = msg; t.classList.ad
 
 // Starter set — seeded once on first load, then fully editable in-app.
 const DEFAULTS = [
-  { code:'IN', num:'125', brk:'',          label:'', current_status:'' },
-  { code:'H',  num:'77',  brk:'',          label:'', current_status:'' },
-  { code:'F',  num:'150', brk:'1 \u00d7 1 \u00d7 1', label:'', current_status:'' },
-  { code:'T',  num:'75',  brk:'',          label:'', current_status:'' },
-  { code:'S',  num:'25+', brk:'',          label:'', current_status:'' },
+  { code:'IN', num:'125', brk:'',          label:'', current_status:'', notes:'' },
+  { code:'H',  num:'77',  brk:'',          label:'', current_status:'', notes:'' },
+  { code:'F',  num:'150', brk:'1 \u00d7 1 \u00d7 1', label:'', current_status:'', notes:'' },
+  { code:'T',  num:'75',  brk:'',          label:'', current_status:'', notes:'' },
+  { code:'S',  num:'25+', brk:'',          label:'', current_status:'', notes:'' },
 ];
 
 // ===== DATA =====
@@ -233,7 +257,9 @@ async function loadPillars() {
   } else {
     pillars = data;
   }
+  if (selectedId && !pillars.some(p => String(p.id) === String(selectedId))) selectedId = null;
   renderSpine();
+  renderNotes();
 }
 
 function renderSpine() {
@@ -243,7 +269,8 @@ function renderSpine() {
     const why = p.current_status ? escHtml(p.current_status) : '&mdash;';
     const labelCls = p.label ? 'sfill' : 'sfill empty';
     const whyCls = p.current_status ? 'sfill' : 'sfill empty';
-    return '<div class="snode">' +
+    const activeCls = (selectedId && String(p.id) === String(selectedId)) ? ' active' : '';
+    return '<div class="snode' + activeCls + '" data-id="' + p.id + '">' +
       '<div class="node-tools">' +
         '<button class="nt" data-edit="' + p.id + '" title="Edit">&#9998;</button>' +
         '<button class="nt" data-up="' + p.id + '" title="Move up">&#9650;</button>' +
@@ -253,8 +280,58 @@ function renderSpine() {
       '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
       '<div class="' + labelCls + '"><span class="k">Stands for</span>' + label + '</div>' +
       '<div class="' + whyCls + '"><span class="k">Current status</span>' + why + '</div>' +
+      '<span class="open-cue">Whiteboard &rsaquo;</span>' +
     '</div>';
   }).join('');
+}
+
+// ===== NOTES WHITEBOARD (one free space per why) =====
+function openNotes(id) {
+  selectedId = id;
+  document.querySelectorAll('#spine .snode').forEach(n => n.classList.toggle('active', n.dataset.id === String(id)));
+  renderNotes();
+  const panel = el('notesPanel');
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function renderNotes() {
+  const panel = el('notesPanel');
+  if (!panel) return;
+  const p = selectedId ? pillars.find(x => String(x.id) === String(selectedId)) : null;
+  if (!p) {
+    panel.innerHTML = '<div class="wb-empty">Tap a why above to open its whiteboard.</div>';
+    return;
+  }
+  const numLine = escHtml(p.num) + (p.brk ? ' &middot; ' + escHtml(p.brk) : '');
+  panel.innerHTML =
+    '<div class="wb">' +
+      '<div class="wb-head">' +
+        '<div class="wb-mk">' + escHtml(p.code) + '</div>' +
+        '<div class="wb-title">' + escHtml(p.code) + ' &middot; ' + numLine + '</div>' +
+        '<div class="wb-status" id="notesStatus"></div>' +
+      '</div>' +
+      '<textarea class="wb-paper" id="notesArea" placeholder="A free space for this why — think out loud, jot anything.">' + escHtml(p.notes || '') + '</textarea>' +
+    '</div>';
+  const ta = el('notesArea');
+  ta.addEventListener('input', () => scheduleNotesSave(p.id, ta.value));
+  ta.addEventListener('blur', () => saveNotes(p.id, ta.value));
+}
+function scheduleNotesSave(id, text) {
+  const s = el('notesStatus'); if (s) s.textContent = 'Saving…';
+  clearTimeout(notesTimer);
+  notesTimer = setTimeout(() => saveNotes(id, text), 700);
+}
+async function saveNotes(id, text) {
+  clearTimeout(notesTimer);
+  const local = pillars.find(x => String(x.id) === String(id));
+  if (local && local.notes === text) { const s = el('notesStatus'); if (s) s.textContent = 'Saved'; return; }
+  try {
+    const { error } = await supa.from('why_pillars').update({ notes: text }).eq('id', id).eq('user_id', userId);
+    if (error) throw error;
+    if (local) local.notes = text;
+    const s = el('notesStatus'); if (s) s.textContent = 'Saved';
+  } catch (e) {
+    const s = el('notesStatus'); if (s) s.textContent = 'Save failed';
+  }
 }
 
 // ===== EDIT MODE =====
@@ -382,6 +459,8 @@ el('spine').addEventListener('click', e => {
   const ed = e.target.closest('[data-edit]'); if (ed) { openModal(ed.dataset.edit); return; }
   const up = e.target.closest('[data-up]'); if (up) { movePillar(up.dataset.up, -1); return; }
   const dn = e.target.closest('[data-down]'); if (dn) { movePillar(dn.dataset.down, 1); return; }
+  if (document.body.classList.contains('editing')) return;
+  const row = e.target.closest('.snode'); if (row && row.dataset.id) openNotes(row.dataset.id);
 });
 
 boot();
