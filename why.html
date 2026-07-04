@@ -38,10 +38,15 @@
   .head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
   .hub-back { font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.55); }
   .hub-back:hover { color:#f4c430; }
-  .head-actions { display:flex; gap:8px; }
-  .mini-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:8px; padding:6px 12px; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.72); cursor:pointer; transition:all .15s; }
-  .mini-btn:hover { border-color:#f4c430; color:#f4c430; }
-  .mini-btn.active { background:#f4c430; color:#1c2436; border-color:#f4c430; }
+  /* Edit + Sign out — icon + label pair at the page end (matches the hub). */
+  .end-actions { display:flex; justify-content:center; gap:34px; margin-top:30px; }
+  .end-actions .cell { display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .ib { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.72); border:1px solid #dce3ee; color:#7a8498; cursor:pointer; transition:all .15s; }
+  .ib svg { width:19px; height:19px; }
+  .ib.edit:hover { border-color:#a5702f; color:#a5702f; background:#fff; }
+  .ib.edit.active { border-color:#a5702f; color:#a5702f; background:#fbf6ec; }
+  .ib.out:hover { border-color:#a8443e; color:#a8443e; background:#fff; }
+  .cap { font-family:var(--mono); font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#9aa4ba; }
   .why-eyebrow { font-family:var(--mono); font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:#f4c430; margin-bottom:12px; }
   .why-title { font-family:var(--serif); font-size:50px; font-weight:600; letter-spacing:-0.02em; line-height:1; }
   .why-line { font-family:var(--serif); font-style:italic; font-size:16px; margin-top:13px; color:rgba(255,255,255,0.7); max-width:520px; }
@@ -132,10 +137,6 @@
     <div class="why-head">
       <div class="head-top">
         <a class="hub-back" href="/">&larr; Hub</a>
-        <div class="head-actions">
-          <button class="mini-btn" id="editToggle">&#9998; Edit</button>
-          <button class="mini-btn" id="signOutBtn">Sign out</button>
-        </div>
       </div>
       <div class="why-eyebrow">The long road, marked</div>
       <div class="why-title">My Why</div>
@@ -148,6 +149,21 @@
     </div>
   </div>
   <div class="foot-note">one life, live it well</div>
+
+  <div class="end-actions">
+    <div class="cell">
+      <button class="ib edit" id="editToggle" title="Edit" aria-label="Edit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+      </button>
+      <span class="cap" id="editCap">Edit</span>
+    </div>
+    <div class="cell">
+      <button class="ib out" id="signOutBtn" title="Sign out" aria-label="Sign out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+      </button>
+      <span class="cap">Sign out</span>
+    </div>
+  </div>
 </main>
 
 <div class="modal-overlay hidden" id="modalOverlay">
@@ -244,8 +260,13 @@ function renderSpine() {
 // ===== EDIT MODE =====
 function toggleEdit() {
   const on = document.body.classList.toggle('editing');
-  el('editToggle').classList.toggle('active', on);
-  el('editToggle').innerHTML = on ? '&#10003; Done' : '&#9998; Edit';
+  const btn = el('editToggle');
+  btn.classList.toggle('active', on);
+  el('editCap').textContent = on ? 'Done' : 'Edit';
+  btn.setAttribute('title', on ? 'Done' : 'Edit');
+  btn.innerHTML = on
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 }
 
 // ===== MODAL =====
