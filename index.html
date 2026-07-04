@@ -87,16 +87,6 @@
   .card.feat .feat-day { font-size:11.5px; color:rgba(255,255,255,0.68); margin-top:2px; }
   .card.feat .feat-ring { flex-shrink:0; }
   @media (max-width:520px){ .card.feat .feat-status { margin-left:0; width:100%; justify-content:space-between; padding-right:0; margin-top:4px; } }
-
-  /* Rotating wisdom line — a single aphorism from the library, subtle & serif. */
-  .wisdom-line { text-align:center; padding:22px 26px; border-radius:16px; margin-top:20px;
-    background:rgba(255,255,255,0.6); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,0.9); box-shadow:0 4px 16px rgba(30,50,90,0.05); }
-  .wisdom-line .wl-mark { font-family:var(--serif); font-size:32px; color:#c3ccdb; line-height:0.4; }
-  .wisdom-line .wl-text { font-family:var(--serif); font-style:italic; font-size:16.5px; color:#28324B; line-height:1.5; max-width:600px; margin:6px auto 0; }
-  .wisdom-line .wl-src { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#8189a0; margin-top:11px; }
-  .wisdom-line .wl-src a { color:#8189a0; text-decoration:none; border-bottom:1px solid #cdd6e3; }
-  .wisdom-line .wl-src a:hover { color:#5a6a88; }
   .card.feat .c-title { color:#fff; font-size:24px; }
   .card.feat .c-desc { color:rgba(255,255,255,0.82); font-size:13px; }
   .card.feat .c-ic { width:54px; height:54px; font-size:26px; background:rgba(255,255,255,0.16); color:#fff; flex-shrink:0; }
@@ -111,13 +101,24 @@
   .soon-badge { position:absolute; top:15px; right:16px; font-size:8.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; background:#eef2f8; color:#8189a0; border:1px solid #dce3ee; padding:2px 7px; border-radius:20px; }
 
   /* Soft colour tints in the icon tiles only. */
-  .ic-daily { background:#eaeff6; color:#2b4a72; } .ic-wisdom { background:#e9f1ec; color:#3d7a5c; } .ic-fav { background:#f6eae9; color:#a8443e; }
-  .ic-money { background:#f5efe4; color:#a5702f; } .ic-intro { background:#f1ebef; color:#6f4356; }
+  /* Shade B — each card a soft tinted wash in its identity colour. */
+  #cardWisdom { background:linear-gradient(160deg,#f2f8f4,#e4efe8); }
+  #cardFav    { background:linear-gradient(160deg,#fbf1f0,#f4e3e1); }
+  .shade-money { background:linear-gradient(160deg,#fbf5ea,#f3ead9); }
+  .shade-intro { background:linear-gradient(160deg,#f8f0f4,#efe2e9); }
+
+  .ic-daily { background:#eaeff6; color:#2b4a72; } .ic-wisdom { background:#dcebe2; color:#3d7a5c; } .ic-fav { background:#f5dcd9; color:#a8443e; }
+  .ic-money { background:#f2e6cf; color:#a5702f; } .ic-intro { background:#eddbe5; color:#6f4356; }
 
   /* Richer footer — divider, larger serif, bolder rainbow. */
-  .hub-foot { text-align:center; margin-top:30px; padding-top:22px; border-top:1px solid #dbe3ee; }
+  /* Footer F2 — its own glass card with an ornament + larger rainbow line. */
+  .hub-foot { text-align:center; margin-top:26px; padding:22px 24px; border-radius:16px;
+    background:rgba(255,255,255,0.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,0.95); box-shadow:0 6px 18px rgba(30,50,90,0.06); }
+  .hub-foot .foot-orn { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px; color:#c3ccdb; font-size:12px; }
+  .hub-foot .foot-orn .orn-line { height:1px; width:40px; background:#cdd6e3; }
   .hub-foot .foot-a { font-family:var(--serif); font-style:italic; font-size:16px; color:#38425c; font-weight:500; }
-  .hub-foot .foot-b { font-family:var(--serif); font-style:italic; font-size:15px; margin-top:6px; font-weight:500;
+  .hub-foot .foot-b { font-family:var(--serif); font-style:italic; font-size:18px; margin-top:6px; font-weight:600;
     background:linear-gradient(90deg,#e0554b,#e88a3c,#e6c02e,#3fa168,#3d8fd6,#9a63d1);
     -webkit-background-clip:text; background-clip:text; color:transparent; }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
@@ -183,13 +184,13 @@
       <div class="c-title">Favourites</div>
       <div class="c-desc">Playlists, podcasts, videos</div>
     </a>
-    <div class="card soon">
+    <div class="card soon shade-money">
       <span class="soon-badge">soon</span>
       <div class="c-ic ic-money">₹</div>
       <div class="c-title">Why &amp; Money</div>
       <div class="c-desc">The why, with investments</div>
     </div>
-    <div class="card soon">
+    <div class="card soon shade-intro">
       <span class="soon-badge">soon</span>
       <div class="c-ic ic-intro">✎</div>
       <div class="c-title">Introspection</div>
@@ -197,13 +198,8 @@
     </div>
   </div>
 
-  <div class="wisdom-line hidden" id="wisdomLine">
-    <div class="wl-mark">&ldquo;</div>
-    <div class="wl-text" id="wlText">—</div>
-    <div class="wl-src" id="wlSrc"></div>
-  </div>
-
   <div class="hub-foot">
+    <div class="foot-orn"><span class="orn-line"></span>✦<span class="orn-line"></span></div>
     <div class="foot-a">One life, live it well</div>
     <div class="foot-b">Like a rainbow, each colour completes your soul</div>
   </div>
@@ -256,10 +252,9 @@ async function boot() {
 }
 function showApp() { el('authOverlay').classList.add('hidden'); el('app').classList.remove('hidden'); onEnter(); }
 
-// Runs once the hub is visible: fills the Daily banner status + loads a wisdom line.
+// Runs once the hub is visible: fills the Daily banner status.
 function onEnter() {
   updateDailyStatus();
-  loadWisdomLine();
 }
 
 // Daily banner — today's date + day-of-year progress + ring.
@@ -285,26 +280,6 @@ function updateDailyStatus() {
   }
 }
 
-// Wisdom line — pull a random piece that has an essence, show it as an aphorism.
-async function loadWisdomLine() {
-  try {
-    const { data, error } = await supa.from('wisdom').select('title, source_name, essence').not('essence', 'is', null);
-    if (error) throw error;
-    const withEssence = (data || []).filter(r => r.essence && r.essence.trim().length > 3);
-    if (!withEssence.length) return; // nothing to show — leave hub clean
-    const r = withEssence[Math.floor(Math.random() * withEssence.length)];
-    el('wlText').textContent = r.essence.trim();
-    const src = r.source_name && r.source_name.trim() ? r.source_name.trim() : (r.title || '');
-    el('wlSrc').innerHTML = 'From your Wisdom library' + (src ? ' · <a href="' + ROOMS.wisdom + '">' + escHtml(src) + '</a>' : '');
-    el('wisdomLine').classList.remove('hidden');
-  } catch (e) {
-    // Silent — the hub is complete without the line.
-    console.warn('wisdom line:', e && e.message);
-  }
-}
-function escHtml(s) {
-  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
 
 async function handleSignIn() {
   const email = el('authEmail').value.trim();
