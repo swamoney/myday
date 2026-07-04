@@ -161,7 +161,7 @@
     </div></div>
     <div class="fld"><label>Breakdown (optional)</label><input id="mBrk" placeholder="e.g. 1 &times; 1 &times; 1"></div>
     <div class="fld"><label>Stands for</label><input id="mLabel" placeholder="what this code means"></div>
-    <div class="fld"><label>Why it matters</label><textarea id="mWhy" placeholder="the reason behind it"></textarea></div>
+    <div class="fld"><label>Current status</label><textarea id="mWhy" placeholder="where this stands right now"></textarea></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="mDelete">Delete</button>
       <span style="flex:1"></span>
@@ -198,11 +198,11 @@ function toast(msg) { const t = el('toast'); t.textContent = msg; t.classList.ad
 
 // Starter set — seeded once on first load, then fully editable in-app.
 const DEFAULTS = [
-  { code:'IN', num:'125', brk:'',          label:'', why:'' },
-  { code:'H',  num:'77',  brk:'',          label:'', why:'' },
-  { code:'F',  num:'150', brk:'1 \u00d7 1 \u00d7 1', label:'', why:'' },
-  { code:'T',  num:'75',  brk:'',          label:'', why:'' },
-  { code:'S',  num:'25+', brk:'',          label:'', why:'' },
+  { code:'IN', num:'125', brk:'',          label:'', current_status:'' },
+  { code:'H',  num:'77',  brk:'',          label:'', current_status:'' },
+  { code:'F',  num:'150', brk:'1 \u00d7 1 \u00d7 1', label:'', current_status:'' },
+  { code:'T',  num:'75',  brk:'',          label:'', current_status:'' },
+  { code:'S',  num:'25+', brk:'',          label:'', current_status:'' },
 ];
 
 // ===== DATA =====
@@ -224,9 +224,9 @@ function renderSpine() {
   el('spine').innerHTML = pillars.map(p => {
     const brk = p.brk ? '<span class="brk">' + escHtml(p.brk) + '</span>' : '';
     const label = p.label ? escHtml(p.label) : '&mdash;';
-    const why = p.why ? escHtml(p.why) : '&mdash;';
+    const why = p.current_status ? escHtml(p.current_status) : '&mdash;';
     const labelCls = p.label ? 'sfill' : 'sfill empty';
-    const whyCls = p.why ? 'sfill' : 'sfill empty';
+    const whyCls = p.current_status ? 'sfill' : 'sfill empty';
     return '<div class="snode">' +
       '<div class="node-tools">' +
         '<button class="nt" data-edit="' + p.id + '" title="Edit">&#9998;</button>' +
@@ -236,7 +236,7 @@ function renderSpine() {
       '<div class="smark">' + escHtml(p.code) + '</div>' +
       '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
       '<div class="' + labelCls + '"><span class="k">Stands for</span>' + label + '</div>' +
-      '<div class="' + whyCls + '"><span class="k">Why it matters</span>' + why + '</div>' +
+      '<div class="' + whyCls + '"><span class="k">Current status</span>' + why + '</div>' +
     '</div>';
   }).join('');
 }
@@ -257,7 +257,7 @@ function openModal(id) {
   el('mNum').value = p ? (p.num || '') : '';
   el('mBrk').value = p ? (p.brk || '') : '';
   el('mLabel').value = p ? (p.label || '') : '';
-  el('mWhy').value = p ? (p.why || '') : '';
+  el('mWhy').value = p ? (p.current_status || '') : '';
   el('mDelete').classList.toggle('hidden', !p);
   el('modalErr').classList.add('hidden');
   el('modalOverlay').classList.remove('hidden');
@@ -271,7 +271,7 @@ async function savePillar() {
     num: el('mNum').value.trim(),
     brk: el('mBrk').value.trim(),
     label: el('mLabel').value.trim(),
-    why: el('mWhy').value.trim(),
+    current_status: el('mWhy').value.trim(),
   };
   if (!rec.code && !rec.num) {
     const er = el('modalErr'); er.textContent = 'Add at least a code or a number.'; er.classList.remove('hidden'); return;
