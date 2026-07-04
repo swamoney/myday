@@ -96,17 +96,20 @@
   body:not(.editing) .snode:hover .open-cue, .snode.active .open-cue { opacity:1; }
   body.editing .open-cue { display:none; }
 
-  /* whiteboard panel — warm paper, one free space per why */
-  .notes-panel { margin-top:20px; }
-  .wb-empty { text-align:center; font-family:var(--serif); font-style:italic; color:#aab4c8; padding:22px; border-top:1px dashed #e0e6ef; }
-  .wb { border-top:2px solid #f0e6d0; padding-top:18px; }
-  .wb-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
-  .wb-mk { width:32px; height:32px; border-radius:50%; background:#f4c430; color:#1c2436; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11px; font-weight:700; }
-  .wb-title { font-family:var(--serif); font-size:18px; font-weight:600; color:#182233; }
-  .wb-status { margin-left:auto; font-family:var(--mono); font-size:9.5px; letter-spacing:0.12em; text-transform:uppercase; color:#9aa4ba; min-height:12px; }
-  .wb-paper { width:100%; min-height:220px; resize:vertical; border:1px solid #ece0c8; border-radius:12px; padding:16px 20px; font-family:var(--serif); font-size:15px; line-height:28px; color:#5c4a2c; box-shadow:0 6px 18px rgba(120,90,40,0.08); background:#fdfaf3; background-image:repeating-linear-gradient(#fdfaf3 0px, #fdfaf3 27px, #efe3cb 28px); }
-  .wb-paper:focus { outline:none; border-color:#d8c08a; box-shadow:0 6px 20px rgba(120,90,40,0.14); }
-  .wb-paper::placeholder { color:#c2ad82; font-style:italic; }
+  /* notes — sticky-note pinboard, one coloured sticky per why-with-notes */
+  .notes-panel { margin-top:22px; }
+  .notes-empty { text-align:center; font-family:var(--serif); font-style:italic; color:#aab4c8; padding:22px; border-top:1px dashed #e0e6ef; }
+  .board { border-top:2px solid #eef1f6; padding-top:22px; display:flex; flex-wrap:wrap; gap:20px; }
+  .sticky { width:calc(50% - 10px); padding:16px 18px 14px; border-radius:4px; box-shadow:0 8px 18px rgba(30,40,70,0.14); position:relative; }
+  .sticky:nth-child(odd) { transform:rotate(-1.1deg); }
+  .sticky:nth-child(even) { transform:rotate(1.3deg); }
+  .sticky::before { content:''; position:absolute; top:8px; left:50%; transform:translateX(-50%); width:9px; height:9px; border-radius:50%; background:rgba(0,0,0,0.16); box-shadow:inset 0 -1px 2px rgba(0,0,0,0.3); }
+  .sticky-h { display:flex; align-items:center; justify-content:space-between; gap:8px; font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:0.08em; margin:10px 0 8px; }
+  .sticky-st { font-weight:500; font-size:8.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.6; min-height:10px; }
+  .sticky-txt { width:100%; min-height:110px; resize:vertical; border:none; background:transparent; font-family:var(--serif); font-size:14px; line-height:1.65; color:rgba(30,28,20,0.86); }
+  .sticky-txt:focus { outline:none; }
+  .sticky-txt::placeholder { color:rgba(30,28,20,0.32); font-style:italic; }
+  @media (max-width:560px) { .sticky { width:100%; transform:none !important; } }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
 
   /* ===== MODAL ===== */
@@ -280,58 +283,73 @@ function renderSpine() {
       '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
       '<div class="' + labelCls + '"><span class="k">Stands for</span>' + label + '</div>' +
       '<div class="' + whyCls + '"><span class="k">Current status</span>' + why + '</div>' +
-      '<span class="open-cue">Whiteboard &rsaquo;</span>' +
+      '<span class="open-cue">Note &rsaquo;</span>' +
     '</div>';
   }).join('');
 }
 
 // ===== NOTES WHITEBOARD (one free space per why) =====
+// Distinct sticky palette, assigned by pillar position (1st blue, 2nd green, …).
+const STICKY = [
+  { bg:'#cfe0f7', head:'#2c477e' },  // blue
+  { bg:'#cfe9d8', head:'#2f6146' },  // green
+  { bg:'#f7e6c2', head:'#8a5e22' },  // amber
+  { bg:'#e6d3ee', head:'#6b4a7a' },  // plum
+  { bg:'#f7d6d2', head:'#8f3a34' },  // rose
+];
+function stickyColor(i) { return STICKY[i % STICKY.length]; }
+
 function openNotes(id) {
   selectedId = id;
   document.querySelectorAll('#spine .snode').forEach(n => n.classList.toggle('active', n.dataset.id === String(id)));
   renderNotes();
-  const panel = el('notesPanel');
-  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const ta = document.querySelector('#notesPanel textarea[data-id="' + id + '"]');
+  if (ta) { ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); ta.focus(); }
 }
+
 function renderNotes() {
   const panel = el('notesPanel');
   if (!panel) return;
-  const p = selectedId ? pillars.find(x => String(x.id) === String(selectedId)) : null;
-  if (!p) {
-    panel.innerHTML = '<div class="wb-empty">Tap a why above to open its whiteboard.</div>';
+  // Show a sticky for every why that has notes, plus the one currently focused
+  // (so an empty why you just tapped gives you a fresh sticky to write in).
+  const shown = pillars.filter((p, i) =>
+    (p.notes && p.notes.trim()) || String(p.id) === String(selectedId)
+  );
+  if (!shown.length) {
+    panel.innerHTML = '<div class="notes-empty">Tap a why above to start a note.</div>';
     return;
   }
-  const numLine = escHtml(p.num) + (p.brk ? ' &middot; ' + escHtml(p.brk) : '');
-  panel.innerHTML =
-    '<div class="wb">' +
-      '<div class="wb-head">' +
-        '<div class="wb-mk">' + escHtml(p.code) + '</div>' +
-        '<div class="wb-title">' + escHtml(p.code) + ' &middot; ' + numLine + '</div>' +
-        '<div class="wb-status" id="notesStatus"></div>' +
+  panel.innerHTML = '<div class="board">' + shown.map(p => {
+    const i = pillars.findIndex(x => String(x.id) === String(p.id));
+    const c = stickyColor(i < 0 ? 0 : i);
+    const numLine = escHtml(p.num) + (p.brk ? ' &middot; ' + escHtml(p.brk) : '');
+    return '<div class="sticky" style="background:' + c.bg + ';">' +
+      '<div class="sticky-h" style="color:' + c.head + ';">' +
+        '<span>' + escHtml(p.code) + ' &middot; ' + numLine + '</span>' +
+        '<span class="sticky-st" id="st_' + p.id + '"></span>' +
       '</div>' +
-      '<textarea class="wb-paper" id="notesArea" placeholder="A free space for this why — think out loud, jot anything.">' + escHtml(p.notes || '') + '</textarea>' +
+      '<textarea class="sticky-txt" data-id="' + p.id + '" placeholder="Jot anything for this why…">' + escHtml(p.notes || '') + '</textarea>' +
     '</div>';
-  const ta = el('notesArea');
-  ta.addEventListener('input', () => scheduleNotesSave(p.id, ta.value));
-  ta.addEventListener('blur', () => saveNotes(p.id, ta.value));
+  }).join('') + '</div>';
 }
+
+function setStatus(id, msg) { const s = el('st_' + id); if (s) s.textContent = msg; }
+
 function scheduleNotesSave(id, text) {
-  const s = el('notesStatus'); if (s) s.textContent = 'Saving…';
+  setStatus(id, 'Saving…');
   clearTimeout(notesTimer);
   notesTimer = setTimeout(() => saveNotes(id, text), 700);
 }
 async function saveNotes(id, text) {
   clearTimeout(notesTimer);
   const local = pillars.find(x => String(x.id) === String(id));
-  if (local && local.notes === text) { const s = el('notesStatus'); if (s) s.textContent = 'Saved'; return; }
+  if (local && local.notes === text) { setStatus(id, 'Saved'); return; }
   try {
     const { error } = await supa.from('why_pillars').update({ notes: text }).eq('id', id).eq('user_id', userId);
     if (error) throw error;
     if (local) local.notes = text;
-    const s = el('notesStatus'); if (s) s.textContent = 'Saved';
-  } catch (e) {
-    const s = el('notesStatus'); if (s) s.textContent = 'Save failed';
-  }
+    setStatus(id, 'Saved');
+  } catch (e) { setStatus(id, 'Save failed'); }
 }
 
 // ===== EDIT MODE =====
@@ -461,6 +479,14 @@ el('spine').addEventListener('click', e => {
   const dn = e.target.closest('[data-down]'); if (dn) { movePillar(dn.dataset.down, 1); return; }
   if (document.body.classList.contains('editing')) return;
   const row = e.target.closest('.snode'); if (row && row.dataset.id) openNotes(row.dataset.id);
+});
+
+// Sticky notes: autosave on type (debounced) and on blur.
+el('notesPanel').addEventListener('input', e => {
+  const ta = e.target.closest('textarea[data-id]'); if (ta) scheduleNotesSave(ta.dataset.id, ta.value);
+});
+el('notesPanel').addEventListener('focusout', e => {
+  const ta = e.target.closest('textarea[data-id]'); if (ta) saveNotes(ta.dataset.id, ta.value);
 });
 
 boot();
