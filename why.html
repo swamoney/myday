@@ -104,8 +104,10 @@
   .sticky:nth-child(odd) { transform:rotate(-1.1deg); }
   .sticky:nth-child(even) { transform:rotate(1.3deg); }
   .sticky::before { content:''; position:absolute; top:8px; left:50%; transform:translateX(-50%); width:9px; height:9px; border-radius:50%; background:rgba(0,0,0,0.16); box-shadow:inset 0 -1px 2px rgba(0,0,0,0.3); }
-  .sticky-h { display:flex; align-items:center; justify-content:space-between; gap:8px; font-family:var(--mono); font-size:10.5px; font-weight:700; letter-spacing:0.08em; margin:10px 0 8px; }
-  .sticky-st { font-weight:500; font-size:8.5px; letter-spacing:0.12em; text-transform:uppercase; opacity:0.6; min-height:10px; }
+  .sticky-h { display:flex; align-items:center; gap:9px; margin:10px 0 8px; }
+  .sticky-chip { font-family:var(--mono); font-size:12px; font-weight:700; letter-spacing:0.06em; color:#fff; padding:3px 10px; border-radius:7px; }
+  .sticky-num { font-family:var(--serif); font-size:20px; font-weight:600; color:#1c2436; }
+  .sticky-st { position:absolute; top:12px; right:14px; font-family:var(--mono); font-size:8px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; opacity:0.45; min-height:10px; }
   .sticky-txt { width:100%; min-height:110px; resize:vertical; border:none; background:transparent; font-family:'Caveat',cursive; font-size:21px; line-height:1.4; color:rgba(28,26,18,0.9); }
   .sticky-txt:focus { outline:none; }
   .sticky-txt::placeholder { color:rgba(30,28,20,0.32); font-style:italic; }
@@ -324,9 +326,10 @@ function renderNotes() {
     const c = stickyColor(i < 0 ? 0 : i);
     const numLine = escHtml(p.num) + (p.brk ? ' &middot; ' + escHtml(p.brk) : '');
     return '<div class="sticky" style="background:' + c.bg + ';">' +
-      '<div class="sticky-h" style="color:' + c.head + ';">' +
-        '<span>' + escHtml(p.code) + ' &middot; ' + numLine + '</span>' +
-        '<span class="sticky-st" id="st_' + p.id + '"></span>' +
+      '<span class="sticky-st" id="st_' + p.id + '"></span>' +
+      '<div class="sticky-h">' +
+        '<span class="sticky-chip" style="background:' + c.head + ';">' + escHtml(p.code) + '</span>' +
+        '<span class="sticky-num">' + numLine + '</span>' +
       '</div>' +
       '<textarea class="sticky-txt" data-id="' + p.id + '" placeholder="Jot anything for this why…">' + escHtml(p.notes || '') + '</textarea>' +
     '</div>';
