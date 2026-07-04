@@ -8,21 +8,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --serif:'Fraunces',Georgia,serif;
-    --sans:'IBM Plex Sans',-apple-system,system-ui,sans-serif;
-    --mono:'IBM Plex Mono','SF Mono',monospace;
-  }
+  :root { --serif:'Fraunces',Georgia,serif; --sans:'IBM Plex Sans',-apple-system,system-ui,sans-serif; --mono:'IBM Plex Mono','SF Mono',monospace; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body { font-family:var(--sans); line-height:1.5; min-height:100vh; color:#0A1325; }
   body { padding:26px 18px 70px; background:#eef2f8; background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%); background-attachment:fixed; }
   a { text-decoration:none; color:inherit; }
   .hidden { display:none !important; }
   main { max-width:920px; margin:0 auto; }
+  input, button, textarea { font-family:inherit; font-size:inherit; color:inherit; }
 
-  /* ===== AUTH (Polar + Mist, matching the hub) ===== */
-  .auth-overlay { position:fixed; inset:0; z-index:250; display:flex; align-items:center; justify-content:center; padding:20px;
-    background:#eef2f8; background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%); }
+  /* ===== AUTH ===== */
+  .auth-overlay { position:fixed; inset:0; z-index:250; display:flex; align-items:center; justify-content:center; padding:20px; background:#eef2f8; background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%); }
   .auth-box { width:100%; max-width:380px; background:rgba(255,255,255,0.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.95); border-radius:18px; padding:30px 24px; box-shadow:0 20px 50px rgba(30,50,90,0.12); text-align:center; }
   .auth-icon { font-size:26px; margin-bottom:8px; opacity:0.8; }
   .auth-title { font-family:var(--serif); font-style:italic; font-weight:400; font-size:27px; color:#182233; margin-bottom:4px; }
@@ -38,22 +34,21 @@
 
   /* ===== ROOM ===== */
   .room { border-radius:22px; overflow:hidden; box-shadow:0 20px 50px rgba(20,30,60,0.14); }
-
-  /* Hero — dark, weighty (this is the "why", it earns gravity) */
   .why-head { background:linear-gradient(155deg,#243049,#141b2c); color:#fff; padding:30px 38px 30px; position:relative; }
-  .head-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+  .head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
   .hub-back { font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.55); }
   .hub-back:hover { color:#f4c430; }
-  .signout-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:8px; padding:6px 12px; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.7); cursor:pointer; transition:all .15s; }
-  .signout-btn:hover { border-color:#f4c430; color:#f4c430; }
+  .head-actions { display:flex; gap:8px; }
+  .mini-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:8px; padding:6px 12px; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.72); cursor:pointer; transition:all .15s; }
+  .mini-btn:hover { border-color:#f4c430; color:#f4c430; }
+  .mini-btn.active { background:#f4c430; color:#1c2436; border-color:#f4c430; }
   .why-eyebrow { font-family:var(--mono); font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:#f4c430; margin-bottom:12px; }
   .why-title { font-family:var(--serif); font-size:50px; font-weight:600; letter-spacing:-0.02em; line-height:1; }
   .why-line { font-family:var(--serif); font-style:italic; font-size:16px; margin-top:13px; color:rgba(255,255,255,0.7); max-width:520px; }
 
-  /* Spine body */
   .spine-body { background:#fbfcfe; padding:22px 38px 30px; position:relative; }
   .spine-line { position:absolute; left:62px; top:34px; bottom:34px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
-  .snode { display:grid; grid-template-columns:48px 104px 1fr 1fr; align-items:center; gap:22px; padding:20px 0; position:relative; border-bottom:1px solid #eef1f6; }
+  .snode { display:grid; grid-template-columns:48px 104px 1fr 1fr; align-items:center; gap:22px; padding:20px 0; position:relative; border-bottom:1px solid #eef1f6; transition:padding .15s; }
   .snode:last-child { border-bottom:none; }
   .smark { width:48px; height:48px; border-radius:50%; background:#fff; border:2px solid #f4c430; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px; font-weight:700; color:#a5702f; z-index:1; box-shadow:0 4px 12px rgba(180,140,40,0.18); }
   .snum { font-family:var(--serif); font-size:34px; font-weight:600; color:#182233; line-height:0.9; }
@@ -62,21 +57,54 @@
   .sfill .k { display:block; font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#aab4c8; margin-bottom:4px; }
   .sfill.empty { color:#c3ccdb; font-style:italic; }
 
+  /* edit affordances */
+  .node-tools { position:absolute; right:0; top:50%; transform:translateY(-50%); display:none; gap:6px; z-index:2; }
+  body.editing .node-tools { display:flex; }
+  body.editing .snode { padding-right:96px; }
+  .nt { width:28px; height:28px; border-radius:7px; border:1px solid #dce3ee; background:#fff; color:#6a7690; cursor:pointer; font-size:12px; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+  .nt:hover { border-color:#a5702f; color:#a5702f; }
+  .add-row { display:none; margin-top:4px; padding-top:16px; }
+  body.editing .add-row { display:block; }
+  .add-why { width:100%; border:1.5px dashed #cdd6e3; background:transparent; border-radius:12px; padding:14px; font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#8189a0; cursor:pointer; transition:all .15s; }
+  .add-why:hover { border-color:#a5702f; color:#a5702f; background:#fbf6ec; }
+
   @media (max-width:640px) {
     .why-head { padding:26px 22px; }
     .why-title { font-size:40px; }
     .spine-body { padding:18px 20px 26px; }
     .spine-line { left:46px; }
-    .snode { grid-template-columns:40px 1fr; gap:14px 16px; align-items:start; }
+    .snode { grid-template-columns:40px 1fr; gap:12px 16px; align-items:start; }
     .smark { width:40px; height:40px; font-size:12px; }
-    .snum { grid-column:2; font-size:30px; }
-    .sfill { grid-column:2; }
-    .sfill.label-col { margin-top:2px; }
+    .snum, .sfill { grid-column:2; }
+    body.editing .snode { padding-right:0; }
+    .node-tools { position:static; transform:none; grid-column:2; margin-top:6px; }
   }
 
   .foot-note { text-align:center; font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#a8b2c4; margin-top:20px; }
-
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
+
+  /* ===== MODAL ===== */
+  .modal-overlay { position:fixed; inset:0; z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(18,26,44,0.55); backdrop-filter:blur(4px); }
+  .modal { width:100%; max-width:440px; background:#fff; border-radius:18px; padding:26px 24px; box-shadow:0 30px 70px rgba(10,20,40,0.35); max-height:90vh; overflow-y:auto; }
+  .modal-title { font-family:var(--serif); font-size:22px; font-weight:600; color:#182233; margin-bottom:4px; }
+  .modal-sub { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#8189a0; margin-bottom:18px; }
+  .fld { margin-bottom:14px; }
+  .fld label { display:block; font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#8189a0; margin-bottom:5px; }
+  .fld input, .fld textarea { width:100%; background:#f4f7fb; border:1px solid #dce3ee; border-radius:9px; padding:11px 12px; font-size:14px; color:#182233; }
+  .fld input:focus, .fld textarea:focus { outline:none; border-color:#c9a94a; background:#fff; }
+  .fld textarea { min-height:72px; resize:vertical; font-family:var(--sans); line-height:1.5; }
+  .fld .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .modal-actions { display:flex; align-items:center; gap:8px; margin-top:20px; }
+  .btn-primary { background:#1e2740; color:#fff; border:none; border-radius:9px; padding:11px 18px; font-weight:600; font-size:13px; cursor:pointer; }
+  .btn-primary:hover { background:#28324b; }
+  .btn-ghost { background:transparent; border:1px solid #dce3ee; border-radius:9px; padding:11px 16px; font-size:13px; color:#6a7690; cursor:pointer; }
+  .btn-ghost:hover { border-color:#8fa2c4; }
+  .btn-danger { background:transparent; border:1px solid #e6c4c0; border-radius:9px; padding:11px 14px; font-size:13px; color:#a8443e; cursor:pointer; }
+  .btn-danger:hover { background:#fbf1f0; border-color:#a8443e; }
+  .modal-err { font-family:var(--mono); font-size:11px; color:#8A1F1A; padding:6px 10px; background:#FCE9E2; border-radius:6px; margin-bottom:12px; }
+
+  .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:#1e2740; color:#fff; padding:11px 20px; border-radius:10px; font-size:13px; opacity:0; pointer-events:none; transition:all .25s; z-index:400; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -85,7 +113,7 @@
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
-    <div class="auth-icon">✷</div>
+    <div class="auth-icon">&#10039;</div>
     <div class="auth-title">My Why</div>
     <div class="auth-subtitle">Sign in</div>
     <div class="auth-form">
@@ -97,26 +125,53 @@
   </div>
 </div>
 
-<div class="loading" id="bootLoading">Loading…</div>
+<div class="loading" id="bootLoading">Loading&hellip;</div>
 
 <main id="app" class="hidden">
   <div class="room">
     <div class="why-head">
       <div class="head-top">
-        <a class="hub-back" href="/">← Hub</a>
-        <button class="signout-btn" id="signOutBtn">Sign out</button>
+        <a class="hub-back" href="/">&larr; Hub</a>
+        <div class="head-actions">
+          <button class="mini-btn" id="editToggle">&#9998; Edit</button>
+          <button class="mini-btn" id="signOutBtn">Sign out</button>
+        </div>
       </div>
       <div class="why-eyebrow">The long road, marked</div>
       <div class="why-title">My Why</div>
-      <div class="why-line">The few things worth every early morning — kept on one line, so the daily choices stay pointed at them.</div>
+      <div class="why-line">The few things worth every early morning &mdash; kept on one line, so the daily choices stay pointed at them.</div>
     </div>
     <div class="spine-body">
       <div class="spine-line"></div>
       <div id="spine"></div>
+      <div class="add-row"><button class="add-why" id="addBtn">&#43; Add a why</button></div>
     </div>
   </div>
   <div class="foot-note">one life, live it well</div>
 </main>
+
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Edit why</div>
+    <div class="modal-sub">a reason worth building for</div>
+    <div class="modal-err hidden" id="modalErr"></div>
+    <div class="fld"><div class="row2">
+      <div><label>Code</label><input id="mCode" placeholder="e.g. F" maxlength="6"></div>
+      <div><label>Number</label><input id="mNum" placeholder="e.g. 150"></div>
+    </div></div>
+    <div class="fld"><label>Breakdown (optional)</label><input id="mBrk" placeholder="e.g. 1 &times; 1 &times; 1"></div>
+    <div class="fld"><label>Stands for</label><input id="mLabel" placeholder="what this code means"></div>
+    <div class="fld"><label>Why it matters</label><textarea id="mWhy" placeholder="the reason behind it"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-danger hidden" id="mDelete">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="mCancel">Cancel</button>
+      <button class="btn-primary" id="mSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
@@ -134,42 +189,131 @@ const supa = window.supabase.createClient(
 );
 
 let userId = null;
-function el(id) { return document.getElementById(id); }
-function escHtml(s) {
-  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
+let pillars = [];
+let editingId = null;
 
-// ===== THE FIVE WHYS =====
-// Edit here: code (the letter), num (big figure), brk (optional breakdown line),
-// label (what it stands for), why (why it matters). Leave label/why '' to show
-// a placeholder until you're ready to fill them in.
-const PILLARS = [
-  { code:'IN', num:'125',  brk:'',           label:'', why:'' },
-  { code:'H',  num:'77',   brk:'',           label:'', why:'' },
-  { code:'F',  num:'150',  brk:'1 × 1 × 1',  label:'', why:'' },
-  { code:'T',  num:'75',   brk:'',           label:'', why:'' },
-  { code:'S',  num:'25+',  brk:'',           label:'', why:'' },
+function el(id) { return document.getElementById(id); }
+function escHtml(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function toast(msg) { const t = el('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2000); }
+
+// Starter set — seeded once on first load, then fully editable in-app.
+const DEFAULTS = [
+  { code:'IN', num:'125', brk:'',          label:'', why:'' },
+  { code:'H',  num:'77',  brk:'',          label:'', why:'' },
+  { code:'F',  num:'150', brk:'1 \u00d7 1 \u00d7 1', label:'', why:'' },
+  { code:'T',  num:'75',  brk:'',          label:'', why:'' },
+  { code:'S',  num:'25+', brk:'',          label:'', why:'' },
 ];
 
+// ===== DATA =====
+async function loadPillars() {
+  const { data, error } = await supa.from('why_pillars').select('*').eq('user_id', userId).order('sort_order', { ascending: true });
+  if (error) throw error;
+  if (!data || data.length === 0) {
+    const seed = DEFAULTS.map((d, i) => Object.assign({}, d, { user_id: userId, sort_order: i }));
+    const { data: ins, error: e2 } = await supa.from('why_pillars').insert(seed).select();
+    if (e2) throw e2;
+    pillars = (ins || []).slice().sort((a, b) => a.sort_order - b.sort_order);
+  } else {
+    pillars = data;
+  }
+  renderSpine();
+}
+
 function renderSpine() {
-  const html = PILLARS.map(p => {
+  el('spine').innerHTML = pillars.map(p => {
     const brk = p.brk ? '<span class="brk">' + escHtml(p.brk) + '</span>' : '';
-    const label = p.label
-      ? '<span class="k">Stands for</span>' + escHtml(p.label)
-      : '<span class="k">Stands for</span>—';
-    const why = p.why
-      ? '<span class="k">Why it matters</span>' + escHtml(p.why)
-      : '<span class="k">Why it matters</span>—';
-    const labelCls = p.label ? 'sfill label-col' : 'sfill label-col empty';
+    const label = p.label ? escHtml(p.label) : '&mdash;';
+    const why = p.why ? escHtml(p.why) : '&mdash;';
+    const labelCls = p.label ? 'sfill' : 'sfill empty';
     const whyCls = p.why ? 'sfill' : 'sfill empty';
     return '<div class="snode">' +
+      '<div class="node-tools">' +
+        '<button class="nt" data-edit="' + p.id + '" title="Edit">&#9998;</button>' +
+        '<button class="nt" data-up="' + p.id + '" title="Move up">&#9650;</button>' +
+        '<button class="nt" data-down="' + p.id + '" title="Move down">&#9660;</button>' +
+      '</div>' +
       '<div class="smark">' + escHtml(p.code) + '</div>' +
       '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
-      '<div class="' + labelCls + '">' + label + '</div>' +
-      '<div class="' + whyCls + '">' + why + '</div>' +
+      '<div class="' + labelCls + '"><span class="k">Stands for</span>' + label + '</div>' +
+      '<div class="' + whyCls + '"><span class="k">Why it matters</span>' + why + '</div>' +
     '</div>';
   }).join('');
-  el('spine').innerHTML = html;
+}
+
+// ===== EDIT MODE =====
+function toggleEdit() {
+  const on = document.body.classList.toggle('editing');
+  el('editToggle').classList.toggle('active', on);
+  el('editToggle').innerHTML = on ? '&#10003; Done' : '&#9998; Edit';
+}
+
+// ===== MODAL =====
+function openModal(id) {
+  editingId = id || null;
+  const p = id ? pillars.find(x => String(x.id) === String(id)) : null;
+  el('modalTitle').textContent = p ? 'Edit why' : 'New why';
+  el('mCode').value = p ? (p.code || '') : '';
+  el('mNum').value = p ? (p.num || '') : '';
+  el('mBrk').value = p ? (p.brk || '') : '';
+  el('mLabel').value = p ? (p.label || '') : '';
+  el('mWhy').value = p ? (p.why || '') : '';
+  el('mDelete').classList.toggle('hidden', !p);
+  el('modalErr').classList.add('hidden');
+  el('modalOverlay').classList.remove('hidden');
+  setTimeout(() => el('mCode').focus(), 30);
+}
+function closeModal() { el('modalOverlay').classList.add('hidden'); editingId = null; }
+
+async function savePillar() {
+  const rec = {
+    code: el('mCode').value.trim(),
+    num: el('mNum').value.trim(),
+    brk: el('mBrk').value.trim(),
+    label: el('mLabel').value.trim(),
+    why: el('mWhy').value.trim(),
+  };
+  if (!rec.code && !rec.num) {
+    const er = el('modalErr'); er.textContent = 'Add at least a code or a number.'; er.classList.remove('hidden'); return;
+  }
+  const btn = el('mSave'); btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    if (editingId) {
+      const { error } = await supa.from('why_pillars').update(rec).eq('id', editingId).eq('user_id', userId);
+      if (error) throw error;
+    } else {
+      const maxOrder = pillars.reduce((m, p) => Math.max(m, p.sort_order || 0), -1);
+      rec.user_id = userId; rec.sort_order = maxOrder + 1;
+      const { error } = await supa.from('why_pillars').insert(rec);
+      if (error) throw error;
+    }
+    closeModal(); await loadPillars(); toast('Saved');
+  } catch (e) {
+    const er = el('modalErr'); er.textContent = (e && e.message) ? e.message : 'Save failed'; er.classList.remove('hidden');
+  } finally { btn.disabled = false; btn.textContent = 'Save'; }
+}
+
+async function deletePillar() {
+  if (!editingId) return;
+  if (!confirm('Delete this why?')) return;
+  try {
+    const { error } = await supa.from('why_pillars').delete().eq('id', editingId).eq('user_id', userId);
+    if (error) throw error;
+    closeModal(); await loadPillars(); toast('Deleted');
+  } catch (e) { toast('Delete failed'); }
+}
+
+async function movePillar(id, dir) {
+  const idx = pillars.findIndex(p => String(p.id) === String(id));
+  const swap = idx + dir;
+  if (idx < 0 || swap < 0 || swap >= pillars.length) return;
+  const a = pillars[idx], b = pillars[swap];
+  const ao = a.sort_order, bo = b.sort_order;
+  try {
+    await supa.from('why_pillars').update({ sort_order: bo }).eq('id', a.id).eq('user_id', userId);
+    await supa.from('why_pillars').update({ sort_order: ao }).eq('id', b.id).eq('user_id', userId);
+    await loadPillars();
+  } catch (e) { toast('Reorder failed'); }
 }
 
 // ===== AUTH =====
@@ -177,17 +321,12 @@ async function boot() {
   const { data: { session } } = await supa.auth.getSession();
   el('bootLoading').classList.add('hidden');
   if (session && session.user) {
-    userId = session.user.id;
-    showApp();
+    userId = session.user.id; showApp(); await loadPillars();
   } else {
     el('authOverlay').classList.remove('hidden');
   }
 }
-function showApp() {
-  el('authOverlay').classList.add('hidden');
-  el('app').classList.remove('hidden');
-  renderSpine();
-}
+function showApp() { el('authOverlay').classList.add('hidden'); el('app').classList.remove('hidden'); }
 async function handleSignIn() {
   const email = el('authEmail').value.trim();
   const pw = el('authPw').value;
@@ -200,20 +339,29 @@ async function handleSignIn() {
     if (error) throw error;
     if (!data || !data.user) throw new Error('No user returned');
     userId = data.user.id; el('authPw').value = '';
-    showApp();
+    showApp(); await loadPillars();
   } catch (e) {
     errorEl.textContent = (e && e.message) ? e.message : 'Sign in failed';
     errorEl.classList.remove('hidden');
   } finally { btn.disabled = false; btn.textContent = 'Sign in'; }
 }
-async function handleSignOut() {
-  try { await supa.auth.signOut(); } catch (e) {}
-  location.reload();
-}
+async function handleSignOut() { try { await supa.auth.signOut(); } catch (e) {} location.reload(); }
 
+// ===== WIRING =====
 el('authSubmit').addEventListener('click', handleSignIn);
 el('authPw').addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
 el('signOutBtn').addEventListener('click', handleSignOut);
+el('editToggle').addEventListener('click', toggleEdit);
+el('addBtn').addEventListener('click', () => openModal(null));
+el('mSave').addEventListener('click', savePillar);
+el('mCancel').addEventListener('click', closeModal);
+el('mDelete').addEventListener('click', deletePillar);
+el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });
+el('spine').addEventListener('click', e => {
+  const ed = e.target.closest('[data-edit]'); if (ed) { openModal(ed.dataset.edit); return; }
+  const up = e.target.closest('[data-up]'); if (up) { movePillar(up.dataset.up, -1); return; }
+  const dn = e.target.closest('[data-down]'); if (dn) { movePillar(dn.dataset.down, 1); return; }
+});
 
 boot();
 </script>
