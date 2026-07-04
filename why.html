@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Why</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --serif:'Fraunces',Georgia,serif;
+    --sans:'IBM Plex Sans',-apple-system,system-ui,sans-serif;
+    --mono:'IBM Plex Mono','SF Mono',monospace;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { font-family:var(--sans); line-height:1.5; min-height:100vh; color:#0A1325; }
+  body { padding:26px 18px 70px; background:#eef2f8; background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%); background-attachment:fixed; }
+  a { text-decoration:none; color:inherit; }
+  .hidden { display:none !important; }
+  main { max-width:920px; margin:0 auto; }
+
+  /* ===== AUTH (Polar + Mist, matching the hub) ===== */
+  .auth-overlay { position:fixed; inset:0; z-index:250; display:flex; align-items:center; justify-content:center; padding:20px;
+    background:#eef2f8; background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%); }
+  .auth-box { width:100%; max-width:380px; background:rgba(255,255,255,0.72); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.95); border-radius:18px; padding:30px 24px; box-shadow:0 20px 50px rgba(30,50,90,0.12); text-align:center; }
+  .auth-icon { font-size:26px; margin-bottom:8px; opacity:0.8; }
+  .auth-title { font-family:var(--serif); font-style:italic; font-weight:400; font-size:27px; color:#182233; margin-bottom:4px; }
+  .auth-subtitle { font-family:var(--mono); font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:#7a8296; margin-bottom:22px; }
+  .auth-form { display:flex; flex-direction:column; gap:10px; }
+  .auth-input { width:100%; background:#f4f7fb; border:1px solid #dce3ee; border-radius:10px; padding:13px 14px; font-size:15px; color:#182233; font-family:var(--mono); letter-spacing:0.05em; }
+  .auth-input::placeholder { color:#9aa4ba; }
+  .auth-input:focus { outline:none; border-color:#8fa2c4; background:#fff; }
+  .auth-error { font-family:var(--mono); font-size:11px; color:#8A1F1A; padding:6px 10px; background:#FCE9E2; border-radius:6px; }
+  .auth-submit { background:#1e2740; color:#fff; border:none; border-radius:10px; padding:13px; font-size:14px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; margin-top:4px; }
+  .auth-submit:active { transform:scale(0.98); opacity:0.92; }
+  .auth-submit:disabled { opacity:0.5; cursor:not-allowed; }
+
+  /* ===== ROOM ===== */
+  .room { border-radius:22px; overflow:hidden; box-shadow:0 20px 50px rgba(20,30,60,0.14); }
+
+  /* Hero — dark, weighty (this is the "why", it earns gravity) */
+  .why-head { background:linear-gradient(155deg,#243049,#141b2c); color:#fff; padding:30px 38px 30px; position:relative; }
+  .head-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
+  .hub-back { font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.55); }
+  .hub-back:hover { color:#f4c430; }
+  .signout-btn { background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.16); border-radius:8px; padding:6px 12px; font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.7); cursor:pointer; transition:all .15s; }
+  .signout-btn:hover { border-color:#f4c430; color:#f4c430; }
+  .why-eyebrow { font-family:var(--mono); font-size:10px; letter-spacing:0.28em; text-transform:uppercase; color:#f4c430; margin-bottom:12px; }
+  .why-title { font-family:var(--serif); font-size:50px; font-weight:600; letter-spacing:-0.02em; line-height:1; }
+  .why-line { font-family:var(--serif); font-style:italic; font-size:16px; margin-top:13px; color:rgba(255,255,255,0.7); max-width:520px; }
+
+  /* Spine body */
+  .spine-body { background:#fbfcfe; padding:22px 38px 30px; position:relative; }
+  .spine-line { position:absolute; left:62px; top:34px; bottom:34px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
+  .snode { display:grid; grid-template-columns:48px 104px 1fr 1fr; align-items:center; gap:22px; padding:20px 0; position:relative; border-bottom:1px solid #eef1f6; }
+  .snode:last-child { border-bottom:none; }
+  .smark { width:48px; height:48px; border-radius:50%; background:#fff; border:2px solid #f4c430; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px; font-weight:700; color:#a5702f; z-index:1; box-shadow:0 4px 12px rgba(180,140,40,0.18); }
+  .snum { font-family:var(--serif); font-size:34px; font-weight:600; color:#182233; line-height:0.9; }
+  .snum .brk { display:block; font-family:var(--mono); font-size:11px; font-weight:600; color:#a5702f; margin-top:6px; padding-top:6px; border-top:1px solid #e0c98a; width:64px; }
+  .sfill { font-family:var(--serif); font-size:14.5px; color:#28324B; line-height:1.5; }
+  .sfill .k { display:block; font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#aab4c8; margin-bottom:4px; }
+  .sfill.empty { color:#c3ccdb; font-style:italic; }
+
+  @media (max-width:640px) {
+    .why-head { padding:26px 22px; }
+    .why-title { font-size:40px; }
+    .spine-body { padding:18px 20px 26px; }
+    .spine-line { left:46px; }
+    .snode { grid-template-columns:40px 1fr; gap:14px 16px; align-items:start; }
+    .smark { width:40px; height:40px; font-size:12px; }
+    .snum { grid-column:2; font-size:30px; }
+    .sfill { grid-column:2; }
+    .sfill.label-col { margin-top:2px; }
+  }
+
+  .foot-note { text-align:center; font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#a8b2c4; margin-top:20px; }
+
+  .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
+</style>
+</head>
+<body>
+
+<script src="config.js"></script>
+
+<div class="auth-overlay hidden" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-icon">✷</div>
+    <div class="auth-title">My Why</div>
+    <div class="auth-subtitle">Sign in</div>
+    <div class="auth-form">
+      <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="auth-input" id="authPw" placeholder="Password" autocomplete="current-password">
+      <div class="auth-error hidden" id="authError"></div>
+      <button class="auth-submit" id="authSubmit">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="bootLoading">Loading…</div>
+
+<main id="app" class="hidden">
+  <div class="room">
+    <div class="why-head">
+      <div class="head-top">
+        <a class="hub-back" href="/">← Hub</a>
+        <button class="signout-btn" id="signOutBtn">Sign out</button>
+      </div>
+      <div class="why-eyebrow">The long road, marked</div>
+      <div class="why-title">My Why</div>
+      <div class="why-line">The few things worth every early morning — kept on one line, so the daily choices stay pointed at them.</div>
+    </div>
+    <div class="spine-body">
+      <div class="spine-line"></div>
+      <div id="spine"></div>
+    </div>
+  </div>
+  <div class="foot-note">one life, live it well</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// ===== CONFIG GUARD =====
+if (typeof window.MYDAY_CONFIG === 'undefined') {
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Configuration error</h2><p>config.js is missing or didn\'t load.</p><p style="font-size:13px;color:#666;">Upload <code>why.html</code> and <code>config.js</code> to the same repo.</p></div>';
+  throw new Error('config.js missing');
+}
+
+// ===== SUPABASE (same project + session as the rest of the hub) =====
+const supa = window.supabase.createClient(
+  window.MYDAY_CONFIG.SUPABASE_URL,
+  window.MYDAY_CONFIG.SUPABASE_ANON_KEY,
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+);
+
+let userId = null;
+function el(id) { return document.getElementById(id); }
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ===== THE FIVE WHYS =====
+// Edit here: code (the letter), num (big figure), brk (optional breakdown line),
+// label (what it stands for), why (why it matters). Leave label/why '' to show
+// a placeholder until you're ready to fill them in.
+const PILLARS = [
+  { code:'IN', num:'125',  brk:'',           label:'', why:'' },
+  { code:'H',  num:'77',   brk:'',           label:'', why:'' },
+  { code:'F',  num:'150',  brk:'1 × 1 × 1',  label:'', why:'' },
+  { code:'T',  num:'75',   brk:'',           label:'', why:'' },
+  { code:'S',  num:'25+',  brk:'',           label:'', why:'' },
+];
+
+function renderSpine() {
+  const html = PILLARS.map(p => {
+    const brk = p.brk ? '<span class="brk">' + escHtml(p.brk) + '</span>' : '';
+    const label = p.label
+      ? '<span class="k">Stands for</span>' + escHtml(p.label)
+      : '<span class="k">Stands for</span>—';
+    const why = p.why
+      ? '<span class="k">Why it matters</span>' + escHtml(p.why)
+      : '<span class="k">Why it matters</span>—';
+    const labelCls = p.label ? 'sfill label-col' : 'sfill label-col empty';
+    const whyCls = p.why ? 'sfill' : 'sfill empty';
+    return '<div class="snode">' +
+      '<div class="smark">' + escHtml(p.code) + '</div>' +
+      '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
+      '<div class="' + labelCls + '">' + label + '</div>' +
+      '<div class="' + whyCls + '">' + why + '</div>' +
+    '</div>';
+  }).join('');
+  el('spine').innerHTML = html;
+}
+
+// ===== AUTH =====
+async function boot() {
+  const { data: { session } } = await supa.auth.getSession();
+  el('bootLoading').classList.add('hidden');
+  if (session && session.user) {
+    userId = session.user.id;
+    showApp();
+  } else {
+    el('authOverlay').classList.remove('hidden');
+  }
+}
+function showApp() {
+  el('authOverlay').classList.add('hidden');
+  el('app').classList.remove('hidden');
+  renderSpine();
+}
+async function handleSignIn() {
+  const email = el('authEmail').value.trim();
+  const pw = el('authPw').value;
+  const errorEl = el('authError'); const btn = el('authSubmit');
+  errorEl.classList.add('hidden');
+  if (!email || !pw) { errorEl.textContent = 'Email and password required'; errorEl.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password: pw });
+    if (error) throw error;
+    if (!data || !data.user) throw new Error('No user returned');
+    userId = data.user.id; el('authPw').value = '';
+    showApp();
+  } catch (e) {
+    errorEl.textContent = (e && e.message) ? e.message : 'Sign in failed';
+    errorEl.classList.remove('hidden');
+  } finally { btn.disabled = false; btn.textContent = 'Sign in'; }
+}
+async function handleSignOut() {
+  try { await supa.auth.signOut(); } catch (e) {}
+  location.reload();
+}
+
+el('authSubmit').addEventListener('click', handleSignIn);
+el('authPw').addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
+el('signOutBtn').addEventListener('click', handleSignOut);
+
+boot();
+</script>
+</body>
+</html>
