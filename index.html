@@ -85,12 +85,16 @@
     background:linear-gradient(120deg,#2b4a72 0%,#1c3252 100%); border:none; box-shadow:0 12px 30px rgba(20,40,80,0.24); }
   .card.feat:hover { transform:translateY(-2px); box-shadow:0 18px 40px rgba(20,40,80,0.32); border:none; }
   .card.feat .feat-txt { display:flex; flex-direction:column; gap:3px; }
-  .card.feat .feat-status { margin-left:auto; display:flex; align-items:center; gap:14px; padding-right:6px; }
-  .card.feat .feat-status-txt { text-align:right; }
-  .card.feat .feat-date { font-family:var(--mono); font-size:12.5px; color:rgba(255,255,255,0.9); }
-  .card.feat .feat-day { font-size:12px; color:rgba(255,255,255,0.68); margin-top:2px; }
+  .card.feat .feat-status { margin-left:auto; display:flex; align-items:center; gap:16px; padding-right:6px; }
+  .card.feat .feat-status-txt { text-align:right; border-right:2px solid rgba(244,196,48,0.65); padding-right:15px; }
+  .card.feat .feat-label { font-family:var(--mono); font-size:8.5px; letter-spacing:0.22em; text-transform:uppercase; color:#f4c430; margin-bottom:6px; }
+  .card.feat .feat-date { font-family:var(--serif); font-size:18px; font-weight:600; line-height:1.05; color:#fff; }
+  .card.feat .feat-day { font-family:var(--mono); font-size:10.5px; letter-spacing:0.1em; color:rgba(255,255,255,0.62); margin-top:7px; }
   .card.feat .feat-ring { flex-shrink:0; }
-  @media (max-width:520px){ .card.feat .feat-status { margin-left:0; width:100%; justify-content:space-between; padding-right:0; margin-top:4px; } }
+  @media (max-width:520px){
+    .card.feat .feat-status { margin-left:0; width:100%; justify-content:space-between; padding-right:0; margin-top:4px; }
+    .card.feat .feat-status-txt { text-align:left; border-right:none; border-left:2px solid rgba(244,196,48,0.65); padding-right:0; padding-left:13px; }
+  }
   .card.feat .c-title { color:#fff; font-size:26px; }
   .card.feat .c-desc { color:rgba(255,255,255,0.82); font-size:13.5px; margin-top:2px; }
   .card.feat .c-ic { width:58px; height:58px; font-size:27px; border-radius:15px; background:rgba(255,255,255,0.16); color:#fff; flex-shrink:0; }
@@ -163,6 +167,7 @@
       </div>
       <div class="feat-status">
         <div class="feat-status-txt">
+          <div class="feat-label">Today</div>
           <div class="feat-date" id="featDate">—</div>
           <div class="feat-day" id="featDay">—</div>
         </div>
@@ -268,9 +273,9 @@ function onEnter() {
 // Daily banner — today's date + day-of-year progress + ring.
 function updateDailyStatus() {
   const now = new Date();
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dateStr = days[now.getDay()] + ' · ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dateStr = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
   const y = now.getFullYear();
   const startOfYear = new Date(y, 0, 1);
   const dayOfYear = Math.floor((now - startOfYear) / 86400000) + 1;
