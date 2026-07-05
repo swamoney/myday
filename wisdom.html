@@ -169,6 +169,16 @@
 
   .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,0.2); transition:transform 0.3s; z-index:300; }
   .toast.show { transform:translateX(-50%) translateY(0); }
+  /* edit-mode toggle: read = clean, edit reveals per-item controls */
+  .card-edit, .row-edit { display:none; }
+  body.editing .card-edit, body.editing .row-edit { display:flex; }
+  #newBtn { display:none; }
+  body.editing #newBtn { display:flex; }
+  body:not(.editing) .card.add:not(#addCardEmpty):not(#addEmpty),
+  body:not(.editing) .row.add,
+  body:not(.editing) .sticky.add { display:none; }
+  body:not(.editing) .sticky-del { display:none; }
+  body.editing .ib.edit { border-color:#f4c430; color:#9a7b1a; background:#fdf3d3; }
 </style>
 </head>
 <body>
@@ -216,6 +226,10 @@
     </div>
 
     <div class="end-actions">
+        <div class="cell">
+          <button class="ib edit" id="editToggle" type="button" title="Edit" aria-label="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+          <span class="end-cap" id="editCap">Edit</span>
+        </div>
       <div class="cell">
         <button class="ib exp" id="exportBtn" type="button" title="Export all pieces" aria-label="Export">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
@@ -691,6 +705,7 @@ async function exportAll() {
 el('authSubmit').addEventListener('click', handleSignIn);
 el('authPw').addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
 el('signOutBtn').addEventListener('click', handleSignOut);
+el('editToggle').addEventListener('click', function(){ var on = document.body.classList.toggle('editing'); el('editCap').textContent = on ? 'Done' : 'Edit'; });
 el('newBtn').addEventListener('click', () => openModal(null));
 el('exportBtn').addEventListener('click', exportAll);
 el('modalClose').addEventListener('click', closeModal);
