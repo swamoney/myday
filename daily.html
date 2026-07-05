@@ -142,7 +142,7 @@
     display: flex; align-items: center; gap: 9px;
     padding: 14px 12px;
     border-bottom: 1px solid rgba(255,255,255,0.14);
-    position: sticky; top: 0; background: #0b4f6c;
+    position: sticky; top: 0; background: transparent;
   }
   .rs-side-head button {
     background: none; border: none; color: #ffffff;
@@ -934,6 +934,7 @@
   /* Small caption ("logged") under the count — hidden in compact mode to
      let the numerator/denominator breathe at the smaller ring size. */
   .hub-ring-shrunk-label small { display: none; }
+  .hub-ring-shrunk-label.done { background: #f4c430; color: #1c2436; padding: 2px 6px; border-radius: 20px; }
   .hub-ring-meta { flex: 1; min-width: 0; }
   .hub-ring-meta-h {
     font-size: 12px; color: var(--rs-brand, #0b4f6c); font-weight: 700;
@@ -1292,10 +1293,13 @@
   .today-progress-label {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-family: var(--mono); font-size: 11px; font-weight: 700;
-    color: #1c2436; background: #f4c430;
-    padding: 3px 8px; border-radius: 20px;
-    font-variant-numeric: tabular-nums; white-space: nowrap;
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .today-progress-label.done {
+    font-size: 11px; color: #1c2436; background: #f4c430;
+    padding: 3px 8px; border-radius: 20px; white-space: nowrap;
   }
   .today-progress-meta {
     flex: 1; min-width: 0;
@@ -9853,6 +9857,7 @@ function renderTodayProgressRing(states) {
   });
   const filledCount = states.filter(x => x).length;
   label.textContent = filledCount + '/6';
+  label.classList.toggle('done', filledCount === 6);
   // Encouraging copy that varies with progress
   if (line1) {
     if (filledCount === 0) line1.textContent = 'Start logging';
@@ -10381,6 +10386,7 @@ function renderHubRing(booleanStates) {
     // Item 2 (compact ring): ring label is now just the fraction; the small
     // "logged" caption is CSS-hidden but kept in DOM for potential restore.
     label.innerHTML = filledCount + '/6<small>logged</small>';
+    label.classList.toggle('done', filledCount === 6);
   }
 }
 
