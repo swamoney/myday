@@ -516,6 +516,8 @@
   }
   .search-result .sr-sat.low { color: var(--ember); }
   .search-result .sr-sat.empty { color: var(--muted); font-weight: 400; }
+  @keyframes searchFlash { from { box-shadow: 0 0 0 3px rgba(244,196,48,0.6); } to { box-shadow: 0 0 0 3px rgba(244,196,48,0); } }
+  .search-flash { animation: searchFlash 1.7s ease-out; border-radius: 8px; }
   .search-empty {
     padding: 24px 14px; text-align: center;
     font-family: var(--serif); font-style: italic; color: var(--muted);
@@ -12623,6 +12625,30 @@ function closeSearch() {
   document.getElementById('searchMeta').classList.add('hidden');
 }
 
+// After a search result opens its day, jump into the section that holds the
+// matched field and flash the field so the exact entry is obvious. Degrades
+// gracefully (stays on the day) if the field/section can't be resolved.
+function revealSearchField(fieldKey) {
+  const el = document.getElementById('f_' + fieldKey);
+  if (!el) return;
+  const section = el.closest('.section');
+  let cls = null;
+  if (section) section.classList.forEach(function (c) { if (/^s-/.test(c)) cls = c; });
+  if (cls && typeof focusHubSection === 'function') focusHubSection(cls);
+  // Introspection collapses to a pill — expand it so the text shows.
+  if (fieldKey === 'introspection') {
+    const slot = document.getElementById('introSlot');
+    const pill = document.getElementById('introCollapsePill');
+    if (slot) slot.classList.remove('intro-collapsed');
+    if (pill) pill.setAttribute('aria-expanded', 'true');
+  }
+  setTimeout(function () {
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    el.classList.add('search-flash');
+    setTimeout(function () { el.classList.remove('search-flash'); }, 1700);
+  }, 90);
+}
+
 // Escape user input for safe insertion as plain text (we use textContent
 // for query value, so this is only used for HTML in snippet rendering).
 function escHtml(s) {
@@ -12673,18 +12699,20 @@ function performSearch(query) {
     const e = allEntries[date];
     if (!e) continue;
     let matchedField = null;
+    let matchedKey = null;
     let matchedText = null;
     for (const [key, label] of SEARCH_FIELDS) {
       const v = e[key];
       if (typeof v !== 'string' || v === '') continue;
       if (v.toLowerCase().indexOf(q) >= 0) {
         matchedField = label;
+        matchedKey = key;
         matchedText = v;
         break;
       }
     }
     if (matchedField) {
-      matches.push({ date, entry: e, fieldLabel: matchedField, matchedText });
+      matches.push({ date, entry: e, fieldLabel: matchedField, matchedKey, matchedText });
       if (matches.length >= SEARCH_RESULT_LIMIT) break;
     }
   }
@@ -12709,7 +12737,7 @@ function performSearch(query) {
     }
     const snippet = buildSnippet(m.matchedText, trimmed, m.fieldLabel);
     const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mo - 1];
-    html += '<div class="search-result" data-date="' + m.date + '">'
+    html += '<div class="search-result" data-date="' + m.date + '" data-field="' + escHtml(m.matchedKey || '') + '">'
       + '<div class="sr-date">' + dayName + ' · ' + monthShort + ' ' + y + '<strong>' + d + '</strong></div>'
       + '<div class="sr-snippet">' + snippet + '</div>'
       + '<div class="sr-sat ' + satClass + '">' + satText + '</div>'
@@ -12734,6 +12762,11 @@ function performSearch(query) {
         renderDateNav();
         renderEntry();
         window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      // Deep-link: open the section holding the matched field + flash it.
+      var fieldKey = row.getAttribute('data-field') || '';
+      if (fieldKey && typeof revealSearchField === 'function') {
+        setTimeout(function () { revealSearchField(fieldKey); }, 150);
       }
     });
   });
