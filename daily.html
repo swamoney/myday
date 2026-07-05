@@ -926,15 +926,11 @@
   /* Button grid — responsive: 2 cols on mobile, 3 cols on desktop */
   .hub-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: 10px;
   }
   @media (min-width: 700px) {
-    /* Desktop keeps 2 columns (widened cards) — was 3 cols; the extra
-       horizontal room lets the left-edge stripes breathe and gives the
-       preview line more space. Same column count on mobile + desktop
-       means predictable card widths across breakpoints. */
-    .hub-grid { gap: 14px; }
+    .hub-grid { gap: 12px; }
   }
 
   /* ======================================================================
@@ -961,24 +957,32 @@
   }
 
   .hub-btn {
-    /* Fallback bg for browsers without backdrop-filter */
-    background: rgba(255,255,255,0.72);
-    /* Frosted glass — Safari + Chrome */
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "icon title status"
+      "icon preview status";
+    align-items: center;
+    column-gap: 15px;
+    row-gap: 0;
+    background: #ffffff;
     border: 1px solid rgba(255,255,255,0.9);
-    border-radius: 18px;
-    padding: 16px 16px 14px;
+    border-radius: 16px;
+    padding: 14px 42px 14px 16px;
     text-align: left; cursor: pointer;
     transition: transform 0.15s ease, box-shadow 0.2s ease;
     font-family: inherit;
-    /* Layered soft shadow — depth + subtle contact */
     box-shadow:
-      0 8px 24px rgba(30, 47, 82, 0.06),
+      0 6px 18px rgba(30, 47, 82, 0.06),
       0 1px 2px rgba(30, 47, 82, 0.04);
     position: relative;
-    min-height: 108px;
     overflow: hidden;
+  }
+  .hub-btn::after {
+    content: '→';
+    position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%);
+    color: #aab4c8; font-size: 16px; line-height: 1;
   }
   .hub-btn:hover {
     transform: translateY(-2px);
@@ -994,66 +998,45 @@
   }
 
   /* Head row — icon tile + status dot */
-  .hub-btn-head {
-    display: flex; align-items: flex-start; justify-content: space-between;
-    margin-bottom: 12px;
-    padding: 0;
-  }
+  .hub-btn-head { display: contents; }
 
   /* Gradient icon tile — Apple-style rounded square with soft interior glow */
   .hub-btn-icon-wrap {
-    width: 34px; height: 34px;
-    border-radius: 10px;
+    grid-area: icon; align-self: center;
+    width: 46px; height: 46px;
+    border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    /* Fallback (also base color) */
-    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-    box-shadow:
-      0 2px 6px rgba(30, 47, 82, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    background: #eef1f6;
   }
   .hub-btn-icon-wrap svg {
-    width: 18px; height: 18px; color: #ffffff;
-    /* Slight text shadow on the glyph to help contrast on lighter gradients */
-    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
+    width: 22px; height: 22px;
   }
   /* Per-section gradient tile colors — lighter tint → deeper accent.
      Selected to feel Apple-adjacent without being a copy: warm coral for
      expenses, sage for health, honey for time/food, twilight indigo for
      night, rose for verdict. */
-  .hub-btn[data-hub-section="s-expenses"] .hub-btn-icon-wrap {
-    background: linear-gradient(135deg, #E8A29C 0%, #C05948 100%);
-    box-shadow: 0 2px 6px rgba(192, 89, 72, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
-  }
-  .hub-btn[data-hub-section="s-health"] .hub-btn-icon-wrap {
-    background: linear-gradient(135deg, #7FB599 0%, #4A8E6A 100%);
-    box-shadow: 0 2px 6px rgba(74, 142, 106, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
-  }
-  .hub-btn[data-hub-section="s-time"] .hub-btn-icon-wrap {
-    background: linear-gradient(135deg, #E7B770 0%, #C08A2C 100%);
-    box-shadow: 0 2px 6px rgba(192, 138, 44, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
-  }
-  .hub-btn[data-hub-section="s-food"] .hub-btn-icon-wrap {
-    background: linear-gradient(135deg, #E7B770 0%, #C08A2C 100%);
-    box-shadow: 0 2px 6px rgba(192, 138, 44, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
-  }
-  .hub-btn[data-hub-section="s-night"] .hub-btn-icon-wrap {
-    background: linear-gradient(135deg, #8B84D9 0%, #5D54C7 100%);
-    box-shadow: 0 2px 6px rgba(93, 84, 199, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
-  }
-  .hub-btn[data-hub-section="s-verdict"] .hub-btn-icon-wrap {
-    background: linear-gradient(135deg, #D090A0 0%, #A04A60 100%);
-    box-shadow: 0 2px 6px rgba(160, 74, 96, 0.28), inset 0 1px 0 rgba(255,255,255,0.28);
-  }
+  .hub-btn[data-hub-section="s-expenses"] { background: linear-gradient(160deg,#fbf1ef,#f5e2df); }
+  .hub-btn[data-hub-section="s-expenses"] .hub-btn-icon-wrap { background:#f5dcd8; color:#b34d3f; }
+  .hub-btn[data-hub-section="s-health"] { background: linear-gradient(160deg,#f2f8f4,#e4efe8); }
+  .hub-btn[data-hub-section="s-health"] .hub-btn-icon-wrap { background:#dcebe2; color:#3d7a5c; }
+  .hub-btn[data-hub-section="s-time"] { background: linear-gradient(160deg,#fbf5ea,#f3ead9); }
+  .hub-btn[data-hub-section="s-time"] .hub-btn-icon-wrap { background:#f2e6cf; color:#a5702f; }
+  .hub-btn[data-hub-section="s-food"] { background: linear-gradient(160deg,#fcf3ec,#f6e6d6); }
+  .hub-btn[data-hub-section="s-food"] .hub-btn-icon-wrap { background:#f7e2cd; color:#b0682f; }
+  .hub-btn[data-hub-section="s-night"] { background: linear-gradient(160deg,#f1f0fb,#e7e4f6); }
+  .hub-btn[data-hub-section="s-night"] .hub-btn-icon-wrap { background:#e2def6; color:#5d54c7; }
+  .hub-btn[data-hub-section="s-verdict"] { background: linear-gradient(160deg,#fbf1f4,#f4e2e8); }
+  .hub-btn[data-hub-section="s-verdict"] .hub-btn-icon-wrap { background:#f2dce4; color:#9c445e; }
 
   /* Status dot (not pill) with a halo — sits top-right */
   .hub-btn-status {
+    grid-area: status; align-self: center; justify-self: center;
     width: 9px; height: 9px;
     border-radius: 50%;
     padding: 0;
     background: #C6CBD3;
     flex-shrink: 0;
-    margin-top: 12px;
     /* Halo drawn via box-shadow */
     box-shadow: 0 0 0 4px rgba(198, 203, 211, 0.18);
     /* Suppress inherited text styles */
@@ -1075,22 +1058,24 @@
 
   /* Title — sans, semi-bold, tight tracking (Apple-style label) */
   .hub-btn-title {
-    font-family: var(--sans);
-    font-size: 13px; font-weight: 700;
-    color: #1e2f52;
-    letter-spacing: -0.2px;
-    line-height: 1.25;
-    margin: 0 0 4px; padding: 0;
+    grid-area: title; align-self: end;
+    font-family: var(--serif);
+    font-size: 18px; font-weight: 600;
+    color: #182233;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin: 0; padding: 0;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   /* Preview — the actual data value, slightly larger + darker than
      research-report subhead. In empty state, muted with the placeholder text. */
   .hub-btn-preview {
-    font-size: 12px; color: #4A5568;
+    grid-area: preview; align-self: start;
+    font-size: 12.5px; color: #6a7690;
     font-family: var(--sans);
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: -0.1px;
-    margin: 0; padding: 0;
+    margin: 2px 0 0; padding: 0;
     line-height: 1.4;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     display: block;
