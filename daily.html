@@ -9118,6 +9118,22 @@ function renderEntry() {
   // Section collapse: always reset to collapsed on date change. Status dots
   // refresh from the current entry's filled state.
   if (typeof collapseAllTodaySections === 'function') collapseAllTodaySections();
+  // Keep the focused section open across date changes: if we're currently in
+  // section focus mode, re-expand the focused section after the blanket
+  // collapse above — so navigating to another day shows that section's details
+  // directly, instead of collapsing it and forcing a manual re-expand.
+  if (document.body.classList.contains('hub-focused')) {
+    const focusCls = document.body.getAttribute('data-hub-focus');
+    if (focusCls) {
+      const focusSec = document.querySelector('#tab-today .section.' + focusCls);
+      if (focusSec) {
+        focusSec.classList.add('is-expanded');
+        focusSec.classList.remove('is-collapsed');
+        const focusHead = focusSec.querySelector('.section-head');
+        if (focusHead) focusHead.setAttribute('aria-expanded', 'true');
+      }
+    }
+  }
   if (typeof refreshSectionStatusDots === 'function') refreshSectionStatusDots();
   // Ship-fix (Bug 2): refresh Hub state on every date change so the ring,
   // button status pills, and previews reflect the newly-loaded entry's data.
