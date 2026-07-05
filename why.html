@@ -52,15 +52,21 @@
   .why-line { font-family:var(--serif); font-style:italic; font-size:16px; margin-top:13px; color:rgba(255,255,255,0.7); max-width:520px; }
 
   .spine-body { background:#fbfcfe; padding:22px 38px 30px; position:relative; }
-  .spine-line { position:absolute; left:62px; top:34px; bottom:34px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
-  .snode { display:grid; grid-template-columns:48px 104px 1fr 1fr; align-items:center; gap:22px; padding:20px 0; position:relative; border-bottom:1px solid #eef1f6; transition:padding .15s; }
+  .spine-line { position:absolute; left:69px; top:30px; bottom:30px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
+  .snode { display:grid; grid-template-columns:64px 1fr; align-items:start; gap:24px; padding:22px 0; position:relative; border-bottom:1px solid #eef1f6; transition:padding .15s; }
   .snode:last-child { border-bottom:none; }
-  .smark { width:48px; height:48px; border-radius:50%; background:#fff; border:2px solid #f4c430; display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px; font-weight:700; color:#a5702f; z-index:1; box-shadow:0 4px 12px rgba(180,140,40,0.18); }
-  .snum { font-family:var(--serif); font-size:34px; font-weight:600; color:#182233; line-height:0.9; }
-  .snum .brk { display:block; font-family:var(--mono); font-size:11px; font-weight:600; color:#a5702f; margin-top:6px; padding-top:6px; border-top:1px solid #e0c98a; width:64px; }
-  .sfill { font-family:'Cormorant Garamond',Georgia,serif; font-size:19px; font-weight:500; color:#28324B; line-height:1.3; }
-  .sfill .k { display:block; font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#aab4c8; margin-bottom:4px; }
-  .sfill.empty { color:#c3ccdb; font-style:italic; }
+  .smark { width:64px; height:64px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:21px; font-weight:600; color:#4a3410; z-index:1; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); margin-top:2px; }
+  .snum { font-family:var(--serif); font-size:46px; font-weight:600; color:#182233; line-height:1; }
+  .snum .brk { font-family:var(--mono); font-size:12px; font-weight:600; color:#a5702f; margin-left:10px; }
+  .scontent { min-width:0; }
+  .s-rule { height:3px; width:52px; background:#f4c430; border-radius:2px; margin:9px 0 13px; }
+  .s-field { margin-bottom:11px; }
+  .s-field:last-child { margin-bottom:0; }
+  .s-k { display:block; font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#aab4c8; margin-bottom:3px; }
+  .s-stands { font-family:'Cormorant Garamond',Georgia,serif; font-size:22px; font-weight:600; color:#182233; line-height:1.2; }
+  .s-stands.empty { color:#c3ccdb; font-style:italic; font-weight:500; }
+  .s-pill { display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:20px; color:#fff; font-size:12.5px; font-weight:600; }
+  .s-pill .pdot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.6); }
 
   /* edit affordances */
   .node-tools { position:absolute; right:0; top:50%; transform:translateY(-50%); display:none; gap:6px; z-index:2; }
@@ -78,11 +84,10 @@
     .why-title { font-size:40px; }
     .spine-body { padding:18px 20px 26px; }
     .spine-line { left:46px; }
-    .snode { grid-template-columns:40px 1fr; gap:12px 16px; align-items:start; }
-    .smark { width:40px; height:40px; font-size:12px; }
-    .snum, .sfill { grid-column:2; }
+    .snode { grid-template-columns:52px 1fr; gap:16px; align-items:start; }
+    .smark { width:52px; height:52px; font-size:18px; }
     body.editing .snode { padding-right:0; }
-    .node-tools { position:static; transform:none; grid-column:2; margin-top:6px; }
+    .node-tools { position:static; transform:none; grid-column:1 / -1; margin-top:6px; }
   }
 
   .foot-note { text-align:center; font-family:var(--mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#a8b2c4; margin-top:20px; }
@@ -91,7 +96,7 @@
   .snode { cursor:pointer; border-radius:10px; }
   body:not(.editing) .snode:hover { background:#f6f8fb; }
   .snode.active { background:#fbf6ec; }
-  .snode.active .smark { background:#f4c430; color:#1c2436; }
+  .snode.active .smark { box-shadow:0 0 0 3px rgba(244,196,48,0.55), 0 6px 16px rgba(180,140,40,0.45); }
   .open-cue { position:absolute; right:6px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#c39a45; background:linear-gradient(90deg, rgba(251,246,236,0) 0%, #fbf6ec 30%); padding:6px 6px 6px 22px; opacity:0; transition:opacity .15s; pointer-events:none; }
   body:not(.editing) .snode:hover .open-cue, .snode.active .open-cue { opacity:1; }
   body.editing .open-cue { display:none; }
@@ -119,8 +124,8 @@
   .modal-sub { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#8189a0; margin-bottom:18px; }
   .fld { margin-bottom:14px; }
   .fld label { display:block; font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#8189a0; margin-bottom:5px; }
-  .fld input, .fld textarea { width:100%; background:#f4f7fb; border:1px solid #dce3ee; border-radius:9px; padding:11px 12px; font-size:14px; color:#182233; }
-  .fld input:focus, .fld textarea:focus { outline:none; border-color:#c9a94a; background:#fff; }
+  .fld input, .fld textarea, .fld select { width:100%; background:#f4f7fb; border:1px solid #dce3ee; border-radius:9px; padding:11px 12px; font-size:14px; color:#182233; }
+  .fld input:focus, .fld textarea:focus, .fld select:focus { outline:none; border-color:#c9a94a; background:#fff; }
   .fld textarea { min-height:72px; resize:vertical; font-family:var(--sans); line-height:1.5; }
   .fld .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .modal-actions { display:flex; align-items:center; gap:8px; margin-top:20px; }
@@ -203,6 +208,7 @@
     <div class="fld"><label>Breakdown (optional)</label><input id="mBrk" placeholder="e.g. 1 &times; 1 &times; 1"></div>
     <div class="fld"><label>Stands for</label><input id="mLabel" placeholder="what this code means"></div>
     <div class="fld"><label>Current status</label><textarea id="mWhy" placeholder="where this stands right now"></textarea></div>
+    <div class="fld"><label>Status state</label><select id="mState"><option value="">Not set</option><option value="good">On track</option><option value="watch">Watch</option><option value="off">Slipping</option></select></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="mDelete">Delete</button>
       <span style="flex:1"></span>
@@ -266,12 +272,13 @@ async function loadPillars() {
 }
 
 function renderSpine() {
+  const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   el('spine').innerHTML = pillars.map(p => {
     const brk = p.brk ? '<span class="brk">' + escHtml(p.brk) + '</span>' : '';
     const label = p.label ? escHtml(p.label) : '&mdash;';
-    const why = p.current_status ? escHtml(p.current_status) : '&mdash;';
-    const labelCls = p.label ? 'sfill' : 'sfill empty';
-    const whyCls = p.current_status ? 'sfill' : 'sfill empty';
+    const standsCls = p.label ? 's-stands' : 's-stands empty';
+    const stColor = STATE[p.state || ''] || STATE[''];
+    const stTxt = p.current_status ? escHtml(p.current_status) : '&mdash;';
     const activeCls = (selectedId && String(p.id) === String(selectedId)) ? ' active' : '';
     return '<div class="snode' + activeCls + '" data-id="' + p.id + '">' +
       '<div class="node-tools">' +
@@ -280,9 +287,14 @@ function renderSpine() {
         '<button class="nt" data-down="' + p.id + '" title="Move down">&#9660;</button>' +
       '</div>' +
       '<div class="smark">' + escHtml(p.code) + '</div>' +
-      '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
-      '<div class="' + labelCls + '"><span class="k">Stands for</span>' + label + '</div>' +
-      '<div class="' + whyCls + '"><span class="k">Current status</span>' + why + '</div>' +
+      '<div class="scontent">' +
+        '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
+        '<div class="s-rule"></div>' +
+        '<div class="s-field"><span class="s-k">Stands for</span><div class="' + standsCls + '">' + label + '</div></div>' +
+        '<div class="s-field"><span class="s-k">Current status</span>' +
+          '<span class="s-pill" style="background:' + stColor + ';"><span class="pdot"></span>' + stTxt + '</span>' +
+        '</div>' +
+      '</div>' +
       '<span class="open-cue">Note &rsaquo;</span>' +
     '</div>';
   }).join('');
@@ -372,6 +384,7 @@ function openModal(id) {
   el('mBrk').value = p ? (p.brk || '') : '';
   el('mLabel').value = p ? (p.label || '') : '';
   el('mWhy').value = p ? (p.current_status || '') : '';
+  el('mState').value = p ? (p.state || '') : '';
   el('mDelete').classList.toggle('hidden', !p);
   el('modalErr').classList.add('hidden');
   el('modalOverlay').classList.remove('hidden');
@@ -386,6 +399,7 @@ async function savePillar() {
     brk: el('mBrk').value.trim(),
     label: el('mLabel').value.trim(),
     current_status: el('mWhy').value.trim(),
+    state: el('mState').value,
   };
   if (!rec.code && !rec.num) {
     const er = el('modalErr'); er.textContent = 'Add at least a code or a number.'; er.classList.remove('hidden'); return;
