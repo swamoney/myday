@@ -1110,6 +1110,8 @@
   .hub-btn-preview .verdict-tone-good { color: #1f8a4c; }
   .hub-btn-preview .verdict-tone-mid { color: #A66A00; }
   .hub-btn-preview .verdict-tone-tough { color: #8A1F1A; }
+  .verdict-reflect-chip { display: inline-flex; align-items: center; gap: 4px; background: #A04A60; color: #fff; font-family: var(--mono); font-size: 7.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-left: 7px; vertical-align: 1px; }
+  .verdict-reflect-chip svg { width: 9px; height: 9px; stroke: #fff; }
   /* E3.4: Verdict preview color-coded by score */
   .hub-btn-preview .verdict-preview-good {
     color: #1f8a4c; font-weight: 600;
@@ -3617,6 +3619,9 @@
     width: 14px; height: 14px;
     opacity: 0.7;
   }
+  .intro-pill-cap { display: none; }
+  .intro-pill-cap svg { width: 15px; height: 15px; opacity: 1; }
+  .intro-pill-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* Filled state: when the slot is .is-filled (textarea has content), the
      pill picks up the moss-green left stripe + solid border, mirroring the
      filled-slot textarea visual. The dot becomes visible. The label text
@@ -3678,9 +3683,19 @@
   /* Filled pill — solid rose left stripe (replaces moss), white card, rose dot. */
   .intro-in-verdict.is-filled .intro-collapse-pill {
     border: 1px solid #E5C9CC;
-    border-left: 3px solid #A04A60;
     background: #FFFFFF;
     color: #5A2A38;
+    padding: 9px 12px 9px 0;
+    overflow: hidden;
+  }
+  .intro-in-verdict.is-filled .intro-pill-cap {
+    display: inline-flex; align-items: center; justify-content: center;
+    align-self: stretch;
+    background: #A04A60; color: #fff;
+    padding: 0 11px; margin-right: 11px;
+  }
+  .intro-in-verdict.is-filled .intro-pill-text {
+    font-style: normal; font-family: var(--serif); font-size: 12.5px; color: #5A2A38;
   }
   .intro-in-verdict .intro-pill-dot {
     background: #A04A60;
@@ -7426,13 +7441,13 @@
            the verdict's warm rose accent instead of the Day Diary moss. -->
       <div class="slot intro-slot intro-in-verdict" id="introSlot">
         <div class="slot-head">
-          <span class="slot-time intro-slot-title">Introspection <span class="intro-slot-sub">&middot; learnings, regrets, new ideas</span></span>
+          <span class="slot-time intro-slot-title">Day's Introspection <span class="intro-slot-sub">&middot; learnings, regrets, new ideas</span></span>
           <span class="slot-period">reflection</span>
         </div>
         <button type="button" class="intro-collapse-pill" id="introCollapsePill" aria-expanded="false">
-          <span>learnings &middot; regrets &middot; new ideas</span>
+          <span class="intro-pill-cap" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></span>
+          <span class="intro-pill-text" id="introPillText">learnings &middot; regrets &middot; new ideas</span>
           <span class="intro-pill-right">
-            <span class="intro-pill-dot" aria-hidden="true" title="Has content"></span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </span>
         </button>
@@ -9285,6 +9300,9 @@ function refreshIntroState() {
   const filled = ta.value && ta.value.trim().length > 0;
   slot.classList.toggle('is-filled', !!filled);
   slot.classList.toggle('is-empty', !filled);
+  const pillText = document.getElementById('introPillText');
+  if (pillText) pillText.textContent = filled ? ta.value.trim().replace(/\s+/g, ' ').slice(0, 80) : 'learnings \u00b7 regrets \u00b7 new ideas';
+  if (typeof refreshHubButtonPreviews === 'function') refreshHubButtonPreviews();
 }
 
 // Refresh the home-status banner under the Night Stay field. Three cases:
@@ -10551,6 +10569,12 @@ function refreshHubButtonPreviews() {
       };
       el.textContent = placeholders[cls] || '—';
       el.classList.add('is-empty');
+    }
+    if (cls === 's-verdict') {
+      var _ita = document.getElementById('f_introspection');
+      if (_ita && _ita.value && _ita.value.trim()) {
+        el.insertAdjacentHTML('beforeend', '<span class="verdict-reflect-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>reflected</span>');
+      }
     }
   });
 }
