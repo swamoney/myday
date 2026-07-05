@@ -934,8 +934,9 @@
   /* Small caption ("logged") under the count — hidden in compact mode to
      let the numerator/denominator breathe at the smaller ring size. */
   .hub-ring-shrunk-label small { display: none; }
-  .hub-ring-shrunk-label.done { background: #f4c430; color: #1c2436; padding: 2px 6px; border-radius: 20px; }
   .hub-ring-meta { flex: 1; min-width: 0; }
+  .hub-ring-chip { display: none; align-items: center; background: #f4c430; color: #1c2436; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; margin-top: 6px; }
+  .hub-ring-chip.show { display: inline-flex; }
   .hub-ring-meta-h {
     font-size: 12px; color: var(--rs-brand, #0b4f6c); font-weight: 700;
     margin: 0 0 2px; font-family: var(--sans); letter-spacing: -0.15px;
@@ -1296,10 +1297,6 @@
     font-family: var(--mono); font-size: 13px; font-weight: 700;
     color: var(--ink);
     font-variant-numeric: tabular-nums;
-  }
-  .today-progress-label.done {
-    font-size: 11px; color: #1c2436; background: #f4c430;
-    padding: 3px 8px; border-radius: 20px; white-space: nowrap;
   }
   .today-progress-meta {
     flex: 1; min-width: 0;
@@ -6674,6 +6671,7 @@
         <div class="hub-ring-meta">
           <div class="hub-ring-meta-h" id="hubRingH">Start your day</div>
           <div class="hub-ring-meta-p" id="hubRingP">Pick any section below to log.</div>
+          <span class="hub-ring-chip" id="hubRingChip">6/6 complete</span>
         </div>
       </div>
       <div class="hub-grid" id="hubGrid">
@@ -9857,7 +9855,6 @@ function renderTodayProgressRing(states) {
   });
   const filledCount = states.filter(x => x).length;
   label.textContent = filledCount + '/6';
-  label.classList.toggle('done', filledCount === 6);
   // Encouraging copy that varies with progress
   if (line1) {
     if (filledCount === 0) line1.textContent = 'Start logging';
@@ -10386,7 +10383,8 @@ function renderHubRing(booleanStates) {
     // Item 2 (compact ring): ring label is now just the fraction; the small
     // "logged" caption is CSS-hidden but kept in DOM for potential restore.
     label.innerHTML = filledCount + '/6<small>logged</small>';
-    label.classList.toggle('done', filledCount === 6);
+    var hubChip = document.getElementById('hubRingChip');
+    if (hubChip) hubChip.classList.toggle('show', filledCount === 6);
   }
 }
 
