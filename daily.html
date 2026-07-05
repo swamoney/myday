@@ -12720,13 +12720,21 @@ function performSearch(query) {
     row.addEventListener('click', () => {
       const iso = row.getAttribute('data-date');
       if (!iso) return;
-      currentDate = iso;
-      currentEntry = allEntries[iso] || blankEntry();
       closeSearch();
-      showTab('today');
-      renderDateNav();
-      renderEntry();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Show the Today view FIRST, then navigate. showTab('today') snaps the
+      // date back to today whenever currentDate !== today, so selecting the
+      // searched date must come AFTER the tab switch — otherwise that reset
+      // overrides it (this was the bug: results always opened on today).
+      if (typeof showTab === 'function') showTab('today');
+      if (typeof selectDate === 'function') {
+        selectDate(iso);
+      } else {
+        currentDate = iso;
+        currentEntry = allEntries[iso] ? Object.assign(blankEntry(), allEntries[iso]) : blankEntry();
+        renderDateNav();
+        renderEntry();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     });
   });
 }
