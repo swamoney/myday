@@ -231,21 +231,6 @@
   .rs-side-brand { cursor: pointer; border-radius: 9px; padding: 6px 8px; margin: -6px -8px; transition: background 0.15s; }
   .rs-side-brand:hover { background: rgba(255,255,255,0.07); }
   .rs-side-brand:focus-visible { outline: 2px solid #f4c430; outline-offset: 1px; }
-  /* Standalone reflection icon — appears only when the sidebar is a narrow
-     rail (mobile, or desktop-collapsed) where the brand block + hint line are
-     hidden, so the reflection is still one tap away. Hidden on expanded
-     desktop, where the "Today's reflection ›" hint line handles it. */
-  .rs-reflect-icon {
-    display: none;
-    width: 34px; height: 34px; margin: 8px auto 0;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.06);
-    border-radius: 9px; color: #f4c430; cursor: pointer;
-    align-items: center; justify-content: center;
-  }
-  .rs-reflect-icon svg { width: 18px; height: 18px; }
-  .rs-reflect-icon:hover { background: rgba(255,255,255,0.12); }
-  .rs-side.rs-collapsed .rs-reflect-icon { display: flex; }
   .rs-side-reflect-cue {
     margin-top: 10px; padding-top: 9px;
     border-top: 1px solid rgba(255,255,255,0.14);
@@ -314,14 +299,20 @@
     main > .tabs { display: none; }
     /* Sidebar collapsed to 58px icon rail — reference behavior */
     .rs-side { width: 58px; flex-basis: 58px; }
-    .rs-side .rs-side-title,
+    /* Mobile rail: the full brand block won't fit at 58px, so show just the
+       "My Day" title as the tappable reflection trigger (the pop-up itself
+       shows the date + day). Hide the collapse toggle here — it's a no-op on
+       the forced-width mobile rail. */
     .rs-side .rs-side-subtitle,
     .rs-side .rs-side-date,
     .rs-side .rs-side-day,
     .rs-side .rs-side-reflect-cue,
     .rs-side .rs-hub-top span { display: none; }
+    .rs-side #rsCollapseBtn { display: none; }
+    .rs-side-head { justify-content: center; padding: 12px 4px; }
+    .rs-side .rs-side-brand { margin: 0; padding: 8px 3px; text-align: center; }
+    .rs-side .rs-side-title { font-size: 10px; line-height: 1.2; text-align: center; }
     .rs-side .rs-hub-top { justify-content: center; padding: 12px 0; }
-    .rs-side .rs-reflect-icon { display: flex; }
     .rs-side .rs-grp { visibility: hidden; height: 0; padding: 0; }
     .rs-side .rs-navi { justify-content: center; padding: 10px 0; gap: 0; }
     .rs-side .rs-navi span { display: none; }
@@ -6535,9 +6526,6 @@
       <div class="rs-side-reflect-cue"><span>Today's reflection</span><span aria-hidden="true">&rsaquo;</span></div>
     </div>
   </div>
-  <button class="rs-reflect-icon" id="rsReflectIcon" type="button" aria-label="Today's reflection" title="Today's reflection">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5"/><path d="M19 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5"/></svg>
-  </button>
   <div class="rs-sidenav">
     <div class="rs-grp">VIEW</div>
     <button class="rs-navi tab active" data-tab="today" type="button" title="Today"><i class="ti ti-calendar-time" aria-hidden="true"></i><span>Today</span></button>
@@ -18221,8 +18209,6 @@ async function init() {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReflectionModal(); }
     });
   }
-  const reflectIcon = document.getElementById('rsReflectIcon');
-  if (reflectIcon) reflectIcon.addEventListener('click', openReflectionModal);
   const reflectCloseBtn = document.getElementById('reflectClose');
   if (reflectCloseBtn) reflectCloseBtn.addEventListener('click', closeReflectionModal);
   const reflectOv = document.getElementById('reflectOverlay');
