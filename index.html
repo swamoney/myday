@@ -343,6 +343,7 @@ async function handleSignIn() {
     errorEl.classList.remove('hidden');
   } finally { btn.disabled = false; btn.textContent = 'Sign in'; }
 }
+window.__supa = supa;
 async function handleSignOut() {
   if (!confirm('Sign out?')) return;
   await supa.auth.signOut();
@@ -354,6 +355,122 @@ el('authPw').addEventListener('keydown', e => { if (e.key === 'Enter') handleSig
 el('signOutBtn').addEventListener('click', handleSignOut);
 
 boot();
+</script>
+<!-- App lock (PIN) + sign-out-all-devices — casual privacy lock, self-contained -->
+<script>
+(function(){
+  'use strict';
+  if (window.__applockLoaded) return; window.__applockLoaded = true;
+  var LS_PIN='applock.pin.v1', LS_SALT='applock.salt.v1', LS_IDLE='applock.idlemin.v1';
+  function idleMin(){ var v=parseInt(localStorage.getItem(LS_IDLE)||'5',10); return isNaN(v)?5:v; }
+  function pinSet(){ return !!localStorage.getItem(LS_PIN); }
+  function hasSession(){
+    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k)){ var v=localStorage.getItem(k)||''; if(v.indexOf('access_token')>=0) return true; } } }catch(e){}
+    return false;
+  }
+  function clearSession(){ try{ for(var i=localStorage.length-1;i>=0;i--){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k)) localStorage.removeItem(k); } }catch(e){} }
+  function getSalt(){ var s=localStorage.getItem(LS_SALT); if(!s){ var a=crypto.getRandomValues(new Uint8Array(16)); s=Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2);}).join(''); localStorage.setItem(LS_SALT,s);} return s; }
+  async function hashPin(pin){ var enc=new TextEncoder().encode(getSalt()+':'+pin); var buf=await crypto.subtle.digest('SHA-256',enc); return Array.prototype.map.call(new Uint8Array(buf),function(b){return ('0'+b.toString(16)).slice(-2);}).join(''); }
+
+  var css=""
+    +".al-fab{position:fixed;left:14px;bottom:14px;z-index:2147483000;width:42px;height:42px;border-radius:50%;background:#1c2f5e;color:#fff;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(20,30,60,.3);cursor:pointer;}"
+    +".al-fab svg{width:19px;height:19px;}"
+    +".al-ov{position:fixed;inset:0;z-index:2147483600;background:linear-gradient(160deg,#f6f0e4,#e8dcc9);display:none;align-items:center;justify-content:center;flex-direction:column;font-family:'IBM Plex Sans',system-ui,sans-serif;padding:20px;}"
+    +".al-ov.show{display:flex;}"
+    +".al-ring{width:66px;height:66px;border-radius:50%;background:radial-gradient(circle at 38% 34%,#ffdd6e,#f4c430 62%,#d9a922);display:flex;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:0 6px 16px rgba(180,140,40,.35);}"
+    +".al-ring svg{width:30px;height:30px;color:#4a3410;}"
+    +".al-t{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;color:#182233;margin-bottom:4px;}"
+    +".al-s{font-size:12.5px;color:#6a7690;margin-bottom:16px;}"
+    +".al-in{font-size:22px;letter-spacing:8px;text-align:center;width:190px;max-width:70vw;padding:12px;border:1px solid #d8c7b0;border-radius:12px;background:#fff;color:#182233;outline:none;}"
+    +".al-in:focus{border-color:#c9a94a;}"
+    +".al-err{color:#a8443e;font-size:12px;height:16px;margin-top:8px;}"
+    +".al-go{margin-top:12px;background:#1c2f5e;color:#fff;border:none;border-radius:10px;padding:11px 26px;font-size:14px;font-weight:600;cursor:pointer;}"
+    +".al-forgot{margin-top:16px;background:none;border:none;color:#8a7f6a;font-size:11.5px;text-decoration:underline;cursor:pointer;}"
+    +".al-panel{position:fixed;inset:0;z-index:2147483500;background:rgba(15,25,45,.45);display:none;align-items:center;justify-content:center;font-family:'IBM Plex Sans',system-ui,sans-serif;padding:20px;}"
+    +".al-panel.show{display:flex;}"
+    +".al-box{background:#fff;border-radius:16px;padding:20px;width:300px;max-width:92vw;box-shadow:0 20px 50px rgba(0,0,0,.3);}"
+    +".al-box h3{font-family:'Fraunces',Georgia,serif;font-size:17px;margin:0 0 6px;color:#182233;}"
+    +".al-box label{display:block;font-size:11px;color:#6a7690;margin:12px 0 4px;font-weight:600;}"
+    +".al-box input,.al-box select{width:100%;padding:9px 10px;border:1px solid #dce3ee;border-radius:9px;font-size:14px;box-sizing:border-box;}"
+    +".al-row{display:flex;gap:8px;margin-top:16px;}"
+    +".al-row button{flex:1;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;}"
+    +".al-save{background:#1c2f5e;color:#fff;}.al-cancel{background:#eef1f6;color:#3a4560;}"
+    +".al-danger{width:100%;margin-top:10px;background:#fff;border:1px solid #e3bfc8;color:#a8443e;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;}"
+    +".al-note{font-size:10.5px;color:#8a94a8;margin-top:10px;line-height:1.45;}";
+  var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+
+  var LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
+
+  var fab=document.createElement('button'); fab.className='al-fab'; fab.innerHTML=LOCK; fab.title='App lock'; document.body.appendChild(fab);
+
+  var ov=document.createElement('div'); ov.className='al-ov';
+  ov.innerHTML='<div class="al-ring">'+LOCK+'</div><div class="al-t">Locked</div><div class="al-s">Enter your PIN to continue</div>'
+    +'<input class="al-in" id="alIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off">'
+    +'<div class="al-err" id="alErr"></div>'
+    +'<button class="al-go" id="alGo">Unlock</button>'
+    +'<button class="al-forgot" id="alForgot">Forgot PIN? Sign out</button>';
+  document.body.appendChild(ov);
+  var input=ov.querySelector('#alIn'), errEl=ov.querySelector('#alErr');
+
+  var panel=document.createElement('div'); panel.className='al-panel'; document.body.appendChild(panel);
+
+  function showErr(m){ errEl.textContent=m||''; }
+  function lock(){ if(!pinSet())return; ov.classList.add('show'); document.body.style.overflow='hidden'; input.value=''; showErr(''); setTimeout(function(){try{input.focus();}catch(e){}},60); }
+  function unlock(){ ov.classList.remove('show'); document.body.style.overflow=''; }
+  async function tryUnlock(){ if(!input.value)return; var h=await hashPin(input.value); if(h===localStorage.getItem(LS_PIN)){ unlock(); resetIdle(); } else { showErr('Wrong PIN'); input.value=''; try{input.focus();}catch(e){} } }
+  ov.querySelector('#alGo').addEventListener('click', tryUnlock);
+  input.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); tryUnlock(); } });
+  input.addEventListener('input',function(){ showErr(''); });
+  ov.querySelector('#alForgot').addEventListener('click', async function(){
+    if(!confirm('This signs you out on this device so you can log back in with your account password. Continue?'))return;
+    localStorage.removeItem(LS_PIN);
+    try{ if(window.__supa) await window.__supa.auth.signOut({scope:'local'}); }catch(e){}
+    clearSession(); location.reload();
+  });
+
+  var idleT;
+  function resetIdle(){ clearTimeout(idleT); var m=idleMin(); if(m>0 && pinSet() && hasSession()){ idleT=setTimeout(function(){ if(!ov.classList.contains('show')) lock(); }, m*60000); } }
+  ['mousemove','keydown','touchstart','click','scroll'].forEach(function(ev){ document.addEventListener(ev,function(){ if(!ov.classList.contains('show')) resetIdle(); },{passive:true}); });
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible' && pinSet() && hasSession()) lock(); });
+
+  function openPanel(){
+    var set=pinSet();
+    panel.innerHTML='<div class="al-box"><h3>App lock</h3>'
+      +'<div class="al-note" style="margin-top:0">A PIN keeps casual snoopers out of this device. It is not full security &mdash; use &ldquo;Sign out all devices&rdquo; if a device is lost or stolen.</div>'
+      +'<label>'+(set?'Change PIN (blank = keep current)':'Set a PIN (4+ digits)')+'</label>'
+      +'<input id="alNew" type="password" inputmode="numeric" maxlength="12" placeholder="New PIN">'
+      +'<input id="alNew2" type="password" inputmode="numeric" maxlength="12" placeholder="Confirm PIN" style="margin-top:8px;">'
+      +'<label>Auto-lock after</label><select id="alIdle"><option value="0">Off</option><option value="1">1 min</option><option value="3">3 min</option><option value="5">5 min</option><option value="15">15 min</option></select>'
+      +'<div class="al-err" id="alPErr" style="height:auto;margin-top:6px;"></div>'
+      +'<div class="al-row"><button class="al-cancel" id="alCancel">Close</button><button class="al-save" id="alSave">Save</button></div>'
+      +(set?'<button class="al-danger" id="alRemove">Remove PIN</button>':'')
+      +'<button class="al-danger" id="alSignoutAll">Sign out all devices</button>'
+      +'</div>';
+    panel.classList.add('show');
+    panel.querySelector('#alIdle').value=String(idleMin());
+    panel.querySelector('#alCancel').onclick=function(){ panel.classList.remove('show'); };
+    panel.querySelector('#alSave').onclick=async function(){
+      var n=panel.querySelector('#alNew').value, n2=panel.querySelector('#alNew2').value, pe=panel.querySelector('#alPErr');
+      localStorage.setItem(LS_IDLE, panel.querySelector('#alIdle').value);
+      if(!n && set){ panel.classList.remove('show'); resetIdle(); return; }
+      if(!/^[0-9]{4,}$/.test(n)){ pe.textContent='PIN must be at least 4 digits.'; return; }
+      if(n!==n2){ pe.textContent='PINs do not match.'; return; }
+      localStorage.setItem(LS_PIN, await hashPin(n));
+      panel.classList.remove('show'); resetIdle(); fab.style.display='flex';
+    };
+    var rm=panel.querySelector('#alRemove'); if(rm) rm.onclick=function(){ if(confirm('Remove the PIN lock?')){ localStorage.removeItem(LS_PIN); panel.classList.remove('show'); } };
+    panel.querySelector('#alSignoutAll').onclick=async function(){
+      if(!confirm('Sign out MyDay on ALL your devices? Other devices will need to log in again.'))return;
+      try{ if(window.__supa) await window.__supa.auth.signOut({scope:'global'}); }catch(e){}
+      clearSession(); location.reload();
+    };
+  }
+  fab.addEventListener('click', openPanel);
+
+  if(hasSession()) fab.style.display='flex';
+  if(pinSet() && hasSession()) lock();
+  resetIdle();
+})();
 </script>
 </body>
 </html>
