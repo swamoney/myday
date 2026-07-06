@@ -4,9 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>My Day</title>
-<!-- Favicon: embedded inline (SVG) — no file upload needed, works in browser tabs -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20x='0'%20y='0'%20width='512'%20height='512'%20rx='115'%20fill='%23f2ecdf'/%3E%3Cpath%20d='M%20262.1%2080.1%20A%20176%20176%200%200%201%20389.7%20141.5'%20fill='none'%20stroke='%23d0453a'%20stroke-width='40'/%3E%3Cpath%20d='M%20397.3%20151.1%20A%20176%20176%200%200%201%20428.8%20289.2'%20fill='none'%20stroke='%23e8853a'%20stroke-width='40'/%3E%3Cpath%20d='M%20426.1%20301.1%20A%20176%20176%200%200%201%20337.9%20411.8'%20fill='none'%20stroke='%23f4c430'%20stroke-width='40'/%3E%3Cpath%20d='M%20326.8%20417.1%20A%20176%20176%200%200%201%20185.2%20417.1'%20fill='none'%20stroke='%236ba368'%20stroke-width='40'/%3E%3Cpath%20d='M%20174.1%20411.8%20A%20176%20176%200%200%201%2085.9%20301.1'%20fill='none'%20stroke='%233a9bc0'%20stroke-width='40'/%3E%3Cpath%20d='M%2083.2%20289.2%20A%20176%20176%200%200%201%20114.7%20151.1'%20fill='none'%20stroke='%233a6ea5'%20stroke-width='40'/%3E%3Cpath%20d='M%20122.3%20141.5%20A%20176%20176%200%200%201%20249.9%2080.1'%20fill='none'%20stroke='%235f4b8b'%20stroke-width='40'/%3E%3Cg%20transform='translate(184,184)%20scale(6.0)'%3E%3Ccircle%20cx='12'%20cy='12'%20r='8.6'%20fill='none'%20stroke='%2316264d'%20stroke-width='2.2'/%3E%3Cpath%20d='M12%207v5.2l3.4%202'%20fill='none'%20stroke='%2316264d'%20stroke-width='2.2'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/g%3E%3C/svg%3E">
-<meta name="theme-color" content="#203a72">
+<!-- PWA: Web App Manifest — declares this site as installable.
+     Browser reads manifest.json to know app name, icons, theme colors.
+     When installed via Chrome "Add to Home Screen", it becomes a PWA. -->
+<link rel="manifest" href="/manifest.json">
+<!-- Theme color — colors the Android browser address bar / task switcher -->
+<meta name="theme-color" content="#0F2D5C">
+<!-- Favicon — what shows in browser tabs -->
+<link rel="icon" type="image/png" sizes="32x32" href="/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icon-16.png">
+<!-- iOS support — Apple ignores manifest.json icons, needs these tags directly.
+     apple-touch-icon → home screen icon when "Add to Home Screen" is used in Safari.
+     apple-mobile-web-app-capable → run fullscreen (no Safari chrome) when launched.
+     apple-mobile-web-app-status-bar-style → status bar appearance (default = white text on dark). -->
+<link rel="apple-touch-icon" href="/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="My Day">
 <!-- Tabler icons webfont — used by the research-aesthetic sidebar navigation.
      Same version and CDN as the reference research report file. Loaded via
@@ -118,7 +131,7 @@
   .rs-side {
     position: sticky; top: 0; align-self: flex-start;
     width: 210px; flex: 0 0 210px;
-    background: linear-gradient(120deg,#2b4a72 0%,#1c3252 100%); color: #ffffff;
+    background: #0b4f6c; color: #ffffff;
     height: 100vh; overflow-y: auto;
     transition: width 0.18s ease, flex-basis 0.18s ease;
     z-index: 30;
@@ -129,7 +142,7 @@
     display: flex; align-items: center; gap: 9px;
     padding: 14px 12px;
     border-bottom: 1px solid rgba(255,255,255,0.14);
-    position: sticky; top: 0; background: transparent;
+    position: sticky; top: 0; background: #0b4f6c;
   }
   .rs-side-head button {
     background: none; border: none; color: #ffffff;
@@ -204,13 +217,13 @@
     text-decoration: none;
     display: flex; align-items: center; gap: 9px;
     color: rgba(255,255,255,0.92);
-    background: rgba(0,0,0,0.14);
+    background: rgba(232,133,58,0.16);
     padding: 10px 14px;
     font-size: 12px; font-weight: 600;
     border-bottom: 1px solid rgba(255,255,255,0.1);
   }
   .rs-side .rs-hub-top i { font-size: 16px; }
-  .rs-side .rs-hub-top:hover { background: rgba(255,255,255,0.09); color: #ffffff; }
+  .rs-side .rs-hub-top:hover { background: rgba(232,133,58,0.28); color: #ffffff; }
   /* Date + day-progress lines under the title (moved out of the old hero). */
   .rs-side-date { font-size: 10.5px; color: rgba(255,255,255,0.82); margin-top: 6px; line-height: 1.3; }
   .rs-side-day { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px; line-height: 1.3; }
@@ -503,8 +516,6 @@
   }
   .search-result .sr-sat.low { color: var(--ember); }
   .search-result .sr-sat.empty { color: var(--muted); font-weight: 400; }
-  @keyframes searchFlash { from { box-shadow: 0 0 0 3px rgba(244,196,48,0.6); } to { box-shadow: 0 0 0 3px rgba(244,196,48,0); } }
-  .search-flash { animation: searchFlash 1.7s ease-out; border-radius: 8px; }
   .search-empty {
     padding: 24px 14px; text-align: center;
     font-family: var(--serif); font-style: italic; color: var(--muted);
@@ -924,8 +935,6 @@
      let the numerator/denominator breathe at the smaller ring size. */
   .hub-ring-shrunk-label small { display: none; }
   .hub-ring-meta { flex: 1; min-width: 0; }
-  .hub-ring-chip { display: none; align-items: center; background: #f4c430; color: #1c2436; font-family: var(--mono); font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 3px 9px; border-radius: 20px; margin-top: 6px; }
-  .hub-ring-chip.show { display: inline-flex; }
   .hub-ring-meta-h {
     font-size: 12px; color: var(--rs-brand, #0b4f6c); font-weight: 700;
     margin: 0 0 2px; font-family: var(--sans); letter-spacing: -0.15px;
@@ -1099,8 +1108,6 @@
   .hub-btn-preview .verdict-tone-good { color: #1f8a4c; }
   .hub-btn-preview .verdict-tone-mid { color: #A66A00; }
   .hub-btn-preview .verdict-tone-tough { color: #8A1F1A; }
-  .verdict-reflect-chip { display: inline-flex; align-items: center; gap: 4px; background: #A04A60; color: #fff; font-family: var(--mono); font-size: 7.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-left: 7px; vertical-align: 1px; }
-  .verdict-reflect-chip svg { width: 9px; height: 9px; stroke: #fff; }
   /* E3.4: Verdict preview color-coded by score */
   .hub-btn-preview .verdict-preview-good {
     color: #1f8a4c; font-weight: 600;
@@ -3608,9 +3615,6 @@
     width: 14px; height: 14px;
     opacity: 0.7;
   }
-  .intro-pill-cap { display: none; }
-  .intro-pill-cap svg { width: 15px; height: 15px; opacity: 1; }
-  .intro-pill-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* Filled state: when the slot is .is-filled (textarea has content), the
      pill picks up the moss-green left stripe + solid border, mirroring the
      filled-slot textarea visual. The dot becomes visible. The label text
@@ -3672,19 +3676,9 @@
   /* Filled pill — solid rose left stripe (replaces moss), white card, rose dot. */
   .intro-in-verdict.is-filled .intro-collapse-pill {
     border: 1px solid #E5C9CC;
+    border-left: 3px solid #A04A60;
     background: #FFFFFF;
     color: #5A2A38;
-    padding: 9px 12px 9px 0;
-    overflow: hidden;
-  }
-  .intro-in-verdict.is-filled .intro-pill-cap {
-    display: inline-flex; align-items: center; justify-content: center;
-    align-self: stretch;
-    background: #A04A60; color: #fff;
-    padding: 0 11px; margin-right: 11px;
-  }
-  .intro-in-verdict.is-filled .intro-pill-text {
-    font-style: normal; font-family: var(--serif); font-size: 12.5px; color: #5A2A38;
   }
   .intro-in-verdict .intro-pill-dot {
     background: #A04A60;
@@ -6675,7 +6669,6 @@
         <div class="hub-ring-meta">
           <div class="hub-ring-meta-h" id="hubRingH">Start your day</div>
           <div class="hub-ring-meta-p" id="hubRingP">Pick any section below to log.</div>
-          <span class="hub-ring-chip" id="hubRingChip">6/6 complete</span>
         </div>
       </div>
       <div class="hub-grid" id="hubGrid">
@@ -7430,13 +7423,13 @@
            the verdict's warm rose accent instead of the Day Diary moss. -->
       <div class="slot intro-slot intro-in-verdict" id="introSlot">
         <div class="slot-head">
-          <span class="slot-time intro-slot-title">Day's Introspection <span class="intro-slot-sub">&middot; learnings, regrets, new ideas</span></span>
+          <span class="slot-time intro-slot-title">Introspection <span class="intro-slot-sub">&middot; learnings, regrets, new ideas</span></span>
           <span class="slot-period">reflection</span>
         </div>
         <button type="button" class="intro-collapse-pill" id="introCollapsePill" aria-expanded="false">
-          <span class="intro-pill-cap" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></span>
-          <span class="intro-pill-text" id="introPillText">learnings &middot; regrets &middot; new ideas</span>
+          <span>learnings &middot; regrets &middot; new ideas</span>
           <span class="intro-pill-right">
+            <span class="intro-pill-dot" aria-hidden="true" title="Has content"></span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
           </span>
         </button>
@@ -9289,9 +9282,6 @@ function refreshIntroState() {
   const filled = ta.value && ta.value.trim().length > 0;
   slot.classList.toggle('is-filled', !!filled);
   slot.classList.toggle('is-empty', !filled);
-  const pillText = document.getElementById('introPillText');
-  if (pillText) pillText.textContent = filled ? ta.value.trim().replace(/\s+/g, ' ').slice(0, 80) : 'learnings \u00b7 regrets \u00b7 new ideas';
-  if (typeof refreshHubButtonPreviews === 'function') refreshHubButtonPreviews();
 }
 
 // Refresh the home-status banner under the Night Stay field. Three cases:
@@ -9598,26 +9588,32 @@ function markDirtyFieldsFailed() {
 function scheduleSave() {
   setSaveState('saving');
   if (saveTimer) clearTimeout(saveTimer);
+  // Bind this save to the date currently being edited. If the date changes
+  // before the debounce fires (via ANY path), we must NOT write this form's
+  // contents onto the new date — that was the source of one day's entries
+  // appearing to "copy" onto another.
+  const saveForDate = currentDate;
   saveTimer = setTimeout(async () => {
+    if (currentDate !== saveForDate) { saveTimer = null; return; }
     // Snapshot the pre-edit state (the in-memory currentEntry) BEFORE reading the new form state.
     // This is what we'll compare against to detect "shrink" events for soft-delete capture.
     const prevEntry = Object.assign({}, currentEntry);
     currentEntry = readEntryFromForm();
     // Resilience: detect & capture pre-edit values for any text fields that shrunk
-    detectShrinkAndCapture(currentDate, prevEntry, currentEntry);
+    detectShrinkAndCapture(saveForDate, prevEntry, currentEntry);
     // Refresh the soft-restore badges (a shrink may have just made one available;
     // a re-fill may have removed the need)
     renderSoftDeleteBadges();
     try {
       if (entryHasContent(currentEntry)) {
-        allEntries[currentDate] = currentEntry;
-        await upsertEntry(currentDate, currentEntry);
+        allEntries[saveForDate] = currentEntry;
+        await upsertEntry(saveForDate, currentEntry);
         setSaveState('saved');
         markDirtyFieldsSaved();  // [P] flash ✓ on every dirty field
       } else {
-        if (allEntries[currentDate]) {
-          delete allEntries[currentDate];
-          await deleteEntryForDate(currentDate);
+        if (allEntries[saveForDate]) {
+          delete allEntries[saveForDate];
+          await deleteEntryForDate(saveForDate);
         }
         setSaveState('');
         markDirtyFieldsSaved();  // [P] empty save still counts as committed
@@ -10390,8 +10386,6 @@ function renderHubRing(booleanStates) {
     // Item 2 (compact ring): ring label is now just the fraction; the small
     // "logged" caption is CSS-hidden but kept in DOM for potential restore.
     label.innerHTML = filledCount + '/6<small>logged</small>';
-    var hubChip = document.getElementById('hubRingChip');
-    if (hubChip) hubChip.classList.toggle('show', filledCount === 6);
   }
 }
 
@@ -10558,12 +10552,6 @@ function refreshHubButtonPreviews() {
       };
       el.textContent = placeholders[cls] || '—';
       el.classList.add('is-empty');
-    }
-    if (cls === 's-verdict') {
-      var _ita = document.getElementById('f_introspection');
-      if (_ita && _ita.value && _ita.value.trim()) {
-        el.insertAdjacentHTML('beforeend', '<span class="verdict-reflect-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>reflected</span>');
-      }
     }
   });
 }
@@ -12612,30 +12600,6 @@ function closeSearch() {
   document.getElementById('searchMeta').classList.add('hidden');
 }
 
-// After a search result opens its day, jump into the section that holds the
-// matched field and flash the field so the exact entry is obvious. Degrades
-// gracefully (stays on the day) if the field/section can't be resolved.
-function revealSearchField(fieldKey) {
-  const el = document.getElementById('f_' + fieldKey);
-  if (!el) return;
-  const section = el.closest('.section');
-  let cls = null;
-  if (section) section.classList.forEach(function (c) { if (/^s-/.test(c)) cls = c; });
-  if (cls && typeof focusHubSection === 'function') focusHubSection(cls);
-  // Introspection collapses to a pill — expand it so the text shows.
-  if (fieldKey === 'introspection') {
-    const slot = document.getElementById('introSlot');
-    const pill = document.getElementById('introCollapsePill');
-    if (slot) slot.classList.remove('intro-collapsed');
-    if (pill) pill.setAttribute('aria-expanded', 'true');
-  }
-  setTimeout(function () {
-    try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
-    el.classList.add('search-flash');
-    setTimeout(function () { el.classList.remove('search-flash'); }, 1700);
-  }, 90);
-}
-
 // Escape user input for safe insertion as plain text (we use textContent
 // for query value, so this is only used for HTML in snippet rendering).
 function escHtml(s) {
@@ -12686,20 +12650,18 @@ function performSearch(query) {
     const e = allEntries[date];
     if (!e) continue;
     let matchedField = null;
-    let matchedKey = null;
     let matchedText = null;
     for (const [key, label] of SEARCH_FIELDS) {
       const v = e[key];
       if (typeof v !== 'string' || v === '') continue;
       if (v.toLowerCase().indexOf(q) >= 0) {
         matchedField = label;
-        matchedKey = key;
         matchedText = v;
         break;
       }
     }
     if (matchedField) {
-      matches.push({ date, entry: e, fieldLabel: matchedField, matchedKey, matchedText });
+      matches.push({ date, entry: e, fieldLabel: matchedField, matchedText });
       if (matches.length >= SEARCH_RESULT_LIMIT) break;
     }
   }
@@ -12724,7 +12686,7 @@ function performSearch(query) {
     }
     const snippet = buildSnippet(m.matchedText, trimmed, m.fieldLabel);
     const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mo - 1];
-    html += '<div class="search-result" data-date="' + m.date + '" data-field="' + escHtml(m.matchedKey || '') + '">'
+    html += '<div class="search-result" data-date="' + m.date + '">'
       + '<div class="sr-date">' + dayName + ' · ' + monthShort + ' ' + y + '<strong>' + d + '</strong></div>'
       + '<div class="sr-snippet">' + snippet + '</div>'
       + '<div class="sr-sat ' + satClass + '">' + satText + '</div>'
@@ -12735,26 +12697,13 @@ function performSearch(query) {
     row.addEventListener('click', () => {
       const iso = row.getAttribute('data-date');
       if (!iso) return;
+      // Go through selectDate() so the pending save is flushed to the OLD date,
+      // the save timer is cleared, and the target entry is CLONED (not aliased).
+      // Setting currentDate/currentEntry directly here previously let a pending
+      // save land on the wrong day.
       closeSearch();
-      // Show the Today view FIRST, then navigate. showTab('today') snaps the
-      // date back to today whenever currentDate !== today, so selecting the
-      // searched date must come AFTER the tab switch — otherwise that reset
-      // overrides it (this was the bug: results always opened on today).
-      if (typeof showTab === 'function') showTab('today');
-      if (typeof selectDate === 'function') {
-        selectDate(iso);
-      } else {
-        currentDate = iso;
-        currentEntry = allEntries[iso] ? Object.assign(blankEntry(), allEntries[iso]) : blankEntry();
-        renderDateNav();
-        renderEntry();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-      // Deep-link: open the section holding the matched field + flash it.
-      var fieldKey = row.getAttribute('data-field') || '';
-      if (fieldKey && typeof revealSearchField === 'function') {
-        setTimeout(function () { revealSearchField(fieldKey); }, 150);
-      }
+      showTab('today');
+      selectDate(iso);
     });
   });
 }
@@ -17074,7 +17023,6 @@ async function handleSignIn() {
   }
 }
 
-window.__supa = supa;
 async function handleSignOut() {
   if (!confirm('Sign out? You\'ll need to enter your email and password to come back.')) return;
   await supa.auth.signOut();
@@ -18483,130 +18431,6 @@ init().catch(err => {
   console.error('init failed', err);
   document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Failed to start</h2><p>' + (err && err.message ? err.message : 'Unknown error') + '</p></div>';
 });
-</script>
-<!-- App lock (PIN) — unlock once per app session, covers all pages; + sign-out-all -->
-<script>
-(function(){
-  'use strict';
-  if (window.__applockLoaded) return; window.__applockLoaded = true;
-  var LS_PIN='applock.pin.v1', LS_SALT='applock.salt.v1', LS_IDLE='applock.idlemin.v1';
-  var SS_UNLOCKED='applock.unlocked', GRACE_MS=60000;
-  function idleMin(){ var v=parseInt(localStorage.getItem(LS_IDLE)||'5',10); return isNaN(v)?5:v; }
-  function pinSet(){ return !!localStorage.getItem(LS_PIN); }
-  function hasSession(){
-    try{ for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k)){ var v=localStorage.getItem(k)||''; if(v.indexOf('access_token')>=0) return true; } } }catch(e){}
-    return false;
-  }
-  function clearSession(){ try{ for(var i=localStorage.length-1;i>=0;i--){ var k=localStorage.key(i); if(/^sb-.*-auth-token$/.test(k)) localStorage.removeItem(k); } }catch(e){} }
-  function markUnlocked(){ try{ sessionStorage.setItem(SS_UNLOCKED,'1'); }catch(e){} }
-  function markLocked(){ try{ sessionStorage.removeItem(SS_UNLOCKED); }catch(e){} }
-  function unlockedThisSession(){ try{ return sessionStorage.getItem(SS_UNLOCKED)==='1'; }catch(e){ return false; } }
-  function getSalt(){ var s=localStorage.getItem(LS_SALT); if(!s){ var a=crypto.getRandomValues(new Uint8Array(16)); s=Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2);}).join(''); localStorage.setItem(LS_SALT,s);} return s; }
-  async function hashPin(pin){ var enc=new TextEncoder().encode(getSalt()+':'+pin); var buf=await crypto.subtle.digest('SHA-256',enc); return Array.prototype.map.call(new Uint8Array(buf),function(b){return ('0'+b.toString(16)).slice(-2);}).join(''); }
-
-  var css=""
-    +".al-fab{position:fixed;left:14px;bottom:14px;z-index:2147483000;width:42px;height:42px;border-radius:50%;background:#1c2f5e;color:#fff;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(20,30,60,.3);cursor:pointer;}"
-    +".al-fab svg{width:19px;height:19px;}"
-    +".al-ov{position:fixed;inset:0;z-index:2147483600;background:linear-gradient(160deg,#f6f0e4,#e8dcc9);display:none;align-items:center;justify-content:center;flex-direction:column;font-family:'IBM Plex Sans',system-ui,sans-serif;padding:20px;}"
-    +".al-ov.show{display:flex;}"
-    +".al-ring{width:66px;height:66px;border-radius:50%;background:radial-gradient(circle at 38% 34%,#ffdd6e,#f4c430 62%,#d9a922);display:flex;align-items:center;justify-content:center;margin-bottom:18px;box-shadow:0 6px 16px rgba(180,140,40,.35);}"
-    +".al-ring svg{width:30px;height:30px;color:#4a3410;}"
-    +".al-t{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;color:#182233;margin-bottom:4px;}"
-    +".al-s{font-size:12.5px;color:#6a7690;margin-bottom:16px;}"
-    +".al-in{font-size:22px;letter-spacing:8px;text-align:center;width:190px;max-width:70vw;padding:12px;border:1px solid #d8c7b0;border-radius:12px;background:#fff;color:#182233;outline:none;}"
-    +".al-in:focus{border-color:#c9a94a;}"
-    +".al-err{color:#a8443e;font-size:12px;height:16px;margin-top:8px;}"
-    +".al-go{margin-top:12px;background:#1c2f5e;color:#fff;border:none;border-radius:10px;padding:11px 26px;font-size:14px;font-weight:600;cursor:pointer;}"
-    +".al-forgot{margin-top:16px;background:none;border:none;color:#8a7f6a;font-size:11.5px;text-decoration:underline;cursor:pointer;}"
-    +".al-panel{position:fixed;inset:0;z-index:2147483500;background:rgba(15,25,45,.45);display:none;align-items:center;justify-content:center;font-family:'IBM Plex Sans',system-ui,sans-serif;padding:20px;}"
-    +".al-panel.show{display:flex;}"
-    +".al-box{background:#fff;border-radius:16px;padding:20px;width:300px;max-width:92vw;box-shadow:0 20px 50px rgba(0,0,0,.3);}"
-    +".al-box h3{font-family:'Fraunces',Georgia,serif;font-size:17px;margin:0 0 6px;color:#182233;}"
-    +".al-box label{display:block;font-size:11px;color:#6a7690;margin:12px 0 4px;font-weight:600;}"
-    +".al-box input,.al-box select{width:100%;padding:9px 10px;border:1px solid #dce3ee;border-radius:9px;font-size:14px;box-sizing:border-box;}"
-    +".al-row{display:flex;gap:8px;margin-top:16px;}"
-    +".al-row button{flex:1;border:none;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;}"
-    +".al-save{background:#1c2f5e;color:#fff;}.al-cancel{background:#eef1f6;color:#3a4560;}"
-    +".al-danger{width:100%;margin-top:10px;background:#fff;border:1px solid #e3bfc8;color:#a8443e;border-radius:9px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;}"
-    +".al-note{font-size:10.5px;color:#8a94a8;margin-top:10px;line-height:1.45;}";
-  var st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
-
-  var LOCK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>';
-
-  var fab=document.createElement('button'); fab.className='al-fab'; fab.innerHTML=LOCK; fab.title='App lock'; document.body.appendChild(fab);
-
-  var ov=document.createElement('div'); ov.className='al-ov';
-  ov.innerHTML='<div class="al-ring">'+LOCK+'</div><div class="al-t">Locked</div><div class="al-s">Enter your PIN to continue</div>'
-    +'<input class="al-in" id="alIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off">'
-    +'<div class="al-err" id="alErr"></div>'
-    +'<button class="al-go" id="alGo">Unlock</button>'
-    +'<button class="al-forgot" id="alForgot">Forgot PIN? Sign out</button>';
-  document.body.appendChild(ov);
-  var input=ov.querySelector('#alIn'), errEl=ov.querySelector('#alErr');
-
-  var panel=document.createElement('div'); panel.className='al-panel'; document.body.appendChild(panel);
-
-  function showErr(m){ errEl.textContent=m||''; }
-  function lock(){ if(!pinSet())return; markLocked(); ov.classList.add('show'); document.body.style.overflow='hidden'; input.value=''; showErr(''); setTimeout(function(){try{input.focus();}catch(e){}},60); }
-  function unlock(){ markUnlocked(); ov.classList.remove('show'); document.body.style.overflow=''; }
-  async function tryUnlock(){ if(!input.value)return; var h=await hashPin(input.value); if(h===localStorage.getItem(LS_PIN)){ unlock(); resetIdle(); } else { showErr('Wrong PIN'); input.value=''; try{input.focus();}catch(e){} } }
-  ov.querySelector('#alGo').addEventListener('click', tryUnlock);
-  input.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); tryUnlock(); } });
-  input.addEventListener('input',function(){ showErr(''); });
-  ov.querySelector('#alForgot').addEventListener('click', async function(){
-    if(!confirm('This signs you out on this device so you can log back in with your account password. Continue?'))return;
-    localStorage.removeItem(LS_PIN); markLocked();
-    try{ if(window.__supa) await window.__supa.auth.signOut({scope:'local'}); }catch(e){}
-    clearSession(); location.reload();
-  });
-
-  var idleT;
-  function resetIdle(){ clearTimeout(idleT); var m=idleMin(); if(m>0 && pinSet() && hasSession()){ idleT=setTimeout(function(){ if(!ov.classList.contains('show')) lock(); }, m*60000); } }
-  ['mousemove','keydown','touchstart','click','scroll'].forEach(function(ev){ document.addEventListener(ev,function(){ if(!ov.classList.contains('show')) resetIdle(); },{passive:true}); });
-  var hiddenAt=0;
-  document.addEventListener('visibilitychange',function(){
-    if(document.visibilityState==='hidden'){ hiddenAt=Date.now(); }
-    else if(document.visibilityState==='visible'){ if(pinSet() && hasSession() && (Date.now()-hiddenAt)>GRACE_MS && !ov.classList.contains('show')) lock(); }
-  });
-
-  function openPanel(){
-    var set=pinSet();
-    panel.innerHTML='<div class="al-box"><h3>App lock</h3>'
-      +'<div class="al-note" style="margin-top:0">A PIN keeps casual snoopers out. You unlock once per app open; moving between sections won&rsquo;t re-prompt. Use &ldquo;Sign out all devices&rdquo; if a device is lost.</div>'
-      +'<label>'+(set?'Change PIN (blank = keep current)':'Set a PIN (4+ digits)')+'</label>'
-      +'<input id="alNew" type="password" inputmode="numeric" maxlength="12" placeholder="New PIN">'
-      +'<input id="alNew2" type="password" inputmode="numeric" maxlength="12" placeholder="Confirm PIN" style="margin-top:8px;">'
-      +'<label>Auto-lock after</label><select id="alIdle"><option value="0">Off</option><option value="1">1 min</option><option value="3">3 min</option><option value="5">5 min</option><option value="15">15 min</option></select>'
-      +'<div class="al-err" id="alPErr" style="height:auto;margin-top:6px;"></div>'
-      +'<div class="al-row"><button class="al-cancel" id="alCancel">Close</button><button class="al-save" id="alSave">Save</button></div>'
-      +(set?'<button class="al-danger" id="alRemove">Remove PIN</button>':'')
-      +'<button class="al-danger" id="alSignoutAll">Sign out all devices</button>'
-      +'</div>';
-    panel.classList.add('show');
-    panel.querySelector('#alIdle').value=String(idleMin());
-    panel.querySelector('#alCancel').onclick=function(){ panel.classList.remove('show'); };
-    panel.querySelector('#alSave').onclick=async function(){
-      var n=panel.querySelector('#alNew').value, n2=panel.querySelector('#alNew2').value, pe=panel.querySelector('#alPErr');
-      localStorage.setItem(LS_IDLE, panel.querySelector('#alIdle').value);
-      if(!n && set){ panel.classList.remove('show'); resetIdle(); return; }
-      if(!/^[0-9]{4,}$/.test(n)){ pe.textContent='PIN must be at least 4 digits.'; return; }
-      if(n!==n2){ pe.textContent='PINs do not match.'; return; }
-      localStorage.setItem(LS_PIN, await hashPin(n)); markUnlocked();
-      panel.classList.remove('show'); resetIdle(); fab.style.display='flex';
-    };
-    var rm=panel.querySelector('#alRemove'); if(rm) rm.onclick=function(){ if(confirm('Remove the PIN lock?')){ localStorage.removeItem(LS_PIN); markLocked(); panel.classList.remove('show'); } };
-    panel.querySelector('#alSignoutAll').onclick=async function(){
-      if(!confirm('Sign out MyDay on ALL your devices? Other devices will need to log in again.'))return;
-      try{ if(window.__supa) await window.__supa.auth.signOut({scope:'global'}); }catch(e){}
-      clearSession(); location.reload();
-    };
-  }
-  fab.addEventListener('click', openPanel);
-
-  if(hasSession()) fab.style.display='flex';
-  if(pinSet() && hasSession() && !unlockedThisSession()) lock();
-  resetIdle();
-})();
 </script>
 </body>
 </html>
