@@ -7744,6 +7744,12 @@ const COL_TO_FIELD = Object.fromEntries(Object.entries(FIELD_TO_COL).map(([k,v])
 let allEntries = {};       // {YYYY-MM-DD: entry} — in-memory cache
 let currentDate = isoToday();
 let currentEntry = blankEntry();
+// The date whose data is currently populated into the DOM form. renderEntry()
+// stamps this on every (re)render. A save reads the DOM form, so it may ONLY
+// ever be written to this date — never to whatever currentDate happens to be
+// at the moment a debounced save fires. This is the hard guarantee against one
+// day's entries being copied onto another.
+let renderedFormDate = currentDate;
 let saveTimer = null;
 let monthCursor = null;
 // [C] Week cursor — ISO date string of the FOCAL date for the week view.
@@ -9110,6 +9116,9 @@ function applyFutureLockState() {
 }
 
 function renderEntry() {
+  // Stamp the form with the date we're about to populate it with. Any save
+  // triggered while this form is on screen must target THIS date only.
+  renderedFormDate = currentDate;
   // [Q] If we're on a future date, lock the form before populating fields.
   // The form still gets populated (in case the user navigates back), but
   // every input is visually disabled and accepts no edits via CSS.
@@ -9588,13 +9597,14 @@ function markDirtyFieldsFailed() {
 function scheduleSave() {
   setSaveState('saving');
   if (saveTimer) clearTimeout(saveTimer);
-  // Bind this save to the date currently being edited. If the date changes
-  // before the debounce fires (via ANY path), we must NOT write this form's
-  // contents onto the new date — that was the source of one day's entries
-  // appearing to "copy" onto another.
-  const saveForDate = currentDate;
+  // Bind this save to the date whose data is actually in the form right now.
+  // If the form is re-rendered to a different date before the debounce fires
+  // (i.e. the user navigated away), we abort — we will NOT write this form's
+  // contents onto the new date. This is what prevents one day's entries from
+  // being copied onto another.
+  const saveForDate = renderedFormDate;
   saveTimer = setTimeout(async () => {
-    if (currentDate !== saveForDate) { saveTimer = null; return; }
+    if (saveForDate == null || renderedFormDate !== saveForDate) { saveTimer = null; return; }
     // Snapshot the pre-edit state (the in-memory currentEntry) BEFORE reading the new form state.
     // This is what we'll compare against to detect "shrink" events for soft-delete capture.
     const prevEntry = Object.assign({}, currentEntry);
@@ -10121,14 +10131,17 @@ function refreshReadingTintState() {
 async function selectDate(iso) {
   if (saveTimer) {
     clearTimeout(saveTimer);
+    // The form currently shows renderedFormDate's data — flush it to THAT date,
+    // never to the date we're about to switch to.
+    const flushDate = renderedFormDate;
     const e = readEntryFromForm();
     try {
-      if (entryHasContent(e)) {
-        allEntries[currentDate] = e;
-        await upsertEntry(currentDate, e);
-      } else if (allEntries[currentDate]) {
-        delete allEntries[currentDate];
-        await deleteEntryForDate(currentDate);
+      if (flushDate != null && entryHasContent(e)) {
+        allEntries[flushDate] = e;
+        await upsertEntry(flushDate, e);
+      } else if (flushDate != null && allEntries[flushDate]) {
+        delete allEntries[flushDate];
+        await deleteEntryForDate(flushDate);
       }
     } catch (err) { console.warn('flush save before date change failed', err); }
   }
