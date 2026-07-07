@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My Introspections and Writing</title>
+<title>My Inner Life</title>
 <!-- Favicon: embedded inline (SVG) — no file upload needed, works in browser tabs -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20512%20512'%3E%3Crect%20x='0'%20y='0'%20width='512'%20height='512'%20rx='115'%20fill='%23f2ecdf'/%3E%3Cpath%20d='M%20262.1%2080.1%20A%20176%20176%200%200%201%20389.7%20141.5'%20fill='none'%20stroke='%23d0453a'%20stroke-width='40'/%3E%3Cpath%20d='M%20397.3%20151.1%20A%20176%20176%200%200%201%20428.8%20289.2'%20fill='none'%20stroke='%23e8853a'%20stroke-width='40'/%3E%3Cpath%20d='M%20426.1%20301.1%20A%20176%20176%200%200%201%20337.9%20411.8'%20fill='none'%20stroke='%23f4c430'%20stroke-width='40'/%3E%3Cpath%20d='M%20326.8%20417.1%20A%20176%20176%200%200%201%20185.2%20417.1'%20fill='none'%20stroke='%236ba368'%20stroke-width='40'/%3E%3Cpath%20d='M%20174.1%20411.8%20A%20176%20176%200%200%201%2085.9%20301.1'%20fill='none'%20stroke='%233a9bc0'%20stroke-width='40'/%3E%3Cpath%20d='M%2083.2%20289.2%20A%20176%20176%200%200%201%20114.7%20151.1'%20fill='none'%20stroke='%233a6ea5'%20stroke-width='40'/%3E%3Cpath%20d='M%20122.3%20141.5%20A%20176%20176%200%200%201%20249.9%2080.1'%20fill='none'%20stroke='%235f4b8b'%20stroke-width='40'/%3E%3Cg%20transform='translate(184,184)%20scale(6.0)'%3E%3Cpath%20d='M20%204a6%206%200%200%200-8.5%200L5%2010.5V19h8.5z'%20fill='none'%20stroke='%2316264d'%20stroke-width='2'%20stroke-linejoin='round'/%3E%3Cline%20x1='16'%20y1='8'%20x2='4.5'%20y2='19.5'%20stroke='%2316264d'%20stroke-width='2'%20stroke-linecap='round'/%3E%3Cline%20x1='16.5'%20y1='14'%20x2='9.5'%20y2='14'%20stroke='%2316264d'%20stroke-width='2'%20stroke-linecap='round'/%3E%3C/g%3E%3C/svg%3E">
 <meta name="theme-color" content="#203a72">
@@ -214,9 +214,9 @@
         <a class="hub-back" href="/">&larr; Hub</a>
         <span class="lib-count" id="libCount">&mdash;</span>
       </div>
-      <div class="lib-eyebrow">Learnings, regrets, ideas</div>
-      <div class="lib-title">My Introspections and Writing</div>
-      <div class="lib-subline">Where the thinking is kept &mdash; and worked out.</div>
+      <div class="lib-eyebrow">reflections &amp; gratitude</div>
+      <div class="lib-title">My Inner Life</div>
+      <div class="lib-subline">Reflections gathered, gratitude kept.</div>
     </div>
     <div class="lib-body">
 
@@ -227,8 +227,7 @@
 
       <div class="seg" id="seg">
         <span data-view="all" class="on">All</span>
-        <span data-view="writing">My Writing</span>
-        <span data-view="reflection">My Reflections</span>
+        <span data-view="introspection">My Introspection</span>
         <span data-view="gratitude">My Gratitude</span>
       </div>
 
@@ -297,11 +296,7 @@
       <div class="field">
         <label>Type</label>
         <select id="fKind">
-          <option value="essay">Essay</option>
-          <option value="post">Post</option>
-          <option value="thread">Thread</option>
-          <option value="note">Note</option>
-          <option value="reflection">Reflection</option>
+          <option value="introspection">Introspection</option>
           <option value="gratitude">Gratitude</option>
         </select>
       </div>
@@ -373,6 +368,7 @@ const KIND = {
   note:       { lbl:'Note',       glyph:'\u2022', w1:'#f6f7fa', w2:'#eceff4', icbg:'#e6eaf1', acc:'#6a7690' },
   reflection: { lbl:'Reflection', glyph:'?',       w1:'#f4f0fa', w2:'#eae2f3', icbg:'#e6def0', acc:'#6b4a7a' },
   gratitude:  { lbl:'Gratitude',  glyph:'\u2665', w1:'#fdf3ee', w2:'#f8e6db', icbg:'#f6ddc9', acc:'#b5673a' },
+  introspection: { lbl:'Introspection', glyph:'\u270E', w1:'#f4f0fa', w2:'#eae2f3', icbg:'#e6def0', acc:'#6b4a7a' },
 };
 const WRITING_KINDS = ['essay','post','thread','note'];
 const STATUS = {
@@ -405,7 +401,7 @@ function parseTags(raw) {
   }
   return [];
 }
-function isWriting(kind) { return WRITING_KINDS.includes(kind); }
+function isWriting(kind) { return false; } // status removed: entries are simple (Introspection / Gratitude)
 
 // ===== AUTH =====
 async function boot() {
@@ -511,8 +507,7 @@ function allTags() {
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
 function viewRows() {
-  if (activeView === 'writing') return rows.filter(r => isWriting(r.kind));
-  if (activeView === 'reflection') return rows.filter(r => r.kind === 'reflection');
+  if (activeView === 'introspection') return rows.filter(r => r.kind !== 'gratitude');
   if (activeView === 'gratitude') return rows.filter(r => r.kind === 'gratitude');
   return rows;
 }
@@ -544,7 +539,7 @@ function renderTags() {
   });
 }
 function cardHTML(r) {
-  const k = KIND[r.kind] || KIND.note;
+  const k = KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note;
   let kicker = escHtml(k.lbl.toUpperCase());
   if (isWriting(r.kind) && r.status && STATUS[r.status]) {
     const s = STATUS[r.status];
@@ -569,10 +564,10 @@ function render() {
   renderSeg(); renderTags();
   const list = filteredRows();
   const wrap = el('cardsWrap');
-  const addLabel = activeView === 'reflection' ? 'New reflection' : (activeView === 'gratitude' ? 'New gratitude' : (activeView === 'writing' ? 'New piece' : 'New'));
+  const addLabel = activeView === 'gratitude' ? 'New gratitude' : (activeView === 'introspection' ? 'New entry' : 'New');
 
   if (rows.length === 0) {
-    wrap.innerHTML = '<div class="empty"><div class="big">Nothing here yet</div><div class="small">Start a piece of writing, or a reflection you want to keep turning over.</div></div>' +
+    wrap.innerHTML = '<div class="empty"><div class="big">Nothing here yet</div><div class="small">Start an introspection, or note something you&rsquo;re grateful for.</div></div>' +
       '<div class="cards"><div class="card add" id="addEmpty"><span class="plus">+</span><span class="t">New entry</span></div></div>';
     el('addEmpty').addEventListener('click', () => openModal(null));
     return;
@@ -600,7 +595,7 @@ function render() {
 // ===== READER =====
 function openReader(id) {
   const r = rows.find(x => x.id === id); if (!r) return;
-  const k = KIND[r.kind] || KIND.note;
+  const k = KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note;
   let meta = k.lbl;
   if (isWriting(r.kind) && r.status && STATUS[r.status]) meta += ' \u00B7 ' + STATUS[r.status].lbl;
   el('readerTitle').textContent = r.title;
@@ -641,7 +636,7 @@ function openModal(id) {
   if (id) {
     const r = rows.find(x => x.id === id); if (!r) return;
     el('modalTitle').textContent = 'Edit entry';
-    el('fKind').value = KIND[r.kind] ? r.kind : 'note';
+    el('fKind').value = (r.kind === 'gratitude') ? 'gratitude' : 'introspection';
     el('fStatus').value = (r.status && STATUS[r.status]) ? r.status : 'idea';
     el('fTitle').value = r.title || '';
     el('fEssence').value = r.essence || '';
@@ -650,7 +645,7 @@ function openModal(id) {
     el('deleteBtn').classList.remove('hidden');
   } else {
     el('modalTitle').textContent = 'New entry';
-    const preset = activeView === 'reflection' ? 'reflection' : (activeView === 'gratitude' ? 'gratitude' : 'essay');
+    const preset = activeView === 'gratitude' ? 'gratitude' : 'introspection';
     el('fKind').value = preset;
     el('fStatus').value = 'idea';
     el('fTitle').value = ''; el('fEssence').value = ''; el('fBody').value = ''; el('fTags').value = '';
@@ -722,7 +717,7 @@ async function exportAll() {
     zip.file('entries.json', JSON.stringify(rows.map(r => ({ kind:r.kind, title:r.title, status:r.status, essence:r.essence, body:r.body, tags:r.tags, created_at:r.created_at, updated_at:r.updated_at })), null, 2));
     zip.file('wip-notes.json', JSON.stringify(notes.map(n => ({ heading:n.heading, body:n.body })), null, 2));
     const byKind = {};
-    rows.forEach(r => { const k = (KIND[r.kind] || KIND.note).lbl; (byKind[k] = byKind[k] || []).push(r); });
+    rows.forEach(r => { const k = (KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note).lbl; (byKind[k] = byKind[k] || []).push(r); });
     let body = '';
     Object.keys(byKind).sort().forEach(k => {
       body += '<h2>' + escHtml(k) + '</h2>';
@@ -734,7 +729,7 @@ async function exportAll() {
     });
     const doc = '<!doctype html><html><head><meta charset="utf-8"><title>Introspections and Writing</title>' +
       '<style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;padding:0 20px;color:#0A1325;line-height:1.6;}h1{font-size:28px;}h2{margin-top:30px;border-bottom:1px solid #ddd;padding-bottom:4px;color:#0F2D5C;}h3{margin-top:20px;}</style>' +
-      '</head><body><h1>My Introspections and Writing</h1><p style="color:#666;">Exported ' + new Date().toISOString().slice(0,10) + ' \u00B7 ' + rows.length + ' entries</p>' + body + '</body></html>';
+      '</head><body><h1>My Inner Life</h1><p style="color:#666;">Exported ' + new Date().toISOString().slice(0,10) + ' \u00B7 ' + rows.length + ' entries</p>' + body + '</body></html>';
     zip.file('introspections-and-writing.html', doc);
     const blob = await zip.generateAsync({ type: 'blob' });
     const url = URL.createObjectURL(blob);
