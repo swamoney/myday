@@ -153,6 +153,11 @@
   .reader-h1 { font-family:'Patrick Hand',cursive; font-size:33px; font-weight:400; line-height:1.2; margin-bottom:12px; }
   .reader-lead { font-family:'Patrick Hand',cursive; font-size:20px; color:var(--ink-soft); margin-bottom:20px; }
   .reader-body { font-family:'Patrick Hand',cursive; font-size:19px; line-height:1.6; color:var(--ink-soft); white-space:pre-wrap; }
+  .reader-foot { margin-top:26px; padding-top:18px; border-top:1px solid var(--rule); display:flex; gap:9px; flex-wrap:wrap; }
+  .eb { display:inline-flex; align-items:center; gap:7px; font-family:var(--sans); font-size:13px; font-weight:600; color:var(--ink-soft); background:var(--paper); border:1px solid var(--rule); border-radius:9px; padding:9px 15px; cursor:pointer; }
+  .eb:hover { border-color:var(--accent); color:var(--accent); }
+  .eb svg { width:15px; height:15px; }
+  .eb.done { border-color:#3d7a5c; color:#3d7a5c; }
 
   /* MODAL */
   .modal-overlay { position:fixed; inset:0; background:rgba(10,19,37,0.45); backdrop-filter:blur(4px); z-index:200; display:flex; align-items:flex-start; justify-content:center; padding:24px 14px; overflow-y:auto; }
@@ -284,6 +289,11 @@
       <div class="reader-h1" id="readerH1"></div>
       <div class="reader-lead" id="readerLead"></div>
       <div class="reader-body" id="readerBody"></div>
+      <div class="reader-foot">
+        <button class="eb" id="ibCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
+        <button class="eb" id="ibMd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="eb-label">Download .md</span></button>
+        <button class="eb" id="ibPrint" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="eb-label">Print / PDF</span></button>
+      </div>
     </div>
   </div>
 </div>
@@ -359,6 +369,7 @@ let userId = null;
 let rows = [];         // iw_entries
 let notes = [];        // wip_notes
 let activeView = 'introspection';
+let readerEntry = null;
 let activeTag = null;
 let searchTerm = '';
 let editingId = null;
@@ -614,10 +625,71 @@ function openReader(id) {
   el('readerLead').textContent = r.essence || '';
   el('readerLead').style.display = r.essence ? '' : 'none';
   el('readerBody').textContent = r.body || '';
+  readerEntry = r;
   el('readerEdit').onclick = () => { closeReader(); openModal(id); };
   el('readerOverlay').classList.remove('hidden');
 }
 function closeReader() { el('readerOverlay').classList.add('hidden'); }
+
+// ----- Per-entry export (Copy / Download .md / Print-PDF) -----
+function readerDateStr_(r) {
+  const d = r && r.created_at ? new Date(r.created_at) : null;
+  if (!d || isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' });
+}
+function entryLabel_(r) { const k = KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note; return k.lbl; }
+function entryPlain_(r) {
+  const date = readerDateStr_(r);
+  let out = (r.title || 'Untitled') + '\n' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') + '\n';
+  if (r.essence) out += '\n' + r.essence + '\n';
+  out += '\n' + (r.body || '');
+  if (r.tags && r.tags.length) out += '\n\n' + r.tags.map(function(t){return '#'+t;}).join(' ');
+  return out.trim() + '\n';
+}
+function entryMd_(r) {
+  const date = readerDateStr_(r);
+  let md = '# ' + (r.title || 'Untitled') + '\n\n*' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') + '*\n\n';
+  if (r.essence) md += '> ' + r.essence + '\n\n';
+  md += (r.body || '') + '\n';
+  if (r.tags && r.tags.length) md += '\n---\n\nTags: ' + r.tags.join(', ') + '\n';
+  return md;
+}
+function slug_(s) { return (String(s||'entry').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50)) || 'entry'; }
+function ebFlash_(id, label) {
+  const b = el(id); if (!b) return; const span = b.querySelector('.eb-label'); if (!span) return;
+  const o = span.textContent; span.textContent = label; b.classList.add('done');
+  setTimeout(function(){ span.textContent = o; b.classList.remove('done'); }, 1400);
+}
+function ebFallbackCopy_(txt, done) {
+  const ta = document.createElement('textarea'); ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); done && done(); } catch(e){}
+  document.body.removeChild(ta);
+}
+function exportEntryCopy() {
+  if (!readerEntry) return; const txt = entryPlain_(readerEntry);
+  const done = function(){ ebFlash_('ibCopy','Copied!'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done).catch(function(){ ebFallbackCopy_(txt, done); });
+  else ebFallbackCopy_(txt, done);
+}
+function exportEntryMd() {
+  if (!readerEntry) return; const md = entryMd_(readerEntry);
+  const blob = new Blob([md], { type:'text/markdown;charset=utf-8' }); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = slug_(readerEntry.title) + '.md';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+function exportEntryPrint() {
+  if (!readerEntry) return; const r = readerEntry; const date = readerDateStr_(r);
+  const esc = function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  const head1 = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Entry') + '</title>';
+  const fontlink = '<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">';
+  const style = "<style>@page{margin:20mm} body{font-family:'Patrick Hand',cursive;color:#1c2331;line-height:1.6;max-width:640px;margin:40px auto;padding:0 24px} .kind{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a94a8;margin-bottom:12px} h1{font-weight:400;font-size:34px;line-height:1.2;margin:0 0 14px} .lead{font-size:21px;color:#4a5670;margin-bottom:20px} .bd{font-size:20px;white-space:pre-wrap} .tags{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa4ba;margin-top:26px;border-top:1px solid #eee;padding-top:12px}</style></head><body>";
+  const bodyH = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div><h1>' + esc(r.title||'Untitled') + '</h1>' + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + esc(r.body||'') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
+  const tail = '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>';
+  const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
+  w.document.write(head1 + fontlink + style + bodyH + tail); w.document.close();
+}
 
 // ===== MODAL =====
 function syncModalForKind() {
@@ -756,6 +828,9 @@ async function exportAll() {
 el('authSubmit').addEventListener('click', handleSignIn);
 el('authPw').addEventListener('keydown', e => { if (e.key === 'Enter') handleSignIn(); });
 el('signOutBtn').addEventListener('click', handleSignOut);
+el('ibCopy') && el('ibCopy').addEventListener('click', exportEntryCopy);
+el('ibMd') && el('ibMd').addEventListener('click', exportEntryMd);
+el('ibPrint') && el('ibPrint').addEventListener('click', exportEntryPrint);
 el('editToggle').addEventListener('click', function(){ var on = document.body.classList.toggle('editing'); el('editCap').textContent = on ? 'Done' : 'Edit'; });
 el('newBtn').addEventListener('click', () => openModal(null));
 el('exportBtn').addEventListener('click', exportAll);
