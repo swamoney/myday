@@ -145,6 +145,10 @@
   body:not(.editing) .sticky.add { display:none; }
   body:not(.editing) .sticky-del { display:none; }
   body.editing .ib.edit { border-color:#f4c430; color:#9a7b1a; background:#fdf3d3; }
+  .type-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+  .type-chip { font-size:12px; padding:6px 12px; border-radius:20px; border:1px solid #dce3ee; background:#f4f7fb; color:#3a4560; cursor:pointer; font-weight:500; font-family:inherit; }
+  .type-chip:hover { border-color:#c9a94a; }
+  .type-chip.active { background:#0F2D5C; color:#fff; border-color:#0F2D5C; }
 </style>
 </head>
 <body>
@@ -174,7 +178,7 @@
       </div>
       <div class="lib-eyebrow">The things worth coming back to</div>
       <div class="lib-title">My Favourites</div>
-      <div class="lib-subline">Playlists, podcasts, videos &amp; more.</div>
+      <div class="lib-subline">Music, podcasts, books &amp; more.</div>
     </div>
     <div class="lib-body">
 
@@ -231,16 +235,26 @@
     <div class="field-row">
       <div class="field">
         <label>Category</label>
-        <input id="fType" list="typeSuggest" placeholder="Music, Podcast, Video&#8230;">
+        <input id="fType" list="typeSuggest" placeholder="Music, Podcast, Movie&#8230;">
         <datalist id="typeSuggest">
           <option value="Music"></option>
           <option value="Podcast"></option>
-          <option value="Video"></option>
-          <option value="Playlist"></option>
-          <option value="Article"></option>
+          <option value="Audiobook"></option>
+          <option value="Ebook"></option>
+          <option value="Movie"></option>
           <option value="Documentary"></option>
+          <option value="Article"></option>
         </datalist>
-        <div class="hint">Your own categories &#8212; type anything.</div>
+        <div class="type-chips" id="typeChips">
+          <button type="button" class="type-chip" data-type="Music">Music</button>
+          <button type="button" class="type-chip" data-type="Podcast">Podcast</button>
+          <button type="button" class="type-chip" data-type="Audiobook">Audiobook</button>
+          <button type="button" class="type-chip" data-type="Ebook">Ebook</button>
+          <button type="button" class="type-chip" data-type="Movie">Movie</button>
+          <button type="button" class="type-chip" data-type="Documentary">Documentary</button>
+          <button type="button" class="type-chip" data-type="Article">Article</button>
+        </div>
+        <div class="hint">Tap one, or type your own.</div>
       </div>
       <div class="field">
         <label>Tags &#8212; comma separated</label>
@@ -322,6 +336,7 @@ function typeVisual(type) {
   let icon = '\u{1F517}';
   if (/music|song|playlist|album|spotify|track|tune/.test(t)) icon = '\u266A';
   else if (/podcast|episode|show/.test(t)) icon = '\u{1F399}';
+  else if (/audiobook|audio book/.test(t)) icon = '\u{1F3A7}';
   else if (/video|youtube|watch|film|movie|documentary|clip/.test(t)) icon = '\u25B6';
   else if (/article|read|blog|essay|post|news/.test(t)) icon = '\u270E';
   else if (/book/.test(t)) icon = '\u{1F4D6}';
@@ -539,6 +554,7 @@ function openModal(id) {
     el('deleteBtn').classList.add('hidden');
   }
   el('modalOverlay').classList.remove('hidden');
+  if (typeof syncTypeChips === 'function') syncTypeChips();
 }
 function closeModal() { el('modalOverlay').classList.add('hidden'); editingId = null; }
 
@@ -591,6 +607,15 @@ el('modalClose').addEventListener('click', closeModal);
 el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });
 el('saveBtn').addEventListener('click', saveBookmark);
 el('deleteBtn').addEventListener('click', deleteBookmark);
+function syncTypeChips() {
+  const v = (el('fType') ? (el('fType').value || '') : '').trim().toLowerCase();
+  document.querySelectorAll('#typeChips .type-chip').forEach(c => c.classList.toggle('active', c.dataset.type.toLowerCase() === v));
+}
+(function(){
+  const tc = el('typeChips'); const ft = el('fType');
+  if (tc) tc.addEventListener('click', e => { const b = e.target.closest('.type-chip'); if (!b) return; if (ft) ft.value = b.dataset.type; syncTypeChips(); });
+  if (ft) ft.addEventListener('input', syncTypeChips);
+})();
 el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !el('modalOverlay').classList.contains('hidden')) closeModal(); });
 
