@@ -16557,10 +16557,10 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   // removed: AI items now live inside the otherLog and surface there.
   sectionHeading('I  Investments & Expenses');
 
-  // Ledger format (matches the app's on-screen Investments & Expenses):
-  // only logged items, grouped Invested / Spent / Recurring / Tracking, with
-  // Spent | Invested totals. Same total rules as renderExpensePastSummary
-  // (CC bill is tracking-only/excluded; recurring counts as spend).
+  // Statement format (Option B): bordered box, grouped Invested / Spent /
+  // Recurring / Tracking, only logged items, with "Total spent / Total
+  // invested" rows under a heavy rule. Same total rules as the app ledger
+  // (CC bill tracking-only/excluded; recurring counts as spend).
   {
     const EPS = { inv:[47,97,70], spend:[153,60,29], recur:[92,46,64], track:[138,129,114] };
     const money = (n) => 'Rs. ' + Math.round(n).toLocaleString('en-IN');
@@ -16593,58 +16593,66 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
       doc.text('Nothing logged for this day.', PDF_PAGE.marginX, cursorY);
       cursorY += 6;
     } else {
+      const boxPadX = 5, boxPadY = 4.5;
+      const innerL = PDF_PAGE.marginX + boxPadX;
+      const innerR = PDF_PAGE.width - PDF_PAGE.marginX - boxPadX;
+      const boxTop = cursorY;
+      cursorY += boxPadY + 2;
+
       const groupHead = (label, color) => {
-        cursorY += 2.5;
+        cursorY += 1.5;
         doc.setFont('helvetica','bold'); doc.setFontSize(7); pdfSetText(doc, color); doc.setCharSpace(0.5);
-        doc.text(label.toUpperCase(), PDF_PAGE.marginX, cursorY); doc.setCharSpace(0);
+        doc.text(label.toUpperCase(), innerL, cursorY); doc.setCharSpace(0);
         cursorY += 4.5;
       };
-      const epsRow = (label, amt, color, tag) => {
+      const row = (label, amt, color, tag) => {
         doc.setFont('helvetica','normal'); doc.setFontSize(9.5); pdfSetText(doc, PDF_COLORS.ink);
-        doc.text(label, PDF_PAGE.marginX, cursorY);
+        doc.text(label, innerL, cursorY);
         if (tag) {
           const lw = doc.getTextWidth(label);
           doc.setFont('helvetica','normal'); doc.setFontSize(6.5); pdfSetText(doc, PDF_COLORS.muted);
-          doc.text('(' + tag + ')', PDF_PAGE.marginX + lw + 2, cursorY);
+          doc.text('(' + tag + ')', innerL + lw + 2, cursorY);
         }
         doc.setFont('helvetica','bold'); doc.setFontSize(9.5); pdfSetText(doc, color);
-        doc.text(money(amt), PDF_PAGE.width - PDF_PAGE.marginX, cursorY, { align:'right' });
+        doc.text(money(amt), innerR, cursorY, { align:'right' });
         pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.12);
-        doc.setLineDashPattern([0.5,0.6], 0);
-        doc.line(PDF_PAGE.marginX, cursorY + 1.8, PDF_PAGE.width - PDF_PAGE.marginX, cursorY + 1.8);
-        doc.setLineDashPattern([], 0);
+        doc.line(innerL, cursorY + 1.8, innerR, cursorY + 1.8);
         cursorY += 6;
       };
 
       if (invRows.length || redeem > 0) {
         groupHead('Invested', EPS.inv);
-        invRows.forEach(r => epsRow(r.label, r.amt, EPS.inv));
-        if (redeem > 0) epsRow('Investment Redemption', redeem, EPS.inv, 'credited back');
+        invRows.forEach(r => row(r.label, r.amt, EPS.inv));
+        if (redeem > 0) row('Investment Redemption', redeem, EPS.inv, 'credited back');
       }
-      if (spRows.length) { groupHead('Spent', EPS.spend); spRows.forEach(r => epsRow(r.label, r.amt, EPS.spend)); }
-      if (recRows.length) { groupHead('Recurring', EPS.recur); recRows.forEach(r => epsRow(r.label, r.amt, EPS.spend, 'recurring')); }
-      if (ccVal2 > 0) { groupHead('Tracking only', EPS.track); epsRow('Credit Card Bill', ccVal2, EPS.track, 'not in total'); }
+      if (spRows.length) { groupHead('Spent', EPS.spend); spRows.forEach(r => row(r.label, r.amt, EPS.spend)); }
+      if (recRows.length) { groupHead('Recurring', EPS.recur); recRows.forEach(r => row(r.label, r.amt, EPS.spend, 'recurring')); }
+      if (ccVal2 > 0) { groupHead('Tracking only', EPS.track); row('Credit Card Bill', ccVal2, EPS.track, 'not in total'); }
 
-      cursorY += 2;
+      // Heavy rule + total rows
+      cursorY += 2.5;
+      pdfSetDraw(doc, PDF_COLORS.ink); doc.setLineWidth(0.5);
+      doc.line(innerL, cursorY, innerR, cursorY);
+      cursorY += 6;
+      const totRow = (label, amt, color) => {
+        doc.setFont('helvetica','bold'); doc.setFontSize(8); pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.4);
+        doc.text(label.toUpperCase(), innerL, cursorY); doc.setCharSpace(0);
+        doc.setFont('helvetica','bold'); doc.setFontSize(11); pdfSetText(doc, color);
+        doc.text(money(amt), innerR, cursorY, { align:'right' });
+        cursorY += 6.5;
+      };
+      totRow('Total spent', spendTotal, EPS.spend);
+      totRow('Total invested', investTotal, EPS.inv);
+
+      cursorY += boxPadY - 3;
+      const boxBottom = cursorY;
       pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.3);
-      doc.line(PDF_PAGE.marginX, cursorY, PDF_PAGE.width - PDF_PAGE.marginX, cursorY);
-      cursorY += 5;
-      const midX = PDF_PAGE.width / 2;
-      const c1 = PDF_PAGE.marginX + (midX - PDF_PAGE.marginX) / 2;
-      const c2 = midX + (PDF_PAGE.width - PDF_PAGE.marginX - midX) / 2;
-      doc.setFont('helvetica','bold'); doc.setFontSize(7); pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.5);
-      doc.text('SPENT', c1, cursorY, { align:'center' });
-      doc.text('INVESTED', c2, cursorY, { align:'center' });
-      doc.setCharSpace(0);
-      cursorY += 5;
-      doc.setFont('helvetica','bold'); doc.setFontSize(13);
-      pdfSetText(doc, EPS.spend); doc.text(money(spendTotal), c1, cursorY, { align:'center' });
-      pdfSetText(doc, EPS.inv);   doc.text(money(investTotal), c2, cursorY, { align:'center' });
-      cursorY += 4;
+      if (doc.roundedRect) doc.roundedRect(PDF_PAGE.marginX, boxTop, PDF_PAGE.contentWidth, boxBottom - boxTop, 1.5, 1.5, 'S');
+      else doc.rect(PDF_PAGE.marginX, boxTop, PDF_PAGE.contentWidth, boxBottom - boxTop, 'S');
     }
   }
 
-  cursorY += 1;
+  cursorY += 3;
 
   // ===== II. HEALTH & MIND =====
   // Phase 11+: reverted to always-render. No hide-empties, no footnote here.
