@@ -315,11 +315,14 @@ const STICKY = [
 function stickyColor(i) { return STICKY[i % STICKY.length]; }
 
 function openNotes(id) {
-  selectedId = id;
-  document.querySelectorAll('#spine .snode').forEach(n => n.classList.toggle('active', n.dataset.id === String(id)));
+  // Notes stay hidden until you tap a why; tapping the open one again closes it.
+  selectedId = (String(selectedId) === String(id)) ? null : id;
+  document.querySelectorAll('#spine .snode').forEach(n => n.classList.toggle('active', selectedId !== null && n.dataset.id === String(selectedId)));
   renderNotes();
-  const ta = document.querySelector('#notesPanel textarea[data-id="' + id + '"]');
-  if (ta) { ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); ta.focus(); }
+  if (selectedId !== null) {
+    const ta = document.querySelector('#notesPanel textarea[data-id="' + id + '"]');
+    if (ta) { ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); ta.focus(); }
+  }
 }
 
 function renderNotes() {
@@ -327,11 +330,9 @@ function renderNotes() {
   if (!panel) return;
   // Show a sticky for every why that has notes, plus the one currently focused
   // (so an empty why you just tapped gives you a fresh sticky to write in).
-  const shown = pillars.filter((p, i) =>
-    (p.notes && p.notes.trim()) || String(p.id) === String(selectedId)
-  );
+  const shown = selectedId ? pillars.filter(p => String(p.id) === String(selectedId)) : [];
   if (!shown.length) {
-    panel.innerHTML = '<div class="notes-empty">Tap a why above to start a note.</div>';
+    panel.innerHTML = '<div class="notes-empty">Tap a why above to open its note.</div>';
     return;
   }
   panel.innerHTML = '<div class="board">' + shown.map(p => {

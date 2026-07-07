@@ -63,7 +63,7 @@
   .btn-primary:active { transform:scale(0.98); }
 
   /* segmented view filter */
-  .seg { display:inline-flex; gap:3px; background:var(--paper-soft); padding:4px; border-radius:10px; margin-bottom:12px; }
+  .seg { display:inline-flex; gap:3px; background:var(--paper-soft); padding:4px; border-radius:10px; margin-bottom:12px; max-width:100%; overflow-x:auto; }
   .seg span { font-size:12px; font-weight:600; padding:6px 14px; border-radius:7px; color:var(--muted); cursor:pointer; white-space:nowrap; }
   .seg span:hover { color:var(--ink-soft); }
   .seg span.on { background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
@@ -227,8 +227,9 @@
 
       <div class="seg" id="seg">
         <span data-view="all" class="on">All</span>
-        <span data-view="writing">Writing</span>
-        <span data-view="reflection">Reflections</span>
+        <span data-view="writing">My Writing</span>
+        <span data-view="reflection">My Reflections</span>
+        <span data-view="gratitude">My Gratitude</span>
       </div>
 
       <div class="tags-row" id="tagsRow"></div>
@@ -301,6 +302,7 @@
           <option value="thread">Thread</option>
           <option value="note">Note</option>
           <option value="reflection">Reflection</option>
+          <option value="gratitude">Gratitude</option>
         </select>
       </div>
       <div class="field" id="statusWrap">
@@ -370,6 +372,7 @@ const KIND = {
   thread:     { lbl:'Thread',     glyph:'\u2261', w1:'#f2f8f4', w2:'#e4efe8', icbg:'#dcebe2', acc:'#3d7a5c' },
   note:       { lbl:'Note',       glyph:'\u2022', w1:'#f6f7fa', w2:'#eceff4', icbg:'#e6eaf1', acc:'#6a7690' },
   reflection: { lbl:'Reflection', glyph:'?',       w1:'#f4f0fa', w2:'#eae2f3', icbg:'#e6def0', acc:'#6b4a7a' },
+  gratitude:  { lbl:'Gratitude',  glyph:'\u2665', w1:'#fdf3ee', w2:'#f8e6db', icbg:'#f6ddc9', acc:'#b5673a' },
 };
 const WRITING_KINDS = ['essay','post','thread','note'];
 const STATUS = {
@@ -510,6 +513,7 @@ function allTags() {
 function viewRows() {
   if (activeView === 'writing') return rows.filter(r => isWriting(r.kind));
   if (activeView === 'reflection') return rows.filter(r => r.kind === 'reflection');
+  if (activeView === 'gratitude') return rows.filter(r => r.kind === 'gratitude');
   return rows;
 }
 function filteredRows() {
@@ -565,7 +569,7 @@ function render() {
   renderSeg(); renderTags();
   const list = filteredRows();
   const wrap = el('cardsWrap');
-  const addLabel = activeView === 'reflection' ? 'New reflection' : (activeView === 'writing' ? 'New piece' : 'New');
+  const addLabel = activeView === 'reflection' ? 'New reflection' : (activeView === 'gratitude' ? 'New gratitude' : (activeView === 'writing' ? 'New piece' : 'New'));
 
   if (rows.length === 0) {
     wrap.innerHTML = '<div class="empty"><div class="big">Nothing here yet</div><div class="small">Start a piece of writing, or a reflection you want to keep turning over.</div></div>' +
@@ -646,7 +650,7 @@ function openModal(id) {
     el('deleteBtn').classList.remove('hidden');
   } else {
     el('modalTitle').textContent = 'New entry';
-    const preset = activeView === 'reflection' ? 'reflection' : 'essay';
+    const preset = activeView === 'reflection' ? 'reflection' : (activeView === 'gratitude' ? 'gratitude' : 'essay');
     el('fKind').value = preset;
     el('fStatus').value = 'idea';
     el('fTitle').value = ''; el('fEssence').value = ''; el('fBody').value = ''; el('fTags').value = '';
