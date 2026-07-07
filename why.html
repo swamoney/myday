@@ -116,6 +116,12 @@
   .sticky-st { position:absolute; top:12px; right:14px; font-family:var(--mono); font-size:8px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; opacity:0.45; min-height:10px; }
   .sticky-txt { width:100%; flex:1 1 auto; min-height:160px; resize:vertical; border:none; background:transparent; font-family:'Caveat',cursive; font-size:21px; line-height:1.45; color:rgba(28,26,18,0.9); }
   .sticky-txt:focus { outline:none; }
+  .note-modal { position:fixed; inset:0; z-index:400; background:rgba(15,25,45,0.5); display:none; align-items:center; justify-content:center; padding:30px 18px; overflow-y:auto; }
+  .note-modal.show { display:flex; }
+  .note-modal-card { position:relative; }
+  .note-modal .sticky { transform:none !important; margin:0; }
+  .note-close { position:absolute; top:-14px; right:-14px; width:34px; height:34px; border-radius:50%; background:#fff; border:1px solid #e0e6ef; color:#3a4560; font-size:22px; line-height:1; cursor:pointer; box-shadow:0 5px 14px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; z-index:2; padding:0; }
+  .note-close:hover { background:#f4f7fb; }
   .sticky-txt::placeholder { color:rgba(30,28,20,0.32); font-style:italic; }
   @media (max-width:560px) { .sticky { width:100%; transform:none !important; } }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
@@ -178,7 +184,12 @@
       <div class="spine-line"></div>
       <div id="spine"></div>
       <div class="add-row"><button class="add-why" id="addBtn">&#43; Add a why</button></div>
-      <div id="notesPanel" class="notes-panel"></div>
+      <div class="note-modal" id="noteModal" aria-hidden="true">
+        <div class="note-modal-card">
+          <button class="note-close" id="noteClose" type="button" aria-label="Close">&times;</button>
+          <div id="noteModalBody"></div>
+        </div>
+      </div>
     </div>
   </div>
   <div class="foot-note">one life, live it well</div>
@@ -314,15 +325,37 @@ const STICKY = [
 ];
 function stickyColor(i) { return STICKY[i % STICKY.length]; }
 
+function stickyHTML(p) {
+  const i = pillars.findIndex(x => String(x.id) === String(p.id));
+  const c = stickyColor(i < 0 ? 0 : i);
+  const numLine = escHtml(p.num) + (p.brk ? ' &middot; ' + escHtml(p.brk) : '');
+  return '<div class="sticky" style="background:' + c.bg + ';">' +
+    '<span class="sticky-st" id="st_' + p.id + '"></span>' +
+    '<div class="sticky-h" style="color:' + c.head + ';">' + escHtml(p.code) + ' &middot; ' + numLine + '</div>' +
+    '<textarea class="sticky-txt" data-id="' + p.id + '" placeholder="Jot anything for this why…">' + escHtml(p.notes || '') + '</textarea>' +
+  '</div>';
+}
 function openNotes(id) {
-  // Notes stay hidden until you tap a why; tapping the open one again closes it.
-  selectedId = (String(selectedId) === String(id)) ? null : id;
-  document.querySelectorAll('#spine .snode').forEach(n => n.classList.toggle('active', selectedId !== null && n.dataset.id === String(selectedId)));
-  renderNotes();
-  if (selectedId !== null) {
-    const ta = document.querySelector('#notesPanel textarea[data-id="' + id + '"]');
-    if (ta) { ta.scrollIntoView({ behavior: 'smooth', block: 'center' }); ta.focus(); }
-  }
+  // Tapping the same why while its note is open closes the popup.
+  if (String(selectedId) === String(id) && el('noteModal').classList.contains('show')) { closeNoteModal(); return; }
+  const p = pillars.find(x => String(x.id) === String(id));
+  if (!p) return;
+  selectedId = id;
+  document.querySelectorAll('#spine .snode').forEach(n => n.classList.toggle('active', n.dataset.id === String(id)));
+  el('noteModalBody').innerHTML = stickyHTML(p);
+  el('noteModal').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  const ta = el('noteModalBody').querySelector('textarea[data-id]');
+  if (ta) setTimeout(function () { try { ta.focus(); } catch (e) {} }, 40);
+}
+function closeNoteModal() {
+  const ta = el('noteModalBody').querySelector('textarea[data-id]');
+  if (ta) saveNotes(ta.dataset.id, ta.value);
+  el('noteModal').classList.remove('show');
+  document.body.style.overflow = '';
+  selectedId = null;
+  document.querySelectorAll('#spine .snode').forEach(n => n.classList.remove('active'));
+  el('noteModalBody').innerHTML = '';
 }
 
 function renderNotes() {
@@ -499,12 +532,15 @@ el('spine').addEventListener('click', e => {
 });
 
 // Sticky notes: autosave on type (debounced) and on blur.
-el('notesPanel').addEventListener('input', e => {
+el('noteModalBody').addEventListener('input', e => {
   const ta = e.target.closest('textarea[data-id]'); if (ta) scheduleNotesSave(ta.dataset.id, ta.value);
 });
-el('notesPanel').addEventListener('focusout', e => {
+el('noteModalBody').addEventListener('focusout', e => {
   const ta = e.target.closest('textarea[data-id]'); if (ta) saveNotes(ta.dataset.id, ta.value);
 });
+el('noteClose').addEventListener('click', closeNoteModal);
+el('noteModal').addEventListener('click', e => { if (e.target === el('noteModal')) closeNoteModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('noteModal').classList.contains('show')) closeNoteModal(); });
 
 boot();
 </script>
