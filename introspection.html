@@ -67,6 +67,8 @@
   .seg span { font-size:12px; font-weight:600; padding:6px 14px; border-radius:7px; color:var(--muted); cursor:pointer; white-space:nowrap; }
   .seg span:hover { color:var(--ink-soft); }
   .seg span.on { background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+  .seg span.seg-wip { color:#9a7b3a; }
+  .seg span.seg-wip.on { background:#f0e6d2; color:#7a5f2a; }
 
   .tags-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; align-items:center; }
   .tag { font-size:12px; padding:5px 12px; border-radius:20px; border:1px solid var(--rule); background:var(--paper); color:var(--ink-soft); cursor:pointer; font-weight:500; }
@@ -105,9 +107,9 @@
   .loading { text-align:center; padding:50px 20px; color:var(--muted); font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
 
   /* WORK IN PROGRESS (Why sticky pinboard) */
-  .wip { margin-top:26px; border-top:2px solid #eef1f6; padding-top:20px; }
+  .wip { background:linear-gradient(160deg,#faf4e8,#f2ead7); border:1px solid #e6d6b8; border-radius:14px; padding:18px; }
   .wip-head { display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-bottom:16px; }
-  .wip-h { font-family:var(--serif); font-size:19px; font-weight:600; }
+  .wip-h { font-family:var(--serif); font-size:19px; font-weight:600; color:#7a5f2a; }
   .wip-sub { font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:#9aa4ba; margin-top:3px; }
   .board { display:flex; flex-wrap:wrap; gap:20px; }
   .sticky { width:min(330px, 100%); min-height:466px; display:flex; flex-direction:column; padding:20px 22px 30px; border-radius:4px; box-shadow:0 8px 18px rgba(30,40,70,0.14); position:relative; }
@@ -227,16 +229,16 @@
       </div>
 
       <div class="seg" id="seg">
-        <span data-view="all" class="on">All</span>
-        <span data-view="introspection">My Introspection</span>
+        <span data-view="introspection" class="on">My Introspection</span>
         <span data-view="gratitude">My Gratitude</span>
+        <span data-view="wip" class="seg-wip">Work in Progress</span>
       </div>
 
       <div class="tags-row" id="tagsRow"></div>
 
       <div id="cardsWrap"><div class="loading" id="loadingState">Loading&#8230;</div></div>
 
-      <div class="wip">
+      <div class="wip" id="wipSection">
         <div class="wip-head">
           <div>
             <div class="wip-h">Work in progress</div>
@@ -356,7 +358,7 @@ const supa = window.supabase.createClient(
 let userId = null;
 let rows = [];         // iw_entries
 let notes = [];        // wip_notes
-let activeView = 'all';
+let activeView = 'introspection';
 let activeTag = null;
 let searchTerm = '';
 let editingId = null;
@@ -562,7 +564,14 @@ function cardHTML(r) {
 function render() {
   el('loadingState') && el('loadingState').remove();
   el('libCount').textContent = rows.length;
-  renderSeg(); renderTags();
+  renderSeg();
+  const isWip = activeView === 'wip';
+  el('wipSection').style.display = isWip ? '' : 'none';
+  document.querySelector('.toolbar').style.display = isWip ? 'none' : '';
+  el('tagsRow').style.display = isWip ? 'none' : '';
+  el('cardsWrap').style.display = isWip ? 'none' : '';
+  if (isWip) { renderBoard(); return; }
+  renderTags();
   const list = filteredRows();
   const wrap = el('cardsWrap');
   const addLabel = activeView === 'gratitude' ? 'New gratitude' : (activeView === 'introspection' ? 'New entry' : 'New');
