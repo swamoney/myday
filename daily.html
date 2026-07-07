@@ -10679,9 +10679,12 @@ function updateExpenseFooter() {
   const spendFields = ['food','dmart','uber','shopping','hotelStay','travel','entertainment','taxes'];
   let spent = 0;
   spendFields.forEach(f => { spent += liveVal(f); });
-  // 'other' is derived from otherLog into currentEntry.other — read that.
-  if (typeof currentEntry === 'object' && currentEntry) {
-    spent += evalExpr(currentEntry.other) || 0;
+  // Itemized "Other" expenses — summed directly from otherLog so the footer
+  // matches the past-day ledger (which uses parseOtherItems) and the month
+  // rollups. Reading the derived currentEntry.other dropped AI-classified
+  // items and could lag behind edits — the source of the today-total bug.
+  if (typeof otherItemsSum === 'function' && typeof currentEntry === 'object' && currentEntry) {
+    spent += otherItemsSum(currentEntry) || 0;
   }
   // Merge (Option A): recurring payments for this date count toward Spent so
   // the footer shows the true total (matches month rollups + outflow breakdown).
