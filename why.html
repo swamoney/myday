@@ -122,6 +122,39 @@
   .note-modal .sticky { transform:none !important; margin:0; }
   .note-close { position:absolute; top:-14px; right:-14px; width:34px; height:34px; border-radius:50%; background:#fff; border:1px solid #e0e6ef; color:#3a4560; font-size:22px; line-height:1; cursor:pointer; box-shadow:0 5px 14px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; z-index:2; padding:0; }
   .note-close:hover { background:#f4f7fb; }
+  .scontent { position:relative; padding-right:44px; }
+  .rm-btn { position:absolute; top:0; right:0; width:34px; height:34px; border-radius:9px; border:1px solid #e0e6ef; background:#fff; color:#7a8498; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2; padding:0; }
+  .rm-btn:hover { border-color:#f4c430; color:#a5702f; background:#fffaf0; }
+  .rm-btn svg { width:17px; height:17px; }
+  body.editing .rm-btn { display:none; }
+  .rmw { position:fixed; inset:0; z-index:500; background:#fbfcfe; display:none; flex-direction:column; }
+  .rmw.show { display:flex; }
+  .rm-bar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid #eef1f6; background:#fff; flex-shrink:0; }
+  .rm-back { background:none; border:none; font-size:13px; font-weight:600; color:#3a4560; cursor:pointer; }
+  .rm-title { flex:1; font-family:var(--serif); font-size:14px; font-weight:600; text-align:center; }
+  .rm-save { font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#3d7a5c; min-width:52px; text-align:right; }
+  .rm-scroll { flex:1; overflow-y:auto; }
+  .rm-inner { max-width:680px; margin:0 auto; padding:22px 20px 40px; }
+  .rm-sec { margin-bottom:26px; }
+  .rm-k { display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#a5702f; }
+  .rm-k svg { width:14px; height:14px; }
+  .rm-hint { font-size:11.5px; color:#9aa4ba; margin:3px 0 10px; }
+  .rm-essay { width:100%; font-family:'Patrick Hand',cursive; font-size:18px; line-height:1.65; color:#3a4560; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; min-height:220px; resize:vertical; }
+  .rm-essay:focus { outline:none; border-color:#c9a94a; }
+  .ms-list { display:flex; flex-direction:column; gap:8px; }
+  .ms { display:flex; align-items:center; gap:11px; background:#fff; border:1px solid #e6ecf5; border-radius:11px; padding:12px 14px; }
+  .ms-box { width:20px; height:20px; border-radius:6px; border:1.5px solid #cdd6e3; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; background:#fff; padding:0; }
+  .ms-box svg { width:11px; height:11px; display:none; }
+  .ms.done .ms-box { background:#3d7a5c; border-color:#3d7a5c; }
+  .ms.done .ms-box svg { display:block; }
+  .ms.done .ms-t { color:#9aa4ba; text-decoration:line-through; }
+  .ms-t { flex:1; font-size:14px; color:#28324B; border:none; background:transparent; font-family:inherit; }
+  .ms-t:focus { outline:none; }
+  .ms-y { width:64px; font-family:var(--mono); font-size:10px; font-weight:600; color:#a5702f; background:#fdf6e3; border:1px solid #f0e2bd; padding:3px 8px; border-radius:20px; text-align:center; }
+  .ms-y:focus { outline:none; border-color:#c9a94a; }
+  .ms-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; padding:0 2px; }
+  .ms-x:hover { color:#a8443e; }
+  .ms.add { justify-content:center; background:transparent; border:1.5px dashed #cdd6e3; color:#8189a0; font-style:italic; cursor:pointer; }
   .sticky-txt::placeholder { color:rgba(30,28,20,0.32); font-style:italic; }
   @media (max-width:560px) { .sticky { width:100%; transform:none !important; } }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
@@ -219,7 +252,6 @@
       <div><label>Code</label><input id="mCode" placeholder="e.g. F" maxlength="6"></div>
       <div><label>Number</label><input id="mNum" placeholder="e.g. 150"></div>
     </div></div>
-    <div class="fld"><label>Breakdown (optional)</label><input id="mBrk" placeholder="e.g. 1 &times; 1 &times; 1"></div>
     <div class="fld"><label>Stands for</label><input id="mLabel" placeholder="what this code means"></div>
     <div class="fld"><label>Current status</label><textarea id="mWhy" placeholder="where this stands right now"></textarea></div>
     <div class="fld"><label>Status state</label><select id="mState"><option value="">Not set</option><option value="good">On track</option><option value="watch">Watch</option><option value="off">Slipping</option></select></div>
@@ -288,7 +320,6 @@ async function loadPillars() {
 function renderSpine() {
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   el('spine').innerHTML = pillars.map(p => {
-    const brk = p.brk ? '<span class="brk">' + escHtml(p.brk) + '</span>' : '';
     const label = p.label ? escHtml(p.label) : '&mdash;';
     const standsCls = p.label ? 's-stands' : 's-stands empty';
     const stColor = STATE[p.state || ''] || STATE[''];
@@ -302,7 +333,8 @@ function renderSpine() {
       '</div>' +
       '<div class="smark">' + escHtml(p.code) + '</div>' +
       '<div class="scontent">' +
-        '<div class="snum">' + escHtml(p.num) + brk + '</div>' +
+        '<button class="rm-btn" data-roadmap="' + p.id + '" title="Long-term roadmap">' + RM_ICON + '</button>' +
+        '<div class="snum">' + escHtml(p.num) + '</div>' +
         '<div class="s-rule"></div>' +
         '<div class="s-field"><span class="s-k">Stands for</span><div class="' + standsCls + '">' + label + '</div></div>' +
         '<div class="s-field"><span class="s-k">Current status</span>' +
@@ -418,7 +450,6 @@ function openModal(id) {
   el('modalTitle').textContent = p ? 'Edit why' : 'New why';
   el('mCode').value = p ? (p.code || '') : '';
   el('mNum').value = p ? (p.num || '') : '';
-  el('mBrk').value = p ? (p.brk || '') : '';
   el('mLabel').value = p ? (p.label || '') : '';
   el('mWhy').value = p ? (p.current_status || '') : '';
   el('mState').value = p ? (p.state || '') : '';
@@ -433,7 +464,6 @@ async function savePillar() {
   const rec = {
     code: el('mCode').value.trim(),
     num: el('mNum').value.trim(),
-    brk: el('mBrk').value.trim(),
     label: el('mLabel').value.trim(),
     current_status: el('mWhy').value.trim(),
     state: el('mState').value,
@@ -523,7 +553,91 @@ el('mSave').addEventListener('click', savePillar);
 el('mCancel').addEventListener('click', closeModal);
 el('mDelete').addEventListener('click', deletePillar);
 el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });
+
+// ===== LONG-TERM ROADMAP (per why) =====
+// Stored as JSON in why_pillars.roadmap: { essay: string, milestones: [{t, y, done}] }
+const RM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6.5v13L9 17l6 2.5l6-2.5v-13L15 6.5z"/><path d="M9 4v13"/><path d="M15 6.5v13"/></svg>';
+const MS_CHK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+let rmId = null, rmData = { essay: '', milestones: [] }, rmTimer = null;
+
+function rmParse(raw) {
+  if (!raw) return { essay: '', milestones: [] };
+  if (typeof raw === 'object') return { essay: raw.essay || '', milestones: Array.isArray(raw.milestones) ? raw.milestones : [] };
+  try { const o = JSON.parse(raw); return { essay: o.essay || '', milestones: Array.isArray(o.milestones) ? o.milestones : [] }; }
+  catch (e) { return { essay: String(raw), milestones: [] }; }
+}
+function openRoadmap(id) {
+  const p = pillars.find(x => String(x.id) === String(id)); if (!p) return;
+  rmId = id;
+  rmData = rmParse(p.roadmap);
+  const bits = [escHtml(p.code), escHtml(p.num)].filter(Boolean).join(' \u00B7 ');
+  el('rmTitle').innerHTML = bits + (p.label ? ' &mdash; ' + escHtml(p.label) : '');
+  el('rmEssay').value = rmData.essay || '';
+  el('rmSave').textContent = '';
+  renderMilestones();
+  el('roadmapWin').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeRoadmap() {
+  saveRoadmap(true);
+  el('roadmapWin').classList.remove('show');
+  document.body.style.overflow = '';
+  rmId = null;
+}
+function renderMilestones() {
+  const list = el('rmList'); if (!list) return;
+  const rows = (rmData.milestones || []).map((m, i) =>
+    '<div class="ms' + (m.done ? ' done' : '') + '" data-i="' + i + '">' +
+      '<button class="ms-box" data-toggle="' + i + '" type="button" aria-label="Done">' + MS_CHK + '</button>' +
+      '<input class="ms-t" data-text="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="A long-term step\u2026">' +
+      '<input class="ms-y" data-year="' + i + '" value="' + escHtml(m.y || '') + '" placeholder="year" maxlength="7">' +
+      '<button class="ms-x" data-del="' + i + '" type="button" aria-label="Remove">&times;</button>' +
+    '</div>'
+  ).join('');
+  list.innerHTML = rows + '<div class="ms add" id="msAdd">+ Add a milestone</div>';
+}
+function scheduleRoadmapSave() {
+  el('rmSave').textContent = 'Saving\u2026';
+  clearTimeout(rmTimer);
+  rmTimer = setTimeout(() => saveRoadmap(), 700);
+}
+async function saveRoadmap(force) {
+  clearTimeout(rmTimer);
+  if (rmId === null) return;
+  const id = rmId;
+  rmData.essay = el('rmEssay').value;
+  const payload = JSON.stringify(rmData);
+  const local = pillars.find(x => String(x.id) === String(id));
+  if (local && local.roadmap === payload && !force) { el('rmSave').textContent = 'Saved'; return; }
+  try {
+    const { error } = await supa.from('why_pillars').update({ roadmap: payload }).eq('id', id).eq('user_id', userId);
+    if (error) throw error;
+    if (local) local.roadmap = payload;
+    el('rmSave').textContent = 'Saved';
+  } catch (e) {
+    el('rmSave').textContent = 'Not saved';
+  }
+}
+el('rmBack').addEventListener('click', closeRoadmap);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('roadmapWin').classList.contains('show')) closeRoadmap(); });
+el('rmEssay').addEventListener('input', scheduleRoadmapSave);
+el('rmEssay').addEventListener('blur', () => saveRoadmap());
+el('rmList').addEventListener('click', e => {
+  const add = e.target.closest('#msAdd');
+  if (add) { rmData.milestones.push({ t: '', y: '', done: false }); renderMilestones(); scheduleRoadmapSave();
+    const inputs = el('rmList').querySelectorAll('.ms-t'); const last = inputs[inputs.length - 1]; if (last) last.focus(); return; }
+  const tg = e.target.closest('[data-toggle]');
+  if (tg) { const i = +tg.dataset.toggle; rmData.milestones[i].done = !rmData.milestones[i].done; renderMilestones(); scheduleRoadmapSave(); return; }
+  const dl = e.target.closest('[data-del]');
+  if (dl) { const i = +dl.dataset.del; rmData.milestones.splice(i, 1); renderMilestones(); scheduleRoadmapSave(); return; }
+});
+el('rmList').addEventListener('input', e => {
+  const t = e.target.closest('[data-text]'); if (t) { rmData.milestones[+t.dataset.text].t = t.value; scheduleRoadmapSave(); return; }
+  const y = e.target.closest('[data-year]'); if (y) { rmData.milestones[+y.dataset.year].y = y.value; scheduleRoadmapSave(); }
+});
+
 el('spine').addEventListener('click', e => {
+  const rm = e.target.closest('[data-roadmap]'); if (rm) { e.stopPropagation(); openRoadmap(rm.dataset.roadmap); return; }
   const ed = e.target.closest('[data-edit]'); if (ed) { openModal(ed.dataset.edit); return; }
   const up = e.target.closest('[data-up]'); if (up) { movePillar(up.dataset.up, -1); return; }
   const dn = e.target.closest('[data-down]'); if (dn) { movePillar(dn.dataset.down, 1); return; }
@@ -668,5 +782,26 @@ boot();
   resetIdle();
 })();
 </script>
+<div class="rmw" id="roadmapWin" aria-hidden="true">
+  <div class="rm-bar">
+    <button class="rm-back" id="rmBack" type="button">&larr; Back</button>
+    <span class="rm-title" id="rmTitle"></span>
+    <span class="rm-save" id="rmSave"></span>
+  </div>
+  <div class="rm-scroll">
+    <div class="rm-inner">
+      <div class="rm-sec">
+        <div class="rm-k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12l-4 4H4z"/><path d="M20 16h-4v4"/></svg> The long view</div>
+        <div class="rm-hint">Why this matters, what &ldquo;done&rdquo; looks like, what I&rsquo;m really building.</div>
+        <textarea class="rm-essay" id="rmEssay" placeholder="Write the long view for this why&#8230;"></textarea>
+      </div>
+      <div class="rm-sec">
+        <div class="rm-k">Milestones</div>
+        <div class="rm-hint">The long-term steps. Tick them off over the years.</div>
+        <div class="ms-list" id="rmList"></div>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
