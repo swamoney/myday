@@ -95,6 +95,13 @@
   .ctag { font-family:var(--mono); font-size:9px; color:#6a7690; background:rgba(255,255,255,0.6); border:1px solid rgba(0,0,0,0.06); border-radius:20px; padding:2px 8px; }
   .card-edit { width:26px; height:26px; border-radius:7px; border:1px solid rgba(0,0,0,0.08); background:rgba(255,255,255,0.6); color:#8189a0; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex-shrink:0; }
   .card-edit svg { width:14px; height:14px; }
+  .card { position:relative; }
+  .card-fav { position:absolute; top:12px; right:12px; width:28px; height:28px; border-radius:8px; border:none; background:transparent; color:#c3ccdb; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; z-index:2; }
+  .card-fav:hover { color:#e0a92a; }
+  .card-fav.on { color:#f4c430; }
+  .card-fav svg { width:16px; height:16px; }
+  .card.is-fav { border-color:#f0e2bd; box-shadow:0 8px 22px rgba(180,140,40,0.14); }
+  .card-body { padding-right:26px; }
   .card-edit:hover { color:var(--accent); border-color:rgba(15,45,92,0.35); }
   .card.add { align-items:center; justify-content:center; background:transparent; border:1.5px dashed #cdd6e3; box-shadow:none; color:#8189a0; min-height:132px; gap:4px; }
   .card.add:hover { color:var(--accent); border-color:var(--accent); transform:none; box-shadow:none; }
@@ -235,6 +242,7 @@
 
       <div class="seg" id="seg">
         <span data-view="introspection" class="on">My Introspection</span>
+        <span data-view="experience">My Life Experiences</span>
         <span data-view="gratitude">My Gratitude</span>
         <span data-view="wip" class="seg-wip">Work in Progress</span>
       </div>
@@ -310,6 +318,7 @@
         <label>Type</label>
         <select id="fKind">
           <option value="introspection">Introspection</option>
+          <option value="experience">Life Experience</option>
           <option value="gratitude">Gratitude</option>
         </select>
       </div>
@@ -375,6 +384,10 @@ let searchTerm = '';
 let editingId = null;
 let notesTimer = null;
 
+const STAR_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
+const STAR_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
+// Legacy kinds (essay/post/thread/note/reflection) all read as Introspection.
+function displayKind(k) { return (k === 'gratitude' || k === 'experience') ? k : 'introspection'; }
 const KIND = {
   essay:      { lbl:'Essay',      glyph:'\u270E', w1:'#fbf5ea', w2:'#f3ead9', icbg:'#f2e6cf', acc:'#a5702f' },
   post:       { lbl:'Post',       glyph:'\u275D', w1:'#eef3fb', w2:'#e2ebf7', icbg:'#dbe7f7', acc:'#3a5b9c' },
@@ -382,6 +395,7 @@ const KIND = {
   note:       { lbl:'Note',       glyph:'\u2022', w1:'#f6f7fa', w2:'#eceff4', icbg:'#e6eaf1', acc:'#6a7690' },
   reflection: { lbl:'Reflection', glyph:'?',       w1:'#f4f0fa', w2:'#eae2f3', icbg:'#e6def0', acc:'#6b4a7a' },
   gratitude:  { lbl:'Gratitude',  glyph:'\u2665', w1:'#fdf3ee', w2:'#f8e6db', icbg:'#f6ddc9', acc:'#b5673a' },
+  experience: { lbl:'Life Experience', glyph:'\u2618', w1:'#eef3fb', w2:'#e2ebf7', icbg:'#dbe7f7', acc:'#3a5b9c' },
   introspection: { lbl:'Introspection', glyph:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1"/><circle cx="8" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>', w1:'#f4f0fa', w2:'#eae2f3', icbg:'#e6def0', acc:'#6b4a7a' },
 };
 const WRITING_KINDS = ['essay','post','thread','note'];
@@ -520,10 +534,17 @@ function allTags() {
   rows.forEach(r => (r.tags || []).forEach(t => set.add(t)));
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
+function favFirst(list) {
+  // Favourites float to the top; original (newest-first) order is kept within
+  // each group, so starring never loses your chronology.
+  return list.slice().sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0));
+}
 function viewRows() {
-  if (activeView === 'introspection') return rows.filter(r => r.kind !== 'gratitude');
-  if (activeView === 'gratitude') return rows.filter(r => r.kind === 'gratitude');
-  return rows;
+  let out;
+  if (activeView === 'gratitude') out = rows.filter(r => r.kind === 'gratitude');
+  else if (activeView === 'experience') out = rows.filter(r => r.kind === 'experience');
+  else out = rows.filter(r => r.kind !== 'gratitude' && r.kind !== 'experience');
+  return favFirst(out);
 }
 function filteredRows() {
   let out = viewRows();
@@ -553,7 +574,7 @@ function renderTags() {
   });
 }
 function cardHTML(r) {
-  const k = KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note;
+  const k = KIND[displayKind(r.kind)] || KIND.note;
   let kicker = escHtml(k.lbl.toUpperCase());
   if (isWriting(r.kind) && r.status && STATUS[r.status]) {
     const s = STATUS[r.status];
@@ -561,7 +582,9 @@ function cardHTML(r) {
   }
   const tags = (r.tags || []).slice(0, 3).map(t => '<span class="ctag">' + escHtml(t) + '</span>').join('');
   const pencil = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
-  return '<div class="card" data-id="' + escHtml(r.id) + '">' +
+  const star = '<button type="button" class="card-fav' + (r.favourite ? ' on' : '') + '" data-fav="' + escHtml(r.id) + '" title="' + (r.favourite ? 'Remove from favourites' : 'Mark as favourite') + '" aria-label="Favourite">' + (r.favourite ? STAR_ON : STAR_OFF) + '</button>';
+  return '<div class="card' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '">' +
+      star +
       '<div class="c-ic">' + k.glyph + '</div>' +
       '<div class="card-body">' +
         '<div class="c-kind">' + kicker + '</div>' +
@@ -585,7 +608,7 @@ function render() {
   renderTags();
   const list = filteredRows();
   const wrap = el('cardsWrap');
-  const addLabel = activeView === 'gratitude' ? 'New gratitude' : (activeView === 'introspection' ? 'New entry' : 'New');
+  const addLabel = activeView === 'gratitude' ? 'New gratitude' : (activeView === 'experience' ? 'New experience' : (activeView === 'introspection' ? 'New entry' : 'New'));
 
   if (rows.length === 0) {
     wrap.innerHTML = '<div class="empty"><div class="big">Nothing here yet</div><div class="small">Start an introspection, or note something you&rsquo;re grateful for.</div></div>' +
@@ -610,13 +633,32 @@ function render() {
   wrap.querySelectorAll('.card-edit').forEach(btn => {
     btn.addEventListener('click', e => { e.stopPropagation(); openModal(btn.dataset.edit); });
   });
+  wrap.querySelectorAll('.card-fav').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); toggleFavourite(btn.dataset.fav); });
+  });
   const addC = el('addCard'); if (addC) addC.addEventListener('click', () => openModal(null));
+}
+
+// ===== FAVOURITES =====
+async function toggleFavourite(id) {
+  const r = rows.find(x => String(x.id) === String(id)); if (!r) return;
+  const next = !r.favourite;
+  r.favourite = next;              // optimistic — the list re-sorts immediately
+  render();
+  try {
+    const { error } = await supa.from('iw_entries')
+      .update({ favourite: next }).eq('id', id).eq('user_id', userId);
+    if (error) throw error;
+  } catch (e) {
+    r.favourite = !next; render();  // revert on failure
+    toast('Could not update favourite');
+  }
 }
 
 // ===== READER =====
 function openReader(id) {
   const r = rows.find(x => x.id === id); if (!r) return;
-  const k = KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note;
+  const k = KIND[displayKind(r.kind)] || KIND.note;
   let meta = k.lbl;
   if (isWriting(r.kind) && r.status && STATUS[r.status]) meta += ' \u00B7 ' + STATUS[r.status].lbl;
   el('readerTitle').textContent = r.title;
@@ -637,7 +679,7 @@ function readerDateStr_(r) {
   if (!d || isNaN(d.getTime())) return '';
   return d.toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' });
 }
-function entryLabel_(r) { const k = KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note; return k.lbl; }
+function entryLabel_(r) { const k = KIND[displayKind(r.kind)] || KIND.note; return k.lbl; }
 function entryPlain_(r) {
   const date = readerDateStr_(r);
   let out = (r.title || 'Untitled') + '\n' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') + '\n';
@@ -718,7 +760,7 @@ function openModal(id) {
   if (id) {
     const r = rows.find(x => x.id === id); if (!r) return;
     el('modalTitle').textContent = 'Edit entry';
-    el('fKind').value = (r.kind === 'gratitude') ? 'gratitude' : 'introspection';
+    el('fKind').value = displayKind(r.kind);
     el('fStatus').value = (r.status && STATUS[r.status]) ? r.status : 'idea';
     el('fTitle').value = r.title || '';
     el('fEssence').value = r.essence || '';
@@ -727,7 +769,7 @@ function openModal(id) {
     el('deleteBtn').classList.remove('hidden');
   } else {
     el('modalTitle').textContent = 'New entry';
-    const preset = activeView === 'gratitude' ? 'gratitude' : 'introspection';
+    const preset = (activeView === 'gratitude' || activeView === 'experience') ? activeView : 'introspection';
     el('fKind').value = preset;
     el('fStatus').value = 'idea';
     el('fTitle').value = ''; el('fEssence').value = ''; el('fBody').value = ''; el('fTags').value = '';
@@ -799,7 +841,7 @@ async function exportAll() {
     zip.file('entries.json', JSON.stringify(rows.map(r => ({ kind:r.kind, title:r.title, status:r.status, essence:r.essence, body:r.body, tags:r.tags, created_at:r.created_at, updated_at:r.updated_at })), null, 2));
     zip.file('wip-notes.json', JSON.stringify(notes.map(n => ({ heading:n.heading, body:n.body })), null, 2));
     const byKind = {};
-    rows.forEach(r => { const k = (KIND[r.kind === 'gratitude' ? 'gratitude' : 'introspection'] || KIND.note).lbl; (byKind[k] = byKind[k] || []).push(r); });
+    rows.forEach(r => { const k = (KIND[displayKind(r.kind)] || KIND.note).lbl; (byKind[k] = byKind[k] || []).push(r); });
     let body = '';
     Object.keys(byKind).sort().forEach(k => {
       body += '<h2>' + escHtml(k) + '</h2>';
