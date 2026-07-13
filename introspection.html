@@ -67,20 +67,23 @@
   /* Each tab carries a faint hint of its section's colour; the active one fills
      in and lifts (ring + shadow + bolder), so colour says WHICH section and
      weight says WHERE YOU ARE. */
-  .seg span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:8px; cursor:pointer; white-space:nowrap; background:var(--t-faint); color:var(--t-acc); opacity:0.72; transition:opacity .15s, background .15s; }
-  .seg span svg { width:15px; height:15px; flex-shrink:0; }
-  .seg span:hover { opacity:0.9; }
-  .seg span.on { background:var(--t-bg); color:var(--t-acc); opacity:1; font-weight:700; box-shadow:0 2px 6px rgba(30,40,70,0.16); }
-  .seg span[data-view="introspection"] { --t-faint:#faf5f3; --t-bg:#f0e5df; --t-acc:#8a5f4d; --t-ring:rgba(138,95,77,0.33); }
-  .seg span[data-view="experience"]    { --t-faint:#f5f8f4; --t-bg:#e5ebe2; --t-acc:#5a7050; --t-ring:rgba(90,112,80,0.33); }
-  .seg span[data-view="gratitude"]     { --t-faint:#f8f5f9; --t-bg:#eae3ec; --t-acc:#6d5474; --t-ring:rgba(109,84,116,0.33); }
-  .seg span[data-view="wip"]           { --t-faint:#faf2e0; --t-bg:#f0e6d2; --t-acc:#9a7b3a; --t-ring:rgba(154,123,58,0.35); }
+  .seg > span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:8px; cursor:pointer; white-space:nowrap; background:var(--t-faint); color:var(--t-acc); opacity:0.72; transition:opacity .15s, background .15s; }
+  /* The inner label span must NOT inherit the tab chrome — that was painting a
+     pale box around the text only (not the icon). */
+  .seg .seg-l { background:none; padding:0; border-radius:0; box-shadow:none; opacity:1; font-weight:inherit; }
+  .seg > span svg { width:15px; height:15px; flex-shrink:0; }
+  .seg > span:hover { opacity:0.9; }
+  .seg > span.on { background:var(--t-bg); color:var(--t-acc); opacity:1; font-weight:700; box-shadow:0 2px 6px rgba(30,40,70,0.16); }
+  .seg > span[data-view="introspection"] { --t-faint:#faf5f3; --t-bg:#f0e5df; --t-acc:#8a5f4d; --t-ring:rgba(138,95,77,0.33); }
+  .seg > span[data-view="experience"]    { --t-faint:#f5f8f4; --t-bg:#e5ebe2; --t-acc:#5a7050; --t-ring:rgba(90,112,80,0.33); }
+  .seg > span[data-view="gratitude"]     { --t-faint:#f8f5f9; --t-bg:#eae3ec; --t-acc:#6d5474; --t-ring:rgba(109,84,116,0.33); }
+  .seg > span[data-view="wip"]           { --t-faint:#faf2e0; --t-bg:#f0e6d2; --t-acc:#9a7b3a; --t-ring:rgba(154,123,58,0.35); }
   /* Mobile: 4 sections won't fit in one row, so show them as a 2x2 grid —
      every section visible and tappable without sideways scrolling. */
   @media (max-width:560px) {
     .seg { display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%; overflow-x:visible; padding:6px; border-radius:12px; }
-    .seg span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; white-space:normal; line-height:1.2; min-height:56px; padding:9px 6px; font-size:11.5px; border-radius:9px; }
-    .seg span svg { width:17px; height:17px; }
+    .seg > span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; white-space:normal; line-height:1.2; min-height:56px; padding:9px 6px; font-size:11.5px; border-radius:9px; }
+    .seg > span svg { width:17px; height:17px; }
   }
 
   .tags-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; align-items:center; }
@@ -586,7 +589,8 @@ function filteredRows() {
   return out;
 }
 function renderSeg() {
-  el('seg').querySelectorAll('span').forEach(s => s.classList.toggle('on', s.dataset.view === activeView));
+  // Only the tab spans (direct children) — not the inner label spans.
+  el('seg').querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.view === activeView));
 }
 function renderTags() {
   const tags = allTags();
@@ -910,7 +914,9 @@ el('saveBtn').addEventListener('click', saveEntry);
 el('deleteBtn').addEventListener('click', deleteEntry);
 el('readerBack').addEventListener('click', closeReader);
 el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
-el('seg').querySelectorAll('span').forEach(s => s.addEventListener('click', () => { activeView = s.dataset.view; render(); }));
+// Bind to the tab spans only — clicking the inner label span has no data-view
+// and would set activeView to undefined.
+el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { activeView = s.dataset.view; render(); }));
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (!el('modalOverlay').classList.contains('hidden')) closeModal();
