@@ -145,7 +145,7 @@
   .rm-stands { font-family:'Cormorant Garamond',Georgia,serif; font-size:23px; font-weight:600; }
   .rm-pill { display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:20px; color:#fff; font-size:12.5px; font-weight:600; }
   .rm-pill .pdot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.6); }
-  .rm-essay.ro { font-family:'Patrick Hand',cursive; font-size:19px; line-height:1.65; color:#3a4560; padding:4px 2px; white-space:pre-wrap; min-height:40px; }
+  .rm-essay.ro { font-family:'Patrick Hand',cursive; font-size:20px; line-height:1.7; color:#3a4560; padding:0; white-space:pre-wrap; min-height:40px; }
   .rm-essay.ro.empty { color:#c3ccdb; font-style:italic; }
   body.rm-editing .rm-essay.ro { display:none; }
   .rm-essay.inp { display:none; }
@@ -164,14 +164,15 @@
     .rm-seal { width:56px; height:56px; font-size:18px; }
     .rm-num { font-size:36px; }
   }
-  .rm-sec { margin-bottom:26px; }
+  .rm-sec { margin-bottom:30px; }
   .rm-k { display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#a5702f; }
   .rm-k svg { width:14px; height:14px; }
   .rm-hint { font-size:11.5px; color:#9aa4ba; margin:3px 0 10px; }
-  .rm-essay { width:100%; font-family:'Patrick Hand',cursive; font-size:18px; line-height:1.65; color:#3a4560; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; min-height:220px; resize:vertical; }
-  .rm-essay:focus { outline:none; border-color:#c9a94a; }
-  .ms-list { display:flex; flex-direction:column; gap:8px; }
-  .ms { display:flex; align-items:center; gap:11px; background:#fff; border:1px solid #e6ecf5; border-radius:11px; padding:12px 14px; }
+  /* Flat document: no cards, no boxes — the roadmap reads as one clean page. */
+  .rm-essay { width:100%; font-family:'Patrick Hand',cursive; font-size:20px; line-height:1.7; color:#3a4560; background:transparent; border:none; border-bottom:1px dashed #e2e8f0; border-radius:0; padding:0 0 10px; min-height:220px; resize:vertical; }
+  .rm-essay:focus { outline:none; border-bottom-color:#c9a94a; }
+  .ms-list { display:flex; flex-direction:column; gap:0; }
+  .ms { display:flex; align-items:center; gap:12px; background:transparent; border:none; border-bottom:1px solid #eef1f6; border-radius:0; padding:11px 2px; }
   .ms-box { width:20px; height:20px; border-radius:6px; border:1.5px solid #cdd6e3; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; background:#fff; padding:0; }
   .ms-box svg { width:11px; height:11px; display:none; }
   .ms.done .ms-box { background:#3d7a5c; border-color:#3d7a5c; }
@@ -183,7 +184,7 @@
   .ms-y:focus { outline:none; border-color:#c9a94a; }
   .ms-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; padding:0 2px; }
   .ms-x:hover { color:#a8443e; }
-  .ms.add { justify-content:center; background:transparent; border:1.5px dashed #cdd6e3; color:#8189a0; font-style:italic; cursor:pointer; }
+  .ms.add { justify-content:flex-start; background:transparent; border:none; border-bottom:none; color:#8189a0; font-style:italic; cursor:pointer; padding:12px 2px; }
   .sticky-txt::placeholder { color:rgba(30,28,20,0.32); font-style:italic; }
   @media (max-width:560px) { .sticky { width:100%; transform:none !important; } }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
@@ -315,14 +316,10 @@
         </div>
       </div>
       <div class="rm-sec">
-        <div class="rm-k"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12l-4 4H4z"/><path d="M20 16h-4v4"/></svg> The long view</div>
-        <div class="rm-hint">Why this matters, what &ldquo;done&rdquo; looks like, what I&rsquo;m really building.</div>
         <div class="rm-essay ro" id="rmEssayRO"></div>
         <textarea class="rm-essay inp" id="rmEssay" placeholder="Write the long view for this why&#8230;"></textarea>
       </div>
-      <div class="rm-sec">
-        <div class="rm-k">Milestones</div>
-        <div class="rm-hint">The long-term steps. Tick them off over the years.</div>
+      <div class="rm-sec" id="rmMsSec">
         <div class="ms-list" id="rmList"></div>
       </div>
       <div class="rm-foot">
@@ -686,9 +683,10 @@ function renderMilestones() {
       '<button class="ms-x" data-del="' + i + '" type="button" aria-label="Remove">&times;</button>' +
     '</div>'
   ).join('');
-  const empty = (!rmData.milestones || !rmData.milestones.length) && !editing
-    ? '<div class="rm-hint" style="padding:6px 2px;">No milestones yet \u2014 tap Edit to add the steps.</div>' : '';
-  list.innerHTML = rows + empty + '<div class="ms add" id="msAdd">+ Add a milestone</div>';
+  list.innerHTML = rows + '<div class="ms add" id="msAdd">+ Add a milestone</div>';
+  // Milestones only appear when there are some (or while editing, so you can add).
+  const sec = el('rmMsSec');
+  if (sec) sec.style.display = (editing || (rmData.milestones && rmData.milestones.length)) ? '' : 'none';
 }
 function scheduleRoadmapSave() {
   el('rmSave').textContent = 'Saving\u2026';
