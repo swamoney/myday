@@ -246,18 +246,19 @@
   .bc { font-family:var(--mono); font-size:9.5px; color:#9aa4ba; }
   .bbar { flex:1; height:3px; background:#eef1f6; border-radius:2px; overflow:hidden; }
   .bbar span { display:block; height:100%; }
-  .ctab table { width:100%; border-collapse:collapse; }
-  .ctab td { padding:9px 8px; border-bottom:1px solid #eef1f6; font-size:14px; vertical-align:middle; }
-  .ctab td.n { width:26px; font-family:var(--mono); font-size:11px; color:#c3ccdb; text-align:right; }
-  .ctab td.nm { font-weight:600; color:#28324B; width:30%; }
-  .nm-open { background:none; border:none; padding:0; font:inherit; color:#28324B; font-weight:600; cursor:pointer; text-align:left; }
-  .nm-open:hover { color:#0F2D5C; text-decoration:underline; }
-  .bd { display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap; }
-  .ctab td.nt { color:#8a94a8; font-size:12.5px; }
-  .ctab td.ed { width:26px; text-align:right; }
-  .c-edit { display:none; background:none; border:none; color:#c3ccdb; cursor:pointer; padding:0; }
+  /* Card rows — no table, so it reflows cleanly on a phone. */
+  .crow { display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid #eef1f6; cursor:pointer; }
+  .crow:hover { background:#f7f9fc; }
+  .c-av { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:600; font-size:15px; flex-shrink:0; }
+  .c-mid { flex:1; min-width:0; display:flex; flex-direction:column; }
+  .c-name { font-weight:600; font-size:14.5px; color:#28324B; }
+  .c-note { font-size:12px; color:#8a94a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .c-go { color:#c3ccdb; display:flex; flex-shrink:0; }
+  .c-go svg { width:15px; height:15px; }
+  .c-edit { display:none; background:none; border:none; color:#b8c2d0; cursor:pointer; padding:0; flex-shrink:0; }
   body.editing .c-edit { display:inline-flex; }
-  .c-edit svg { width:14px; height:14px; }
+  .c-edit svg { width:15px; height:15px; }
+  .bd { display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap; }
   .addrow { padding:12px; text-align:center; border:1.5px dashed #cdd6e3; border-radius:10px; color:#8189a0; font-style:italic; margin-top:16px; cursor:pointer; display:none; }
   body.editing .addrow { display:block; }
   .c-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
@@ -994,13 +995,19 @@ function renderCircle() {
     html += '<div class="bhead"><span class="bt" style="color:' + b.acc + ';">' + b.lbl + '</span>' +
             '<span class="bc">' + people.length + ' of ' + b.cap + '</span>' +
             '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span></div>';
-    html += '<table>' + people.map((p, i) =>
-      '<tr><td class="n">' + (i + 1) + '</td>' +
-      '<td class="nm"><button class="nm-open" data-open="' + p.id + '" type="button">' + escHtml(p.name || '') + '</button></td>' +
-      '<td><span class="bd" style="background:' + b.bg + ';color:' + b.acc + ';">' + b.lbl + ' (' + b.range + ')</span></td>' +
-      '<td class="nt">' + escHtml(p.note || '') + '</td>' +
-      '<td class="ed"><button class="c-edit" data-cedit="' + p.id + '" type="button" aria-label="Edit">' + M_PEN + '</button></td></tr>'
-    ).join('') + '</table>';
+    // Card rows, not a table: reflows on any width, gives the note real room,
+    // and no empty edit cells cutting the panel edge in read mode.
+    html += people.map(p =>
+      '<div class="crow" data-open="' + p.id + '">' +
+        '<span class="c-av" style="background:' + b.bg + ';color:' + b.acc + ';">' + escHtml((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+        '<span class="c-mid">' +
+          '<span class="c-name">' + escHtml(p.name || '') + '</span>' +
+          (p.note ? '<span class="c-note">' + escHtml(p.note) + '</span>' : '') +
+        '</span>' +
+        '<button class="c-edit" data-cedit="' + p.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
+        '<span class="c-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>' +
+      '</div>'
+    ).join('');
   });
   if (!circle.length) html += '<div class="c-empty">No one here yet \u2014 tap Edit, then add the people who matter.</div>';
   html += '<div class="addrow" id="circleAdd">+ Add someone</div>';
@@ -1042,7 +1049,7 @@ async function deletePerson() {
 }
 el('circleList').addEventListener('click', e => {
   const ed = e.target.closest('[data-cedit]'); if (ed) { openCircleModal(ed.dataset.cedit); return; }
-  const op = e.target.closest('[data-open]'); if (op) { openPerson(op.dataset.open); return; }
+  const op = e.target.closest('[data-open]'); if (op) { openPerson(op.dataset.open); return; }  // whole row opens the page
   if (e.target.closest('#circleAdd')) openCircleModal(null);
 });
 
