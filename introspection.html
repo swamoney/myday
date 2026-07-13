@@ -70,7 +70,7 @@
   .seg span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:8px; cursor:pointer; white-space:nowrap; background:var(--t-faint); color:var(--t-acc); opacity:0.72; transition:opacity .15s, background .15s; }
   .seg span svg { width:15px; height:15px; flex-shrink:0; }
   .seg span:hover { opacity:0.9; }
-  .seg span.on { background:var(--t-bg); color:var(--t-acc); opacity:1; font-weight:700; box-shadow:inset 0 0 0 1.5px var(--t-ring), 0 1px 4px rgba(0,0,0,0.12); }
+  .seg span.on { background:var(--t-bg); color:var(--t-acc); opacity:1; font-weight:700; box-shadow:0 2px 6px rgba(30,40,70,0.16); }
   .seg span[data-view="introspection"] { --t-faint:#faf5f3; --t-bg:#f0e5df; --t-acc:#8a5f4d; --t-ring:rgba(138,95,77,0.33); }
   .seg span[data-view="experience"]    { --t-faint:#f5f8f4; --t-bg:#e5ebe2; --t-acc:#5a7050; --t-ring:rgba(90,112,80,0.33); }
   .seg span[data-view="gratitude"]     { --t-faint:#f8f5f9; --t-bg:#eae3ec; --t-acc:#6d5474; --t-ring:rgba(109,84,116,0.33); }
@@ -162,7 +162,17 @@
   .end-cap { font-family:var(--mono); font-size:9.5px; letter-spacing:0.14em; text-transform:uppercase; color:#9aa4ba; }
 
   /* READER */
-  .reader-overlay { position:fixed; inset:0; background:var(--bg); z-index:220; display:flex; flex-direction:column; }
+  /* Reader takes the section's own colour, so opening an entry keeps you in
+     the same world (WIP has no reader — it's the sticky board). */
+  .reader-overlay { position:fixed; inset:0; background:var(--r-bg,var(--bg)); z-index:220; display:flex; flex-direction:column; }
+  .reader-overlay { --r-bg:var(--bg); --r-bar:var(--paper); --r-acc:var(--accent); }
+  .reader-overlay[data-kind="introspection"] { --r-bg:#f9f3f0; --r-bar:#fdf9f7; --r-acc:#8a5f4d; }
+  .reader-overlay[data-kind="experience"]    { --r-bg:#f0f4ef; --r-bar:#f8fbf7; --r-acc:#5a7050; }
+  .reader-overlay[data-kind="gratitude"]     { --r-bg:#f5f1f6; --r-bar:#fbf8fb; --r-acc:#6d5474; }
+  .reader-overlay .reader-bar { background:var(--r-bar); }
+  .reader-overlay .reader-kind { color:var(--r-acc); }
+  .reader-overlay .reader-back:hover, .reader-overlay .reader-edit:hover { border-color:var(--r-acc); color:var(--r-acc); }
+  .reader-overlay .eb:hover { border-color:var(--r-acc); color:var(--r-acc); }
   .reader-bar { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--paper); border-bottom:1px solid var(--rule); flex-shrink:0; }
   .reader-back { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:13px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
   .reader-back:hover { border-color:var(--accent); color:var(--accent); }
@@ -684,6 +694,7 @@ function openReader(id) {
   el('readerLead').style.display = r.essence ? '' : 'none';
   el('readerBody').textContent = r.body || '';
   readerEntry = r;
+  el('readerOverlay').dataset.kind = displayKind(r.kind);
   el('readerEdit').onclick = () => { closeReader(); openModal(id); };
   el('readerOverlay').classList.remove('hidden');
 }
