@@ -250,6 +250,8 @@
   .ctab td { padding:9px 8px; border-bottom:1px solid #eef1f6; font-size:14px; vertical-align:middle; }
   .ctab td.n { width:26px; font-family:var(--mono); font-size:11px; color:#c3ccdb; text-align:right; }
   .ctab td.nm { font-weight:600; color:#28324B; width:30%; }
+  .nm-open { background:none; border:none; padding:0; font:inherit; color:#28324B; font-weight:600; cursor:pointer; text-align:left; }
+  .nm-open:hover { color:#0F2D5C; text-decoration:underline; }
   .bd { display:inline-block; font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; white-space:nowrap; }
   .ctab td.nt { color:#8a94a8; font-size:12.5px; }
   .ctab td.ed { width:26px; text-align:right; }
@@ -259,6 +261,41 @@
   .addrow { padding:12px; text-align:center; border:1.5px dashed #cdd6e3; border-radius:10px; color:#8189a0; font-style:italic; margin-top:16px; cursor:pointer; display:none; }
   body.editing .addrow { display:block; }
   .c-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
+  /* ===== Circle: person page ===== */
+  .pw { position:fixed; inset:0; z-index:520; background:#fbfcfe; display:none; flex-direction:column; }
+  .pw.show { display:flex; }
+  .pbar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid #eef1f6; background:#fff; flex-shrink:0; }
+  .pback { background:none; border:none; font-size:13px; font-weight:600; color:#3a4560; cursor:pointer; }
+  .ptitle { flex:1; font-family:var(--serif); font-size:14px; font-weight:600; text-align:center; }
+  .psave { font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#3d7a5c; min-width:56px; text-align:right; }
+  .pscroll { flex:1; overflow-y:auto; }
+  .pin { max-width:1000px; margin:0 auto; padding:24px 30px 34px; }
+  .phero { display:flex; gap:20px; align-items:center; padding-bottom:20px; margin-bottom:22px; border-bottom:2px solid #eef1f6; }
+  .pav { width:66px; height:66px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:26px; font-weight:600; flex-shrink:0; }
+  .peyebrow { font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#9aa4ba; }
+  .pname { font-family:var(--serif); font-size:32px; font-weight:600; line-height:1.1; margin:2px 0 7px; }
+  .pmeta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pnote { font-size:12.5px; color:#8a94a8; }
+  .pessay.ro { font-family:'Patrick Hand',cursive; font-size:20px; line-height:1.7; color:#3a4560; white-space:pre-wrap; min-height:40px; }
+  .pessay.ro.empty { color:#c3ccdb; font-style:italic; }
+  .pessay.inp { display:none; width:100%; font-family:'Patrick Hand',cursive; font-size:20px; line-height:1.7; color:#3a4560; background:transparent; border:none; border-bottom:1px dashed #e2e8f0; padding:0 0 10px; min-height:200px; resize:vertical; }
+  .pessay.inp:focus { outline:none; border-bottom-color:#c9a94a; }
+  body.p-editing .pessay.ro { display:none; }
+  body.p-editing .pessay.inp { display:block; }
+  .pblk { margin-top:26px; }
+  .pk { font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#3a5b9c; margin-bottom:7px; }
+  .mo { display:flex; align-items:center; gap:12px; padding:10px 2px; border-bottom:1px solid #eef1f6; }
+  .mo-y { font-family:var(--mono); font-size:11px; font-weight:600; color:#8a6f43; width:64px; flex-shrink:0; background:transparent; border:none; }
+  .mo-t { flex:1; font-size:14.5px; color:#3a4560; background:transparent; border:none; font-family:inherit; }
+  .mo-y:focus, .mo-t:focus { outline:none; }
+  .mo-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; }
+  .mo-x:hover { color:#a8443e; }
+  body:not(.p-editing) .mo-x, body:not(.p-editing) .mo.add { display:none; }
+  .mo.add { border-bottom:none; color:#8189a0; font-style:italic; cursor:pointer; padding:12px 2px; }
+  .pfoot { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:28px; padding-top:18px; border-top:1px solid #eef1f6; }
+  .fr { display:flex; gap:8px; flex-wrap:wrap; }
+  #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
+  @media (max-width:640px) { .pin { padding:20px 16px 30px; } .pname { font-size:26px; } .pav { width:52px; height:52px; font-size:20px; } }
 </style>
 </head>
 <body>
@@ -292,7 +329,7 @@
       <div class="why-line">The few things worth every early morning &mdash; kept on one line, so the daily choices stay pointed at them.</div>
     </div>
     <div class="why-seg" id="whySeg">
-      <span data-sec="pillars" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V8l8-5l8 5v13"/><path d="M9 21v-6h6v6"/></svg><i class="seg-l">Pillars</i></span>
+      <span data-sec="pillars" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V8l8-5l8 5v13"/><path d="M9 21v-6h6v6"/></svg><i class="seg-l">My Why Pillars</i></span>
       <span data-sec="mantra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/><path d="M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/></svg><i class="seg-l">My Mantra</i></span>
       <span data-sec="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6"/><path d="M18.5 20c0-2.6-1-4.2-2.5-5"/></svg><i class="seg-l">My Circle</i></span>
     </div>
@@ -328,23 +365,26 @@
   </div>
 </main>
 
-<div class="modal hidden" id="mantraModal">
-  <div class="modal-card">
-    <div class="modal-h" id="mantraModalTitle">New mantra</div>
+<div class="modal-overlay hidden" id="mantraModal">
+  <div class="modal">
+    <div class="modal-title" id="mantraModalTitle">New mantra</div>
+    <div class="modal-sub">a line you live by</div>
     <div class="fld"><label>The mantra</label><textarea id="fMantra" rows="2" placeholder="The line you live by&#8230;"></textarea></div>
     <div class="fld"><label>What it means to me (optional)</label><textarea id="fMeaning" rows="3" placeholder="Why it matters&#8230;"></textarea></div>
     <div class="fld"><label>Source (optional)</label><input id="fSource" placeholder="Who said it"></div>
     <div class="modal-actions">
-      <button class="btn-del hidden" id="mantraDel" type="button">Delete</button>
-      <button class="btn-cancel" id="mantraCancel" type="button">Cancel</button>
-      <button class="btn-save" id="mantraSave" type="button">Save</button>
+      <button class="btn-danger hidden" id="mantraDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="mantraCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="mantraSave" type="button">Save</button>
     </div>
   </div>
 </div>
 
-<div class="modal hidden" id="circleModal">
-  <div class="modal-card">
-    <div class="modal-h" id="circleModalTitle">Add someone</div>
+<div class="modal-overlay hidden" id="circleModal">
+  <div class="modal">
+    <div class="modal-title" id="circleModalTitle">Add someone</div>
+    <div class="modal-sub">the people who matter</div>
     <div class="fld"><label>Name</label><input id="fPerson" placeholder="Their name"></div>
     <div class="fld"><label>Circle</label>
       <select id="fBand">
@@ -356,9 +396,10 @@
     </div>
     <div class="fld"><label>Note (optional)</label><input id="fRel" placeholder="e.g. oldest friend"></div>
     <div class="modal-actions">
-      <button class="btn-del hidden" id="circleDel" type="button">Delete</button>
-      <button class="btn-cancel" id="circleCancel" type="button">Cancel</button>
-      <button class="btn-save" id="circleSave" type="button">Save</button>
+      <button class="btn-danger hidden" id="circleDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="circleCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="circleSave" type="button">Save</button>
     </div>
   </div>
 </div>
@@ -420,6 +461,39 @@
           <button class="eb" id="rmCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
           <button class="eb" id="rmMd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="eb-label">Download .md</span></button>
           <button class="eb" id="rmPrint" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="eb-label">Print / PDF</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="pw" id="personWin" aria-hidden="true">
+  <div class="pbar">
+    <button class="pback" id="pBack" type="button">&larr; Back</button>
+    <span class="ptitle" id="pTitle"></span>
+    <span class="psave" id="pSave"></span>
+  </div>
+  <div class="pscroll">
+    <div class="pin">
+      <div class="phero">
+        <div class="pav" id="pAvatar"></div>
+        <div class="pb">
+          <div class="peyebrow">My Circle</div>
+          <div class="pname" id="pName"></div>
+          <div class="pmeta"><span class="bd" id="pBand"></span><span class="pnote" id="pNote"></span></div>
+        </div>
+      </div>
+      <div class="pessay ro" id="pEssayRO"></div>
+      <textarea class="pessay inp" id="pEssay" placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></textarea>
+      <div class="pblk" id="pMomentsSec">
+        <div class="pk">Moments worth keeping</div>
+        <div id="pMoments"></div>
+      </div>
+      <div class="pfoot">
+        <div><button class="eb" id="pEdit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="pEditLabel">Edit</span></button></div>
+        <div class="fr">
+          <button class="eb" id="pCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
+          <button class="eb" id="pMd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="eb-label">Download .md</span></button>
+          <button class="eb" id="pPrint" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="eb-label">Print / PDF</span></button>
         </div>
       </div>
     </div>
@@ -922,7 +996,7 @@ function renderCircle() {
             '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span></div>';
     html += '<table>' + people.map((p, i) =>
       '<tr><td class="n">' + (i + 1) + '</td>' +
-      '<td class="nm">' + escHtml(p.name || '') + '</td>' +
+      '<td class="nm"><button class="nm-open" data-open="' + p.id + '" type="button">' + escHtml(p.name || '') + '</button></td>' +
       '<td><span class="bd" style="background:' + b.bg + ';color:' + b.acc + ';">' + b.lbl + ' (' + b.range + ')</span></td>' +
       '<td class="nt">' + escHtml(p.note || '') + '</td>' +
       '<td class="ed"><button class="c-edit" data-cedit="' + p.id + '" type="button" aria-label="Edit">' + M_PEN + '</button></td></tr>'
@@ -968,8 +1042,164 @@ async function deletePerson() {
 }
 el('circleList').addEventListener('click', e => {
   const ed = e.target.closest('[data-cedit]'); if (ed) { openCircleModal(ed.dataset.cedit); return; }
+  const op = e.target.closest('[data-open]'); if (op) { openPerson(op.dataset.open); return; }
   if (e.target.closest('#circleAdd')) openCircleModal(null);
 });
+
+// ===== CIRCLE: PERSON PAGE (essay + moments) =====
+// Stored as JSON in why_circle.page: { essay: string, moments: [{y, t}] }
+let pId = null, pData = { essay: '', moments: [] }, pTimer = null;
+
+function pParse(raw) {
+  if (!raw) return { essay: '', moments: [] };
+  if (typeof raw === 'object') return { essay: raw.essay || '', moments: Array.isArray(raw.moments) ? raw.moments : [] };
+  try { const o = JSON.parse(raw); return { essay: o.essay || '', moments: Array.isArray(o.moments) ? o.moments : [] }; }
+  catch (e) { return { essay: String(raw), moments: [] }; }
+}
+function openPerson(id) {
+  const p = circle.find(x => String(x.id) === String(id)); if (!p) return;
+  const b = BANDS.find(x => x.key === p.band) || BANDS[0];
+  pId = id;
+  pData = pParse(p.page);
+  el('pTitle').innerHTML = 'My Circle &middot; ' + escHtml(p.name || '');
+  el('pName').textContent = p.name || '';
+  el('pAvatar').textContent = (p.name || '?').trim().charAt(0).toUpperCase();
+  el('pAvatar').style.background = b.bg;
+  el('pAvatar').style.color = b.acc;
+  el('pBand').textContent = b.lbl + ' (' + b.range + ')';
+  el('pBand').style.background = b.bg;
+  el('pBand').style.color = b.acc;
+  el('pNote').textContent = p.note || '';
+  el('pEssay').value = pData.essay || '';
+  el('pSave').textContent = '';
+  setPersonEditing(false);
+  renderPersonRead();
+  renderMoments();
+  el('personWin').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closePerson() {
+  savePerson_(true);
+  setPersonEditing(false);
+  el('personWin').classList.remove('show');
+  document.body.style.overflow = '';
+  pId = null;
+}
+function renderPersonRead() {
+  const ro = el('pEssayRO'); if (!ro) return;
+  const txt = (pData.essay || '').trim();
+  ro.textContent = txt || 'Nothing written yet \u2014 tap Edit to begin.';
+  ro.classList.toggle('empty', !txt);
+}
+function setPersonEditing(on) {
+  document.body.classList.toggle('p-editing', !!on);
+  const b = el('pEdit'); if (b) b.classList.toggle('hot', !!on);
+  const l = el('pEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
+  if (!on) renderPersonRead();
+}
+function renderMoments() {
+  const list = el('pMoments'); if (!list) return;
+  const editing = document.body.classList.contains('p-editing');
+  const rows = (pData.moments || []).map((m, i) =>
+    '<div class="mo">' +
+      '<input class="mo-y" data-my="' + i + '" value="' + escHtml(m.y || '') + '" placeholder="year" maxlength="7"' + (editing ? '' : ' readonly') + '>' +
+      '<input class="mo-t" data-mt="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="What happened\u2026"' + (editing ? '' : ' readonly') + '>' +
+      '<button class="mo-x" data-mx="' + i + '" type="button" aria-label="Remove">&times;</button>' +
+    '</div>'
+  ).join('');
+  list.innerHTML = rows + '<div class="mo add" id="moAdd">+ Add a moment</div>';
+  // Moments only appear when there are some (or while editing, so you can add).
+  const sec = el('pMomentsSec');
+  if (sec) sec.style.display = (editing || (pData.moments && pData.moments.length)) ? '' : 'none';
+}
+function schedulePersonSave() {
+  el('pSave').textContent = 'Saving\u2026';
+  clearTimeout(pTimer);
+  pTimer = setTimeout(() => savePerson_(), 700);
+}
+async function savePerson_(force) {
+  clearTimeout(pTimer);
+  if (pId === null) return;
+  const id = pId;
+  pData.essay = el('pEssay').value;
+  const payload = JSON.stringify(pData);
+  const local = circle.find(x => String(x.id) === String(id));
+  if (local && local.page === payload && !force) { el('pSave').textContent = 'Saved'; return; }
+  try {
+    const { error } = await supa.from('why_circle').update({ page: payload }).eq('id', id).eq('user_id', userId);
+    if (error) throw error;
+    if (local) local.page = payload;
+    el('pSave').textContent = 'Saved';
+  } catch (e) { el('pSave').textContent = 'Not saved'; }
+}
+el('pBack').addEventListener('click', closePerson);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('personWin').classList.contains('show')) closePerson(); });
+el('pEssay').addEventListener('input', schedulePersonSave);
+el('pEssay').addEventListener('blur', () => savePerson_());
+el('pEdit').addEventListener('click', () => {
+  const on = !document.body.classList.contains('p-editing');
+  setPersonEditing(on);
+  renderMoments();
+  if (on) { const t = el('pEssay'); if (t) t.focus(); } else { savePerson_(true); }
+});
+el('pMoments').addEventListener('click', e => {
+  if (e.target.closest('#moAdd')) { pData.moments.push({ y: '', t: '' }); renderMoments(); schedulePersonSave();
+    const ins = el('pMoments').querySelectorAll('.mo-t'); const last = ins[ins.length - 1]; if (last) last.focus(); return; }
+  const x = e.target.closest('[data-mx]');
+  if (x) { pData.moments.splice(+x.dataset.mx, 1); renderMoments(); schedulePersonSave(); }
+});
+el('pMoments').addEventListener('input', e => {
+  const y = e.target.closest('[data-my]'); if (y) { pData.moments[+y.dataset.my].y = y.value; schedulePersonSave(); return; }
+  const t = e.target.closest('[data-mt]'); if (t) { pData.moments[+t.dataset.mt].t = t.value; schedulePersonSave(); }
+});
+
+// ----- Person export -----
+function pPerson_() { return circle.find(x => String(x.id) === String(pId)) || {}; }
+function pMarkdown_() {
+  const p = pPerson_();
+  const b = BANDS.find(x => x.key === p.band) || BANDS[0];
+  let md = '# ' + (p.name || 'Someone') + '\n\n';
+  md += '- **Circle:** ' + b.lbl + ' (' + b.range + ')\n';
+  if (p.note) md += '- **Note:** ' + p.note + '\n';
+  md += '\n' + ((pData.essay || '').trim() || '_Nothing written yet._') + '\n';
+  const ms = pData.moments || [];
+  if (ms.length) md += '\n## Moments worth keeping\n\n' + ms.map(m => '- ' + (m.y ? '**' + m.y + '** \u2014 ' : '') + (m.t || '')).join('\n') + '\n';
+  md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' }) + '_\n';
+  return md;
+}
+function pFlash_(id, label) {
+  const b = el(id); if (!b) return; const s = b.querySelector('.eb-label'); if (!s) return;
+  const o = s.textContent; s.textContent = label; setTimeout(() => { s.textContent = o; }, 1400);
+}
+el('pCopy').addEventListener('click', () => {
+  const md = pMarkdown_(); const done = () => pFlash_('pCopy', 'Copied!');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(md).then(done).catch(() => {});
+  else { const t = document.createElement('textarea'); t.value = md; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(t); }
+});
+el('pMd').addEventListener('click', () => {
+  const p = pPerson_();
+  const slug = String(p.name || 'person').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'person';
+  const blob = new Blob([pMarkdown_()], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'circle-' + slug + '.md';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+el('pPrint').addEventListener('click', () => {
+  const p = pPerson_();
+  const b = BANDS.find(x => x.key === p.band) || BANDS[0];
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const ms = (pData.moments || []).map(m => '<li>' + (m.y ? '<span class="y">' + esc(m.y) + '</span> ' : '') + esc(m.t || '') + '</li>').join('');
+  const style = "<style>@page{margin:20mm}body{font-family:'Patrick Hand',cursive;color:#1c2331;line-height:1.6;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3a5b9c;margin:26px 0 10px;font-weight:600}.essay{font-size:19px;white-space:pre-wrap}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}</style>";
+  const body = '<div class="eyebrow">My Circle</div><h1>' + esc(p.name || '') + '</h1>'
+    + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
+    + '<div class="essay">' + esc((pData.essay || '').trim()) + '</div>'
+    + (ms ? '<h2>Moments worth keeping</h2><ul>' + ms + '</ul>' : '');
+  const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(p.name || 'Person') + '</title><link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
+  w.document.close();
+});
+
 el('circleSave').addEventListener('click', savePerson);
 el('circleCancel').addEventListener('click', closeCircleModal);
 el('circleDel').addEventListener('click', deletePerson);
