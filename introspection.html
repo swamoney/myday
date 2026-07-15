@@ -74,6 +74,7 @@
   .seg > span svg { width:15px; height:15px; flex-shrink:0; }
   .seg > span:hover { opacity:0.9; }
   .seg > span.on { background:var(--t-bg); color:var(--t-acc); opacity:1; font-weight:700; box-shadow:0 2px 6px rgba(30,40,70,0.16); }
+  .seg > span[data-view="diary"]         { --t-faint:#faf4f2; --t-bg:#f0e5e1; --t-acc:#9a6a5c; --t-ring:rgba(154,106,92,0.33); }
   .seg > span[data-view="introspection"] { --t-faint:#f5f7fa; --t-bg:#e3e8f1; --t-acc:#44557c; --t-ring:rgba(68,85,124,0.33); }
   .seg > span[data-view="experience"]    { --t-faint:#f5f8f4; --t-bg:#e5ebe2; --t-acc:#5a7050; --t-ring:rgba(90,112,80,0.33); }
   .seg > span[data-view="gratitude"]     { --t-faint:#f8f5f9; --t-bg:#eae3ec; --t-acc:#6d5474; --t-ring:rgba(109,84,116,0.33); }
@@ -82,6 +83,7 @@
      every section visible and tappable without sideways scrolling. */
   @media (max-width:560px) {
     .seg { display:grid; grid-template-columns:1fr 1fr; gap:6px; width:100%; overflow-x:visible; padding:6px; border-radius:12px; }
+    .seg > span[data-view="wip"] { grid-column:1 / -1; }
     .seg > span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; text-align:center; white-space:normal; line-height:1.2; min-height:56px; padding:9px 6px; font-size:11.5px; border-radius:9px; }
     .seg > span svg { width:17px; height:17px; }
   }
@@ -169,6 +171,7 @@
      the same world (WIP has no reader — it's the sticky board). */
   .reader-overlay { position:fixed; inset:0; background:var(--r-bg,var(--bg)); z-index:220; display:flex; flex-direction:column; }
   .reader-overlay { --r-bg:var(--bg); --r-bar:var(--paper); --r-acc:var(--accent); }
+  .reader-overlay[data-kind="diary"]         { --r-bg:#f8f2f0; --r-bar:#fdfaf9; --r-acc:#9a6a5c; }
   .reader-overlay[data-kind="introspection"] { --r-bg:#eef1f7; --r-bar:#f8fafc; --r-acc:#44557c; }
   .reader-overlay[data-kind="experience"]    { --r-bg:#f0f4ef; --r-bar:#f8fbf7; --r-acc:#5a7050; }
   .reader-overlay[data-kind="gratitude"]     { --r-bg:#f5f1f6; --r-bar:#fbf8fb; --r-acc:#6d5474; }
@@ -269,7 +272,8 @@
       </div>
 
       <div class="seg" id="seg">
-        <span data-view="introspection" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1"/><circle cx="8" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="seg-l">My Introspection</span></span>
+        <span data-view="diary" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg><span class="seg-l">My Diary</span></span>
+        <span data-view="introspection"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1"/><circle cx="8" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="seg-l">My Introspection</span></span>
         <span data-view="experience"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-3-3-6-1-6 1.5S9 17 12 14"/><path d="M12 12c3-3 6-1 6 1.5S15 17 12 14"/><path d="M12 14v7"/></svg><span class="seg-l">My Life Experiences</span></span>
         <span data-view="gratitude"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 12.6l-7.5 7.4l-7.5-7.4a5 5 0 1 1 7.5-6.6a5 5 0 1 1 7.5 6.6"/></svg><span class="seg-l">My Gratitude</span></span>
         <span data-view="wip" class="seg-wip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5l-3.2 3.2l-2.6 .4a1 1 0 0 0-.6 1.7l4.6 4.6a1 1 0 0 0 1.7-.6l.4-2.6l3.2-3.2"/><line x1="9" y1="15" x2="4.5" y2="19.5"/><line x1="14.5" y1="4" x2="20" y2="9.5"/></svg><span class="seg-l">Work in Progress</span></span>
@@ -345,6 +349,7 @@
       <div class="field">
         <label>Type</label>
         <select id="fKind">
+          <option value="diary">Diary</option>
           <option value="introspection">Introspection</option>
           <option value="experience">Life Experience</option>
           <option value="gratitude">Gratitude</option>
@@ -405,7 +410,7 @@ const supa = window.supabase.createClient(
 let userId = null;
 let rows = [];         // iw_entries
 let notes = [];        // wip_notes
-let activeView = 'introspection';
+let activeView = 'diary';
 let readerEntry = null;
 let activeTag = null;
 let searchTerm = '';
@@ -415,13 +420,14 @@ let notesTimer = null;
 const STAR_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 const STAR_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 // Legacy kinds (essay/post/thread/note/reflection) all read as Introspection.
-function displayKind(k) { return (k === 'gratitude' || k === 'experience') ? k : 'introspection'; }
+function displayKind(k) { return (k === 'gratitude' || k === 'experience' || k === 'diary') ? k : 'introspection'; }
 const KIND = {
   essay:      { lbl:'Essay',      glyph:'\u270E', w1:'#fbf5ea', w2:'#f3ead9', icbg:'#f2e6cf', acc:'#a5702f' },
   post:       { lbl:'Post',       glyph:'\u275D', w1:'#eef3fb', w2:'#e2ebf7', icbg:'#dbe7f7', acc:'#3a5b9c' },
   thread:     { lbl:'Thread',     glyph:'\u2261', w1:'#f2f8f4', w2:'#e4efe8', icbg:'#dcebe2', acc:'#3d7a5c' },
   note:       { lbl:'Note',       glyph:'\u2022', w1:'#f6f7fa', w2:'#eceff4', icbg:'#e6eaf1', acc:'#6a7690' },
   reflection: { lbl:'Reflection', glyph:'?',       w1:'#f4f0fa', w2:'#eae2f3', icbg:'#e6def0', acc:'#6b4a7a' },
+  diary:      { lbl:'Diary', glyph:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg>', w1:'#f8f2f0', w2:'#f0e5e1', icbg:'#ecdcd6', acc:'#9a6a5c' },
   gratitude:  { lbl:'Gratitude',  glyph:'\u2665', w1:'#f5f1f6', w2:'#eae3ec', icbg:'#e4dbe7', acc:'#6d5474' },
   experience: { lbl:'Life Experience', glyph:'\u2618', w1:'#f0f4ef', w2:'#e5ebe2', icbg:'#dfe7db', acc:'#5a7050' },
   introspection: { lbl:'Introspection', glyph:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1"/><circle cx="8" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>', w1:'#eef1f7', w2:'#e3e8f1', icbg:'#dde4ef', acc:'#44557c' },
@@ -569,9 +575,10 @@ function favFirst(list) {
 }
 function viewRows() {
   let out;
-  if (activeView === 'gratitude') out = rows.filter(r => r.kind === 'gratitude');
+  if (activeView === 'diary') out = rows.filter(r => r.kind === 'diary');
+  else if (activeView === 'gratitude') out = rows.filter(r => r.kind === 'gratitude');
   else if (activeView === 'experience') out = rows.filter(r => r.kind === 'experience');
-  else out = rows.filter(r => r.kind !== 'gratitude' && r.kind !== 'experience');
+  else out = rows.filter(r => r.kind !== 'gratitude' && r.kind !== 'experience' && r.kind !== 'diary');
   return favFirst(out);
 }
 function filteredRows() {
@@ -638,7 +645,7 @@ function render() {
   renderTags();
   const list = filteredRows();
   const wrap = el('cardsWrap');
-  const addLabel = activeView === 'gratitude' ? 'New gratitude' : (activeView === 'experience' ? 'New experience' : (activeView === 'introspection' ? 'New entry' : 'New'));
+  const addLabel = activeView === 'diary' ? 'New diary entry' : (activeView === 'gratitude' ? 'New gratitude' : (activeView === 'experience' ? 'New experience' : (activeView === 'introspection' ? 'New entry' : 'New')));
 
   if (rows.length === 0) {
     wrap.innerHTML = '<div class="empty"><div class="big">Nothing here yet</div><div class="small">Start an introspection, or note something you&rsquo;re grateful for.</div></div>' +
@@ -800,7 +807,7 @@ function openModal(id) {
     el('deleteBtn').classList.remove('hidden');
   } else {
     el('modalTitle').textContent = 'New entry';
-    const preset = (activeView === 'gratitude' || activeView === 'experience') ? activeView : 'introspection';
+    const preset = (activeView === 'gratitude' || activeView === 'experience' || activeView === 'diary') ? activeView : 'introspection';
     el('fKind').value = preset;
     el('fStatus').value = 'idea';
     el('fTitle').value = ''; el('fEssence').value = ''; el('fBody').value = ''; el('fTags').value = '';
