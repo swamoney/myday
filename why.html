@@ -145,7 +145,7 @@
   .rm-stands { font-family:'Cormorant Garamond',Georgia,serif; font-size:23px; font-weight:600; }
   .rm-pill { display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:20px; color:#fff; font-size:12.5px; font-weight:600; }
   .rm-pill .pdot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.6); }
-  .rm-essay.ro { font-family:'Patrick Hand',cursive; font-size:20px; line-height:1.7; color:#3a4560; padding:0; white-space:pre-wrap; min-height:40px; }
+  .rm-essay.ro { font-family:var(--serif); font-size:18px; line-height:1.75; color:#3a4560; padding:0; white-space:pre-wrap; min-height:40px; }
   .rm-essay.ro.empty { color:#c3ccdb; font-style:italic; }
   body.rm-editing .rm-essay.ro { display:none; }
   .rm-essay.inp { display:none; }
@@ -169,7 +169,7 @@
   .rm-k svg { width:14px; height:14px; }
   .rm-hint { font-size:11.5px; color:#9aa4ba; margin:3px 0 10px; }
   /* Flat document: no cards, no boxes — the roadmap reads as one clean page. */
-  .rm-essay { width:100%; font-family:'Patrick Hand',cursive; font-size:20px; line-height:1.7; color:#3a4560; background:transparent; border:none; border-bottom:1px dashed #e2e8f0; border-radius:0; padding:0 0 10px; min-height:220px; resize:vertical; }
+  .rm-essay { width:100%; font-family:var(--serif); font-size:18px; line-height:1.75; color:#3a4560; background:transparent; border:none; border-bottom:1px dashed #e2e8f0; border-radius:0; padding:0 0 10px; min-height:220px; resize:vertical; }
   .rm-essay:focus { outline:none; border-bottom-color:#c9a94a; }
   .ms-list { display:flex; flex-direction:column; gap:0; }
   .ms { display:flex; align-items:center; gap:12px; background:transparent; border:none; border-bottom:1px solid #eef1f6; border-radius:0; padding:11px 2px; }
@@ -180,8 +180,10 @@
   .ms.done .ms-t { color:#9aa4ba; text-decoration:line-through; }
   .ms-t { flex:1; font-size:14px; color:#28324B; border:none; background:transparent; font-family:inherit; }
   .ms-t:focus { outline:none; }
-  .ms-y { width:64px; font-family:var(--mono); font-size:10px; font-weight:600; color:#a5702f; background:#fdf6e3; border:1px solid #f0e2bd; padding:3px 8px; border-radius:20px; text-align:center; }
-  .ms-y:focus { outline:none; border-color:#c9a94a; }
+  .ms-y { min-width:96px; font-family:var(--mono); font-size:10px; font-weight:600; color:#a5702f; background:#fdf6e3; border:1px solid #f0e2bd; padding:4px 12px; border-radius:20px; text-align:center; white-space:nowrap; flex-shrink:0; }
+  .ms-y.empty { color:#c9d0dc; background:transparent; border-color:#eef1f6; }
+  .ms-d { font-family:var(--mono); font-size:11px; font-weight:600; color:#a5702f; background:#fdf6e3; border:1px solid #f0e2bd; padding:5px 10px; border-radius:10px; flex-shrink:0; }
+  .ms-d:focus { outline:none; border-color:#c9a94a; }
   .ms-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; padding:0 2px; }
   .ms-x:hover { color:#a8443e; }
   .ms.add { justify-content:flex-start; background:transparent; border:none; border-bottom:none; color:#8189a0; font-style:italic; cursor:pointer; padding:12px 2px; }
@@ -840,6 +842,20 @@ function closeRoadmap() {
   document.body.style.overflow = '';
   rmId = null;
 }
+// Milestone date helpers. Stored value stays in m.y for backward-compat with
+// existing entries (which held a bare year). New picks store full ISO (YYYY-MM-DD).
+function isoDateVal(v) {
+  v = String(v || '').trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '';   // only feed a real ISO date to <input type=date>
+}
+function fmtMsDate(v) {
+  v = String(v || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+    const d = new Date(v + 'T00:00:00');
+    if (!isNaN(d.getTime())) return d.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
+  }
+  return v;   // legacy free-text (e.g. '2027' or 'Someday') shown as-is
+}
 function renderMilestones() {
   const list = el('rmList'); if (!list) return;
   const editing = document.body.classList.contains('rm-editing');
@@ -847,7 +863,9 @@ function renderMilestones() {
     '<div class="ms' + (m.done ? ' done' : '') + '" data-i="' + i + '">' +
       '<button class="ms-box" data-toggle="' + i + '" type="button" aria-label="Done"' + (editing ? '' : ' disabled') + '>' + MS_CHK + '</button>' +
       '<input class="ms-t" data-text="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="A long-term step\u2026"' + (editing ? '' : ' readonly') + '>' +
-      '<input class="ms-y" data-year="' + i + '" value="' + escHtml(m.y || '') + '" placeholder="year" maxlength="7"' + (editing ? '' : ' readonly') + '>' +
+      (editing
+        ? '<input class="ms-d" type="date" data-date="' + i + '" value="' + escHtml(isoDateVal(m.y)) + '">'
+        : (fmtMsDate(m.y) ? '<span class="ms-y">' + escHtml(fmtMsDate(m.y)) + '</span>' : '<span class="ms-y empty">&mdash;</span>')) +
       '<button class="ms-x" data-del="' + i + '" type="button" aria-label="Remove">&times;</button>' +
     '</div>'
   ).join('');
@@ -1283,9 +1301,12 @@ el('rmList').addEventListener('click', e => {
   const dl = e.target.closest('[data-del]');
   if (dl) { const i = +dl.dataset.del; rmData.milestones.splice(i, 1); renderMilestones(); scheduleRoadmapSave(); return; }
 });
+el('rmList').addEventListener('change', e => {
+  const d = e.target.closest('[data-date]'); if (d) { rmData.milestones[+d.dataset.date].y = d.value; scheduleRoadmapSave(); }
+});
 el('rmList').addEventListener('input', e => {
   const t = e.target.closest('[data-text]'); if (t) { rmData.milestones[+t.dataset.text].t = t.value; scheduleRoadmapSave(); return; }
-  const y = e.target.closest('[data-year]'); if (y) { rmData.milestones[+y.dataset.year].y = y.value; scheduleRoadmapSave(); }
+  const d = e.target.closest('[data-date]'); if (d) { rmData.milestones[+d.dataset.date].y = d.value; scheduleRoadmapSave(); }
 });
 
 el('spine').addEventListener('click', e => {
