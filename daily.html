@@ -13495,17 +13495,19 @@ function renderMonthAccordions(monthYM, entries) {
         if (sec) sec.classList.toggle('expanded', _monthAccExpanded[key]);
       });
     });
-    wrap.querySelectorAll('.year-acc-row[data-jump-iso]').forEach(el => {
-      el.addEventListener('click', () => {
-        const iso = el.dataset.jumpIso;
-        if (iso) { selectDate(iso); showTab('today'); }
+    // Jump to that day AND open its Hours section (these rows summarise the
+    // day's hours, so landing on the day's top and not the Hours felt broken).
+    const jumpToHours = (iso) => {
+      if (!iso) return;
+      showTab('today');
+      Promise.resolve(selectDate(iso)).then(() => {
+        if (typeof focusHubSection === 'function') focusHubSection('s-time');
       });
+    };
+    wrap.querySelectorAll('.year-acc-row[data-jump-iso]').forEach(el => {
+      el.addEventListener('click', () => jumpToHours(el.dataset.jumpIso));
       el.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          const iso = el.dataset.jumpIso;
-          if (iso) { selectDate(iso); showTab('today'); }
-        }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToHours(el.dataset.jumpIso); }
       });
     });
   });
