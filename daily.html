@@ -14265,11 +14265,28 @@ function renderMonth() {
       if (sec) sec.classList.toggle('expanded', _monthAccExpanded.daySummary);
     });
   }
-  // Day-row click → jump to that day (unchanged behavior)
+  // Day-row click → jump to that day AND open its Hours section.
+  // ORDER MATTERS: showTab('today') has a guard that resets to today whenever
+  // currentDate !== today, so it MUST run before selectDate — otherwise it
+  // snaps back to today (this was the bug). Then focus the section on a
+  // settled timeout, mirroring the search deep-link that works reliably.
   wrap.querySelectorAll('.day-row').forEach(r => {
     r.addEventListener('click', () => {
-      selectDate(r.dataset.date);
+      const iso = r.dataset.date;
+      if (!iso) return;
       showTab('today');
+      selectDate(iso);
+      setTimeout(() => { if (typeof focusHubSection === 'function') focusHubSection('s-time'); }, 150);
+    });
+    r.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const iso = r.dataset.date;
+        if (!iso) return;
+        showTab('today');
+        selectDate(iso);
+        setTimeout(() => { if (typeof focusHubSection === 'function') focusHubSection('s-time'); }, 150);
+      }
     });
   });
 }
