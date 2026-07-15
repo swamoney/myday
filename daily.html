@@ -10145,7 +10145,7 @@ async function selectDate(iso) {
 }
 
 // =========== TABS ===========
-function showTab(name) {
+function showTab(name, keepDate) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   ['today','month','export'].forEach(n => {
     document.getElementById('tab-' + n).classList.toggle('hidden', n !== name);
@@ -10170,7 +10170,7 @@ function showTab(name) {
   // past/future date, tapping Today should reset to the current day — not show
   // that other date's hub. selectDate() flushes any pending save first, so this
   // is safe. Guarded so we don't re-render when already on today.
-  if (name === 'today' && typeof isoToday === 'function' && currentDate !== isoToday()) {
+  if (!keepDate && name === 'today' && typeof isoToday === 'function' && currentDate !== isoToday()) {
     selectDate(isoToday());
   }
   // Research shell: update hero title + chips to reflect the active tab.
@@ -13497,17 +13497,19 @@ function renderMonthAccordions(monthYM, entries) {
     });
     // Jump to that day AND open its Hours section (these rows summarise the
     // day's hours, so landing on the day's top and not the Hours felt broken).
-    const jumpToHours = (iso) => {
+    // Away rows summarise the day's hours (The Hours); sleep rows the night (Night Stay).
+    const targetSection = (wrap === sleepWrap) ? 's-night' : 's-time';
+    const jumpToDay = (iso) => {
       if (!iso) return;
-      showTab('today');
+      showTab('today', true);              // keepDate: don't let showTab reset to today
       Promise.resolve(selectDate(iso)).then(() => {
-        if (typeof focusHubSection === 'function') focusHubSection('s-time');
+        if (typeof focusHubSection === 'function') focusHubSection(targetSection);
       });
     };
     wrap.querySelectorAll('.year-acc-row[data-jump-iso]').forEach(el => {
-      el.addEventListener('click', () => jumpToHours(el.dataset.jumpIso));
+      el.addEventListener('click', () => jumpToDay(el.dataset.jumpIso));
       el.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToHours(el.dataset.jumpIso); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToDay(el.dataset.jumpIso); }
       });
     });
   });
@@ -14870,23 +14872,19 @@ function renderYear() {
 
   // Wire row clicks → jump to that day in the Today tab. Stops propagation
   // so it doesn't bubble up to the accordion head (which would collapse it).
-  wrap.querySelectorAll('[data-jump-iso]').forEach(row => {
-    row.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const iso = row.dataset.jumpIso;
-      if (!iso) return;
-      showTab('today');
-      selectDate(iso);
+  const jumpToDay = (iso) => {
+    if (!iso) return;
+    showTab('today', true);               // keepDate: don't let showTab reset to today
+    Promise.resolve(selectDate(iso)).then(() => {
+      // Away rows summarise the day's hours; sleep rows the night — open the fitting section.
+      const cls = wrap.dataset.jumpSection || 's-time';  // yearly list defaults to The Hours
+      if (typeof focusHubSection === 'function') focusHubSection(cls);
     });
-    // Keyboard support — Enter/Space activates the row (for the role=button)
+  };
+  wrap.querySelectorAll('[data-jump-iso]').forEach(row => {
+    row.addEventListener('click', (e) => { e.stopPropagation(); jumpToDay(row.dataset.jumpIso); });
     row.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        const iso = row.dataset.jumpIso;
-        if (!iso) return;
-        showTab('today');
-        selectDate(iso);
-      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToDay(row.dataset.jumpIso); }
     });
   });
 
