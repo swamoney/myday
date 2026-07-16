@@ -421,11 +421,13 @@ const FR_LINK = '<svg viewBox=\"0 0 24 24\" fill="none" stroke="currentColor" st
 function secOf(r) { return (r.section && SECTIONS[r.section]) ? r.section : 'all-time'; }
 // Category chips are section-specific. Empty array = no chips (free text only).
 const SECTION_CATS = {
+  // Only All-Time uses category chips (its original mixed-link taxonomy).
+  // The new sections lean on Tags instead \u2014 freeform, and in your own words.
   'all-time': ['Music','Podcast','Audiobook','Ebook','Movie','Documentary','Article'],
-  'books':    ['Fiction','Non-fiction','Biography','Business','Self-help','Philosophy'],
-  'podcasts': ['Interview','Solo','Narrative','Business','Science','Health'],
-  'marathi':  ['Poem','Story','Quote','Article','Video','Song'],
-  'movies':   ['Film','Documentary','Series','Live Show','Play','Stand-up'],
+  'books':    [],
+  'podcasts': [],
+  'marathi':  [],
+  'movies':   [],
   'music':    []
 };
 
@@ -953,7 +955,7 @@ function renderTypeChips(section) {
   const tc = el('typeChips');
   // Music has no category concept; hide the whole field there.
   const fieldWrap = el('fType') ? el('fType').closest('.field') : null;
-  if (fieldWrap) fieldWrap.classList.toggle('hidden', section === 'music');
+  if (fieldWrap) fieldWrap.classList.toggle('hidden', cats.length === 0);
   if (!tc) return;
   tc.innerHTML = cats.map(c => '<button type="button" class="type-chip" data-type="' + c + '">' + c + '</button>').join('');
   const dl = el('typeSuggest'); if (dl) dl.innerHTML = cats.map(c => '<option value="' + c + '"></option>').join('');
