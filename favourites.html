@@ -581,12 +581,12 @@ async function deleteBookmark() {
 // ===== RENDER =====
 function allTypes() {
   const set = new Set();
-  rows.forEach(r => { if (r.type) set.add(r.type); });
+  rows.forEach(r => { if (secOf(r) === activeSection && r.type) set.add(r.type); });
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
 function allTags() {
   const set = new Set();
-  rows.forEach(r => (r.tags || []).forEach(t => set.add(t)));
+  rows.forEach(r => { if (secOf(r) === activeSection) (r.tags || []).forEach(t => set.add(t)); });
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
 function filteredRows() {
@@ -620,8 +620,10 @@ function renderSectionNav() {
 })();
 
 function renderTabs() {
-  const types = allTypes();
   const wrap = el('typeTabs');
+  // Category tabs (Audiobook/Music/Playlist\u2026) only belong to All-Time.
+  if (activeSection !== 'all-time') { wrap.innerHTML = ''; return; }
+  const types = allTypes();
   let html = '<span class="tab' + (activeType === null ? ' active' : '') + '" data-type="__all">All</span>';
   types.forEach(t => { html += '<span class="tab' + (activeType === t ? ' active' : '') + '" data-type="' + escHtml(t) + '">' + escHtml(t) + '</span>'; });
   wrap.innerHTML = html;
