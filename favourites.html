@@ -423,7 +423,7 @@ function secOf(r) { return (r.section && SECTIONS[r.section]) ? r.section : 'all
 const SECTION_CATS = {
   // Only All-Time uses category chips (its original mixed-link taxonomy).
   // The new sections lean on Tags instead \u2014 freeform, and in your own words.
-  'all-time': ['Music','Podcast','Audiobook','Ebook','Movie','Documentary','Article'],
+  'all-time': [],
   'books':    [],
   'podcasts': [],
   'marathi':  [],
@@ -616,8 +616,10 @@ function renderSectionNav() {
 
 function renderTabs() {
   const wrap = el('typeTabs');
-  // Category tabs (Audiobook/Music/Playlist\u2026) only belong to All-Time.
-  if (activeSection !== 'all-time') { wrap.innerHTML = ''; return; }
+  // Categories were dropped everywhere \u2014 Tags do the grouping now.
+  if (wrap) wrap.innerHTML = '';
+  return;
+  // eslint-disable-next-line no-unreachable
   const types = allTypes();
   let html = '<span class="tab' + (activeType === null ? ' active' : '') + '" data-type="__all">All</span>';
   types.forEach(t => { html += '<span class="tab' + (activeType === t ? ' active' : '') + '" data-type="' + escHtml(t) + '">' + escHtml(t) + '</span>'; });
