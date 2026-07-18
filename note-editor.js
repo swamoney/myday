@@ -198,6 +198,9 @@
     '.nk-b{min-width:32px;height:32px;padding:0 8px;border:none;background:transparent;border-radius:7px;color:#3a4560;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}',
     '.nk-b:hover{background:#e3e9f2}',
     '.nk-b.on{background:#0F2D5C;color:#fff}',
+    '.nk-b.can{background:#fdf3d3;color:#9a7b1a}',
+    '.nk-b.off{color:#c3ccdb;cursor:default}',
+    '.nk-b.off:hover{background:transparent}',
     '.nk-b svg{width:17px;height:17px}',
     '.nk-sep{width:1px;height:20px;background:#dce3ee;margin:0 4px}',
     '.nk-pop{position:absolute;top:44px;left:6px;background:#fff;border:1px solid #dce3ee;border-radius:11px;box-shadow:0 12px 28px rgba(20,30,60,.16);padding:9px;display:flex;gap:6px;flex-wrap:wrap;width:186px;z-index:30}',
@@ -325,6 +328,7 @@
       if (dlg._selImg && dlg._selImg.parentNode) {
         var img = dlg._selImg;
         var owner = dlg._selOwner;
+        if (owner && owner.recordNow) owner.recordNow();
         img.parentNode.removeChild(img);
         hideImgDel();
         if (owner && owner.onImgRemoved) owner.onImgRemoved();
@@ -379,6 +383,8 @@
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
+    undo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
+    redo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>',
     bold: '<b style="font-weight:800">B</b>',
     italic: '<i style="font-family:Georgia,serif">I</i>',
     under: '<span style="text-decoration:underline">U</span>',
@@ -408,6 +414,9 @@
 
     /* toolbar DOM */
     toolbar.innerHTML =
+      btn('act', 'undo', '', 'Undo', ICONS.undo) +
+      btn('act', 'redo', '', 'Redo', ICONS.redo) +
+      '<span class="nk-sep"></span>' +
       btn('cmd', 'bold', '', 'Bold', ICONS.bold) +
       btn('cmd', 'italic', '', 'Italic', ICONS.italic) +
       btn('cmd', 'underline', '', 'Underline', ICONS.under) +
@@ -442,6 +451,75 @@
     swatches(TEXT_SW, 'text', popText);
     swatches(HIGH_SW, 'high', popHigh);
     function closePops() { popText.classList.add('hidden'); popHigh.classList.add('hidden'); }
+
+
+    /* ---- snapshot undo/redo (Option B, decided Jul 2026) ----
+       The browser's native undo (execCommand('undo')) is corrupted by our own
+       DOM rewrites (colour classes, sanitised paste, checklists), so the module
+       keeps its OWN history: a snapshot per ~800ms pause, capped at 50, plus
+       one immediately before every programmatic change. Reliable regardless of
+       how the content changed. Per-open only — survival across closes is the
+       job of version history, not undo. */
+    var undoStack = [], redoStack = [], lastVal = null, snapTimer = null;
+    var HIST_MAX = 50;
+    function curHtml() { return editor.innerHTML.replace(/ ?nk-img-sel/g, ''); }
+    function recordNow() {
+      clearTimeout(snapTimer); snapTimer = null;
+      var cur = curHtml();
+      if (lastVal === null) { lastVal = cur; histBtns(); return; }
+      if (cur === lastVal) return;
+      undoStack.push(lastVal);
+      if (undoStack.length > HIST_MAX) undoStack.shift();
+      redoStack.length = 0;
+      lastVal = cur;
+      histBtns();
+    }
+    function noteChanged() {
+      clearTimeout(snapTimer);
+      snapTimer = setTimeout(recordNow, 800);
+      onChange();
+    }
+    function restore(html) {
+      editor.innerHTML = html;
+      var r = document.createRange(); r.selectNodeContents(editor); r.collapse(false);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      onChange(); histBtns();
+    }
+    function doUndo() {
+      recordNow();
+      if (!undoStack.length) return;
+      redoStack.push(lastVal);
+      lastVal = undoStack.pop();
+      restore(lastVal);
+    }
+    function doRedo() {
+      recordNow();
+      if (!redoStack.length) return;
+      undoStack.push(lastVal);
+      lastVal = redoStack.pop();
+      restore(lastVal);
+    }
+    function histBtns() {
+      var u = toolbar.querySelector('[data-nk-act="undo"]');
+      var r2 = toolbar.querySelector('[data-nk-act="redo"]');
+      if (u) { u.classList.toggle('can', undoStack.length > 0); u.classList.toggle('off', !undoStack.length); }
+      if (r2) { r2.classList.toggle('can', redoStack.length > 0); r2.classList.toggle('off', !redoStack.length); }
+    }
+    /* Content is swapped in by the page while the editor is unfocused (opening a
+       different note). Detect that on focus and start a fresh history. */
+    editor.addEventListener('focus', function () {
+      var cur = curHtml();
+      if (lastVal === null || cur !== lastVal) {
+        undoStack = []; redoStack = []; lastVal = cur; histBtns();
+      }
+    });
+    editor.addEventListener('keydown', function (e) {
+      var mod = e.ctrlKey || e.metaKey;
+      if (!mod) return;
+      var k = (e.key || '').toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); doUndo(); }
+      else if (k === 'z' || k === 'y') { e.preventDefault(); doRedo(); }
+    });
 
     /* selection keeping */
     function saveRange() {
@@ -505,13 +583,14 @@
       var list = kind === 'text' ? TEXT_SW : HIGH_SW;
       var sw = null;
       list.forEach(function (s) { if (s.key === key) sw = s; });
+      recordNow();
       if (!sw || !sw.css) stripColourClasses(kind === 'text' ? 'tc-' : 'hl-');
       else {
         exec('styleWithCSS', true);
         exec(kind === 'text' ? 'foreColor' : 'hiliteColor', sw.css);
         normalizeColours();
       }
-      closePops(); onChange();
+      closePops(); noteChanged();
     }
     [[popText, 'text'], [popHigh, 'high']].forEach(function (pair) {
       pair[0].addEventListener('mousedown', function (e) { e.preventDefault(); });
@@ -544,7 +623,9 @@
       if (act === 'img') { activeInst = inst; saveRange(); openImg(); return; }
       if (act === 'link') { activeInst = inst; saveRange(); openLink(); return; }
       if (act === 'check') { insertChecklist(); return; }
-      if (act === 'hr') { editor.focus(); restoreRange(); exec('insertHTML', '<hr><p><br></p>'); onChange(); return; }
+      if (act === 'undo') { doUndo(); return; }
+      if (act === 'redo') { doRedo(); return; }
+      if (act === 'hr') { editor.focus(); restoreRange(); recordNow(); exec('insertHTML', '<hr><p><br></p>'); noteChanged(); return; }
       if (pop) {
         saveRange();
         var want = pop === 'text' ? popText : popHigh;
@@ -559,7 +640,7 @@
         try { cur = (document.queryCommandValue('formatBlock') || '').toLowerCase(); } catch (e2) {}
         exec('formatBlock', cur === (b.dataset.nkVal || '').toLowerCase() ? 'p' : b.dataset.nkVal);
       } else exec(cmd);
-      refresh(); onChange();
+      refresh(); noteChanged();
     });
 
     /* dialogs (per-instance open + insert) */
@@ -583,8 +664,9 @@
     /* checklist */
     function insertChecklist() {
       editor.focus(); restoreRange();
+      recordNow();
       exec('insertHTML', '<ul class="fr-check"><li><span class="fr-cb" contenteditable="false"></span>&nbsp;</li></ul><p><br></p>');
-      onChange();
+      noteChanged();
     }
     /* tap-to-select images: shows a Remove button; Backspace also works because
        the image becomes the actual selection */
@@ -612,7 +694,7 @@
     editor.addEventListener('click', function (e) {
       var cb = e.target.closest('.fr-cb'); if (!cb) return;
       e.preventDefault(); e.stopPropagation();
-      var li = cb.closest('li'); if (li) { li.classList.toggle('done'); onChange(); }
+      var li = cb.closest('li'); if (li) { recordNow(); li.classList.toggle('done'); noteChanged(); }
     });
     if (reader) reader.addEventListener('click', function (e) {
       var cb = e.target.closest('.fr-cb'); if (!cb) return;
@@ -630,39 +712,42 @@
       var text = cb.getData('text/plain');
       var out = html ? sanitize(html)
                      : esc(text || '').replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>');
+      recordNow();
       exec('insertHTML', out);
-      onChange();
+      noteChanged();
     });
 
-    editor.addEventListener('input', onChange);
+    editor.addEventListener('input', noteChanged);
     editor.addEventListener('keyup', refresh);
     editor.addEventListener('mouseup', refresh);
     editor.addEventListener('blur', saveRange);
 
     var inst = {
-      onImgRemoved: function () { onChange(); },
+      onImgRemoved: function () { noteChanged(); },
+      recordNow: recordNow,
       refresh: refresh,
       focusEnd: function () {
         editor.focus();
         var r = document.createRange(); r.selectNodeContents(editor); r.collapse(false);
         var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
       },
-      insertHTML: function (html) { editor.focus(); restoreRange(); exec('insertHTML', html); onChange(); },
+      insertHTML: function (html) { editor.focus(); restoreRange(); recordNow(); exec('insertHTML', html); noteChanged(); },
       applyLink: function (url) {
         editor.focus(); restoreRange();
         var sel = window.getSelection();
+        recordNow();
         if (sel && sel.isCollapsed) exec('insertHTML', '<a href="' + url.replace(/"/g, '&quot;') + '">' + esc(url) + '</a>');
         else exec('createLink', url);
-        onChange();
+        noteChanged();
       },
-      removeLink: function () { editor.focus(); restoreRange(); exec('unlink'); onChange(); },
+      removeLink: function () { editor.focus(); restoreRange(); recordNow(); exec('unlink'); noteChanged(); },
       closePopovers: closePops
     };
     return inst;
   }
 
   window.NoteEditor = {
-    version: '1.0',
+    version: '1.1',
     sanitize: sanitize,
     toHtml: toHtml,
     toPlain: toPlain,
