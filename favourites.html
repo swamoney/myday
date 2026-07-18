@@ -193,6 +193,10 @@
   .fr-bar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid #eef1f6; background:#fff; flex-shrink:0; }
   .fr-back { background:none; border:none; font-size:13px; font-weight:600; color:#3a4560; cursor:pointer; }
   .fr-ttl { flex:1; font-family:var(--serif,Georgia),serif; font-size:14px; font-weight:600; text-align:center; }
+  .fr-nav { width:26px; height:26px; border:1px solid #dce3ee; border-radius:7px; background:#fff; color:#3a4560; font-size:15px; line-height:1; cursor:pointer; flex-shrink:0; }
+  .fr-nav:disabled { color:#d3d9e4; cursor:default; }
+  .fr-wc { display:none; font-family:var(--mono,monospace); font-size:9px; letter-spacing:0.08em; color:#9aa4ba; }
+  body.fr-editing .fr-wc { display:inline; }
   .fr-save { font-family:var(--mono,monospace); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#3d7a5c; min-width:52px; text-align:right; }
   .fr-scroll { flex:1; overflow-y:auto; }
   .fr-in { max-width:1000px; margin:0 auto; padding:26px 30px 40px; }  /* full width, matches My Why roadmap */
@@ -392,7 +396,10 @@
 <div class="fr-page" id="frPage" aria-hidden="true">
   <div class="fr-bar">
     <button class="fr-back" id="frBack" type="button">&larr; Back</button>
+    <button class="fr-nav" id="frPrev" type="button" title="Previous note">&#8249;</button>
+    <button class="fr-nav" id="frNext" type="button" title="Next note">&#8250;</button>
     <span class="fr-ttl" id="frTtl"></span>
+    <span class="fr-wc" id="frWc"></span>
     <span class="fr-save" id="frSave"></span>
   </div>
   <div class="fr-scroll">
@@ -814,6 +821,24 @@ function noteDatesHtml(r) {
   return s + '</span>';
 }
 let frDirty = false;
+let frNavIds = [];
+function frUpdateWc_() {
+  const n = NoteEditor.toPlain(el('frBodyInp').innerHTML).split(/\s+/).filter(Boolean).length;
+  el('frWc').textContent = n + ' W';
+}
+function frUpdateNav_() {
+  const i = frNavIds.indexOf(frId);
+  el('frPrev').disabled = (i <= 0);
+  el('frNext').disabled = (i === -1 || i >= frNavIds.length - 1);
+}
+function frGo_(step) {
+  const i = frNavIds.indexOf(frId);
+  const next = frNavIds[i + step];
+  if (next === undefined) return;
+  frSessionEnd_();          // version + safety for the note we're leaving
+  saveFr_(true);
+  openReader(next, true);   // keep the captured order
+}
 let frLoadedUpd = null;
 NoteEditor.versions.connect(() => ({ supa, userId }));
 function frSessionEnd_() {
@@ -824,8 +849,9 @@ function frSessionEnd_() {
   frBaseline = null;
 }
 
-function openReader(id) {
+function openReader(id, keepNav) {
   const r = rows.find(x => x.id === id); if (!r) return;
+  if (!keepNav) frNavIds = filteredRows().map(x => x.id);  // arrows follow the list you came from
   const sec = SECTIONS[secOf(r)] || SECTIONS['all-time'];
   frId = id;
   el('frTtl').textContent = sec.lbl;
@@ -854,6 +880,8 @@ function openReader(id) {
     if (cur !== frBaseline) { NoteEditor.versions.record('bookmark', frId, frBaseline); frBaseline = cur; }
   }, 600000);
   setFrEditing(false);
+  frUpdateNav_();
+  frUpdateWc_();
   nk.closePopovers();
   el('frSave').textContent = '';
   el('frPage').classList.add('show');
@@ -881,7 +909,7 @@ function setFrEditing(on) {
     nk.refresh();
   }
 }
-function scheduleFrSave() { frDirty = true; el('frSave').textContent = 'Saving\u2026'; clearTimeout(frTimer); frTimer = setTimeout(() => saveFr_(), 700); }
+function scheduleFrSave() { frDirty = true; frUpdateWc_(); el('frSave').textContent = 'Saving\u2026'; clearTimeout(frTimer); frTimer = setTimeout(() => saveFr_(), 700); }
 async function saveFr_(force) {
   clearTimeout(frTimer);
   if (frId === null) return;
@@ -958,6 +986,8 @@ el('frHist').addEventListener('click', () => {
     }
   });
 });
+el('frPrev').addEventListener('click', () => frGo_(-1));
+el('frNext').addEventListener('click', () => frGo_(1));
 el('frBack').addEventListener('click', closeReader);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('frPage').classList.contains('show')) closeReader(); });
 el('frEdit').addEventListener('click', () => {

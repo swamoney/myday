@@ -250,6 +250,10 @@
   .reader-body { white-space:normal; }
   .reader-dates { font-family:var(--mono); font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted,#9aa4ba); margin:6px 0 0; }
   .reader-body .empty { color:var(--muted); font-style:italic; }
+  .rd-nav { padding:7px 10px; font-size:14px; line-height:1; }
+  .rd-nav:disabled { color:#c9d1de; cursor:default; }
+  .rd-wc { display:none; font-family:var(--mono); font-size:9px; letter-spacing:0.08em; color:var(--muted,#9aa4ba); }
+  body.rd-editing .rd-wc { display:inline; }
   .rd-save { font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#3d7a5c; min-width:48px; text-align:right; }
   .note-hand { margin:2px 0 12px; padding:12px 14px; background:var(--paper-soft,#f2f4f8); border:1px dashed var(--rule,#dce3ee); border-radius:11px; }
   .nh-txt { font-size:12.5px; color:var(--muted,#6a7690); line-height:1.5; }
@@ -345,7 +349,10 @@
 <div class="reader-overlay hidden" id="readerOverlay">
   <div class="reader-bar">
     <button class="reader-back" id="readerBack">&larr; Back</button>
+    <button class="reader-back rd-nav" id="rdPrev" type="button" title="Previous">&#8249;</button>
+    <button class="reader-back rd-nav" id="rdNext" type="button" title="Next">&#8250;</button>
     <span class="reader-title" id="readerTitle"></span>
+    <span class="rd-wc" id="rdWc"></span>
     <span class="rd-save" id="rdSave"></span>
     <button class="reader-edit" id="rdHist" type="button" title="History"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
     <button class="reader-edit rd-star" id="rdStar" type="button" title="Favourite"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></button>
@@ -445,6 +452,26 @@ let activeView = 'introspection';
 let readerEntry = null;
 let rdBaseline = null, rdVTimer = null;
 let rdDirty = false;
+let rdNavIds = [];
+function rdUpdateWc_() {
+  const n = NoteEditor.toPlain(el('readerBodyInp').innerHTML).split(/\s+/).filter(Boolean).length;
+  el('rdWc').textContent = n + ' W';
+}
+function rdUpdateNav_() {
+  const id = readerEntry ? readerEntry.id : null;
+  const i = rdNavIds.indexOf(id);
+  el('rdPrev').disabled = (i <= 0);
+  el('rdNext').disabled = (i === -1 || i >= rdNavIds.length - 1);
+}
+function rdGo_(step) {
+  if (!readerEntry) return;
+  const i = rdNavIds.indexOf(readerEntry.id);
+  const next = rdNavIds[i + step];
+  if (next === undefined) return;
+  rdSessionEnd_();
+  saveRd_(true);
+  openReader(next, true);
+}
 let rdLoadedUpd = null;
 NoteEditor.versions.connect(() => ({ supa, userId }));
 function rdSessionEnd_() {
@@ -740,7 +767,7 @@ async function toggleFavourite(id) {
 }
 
 // ===== READER =====
-function openReader(id) {
+function openReader(id, keepNav) {
   const r = rows.find(x => x.id === id); if (!r) return;
   const k = KIND[displayKind(r.kind)] || KIND.note;
   let meta = k.lbl;
@@ -760,6 +787,7 @@ function openReader(id) {
   const bodyHtml = NoteEditor.toHtml(r.body || '').trim();
   el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   el('readerBodyInp').innerHTML = bodyHtml;
+  if (!keepNav) rdNavIds = filteredRows().map(x => x.id);
   readerEntry = r;
   rdBaseline = bodyHtml;
   rdLoadedUpd = r.updated_at || null;
@@ -772,6 +800,8 @@ function openReader(id) {
   el('rdStar').classList.toggle('on', !!r.favourite);
   el('readerOverlay').dataset.kind = displayKind(r.kind);
   setRdEditing(false);
+  rdUpdateNav_();
+  rdUpdateWc_();
   el('rdSave').textContent = '';
   el('readerOverlay').classList.remove('hidden');
 }
@@ -793,7 +823,7 @@ function setRdEditing(on) {
     el('readerBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   } else { rdNk.refresh(); }
 }
-function scheduleRdSave() { rdDirty = true; el('rdSave').textContent = 'Saving\u2026'; clearTimeout(rdTimer); rdTimer = setTimeout(() => saveRd_(), 700); }
+function scheduleRdSave() { rdDirty = true; rdUpdateWc_(); el('rdSave').textContent = 'Saving\u2026'; clearTimeout(rdTimer); rdTimer = setTimeout(() => saveRd_(), 700); }
 async function saveRd_(force) {
   clearTimeout(rdTimer);
   if (!readerEntry) return;
@@ -826,6 +856,8 @@ async function saveRd_(force) {
   } catch (e) { rdDirty = true; el('rdSave').textContent = 'Not saved'; }
   finally { NoteEditor.guard.end(); }
 }
+el('rdPrev').addEventListener('click', () => rdGo_(-1));
+el('rdNext').addEventListener('click', () => rdGo_(1));
 el('rdHist').addEventListener('click', () => {
   if (!readerEntry) return;
   NoteEditor.openHistory({
