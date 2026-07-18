@@ -254,7 +254,6 @@
           '<div class="nk-mt">Insert image</div><div class="nk-ms">paste an image link</div>' +
           '<div class="nk-fld"><label>Image URL</label><input data-nk-f="imgUrl" placeholder="paste photo link (Unsplash, Pexels…)" inputmode="url"></div>' +
           '<div class="nk-find">find images on ' +
-            '<a href="https://unsplash.com/s/photos/" target="_blank" rel="noopener noreferrer">Unsplash</a> · ' +
             '<a href="https://www.pexels.com/search/" target="_blank" rel="noopener noreferrer">Pexels</a> · ' +
             '<a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia</a>' +
             '<span class="nk-find-tip">just copy the photo\u2019s page link and paste it above \u2014 the image is fetched automatically</span></div>' +
@@ -320,13 +319,14 @@
        commons.wikimedia.org/wiki/File:<n>   -> Special:FilePath/<n> (302 to file)
      If a pattern ever changes, pasting the raw image address still works. */
   function resolveImageUrl(u) {
+    u = String(u || '').trim();
+    // Share-sheets often copy "Photo title … https://…" — keep only the link.
+    var found = u.match(/https?:\/\/\S+/i);
+    if (found) u = found[0];
     u = normUrl(u);
     var m;
     // already a direct image host — leave untouched
-    if (/^https?:\/\/(images\.unsplash\.com|images\.pexels\.com|upload\.wikimedia\.org)\//i.test(u)) return u;
-    // unsplash photo page
-    m = u.match(/^https?:\/\/(?:www\.)?unsplash\.com\/photos\/([^\/?#]+)/i);
-    if (m) return 'https://unsplash.com/photos/' + m[1] + '/download';
+    if (/^https?:\/\/(images\.pexels\.com|upload\.wikimedia\.org)\//i.test(u)) return u;
     // pexels photo page (id is the trailing number in the slug)
     m = u.match(/^https?:\/\/(?:www\.)?pexels\.com\/photo\/[^?#]*?(\d+)\/?(?:[?#].*)?$/i);
     if (m) return 'https://images.pexels.com/photos/' + m[1] + '/pexels-photo-' + m[1] + '.jpeg';
