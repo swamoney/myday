@@ -248,6 +248,7 @@
   body.rd-editing #readerBody { display:none; }
   body.rd-editing #readerBodyInp { display:block; }
   .reader-body { white-space:normal; }
+  .reader-dates { font-family:var(--mono); font-size:10px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted,#9aa4ba); margin:6px 0 0; }
   .reader-body .empty { color:var(--muted); font-style:italic; }
   .rd-save { font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#3d7a5c; min-width:48px; text-align:right; }
   .note-hand { margin:2px 0 12px; padding:12px 14px; background:var(--paper-soft,#f2f4f8); border:1px dashed var(--rule,#dce3ee); border-radius:11px; }
@@ -356,6 +357,7 @@
       <div class="reader-kind" id="readerKind"></div>
       <div class="reader-h1" id="readerH1"></div>
       <div class="reader-lead" id="readerLead"></div>
+      <div class="reader-dates" id="readerDates"></div>
       <div class="reader-body" id="readerBody"></div>
       <div class="reader-body inp" id="readerBodyInp" contenteditable="true" data-placeholder="Write the full piece&#8230;"></div>
       <div class="reader-foot">
@@ -746,6 +748,13 @@ function openReader(id) {
   el('readerKind').textContent = meta;
   el('readerH1').textContent = r.title;
   el('readerLead').textContent = r.essence || '';
+  (function () {
+    const fmt = iso => { if (!iso) return ''; try { return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+    const made = fmt(r.created_at), edited = fmt(r.updated_at);
+    let s = made ? ('Written ' + made) : '';
+    if (edited && edited !== made) s += ' \u00b7 edited ' + edited;
+    el('readerDates').textContent = s;
+  })();
   el('readerLead').style.display = r.essence ? '' : 'none';
   const bodyHtml = NoteEditor.toHtml(r.body || '').trim();
   el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
