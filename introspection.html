@@ -239,6 +239,8 @@
     border:none; border-bottom:1px solid #e6ecf5; border-radius:0;
     padding:6px max(16px, calc((100% - 680px)/2)); }
   body.rd-editing #rdToolbar { display:flex; }
+  #rdHist { display:inline-flex; align-items:center; color:#8a94a8; }
+  #rdHist svg { width:14px; height:14px; }
   .rd-star { display:inline-flex; align-items:center; color:#d7dce4; }
   .rd-star svg { width:15px; height:15px; }
   .rd-star.on { color:var(--rose,#c2415c); border-color:var(--rose,#c2415c); }
@@ -344,6 +346,7 @@
     <button class="reader-back" id="readerBack">&larr; Back</button>
     <span class="reader-title" id="readerTitle"></span>
     <span class="rd-save" id="rdSave"></span>
+    <button class="reader-edit" id="rdHist" type="button" title="History"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button>
     <button class="reader-edit rd-star" id="rdStar" type="button" title="Favourite"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></button>
     <button class="reader-edit" id="readerEdit">Edit</button>
   </div>
@@ -438,6 +441,15 @@ let rows = [];         // iw_entries
 let notes = [];        // wip_notes
 let activeView = 'introspection';
 let readerEntry = null;
+let rdBaseline = null, rdVTimer = null;
+NoteEditor.versions.connect(() => ({ supa, userId }));
+function rdSessionEnd_() {
+  clearInterval(rdVTimer); rdVTimer = null;
+  if (!readerEntry || rdBaseline === null) return;
+  const cur = NoteEditor.sanitize(el('readerBodyInp').innerHTML);
+  if (cur !== rdBaseline) NoteEditor.versions.record('inner', readerEntry.id, rdBaseline);
+  rdBaseline = null;
+}
 let activeTag = null;
 let searchTerm = '';
 let editingId = null;
@@ -738,6 +750,13 @@ function openReader(id) {
   el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   el('readerBodyInp').innerHTML = bodyHtml;
   readerEntry = r;
+  rdBaseline = bodyHtml;
+  clearInterval(rdVTimer);
+  rdVTimer = setInterval(() => {
+    if (!readerEntry) return;
+    const cur = NoteEditor.sanitize(el('readerBodyInp').innerHTML);
+    if (cur !== rdBaseline) { NoteEditor.versions.record('inner', readerEntry.id, rdBaseline); rdBaseline = cur; }
+  }, 600000);
   el('rdStar').classList.toggle('on', !!r.favourite);
   el('readerOverlay').dataset.kind = displayKind(r.kind);
   setRdEditing(false);
@@ -745,6 +764,7 @@ function openReader(id) {
   el('readerOverlay').classList.remove('hidden');
 }
 function closeReader() {
+  rdSessionEnd_();
   saveRd_(true);
   setRdEditing(false);
   el('readerOverlay').classList.add('hidden');
@@ -774,6 +794,21 @@ async function saveRd_(force) {
     readerEntry.body = val; el('rdSave').textContent = 'Saved';
   } catch (e) { el('rdSave').textContent = 'Not saved'; }
 }
+el('rdHist').addEventListener('click', () => {
+  if (!readerEntry) return;
+  NoteEditor.openHistory({
+    source: 'inner', sourceId: readerEntry.id,
+    getCurrent: () => NoteEditor.sanitize(el('readerBodyInp').innerHTML),
+    applyRestore: (content) => {
+      if (!readerEntry) return;
+      readerEntry.body = content; rdBaseline = content;
+      el('readerBodyInp').innerHTML = content;
+      el('readerBody').innerHTML = content || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+      supa.from('iw_entries').update({ body: content, updated_at: new Date().toISOString() })
+        .eq('id', readerEntry.id).eq('user_id', userId).then(() => { el('rdSave').textContent = 'Saved'; }, () => {});
+    }
+  });
+});
 el('rdStar').addEventListener('click', () => {
   if (!readerEntry) return;
   toggleFavourite(readerEntry.id);

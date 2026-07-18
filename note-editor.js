@@ -234,6 +234,18 @@
     '.nk-btn.pri{background:#0F2D5C;border-color:#0F2D5C;color:#fff}',
     '.nk-btn.del{border-color:#e8c9c4;color:#8A1F1A;background:#fff}',
     '.nk-btn.hidden{display:none}',
+    '.nk-hist{max-width:560px}',
+    '.nk-vlist{max-height:56vh;overflow-y:auto;border:1px solid #e6ecf5;border-radius:11px}',
+    '.nk-vempty{padding:18px 14px;font-size:12.5px;color:#8a94a8}',
+    '.nk-vrow{border-top:1px solid #f0f3f8}',
+    '.nk-vrow:first-child{border-top:none}',
+    '.nk-vhead{display:flex;align-items:center;gap:10px;padding:10px 12px;font-size:12.5px;flex-wrap:wrap}',
+    '.nk-vwhen{font-weight:600;color:#28324B;min-width:150px}',
+    '.nk-vmeta{flex:1;color:#8a94a8;font-size:11px}',
+    '.nk-vact{font-family:inherit;font-size:11.5px;font-weight:600;color:#3a5b9c;background:none;border:none;cursor:pointer;padding:4px 6px}',
+    '.nk-vact.pri{color:#9a7b1a;background:#fdf3d3;border-radius:7px;padding:5px 10px}',
+    '.nk-vact:disabled{opacity:.6;cursor:default}',
+    '.nk-vprev{padding:4px 14px 14px;font-family:Georgia,serif;font-size:14px;line-height:1.65;color:#3a4560;background:#fbfcfe;border-top:1px dashed #e6ecf5}',
     contentCSS('.nk-content')
   ].join('\n');
 
@@ -378,6 +390,117 @@
     u = String(u || '').trim();
     if (u && !/^https?:\/\//i.test(u) && /^[\w-]+(\.[\w-]+)+/.test(u)) u = 'https://' + u;
     return u;
+  }
+
+
+  /* ---------- version history (Option B, decided Jul 2026) ----------
+     One shared note_versions table serves every room. The page connects a
+     provider once; the module records pre-session snapshots, prunes to the
+     newest 20 per note, and renders the History panel. Restore always saves
+     the current text as a fresh version first, so nothing can be lost. */
+  var V = { provider: null, MAX: 20 };
+  function vCtx() { return V.provider ? V.provider() : null; }
+  var versions = {
+    connect: function (fn) { V.provider = fn; },
+    record: function (source, sourceId, content) {
+      var c = vCtx(); if (!c || !c.supa || !c.userId || content == null) return Promise.resolve();
+      return c.supa.from('note_versions')
+        .insert({ user_id: c.userId, source: source, source_id: String(sourceId), content: String(content) })
+        .then(function () {
+          return c.supa.from('note_versions').select('id')
+            .eq('user_id', c.userId).eq('source', source).eq('source_id', String(sourceId))
+            .order('saved_at', { ascending: false }).range(V.MAX, V.MAX + 60);
+        })
+        .then(function (q) {
+          var ids = (q && q.data || []).map(function (r) { return r.id; });
+          if (!ids.length) return null;
+          return c.supa.from('note_versions').delete().in('id', ids).eq('user_id', c.userId);
+        })
+        .then(function () {}, function () {});
+    },
+    list: function (source, sourceId) {
+      var c = vCtx(); if (!c || !c.supa || !c.userId) return Promise.resolve([]);
+      return c.supa.from('note_versions').select('id,content,saved_at')
+        .eq('user_id', c.userId).eq('source', source).eq('source_id', String(sourceId))
+        .order('saved_at', { ascending: false }).limit(V.MAX)
+        .then(function (q) { return (q && q.data) || []; }, function () { return []; });
+    }
+  };
+
+  var histDlg = null;
+  function buildHistory() {
+    if (histDlg) return;
+    injectStyles();
+    var wrap = document.createElement('div');
+    wrap.className = 'nk-overlay hidden';
+    wrap.innerHTML =
+      '<div class="nk-modal nk-hist">' +
+        '<div class="nk-mt">History</div>' +
+        '<div class="nk-ms" data-h="sub">newest first &middot; last ' + V.MAX + ' kept</div>' +
+        '<div class="nk-vlist" data-h="list"></div>' +
+        '<div class="nk-actions"><span style="flex:1"></span>' +
+          '<button type="button" class="nk-btn" data-h="close">Close</button></div>' +
+      '</div>';
+    document.body.appendChild(wrap);
+    histDlg = { root: wrap,
+      list: wrap.querySelector('[data-h="list"]'),
+      close: wrap.querySelector('[data-h="close"]') };
+    histDlg.close.addEventListener('click', function () { wrap.classList.add('hidden'); });
+    wrap.addEventListener('click', function (e) { if (e.target === wrap) wrap.classList.add('hidden'); });
+  }
+  function fmtWhen(iso) {
+    try {
+      return new Date(iso).toLocaleString(undefined,
+        { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return String(iso || ''); }
+  }
+  function openHistory(opts) {
+    buildHistory();
+    var box = histDlg.list;
+    box.innerHTML = '<div class="nk-vempty">Loading&hellip;</div>';
+    histDlg.root.classList.remove('hidden');
+    versions.list(opts.source, opts.sourceId).then(function (rows) {
+      if (!rows.length) {
+        box.innerHTML = '<div class="nk-vempty">No versions yet. One is kept each time an editing session changes this note.</div>';
+        return;
+      }
+      box.innerHTML = rows.map(function (r, i) {
+        var words = toPlain(r.content).split(/\s+/).filter(Boolean).length;
+        return '<div class="nk-vrow" data-i="' + i + '">' +
+          '<div class="nk-vhead">' +
+            '<span class="nk-vwhen">' + esc(fmtWhen(r.saved_at)) + '</span>' +
+            '<span class="nk-vmeta">' + words + ' words</span>' +
+            '<button type="button" class="nk-vact" data-view="' + i + '">View</button>' +
+            '<button type="button" class="nk-vact pri" data-restore="' + i + '">Restore</button>' +
+          '</div>' +
+          '<div class="nk-vprev hidden nk-content" data-prev="' + i + '"></div>' +
+        '</div>';
+      }).join('');
+      box.querySelectorAll('[data-view]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var i = b.dataset.view;
+          var p = box.querySelector('[data-prev="' + i + '"]');
+          var showing = !p.classList.contains('hidden');
+          box.querySelectorAll('.nk-vprev').forEach(function (x) { x.classList.add('hidden'); });
+          box.querySelectorAll('[data-view]').forEach(function (x) { x.textContent = 'View'; });
+          if (!showing) { p.innerHTML = toHtml(rows[i].content) || '<i>(empty)</i>'; p.classList.remove('hidden'); b.textContent = 'Hide'; }
+        });
+      });
+      box.querySelectorAll('[data-restore]').forEach(function (b) {
+        b.addEventListener('click', function () {
+          var r = rows[b.dataset.restore];
+          b.textContent = 'Restoring\u2026'; b.disabled = true;
+          var cur = opts.getCurrent ? opts.getCurrent() : null;
+          var pre = (cur != null && cur !== r.content)
+            ? versions.record(opts.source, opts.sourceId, cur)   // current is preserved first
+            : Promise.resolve();
+          pre.then(function () {
+            if (opts.applyRestore) opts.applyRestore(r.content);
+            histDlg.root.classList.add('hidden');
+          });
+        });
+      });
+    });
   }
 
   /* ---------- toolbar definition ---------- */
@@ -747,7 +870,9 @@
   }
 
   window.NoteEditor = {
-    version: '1.1',
+    version: '1.2',
+    versions: versions,
+    openHistory: openHistory,
     sanitize: sanitize,
     toHtml: toHtml,
     toPlain: toPlain,
