@@ -424,14 +424,14 @@
       btn('act', 'link', '', 'Link', ICONS.link) +
       btn('act', 'img', '', 'Insert image by link', ICONS.img) +
       btn('act', 'hr', '', 'Divider', ICONS.hr) +
-      '<div class="nk-pop hidden" data-nk-pop="text"></div>' +
-      '<div class="nk-pop hidden" data-nk-pop="high"></div>';
+      '<div class="nk-pop hidden" data-nk-swpop="text"></div>' +
+      '<div class="nk-pop hidden" data-nk-swpop="high"></div>';
     function btn(kind, name, val, title, icon) {
       return '<button type="button" class="nk-b" data-nk-' + kind + '="' + name + '"' +
              (val ? ' data-nk-val="' + val + '"' : '') + ' title="' + title + '">' + icon + '</button>';
     }
-    var popText = toolbar.querySelector('[data-nk-pop="text"]');
-    var popHigh = toolbar.querySelector('[data-nk-pop="high"]');
+    var popText = toolbar.querySelector('[data-nk-swpop="text"]');
+    var popHigh = toolbar.querySelector('[data-nk-swpop="high"]');
     function swatches(list, kind, node) {
       node.innerHTML = list.map(function (s) {
         return '<button type="button" class="nk-sw' + (s.css ? '' : ' none') + '" data-k="' + s.key + '"' +
