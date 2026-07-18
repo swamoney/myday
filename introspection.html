@@ -234,8 +234,11 @@
   body.editing .ib.edit { border-color:#f4c430; color:#9a7b1a; background:#fdf3d3; }
   .cards .card.add { flex-direction: column; }
   /* Shared note editor (note-editor.js): in-reader writing, like My Favourites. */
-  #rdToolbar { display:none; margin:0 0 16px; }
-  body.rd-editing #rdToolbar { display:flex; position:sticky; top:0; z-index:9; box-shadow:0 6px 14px rgba(20,30,60,0.08); }
+  /* Toolbar docks as the second row of the frozen header (Option A). */
+  #rdToolbar { display:none; margin:0; flex-shrink:0; z-index:12;
+    border:none; border-bottom:1px solid #e6ecf5; border-radius:0;
+    padding:6px max(16px, calc((100% - 680px)/2)); }
+  body.rd-editing #rdToolbar { display:flex; }
   .rd-star { display:inline-flex; align-items:center; color:#d7dce4; }
   .rd-star svg { width:15px; height:15px; }
   .rd-star.on { color:var(--rose,#c2415c); border-color:var(--rose,#c2415c); }
@@ -344,12 +347,12 @@
     <button class="reader-edit rd-star" id="rdStar" type="button" title="Favourite"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></button>
     <button class="reader-edit" id="readerEdit">Edit</button>
   </div>
+  <div id="rdToolbar"></div>
   <div class="reader-scroll">
     <div class="reader-inner">
       <div class="reader-kind" id="readerKind"></div>
       <div class="reader-h1" id="readerH1"></div>
       <div class="reader-lead" id="readerLead"></div>
-      <div id="rdToolbar"></div>
       <div class="reader-body" id="readerBody"></div>
       <div class="reader-body inp" id="readerBodyInp" contenteditable="true" data-placeholder="Write the full piece&#8230;"></div>
       <div class="reader-foot">
