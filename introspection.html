@@ -894,8 +894,7 @@ function exportEntryPrint() {
   const style = "<style>@page{margin:20mm} body{font-family:'Patrick Hand',cursive;color:#1c2331;line-height:1.6;max-width:640px;margin:40px auto;padding:0 24px} .kind{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a94a8;margin-bottom:12px} h1{font-weight:400;font-size:34px;line-height:1.2;margin:0 0 14px} .lead{font-size:21px;color:#4a5670;margin-bottom:20px} .bd{font-size:20px} .tags{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa4ba;margin-top:26px;border-top:1px solid #eee;padding-top:12px}</style>" + '<style>' + NoteEditor.contentCSS('.bd') + '</style>' + "</head><body>";
   const bodyH = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div><h1>' + esc(r.title||'Untitled') + '</h1>' + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
   const tail = '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>';
-  const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
-  w.document.write(head1 + fontlink + style + bodyH + tail); w.document.close();
+  NoteEditor.openPrint(head1 + fontlink + style + bodyH + tail);
 }
 
 // ===== MODAL =====

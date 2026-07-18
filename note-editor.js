@@ -503,6 +503,22 @@
     });
   }
 
+
+  /* ---------- print/PDF opener ----------
+     Mobile browsers often show a BLANK tab for window.open('')+document.write.
+     A Blob URL is a real document, so it renders everywhere. The page keeps its
+     own auto-print script; if a mobile browser ignores scripted print, the
+     content is still fully visible for Share -> Print / Save as PDF. */
+  function openPrint(fullHtml) {
+    try {
+      var blob = new Blob([String(fullHtml)], { type: 'text/html' });
+      var url = URL.createObjectURL(blob);
+      var w = window.open(url, '_blank');
+      if (!w) { URL.revokeObjectURL(url); alert('Allow pop-ups to print / save as PDF.'); return; }
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    } catch (e) { alert('Could not open the print view.'); }
+  }
+
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
@@ -870,9 +886,10 @@
   }
 
   window.NoteEditor = {
-    version: '1.2',
+    version: '1.3',
     versions: versions,
     openHistory: openHistory,
+    openPrint: openPrint,
     sanitize: sanitize,
     toHtml: toHtml,
     toPlain: toPlain,

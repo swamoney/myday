@@ -1265,9 +1265,7 @@ el('pPrint').addEventListener('click', () => {
     + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
     + '<div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '') + '</div>'
     + (ms ? '<h2>Moments worth keeping</h2><ul>' + ms + '</ul>' : '');
-  const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
-  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(p.name || 'Person') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
-  w.document.close();
+  NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(p.name || 'Person') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 
 el('circleSave').addEventListener('click', savePerson);
@@ -1369,9 +1367,7 @@ el('rmPrint').addEventListener('click', () => {
     + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
     + '<h2>The long view</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '') + '</div>'
     + '<h2>Milestones</h2><ul>' + (ms || '<li>No milestones yet.</li>') + '</ul>';
-  const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
-  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Roadmap \u2014 ' + esc(p.label || 'My Why') + '</title><link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
-  w.document.close();
+  NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Roadmap \u2014 ' + esc(p.label || 'My Why') + '</title><link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('roadmapWin').classList.contains('show')) closeRoadmap(); });
 el('rmEssay').addEventListener('blur', () => saveRoadmap());
