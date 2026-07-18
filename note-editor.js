@@ -222,6 +222,9 @@
     '.nk-find a{color:#3a5b9c;font-weight:600;text-decoration:none}',
     '.nk-find a:hover{text-decoration:underline}',
     '.nk-find-tip{display:block;margin-top:3px;font-size:10.5px;color:#b0b8c8}',
+    '.nk-content img.nk-img-sel{outline:3px solid #c9a94a;outline-offset:2px}',
+    '.nk-imgdel{position:fixed;z-index:950;display:none;align-items:center;gap:6px;font-family:inherit;font-size:12px;font-weight:600;color:#8A1F1A;background:#fff;border:1px solid #e8c9c4;border-radius:8px;padding:6px 11px;cursor:pointer;box-shadow:0 6px 18px rgba(20,30,60,.18)}',
+    '.nk-imgdel.show{display:inline-flex}',
     '.nk-err.hidden{display:none}',
     '.nk-actions{display:flex;align-items:center;gap:8px;margin-top:16px}',
     '.nk-btn{font-family:inherit;font-size:13px;font-weight:600;border-radius:9px;padding:9px 16px;cursor:pointer;border:1px solid #dce3ee;background:#fff;color:#3a4560}',
@@ -308,6 +311,37 @@
       if (!activeInst) return;
       dlg.link.classList.add('hidden');
       activeInst.removeLink();
+    });
+
+    /* floating "Remove image" button — appears when an image is tapped */
+    var del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'nk-imgdel';
+    del.innerHTML = '\u2715 Remove image';
+    document.body.appendChild(del);
+    dlg.imgDel = del;
+    del.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    del.addEventListener('click', function () {
+      if (dlg._selImg && dlg._selImg.parentNode) {
+        var img = dlg._selImg;
+        var owner = dlg._selOwner;
+        img.parentNode.removeChild(img);
+        hideImgDel();
+        if (owner && owner.onImgRemoved) owner.onImgRemoved();
+      }
+    });
+    function hideImgDel() {
+      if (dlg._selImg) dlg._selImg.classList.remove('nk-img-sel');
+      dlg._selImg = null; dlg._selOwner = null;
+      del.classList.remove('show');
+    }
+    dlg.hideImgDel = hideImgDel;
+    window.addEventListener('scroll', hideImgDel, true);
+    window.addEventListener('resize', hideImgDel);
+    document.addEventListener('click', function (e) {
+      if (e.target === del || e.target.closest('.nk-imgdel')) return;
+      if (e.target.tagName === 'IMG') return;             // image taps handled per-instance
+      hideImgDel();
     });
   }
 
@@ -552,6 +586,29 @@
       exec('insertHTML', '<ul class="fr-check"><li><span class="fr-cb" contenteditable="false"></span>&nbsp;</li></ul><p><br></p>');
       onChange();
     }
+    /* tap-to-select images: shows a Remove button; Backspace also works because
+       the image becomes the actual selection */
+    editor.addEventListener('click', function (e) {
+      var img = e.target.closest('img');
+      if (img && editor.contains(img)) {
+        e.preventDefault();
+        dlg.hideImgDel();
+        img.classList.add('nk-img-sel');
+        dlg._selImg = img;
+        dlg._selOwner = inst;
+        var r = document.createRange();
+        r.selectNode(img);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        var rect = img.getBoundingClientRect();
+        dlg.imgDel.style.top = Math.max(8, rect.top + 8) + 'px';
+        dlg.imgDel.style.left = Math.max(8, rect.right - 130) + 'px';
+        dlg.imgDel.classList.add('show');
+        return;
+      }
+      dlg.hideImgDel();
+    });
+    editor.addEventListener('input', function () { dlg.hideImgDel(); });
+
     editor.addEventListener('click', function (e) {
       var cb = e.target.closest('.fr-cb'); if (!cb) return;
       e.preventDefault(); e.stopPropagation();
@@ -583,6 +640,7 @@
     editor.addEventListener('blur', saveRange);
 
     var inst = {
+      onImgRemoved: function () { onChange(); },
       refresh: refresh,
       focusEnd: function () {
         editor.focus();
