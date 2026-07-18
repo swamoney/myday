@@ -8,9 +8,9 @@
 --  RECOVERY USE: new Supabase project -> SQL Editor -> paste ALL of this ->
 --  RUN. Then restore data with restore.html + your .json backup.
 --
---  Five tables (entries, wisdom, user_prefs, bookmarks, why_pillars) were
---  reconstructed from the app code rather than original files; column sets
---  match what every page reads and writes as of Jul 2026.
+--  VERIFIED: every table below was cross-checked column-by-column against
+--  the live database's information_schema on 18 Jul 2026. This file rebuilds
+--  the database exactly as it exists.
 -- ============================================================================
 
 -- ---------- helper: identical owner-only security on a table ----------
@@ -18,7 +18,7 @@
 
 -- ============================= MY DAY =======================================
 create table if not exists public.entries (
-  id                     uuid primary key default gen_random_uuid(),
+  -- VERIFIED against the live database (Jul 2026): keyed by user+date, no id.
   user_id                uuid not null references auth.users(id) on delete cascade,
   entry_date             date not null,
   -- money
@@ -40,9 +40,9 @@ create table if not exists public.entries (
   slot4 text default '', slot5 text default '', slot6 text default '',
   breakfast text default '', lunch text default '', dinner text default '',
   night_stay text default '', stayed_with text default '',
-  recurring_log text default '[]', other_log text default '[]',
+  recurring_log text default '', other_log text not null default '[]',
   updated_at             timestamptz default now(),
-  unique (user_id, entry_date)
+  primary key (user_id, entry_date)
 );
 alter table public.entries enable row level security;
 drop policy if exists "entries_owner_all" on public.entries;
@@ -65,8 +65,8 @@ create policy "user_prefs_owner_all" on public.user_prefs
 create table if not exists public.bookmarks (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users(id) on delete cascade,
-  title       text not null default '',
-  url         text default '',
+  title       text not null,
+  url         text not null,
   type        text default '',
   tags        jsonb default '[]'::jsonb,
   note        text default '',
@@ -125,15 +125,19 @@ create index if not exists wip_notes_user_sort_idx on public.wip_notes (user_id,
 
 -- ============================= MY WHY =======================================
 create table if not exists public.why_pillars (
-  id          uuid primary key default gen_random_uuid(),
-  user_id     uuid not null references auth.users(id) on delete cascade,
-  label       text not null default '',
-  state       text default '',
-  notes       text default '',
-  sort_order  int  default 0,
-  roadmap     text default '',
-  created_at  timestamptz default now(),
-  updated_at  timestamptz not null default now()
+  id              uuid primary key default gen_random_uuid(),
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  code            text not null default '',
+  num             text not null default '',
+  brk             text not null default '',
+  label           text not null default '',
+  current_status  text not null default '',
+  state           text default '',
+  notes           text not null default '',
+  sort_order      integer not null default 0,
+  roadmap         text default '',
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
 );
 alter table public.why_pillars add column if not exists state text default '';
 alter table public.why_pillars add column if not exists roadmap text default '';
@@ -180,14 +184,15 @@ create index if not exists why_circle_user_band_idx
 
 -- ============================ MY WISDOM =====================================
 create table if not exists public.wisdom (
+  -- VERIFIED against the live database (Jul 2026).
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references auth.users(id) on delete cascade,
-  title        text not null default '',
-  source_type  text default '',
-  source_name  text default '',
-  essence      text default '',
+  title        text not null,
+  source_type  text,
+  source_name  text,
+  essence      text,
   tags         jsonb default '[]'::jsonb,
-  content      text default '',
+  content      text,
   created_at   timestamptz default now(),
   updated_at   timestamptz default now()
 );
