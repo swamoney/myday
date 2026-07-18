@@ -222,6 +222,15 @@
   .fb.on { background:#0F2D5C; color:#fff; }
   .fb svg { width:17px; height:17px; }
   .fb-sep { width:1px; height:20px; background:#dce3ee; margin:0 4px; }
+  .note-hand { margin:2px 0 4px; padding:12px 14px; background:#f4f7fb; border:1px dashed #dce3ee; border-radius:11px; }
+  .note-hand.hidden { display:none; }
+  .nh-txt { font-size:12.5px; color:#6a7690; line-height:1.5; }
+  .nh-btn { display:inline-flex; align-items:center; gap:8px; margin-top:10px; font-family:inherit; font-size:13px; font-weight:600; color:#0F2D5C; background:#fff; border:1px solid #cdd9ee; border-radius:9px; padding:9px 14px; cursor:pointer; }
+  .nh-btn.hidden { display:none; }
+  .nh-btn:hover { border-color:#0F2D5C; }
+  .nh-btn svg { width:15px; height:15px; }
+  .field textarea#fNote { min-height:110px; }
+
   /* These two open from INSIDE the reader (z-index 520), so they must sit above it. */
   #frImgModal, #frLinkModal { z-index:640; }
   /* --- colour + highlight (class-based so a future palette change updates old notes) --- */
@@ -385,6 +394,10 @@
     <div class="field" id="fldNote">
       <label id="lblNote">Note (optional)</label>
       <textarea id="fNote" placeholder="Your highlight or takeaway&#8230;"></textarea>
+    </div>
+    <div class="note-hand hidden" id="noteHand">
+      <div class="nh-txt" id="noteHandTxt"></div>
+      <button type="button" class="nh-btn hidden" id="openNoteBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Write / edit note</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></button>
     </div>
     <div class="modal-error hidden" id="modalError"></div>
     <div class="modal-actions">
@@ -645,14 +658,27 @@ async function saveBookmark() {
   };
   const btn = el('saveBtn'); btn.disabled = true; btn.textContent = 'Saving\u2026';
   try {
+    let newId = null;
     if (editingId) {
       const { error } = await supa.from('bookmarks').update(record).eq('id', editingId).eq('user_id', userId);
       if (error) throw error; toast('Updated');
     } else {
-      const { error } = await supa.from('bookmarks').insert(record);
-      if (error) throw error; toast('Saved');
+      // .select() so we get the new id back and can open its editor next.
+      const { data, error } = await supa.from('bookmarks').insert(record).select();
+      if (error) throw error;
+      newId = (data && data[0] && data[0].id) || null;
+      toast('Saved');
     }
+    // Jump to the section it was filed into, so it never looks like it vanished.
+    if (SECTIONS[record.section]) { activeSection = record.section; activeTag = null; }
     closeModal(); await loadRows();
+    // A new note goes straight into the full-width editor \u2014 that's where
+    // notes are actually written, so there's no cramped box to fight.
+    if (newId && s.kind === 'notes') {
+      openReader(newId);
+      setFrEditing(true);
+      setTimeout(() => el('frBodyInp').focus(), 80);
+    }
   } catch (e) {
     errorEl.textContent = (e && e.message) ? e.message : 'Save failed';
     errorEl.classList.remove('hidden');
@@ -1336,9 +1362,19 @@ function shapeModalForSection(sec) {
   // Source link — shown for notes sections; required for marathi
   el('fldSource').classList.toggle('hidden', !isNotes);
   el('lblSource').textContent = s.srcReq ? 'Source link (required)' : 'Source link (optional)';
-  // Note field — hidden for music (links only)
-  el('fldNote').classList.toggle('hidden', isMusic);
-  el('lblNote').textContent = isAllTime ? 'Note (optional)' : 'Your note / highlight';
+  // Note field: All-Time keeps its short inline note (it has no reader page).
+  // The notes sections write in the full-width editor instead, so the cramped
+  // textarea is removed entirely there.
+  el('fldNote').classList.toggle('hidden', isMusic || isNotes);
+  el('lblNote').textContent = 'Note (optional)';
+  const hand = el('noteHand');
+  hand.classList.toggle('hidden', !isNotes);
+  if (isNotes) {
+    el('noteHandTxt').textContent = editingId
+      ? 'Your note opens in the full-width editor, with formatting, highlights and images.'
+      : 'Save this, and the full-width note editor opens straight away \u2014 with formatting, highlights and images.';
+    el('openNoteBtn').classList.toggle('hidden', !editingId);
+  }
 }
 function openModal(id) {
   editingId = id;
@@ -1367,6 +1403,14 @@ function openModal(id) {
   if (typeof syncTypeChips === 'function') syncTypeChips();
 }
 function closeModal() { el('modalOverlay').classList.add('hidden'); editingId = null; }
+
+el('openNoteBtn').addEventListener('click', () => {
+  const id = editingId; if (!id) return;
+  closeModal();
+  openReader(id);
+  setFrEditing(true);
+  setTimeout(() => el('frBodyInp').focus(), 60);
+});
 el('fSection').addEventListener('change', () => { shapeModalForSection(el('fSection').value); el('fType').value=''; renderTypeChips(el('fSection').value); });
 
 // ===== EXPORT (backs up your curation) =====
