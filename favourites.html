@@ -206,22 +206,12 @@
   .fr-body { min-height:40px; }
   .fr-body.empty { color:#c3ccdb; font-style:italic; }
   .fr-body-inp { display:none; min-height:300px; outline:none; padding:2px 0 10px; }
-  .fr-body-inp:empty:before { content:attr(data-placeholder); color:#c3ccdb; font-style:italic; }
   body.fr-editing .fr-body { display:none; }
   body.fr-editing .fr-body-inp { display:block; }
-  .fr-body h3, .fr-body-inp h3 { font-family:var(--serif,Georgia),serif; font-size:21px; font-weight:600; color:#28324B; margin:18px 0 6px; line-height:1.3; }
-  .fr-body blockquote, .fr-body-inp blockquote { margin:12px 0; padding:4px 0 4px 16px; border-left:3px solid #e0c98a; color:#5a6478; font-style:italic; }
-  .fr-body ul, .fr-body-inp ul { margin:10px 0; padding-left:24px; }
-  .fr-body li, .fr-body-inp li { margin:4px 0; }
-  .fr-body b, .fr-body strong { font-weight:700; color:#28324B; }
-  .fr-body img, .fr-body-inp img { max-width:100%; height:auto; border-radius:10px; margin:12px 0; display:block; }
-  .fr-toolbar { position:sticky; display:none; gap:2px; align-items:center; flex-wrap:wrap; margin-bottom:12px; padding:5px; background:#f4f7fb; border:1px solid #e6ecf5; border-radius:10px; position:sticky; top:8px; z-index:5; }
-  body.fr-editing .fr-toolbar { display:flex; }
-  .fb { min-width:32px; height:32px; padding:0 8px; border:none; background:transparent; border-radius:7px; color:#3a4560; cursor:pointer; font-size:15px; display:inline-flex; align-items:center; justify-content:center; }
-  .fb:hover { background:#e3e9f2; }
-  .fb.on { background:#0F2D5C; color:#fff; }
-  .fb svg { width:17px; height:17px; }
-  .fb-sep { width:1px; height:20px; background:#dce3ee; margin:0 4px; }
+  /* Toolbar look lives in note-editor.js (.nk-toolbar); the page only decides
+     WHEN it shows. id selector outranks the module's class rule. */
+  #frToolbar { display:none; margin:12px 0 0; }
+  body.fr-editing #frToolbar { display:flex; }
   /* Frozen headline: stays put while a long note scrolls under it. The toolbar
      lives inside the same sticky block so the two can never overlap. */
   .fr-sticky { position:sticky; top:0; z-index:8; background:#fbfcfe; padding:18px 0 12px; border-bottom:1px solid #eef1f6; }
@@ -230,7 +220,6 @@
   .fr-headbtns { display:flex; gap:8px; flex-shrink:0; }
   .fr-sticky .fr-h1 { margin:3px 0 5px; }
   .fr-sticky .fr-srcline { margin-bottom:0; }
-  .fr-sticky .fr-toolbar { position:static; top:auto; margin:12px 0 0; }
   .fr-in { padding-top:0; }
   .fr-body, .fr-body-inp { margin-top:20px; }
   @media (max-width:640px) {
@@ -249,38 +238,6 @@
   .nh-btn svg { width:15px; height:15px; }
   .field textarea#fNote { min-height:110px; }
 
-  /* These two open from INSIDE the reader (z-index 520), so they must sit above it. */
-  #frImgModal, #frLinkModal { z-index:640; }
-  /* --- colour + highlight (class-based so a future palette change updates old notes) --- */
-  .fr-body .tc-rose, .fr-body-inp .tc-rose { color:#c2415c; }
-  .fr-body .tc-sage, .fr-body-inp .tc-sage { color:#5a7050; }
-  .fr-body .tc-plum, .fr-body-inp .tc-plum { color:#6d5474; }
-  .fr-body .tc-gold, .fr-body-inp .tc-gold { color:#8a6f43; }
-  .fr-body .tc-blue, .fr-body-inp .tc-blue { color:#3a5b9c; }
-  .fr-body .tc-grey, .fr-body-inp .tc-grey { color:#8a94a8; }
-  .fr-body .hl-yellow, .fr-body-inp .hl-yellow { background:#fdf3c9; padding:1px 3px; border-radius:3px; }
-  .fr-body .hl-green,  .fr-body-inp .hl-green  { background:#e2efe7; padding:1px 3px; border-radius:3px; }
-  .fr-body .hl-pink,   .fr-body-inp .hl-pink   { background:#fbe4ea; padding:1px 3px; border-radius:3px; }
-  .fr-body .hl-blue,   .fr-body-inp .hl-blue   { background:#e3e9f5; padding:1px 3px; border-radius:3px; }
-  .fr-body .hl-grey,   .fr-body-inp .hl-grey   { background:#ecebe5; padding:1px 3px; border-radius:3px; }
-  /* --- checklist --- */
-  .fr-body ul.fr-check, .fr-body-inp ul.fr-check { list-style:none; padding-left:2px; margin:10px 0; }
-  .fr-body ul.fr-check > li, .fr-body-inp ul.fr-check > li { display:flex; align-items:flex-start; gap:9px; margin:6px 0; }
-  .fr-cb { flex-shrink:0; width:19px; height:19px; margin-top:4px; border:1.7px solid #cdd6e3; border-radius:5px; display:inline-block; cursor:pointer; position:relative; background:#fff; }
-  .fr-cb:hover { border-color:#3d7a5c; }
-  li.done > .fr-cb { background:#3d7a5c; border-color:#3d7a5c; }
-  li.done > .fr-cb:after { content:''; position:absolute; left:5px; top:1px; width:5px; height:10px; border:solid #fff; border-width:0 2px 2px 0; transform:rotate(45deg); }
-  li.done { color:#9aa4ba; text-decoration:line-through; }
-  /* --- divider --- */
-  .fr-body hr, .fr-body-inp hr { border:none; border-top:1px solid #e2e8f0; margin:22px 0; }
-  .fr-body ol, .fr-body-inp ol { margin:10px 0; padding-left:26px; }
-  .fr-body a, .fr-body-inp a { color:#3a5b9c; text-decoration:underline; }
-  /* --- swatch popovers --- */
-  .fb-pop { position:absolute; top:44px; left:6px; background:#fff; border:1px solid #dce3ee; border-radius:11px; box-shadow:0 12px 28px rgba(20,30,60,0.16); padding:9px; display:flex; gap:6px; flex-wrap:wrap; width:186px; z-index:20; }
-  .fb-pop.hidden { display:none; }
-  .sw { width:26px; height:26px; border-radius:7px; border:1px solid rgba(0,0,0,0.10); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
-  .sw.none { background:#fff; color:#8a94a8; font-size:14px; }
-  .sw:hover { transform:scale(1.08); }
 
   .fr-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:30px; padding-top:18px; border-top:1px solid #eef1f6; }
   .fr-actions { display:flex; gap:8px; flex-wrap:wrap; }
@@ -294,6 +251,7 @@
 <body>
 
 <script src="config.js"></script>
+<script src="note-editor.js"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -450,27 +408,7 @@
             <button class="eb fr-star" id="frStar" type="button" title="All-time favourite"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></button>
           </div>
         </div>
-      <div class="fr-toolbar" id="frToolbar">
-        <button type="button" class="fb" data-cmd="bold" title="Bold"><b style="font-weight:800">B</b></button>
-        <button type="button" class="fb" data-cmd="italic" title="Italic"><i style="font-family:Georgia,serif">I</i></button>
-        <button type="button" class="fb" data-cmd="underline" title="Underline"><span style="text-decoration:underline">U</span></button>
-        <span class="fb-sep"></span>
-        <button type="button" class="fb" data-pop="text" title="Text colour"><span style="font-weight:800;border-bottom:3px solid #c2415c;line-height:1">A</span></button>
-        <button type="button" class="fb" data-pop="high" title="Highlight"><span style="font-weight:800;background:#fdf3c9;padding:0 3px;border-radius:3px">A</span></button>
-        <span class="fb-sep"></span>
-        <button type="button" class="fb" data-cmd="formatBlock" data-val="h3" title="Heading"><span style="font-weight:700">H</span></button>
-        <button type="button" class="fb" data-cmd="formatBlock" data-val="blockquote" title="Quote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17h3l2-4V7H5v6h3zM14 17h3l2-4V7h-6v6h3z"/></svg></button>
-        <button type="button" class="fb" data-cmd="insertUnorderedList" title="Bullet list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor" stroke="none"/></svg></button>
-        <button type="button" class="fb" data-cmd="insertOrderedList" title="Numbered list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-family="monospace">1</text><text x="2" y="14.5" font-size="7" fill="currentColor" stroke="none" font-family="monospace">2</text><text x="2" y="21" font-size="7" fill="currentColor" stroke="none" font-family="monospace">3</text></svg></button>
-        <button type="button" class="fb" data-check title="Checklist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="7" height="7" rx="1.5"/><path d="M4.5 7.5l1.5 1.5 2.5-3"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><line x1="13" y1="7.5" x2="21" y2="7.5"/><line x1="13" y1="17.5" x2="21" y2="17.5"/></svg></button>
-        <span class="fb-sep"></span>
-        <button type="button" class="fb" data-link title="Link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></button>
-        <button type="button" class="fb" data-img title="Insert image by link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 16l-5-5L5 21"/></svg></button>
-        <button type="button" class="fb" data-hr title="Divider"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><circle cx="12" cy="7" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/></svg></button>
-        <button type="button" class="fb" data-clear title="Clear formatting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13"/><path d="M9 7l-2 12"/><path d="M13 7l-1 6"/><line x1="15" y1="16" x2="21" y2="22"/><line x1="21" y1="16" x2="15" y2="22"/></svg></button>
-        <div class="fb-pop hidden" id="fbPopText"></div>
-        <div class="fb-pop hidden" id="fbPopHigh"></div>
-      </div>
+      <div class="fr-toolbar" id="frToolbar"></div>
       </div>
       <div class="fr-body" id="frBody"></div>
       <div class="fr-body-inp" id="frBodyInp" contenteditable="true" data-placeholder="Your highlight or note&#8230;"></div>
@@ -481,34 +419,6 @@
           <button class="eb" id="frPrint" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="eb-l">Print / PDF</span></button>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay hidden" id="frImgModal">
-  <div class="modal">
-    <div class="modal-title">Insert image</div>
-    <div class="modal-sub">paste an image link</div>
-    <div class="field"><label>Image URL</label><input id="frImgUrl" placeholder="https://&#8230;/photo.jpg" inputmode="url"></div>
-    <div class="field"><label>Caption (optional)</label><input id="frImgAlt" placeholder="What this shows"></div>
-    <div class="modal-error hidden" id="frImgErr"></div>
-    <div class="modal-actions">
-      <span style="flex:1"></span>
-      <button class="btn-ghost" id="frImgCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="frImgInsert" type="button">Insert</button>
-    </div>
-  </div>
-</div>
-<div class="modal-overlay hidden" id="frLinkModal">
-  <div class="modal">
-    <div class="modal-title">Add link</div>
-    <div class="modal-sub">attach a URL to the selected text</div>
-    <div class="field"><label>URL</label><input id="frLinkUrl" placeholder="https://&#8230;" inputmode="url"></div>
-    <div class="modal-error hidden" id="frLinkErr"></div>
-    <div class="modal-actions">
-      <button class="btn-danger hidden" id="frLinkRemove" type="button">Remove link</button>
-      <span style="flex:1"></span>
-      <button class="btn-ghost" id="frLinkCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="frLinkOk" type="button">Add</button>
     </div>
   </div>
 </div>
@@ -809,7 +719,7 @@ function render() {
   if (sec.kind === 'notes') {
     let html = '<div class="rows">';
     list.forEach(r => {
-      const preview = htmlToPlain(r.note).trim();  // strip tags for the teaser
+      const preview = NoteEditor.toPlain(r.note).trim();  // strip tags for the teaser
       const hasSrc = (r.source_url || '').trim();
       html += '<div class="ncard" data-open="' + escHtml(r.id) + '">' +
         '<button class="nstar' + (r.favourite ? ' on' : '') + '" data-fav="' + escHtml(r.id) + '" type="button" aria-label="All-time favourite">' + (r.favourite ? FR_STAR_ON : FR_STAR_OFF) + '</button>' +
@@ -888,118 +798,6 @@ function render() {
 // ===== NOTES READER PAGE =====
 let frId = null, frTimer = null;
 
-// ===== Rich-text note helpers =====
-// Notes are stored as HTML. Legacy notes were plain text; detect & convert so
-// nothing breaks. A value with no tags is treated as plain text.
-function noteLooksHtml(s) { return /<(p|br|b|i|u|h3|ul|ol|li|blockquote|strong|em|img|div)\b/i.test(s || ''); }
-function plainToHtml(s) {
-  return escHtml(String(s || '')).replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>');
-}
-function noteToHtml(v) {
-  v = String(v || '');
-  if (!v.trim()) return '';
-  return noteLooksHtml(v) ? v : '<p>' + plainToHtml(v) + '</p>';
-}
-function htmlToPlain(v) {
-  const s = String(v || '');
-  if (!noteLooksHtml(s)) return s;              // legacy plain text
-  const box = document.createElement('div'); box.innerHTML = s;
-  return (box.textContent || '').replace(/\s+/g, ' ');
-}
-// Basic HTML -> Markdown for exports (bold/italic/headings/quote/list/img/links).
-function htmlToMarkdown(v) {
-  const s = String(v || '');
-  if (!s.trim()) return '';
-  if (!noteLooksHtml(s)) return s;              // already plain
-  const box = document.createElement('div'); box.innerHTML = sanitizeNoteHtml(s);
-  const lines = [];
-  const inline = (node) => {
-    let out = '';
-    node.childNodes.forEach(ch => {
-      if (ch.nodeType === 3) { out += ch.textContent; return; }
-      if (ch.nodeType !== 1) return;
-      const t = ch.tagName, inner = inline(ch);
-      if (t === 'B' || t === 'STRONG') out += '**' + inner + '**';
-      else if (t === 'I' || t === 'EM') out += '*' + inner + '*';
-      else if (t === 'U') out += inner;           // md has no underline
-      else if (t === 'A') out += '[' + inner + '](' + (ch.getAttribute('href') || '') + ')';
-      else if (t === 'IMG') out += '![' + (ch.getAttribute('alt') || '') + '](' + (ch.getAttribute('src') || '') + ')';
-      else if (t === 'BR') out += '  \n';
-      else out += inner;
-    });
-    return out;
-  };
-  box.childNodes.forEach(node => {
-    if (node.nodeType === 3) { const t = node.textContent.trim(); if (t) lines.push(t); return; }
-    if (node.nodeType !== 1) return;
-    const t = node.tagName;
-    if (t === 'H3') lines.push('## ' + inline(node));
-    else if (t === 'BLOCKQUOTE') lines.push('> ' + inline(node).replace(/\n/g, '\n> '));
-    else if (t === 'HR') lines.push('---');
-    else if (t === 'UL' && node.classList.contains('fr-check')) {
-      // checklist -> markdown task list
-      node.querySelectorAll(':scope > li').forEach(li => {
-        const done = li.classList.contains('done');
-        const clone = li.cloneNode(true);
-        clone.querySelectorAll('.fr-cb').forEach(c => c.remove());
-        lines.push('- [' + (done ? 'x' : ' ') + '] ' + inline(clone).trim());
-      });
-    }
-    else if (t === 'UL') node.querySelectorAll(':scope > li').forEach(li => lines.push('- ' + inline(li)));
-    else if (t === 'OL') { let i = 1; node.querySelectorAll(':scope > li').forEach(li => lines.push((i++) + '. ' + inline(li))); }
-    else if (t === 'IMG') lines.push('![' + (node.getAttribute('alt') || '') + '](' + (node.getAttribute('src') || '') + ')');
-    else lines.push(inline(node));
-    lines.push('');
-  });
-  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
-}
-// Whitelist sanitiser: keep only formatting tags + safe <img>/<a>. Runs before
-// every save so nothing dangerous is ever persisted from contenteditable.
-const NOTE_ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, H3:1, UL:1, OL:1, LI:1, BLOCKQUOTE:1, P:1, BR:1, IMG:1, A:1, DIV:1, SPAN:1, HR:1 };
-// Only these class names survive a save \u2014 colours/highlights are classes, not
-// inline hex, so a future palette change updates every old note automatically.
-const NOTE_CLASS_OK = /^(tc-(rose|sage|plum|gold|blue|grey)|hl-(yellow|green|pink|blue|grey)|fr-check|fr-cb|done)$/;
-function sanitizeNoteHtml(html) {
-  const box = document.createElement('div');
-  box.innerHTML = String(html || '');
-  const walk = (node) => {
-    [...node.childNodes].forEach(ch => {
-      if (ch.nodeType === 1) {
-        if (!NOTE_ALLOWED[ch.tagName]) { // unwrap disallowed tags, keep text
-          while (ch.firstChild) node.insertBefore(ch.firstChild, ch);
-          node.removeChild(ch); return;
-        }
-        // strip all attributes except safe ones
-        [...ch.attributes].forEach(a => {
-          const n = a.name.toLowerCase();
-          const okImg = ch.tagName === 'IMG' && (n === 'src' || n === 'alt');
-          const okA = ch.tagName === 'A' && (n === 'href');
-          const okCls = n === 'class';
-          const okCe = n === 'contenteditable' && ch.classList && ch.classList.contains('fr-cb');
-          if (!okImg && !okA && !okCls && !okCe) ch.removeAttribute(a.name);
-        });
-        if (ch.hasAttribute('class')) {
-          const keep = (ch.getAttribute('class') || '').split(/\s+/).filter(c => NOTE_CLASS_OK.test(c));
-          if (keep.length) ch.setAttribute('class', keep.join(' ')); else ch.removeAttribute('class');
-        }
-        if (ch.classList && ch.classList.contains('fr-cb')) ch.setAttribute('contenteditable', 'false');
-        if (ch.tagName === 'IMG') {
-          const s = ch.getAttribute('src') || '';
-          if (!/^https?:\/\//i.test(s)) { node.removeChild(ch); return; } // only http(s) images
-        }
-        if (ch.tagName === 'A') {
-          const hr = ch.getAttribute('href') || '';
-          if (!/^https?:\/\//i.test(hr)) ch.removeAttribute('href');
-          else { ch.setAttribute('target', '_blank'); ch.setAttribute('rel', 'noopener noreferrer'); }
-        }
-        walk(ch);
-      } else if (ch.nodeType === 8) { node.removeChild(ch); } // strip comments
-    });
-  };
-  walk(box);
-  return box.innerHTML;
-}
-
 function openReader(id) {
   const r = rows.find(x => x.id === id); if (!r) return;
   const sec = SECTIONS[secOf(r)] || SECTIONS['all-time'];
@@ -1007,7 +805,7 @@ function openReader(id) {
   el('frTtl').textContent = sec.lbl;
   el('frEyebrow').textContent = sec.eyebrow || sec.lbl;
   el('frH1').textContent = r.title || '';
-  const noteHtml = noteToHtml(r.note);
+  const noteHtml = NoteEditor.toHtml(r.note);
   el('frBody').innerHTML = noteHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   el('frBody').classList.toggle('empty', !noteHtml);
   el('frBodyInp').innerHTML = noteHtml;
@@ -1020,8 +818,7 @@ function openReader(id) {
   if (src) sl += (typ ? '<span>&middot;</span>' : '') + '<a href="' + escHtml(normalizeUrl(src)) + '" target="_blank" rel="noopener noreferrer">' + FR_LINK + escHtml(hostOf(src) || 'source') + '</a>';
   el('frSrcline').innerHTML = sl;
   setFrEditing(false);
-  buildSwatches();
-  closePops();
+  nk.closePopovers();
   el('frSave').textContent = '';
   el('frPage').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -1039,12 +836,12 @@ function setFrEditing(on) {
   el('frEdit').classList.toggle('hot', !!on);
   el('frEditLabel').textContent = on ? 'Done' : 'Edit';
   if (!on) {
-    const html = sanitizeNoteHtml(el('frBodyInp').innerHTML).trim();
+    const html = NoteEditor.sanitize(el('frBodyInp').innerHTML).trim();
     el('frBodyInp').innerHTML = html;
     el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
     el('frBody').classList.toggle('empty', !html);
   } else {
-    refreshToolbarState();
+    nk.refresh();
   }
 }
 function scheduleFrSave() { el('frSave').textContent = 'Saving\u2026'; clearTimeout(frTimer); frTimer = setTimeout(() => saveFr_(), 700); }
@@ -1052,7 +849,7 @@ async function saveFr_(force) {
   clearTimeout(frTimer);
   if (frId === null) return;
   const r = rows.find(x => x.id === frId); if (!r) return;
-  const val = sanitizeNoteHtml(el('frBodyInp').innerHTML);
+  const val = NoteEditor.sanitize(el('frBodyInp').innerHTML);
   if (r.note === val && !force) { el('frSave').textContent = 'Saved'; return; }
   try {
     const { error } = await supa.from('bookmarks').update({ note: val, updated_at: new Date().toISOString() }).eq('id', frId).eq('user_id', userId);
@@ -1069,262 +866,29 @@ async function toggleFav(id) {
   } catch (e) { r.favourite = !next; render(); toast('Could not update'); }
 }
 
-// ----- colour / highlight (applied via execCommand, then converted to classes) -----
-const TEXT_SWATCHES = [
-  { key:'none',  css:'', label:'\u2715' },
-  { key:'rose',  css:'#c2415c' }, { key:'sage', css:'#5a7050' }, { key:'plum', css:'#6d5474' },
-  { key:'gold',  css:'#8a6f43' }, { key:'blue', css:'#3a5b9c' }, { key:'grey', css:'#8a94a8' }
-];
-const HIGH_SWATCHES = [
-  { key:'none',   css:'', label:'\u2715' },
-  { key:'yellow', css:'#fdf3c9' }, { key:'green', css:'#e2efe7' }, { key:'pink', css:'#fbe4ea' },
-  { key:'blue',   css:'#e3e9f5' }, { key:'grey',  css:'#ecebe5' }
-];
-function rgbToHex(v) {
-  const m = String(v || '').match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/i);
-  if (!m) return String(v || '').toLowerCase();
-  return '#' + [1,2,3].map(i => (+m[i]).toString(16).padStart(2, '0')).join('');
-}
-// After execCommand paints inline styles, swap them for our class names.
-function normalizeColours() {
-  const box = el('frBodyInp');
-  const map = {};
-  TEXT_SWATCHES.forEach(s => { if (s.css) map['c' + s.css.toLowerCase()] = 'tc-' + s.key; });
-  HIGH_SWATCHES.forEach(s => { if (s.css) map['b' + s.css.toLowerCase()] = 'hl-' + s.key; });
-  box.querySelectorAll('font[color], [style*="color"]').forEach(node => {
-    const fc = rgbToHex(node.style && node.style.color ? node.style.color : (node.getAttribute && node.getAttribute('color')) || '');
-    const bc = rgbToHex(node.style && node.style.backgroundColor ? node.style.backgroundColor : '');
-    const tcCls = map['c' + fc], hlCls = map['b' + bc];
-    const span = document.createElement('span');
-    const classes = [];
-    // keep any classes already on it (e.g. the other kind of colour)
-    (node.getAttribute('class') || '').split(/\s+/).filter(Boolean).forEach(c => { if (NOTE_CLASS_OK.test(c)) classes.push(c); });
-    if (tcCls) { classes.filter(c => c.startsWith('tc-')).forEach(c => classes.splice(classes.indexOf(c), 1)); classes.push(tcCls); }
-    if (hlCls) { classes.filter(c => c.startsWith('hl-')).forEach(c => classes.splice(classes.indexOf(c), 1)); classes.push(hlCls); }
-    while (node.firstChild) span.appendChild(node.firstChild);
-    if (classes.length) { span.setAttribute('class', classes.join(' ')); node.parentNode.replaceChild(span, node); }
-    else { // no recognised colour -> unwrap entirely
-      const frag = document.createDocumentFragment();
-      while (span.firstChild) frag.appendChild(span.firstChild);
-      node.parentNode.replaceChild(frag, node);
-    }
-  });
-}
-function stripColourClasses(prefix) {
-  const sel = window.getSelection(); if (!sel || !sel.rangeCount) return;
-  const box = el('frBodyInp');
-  box.querySelectorAll('span[class]').forEach(sp => {
-    if (!sel.containsNode(sp, true)) return;
-    const keep = (sp.getAttribute('class') || '').split(/\s+/).filter(c => c && !c.startsWith(prefix));
-    if (keep.length) sp.setAttribute('class', keep.join(' '));
-    else { const frag = document.createDocumentFragment(); while (sp.firstChild) frag.appendChild(sp.firstChild); sp.parentNode.replaceChild(frag, sp); }
-  });
-}
-function applySwatch(kind, key) {
-  el('frBodyInp').focus(); restoreRange();
-  const cmd = kind === 'text' ? 'foreColor' : 'hiliteColor';
-  const list = kind === 'text' ? TEXT_SWATCHES : HIGH_SWATCHES;
-  const sw = list.find(s => s.key === key);
-  if (!sw || !sw.css) { stripColourClasses(kind === 'text' ? 'tc-' : 'hl-'); }
-  else {
-    try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
-    try { document.execCommand(cmd, false, sw.css); } catch (e) {}
-    normalizeColours();
+
+
+
+// ===== Shared editor (note-editor.js) — one implementation for every room =====
+const nk = NoteEditor.mount({
+  toolbar: el('frToolbar'),
+  editor: el('frBodyInp'),
+  reader: el('frBody'),
+  onChange: scheduleFrSave,
+  onReaderChange: (html) => {           // checkbox ticked while just reading
+    const r = rows.find(x => x.id === frId); if (!r) return;
+    r.note = html;
+    el('frBodyInp').innerHTML = html;
+    supa.from('bookmarks').update({ note: html, updated_at: new Date().toISOString() })
+      .eq('id', frId).eq('user_id', userId).then(() => {}, () => {});
   }
-  closePops(); scheduleFrSave();
-}
-function buildSwatches() {
-  const mk = (list, kind, node) => {
-    node.innerHTML = list.map(s => '<button type="button" class="sw' + (s.css ? '' : ' none') + '" data-kind="' + kind + '" data-key="' + s.key + '"' +
-      (s.css ? ' style="background:' + s.css + (kind === 'text' ? ';color:#fff' : ';color:#3a4560') + '"' : '') + '>' + (s.label || (kind === 'text' ? 'A' : '')) + '</button>').join('');
-  };
-  mk(TEXT_SWATCHES, 'text', el('fbPopText'));
-  mk(HIGH_SWATCHES, 'high', el('fbPopHigh'));
-}
-function closePops() { el('fbPopText').classList.add('hidden'); el('fbPopHigh').classList.add('hidden'); }
-document.addEventListener('click', e => { if (!e.target.closest('.fb[data-pop]') && !e.target.closest('.fb-pop')) closePops(); });
-[['fbPopText','text'],['fbPopHigh','high']].forEach(([id, kind]) => {
-  el(id).addEventListener('mousedown', e => e.preventDefault());
-  el(id).addEventListener('click', e => { const b = e.target.closest('.sw'); if (b) applySwatch(b.dataset.kind, b.dataset.key); });
 });
-
-// ----- checklist -----
-function insertChecklist() {
-  el('frBodyInp').focus(); restoreRange();
-  document.execCommand('insertHTML', false,
-    '<ul class="fr-check"><li><span class="fr-cb" contenteditable="false"></span>&nbsp;</li></ul><p><br></p>');
-  scheduleFrSave();
-}
-// Ticking works in BOTH views; read view saves straight away.
-function wireChecks(node, isRead) {
-  node.addEventListener('click', e => {
-    const cb = e.target.closest('.fr-cb'); if (!cb) return;
-    e.preventDefault(); e.stopPropagation();
-    const li = cb.closest('li'); if (!li) return;
-    li.classList.toggle('done');
-    if (isRead) {
-      const r = rows.find(x => x.id === frId);
-      if (r) {
-        const html = sanitizeNoteHtml(el('frBody').innerHTML);
-        r.note = html; el('frBodyInp').innerHTML = html;
-        supa.from('bookmarks').update({ note: html }).eq('id', frId).eq('user_id', userId).then(() => {}, () => {});
-      }
-    } else scheduleFrSave();
-  });
-}
-wireChecks(el('frBody'), true);
-wireChecks(el('frBodyInp'), false);
-
-// ----- link -----
-function openLinkModal() {
-  saveRange();
-  const sel = window.getSelection();
-  const a = sel && sel.anchorNode ? (sel.anchorNode.parentElement && sel.anchorNode.parentElement.closest('a')) : null;
-  el('frLinkUrl').value = a ? (a.getAttribute('href') || '') : '';
-  el('frLinkRemove').classList.toggle('hidden', !a);
-  el('frLinkOk').textContent = a ? 'Update' : 'Add';
-  el('frLinkErr').classList.add('hidden');
-  el('frLinkModal').classList.remove('hidden');
-  setTimeout(() => el('frLinkUrl').focus(), 30);
-}
-function closeLinkModal() { el('frLinkModal').classList.add('hidden'); }
-el('frLinkCancel').addEventListener('click', closeLinkModal);
-el('frLinkModal').addEventListener('click', e => { if (e.target === el('frLinkModal')) closeLinkModal(); });
-el('frLinkOk').addEventListener('click', () => {
-  const url = normalizeUrl(el('frLinkUrl').value);
-  if (!/^https?:\/\//i.test(url)) { el('frLinkErr').textContent = 'Enter a valid link (https://\u2026)'; el('frLinkErr').classList.remove('hidden'); return; }
-  closeLinkModal();              // close first so focus returns to the note
-  el('frBodyInp').focus(); restoreRange();
-  const sel = window.getSelection();
-  if (sel && sel.isCollapsed) document.execCommand('insertHTML', false, '<a href="' + url.replace(/"/g,'&quot;') + '">' + escHtml(url) + '</a>');
-  else document.execCommand('createLink', false, url);
-  scheduleFrSave();
-});
-el('frLinkRemove').addEventListener('click', () => {
-  closeLinkModal();
-  el('frBodyInp').focus(); restoreRange();
-  document.execCommand('unlink', false, null);
-  scheduleFrSave();
-});
-
-// ----- divider + clear formatting -----
-function insertDivider() { el('frBodyInp').focus(); restoreRange(); document.execCommand('insertHTML', false, '<hr><p><br></p>'); scheduleFrSave(); }
-function clearFormatting() {
-  el('frBodyInp').focus(); restoreRange();
-  try { document.execCommand('removeFormat', false, null); } catch (e) {}
-  try { document.execCommand('unlink', false, null); } catch (e) {}
-  stripColourClasses('tc-'); stripColourClasses('hl-');
-  try { if (document.queryCommandState('insertUnorderedList')) document.execCommand('insertUnorderedList'); } catch (e) {}
-  try { if (document.queryCommandState('insertOrderedList')) document.execCommand('insertOrderedList'); } catch (e) {}
-  try { document.execCommand('formatBlock', false, 'p'); } catch (e) {}
-  refreshToolbarState(); scheduleFrSave();
-}
-
-// ----- rich-text toolbar -----
-let frSavedRange = null;
-function saveRange() { const s = window.getSelection(); if (s && s.rangeCount && el('frBodyInp').contains(s.anchorNode)) frSavedRange = s.getRangeAt(0).cloneRange(); }
-function restoreRange() {
-  const box = el('frBodyInp');
-  const s = window.getSelection();
-  // If a live selection is already inside the note, KEEP it — clobbering it is
-  // what broke Clear formatting (it wiped the very selection it should act on).
-  if (s && s.rangeCount && box.contains(s.getRangeAt(0).commonAncestorContainer)) return;
-  if (frSavedRange && box.contains(frSavedRange.commonAncestorContainer)) {
-    s.removeAllRanges(); s.addRange(frSavedRange); return;
-  }
-  // Nothing usable — drop the cursor at the end so inserts still land.
-  const r = document.createRange();
-  r.selectNodeContents(box); r.collapse(false);
-  s.removeAllRanges(); s.addRange(r);
-}
-function refreshToolbarState() {
-  const tb = el('frToolbar'); if (!tb) return;
-  tb.querySelectorAll('.fb[data-cmd]').forEach(b => {
-    let active = false;
-    try {
-      if (b.dataset.cmd === 'formatBlock') {
-        const bl = (document.queryCommandValue('formatBlock') || '').toLowerCase();
-        active = bl === (b.dataset.val || '').toLowerCase();
-      } else { active = document.queryCommandState(b.dataset.cmd); }
-    } catch (e) {}
-    b.classList.toggle('on', active);
-  });
-}
-el('frToolbar').addEventListener('mousedown', e => { const b = e.target.closest('.fb'); if (b) e.preventDefault(); });
-el('frToolbar').addEventListener('click', e => {
-  const b = e.target.closest('.fb'); if (!b) return;
-  if (b.hasAttribute('data-img')) { openImgModal(); return; }
-  if (b.hasAttribute('data-link')) { openLinkModal(); return; }
-  if (b.hasAttribute('data-check')) { insertChecklist(); return; }
-  if (b.hasAttribute('data-hr')) { insertDivider(); return; }
-  if (b.hasAttribute('data-clear')) { clearFormatting(); return; }
-  if (b.dataset.pop) {
-    saveRange();
-    const want = b.dataset.pop === 'text' ? el('fbPopText') : el('fbPopHigh');
-    const other = b.dataset.pop === 'text' ? el('fbPopHigh') : el('fbPopText');
-    other.classList.add('hidden');
-    want.classList.toggle('hidden');
-    return;
-  }
-  el('frBodyInp').focus();
-  const cmd = b.dataset.cmd;
-  if (cmd === 'formatBlock') {
-    const cur = (document.queryCommandValue('formatBlock') || '').toLowerCase();
-    const val = (b.dataset.val || '').toLowerCase();
-    document.execCommand('formatBlock', false, cur === val ? 'p' : val); // toggle back to paragraph
-  } else {
-    document.execCommand(cmd, false, null);
-  }
-  refreshToolbarState();
-  scheduleFrSave();
-});
-
-// Paste arrives sanitised, so web copy-paste can't drag in fonts, sizes or
-// background colours. Structure (headings, lists, links) is kept.
-el('frBodyInp').addEventListener('paste', e => {
-  const cb = e.clipboardData || window.clipboardData; if (!cb) return;
-  e.preventDefault();
-  const html = cb.getData('text/html');
-  const text = cb.getData('text/plain');
-  const out = html ? sanitizeNoteHtml(html)
-                   : escHtml(text || '').replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>');
-  document.execCommand('insertHTML', false, out);
-  scheduleFrSave();
-});
-el('frBodyInp').addEventListener('keyup', refreshToolbarState);
-el('frBodyInp').addEventListener('mouseup', refreshToolbarState);
-el('frBodyInp').addEventListener('blur', saveRange);
-
-// ----- insert image by link -----
-function openImgModal() {
-  saveRange();
-  el('frImgUrl').value = ''; el('frImgAlt').value = '';
-  el('frImgErr').classList.add('hidden');
-  el('frImgModal').classList.remove('hidden');
-  setTimeout(() => el('frImgUrl').focus(), 30);
-}
-function closeImgModal() { el('frImgModal').classList.add('hidden'); }
-el('frImgCancel').addEventListener('click', closeImgModal);
-el('frImgInsert').addEventListener('click', () => {
-  const url = normalizeUrl(el('frImgUrl').value);
-  if (!/^https?:\/\//i.test(url)) { el('frImgErr').textContent = 'Enter a valid image link (https://\u2026)'; el('frImgErr').classList.remove('hidden'); return; }
-  const alt = (el('frImgAlt').value || '').trim();
-  closeImgModal();               // close first so focus returns to the note
-  el('frBodyInp').focus();
-  restoreRange();
-  const img = '<img src="' + url.replace(/"/g, '&quot;') + '" alt="' + alt.replace(/"/g, '&quot;').replace(/</g,'&lt;') + '">';
-  document.execCommand('insertHTML', false, img + '<p><br></p>');
-  scheduleFrSave();
-});
-el('frImgModal').addEventListener('click', e => { if (e.target === el('frImgModal')) closeImgModal(); });
-
 el('frBack').addEventListener('click', closeReader);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('frPage').classList.contains('show')) closeReader(); });
-el('frBodyInp').addEventListener('input', scheduleFrSave);
 el('frEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('fr-editing');
   setFrEditing(on);
-  if (on) el('frBodyInp').focus(); else saveFr_(true);
+  if (on) nk.focusEnd(); else saveFr_(true);
 });
 el('frStar').addEventListener('click', () => { if (frId) { toggleFav(frId); el('frStar').classList.toggle('on'); } });
 
@@ -1335,7 +899,7 @@ function frMd_() {
   let md = '# ' + (r.title || '') + '\n\n';
   if (r.type) md += '- **' + (sec.eyebrow || 'Source') + ':** ' + r.type + '\n';
   if ((r.source_url || '').trim()) md += '- **Link:** ' + normalizeUrl(r.source_url) + '\n';
-  md += '\n' + (htmlToMarkdown(r.note) || '_Nothing written yet._') + '\n';
+  md += '\n' + (NoteEditor.toMarkdown(r.note) || '_Nothing written yet._') + '\n';
   md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' }) + '_\n';
   return md;
 }
@@ -1358,10 +922,10 @@ el('frPrint').addEventListener('click', () => {
   const sec = SECTIONS[secOf(r)] || {};
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const src = (r.source_url || '').trim();
-  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-weight:600;font-size:30px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:20px}.body{font-size:18px}.body h3{font-size:21px;margin:18px 0 6px}.body blockquote{border-left:3px solid #e0c98a;padding-left:16px;color:#5a6478;font-style:italic;margin:12px 0}.body ul{padding-left:24px}.body img{max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block}</style>";
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-weight:600;font-size:30px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:20px}.body{font-size:18px}.body h3{font-size:21px;margin:18px 0 6px}.body blockquote{border-left:3px solid #e0c98a;padding-left:16px;color:#5a6478;font-style:italic;margin:12px 0}.body ul{padding-left:24px}.body img{max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block}</style>" + '<style>' + NoteEditor.contentCSS('.body') + '</style>';
   const meta = [esc(r.type||''), src ? esc(normalizeUrl(src)) : ''].filter(Boolean).join(' &middot; ');
   const body = '<div class="eyebrow">' + esc(sec.eyebrow || sec.lbl || '') + '</div><h1>' + esc(r.title||'') + '</h1>' +
-    (meta ? '<div class="meta">' + meta + '</div>' : '') + '<div class="body">' + (noteToHtml(sanitizeNoteHtml(r.note)) || '') + '</div>';
+    (meta ? '<div class="meta">' + meta + '</div>' : '') + '<div class="body">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.note)) || '') + '</div>';
   const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
   w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Note') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>');
   w.document.close();
