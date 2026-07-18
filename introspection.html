@@ -233,11 +233,27 @@
   body:not(.editing) .sticky-del { display:none; }
   body.editing .ib.edit { border-color:#f4c430; color:#9a7b1a; background:#fdf3d3; }
   .cards .card.add { flex-direction: column; }
+  /* Shared note editor (note-editor.js): in-reader writing, like My Favourites. */
+  #rdToolbar { display:none; margin:0 0 16px; }
+  body.rd-editing #rdToolbar { display:flex; }
+  #readerBodyInp { display:none; min-height:240px; }
+  body.rd-editing #readerBody { display:none; }
+  body.rd-editing #readerBodyInp { display:block; }
+  .reader-body { white-space:normal; }
+  .reader-body .empty { color:var(--muted); font-style:italic; }
+  .rd-save { font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#3d7a5c; min-width:48px; text-align:right; }
+  .note-hand { margin:2px 0 12px; padding:12px 14px; background:var(--paper-soft,#f2f4f8); border:1px dashed var(--rule,#dce3ee); border-radius:11px; }
+  .nh-txt { font-size:12.5px; color:var(--muted,#6a7690); line-height:1.5; }
+  .nh-btn { display:inline-flex; align-items:center; gap:8px; margin-top:10px; font-family:inherit; font-size:13px; font-weight:600; color:var(--ink,#182233); background:var(--paper,#fff); border:1px solid var(--rule,#cdd9ee); border-radius:9px; padding:9px 14px; cursor:pointer; }
+  .nh-btn.hidden { display:none; }
+  .nh-btn:hover { border-color:var(--accent,#0F2D5C); }
+  .nh-btn svg { width:15px; height:15px; }
 </style>
 </head>
 <body>
 
 <script src="config.js"></script>
+<script src="note-editor.js"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -321,6 +337,7 @@
   <div class="reader-bar">
     <button class="reader-back" id="readerBack">&larr; Back</button>
     <span class="reader-title" id="readerTitle"></span>
+    <span class="rd-save" id="rdSave"></span>
     <button class="reader-edit" id="readerEdit">Edit</button>
   </div>
   <div class="reader-scroll">
@@ -328,7 +345,9 @@
       <div class="reader-kind" id="readerKind"></div>
       <div class="reader-h1" id="readerH1"></div>
       <div class="reader-lead" id="readerLead"></div>
+      <div id="rdToolbar"></div>
       <div class="reader-body" id="readerBody"></div>
+      <div class="reader-body inp" id="readerBodyInp" contenteditable="true" data-placeholder="Write the full piece&#8230;"></div>
       <div class="reader-foot">
         <button class="eb" id="ibCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
         <button class="eb" id="ibMd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="eb-label">Download .md</span></button>
@@ -373,9 +392,9 @@
       <label id="lblEssence">One-line essence</label>
       <input id="fEssence" placeholder="The core idea, in a sentence">
     </div>
-    <div class="field">
-      <label id="lblBody">Body (optional)</label>
-      <textarea class="body" id="fBody" placeholder="The full piece, or notes toward it&#8230;"></textarea>
+    <div class="note-hand" id="bodyHand">
+      <div class="nh-txt" id="bodyHandTxt"></div>
+      <button type="button" class="nh-btn hidden" id="openBodyBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Write / edit the piece</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></button>
     </div>
     <div class="field">
       <label>Tags &mdash; comma separated</label>
@@ -531,19 +550,24 @@ async function saveEntry() {
     user_id: userId, kind, title,
     status: isWriting(kind) ? el('fStatus').value : '',
     essence: el('fEssence').value.trim(),
-    body: el('fBody').value,
     tags, updated_at: new Date().toISOString(),
   };
+  if (!editingId) record.body = '';   // body is written in the full editor, never here
   const btn = el('saveBtn'); btn.disabled = true; btn.textContent = 'Saving\u2026';
   try {
+    let newId = null;
     if (editingId) {
       const { error } = await supa.from('iw_entries').update(record).eq('id', editingId).eq('user_id', userId);
       if (error) throw error; toast('Updated');
     } else {
-      const { error } = await supa.from('iw_entries').insert(record);
-      if (error) throw error; toast('Added');
+      const { data, error } = await supa.from('iw_entries').insert(record).select();
+      if (error) throw error;
+      newId = (data && data[0] && data[0].id) || null;
+      toast('Added');
     }
     closeModal(); await loadRows();
+    // A new entry drops straight into the full-width editor (same as Favourites).
+    if (newId) { openReader(newId); setRdEditing(true); setTimeout(() => rdNk.focusEnd(), 80); }
   } catch (e) {
     errorEl.textContent = (e && e.message) ? e.message : 'Save failed';
     errorEl.classList.remove('hidden');
@@ -589,7 +613,7 @@ function filteredRows() {
     out = out.filter(r =>
       (r.title || '').toLowerCase().includes(q) ||
       (r.essence || '').toLowerCase().includes(q) ||
-      (r.body || '').toLowerCase().includes(q) ||
+      NoteEditor.toPlain(r.body).toLowerCase().includes(q) ||
       (r.tags || []).some(t => t.toLowerCase().includes(q))
     );
   }
@@ -703,13 +727,68 @@ function openReader(id) {
   el('readerH1').textContent = r.title;
   el('readerLead').textContent = r.essence || '';
   el('readerLead').style.display = r.essence ? '' : 'none';
-  el('readerBody').textContent = r.body || '';
+  const bodyHtml = NoteEditor.toHtml(r.body || '').trim();
+  el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+  el('readerBodyInp').innerHTML = bodyHtml;
   readerEntry = r;
   el('readerOverlay').dataset.kind = displayKind(r.kind);
-  el('readerEdit').onclick = () => { closeReader(); openModal(id); };
+  setRdEditing(false);
+  el('rdSave').textContent = '';
   el('readerOverlay').classList.remove('hidden');
 }
-function closeReader() { el('readerOverlay').classList.add('hidden'); }
+function closeReader() {
+  saveRd_(true);
+  setRdEditing(false);
+  el('readerOverlay').classList.add('hidden');
+}
+
+// ----- in-reader writing (shared editor) -----
+let rdTimer = null;
+function setRdEditing(on) {
+  document.body.classList.toggle('rd-editing', !!on);
+  el('readerEdit').textContent = on ? 'Done' : 'Edit';
+  if (!on) {
+    const html = NoteEditor.sanitize(el('readerBodyInp').innerHTML).trim();
+    el('readerBodyInp').innerHTML = html;
+    el('readerBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+  } else { rdNk.refresh(); }
+}
+function scheduleRdSave() { el('rdSave').textContent = 'Saving\u2026'; clearTimeout(rdTimer); rdTimer = setTimeout(() => saveRd_(), 700); }
+async function saveRd_(force) {
+  clearTimeout(rdTimer);
+  if (!readerEntry) return;
+  const val = NoteEditor.sanitize(el('readerBodyInp').innerHTML);
+  if (readerEntry.body === val && !force) { el('rdSave').textContent = 'Saved'; return; }
+  try {
+    const { error } = await supa.from('iw_entries').update({ body: val, updated_at: new Date().toISOString() })
+      .eq('id', readerEntry.id).eq('user_id', userId);
+    if (error) throw error;
+    readerEntry.body = val; el('rdSave').textContent = 'Saved';
+  } catch (e) { el('rdSave').textContent = 'Not saved'; }
+}
+el('readerEdit').addEventListener('click', () => {
+  const on = !document.body.classList.contains('rd-editing');
+  setRdEditing(on);
+  if (on) rdNk.focusEnd(); else saveRd_(true);
+});
+el('openBodyBtn').addEventListener('click', () => {
+  const id = editingId; if (!id) return;
+  closeModal();
+  openReader(id);
+  setRdEditing(true);
+  setTimeout(() => rdNk.focusEnd(), 60);
+});
+const rdNk = NoteEditor.mount({
+  toolbar: el('rdToolbar'), editor: el('readerBodyInp'), reader: el('readerBody'),
+  onChange: scheduleRdSave,
+  onReaderChange: (html) => {
+    if (!readerEntry) return;
+    readerEntry.body = html;
+    el('readerBodyInp').innerHTML = html;
+    supa.from('iw_entries').update({ body: html, updated_at: new Date().toISOString() })
+      .eq('id', readerEntry.id).eq('user_id', userId).then(() => {}, () => {});
+  }
+});
 
 // ----- Per-entry export (Copy / Download .md / Print-PDF) -----
 function readerDateStr_(r) {
@@ -722,7 +801,7 @@ function entryPlain_(r) {
   const date = readerDateStr_(r);
   let out = (r.title || 'Untitled') + '\n' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') + '\n';
   if (r.essence) out += '\n' + r.essence + '\n';
-  out += '\n' + (r.body || '');
+  out += '\n' + (NoteEditor.toMarkdown(r.body) || '');
   if (r.tags && r.tags.length) out += '\n\n' + r.tags.map(function(t){return '#'+t;}).join(' ');
   return out.trim() + '\n';
 }
@@ -730,7 +809,7 @@ function entryMd_(r) {
   const date = readerDateStr_(r);
   let md = '# ' + (r.title || 'Untitled') + '\n\n*' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') + '*\n\n';
   if (r.essence) md += '> ' + r.essence + '\n\n';
-  md += (r.body || '') + '\n';
+  md += (NoteEditor.toMarkdown(r.body) || '') + '\n';
   if (r.tags && r.tags.length) md += '\n---\n\nTags: ' + r.tags.join(', ') + '\n';
   return md;
 }
@@ -764,8 +843,8 @@ function exportEntryPrint() {
   const esc = function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
   const head1 = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Entry') + '</title>';
   const fontlink = '<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">';
-  const style = "<style>@page{margin:20mm} body{font-family:'Patrick Hand',cursive;color:#1c2331;line-height:1.6;max-width:640px;margin:40px auto;padding:0 24px} .kind{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a94a8;margin-bottom:12px} h1{font-weight:400;font-size:34px;line-height:1.2;margin:0 0 14px} .lead{font-size:21px;color:#4a5670;margin-bottom:20px} .bd{font-size:20px;white-space:pre-wrap} .tags{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa4ba;margin-top:26px;border-top:1px solid #eee;padding-top:12px}</style></head><body>";
-  const bodyH = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div><h1>' + esc(r.title||'Untitled') + '</h1>' + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + esc(r.body||'') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
+  const style = "<style>@page{margin:20mm} body{font-family:'Patrick Hand',cursive;color:#1c2331;line-height:1.6;max-width:640px;margin:40px auto;padding:0 24px} .kind{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#8a94a8;margin-bottom:12px} h1{font-weight:400;font-size:34px;line-height:1.2;margin:0 0 14px} .lead{font-size:21px;color:#4a5670;margin-bottom:20px} .bd{font-size:20px} .tags{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9aa4ba;margin-top:26px;border-top:1px solid #eee;padding-top:12px}</style>" + '<style>' + NoteEditor.contentCSS('.bd') + '</style>' + "</head><body>";
+  const bodyH = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div><h1>' + esc(r.title||'Untitled') + '</h1>' + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
   const tail = '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>';
   const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
   w.document.write(head1 + fontlink + style + bodyH + tail); w.document.close();
@@ -781,15 +860,17 @@ function syncModalForKind() {
     el('fTitle').placeholder = 'e.g., What am I afraid to admit?';
     el('lblEssence').textContent = 'Your current answer';
     el('fEssence').placeholder = 'Where you land on it, for now';
-    el('lblBody').textContent = 'Longer reflection (optional)';
-    el('fBody').placeholder = 'Think it through here\u2026';
+    el('bodyHandTxt').textContent = editingId
+      ? 'The longer reflection opens in the full-width editor \u2014 formatting, highlights, checklists and images.'
+      : 'Save this, and the full-width editor opens straight away for the longer reflection.';
   } else {
     el('lblTitle').textContent = 'Title';
     el('fTitle').placeholder = 'e.g., On quitting well';
     el('lblEssence').textContent = 'One-line essence';
     el('fEssence').placeholder = 'The core idea, in a sentence';
-    el('lblBody').textContent = 'Body (optional)';
-    el('fBody').placeholder = 'The full piece, or notes toward it\u2026';
+    el('bodyHandTxt').textContent = editingId
+      ? 'The full piece opens in the full-width editor \u2014 formatting, highlights, checklists and images.'
+      : 'Save this, and the full-width editor opens straight away for the full piece.';
   }
 }
 function openModal(id) {
@@ -802,7 +883,6 @@ function openModal(id) {
     el('fStatus').value = (r.status && STATUS[r.status]) ? r.status : 'idea';
     el('fTitle').value = r.title || '';
     el('fEssence').value = r.essence || '';
-    el('fBody').value = r.body || '';
     el('fTags').value = (r.tags || []).join(', ');
     el('deleteBtn').classList.remove('hidden');
   } else {
@@ -810,9 +890,10 @@ function openModal(id) {
     const preset = (activeView === 'gratitude' || activeView === 'experience' || activeView === 'diary') ? activeView : 'introspection';
     el('fKind').value = preset;
     el('fStatus').value = 'idea';
-    el('fTitle').value = ''; el('fEssence').value = ''; el('fBody').value = ''; el('fTags').value = '';
+    el('fTitle').value = ''; el('fEssence').value = ''; el('fTags').value = '';
     el('deleteBtn').classList.add('hidden');
   }
+  el('openBodyBtn').classList.toggle('hidden', !editingId);
   syncModalForKind();
   el('modalOverlay').classList.remove('hidden');
 }
