@@ -824,7 +824,20 @@ function setRdEditing(on) {
   } else { rdNk.refresh(); }
 }
 function scheduleRdSave() { rdDirty = true; rdUpdateWc_(); el('rdSave').textContent = 'Saving\u2026'; clearTimeout(rdTimer); rdTimer = setTimeout(() => saveRd_(), 700); }
+let rdSaving = false, rdQueued = false;
 async function saveRd_(force) {
+  // One save at a time. A save fired while another is mid-flight would carry
+  // a stale conflict-stamp and false-alarm as "changed on another device".
+  if (rdSaving) { rdQueued = true; return; }
+  rdSaving = true;
+  try { await saveRdCore_(force); }
+  finally {
+    rdSaving = false;
+    if (rdQueued) { rdQueued = false; saveQueueKick_rd(); }
+  }
+}
+function saveQueueKick_rd() { saveRd_(true); }
+async function saveRdCore_(force) {
   clearTimeout(rdTimer);
   if (!readerEntry) return;
   const val = NoteEditor.sanitize(el('readerBodyInp').innerHTML);

@@ -933,7 +933,20 @@ function scheduleRoadmapSave() {
   clearTimeout(rmTimer);
   rmTimer = setTimeout(() => saveRoadmap(), 700);
 }
+let rmSaving = false, rmQueued = false;
 async function saveRoadmap(force) {
+  // One save at a time. A save fired while another is mid-flight would carry
+  // a stale conflict-stamp and false-alarm as "changed on another device".
+  if (rmSaving) { rmQueued = true; return; }
+  rmSaving = true;
+  try { await saveRoadmapCore_(force); }
+  finally {
+    rmSaving = false;
+    if (rmQueued) { rmQueued = false; saveQueueKick_rm(); }
+  }
+}
+function saveQueueKick_rm() { saveRoadmap(true); }
+async function saveRoadmapCore_(force) {
   clearTimeout(rmTimer);
   if (rmId === null) return;
   const id = rmId;
@@ -1249,7 +1262,20 @@ function schedulePersonSave() {
   clearTimeout(pTimer);
   pTimer = setTimeout(() => savePerson_(), 700);
 }
+let pSaving = false, pQueued = false;
 async function savePerson_(force) {
+  // One save at a time. A save fired while another is mid-flight would carry
+  // a stale conflict-stamp and false-alarm as "changed on another device".
+  if (pSaving) { pQueued = true; return; }
+  pSaving = true;
+  try { await savePersonCore_(force); }
+  finally {
+    pSaving = false;
+    if (pQueued) { pQueued = false; saveQueueKick_p(); }
+  }
+}
+function saveQueueKick_p() { savePerson_(true); }
+async function savePersonCore_(force) {
   clearTimeout(pTimer);
   if (pId === null) return;
   const id = pId;

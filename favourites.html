@@ -910,7 +910,20 @@ function setFrEditing(on) {
   }
 }
 function scheduleFrSave() { frDirty = true; frUpdateWc_(); el('frSave').textContent = 'Saving\u2026'; clearTimeout(frTimer); frTimer = setTimeout(() => saveFr_(), 700); }
+let frSaving = false, frQueued = false;
 async function saveFr_(force) {
+  // One save at a time. A save fired while another is mid-flight would carry
+  // a stale conflict-stamp and false-alarm as "changed on another device".
+  if (frSaving) { frQueued = true; return; }
+  frSaving = true;
+  try { await saveFrCore_(force); }
+  finally {
+    frSaving = false;
+    if (frQueued) { frQueued = false; saveQueueKick_fr(); }
+  }
+}
+function saveQueueKick_fr() { saveFr_(true); }
+async function saveFrCore_(force) {
   clearTimeout(frTimer);
   if (frId === null) return;
   const r = rows.find(x => x.id === frId); if (!r) return;
