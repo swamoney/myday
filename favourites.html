@@ -915,7 +915,7 @@ async function saveFr_(force) {
   if (frId === null) return;
   const r = rows.find(x => x.id === frId); if (!r) return;
   const val = NoteEditor.sanitize(el('frBodyInp').innerHTML);
-  if (r.note === val && !force) { frDirty = false; el('frSave').textContent = 'Saved'; return; }
+  if (r.note === val) { frDirty = false; el('frSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
     const res = await NoteEditor.casSave({ supa, userId, table: 'bookmarks', field: 'note', id: frId, content: val, loaded: frLoadedUpd });
@@ -970,7 +970,7 @@ const nk = NoteEditor.mount({
 });
 NoteEditor.guard.register(
   () => frDirty,
-  () => { if (frId !== null) saveFr_(true); }
+  () => { if (frDirty && frId !== null) saveFr_(true); }
 );
 el('frHist').addEventListener('click', () => {
   if (frId === null) return;

@@ -828,7 +828,7 @@ async function saveRd_(force) {
   clearTimeout(rdTimer);
   if (!readerEntry) return;
   const val = NoteEditor.sanitize(el('readerBodyInp').innerHTML);
-  if (readerEntry.body === val && !force) { rdDirty = false; el('rdSave').textContent = 'Saved'; return; }
+  if (readerEntry.body === val) { rdDirty = false; el('rdSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
     const res = await NoteEditor.casSave({ supa, userId, table: 'iw_entries', field: 'body', id: readerEntry.id, content: val, loaded: rdLoadedUpd });
@@ -900,7 +900,7 @@ const rdNk = NoteEditor.mount({
 });
 NoteEditor.guard.register(
   () => rdDirty,
-  () => { if (readerEntry) saveRd_(true); }
+  () => { if (rdDirty && readerEntry) saveRd_(true); }
 );
 
 // ----- Per-entry export (Copy / Download .md / Print-PDF) -----

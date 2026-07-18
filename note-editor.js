@@ -544,8 +544,9 @@
   };
   function flushAll() { G.flushes.forEach(function (f) { try { f(); } catch (e) {} }); }
   window.addEventListener('beforeunload', function (e) {
-    flushAll();
-    if (guard.isDirty()) { e.preventDefault(); e.returnValue = ''; return ''; }
+    if (!guard.isDirty()) return;      // everything saved: leave silently
+    flushAll();                        // genuinely unsaved: start best-effort saves
+    e.preventDefault(); e.returnValue = ''; return '';
   });
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'hidden') flushAll();
@@ -1149,7 +1150,7 @@
   }
 
   window.NoteEditor = {
-    version: '1.6',
+    version: '1.7',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,

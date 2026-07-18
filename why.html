@@ -942,7 +942,7 @@ async function saveRoadmap(force) {
     rmData.essay = newEssay; }
   const payload = JSON.stringify(rmData);
   const local = pillars.find(x => String(x.id) === String(id));
-  if (local && local.roadmap === payload && !force) { rmDirty = false; el('rmSave').textContent = 'Saved'; return; }
+  if (local && local.roadmap === payload) { rmDirty = false; el('rmSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
     const res = await NoteEditor.casSave({ supa, userId, table: 'why_pillars', field: 'roadmap', id, content: payload, loaded: rmLoadedUpd });
@@ -1258,7 +1258,7 @@ async function savePerson_(force) {
     pData.essay = newEssay; }
   const payload = JSON.stringify(pData);
   const local = circle.find(x => String(x.id) === String(id));
-  if (local && local.page === payload && !force) { pDirty = false; el('pSave').textContent = 'Saved'; return; }
+  if (local && local.page === payload) { pDirty = false; el('pSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
     const res = await NoteEditor.casSave({ supa, userId, table: 'why_circle', field: 'page', id, content: payload, loaded: pLoadedUpd });
@@ -1375,7 +1375,7 @@ const pNk = NoteEditor.mount({
 
 NoteEditor.guard.register(
   () => rmDirty || pDirty,
-  () => { if (rmId !== null) saveRoadmap(true); if (pId !== null) savePerson_(true); }
+  () => { if (rmDirty && rmId !== null) saveRoadmap(true); if (pDirty && pId !== null) savePerson_(true); }
 );
 el('rmHist').addEventListener('click', () => {
   if (rmId === null) return;
