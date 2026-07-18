@@ -222,6 +222,8 @@
   .fb.on { background:#0F2D5C; color:#fff; }
   .fb svg { width:17px; height:17px; }
   .fb-sep { width:1px; height:20px; background:#dce3ee; margin:0 4px; }
+  /* These two open from INSIDE the reader (z-index 520), so they must sit above it. */
+  #frImgModal, #frLinkModal { z-index:640; }
   /* --- colour + highlight (class-based so a future palette change updates old notes) --- */
   .fr-body .tc-rose, .fr-body-inp .tc-rose { color:#c2415c; }
   .fr-body .tc-sage, .fr-body-inp .tc-sage { color:#5a7050; }
@@ -1141,16 +1143,18 @@ el('frLinkModal').addEventListener('click', e => { if (e.target === el('frLinkMo
 el('frLinkOk').addEventListener('click', () => {
   const url = normalizeUrl(el('frLinkUrl').value);
   if (!/^https?:\/\//i.test(url)) { el('frLinkErr').textContent = 'Enter a valid link (https://\u2026)'; el('frLinkErr').classList.remove('hidden'); return; }
+  closeLinkModal();              // close first so focus returns to the note
   el('frBodyInp').focus(); restoreRange();
   const sel = window.getSelection();
   if (sel && sel.isCollapsed) document.execCommand('insertHTML', false, '<a href="' + url.replace(/"/g,'&quot;') + '">' + escHtml(url) + '</a>');
   else document.execCommand('createLink', false, url);
-  closeLinkModal(); scheduleFrSave();
+  scheduleFrSave();
 });
 el('frLinkRemove').addEventListener('click', () => {
+  closeLinkModal();
   el('frBodyInp').focus(); restoreRange();
   document.execCommand('unlink', false, null);
-  closeLinkModal(); scheduleFrSave();
+  scheduleFrSave();
 });
 
 // ----- divider + clear formatting -----
@@ -1167,7 +1171,18 @@ function clearFormatting() {
 // ----- rich-text toolbar -----
 let frSavedRange = null;
 function saveRange() { const s = window.getSelection(); if (s && s.rangeCount && el('frBodyInp').contains(s.anchorNode)) frSavedRange = s.getRangeAt(0).cloneRange(); }
-function restoreRange() { if (!frSavedRange) return; const s = window.getSelection(); s.removeAllRanges(); s.addRange(frSavedRange); }
+function restoreRange() {
+  const box = el('frBodyInp');
+  const s = window.getSelection();
+  if (!frSavedRange || !box.contains(frSavedRange.commonAncestorContainer)) {
+    // No cursor was placed in the note yet — put it at the end so inserts land.
+    const r = document.createRange();
+    r.selectNodeContents(box); r.collapse(false);
+    s.removeAllRanges(); s.addRange(r);
+    return;
+  }
+  s.removeAllRanges(); s.addRange(frSavedRange);
+}
 function refreshToolbarState() {
   const tb = el('frToolbar'); if (!tb) return;
   tb.querySelectorAll('.fb[data-cmd]').forEach(b => {
@@ -1227,11 +1242,11 @@ el('frImgInsert').addEventListener('click', () => {
   const url = normalizeUrl(el('frImgUrl').value);
   if (!/^https?:\/\//i.test(url)) { el('frImgErr').textContent = 'Enter a valid image link (https://\u2026)'; el('frImgErr').classList.remove('hidden'); return; }
   const alt = (el('frImgAlt').value || '').trim();
+  closeImgModal();               // close first so focus returns to the note
   el('frBodyInp').focus();
   restoreRange();
   const img = '<img src="' + url.replace(/"/g, '&quot;') + '" alt="' + alt.replace(/"/g, '&quot;').replace(/</g,'&lt;') + '">';
   document.execCommand('insertHTML', false, img + '<p><br></p>');
-  closeImgModal();
   scheduleFrSave();
 });
 el('frImgModal').addEventListener('click', e => { if (e.target === el('frImgModal')) closeImgModal(); });
