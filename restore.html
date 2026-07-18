@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyDay — Restore backup</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#182233; --muted:#6a7690; --rule:#dce3ee; --paper:#fff; --navy:#0F2D5C; --gold:#f4c430; }
+  * { box-sizing:border-box; margin:0; }
+  body { font-family:'IBM Plex Sans',sans-serif; background:#eef1f6; color:var(--ink); min-height:100vh; padding:34px 16px 70px; }
+  .wrap { max-width:640px; margin:0 auto; }
+  h1 { font-family:'Fraunces',serif; font-size:26px; margin-bottom:4px; }
+  .sub { color:var(--muted); font-size:13px; line-height:1.55; margin-bottom:22px; }
+  .card { background:var(--paper); border:1px solid var(--rule); border-radius:16px; padding:22px 20px; box-shadow:0 12px 30px rgba(20,30,60,0.07); margin-bottom:16px; }
+  .k { font-family:'IBM Plex Mono',monospace; font-size:10px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#8189a0; margin-bottom:10px; }
+  input[type=email], input[type=password] { width:100%; background:#f4f7fb; border:1px solid var(--rule); border-radius:9px; padding:11px 12px; font-size:14px; font-family:inherit; color:var(--ink); margin-bottom:10px; }
+  input:focus { outline:none; border-color:#c9a94a; background:#fff; }
+  .btn { font-family:inherit; font-size:14px; font-weight:600; border-radius:10px; padding:11px 18px; cursor:pointer; border:1px solid var(--rule); background:#fff; color:var(--ink); }
+  .btn.pri { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .btn.pri:disabled { opacity:0.55; cursor:default; }
+  .hidden { display:none !important; }
+  .err { font-size:12.5px; color:#8A1F1A; background:#FCE9E2; border-radius:8px; padding:8px 11px; margin:8px 0; }
+  .drop { border:2px dashed var(--rule); border-radius:12px; padding:26px 16px; text-align:center; color:var(--muted); font-size:13.5px; cursor:pointer; }
+  .drop:hover { border-color:var(--navy); color:var(--navy); }
+  .meta { font-size:12.5px; color:var(--muted); margin:12px 0 4px; line-height:1.5; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  th, td { text-align:left; padding:8px 6px; border-top:1px solid #f0f3f8; }
+  th { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:#8189a0; border-top:none; }
+  td.n { text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12px; }
+  .warn { font-size:12.5px; color:#7a5b12; background:#fdf3d3; border:1px solid #f0dfae; border-radius:8px; padding:9px 12px; margin:12px 0; line-height:1.5; }
+  .log { font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.7; background:#0f1626; color:#cfe0d5; border-radius:10px; padding:12px 14px; margin-top:12px; max-height:280px; overflow-y:auto; white-space:pre-wrap; }
+  .ok { color:#7fd6a4; } .bad { color:#f2a29a; }
+  a { color:#3a5b9c; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Restore a MyDay backup</h1>
+  <div class="sub">
+    This page refills your database from a <b>myday-….json</b> backup file.
+    Use it after a disaster, on a fresh database. If this is a NEW Supabase
+    project, run <b>sql/myday_setup.sql</b> in its SQL&nbsp;Editor first —
+    the shelves must exist before this page can fill them.
+  </div>
+
+  <!-- ============ SIGN IN ============ -->
+  <div class="card" id="authCard">
+    <div class="k">Step 1 · Sign in</div>
+    <input type="email" id="authEmail" placeholder="Email" autocomplete="email">
+    <input type="password" id="authPw" placeholder="Password" autocomplete="current-password">
+    <div class="err hidden" id="authErr"></div>
+    <button class="btn pri" id="signInBtn" type="button">Sign in</button>
+    <button class="btn" id="signUpBtn" type="button" style="margin-left:8px">Create account</button>
+    <div class="meta">On a fresh project you won't have an account yet — use
+      “Create account” with your usual email.</div>
+  </div>
+
+  <!-- ============ PICK FILE ============ -->
+  <div class="card hidden" id="fileCard">
+    <div class="k">Step 2 · Choose your backup file</div>
+    <div class="drop" id="drop">Tap here and pick your <b>myday-….json</b> file</div>
+    <input type="file" id="fileInput" accept=".json,application/json" class="hidden">
+    <div class="err hidden" id="fileErr"></div>
+  </div>
+
+  <!-- ============ REVIEW + RESTORE ============ -->
+  <div class="card hidden" id="reviewCard">
+    <div class="k">Step 3 · Review &amp; restore</div>
+    <div class="meta" id="packMeta"></div>
+    <table id="tblList"></table>
+    <div class="warn">
+      Restoring <b>adds or updates</b> rows — it never deletes anything already
+      in the database. Rows are matched by their original id, so running this
+      twice is safe (no duplicates). Everything is written to the account you
+      signed in with.
+    </div>
+    <button class="btn pri" id="restoreBtn" type="button">Restore everything</button>
+    <div class="log hidden" id="log"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+if (!window.MYDAY_CONFIG || !window.MYDAY_CONFIG.SUPABASE_URL) {
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Configuration error</h2><p>config.js is missing or didn\'t load. Upload it next to this page.</p></div>';
+  throw new Error('config.js missing');
+}
+const supa = window.supabase.createClient(window.MYDAY_CONFIG.SUPABASE_URL, window.MYDAY_CONFIG.SUPABASE_ANON_KEY);
+const el = id => document.getElementById(id);
+
+// The only tables this page will touch, and the order they restore in.
+// user_prefs is keyed by user_id (one row per person); the rest match on id.
+const TABLES = [
+  { name: 'entries',       label: 'My Day — daily logs',        key: 'id' },
+  { name: 'user_prefs',    label: 'Settings',                   key: 'user_id' },
+  { name: 'bookmarks',     label: 'My Favourites',              key: 'id' },
+  { name: 'iw_entries',    label: 'My Inner Life — entries',    key: 'id' },
+  { name: 'wip_notes',     label: 'My Inner Life — stickies',   key: 'id' },
+  { name: 'why_pillars',   label: 'My Why — pillars/roadmaps',  key: 'id' },
+  { name: 'why_mantras',   label: 'My Why — mantras',           key: 'id' },
+  { name: 'why_circle',    label: 'My Circle',                  key: 'id' },
+  { name: 'wisdom',        label: 'My Wisdom',                  key: 'id' },
+  { name: 'note_versions', label: 'Version history',            key: 'id' }
+];
+
+let userId = null;
+let pack = null;
+
+// ---------- auth ----------
+async function boot() {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) { userId = session.user.id; showFile(); }
+}
+boot();
+el('signInBtn').addEventListener('click', async () => {
+  el('authErr').classList.add('hidden');
+  const { data, error } = await supa.auth.signInWithPassword({ email: el('authEmail').value.trim(), password: el('authPw').value });
+  if (error) { el('authErr').textContent = error.message; el('authErr').classList.remove('hidden'); return; }
+  userId = data.user.id; showFile();
+});
+el('signUpBtn').addEventListener('click', async () => {
+  el('authErr').classList.add('hidden');
+  const { data, error } = await supa.auth.signUp({ email: el('authEmail').value.trim(), password: el('authPw').value });
+  if (error) { el('authErr').textContent = error.message; el('authErr').classList.remove('hidden'); return; }
+  if (data.session) { userId = data.session.user.id; showFile(); }
+  else { el('authErr').textContent = 'Account created. If email confirmation is on, confirm it, then sign in.'; el('authErr').classList.remove('hidden'); }
+});
+function showFile() {
+  el('authCard').classList.add('hidden');
+  el('fileCard').classList.remove('hidden');
+}
+
+// ---------- file pick + review ----------
+el('drop').addEventListener('click', () => el('fileInput').click());
+el('fileInput').addEventListener('change', () => {
+  const f = el('fileInput').files[0]; if (!f) return;
+  el('fileErr').classList.add('hidden');
+  const rd = new FileReader();
+  rd.onload = () => {
+    try {
+      const p = JSON.parse(rd.result);
+      if (!p || p.app !== 'MyDay' || !p.tables) throw new Error('not a MyDay backup');
+      pack = p;
+      review();
+    } catch (e) {
+      el('fileErr').textContent = 'This does not look like a MyDay .json backup file.';
+      el('fileErr').classList.remove('hidden');
+    }
+  };
+  rd.readAsText(f);
+});
+function review() {
+  el('reviewCard').classList.remove('hidden');
+  const when = pack.exported ? new Date(pack.exported).toLocaleString() : 'unknown date';
+  el('packMeta').textContent = 'Backup taken: ' + when + (pack.export_warnings ? ' · note: this backup recorded warnings for some tables.' : '');
+  let html = '<tr><th>Room</th><th style="text-align:right">Rows</th></tr>';
+  TABLES.forEach(t => {
+    const n = (pack.tables[t.name] || []).length;
+    html += '<tr><td>' + t.label + '</td><td class="n">' + n + '</td></tr>';
+  });
+  el('tblList').innerHTML = html;
+}
+
+// ---------- restore ----------
+function log(msg, cls) {
+  const L = el('log'); L.classList.remove('hidden');
+  L.innerHTML += (cls ? '<span class="' + cls + '">' : '') + msg + (cls ? '</span>' : '') + '\n';
+  L.scrollTop = L.scrollHeight;
+}
+el('restoreBtn').addEventListener('click', async () => {
+  if (!pack || !userId) return;
+  el('restoreBtn').disabled = true;
+  el('restoreBtn').textContent = 'Restoring…';
+  let totalOk = 0, totalBad = 0;
+  for (const t of TABLES) {
+    const rows = pack.tables[t.name] || [];
+    if (!rows.length) { log(t.label + ': nothing to restore'); continue; }
+    // Every row becomes YOURS: the backup may carry an old account's id.
+    const mine = rows.map(r => Object.assign({}, r, { user_id: userId }));
+    let ok = 0, bad = 0;
+    for (let i = 0; i < mine.length; i += 100) {
+      const chunk = mine.slice(i, i + 100);
+      try {
+        const { error } = await supa.from(t.name).upsert(chunk, { onConflict: t.key });
+        if (error) throw error;
+        ok += chunk.length;
+      } catch (e) {
+        bad += chunk.length;
+        log('  problem in ' + t.label + ': ' + String(e.message || e), 'bad');
+      }
+    }
+    totalOk += ok; totalBad += bad;
+    log(t.label + ': ' + ok + ' restored' + (bad ? (', ' + bad + ' failed') : ''), bad ? 'bad' : 'ok');
+  }
+  log('');
+  if (totalBad === 0) log('DONE — ' + totalOk + ' rows restored. Open the app: everything should be home.', 'ok');
+  else log('Finished with problems: ' + totalOk + ' restored, ' + totalBad + ' failed. The messages above say which room. Usually this means myday_setup.sql was not run first — run it, then press Restore again (already-restored rows are safely skipped over).', 'bad');
+  el('restoreBtn').textContent = 'Restore again (safe)';
+  el('restoreBtn').disabled = false;
+});
+</script>
+</body>
+</html>

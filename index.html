@@ -77,6 +77,11 @@
 
   /* Banner grid: Daily spans the full row, the other four sit in a row of four. */
   .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  .backup-end { display:flex; flex-direction:column; align-items:center; gap:6px; margin:26px 0 4px; }
+  .backup-btn { width:40px; height:40px; border-radius:50%; border:1px solid #dce3ee; background:#fff; color:#3a4560; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .backup-btn:hover { border-color:#0F2D5C; color:#0F2D5C; }
+  .backup-btn svg { width:17px; height:17px; }
+  .backup-label { font-size:11px; color:#8a94a8; }
   @media (max-width:560px){ .cards { grid-template-columns:1fr; } }
   .card {
     border:1px solid rgba(255,255,255,0.9); border-radius:18px; padding:22px;
@@ -148,6 +153,7 @@
 <body>
 
 <script src="config.js"></script>
+<script src="note-editor.js"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -226,6 +232,12 @@
     </div>
   </div>
 
+  <div class="backup-end">
+    <button class="backup-btn" id="exportAllBtn" type="button" title="Download a complete backup: every note and entry, all rooms, three files">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+    </button>
+    <span class="backup-label">Backup everything</span>
+  </div>
   <div class="signout-end">
     <button class="signout-btn" id="signOutBtn" title="Sign out" aria-label="Sign out">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
@@ -478,6 +490,24 @@ boot();
   if(hasSession()) fab.style.display='flex';
   if(pinSet() && hasSession() && !unlockedThisSession()) lock();
   resetIdle();
+})();
+</script>
+<script>
+(function () {
+  var b = document.getElementById('exportAllBtn');
+  if (!b || !window.NoteEditor) return;
+  b.addEventListener('click', async function () {
+    var lbl = document.querySelector('.backup-label');
+    try {
+      var s = await supa.auth.getSession();
+      var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+      if (!uid) { alert('Sign in first, then back up.'); return; }
+      NoteEditor.versions.connect(function () { return { supa: supa, userId: uid }; });
+      if (lbl) lbl.textContent = 'Preparing 3 files\u2026';
+      NoteEditor.exportLibrary();
+      setTimeout(function () { if (lbl) lbl.textContent = 'Backup everything'; }, 4000);
+    } catch (e) { alert('Backup failed to start.'); if (lbl) lbl.textContent = 'Backup everything'; }
+  });
 })();
 </script>
 </body>

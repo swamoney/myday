@@ -594,22 +594,123 @@
     if (order) q = q.order(order, { ascending: true });
     return q.then(function (r) { return (r && r.data) || []; }, function () { return []; });
   }
+  var EXPORT_TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',
+                       'why_pillars','why_mantras','why_circle','wisdom','note_versions'];
+  function _dl(name, text, type) {
+    var blob = new Blob([text], { type: type });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+  }
+  function _readme(day, jsonName, mdName) {
+    return [
+'=====================================================',
+'  MYDAY \u2014 BACKUP FOLDER',
+'  Created: ' + day,
+'  READ THIS FIRST',
+'=====================================================',
+'',
+'WHAT THIS IS',
+'------------',
+"A complete backup of the MyDay app: every note, journal",
+'entry, favourite, plan \u2014 all rooms, all data.',
+'',
+'This backup is 3 files:',
+'  1. ' + jsonName + '   <- THE IMPORTANT ONE (all data)',
+'  2. ' + mdName + '     <- notes in human-readable form',
+'  3. READ-ME-FIRST.txt        <- this note',
+'',
+'JUST WANT TO READ THE NOTES?',
+'-----------------------------',
+'Open the .md file. Any computer or phone can open it.',
+'No app, no account, no internet needed.',
+'(Daily logs and Wisdom pages live in the .json only.)',
+'',
+'THE 5 RULES  (DO / DON\u2019T)',
+'-------------------------',
+'DO   keep these files in a private, backed-up place',
+'     (Google Drive or iCloud \u2014 never a public place).',
+'DO   make a fresh export on the 1st of every month.',
+'     Old ones can be deleted; keep the latest 2-3.',
+'DO   test once a year: open the .md, check it reads fine.',
+'DON\u2019T upload the .json ANYWHERE public (not GitHub,',
+'     not email to strangers). It is your entire life',
+'     in one file.',
+'DON\u2019T edit or rename these files. Read: yes. Change: no.',
+'',
+'IF THE APP IS LOST \u2014 HOW TO BRING IT BACK',
+'-----------------------------------------',
+'You need three things. All free.',
+'  A. These files (you have them \u2014 the hard part is done)',
+'  B. The app\u2019s code:    github.com/swamoney/myday',
+'  C. A database at:     supabase.com',
+'',
+'Steps, in plain words:',
+'  1. Make a new free project at supabase.com',
+'  2. In its "SQL Editor", open the file  sql/myday_setup.sql',
+'     from the GitHub code (step B), paste it in, press RUN.',
+'     This rebuilds the empty app \u2014 like new shelves.',
+'  3. Put the new project\u2019s web address and key into the',
+'     code file  config.js  (two lines \u2014 instructions are',
+'     written inside that file).',
+'  4. Open the app, create your login, sign in.',
+'  5. Open the app\u2019s page  restore.html  and upload the',
+'     .json file. This refills the shelves \u2014 every note,',
+'     with its dates and colours.',
+'',
+'Not confident doing this alone? That is fine.',
+'Show THIS NOTE and the .json file to any software',
+'developer \u2014 or any AI assistant of your time \u2014 and say:',
+'"Please restore this backup." This note plus that file',
+'is everything they need. Expect it to take under an hour.',
+'',
+'FOR FAMILY',
+'----------',
+'If you are reading this on the owner\u2019s behalf: the .md',
+'file is his writing \u2014 journals, notes, plans \u2014 readable',
+'as-is. Nothing here needs a password to READ.',
+'Treat it with care.',
+'',
+'=====================================================',
+'  Three files. Everything safe.',
+'====================================================='
+    ].join('\n');
+  }
   function exportLibrary() {
     var c = vCtx(); if (!c || !c.supa || !c.userId) { alert('Not signed in.'); return; }
-    Promise.all([
-      _grab(c, 'bookmarks', 'created_at'),
-      _grab(c, 'iw_entries', 'created_at'),
-      _grab(c, 'why_pillars', null),
-      _grab(c, 'why_circle', null)
-    ]).then(function (all) {
-      var bms = all[0], iw = all[1], pillars = all[2], circle = all[3];
+    Promise.all(EXPORT_TABLES.map(function (t) {
+      return c.supa.from(t).select('*').eq('user_id', c.userId)
+        .then(function (r) { return { table: t, rows: (r && r.data) || [], error: r && r.error ? String(r.error.message || r.error) : null }; },
+              function (e) { return { table: t, rows: [], error: String(e && e.message || e) }; });
+    })).then(function (results) {
+      var day = new Date().toISOString().slice(0, 10);
+      var jsonName = 'myday-' + day + '.json';
+      var mdName = 'myday-' + day + '.md';
+
+      /* ---- 1) the machine file: every table, every row, verbatim ---- */
+      var pack = { app: 'MyDay', format: 1, exported: new Date().toISOString(), tables: {} };
+      var problems = [];
+      results.forEach(function (r) {
+        pack.tables[r.table] = r.rows;
+        if (r.error) problems.push(r.table + ': ' + r.error);
+      });
+      if (problems.length) pack.export_warnings = problems;
+      _dl(jsonName, JSON.stringify(pack, null, 1), 'application/json;charset=utf-8');
+
+      /* ---- 2) the human file: the notes system as a readable book ---- */
+      var by = {}; results.forEach(function (r) { by[r.table] = r.rows; });
+      var bms = by.bookmarks || [], iw = by.iw_entries || [], pillars = by.why_pillars || [],
+          circle = by.why_circle || [], mantras = by.why_mantras || [];
       var d = function (iso) { try { return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
-      var md = '# MyDay \u2014 all notes\n\n_Exported ' + d(new Date().toISOString()) + '_\n\n';
+      var srt = function (arr) { return arr.slice().sort(function (a, b) { return String(a.created_at || '').localeCompare(String(b.created_at || '')); }); };
+      var md = '# MyDay \u2014 all notes\n\n_Exported ' + d(new Date().toISOString()) +
+        '. This file is the readable notes book; the matching .json holds the FULL app (daily logs, wisdom, settings, history) losslessly._\n\n';
 
       md += '\n---\n\n# My Favourites\n';
-      var secs = ['all-time', 'books', 'podcasts', 'marathi', 'movies', 'music'];
-      secs.forEach(function (s) {
-        var list = bms.filter(function (b) { return (b.section || 'all-time') === s; });
+      ['all-time','books','podcasts','marathi','movies','music'].forEach(function (s) {
+        var list = srt(bms.filter(function (b) { return (b.section || 'all-time') === s; }));
         if (!list.length) return;
         md += '\n## ' + s + '\n';
         list.forEach(function (b) {
@@ -617,7 +718,7 @@
           var meta = [];
           if (b.created_at) meta.push('saved ' + d(b.created_at));
           if (b.type) meta.push(b.type);
-          if (b.tags && b.tags.length) meta.push('tags: ' + b.tags.join(', '));
+          if (b.tags && b.tags.length) meta.push('tags: ' + [].concat(b.tags).join(', '));
           if (b.url) meta.push(b.url);
           if (b.source_url) meta.push('source: ' + b.source_url);
           if (meta.length) md += '_' + meta.join(' \u00b7 ') + '_\n';
@@ -627,23 +728,30 @@
       });
 
       md += '\n---\n\n# My Inner Life\n';
-      iw.forEach(function (e) {
+      srt(iw).forEach(function (e) {
         md += '\n## ' + (e.title || '(untitled)') + '\n';
         var meta = [];
         if (e.kind) meta.push(e.kind);
         if (e.created_at) meta.push('written ' + d(e.created_at));
-        if (e.tags && e.tags.length) meta.push('tags: ' + e.tags.join(', '));
+        if (e.tags && e.tags.length) meta.push('tags: ' + [].concat(e.tags).join(', '));
         if (meta.length) md += '_' + meta.join(' \u00b7 ') + '_\n';
         if (e.essence) md += '\n> ' + e.essence + '\n';
         var body = toMarkdown(e.body);
         if (body) md += '\n' + body + '\n';
       });
 
+      md += '\n---\n\n# My Why \u2014 mantras\n';
+      srt(mantras).forEach(function (m) {
+        md += '\n> **' + (m.text || '') + '**' + (m.favourite ? ' \u2605' : '') + '\n';
+        if (m.meaning) md += '>\n> ' + m.meaning + '\n';
+        if (m.source) md += '>\n> _' + m.source + '_\n';
+      });
+
       md += '\n---\n\n# My Why \u2014 roadmaps\n';
       pillars.forEach(function (p) {
         var rd = null; try { rd = JSON.parse(p.roadmap || 'null'); } catch (e) {}
         if (!rd || (!String(rd.essay || '').trim() && !(rd.milestones || []).length)) return;
-        md += '\n## ' + (p.label || p.title || '(why)') + '\n';
+        md += '\n## ' + (p.label || '(why)') + '\n';
         var body = toMarkdown(rd.essay);
         if (body) md += '\n' + body + '\n';
         (rd.milestones || []).forEach(function (m) {
@@ -654,25 +762,26 @@
       md += '\n---\n\n# My Circle\n';
       circle.forEach(function (p) {
         var pg = null; try { pg = JSON.parse(p.page || 'null'); } catch (e) {}
-        if (!pg || (!String(pg.essay || '').trim() && !(pg.moments || []).length)) return;
+        var hasPage = pg && (String(pg.essay || '').trim() || (pg.moments || []).length);
+        if (!hasPage && !(p.note || '').trim()) return;
         md += '\n## ' + (p.name || '(person)') + '\n';
-        var body = toMarkdown(pg.essay);
-        if (body) md += '\n' + body + '\n';
-        (pg.moments || []).forEach(function (m) {
-          md += '- ' + (m.y ? m.y + ' \u2014 ' : '') + (m.t || '') + '\n';
-        });
+        if (p.note) md += '_' + p.note + '_\n';
+        if (hasPage) {
+          var body = toMarkdown(pg.essay);
+          if (body) md += '\n' + body + '\n';
+          (pg.moments || []).forEach(function (m) {
+            md += '- ' + (m.y ? m.y + ' \u2014 ' : '') + (m.t || '') + '\n';
+          });
+        }
       });
+      _dl(mdName, md, 'text/markdown;charset=utf-8');
 
-      var blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = 'myday-notes-' + new Date().toISOString().slice(0, 10) + '.md';
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      /* ---- 3) the note for the worst day ---- */
+      _dl('READ-ME-FIRST.txt', _readme(d(new Date().toISOString()), jsonName, mdName), 'text/plain;charset=utf-8');
+
+      if (problems.length) alert('Export finished, but some tables had problems:\n' + problems.join('\n') + '\nThe .json lists these under export_warnings.');
     });
   }
-
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
@@ -1040,7 +1149,7 @@
   }
 
   window.NoteEditor = {
-    version: '1.5',
+    version: '1.6',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,
