@@ -812,6 +812,7 @@ const MS_CHK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 let rmId = null, rmData = { essay: '', milestones: [] }, rmTimer = null;
 let rmBaseline = null, rmVTimer = null;
 let rmDirty = false;
+let rmLoadedUpd = null;
 NoteEditor.versions.connect(() => ({ supa, userId }));
 function rmSessionEnd_() {
   clearInterval(rmVTimer); rmVTimer = null;
@@ -840,6 +841,7 @@ function openRoadmap(id) {
   el('rmStatusTxt').innerHTML = p.current_status ? escHtml(p.current_status) : '&mdash;';
   el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
   rmBaseline = NoteEditor.sanitize(el('rmEssay').innerHTML);
+  { const lp = pillars.find(x => String(x.id) === String(rmId)); rmLoadedUpd = (lp && lp.updated_at) || null; }
   clearInterval(rmVTimer);
   rmVTimer = setInterval(() => {
     if (rmId === null) return;
@@ -921,11 +923,32 @@ async function saveRoadmap(force) {
   if (local && local.roadmap === payload && !force) { rmDirty = false; el('rmSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
-    const { error } = await supa.from('why_pillars').update({ roadmap: payload }).eq('id', id).eq('user_id', userId);
-    if (error) throw error;
-    if (local) local.roadmap = payload;
-    rmDirty = false;
-    el('rmSave').textContent = 'Saved';
+    const res = await NoteEditor.casSave({ supa, userId, table: 'why_pillars', field: 'roadmap', id, content: payload, loaded: rmLoadedUpd });
+    if (res.ok) {
+      if (local) { local.roadmap = payload; local.updated_at = res.stamp; }
+      rmLoadedUpd = res.stamp; rmDirty = false;
+      el('rmSave').textContent = 'Saved';
+    } else {
+      const theirs = res.theirs;
+      let theirData = { essay: '', milestones: [] };
+      try { theirData = JSON.parse(theirs.roadmap || 'null') || theirData; } catch (e2) {}
+      await NoteEditor.resolveConflict({
+        source: 'roadmap', id, mine: rmData.essay, theirs: theirData.essay || '',
+        onKeepMine: async () => {
+          const f2 = await NoteEditor.casSave({ supa, userId, table: 'why_pillars', field: 'roadmap', id, content: payload, loaded: null });
+          if (f2.ok) { if (local) { local.roadmap = payload; local.updated_at = f2.stamp; } rmLoadedUpd = f2.stamp; rmDirty = false; el('rmSave').textContent = 'Saved'; }
+        },
+        onTakeTheirs: () => {
+          rmData = theirData;
+          if (local) { local.roadmap = theirs.roadmap; local.updated_at = theirs.updated_at; }
+          rmLoadedUpd = theirs.updated_at; rmDirty = false;
+          el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
+          rmBaseline = NoteEditor.sanitize(el('rmEssay').innerHTML);
+          renderRoadmapRead(); renderMilestones();
+          el('rmSave').textContent = 'Saved';
+        }
+      });
+    }
   } catch (e) {
     rmDirty = true;
     el('rmSave').textContent = 'Not saved';
@@ -1112,6 +1135,7 @@ el('circleList').addEventListener('click', e => {
 let pId = null, pData = { essay: '', moments: [] }, pTimer = null;
 let pBaseline = null, pVTimer = null;
 let pDirty = false;
+let pLoadedUpd = null;
 function pSessionEnd_() {
   clearInterval(pVTimer); pVTimer = null;
   if (pId === null || pBaseline === null) return;
@@ -1142,6 +1166,7 @@ function openPerson(id) {
   el('pNote').textContent = p.note || '';
   el('pEssay').innerHTML = NoteEditor.toHtml(pData.essay || '');
   pBaseline = NoteEditor.sanitize(el('pEssay').innerHTML);
+  { const lc = circle.find(x => String(x.id) === String(pId)); pLoadedUpd = (lc && lc.updated_at) || null; }
   clearInterval(pVTimer);
   pVTimer = setInterval(() => {
     if (pId === null) return;
@@ -1206,11 +1231,32 @@ async function savePerson_(force) {
   if (local && local.page === payload && !force) { pDirty = false; el('pSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
-    const { error } = await supa.from('why_circle').update({ page: payload }).eq('id', id).eq('user_id', userId);
-    if (error) throw error;
-    if (local) local.page = payload;
-    pDirty = false;
-    el('pSave').textContent = 'Saved';
+    const res = await NoteEditor.casSave({ supa, userId, table: 'why_circle', field: 'page', id, content: payload, loaded: pLoadedUpd });
+    if (res.ok) {
+      if (local) { local.page = payload; local.updated_at = res.stamp; }
+      pLoadedUpd = res.stamp; pDirty = false;
+      el('pSave').textContent = 'Saved';
+    } else {
+      const theirs = res.theirs;
+      let theirData = { essay: '', moments: [] };
+      try { theirData = JSON.parse(theirs.page || 'null') || theirData; } catch (e2) {}
+      await NoteEditor.resolveConflict({
+        source: 'circle', id, mine: pData.essay, theirs: theirData.essay || '',
+        onKeepMine: async () => {
+          const f2 = await NoteEditor.casSave({ supa, userId, table: 'why_circle', field: 'page', id, content: payload, loaded: null });
+          if (f2.ok) { if (local) { local.page = payload; local.updated_at = f2.stamp; } pLoadedUpd = f2.stamp; pDirty = false; el('pSave').textContent = 'Saved'; }
+        },
+        onTakeTheirs: () => {
+          pData = theirData;
+          if (local) { local.page = theirs.page; local.updated_at = theirs.updated_at; }
+          pLoadedUpd = theirs.updated_at; pDirty = false;
+          el('pEssay').innerHTML = NoteEditor.toHtml(pData.essay || '');
+          pBaseline = NoteEditor.sanitize(el('pEssay').innerHTML);
+          renderPersonRead(); renderMoments();
+          el('pSave').textContent = 'Saved';
+        }
+      });
+    }
   } catch (e) { pDirty = true; el('pSave').textContent = 'Not saved'; }
   finally { NoteEditor.guard.end(); }
 }

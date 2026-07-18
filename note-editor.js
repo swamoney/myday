@@ -551,6 +551,128 @@
     if (document.visibilityState === 'hidden') flushAll();
   });
 
+
+  /* ---------- cross-device conflict protection ----------
+     Optimistic locking: every save carries the updated_at stamp the note was
+     LOADED with. If the row's stamp changed meanwhile (another device wrote),
+     the update matches nothing, we fetch theirs, save BOTH texts to version
+     history, and ask which to keep. Nothing can be silently overwritten. */
+  function casSave(o) {
+    var upd = {}; upd[o.field] = o.content; upd.updated_at = new Date().toISOString();
+    var q = o.supa.from(o.table).update(upd).eq('id', o.id).eq('user_id', o.userId);
+    if (o.loaded) q = q.eq('updated_at', o.loaded);
+    return q.select().then(function (res) {
+      if (res.error) throw res.error;
+      if (res.data && res.data.length) return { ok: true, stamp: res.data[0].updated_at };
+      return o.supa.from(o.table).select('*').eq('id', o.id).eq('user_id', o.userId).single()
+        .then(function (r2) {
+          if (r2.error || !r2.data) throw (r2.error || new Error('row gone'));
+          return { conflict: true, theirs: r2.data };
+        });
+    });
+  }
+  function resolveConflict(o) {
+    // Both versions are preserved BEFORE either wins — a conflict can never lose text.
+    return versions.record(o.source, o.id, o.mine)
+      .then(function () { return versions.record(o.source, o.id, o.theirs); })
+      .then(function () {
+        var keepMine = window.confirm(
+          'This note was changed on another device since you opened it.\n\n' +
+          'OK \u2014 keep THIS device\u2019s text (the other version stays in History)\n' +
+          'Cancel \u2014 load the OTHER device\u2019s text (this text stays in History)');
+        return keepMine ? Promise.resolve(o.onKeepMine()).then(function(){ return 'mine'; })
+                        : Promise.resolve(o.onTakeTheirs()).then(function(){ return 'theirs'; });
+      });
+  }
+
+  /* ---------- whole-library export ----------
+     One Markdown file of every note in every room (Favourites, Inner Life,
+     Roadmaps, Circle). My Wisdom is excluded: it archives third-party HTML
+     pages, which belong in their own export, not a notes file. */
+  function _grab(c, table, order) {
+    var q = c.supa.from(table).select('*').eq('user_id', c.userId);
+    if (order) q = q.order(order, { ascending: true });
+    return q.then(function (r) { return (r && r.data) || []; }, function () { return []; });
+  }
+  function exportLibrary() {
+    var c = vCtx(); if (!c || !c.supa || !c.userId) { alert('Not signed in.'); return; }
+    Promise.all([
+      _grab(c, 'bookmarks', 'created_at'),
+      _grab(c, 'iw_entries', 'created_at'),
+      _grab(c, 'why_pillars', null),
+      _grab(c, 'why_circle', null)
+    ]).then(function (all) {
+      var bms = all[0], iw = all[1], pillars = all[2], circle = all[3];
+      var d = function (iso) { try { return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+      var md = '# MyDay \u2014 all notes\n\n_Exported ' + d(new Date().toISOString()) + '_\n\n';
+
+      md += '\n---\n\n# My Favourites\n';
+      var secs = ['all-time', 'books', 'podcasts', 'marathi', 'movies', 'music'];
+      secs.forEach(function (s) {
+        var list = bms.filter(function (b) { return (b.section || 'all-time') === s; });
+        if (!list.length) return;
+        md += '\n## ' + s + '\n';
+        list.forEach(function (b) {
+          md += '\n### ' + (b.title || '(untitled)') + '\n';
+          var meta = [];
+          if (b.created_at) meta.push('saved ' + d(b.created_at));
+          if (b.type) meta.push(b.type);
+          if (b.tags && b.tags.length) meta.push('tags: ' + b.tags.join(', '));
+          if (b.url) meta.push(b.url);
+          if (b.source_url) meta.push('source: ' + b.source_url);
+          if (meta.length) md += '_' + meta.join(' \u00b7 ') + '_\n';
+          var body = toMarkdown(b.note);
+          if (body) md += '\n' + body + '\n';
+        });
+      });
+
+      md += '\n---\n\n# My Inner Life\n';
+      iw.forEach(function (e) {
+        md += '\n## ' + (e.title || '(untitled)') + '\n';
+        var meta = [];
+        if (e.kind) meta.push(e.kind);
+        if (e.created_at) meta.push('written ' + d(e.created_at));
+        if (e.tags && e.tags.length) meta.push('tags: ' + e.tags.join(', '));
+        if (meta.length) md += '_' + meta.join(' \u00b7 ') + '_\n';
+        if (e.essence) md += '\n> ' + e.essence + '\n';
+        var body = toMarkdown(e.body);
+        if (body) md += '\n' + body + '\n';
+      });
+
+      md += '\n---\n\n# My Why \u2014 roadmaps\n';
+      pillars.forEach(function (p) {
+        var rd = null; try { rd = JSON.parse(p.roadmap || 'null'); } catch (e) {}
+        if (!rd || (!String(rd.essay || '').trim() && !(rd.milestones || []).length)) return;
+        md += '\n## ' + (p.label || p.title || '(why)') + '\n';
+        var body = toMarkdown(rd.essay);
+        if (body) md += '\n' + body + '\n';
+        (rd.milestones || []).forEach(function (m) {
+          md += '- ' + (m.y ? m.y + ' \u2014 ' : '') + (m.t || '') + '\n';
+        });
+      });
+
+      md += '\n---\n\n# My Circle\n';
+      circle.forEach(function (p) {
+        var pg = null; try { pg = JSON.parse(p.page || 'null'); } catch (e) {}
+        if (!pg || (!String(pg.essay || '').trim() && !(pg.moments || []).length)) return;
+        md += '\n## ' + (p.name || '(person)') + '\n';
+        var body = toMarkdown(pg.essay);
+        if (body) md += '\n' + body + '\n';
+        (pg.moments || []).forEach(function (m) {
+          md += '- ' + (m.y ? m.y + ' \u2014 ' : '') + (m.t || '') + '\n';
+        });
+      });
+
+      var blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'myday-notes-' + new Date().toISOString().slice(0, 10) + '.md';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    });
+  }
+
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
@@ -918,11 +1040,14 @@
   }
 
   window.NoteEditor = {
-    version: '1.4',
+    version: '1.5',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,
     guard: guard,
+    casSave: casSave,
+    resolveConflict: resolveConflict,
+    exportLibrary: exportLibrary,
     sanitize: sanitize,
     toHtml: toHtml,
     toPlain: toPlain,

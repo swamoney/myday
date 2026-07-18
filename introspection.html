@@ -445,6 +445,7 @@ let activeView = 'introspection';
 let readerEntry = null;
 let rdBaseline = null, rdVTimer = null;
 let rdDirty = false;
+let rdLoadedUpd = null;
 NoteEditor.versions.connect(() => ({ supa, userId }));
 function rdSessionEnd_() {
   clearInterval(rdVTimer); rdVTimer = null;
@@ -761,6 +762,7 @@ function openReader(id) {
   el('readerBodyInp').innerHTML = bodyHtml;
   readerEntry = r;
   rdBaseline = bodyHtml;
+  rdLoadedUpd = r.updated_at || null;
   clearInterval(rdVTimer);
   rdVTimer = setInterval(() => {
     if (!readerEntry) return;
@@ -799,10 +801,28 @@ async function saveRd_(force) {
   if (readerEntry.body === val && !force) { rdDirty = false; el('rdSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
-    const { error } = await supa.from('iw_entries').update({ body: val, updated_at: new Date().toISOString() })
-      .eq('id', readerEntry.id).eq('user_id', userId);
-    if (error) throw error;
-    readerEntry.body = val; rdDirty = false; el('rdSave').textContent = 'Saved';
+    const res = await NoteEditor.casSave({ supa, userId, table: 'iw_entries', field: 'body', id: readerEntry.id, content: val, loaded: rdLoadedUpd });
+    if (res.ok) {
+      readerEntry.body = val; readerEntry.updated_at = res.stamp; rdLoadedUpd = res.stamp;
+      rdDirty = false; el('rdSave').textContent = 'Saved';
+    } else {
+      const theirs = res.theirs;
+      await NoteEditor.resolveConflict({
+        source: 'inner', id: readerEntry.id, mine: val, theirs: theirs.body || '',
+        onKeepMine: async () => {
+          const f2 = await NoteEditor.casSave({ supa, userId, table: 'iw_entries', field: 'body', id: readerEntry.id, content: val, loaded: null });
+          if (f2.ok) { readerEntry.body = val; readerEntry.updated_at = f2.stamp; rdLoadedUpd = f2.stamp; rdDirty = false; el('rdSave').textContent = 'Saved'; }
+        },
+        onTakeTheirs: () => {
+          const html = NoteEditor.sanitize(NoteEditor.toHtml(theirs.body || ''));
+          readerEntry.body = theirs.body || ''; readerEntry.updated_at = theirs.updated_at; rdLoadedUpd = theirs.updated_at;
+          rdBaseline = html; rdDirty = false;
+          el('readerBodyInp').innerHTML = html;
+          el('readerBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+          el('rdSave').textContent = 'Saved';
+        }
+      });
+    }
   } catch (e) { rdDirty = true; el('rdSave').textContent = 'Not saved'; }
   finally { NoteEditor.guard.end(); }
 }
@@ -813,11 +833,10 @@ el('rdHist').addEventListener('click', () => {
     getCurrent: () => NoteEditor.sanitize(el('readerBodyInp').innerHTML),
     applyRestore: (content) => {
       if (!readerEntry) return;
-      readerEntry.body = content; rdBaseline = content;
+      rdBaseline = content;
       el('readerBodyInp').innerHTML = content;
       el('readerBody').innerHTML = content || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
-      supa.from('iw_entries').update({ body: content, updated_at: new Date().toISOString() })
-        .eq('id', readerEntry.id).eq('user_id', userId).then(() => { el('rdSave').textContent = 'Saved'; }, () => {});
+      saveRd_(true);                     // CAS + conflict path
     }
   });
 });
@@ -843,12 +862,8 @@ const rdNk = NoteEditor.mount({
   onChange: scheduleRdSave,
   onReaderChange: (html) => {
     if (!readerEntry) return;
-    readerEntry.body = html;
     el('readerBodyInp').innerHTML = html;
-    rdDirty = true; NoteEditor.guard.begin();
-    supa.from('iw_entries').update({ body: html, updated_at: new Date().toISOString() })
-      .eq('id', readerEntry.id).eq('user_id', userId)
-      .then(() => { rdDirty = false; NoteEditor.guard.end(); }, () => { NoteEditor.guard.end(); });
+    saveRd_(true);                       // same CAS + conflict path as every save
   }
 });
 NoteEditor.guard.register(

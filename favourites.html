@@ -201,6 +201,9 @@
   .fr-srcline { font-size:13px; color:#5a6478; margin-bottom:20px; display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
   .fr-srcline a { color:#3a5b9c; font-weight:600; display:inline-flex; align-items:center; gap:5px; text-decoration:none; }
   .fr-srcline a svg { width:13px; height:13px; }
+  .btn-ghost2 { font-family:inherit; font-size:13px; font-weight:600; color:#3a4560; background:#fff; border:1px solid #dce3ee; border-radius:10px; padding:10px 14px; cursor:pointer; white-space:nowrap; }
+  .btn-ghost2:hover { border-color:#0F2D5C; }
+  .fr-dates { font-family:var(--mono,monospace); font-size:10px; letter-spacing:0.05em; text-transform:uppercase; color:#9aa4ba; }
   /* Rich-text note: read view + contenteditable edit view, both flat (no box). */
   .fr-body, .fr-body-inp { font-family:var(--serif,Georgia),serif; font-size:18px; line-height:1.75; color:#3a4560; }
   .fr-body { min-height:40px; }
@@ -290,6 +293,7 @@
       </div>
       <div class="toolbar">
         <div class="search"><span class="ic">&#9013;</span><input id="searchInput" placeholder="Search titles, tags, links&#8230;"></div>
+        <button class="btn-ghost2" id="exportAllBtn" type="button" title="Download every note in every room as one Markdown file">&#8595; Export all</button>
         <button class="btn-primary" id="newBtn">&#65291; New</button>
       </div>
 
@@ -652,7 +656,7 @@ function filteredRows() {
     out = out.filter(r =>
       (r.title || '').toLowerCase().includes(q) ||
       (r.type || '').toLowerCase().includes(q) ||
-      (r.note || '').toLowerCase().includes(q) ||
+      NoteEditor.toPlain(r.note).toLowerCase().includes(q) ||
       (r.url || '').toLowerCase().includes(q) ||
       (r.tags || []).some(t => t.toLowerCase().includes(q))
     );
@@ -799,7 +803,21 @@ function render() {
 // ===== NOTES READER PAGE =====
 let frId = null, frTimer = null;
 let frBaseline = null, frVTimer = null;
+function fmtNoteDate(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}
+function noteDatesHtml(r) {
+  const made = fmtNoteDate(r.created_at);
+  const edited = fmtNoteDate(r.updated_at);
+  if (!made) return '';
+  let s = '<span class="fr-dates">Saved ' + made;
+  if (edited && edited !== made) s += ' &middot; edited ' + edited;
+  return s + '</span>';
+}
 let frDirty = false;
+let frLoadedUpd = null;
 NoteEditor.versions.connect(() => ({ supa, userId }));
 function frSessionEnd_() {
   clearInterval(frVTimer); frVTimer = null;
@@ -827,8 +845,11 @@ function openReader(id) {
   let sl = '';
   if (typ) sl += '<span>' + escHtml(typ) + '</span>';
   if (src) sl += (typ ? '<span>&middot;</span>' : '') + '<a href="' + escHtml(normalizeUrl(src)) + '" target="_blank" rel="noopener noreferrer">' + FR_LINK + escHtml(hostOf(src) || 'source') + '</a>';
+  const dt = noteDatesHtml(r);
+  if (dt) sl += (sl ? '<span>&middot;</span>' : '') + dt;
   el('frSrcline').innerHTML = sl;
   frBaseline = noteHtml;
+  frLoadedUpd = r.updated_at || null;
   clearInterval(frVTimer);
   frVTimer = setInterval(() => {          // marathon-session safety snapshot
     if (frId === null) return;
@@ -872,9 +893,29 @@ async function saveFr_(force) {
   if (r.note === val && !force) { frDirty = false; el('frSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
-    const { error } = await supa.from('bookmarks').update({ note: val, updated_at: new Date().toISOString() }).eq('id', frId).eq('user_id', userId);
-    if (error) throw error;
-    r.note = val; frDirty = false; el('frSave').textContent = 'Saved';
+    const res = await NoteEditor.casSave({ supa, userId, table: 'bookmarks', field: 'note', id: frId, content: val, loaded: frLoadedUpd });
+    if (res.ok) {
+      r.note = val; r.updated_at = res.stamp; frLoadedUpd = res.stamp;
+      frDirty = false; el('frSave').textContent = 'Saved';
+    } else {
+      const theirs = res.theirs;
+      await NoteEditor.resolveConflict({
+        source: 'bookmark', id: frId, mine: val, theirs: theirs.note || '',
+        onKeepMine: async () => {
+          const f2 = await NoteEditor.casSave({ supa, userId, table: 'bookmarks', field: 'note', id: frId, content: val, loaded: null });
+          if (f2.ok) { r.note = val; r.updated_at = f2.stamp; frLoadedUpd = f2.stamp; frDirty = false; el('frSave').textContent = 'Saved'; }
+        },
+        onTakeTheirs: () => {
+          const html = NoteEditor.sanitize(NoteEditor.toHtml(theirs.note || ''));
+          r.note = theirs.note || ''; r.updated_at = theirs.updated_at; frLoadedUpd = theirs.updated_at;
+          frBaseline = html; frDirty = false;
+          el('frBodyInp').innerHTML = html;
+          el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+          el('frBody').classList.toggle('empty', !html);
+          el('frSave').textContent = 'Saved';
+        }
+      });
+    }
   } catch (e) { frDirty = true; el('frSave').textContent = 'Not saved'; }
   finally { NoteEditor.guard.end(); }
 }
@@ -897,13 +938,9 @@ const nk = NoteEditor.mount({
   reader: el('frBody'),
   onChange: scheduleFrSave,
   onReaderChange: (html) => {           // checkbox ticked while just reading
-    const r = rows.find(x => x.id === frId); if (!r) return;
-    r.note = html;
+    if (frId === null) return;
     el('frBodyInp').innerHTML = html;
-    frDirty = true; NoteEditor.guard.begin();
-    supa.from('bookmarks').update({ note: html, updated_at: new Date().toISOString() })
-      .eq('id', frId).eq('user_id', userId)
-      .then(() => { frDirty = false; NoteEditor.guard.end(); }, () => { NoteEditor.guard.end(); });
+    saveFr_(true);                       // same CAS + conflict path as every save
   }
 });
 NoteEditor.guard.register(
@@ -916,16 +953,15 @@ el('frHist').addEventListener('click', () => {
     source: 'bookmark', sourceId: frId,
     getCurrent: () => NoteEditor.sanitize(el('frBodyInp').innerHTML),
     applyRestore: (content) => {
-      const r = rows.find(x => x.id === frId); if (!r) return;
-      r.note = content; frBaseline = content;
+      frBaseline = content;
       el('frBodyInp').innerHTML = content;
       el('frBody').innerHTML = content || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
       el('frBody').classList.toggle('empty', !content);
-      supa.from('bookmarks').update({ note: content, updated_at: new Date().toISOString() })
-        .eq('id', frId).eq('user_id', userId).then(() => { el('frSave').textContent = 'Saved'; }, () => {});
+      saveFr_(true);                     // CAS + conflict path
     }
   });
 });
+el('exportAllBtn').addEventListener('click', () => NoteEditor.exportLibrary());
 el('frBack').addEventListener('click', closeReader);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('frPage').classList.contains('show')) closeReader(); });
 el('frEdit').addEventListener('click', () => {
