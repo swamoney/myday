@@ -442,6 +442,7 @@ let notes = [];        // wip_notes
 let activeView = 'introspection';
 let readerEntry = null;
 let rdBaseline = null, rdVTimer = null;
+let rdDirty = false;
 NoteEditor.versions.connect(() => ({ supa, userId }));
 function rdSessionEnd_() {
   clearInterval(rdVTimer); rdVTimer = null;
@@ -781,18 +782,20 @@ function setRdEditing(on) {
     el('readerBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   } else { rdNk.refresh(); }
 }
-function scheduleRdSave() { el('rdSave').textContent = 'Saving\u2026'; clearTimeout(rdTimer); rdTimer = setTimeout(() => saveRd_(), 700); }
+function scheduleRdSave() { rdDirty = true; el('rdSave').textContent = 'Saving\u2026'; clearTimeout(rdTimer); rdTimer = setTimeout(() => saveRd_(), 700); }
 async function saveRd_(force) {
   clearTimeout(rdTimer);
   if (!readerEntry) return;
   const val = NoteEditor.sanitize(el('readerBodyInp').innerHTML);
-  if (readerEntry.body === val && !force) { el('rdSave').textContent = 'Saved'; return; }
+  if (readerEntry.body === val && !force) { rdDirty = false; el('rdSave').textContent = 'Saved'; return; }
+  NoteEditor.guard.begin();
   try {
     const { error } = await supa.from('iw_entries').update({ body: val, updated_at: new Date().toISOString() })
       .eq('id', readerEntry.id).eq('user_id', userId);
     if (error) throw error;
-    readerEntry.body = val; el('rdSave').textContent = 'Saved';
-  } catch (e) { el('rdSave').textContent = 'Not saved'; }
+    readerEntry.body = val; rdDirty = false; el('rdSave').textContent = 'Saved';
+  } catch (e) { rdDirty = true; el('rdSave').textContent = 'Not saved'; }
+  finally { NoteEditor.guard.end(); }
 }
 el('rdHist').addEventListener('click', () => {
   if (!readerEntry) return;
@@ -833,10 +836,16 @@ const rdNk = NoteEditor.mount({
     if (!readerEntry) return;
     readerEntry.body = html;
     el('readerBodyInp').innerHTML = html;
+    rdDirty = true; NoteEditor.guard.begin();
     supa.from('iw_entries').update({ body: html, updated_at: new Date().toISOString() })
-      .eq('id', readerEntry.id).eq('user_id', userId).then(() => {}, () => {});
+      .eq('id', readerEntry.id).eq('user_id', userId)
+      .then(() => { rdDirty = false; NoteEditor.guard.end(); }, () => { NoteEditor.guard.end(); });
   }
 });
+NoteEditor.guard.register(
+  () => rdDirty,
+  () => { if (readerEntry) saveRd_(true); }
+);
 
 // ----- Per-entry export (Copy / Download .md / Print-PDF) -----
 function readerDateStr_(r) {

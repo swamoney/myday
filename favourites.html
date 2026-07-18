@@ -799,6 +799,7 @@ function render() {
 // ===== NOTES READER PAGE =====
 let frId = null, frTimer = null;
 let frBaseline = null, frVTimer = null;
+let frDirty = false;
 NoteEditor.versions.connect(() => ({ supa, userId }));
 function frSessionEnd_() {
   clearInterval(frVTimer); frVTimer = null;
@@ -862,18 +863,20 @@ function setFrEditing(on) {
     nk.refresh();
   }
 }
-function scheduleFrSave() { el('frSave').textContent = 'Saving\u2026'; clearTimeout(frTimer); frTimer = setTimeout(() => saveFr_(), 700); }
+function scheduleFrSave() { frDirty = true; el('frSave').textContent = 'Saving\u2026'; clearTimeout(frTimer); frTimer = setTimeout(() => saveFr_(), 700); }
 async function saveFr_(force) {
   clearTimeout(frTimer);
   if (frId === null) return;
   const r = rows.find(x => x.id === frId); if (!r) return;
   const val = NoteEditor.sanitize(el('frBodyInp').innerHTML);
-  if (r.note === val && !force) { el('frSave').textContent = 'Saved'; return; }
+  if (r.note === val && !force) { frDirty = false; el('frSave').textContent = 'Saved'; return; }
+  NoteEditor.guard.begin();
   try {
     const { error } = await supa.from('bookmarks').update({ note: val, updated_at: new Date().toISOString() }).eq('id', frId).eq('user_id', userId);
     if (error) throw error;
-    r.note = val; el('frSave').textContent = 'Saved';
-  } catch (e) { el('frSave').textContent = 'Not saved'; }
+    r.note = val; frDirty = false; el('frSave').textContent = 'Saved';
+  } catch (e) { frDirty = true; el('frSave').textContent = 'Not saved'; }
+  finally { NoteEditor.guard.end(); }
 }
 async function toggleFav(id) {
   const r = rows.find(x => x.id === id); if (!r) return;
@@ -897,10 +900,16 @@ const nk = NoteEditor.mount({
     const r = rows.find(x => x.id === frId); if (!r) return;
     r.note = html;
     el('frBodyInp').innerHTML = html;
+    frDirty = true; NoteEditor.guard.begin();
     supa.from('bookmarks').update({ note: html, updated_at: new Date().toISOString() })
-      .eq('id', frId).eq('user_id', userId).then(() => {}, () => {});
+      .eq('id', frId).eq('user_id', userId)
+      .then(() => { frDirty = false; NoteEditor.guard.end(); }, () => { NoteEditor.guard.end(); });
   }
 });
+NoteEditor.guard.register(
+  () => frDirty,
+  () => { if (frId !== null) saveFr_(true); }
+);
 el('frHist').addEventListener('click', () => {
   if (frId === null) return;
   NoteEditor.openHistory({

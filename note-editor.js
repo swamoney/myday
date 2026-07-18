@@ -519,6 +519,38 @@
     } catch (e) { alert('Could not open the print view.'); }
   }
 
+
+  /* ---------- close-save protection ----------
+     Pages register a dirty-probe (unsaved changes?) and a flush (save now).
+     Leaving the tab: pending saves are flushed best-effort, and if anything is
+     still unsaved or a save is mid-flight, the browser shows its own
+     "leave site?" warning. Backgrounding the tab (visibilitychange -> hidden,
+     the reliable event on mobile) flushes immediately. */
+  var G = { probes: [], flushes: [], inflight: 0 };
+  var guard = {
+    register: function (probe, flush) {
+      if (probe) G.probes.push(probe);
+      if (flush) G.flushes.push(flush);
+    },
+    begin: function () { G.inflight++; },
+    end: function () { G.inflight = Math.max(0, G.inflight - 1); },
+    isDirty: function () {
+      if (G.inflight > 0) return true;
+      for (var i = 0; i < G.probes.length; i++) {
+        try { if (G.probes[i]()) return true; } catch (e) {}
+      }
+      return false;
+    }
+  };
+  function flushAll() { G.flushes.forEach(function (f) { try { f(); } catch (e) {} }); }
+  window.addEventListener('beforeunload', function (e) {
+    flushAll();
+    if (guard.isDirty()) { e.preventDefault(); e.returnValue = ''; return ''; }
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flushAll();
+  });
+
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
@@ -886,10 +918,11 @@
   }
 
   window.NoteEditor = {
-    version: '1.3',
+    version: '1.4',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,
+    guard: guard,
     sanitize: sanitize,
     toHtml: toHtml,
     toPlain: toPlain,
