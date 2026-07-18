@@ -1164,6 +1164,8 @@ function clearFormatting() {
   try { document.execCommand('removeFormat', false, null); } catch (e) {}
   try { document.execCommand('unlink', false, null); } catch (e) {}
   stripColourClasses('tc-'); stripColourClasses('hl-');
+  try { if (document.queryCommandState('insertUnorderedList')) document.execCommand('insertUnorderedList'); } catch (e) {}
+  try { if (document.queryCommandState('insertOrderedList')) document.execCommand('insertOrderedList'); } catch (e) {}
   try { document.execCommand('formatBlock', false, 'p'); } catch (e) {}
   refreshToolbarState(); scheduleFrSave();
 }
@@ -1174,14 +1176,16 @@ function saveRange() { const s = window.getSelection(); if (s && s.rangeCount &&
 function restoreRange() {
   const box = el('frBodyInp');
   const s = window.getSelection();
-  if (!frSavedRange || !box.contains(frSavedRange.commonAncestorContainer)) {
-    // No cursor was placed in the note yet — put it at the end so inserts land.
-    const r = document.createRange();
-    r.selectNodeContents(box); r.collapse(false);
-    s.removeAllRanges(); s.addRange(r);
-    return;
+  // If a live selection is already inside the note, KEEP it — clobbering it is
+  // what broke Clear formatting (it wiped the very selection it should act on).
+  if (s && s.rangeCount && box.contains(s.getRangeAt(0).commonAncestorContainer)) return;
+  if (frSavedRange && box.contains(frSavedRange.commonAncestorContainer)) {
+    s.removeAllRanges(); s.addRange(frSavedRange); return;
   }
-  s.removeAllRanges(); s.addRange(frSavedRange);
+  // Nothing usable — drop the cursor at the end so inserts still land.
+  const r = document.createRange();
+  r.selectNodeContents(box); r.collapse(false);
+  s.removeAllRanges(); s.addRange(r);
 }
 function refreshToolbarState() {
   const tb = el('frToolbar'); if (!tb) return;
@@ -1222,6 +1226,19 @@ el('frToolbar').addEventListener('click', e => {
     document.execCommand(cmd, false, null);
   }
   refreshToolbarState();
+  scheduleFrSave();
+});
+
+// Paste arrives sanitised, so web copy-paste can't drag in fonts, sizes or
+// background colours. Structure (headings, lists, links) is kept.
+el('frBodyInp').addEventListener('paste', e => {
+  const cb = e.clipboardData || window.clipboardData; if (!cb) return;
+  e.preventDefault();
+  const html = cb.getData('text/html');
+  const text = cb.getData('text/plain');
+  const out = html ? sanitizeNoteHtml(html)
+                   : escHtml(text || '').replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>');
+  document.execCommand('insertHTML', false, out);
   scheduleFrSave();
 });
 el('frBodyInp').addEventListener('keyup', refreshToolbarState);
