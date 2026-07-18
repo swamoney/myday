@@ -299,11 +299,17 @@
   .fr { display:flex; gap:8px; flex-wrap:wrap; }
   #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) { .pin { padding:20px 16px 30px; } .pname { font-size:26px; } .pav { width:52px; height:52px; font-size:20px; } }
+  /* Shared note editor (note-editor.js). Toolbars only visible while editing. */
+  #rmToolbar, #pToolbar { display:none; margin:0 0 14px; }
+  body.rm-editing #rmToolbar { display:flex; }
+  body.p-editing #pToolbar { display:flex; }
+  .rm-essay.ro, .rm-essay.inp, .pessay.ro, .pessay.inp { white-space:normal; }
 </style>
 </head>
 <body>
 
 <script src="config.js"></script>
+<script src="note-editor.js"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -450,8 +456,9 @@
         </div>
       </div>
       <div class="rm-sec">
+        <div id="rmToolbar"></div>
         <div class="rm-essay ro" id="rmEssayRO"></div>
-        <textarea class="rm-essay inp" id="rmEssay" placeholder="Write the long view for this why&#8230;"></textarea>
+        <div class="rm-essay inp" id="rmEssay" contenteditable="true" data-placeholder="Write the long view for this why&#8230;"></div>
       </div>
       <div class="rm-sec" id="rmMsSec">
         <div class="ms-list" id="rmList"></div>
@@ -485,8 +492,9 @@
           <div class="pmeta"><span class="bd" id="pBand"></span><span class="pnote" id="pNote"></span></div>
         </div>
       </div>
+      <div id="pToolbar"></div>
       <div class="pessay ro" id="pEssayRO"></div>
-      <textarea class="pessay inp" id="pEssay" placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></textarea>
+      <div class="pessay inp" id="pEssay" contenteditable="true" data-placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></div>
       <div class="pblk" id="pMomentsSec">
         <div class="pk">Moments worth keeping</div>
         <div id="pMoments"></div>
@@ -815,7 +823,7 @@ function openRoadmap(id) {
   el('rmStands').innerHTML = p.label ? escHtml(p.label) : '&mdash;';
   el('rmStatus').style.background = STATE[p.state || ''] || STATE[''];
   el('rmStatusTxt').innerHTML = p.current_status ? escHtml(p.current_status) : '&mdash;';
-  el('rmEssay').value = rmData.essay || '';
+  el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
   el('rmSave').textContent = '';
   setRoadmapEditing(false);   // always opens read-only
   renderRoadmapRead();
@@ -825,9 +833,9 @@ function openRoadmap(id) {
 }
 function renderRoadmapRead() {
   const ro = el('rmEssayRO'); if (!ro) return;
-  const txt = (rmData.essay || '').trim();
-  ro.textContent = txt || 'Nothing written yet — tap Edit to begin.';
-  ro.classList.toggle('empty', !txt);
+  const html = NoteEditor.toHtml(rmData.essay || '').trim();
+  ro.innerHTML = html || '<span class="empty">Nothing written yet — tap Edit to begin.</span>';
+  ro.classList.toggle('empty', !html);
 }
 function setRoadmapEditing(on) {
   document.body.classList.toggle('rm-editing', !!on);
@@ -883,7 +891,7 @@ async function saveRoadmap(force) {
   clearTimeout(rmTimer);
   if (rmId === null) return;
   const id = rmId;
-  rmData.essay = el('rmEssay').value;
+  rmData.essay = NoteEditor.sanitize(el('rmEssay').innerHTML);
   const payload = JSON.stringify(rmData);
   const local = pillars.find(x => String(x.id) === String(id));
   if (local && local.roadmap === payload && !force) { el('rmSave').textContent = 'Saved'; return; }
@@ -1095,7 +1103,7 @@ function openPerson(id) {
   el('pBand').style.background = b.bg;
   el('pBand').style.color = b.acc;
   el('pNote').textContent = p.note || '';
-  el('pEssay').value = pData.essay || '';
+  el('pEssay').innerHTML = NoteEditor.toHtml(pData.essay || '');
   el('pSave').textContent = '';
   setPersonEditing(false);
   renderPersonRead();
@@ -1112,9 +1120,9 @@ function closePerson() {
 }
 function renderPersonRead() {
   const ro = el('pEssayRO'); if (!ro) return;
-  const txt = (pData.essay || '').trim();
-  ro.textContent = txt || 'Nothing written yet \u2014 tap Edit to begin.';
-  ro.classList.toggle('empty', !txt);
+  const html = NoteEditor.toHtml(pData.essay || '').trim();
+  ro.innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+  ro.classList.toggle('empty', !html);
 }
 function setPersonEditing(on) {
   document.body.classList.toggle('p-editing', !!on);
@@ -1146,7 +1154,7 @@ async function savePerson_(force) {
   clearTimeout(pTimer);
   if (pId === null) return;
   const id = pId;
-  pData.essay = el('pEssay').value;
+  pData.essay = NoteEditor.sanitize(el('pEssay').innerHTML);
   const payload = JSON.stringify(pData);
   const local = circle.find(x => String(x.id) === String(id));
   if (local && local.page === payload && !force) { el('pSave').textContent = 'Saved'; return; }
@@ -1159,13 +1167,12 @@ async function savePerson_(force) {
 }
 el('pBack').addEventListener('click', closePerson);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('personWin').classList.contains('show')) closePerson(); });
-el('pEssay').addEventListener('input', schedulePersonSave);
 el('pEssay').addEventListener('blur', () => savePerson_());
 el('pEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('p-editing');
   setPersonEditing(on);
   renderMoments();
-  if (on) { const t = el('pEssay'); if (t) t.focus(); } else { savePerson_(true); }
+  if (on) { pNk.refresh(); pNk.focusEnd(); } else { savePerson_(true); }
 });
 el('pMoments').addEventListener('click', e => {
   if (e.target.closest('#moAdd')) { pData.moments.push({ y: '', t: '' }); renderMoments(); schedulePersonSave();
@@ -1186,7 +1193,7 @@ function pMarkdown_() {
   let md = '# ' + (p.name || 'Someone') + '\n\n';
   md += '- **Circle:** ' + b.lbl + ' (' + b.range + ')\n';
   if (p.note) md += '- **Note:** ' + p.note + '\n';
-  md += '\n' + ((pData.essay || '').trim() || '_Nothing written yet._') + '\n';
+  md += '\n' + (NoteEditor.toMarkdown(pData.essay) || '_Nothing written yet._') + '\n';
   const ms = pData.moments || [];
   if (ms.length) md += '\n## Moments worth keeping\n\n' + ms.map(m => '- ' + (m.y ? '**' + m.y + '** \u2014 ' : '') + (m.t || '')).join('\n') + '\n';
   md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' }) + '_\n';
@@ -1215,10 +1222,10 @@ el('pPrint').addEventListener('click', () => {
   const b = BANDS.find(x => x.key === p.band) || BANDS[0];
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const ms = (pData.moments || []).map(m => '<li>' + (m.y ? '<span class="y">' + esc(m.y) + '</span> ' : '') + esc(m.t || '') + '</li>').join('');
-  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3a5b9c;margin:26px 0 10px;font-weight:600}.essay{font-size:19px;white-space:pre-wrap}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}</style>";
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3a5b9c;margin:26px 0 10px;font-weight:600}.essay{font-size:19px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">My Circle</div><h1>' + esc(p.name || '') + '</h1>'
     + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
-    + '<div class="essay">' + esc((pData.essay || '').trim()) + '</div>'
+    + '<div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '') + '</div>'
     + (ms ? '<h2>Moments worth keeping</h2><ul>' + ms + '</ul>' : '');
   const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
   w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(p.name || 'Person') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
@@ -1230,11 +1237,23 @@ el('circleCancel').addEventListener('click', closeCircleModal);
 el('circleDel').addEventListener('click', deletePerson);
 
 el('rmBack').addEventListener('click', closeRoadmap);
+
+// ===== Shared note editor (note-editor.js) — same engine as My Favourites =====
+const rmNk = NoteEditor.mount({
+  toolbar: el('rmToolbar'), editor: el('rmEssay'), reader: el('rmEssayRO'),
+  onChange: scheduleRoadmapSave,
+  onReaderChange: (html) => { el('rmEssay').innerHTML = html; saveRoadmap(true); }
+});
+const pNk = NoteEditor.mount({
+  toolbar: el('pToolbar'), editor: el('pEssay'), reader: el('pEssayRO'),
+  onChange: schedulePersonSave,
+  onReaderChange: (html) => { el('pEssay').innerHTML = html; savePerson_(true); }
+});
 el('rmEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('rm-editing');
   setRoadmapEditing(on);
   renderMilestones();
-  if (on) { const t = el('rmEssay'); if (t) t.focus(); } else { saveRoadmap(true); }
+  if (on) { rmNk.refresh(); rmNk.focusEnd(); } else { saveRoadmap(true); }
 });
 
 // ----- Roadmap export (Copy / Download .md / Print-PDF) -----
@@ -1247,7 +1266,7 @@ function rmMarkdown_() {
   if (head) md += '**' + head + '**\n\n';
   if (p.label) md += '- **Stands for:** ' + p.label + '\n';
   if (p.current_status) md += '- **Current status:** ' + p.current_status + (rmStateLabel_(p.state) ? ' (' + rmStateLabel_(p.state) + ')' : '') + '\n';
-  md += '\n## The long view\n\n' + ((rmData.essay || '').trim() || '_Nothing written yet._') + '\n';
+  md += '\n## The long view\n\n' + (NoteEditor.toMarkdown(rmData.essay) || '_Nothing written yet._') + '\n';
   md += '\n## Milestones\n\n';
   const ms = rmData.milestones || [];
   md += ms.length
@@ -1280,17 +1299,16 @@ el('rmPrint').addEventListener('click', () => {
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const ms = (rmData.milestones || []).map(m =>
     '<li class="' + (m.done ? 'done' : '') + '">' + (m.done ? '\u2713 ' : '\u25A1 ') + esc(m.t || '') + (m.y ? ' <span class="y">' + esc(m.y) + '</span>' : '') + '</li>').join('');
-  const style = "<style>@page{margin:20mm}body{font-family:'Patrick Hand',cursive;color:#1c2331;line-height:1.6;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:19px;white-space:pre-wrap}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a5702f;float:right}</style>";
+  const style = "<style>@page{margin:20mm}body{font-family:'Patrick Hand',cursive;color:#1c2331;line-height:1.6;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:19px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a5702f;float:right}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || p.code || 'My Why') + '</h1>'
     + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
-    + '<h2>The long view</h2><div class="essay">' + esc((rmData.essay || '').trim()) + '</div>'
+    + '<h2>The long view</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '') + '</div>'
     + '<h2>Milestones</h2><ul>' + (ms || '<li>No milestones yet.</li>') + '</ul>';
   const w = window.open('', '_blank'); if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
   w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Roadmap \u2014 ' + esc(p.label || 'My Why') + '</title><link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
   w.document.close();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('roadmapWin').classList.contains('show')) closeRoadmap(); });
-el('rmEssay').addEventListener('input', scheduleRoadmapSave);
 el('rmEssay').addEventListener('blur', () => saveRoadmap());
 el('rmList').addEventListener('click', e => {
   const add = e.target.closest('#msAdd');
