@@ -218,6 +218,10 @@
     '.nk-fld input{width:100%;background:#f4f7fb;border:1px solid #dce3ee;border-radius:9px;padding:10px 12px;font-size:14px;color:#182233;font-family:inherit;box-sizing:border-box}',
     '.nk-fld input:focus{outline:none;border-color:#c9a94a;background:#fff}',
     '.nk-err{font-size:12px;color:#8A1F1A;background:#FCE9E2;border-radius:6px;padding:6px 10px;margin-bottom:10px}',
+    '.nk-find{font-size:11.5px;color:#8a94a8;margin:-4px 0 12px}',
+    '.nk-find a{color:#3a5b9c;font-weight:600;text-decoration:none}',
+    '.nk-find a:hover{text-decoration:underline}',
+    '.nk-find-tip{display:block;margin-top:3px;font-size:10.5px;color:#b0b8c8}',
     '.nk-err.hidden{display:none}',
     '.nk-actions{display:flex;align-items:center;gap:8px;margin-top:16px}',
     '.nk-btn{font-family:inherit;font-size:13px;font-weight:600;border-radius:9px;padding:9px 16px;cursor:pointer;border:1px solid #dce3ee;background:#fff;color:#3a4560}',
@@ -249,6 +253,11 @@
         '<div class="nk-modal">' +
           '<div class="nk-mt">Insert image</div><div class="nk-ms">paste an image link</div>' +
           '<div class="nk-fld"><label>Image URL</label><input data-nk-f="imgUrl" placeholder="https://…/photo.jpg" inputmode="url"></div>' +
+          '<div class="nk-find">find images on ' +
+            '<a href="https://unsplash.com/s/photos/" target="_blank" rel="noopener noreferrer">Unsplash</a> · ' +
+            '<a href="https://www.pexels.com/search/" target="_blank" rel="noopener noreferrer">Pexels</a> · ' +
+            '<a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia</a>' +
+            '<span class="nk-find-tip">open the photo, copy its image address, paste above</span></div>' +
           '<div class="nk-fld"><label>Caption (optional)</label><input data-nk-f="imgAlt" placeholder="What this shows"></div>' +
           '<div class="nk-err hidden" data-nk-f="imgErr"></div>' +
           '<div class="nk-actions"><span style="flex:1"></span>' +
