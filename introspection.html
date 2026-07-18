@@ -235,7 +235,10 @@
   .cards .card.add { flex-direction: column; }
   /* Shared note editor (note-editor.js): in-reader writing, like My Favourites. */
   #rdToolbar { display:none; margin:0 0 16px; }
-  body.rd-editing #rdToolbar { display:flex; }
+  body.rd-editing #rdToolbar { display:flex; position:sticky; top:0; z-index:9; box-shadow:0 6px 14px rgba(20,30,60,0.08); }
+  .rd-star { display:inline-flex; align-items:center; color:#d7dce4; }
+  .rd-star svg { width:15px; height:15px; }
+  .rd-star.on { color:var(--rose,#c2415c); border-color:var(--rose,#c2415c); }
   #readerBodyInp { display:none; min-height:240px; }
   body.rd-editing #readerBody { display:none; }
   body.rd-editing #readerBodyInp { display:block; }
@@ -338,6 +341,7 @@
     <button class="reader-back" id="readerBack">&larr; Back</button>
     <span class="reader-title" id="readerTitle"></span>
     <span class="rd-save" id="rdSave"></span>
+    <button class="reader-edit rd-star" id="rdStar" type="button" title="Favourite"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></button>
     <button class="reader-edit" id="readerEdit">Edit</button>
   </div>
   <div class="reader-scroll">
@@ -731,6 +735,7 @@ function openReader(id) {
   el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   el('readerBodyInp').innerHTML = bodyHtml;
   readerEntry = r;
+  el('rdStar').classList.toggle('on', !!r.favourite);
   el('readerOverlay').dataset.kind = displayKind(r.kind);
   setRdEditing(false);
   el('rdSave').textContent = '';
@@ -766,6 +771,11 @@ async function saveRd_(force) {
     readerEntry.body = val; el('rdSave').textContent = 'Saved';
   } catch (e) { el('rdSave').textContent = 'Not saved'; }
 }
+el('rdStar').addEventListener('click', () => {
+  if (!readerEntry) return;
+  toggleFavourite(readerEntry.id);
+  el('rdStar').classList.toggle('on');   // optimistic; toggleFavourite reverts on failure
+});
 el('readerEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('rd-editing');
   setRdEditing(on);
