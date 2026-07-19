@@ -786,6 +786,7 @@
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
+    clearfmt: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 6V4h12v2"/><path d="M10 4v14"/><path d="M7 18h6"/><path d="m16.5 13.5 5 5"/><path d="m21.5 13.5-5 5"/></svg>',
     undo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
     redo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>',
     bold: '<b style="font-weight:800">B</b>',
@@ -826,6 +827,7 @@
       '<span class="nk-sep"></span>' +
       btn('pop', 'text', '', 'Text colour', ICONS.tcol) +
       btn('pop', 'high', '', 'Highlight', ICONS.hcol) +
+      btn('act', 'clearfmt', '', 'Clear formatting (keeps the words)', ICONS.clearfmt) +
       '<span class="nk-sep"></span>' +
       btn('cmd', 'formatBlock', 'h3', 'Heading', ICONS.head) +
       btn('cmd', 'formatBlock', 'blockquote', 'Quote', ICONS.quote) +
@@ -1026,6 +1028,17 @@
       if (act === 'img') { activeInst = inst; saveRange(); openImg(); return; }
       if (act === 'link') { activeInst = inst; saveRange(); openLink(); return; }
       if (act === 'check') { insertChecklist(); return; }
+      if (act === 'clearfmt') {
+        editor.focus(); restoreRange();
+        var s = window.getSelection();
+        if (!s || !s.rangeCount || s.isCollapsed) return;   // needs a selection; no surprises
+        recordNow();                                        // one Undo brings it all back
+        exec('removeFormat');                               // bold/italic/underline etc.
+        stripColourClasses('tc-');                          // our text colours
+        stripColourClasses('hl-');                          // our highlights
+        noteChanged();
+        return;
+      }
       if (act === 'undo') { doUndo(); return; }
       if (act === 'redo') { doRedo(); return; }
       if (act === 'hr') { editor.focus(); restoreRange(); recordNow(); exec('insertHTML', '<hr><p><br></p>'); noteChanged(); return; }
@@ -1150,7 +1163,7 @@
   }
 
   window.NoteEditor = {
-    version: '1.7',
+    version: '1.8',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,
