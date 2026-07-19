@@ -79,6 +79,14 @@
           while (ch.firstChild) node.insertBefore(ch.firstChild, ch);
           node.removeChild(ch); return;
         }
+        /* Chrome writes strikethrough as an inline STYLE, not a tag; convert it
+           to a real <s> before the style attribute is stripped below. */
+        var deco = (ch.getAttribute('style') || '').toLowerCase();
+        if (deco.indexOf('line-through') !== -1 && ch.tagName !== 'S' && ch.tagName !== 'STRIKE' && ch.tagName !== 'DEL') {
+          var sWrap = document.createElement('s');
+          while (ch.firstChild) sWrap.appendChild(ch.firstChild);
+          ch.appendChild(sWrap);
+        }
         Array.prototype.slice.call(ch.attributes).forEach(function (a) {
           var n = a.name.toLowerCase();
           var okImg = ch.tagName === 'IMG' && (n === 'src' || n === 'alt');
@@ -1166,7 +1174,7 @@
   }
 
   window.NoteEditor = {
-    version: '1.9',
+    version: '2.0',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,
