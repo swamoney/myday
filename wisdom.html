@@ -97,6 +97,7 @@
   .card-body .card-essence { margin-top:2px; }
   .card .c-ic svg { width:22px; height:22px; }
   .card .c-kind { font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--acc,#6a7690); }
+  .card .c-saved { color:#9aa4ba; font-weight:600; }
   .card-title { font-family:var(--serif); font-size:18px; font-weight:600; line-height:1.2; color:var(--ink); }
   .card-essence { font-size:12.5px; color:#5a6478; line-height:1.5; font-style:italic; }
   .card-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:10px; }
@@ -169,6 +170,7 @@
   .reader-back { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:13px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
   .reader-back:hover { border-color:var(--accent); color:var(--accent); }
   .reader-title { flex:1; font-family:var(--serif); font-size:16px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .reader-saved { font-family:var(--mono); font-size:9px; letter-spacing:0.08em; text-transform:uppercase; color:#9aa4ba; white-space:nowrap; }
   .reader-edit { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:12px; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
   .reader-edit:hover { border-color:var(--accent); color:var(--accent); }
   .reader-frame { flex:1; border:0; width:1px; min-width:100%; max-width:100%; background:#fff; }
@@ -316,6 +318,7 @@
   <div class="reader-bar">
     <button class="reader-back" id="readerBack">← Library</button>
     <span class="reader-title" id="readerTitle"></span>
+    <span class="reader-saved" id="readerSaved"></span>
     <button class="reader-edit" id="readerEdit">Edit</button>
   </div>
   <iframe class="reader-frame" id="readerFrame" sandbox="allow-scripts allow-popups" referrerpolicy="no-referrer"></iframe>
@@ -340,7 +343,12 @@ const supa = window.supabase.createClient(
 );
 
 let userId = null;
-let rows = [];          // all wisdom rows for this user
+let rows = [];
+function fmtSaved(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); }
+  catch (e) { return ''; }
+}          // all wisdom rows for this user
 let activeTag = null;   // null = All
 let searchTerm = '';
 let editingId = null;   // null = adding new
@@ -554,7 +562,7 @@ function render() {
       '<span class="c-go">→</span>' +
       '<div class="c-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + meta.svg + '</svg></div>' +
       '<div class="card-body">' +
-      '<div class="c-kind">' + escHtml(meta.label) + '</div>' +
+      '<div class="c-kind">' + escHtml(meta.label) + (r.created_at ? ' <span class="c-saved">&middot; saved ' + fmtSaved(r.created_at) + '</span>' : '') + '</div>' +
       '<div class="card-title">' + escHtml(r.title) + '</div>' +
       (r.essence ? '<div class="card-essence">' + escHtml(r.essence) + '</div>' : '') +
       '<div class="card-foot">' +
@@ -629,6 +637,7 @@ function openReader(id) {
   if (!r) return;
   readerCurrentId = id;
   el('readerTitle').textContent = r.title || 'Untitled';
+  el('readerSaved').textContent = r.created_at ? ('Saved ' + fmtSaved(r.created_at)) : '';
   // Render stored HTML inside a sandboxed iframe (isolated from this page).
   const raw = r.content || '<!doctype html><body style="font-family:system-ui;padding:40px;color:#3D4866;"><p><em>No content saved for this piece yet. Tap Edit to add it.</em></p></body>';
   el('readerFrame').srcdoc = prepareForMobile(raw);

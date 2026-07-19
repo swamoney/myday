@@ -82,6 +82,9 @@
   .backup-btn:hover { border-color:#0F2D5C; color:#0F2D5C; }
   .backup-btn svg { width:17px; height:17px; }
   .backup-label { font-size:11px; color:#8a94a8; }
+  .backup-age { font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:0.05em; color:#9aa4ba; }
+  .backup-age.warn { color:#b8860b; font-weight:600; }
+  .backup-age:empty { display:none; }
   @media (max-width:560px){ .cards { grid-template-columns:1fr; } }
   .card {
     border:1px solid rgba(255,255,255,0.9); border-radius:18px; padding:22px;
@@ -237,6 +240,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
     </button>
     <span class="backup-label">Backup everything</span>
+    <span class="backup-age" id="backupAge"></span>
   </div>
   <div class="signout-end">
     <button class="signout-btn" id="signOutBtn" title="Sign out" aria-label="Sign out">
@@ -505,10 +509,38 @@ boot();
       NoteEditor.versions.connect(function () { return { supa: supa, userId: uid }; });
       if (lbl) lbl.textContent = 'Preparing 3 files\u2026';
       NoteEditor.exportLibrary();
+      stampBackup(uid);
       setTimeout(function () { if (lbl) lbl.textContent = 'Backup everything'; }, 4000);
     } catch (e) { alert('Backup failed to start.'); if (lbl) lbl.textContent = 'Backup everything'; }
   });
 })();
+
+// ---- R5: the hub remembers the monthly ritual (stamp lives in user_prefs) ----
+async function refreshBackupAge() {
+  var lbl = document.getElementById('backupAge');
+  if (!lbl) return;
+  try {
+    var s = await supa.auth.getSession();
+    var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+    if (!uid) { lbl.textContent = ''; return; }
+    var q = await supa.from('user_prefs').select('prefs').eq('user_id', uid).maybeSingle();
+    var last = q && q.data && q.data.prefs && q.data.prefs.last_backup;
+    if (!last) { lbl.textContent = 'No backup yet'; lbl.classList.add('warn'); return; }
+    var days = Math.floor((Date.now() - new Date(last).getTime()) / 86400000);
+    lbl.textContent = days === 0 ? 'Backed up today' : ('Last backup: ' + days + (days === 1 ? ' day ago' : ' days ago'));
+    lbl.classList.toggle('warn', days > 40);
+  } catch (e) { lbl.textContent = ''; }
+}
+async function stampBackup(uid) {
+  try {
+    var q = await supa.from('user_prefs').select('prefs').eq('user_id', uid).maybeSingle();
+    var prefs = (q && q.data && q.data.prefs) || {};          // read-merge-write: never clobber other prefs
+    prefs.last_backup = new Date().toISOString();
+    await supa.from('user_prefs').upsert({ user_id: uid, prefs: prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  } catch (e) {}
+  refreshBackupAge();
+}
+refreshBackupAge();
 </script>
 </body>
 </html>
