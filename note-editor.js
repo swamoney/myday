@@ -48,7 +48,7 @@
     { key: 'grey', css: '#ecebe5' }
   ];
   var CLASS_OK = /^(tc-(rose|sage|plum|gold|blue|grey)|hl-(yellow|green|pink|blue|grey)|fr-check|fr-cb|done)$/;
-  var ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, H3:1, UL:1, OL:1, LI:1,
+  var ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, S:1, STRIKE:1, DEL:1, H3:1, UL:1, OL:1, LI:1,
                   BLOCKQUOTE:1, P:1, BR:1, IMG:1, A:1, DIV:1, SPAN:1, HR:1 };
 
   function esc(s) {
@@ -129,6 +129,7 @@
         if (ch.nodeType !== 1) return;
         var t = ch.tagName, inner = inline(ch);
         if (t === 'B' || t === 'STRONG') out += '**' + inner + '**';
+        else if (t === 'S' || t === 'STRIKE' || t === 'DEL') out += '~~' + inner + '~~';
         else if (t === 'I' || t === 'EM') out += '*' + inner + '*';
         else if (t === 'A') out += '[' + inner + '](' + (ch.getAttribute('href') || '') + ')';
         else if (t === 'IMG') out += '![' + (ch.getAttribute('alt') || '') + '](' + (ch.getAttribute('src') || '') + ')';
@@ -786,6 +787,7 @@
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
+    strike: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M17 6.5c-.8-1.5-2.6-2.5-5-2.5-2.9 0-5 1.5-5 3.7 0 1.5 1 2.6 3 3.3"/><path d="M7 17.5c.8 1.5 2.6 2.5 5 2.5 2.9 0 5-1.5 5-3.7 0-1.5-1-2.6-3-3.3"/><path d="M4 12h16"/></svg>',
     clearfmt: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 6V4h12v2"/><path d="M10 4v14"/><path d="M7 18h6"/><path d="m16.5 13.5 5 5"/><path d="m21.5 13.5-5 5"/></svg>',
     undo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
     redo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>',
@@ -824,6 +826,7 @@
       btn('cmd', 'bold', '', 'Bold', ICONS.bold) +
       btn('cmd', 'italic', '', 'Italic', ICONS.italic) +
       btn('cmd', 'underline', '', 'Underline', ICONS.under) +
+      btn('cmd', 'strikeThrough', '', 'Strikethrough', ICONS.strike) +
       '<span class="nk-sep"></span>' +
       btn('pop', 'text', '', 'Text colour', ICONS.tcol) +
       btn('pop', 'high', '', 'Highlight', ICONS.hcol) +
@@ -1163,7 +1166,7 @@
   }
 
   window.NoteEditor = {
-    version: '1.8',
+    version: '1.9',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,
