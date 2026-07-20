@@ -755,6 +755,31 @@
        s-time / s-food (slots, meals):          amber
        s-night (Where, Stayed With):            lavender                       */
 
+  /* === D2 Health & Mind pulse rows (Jul 2026) === */
+  .hm-row { background: #fff; border: 1px solid #dcebe2; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+  .hm-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px;
+    background: transparent; border: none; cursor: pointer; text-align: left; font-family: var(--sans); }
+  .hm-ring { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    background: conic-gradient(var(--c) var(--p, 0%), #dcebe2 0); }
+  .hm-ring::before { content: ''; position: absolute; inset: 5px; border-radius: 50%; background: #fff; }
+  .hm-ring > span { position: relative; font-family: var(--sans); font-weight: 700; font-size: 11px;
+    color: var(--ink); font-variant-numeric: tabular-nums; text-align: center; line-height: 1.05; }
+  .hm-ring small { display: block; font-family: var(--mono); font-size: 6.5px; letter-spacing: 0.06em;
+    color: #6a8a74; font-weight: 600; }
+  .hm-main { flex: 1; min-width: 0; }
+  .hm-lab { display: block; font-size: 12px; font-weight: 600; color: var(--ink); }
+  .hm-val { display: block; font-size: 12.5px; color: #3a4560; margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hm-val.dim { color: #9ab0a0; font-style: italic; }
+  .hm-spark { display: flex; align-items: flex-end; gap: 2px; height: 24px; flex-shrink: 0; }
+  .hm-spark i { width: 5px; border-radius: 2px; background: var(--sc, #3d7a5c); opacity: 0.85; min-height: 3px; }
+  .hm-spark i.mut { background: #dcebe2; height: 3px !important; }
+  .hm-body { display: none; padding: 2px 12px 12px; border-top: 1px dashed #dcebe2; }
+  .hm-row.open .hm-body { display: block; }
+  .hm-row.open .hm-head { background: #fbfdf9; }
+  .hm-body .field { margin-top: 10px; }
+
   /* === HOURS + FOOD JOURNAL — amber stripe === */
   .section.s-time .textarea:not(:placeholder-shown),
   .section.s-food .textarea:not(:placeholder-shown),
@@ -7130,6 +7155,16 @@
         <span class="rule-fill"></span>
         <span class="num">ii.</span>
       </div>
+
+      <!-- D2 (Jul 2026): pulse rows — mini-ring + value + 7-day spark. Tap a
+           row to reveal the ORIGINAL controls, unchanged, inside .hm-body. -->
+      <div class="hm-row" id="hmRowWalk">
+        <button class="hm-head" type="button" data-hm="walk" aria-expanded="false">
+          <span class="hm-ring" id="hmRingWalk" style="--c:#3d7a5c"><span id="hmRingWalkTxt">&mdash;</span></span>
+          <span class="hm-main"><span class="hm-lab">Walk</span><span class="hm-val dim" id="hmValWalk">not logged &mdash; tap</span></span>
+          <span class="hm-spark" id="hmSparkWalk"></span>
+        </button>
+        <div class="hm-body">
       <!-- Phase 11+: Walk slider with animated walking figure (W4).
            A horizontal slider drives the value (0-120 min, step 1). Above the
            track, a small walking-figure SVG bobs in place at the thumb's x
@@ -7191,10 +7226,30 @@
           <input type="number" id="f_walk" class="hidden" value="" aria-hidden="true">
         </div>
       </div>
+        </div>
+      </div>
+
+      <div class="hm-row" id="hmRowHeart">
+        <button class="hm-head" type="button" data-hm="heart" aria-expanded="false">
+          <span class="hm-ring" id="hmRingHeart" style="--c:#c2415c"><span id="hmRingHeartTxt">&#9825;</span></span>
+          <span class="hm-main"><span class="hm-lab">Heart</span><span class="hm-val dim" id="hmValHeart">tap to set</span></span>
+          <span class="hm-spark" id="hmSparkHeart"></span>
+        </button>
+        <div class="hm-body">
       <div class="field">
         <label>Google Heart Points</label>
         <input class="input" type="number" inputmode="numeric" id="f_heart" placeholder="0" style="font-family: var(--mono); font-variant-numeric: tabular-nums;">
       </div>
+        </div>
+      </div>
+
+      <div class="hm-row" id="hmRowReading">
+        <button class="hm-head" type="button" data-hm="reading" aria-expanded="false">
+          <span class="hm-ring" id="hmRingReading" style="--c:#a5702f"><span id="hmRingReadingTxt">&mdash;</span></span>
+          <span class="hm-main"><span class="hm-lab">Reading</span><span class="hm-val dim" id="hmValReading">not answered &mdash; tap</span></span>
+          <span class="hm-spark" id="hmSparkReading"></span>
+        </button>
+        <div class="hm-body">
       <!-- Phase 11+: Reading toggle has 3 hidden states (Yes/No/not-answered).
            To make the not-answered state visually distinct, wrap the buttons in
            a tinted .toggle-tint-wrap. Empty: amber-dashed ("needs your input").
@@ -7222,6 +7277,8 @@
             </svg>
             <textarea class="input reading-takeaway-input" id="f_readingTakeaway" placeholder="Key takeaway (optional) — the one idea worth remembering" rows="2"></textarea>
           </div>
+        </div>
+      </div>
         </div>
       </div>
     </div>
@@ -9276,6 +9333,7 @@ function renderEntry() {
     walkUserHasInteractedToday = (walkV > 0);
   }
   if (typeof refreshWalkLockState === 'function') refreshWalkLockState();
+  if (typeof renderHM === 'function') renderHM();
   // Refresh the recurring payments running log — scoped to the month of the
   // date currently being viewed.
   if (typeof renderRecurringLog === 'function') renderRecurringLog();
@@ -11412,7 +11470,7 @@ function renderTrendAlmanac(months) {
 
   return `<div class="year-card trend-card">
     <div class="year-card-head">
-      <span class="year-card-title">The Almanac</span>
+      <span class="year-card-title">All-Time Almanac</span>
       <span class="year-card-meta">every year, 12 bars each</span>
     </div>
     <div class="alm-chips">${chips}</div>
@@ -11436,10 +11494,10 @@ async function renderTrends() {
   //   3. What changes how you feel — habit ↔ satisfaction correlations
   //   4. All-time records — personal bests across the dataset
   let html = '';
-  html += renderTrendAlmanac(months);       // the Almanac supersedes Year-over-year
-  html += renderTrendAllTimeSpend(months);  // kept as-is
-  html += renderTrendInsights(months);      // kept: correlations are distinct value
-  html += renderTrendRecords(months);       // kept (R-A3a face)
+  html += renderTrendAlmanac(months);       // All-Time Almanac (supersedes Year-over-year)
+  html += renderTrendInsights(months);      // correlations
+  html += renderTrendRecords(months);       // records (R-A3a face)
+  html += renderTrendAllTimeSpend(months);  // all-time spending closes the page
   wrap.innerHTML = html;
 
   // Almanac metric chips re-render Trends with the chosen metric
@@ -14113,6 +14171,107 @@ function renderMonthCashFlow(monthYM, totalInvest, totalSpendDaily, dayCount, co
     ${netHtml}
   </div>`;
 }
+
+// ---- D2 Health & Mind pulse rows (Jul 2026) --------------------------------
+function _hmReadingState() {
+  const a = document.querySelector('[data-toggle="f_reading"].active');
+  return a ? a.dataset.val : '';
+}
+function _hmSpark(elId, vals, color) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.style.setProperty('--sc', color);
+  el.innerHTML = vals.map(x => x === null
+    ? '<i class="mut"></i>'
+    : `<i style="height:${Math.max(4, Math.round(x * 24))}px"></i>`).join('');
+}
+function renderHM() {
+  const walkEl = document.getElementById('f_walk');
+  if (!walkEl) return;
+  const heartEl = document.getElementById('f_heart');
+  const w = Number(walkEl.value) || 0;
+  const hp = Number(heartEl && heartEl.value) || 0;
+  const rd = _hmReadingState();
+  const rw = document.getElementById('hmRingWalk');
+  if (rw) {
+    rw.style.setProperty('--p', Math.min(100, Math.round(w / 60 * 100)) + '%');
+    document.getElementById('hmRingWalkTxt').innerHTML = w > 0 ? `${w}<small>MIN</small>` : '&mdash;';
+  }
+  const vw = document.getElementById('hmValWalk');
+  if (vw) {
+    if (w > 0) { vw.textContent = (typeof walkBucket === 'function' ? walkBucket(w) : w + ' min'); vw.classList.remove('dim'); }
+    else { vw.textContent = 'not logged \u2014 tap'; vw.classList.add('dim'); }
+  }
+  const rh = document.getElementById('hmRingHeart');
+  if (rh) {
+    rh.style.setProperty('--p', hp > 0 ? '100%' : '0%');
+    document.getElementById('hmRingHeartTxt').innerHTML = hp > 0 ? `${hp}<small>PTS</small>` : '&#9825;';
+  }
+  const vh = document.getElementById('hmValHeart');
+  if (vh) {
+    if (hp > 0) { vh.textContent = hp + ' heart points'; vh.classList.remove('dim'); }
+    else { vh.textContent = 'tap to set'; vh.classList.add('dim'); }
+  }
+  const rr = document.getElementById('hmRingReading');
+  if (rr) {
+    rr.style.setProperty('--p', rd === 'Yes' ? '100%' : '0%');
+    document.getElementById('hmRingReadingTxt').textContent = rd === 'Yes' ? '\u2713' : rd === 'No' ? '\u2715' : '\u2014';
+  }
+  const vr = document.getElementById('hmValReading');
+  if (vr) {
+    if (rd === 'Yes') {
+      const t = (document.getElementById('f_readingTakeaway') || {}).value || '';
+      vr.textContent = t || 'Yes'; vr.classList.remove('dim');
+    } else if (rd === 'No') { vr.textContent = 'No, not today'; vr.classList.remove('dim'); }
+    else { vr.textContent = 'not answered \u2014 tap'; vr.classList.add('dim'); }
+  }
+  const end = (typeof currentDate === 'string' && currentDate) ? currentDate
+            : (typeof isoToday === 'function' ? isoToday() : null);
+  if (end && typeof allEntries === 'object') {
+    const days = [];
+    const d0 = new Date(end + 'T00:00:00');
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(d0); d.setDate(d0.getDate() - i);
+      days.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'));
+    }
+    let maxW = 0, maxH = 0;
+    days.forEach(iso => {
+      const e = allEntries[iso];
+      if (e) { maxW = Math.max(maxW, Number(e.walk) || 0); maxH = Math.max(maxH, Number(e.heart) || 0); }
+    });
+    _hmSpark('hmSparkWalk', days.map(iso => {
+      const e = allEntries[iso]; const v = e ? Number(e.walk) || 0 : 0;
+      return v > 0 ? v / (maxW || 1) : null;
+    }), '#3d7a5c');
+    _hmSpark('hmSparkHeart', days.map(iso => {
+      const e = allEntries[iso]; const v = e ? Number(e.heart) || 0 : 0;
+      return v > 0 ? v / (maxH || 1) : null;
+    }), '#c2415c');
+    _hmSpark('hmSparkReading', days.map(iso => {
+      const e = allEntries[iso];
+      if (!e || !e.reading) return null;
+      return e.reading === 'Yes' ? 1 : 0.18;
+    }), '#a5702f');
+  }
+}
+function initHMRows() {
+  document.querySelectorAll('.hm-head').forEach(hd => {
+    hd.addEventListener('click', () => {
+      const row = hd.parentElement;
+      const open = row.classList.toggle('open');
+      hd.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+  ['walkSlider', 'walkInlineInput', 'f_walk', 'f_heart', 'f_readingTakeaway'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.addEventListener('input', renderHM); el.addEventListener('change', renderHM); }
+  });
+  document.querySelectorAll('[data-toggle="f_reading"]').forEach(b =>
+    b.addEventListener('click', () => setTimeout(renderHM, 0)));
+  renderHM();
+}
+if (document.readyState !== 'loading') initHMRows();
+else document.addEventListener('DOMContentLoaded', initHMRows);
 
 function renderHeatmap() {
   const wrap = document.getElementById('heatmapWrap');
