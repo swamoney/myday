@@ -755,6 +755,14 @@
        s-time / s-food (slots, meals):          amber
        s-night (Where, Stayed With):            lavender                       */
 
+  /* Heart composite — the walk slider recipe in rose, heart figure, no lock */
+  .heart-composite input[type="range"].walk-slider {
+    background: linear-gradient(to right, #c2415c 0%, #c2415c var(--walk-pct, 0%), #F2DDE1 var(--walk-pct, 0%), #F2DDE1 100%);
+  }
+  .heart-composite input[type="range"].walk-slider::-webkit-slider-thumb { background: #c2415c; }
+  .heart-composite input[type="range"].walk-slider::-moz-range-thumb { background: #c2415c; }
+  .heart-composite .walk-figure svg { animation: none; }
+
   /* === D2 Health & Mind pulse rows (Jul 2026) === */
   .hm-row { background: #fff; border: 1px solid #dcebe2; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
   .hm-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px;
@@ -7238,7 +7246,31 @@
         <div class="hm-body">
       <div class="field">
         <label>Google Heart Points</label>
-        <input class="input" type="number" inputmode="numeric" id="f_heart" placeholder="0" style="font-family: var(--mono); font-variant-numeric: tabular-nums;">
+        <div class="walk-composite heart-composite" id="heartComposite">
+          <div class="walk-figure-stage">
+            <div class="walk-horizon"></div>
+            <div class="walk-figure" id="heartFigure">
+              <svg viewBox="0 0 24 24" fill="#c2415c" stroke="#c2415c" stroke-width="1" aria-hidden="true">
+                <path d="M12 21 C7 16.5 3 13 3 8.8 C3 6 5.2 4 7.8 4 C9.5 4 11 5 12 6.5 C13 5 14.5 4 16.2 4 C18.8 4 21 6 21 8.8 C21 13 17 16.5 12 21 Z"/>
+              </svg>
+            </div>
+          </div>
+          <input type="range" min="0" max="100" step="1" value="0" id="heartSlider" class="walk-slider heart-slider" aria-label="Heart points">
+          <div class="walk-ticks" id="heartTicks">
+            <span class="walk-tick" data-heart="0">0</span>
+            <span class="walk-tick" data-heart="25">25</span>
+            <span class="walk-tick" data-heart="50">50</span>
+            <span class="walk-tick" data-heart="75">75</span>
+            <span class="walk-tick" data-heart="100">100+</span>
+          </div>
+          <div class="walk-readout" id="heartReadout">
+            <div class="walk-readout-pill" id="heartReadoutPill" tabindex="0" role="button" aria-label="Tap to type exact points">
+              <span class="walk-val" id="heartVal">0</span><span class="walk-unit">pts</span>
+            </div>
+          </div>
+          <input type="number" inputmode="numeric" step="1" min="0" max="999" id="heartInlineInput" class="walk-inline-input hidden" aria-label="Heart points">
+          <input class="hidden" type="number" id="f_heart" value="" aria-hidden="true">
+        </div>
       </div>
         </div>
       </div>
@@ -9333,7 +9365,17 @@ function renderEntry() {
     walkUserHasInteractedToday = (walkV > 0);
   }
   if (typeof refreshWalkLockState === 'function') refreshWalkLockState();
+  if (typeof renderHeartComposite === 'function') {
+    const _he = document.getElementById('f_heart');
+    renderHeartComposite(_he ? _he.value : 0);
+  }
   if (typeof renderHM === 'function') renderHM();
+  // D2: every date arrives with its pulse rows folded
+  document.querySelectorAll('.hm-row.open').forEach(r => {
+    r.classList.remove('open');
+    const hd = r.querySelector('.hm-head');
+    if (hd) hd.setAttribute('aria-expanded', 'false');
+  });
   // Refresh the recurring payments running log — scoped to the month of the
   // date currently being viewed.
   if (typeof renderRecurringLog === 'function') renderRecurringLog();
@@ -14268,6 +14310,31 @@ function initHMRows() {
   });
   document.querySelectorAll('[data-toggle="f_reading"]').forEach(b =>
     b.addEventListener('click', () => setTimeout(renderHM, 0)));
+  // D2: entering a value folds the row back down (commit signals only,
+  // never mid-drag/mid-typing).
+  function _hmFold(id) {
+    const row = document.getElementById(id);
+    if (!row) return;
+    row.classList.remove('open');
+    const hd = row.querySelector('.hm-head');
+    if (hd) hd.setAttribute('aria-expanded', 'false');
+  }
+  const foldMap = [
+    ['walkSlider', 'change', 'hmRowWalk'],
+    ['walkInlineInput', 'blur', 'hmRowWalk'],
+    ['heartSlider', 'change', 'hmRowHeart'],
+    ['heartInlineInput', 'blur', 'hmRowHeart'],
+    ['f_readingTakeaway', 'change', 'hmRowReading'],
+  ];
+  foldMap.forEach(([id, ev, rowId]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener(ev, () => setTimeout(() => _hmFold(rowId), 120));
+  });
+  // Reading: "No" is a complete answer -> fold; "Yes" stays open for the takeaway
+  document.querySelectorAll('[data-toggle="f_reading"]').forEach(b =>
+    b.addEventListener('click', () => {
+      if (b.dataset.val === 'No') setTimeout(() => _hmFold('hmRowReading'), 120);
+    }));
   renderHM();
 }
 if (document.readyState !== 'loading') initHMRows();
@@ -18444,6 +18511,70 @@ function setupSlotStates() {
   }
 }
 
+// Heart composite — same recipe as walk (slider + ticks + tap-to-type pill),
+// rose palette, heart figure, no lock chrome. #f_heart stays the hidden
+// mirror so save/load/charts/renderHM read it unchanged.
+function renderHeartComposite(rawValue) {
+  const slider = document.getElementById('heartSlider');
+  const figure = document.getElementById('heartFigure');
+  const val = document.getElementById('heartVal');
+  if (!slider || !figure || !val) return;
+  const n = Math.max(0, Math.min(999, Math.round(Number(rawValue) || 0)));
+  const sliderN = Math.min(100, n);
+  slider.value = sliderN;
+  const pct = (sliderN / 100) * 100;
+  slider.style.setProperty('--walk-pct', pct + '%');
+  figure.style.left = pct + '%';
+  val.textContent = n;
+}
+function setupHeartComposite() {
+  const slider = document.getElementById('heartSlider');
+  const hidden = document.getElementById('f_heart');
+  const pill = document.getElementById('heartReadoutPill');
+  const inline = document.getElementById('heartInlineInput');
+  const readout = document.getElementById('heartReadout');
+  if (!slider || !hidden || !pill || !inline || !readout) return;
+  slider.addEventListener('input', () => {
+    const v = Number(slider.value);
+    hidden.value = String(v);
+    renderHeartComposite(v);
+    hidden.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  document.querySelectorAll('#heartTicks .walk-tick').forEach(t => {
+    t.addEventListener('click', () => {
+      const v = Number(t.dataset.heart);
+      slider.value = v;
+      hidden.value = String(v);
+      renderHeartComposite(v);
+      hidden.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  });
+  function showInline() {
+    readout.classList.add('hidden');
+    inline.classList.remove('hidden');
+    inline.value = hidden.value || '';
+    inline.focus(); inline.select();
+  }
+  function hideInline() {
+    inline.classList.add('hidden');
+    readout.classList.remove('hidden');
+  }
+  pill.addEventListener('click', showInline);
+  pill.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showInline(); }
+  });
+  inline.addEventListener('input', () => {
+    const v = Math.max(0, Math.min(999, parseInt(inline.value || '0', 10)));
+    hidden.value = String(v);
+    renderHeartComposite(v);
+    hidden.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  inline.addEventListener('blur', hideInline);
+  inline.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); inline.blur(); }
+  });
+}
+
 function setupWalkComposite() {
   const slider = document.getElementById('walkSlider');
   const hidden = document.getElementById('f_walk');
@@ -18576,6 +18707,7 @@ async function init() {
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
   // Phase 11+: wire Walk slider composite (W4)
   setupWalkComposite();
+  setupHeartComposite();
   setupRecurring();
   // Ship 2 (Phase 12+): wire itemized Other Expenses form
   setupOther();
