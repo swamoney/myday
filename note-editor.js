@@ -204,6 +204,7 @@
   /* ---------- UI CSS (toolbar / popovers / dialogs), injected once ---------- */
   var UI_CSS = [
     '.nk-toolbar{position:relative;display:flex;gap:2px;align-items:center;flex-wrap:wrap;padding:5px;background:#f4f7fb;border:1px solid #e6ecf5;border-radius:10px}',
+    '.nk-b.nk-on{background:#e8ecf3;color:#182233}',
     '.nk-b{min-width:32px;height:32px;padding:0 8px;border:none;background:transparent;border-radius:7px;color:#3a4560;cursor:pointer;font-size:15px;display:inline-flex;align-items:center;justify-content:center;font-family:inherit}',
     '.nk-b:hover{background:#e3e9f2}',
     '.nk-b.on{background:#0F2D5C;color:#fff}',
@@ -796,6 +797,7 @@
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
     strike: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M17 6.5c-.8-1.5-2.6-2.5-5-2.5-2.9 0-5 1.5-5 3.7 0 1.5 1 2.6 3 3.3"/><path d="M7 17.5c.8 1.5 2.6 2.5 5 2.5 2.9 0 5-1.5 5-3.7 0-1.5-1-2.6-3-3.3"/><path d="M4 12h16"/></svg>',
+    spell: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 16c0-4 2-7 4.5-7s4.5 3 4.5 7"/><path d="M4.8 13.5h7.4"/><path d="m14.5 15.5 2.5 2.5 4.5-5"/></svg>',
     clearfmt: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 6V4h12v2"/><path d="M10 4v14"/><path d="M7 18h6"/><path d="m16.5 13.5 5 5"/><path d="m21.5 13.5-5 5"/></svg>',
     undo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
     redo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>',
@@ -823,6 +825,7 @@
     var savedRange = null;
 
     editor.classList.add('nk-content');
+    editor.setAttribute('spellcheck', 'false');   // opt-in via the toolbar toggle
     if (reader) reader.classList.add('nk-content');
     toolbar.classList.add('nk-toolbar');
 
@@ -839,6 +842,7 @@
       btn('pop', 'text', '', 'Text colour', ICONS.tcol) +
       btn('pop', 'high', '', 'Highlight', ICONS.hcol) +
       btn('act', 'clearfmt', '', 'Clear formatting (keeps the words)', ICONS.clearfmt) +
+      btn('act', 'spell', '', 'Spell-check (browser); off by default so \u092e\u0930\u093e\u0920\u0940 stays unmarked', ICONS.spell) +
       '<span class="nk-sep"></span>' +
       btn('cmd', 'formatBlock', 'h3', 'Heading', ICONS.head) +
       btn('cmd', 'formatBlock', 'blockquote', 'Quote', ICONS.quote) +
@@ -1050,6 +1054,13 @@
         noteChanged();
         return;
       }
+      if (act === 'spell') {
+        var spellOn = editor.getAttribute('spellcheck') === 'true';
+        editor.setAttribute('spellcheck', spellOn ? 'false' : 'true');
+        b.classList.toggle('nk-on', !spellOn);
+        editor.blur(); editor.focus();            // squiggles repaint on a focus cycle
+        return;
+      }
       if (act === 'undo') { doUndo(); return; }
       if (act === 'redo') { doRedo(); return; }
       if (act === 'hr') { editor.focus(); restoreRange(); recordNow(); exec('insertHTML', '<hr><p><br></p>'); noteChanged(); return; }
@@ -1174,7 +1185,7 @@
   }
 
   window.NoteEditor = {
-    version: '2.0',
+    version: '2.1',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,

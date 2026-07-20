@@ -5582,12 +5582,16 @@
   }
 
   /* All-time spending reveal */
+  .att-more { display: contents; }            /* rows join .att-rows' own 12px gap */
   .att-more.hidden { display: none; }
-  .att-reveal { display: block; width: 100%; margin-top: 10px; padding: 8px 10px;
-    background: var(--paper-soft); border: 1px dashed var(--rule-strong);
-    border-radius: 9px; font-family: var(--sans); font-size: 11.5px; font-weight: 600;
-    color: var(--ink-soft); cursor: pointer; text-align: center; }
-  .att-reveal:hover { background: var(--paper); }
+  /* The reveal button wears the old rollup line's exact clothes */
+  .att-reveal { display: flex; justify-content: space-between; align-items: baseline;
+    width: 100%; padding: 8px 0 0; margin: 4px 0 0; border: none;
+    border-top: 1px dashed var(--rule); background: transparent;
+    font-family: var(--sans); font-size: 13px; color: var(--muted); font-style: italic;
+    cursor: pointer; text-align: left; }
+  .att-reveal .att-rollup-name { font-weight: 500; }
+  .att-reveal .att-rollup-amt { font-weight: 500; font-variant-numeric: tabular-nums; }
 
   /* Card 4: All-time records — Mock A headline-first hierarchy.
      Each row leads with the FACT (e.g., "April 2026 · 96%") as the headline,
@@ -11561,7 +11565,8 @@ async function renderTrends() {
       const more = wrap.querySelector('#attMoreRows');
       if (!more) return;
       const nowHidden = more.classList.toggle('hidden');
-      revealBtn.textContent = nowHidden ? revealBtn.dataset.more : 'Show less';
+      const nameEl = revealBtn.querySelector('#attRevealName');
+      if (nameEl) nameEl.textContent = nowHidden ? revealBtn.dataset.more : '\u2212 Show less';
     });
   }
 
@@ -11914,9 +11919,12 @@ function renderTrendAllTimeSpend(months) {
         <div class="att-bar-track"><div class="att-bar-fill" style="width:${widthPct.toFixed(1)}%; background:${item.color};"></div></div>
       </div>`;
     });
-    const moreLbl = rest.length === 1 ? 'Show 1 more category' : `Show ${rest.length} more categories`;
+    const moreLbl = rest.length === 1 ? '+ Show 1 more category' : `+ Show ${rest.length} more categories`;
     rollup = `<div class="att-more hidden" id="attMoreRows">${restRows}</div>
-    <button class="att-reveal" id="attRevealBtn" type="button" data-more="${moreLbl} &middot; ${fmt(restAmt)}">${moreLbl} &middot; ${fmt(restAmt)}</button>`;
+    <button class="att-reveal" id="attRevealBtn" type="button" data-more="${moreLbl}">
+      <span class="att-rollup-name" id="attRevealName">${moreLbl}</span>
+      <span class="att-rollup-amt">${fmt(restAmt)}</span>
+    </button>`;
   }
 
   return `<div class="year-card trend-card">
