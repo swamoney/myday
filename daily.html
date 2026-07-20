@@ -14086,8 +14086,14 @@ function renderHeatmap() {
     cell.addEventListener('click', () => {
       const iso = cell.dataset.heatmapIso;
       if (!iso) return;
+      // Deep-link: land on the day AND open the section the heatmap was
+      // showing (same pattern as the Night Stay / Hours jumps at 13504).
+      const sec = heatmapMetric === 'walk' ? 's-health'
+                : heatmapMetric === 'spend' ? 's-expenses'
+                : 's-verdict';
       showTab('today');
       selectDate(iso);
+      setTimeout(() => { if (typeof focusHubSection === 'function') focusHubSection(sec); }, 150);
     });
   });
 }
