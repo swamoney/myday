@@ -5564,6 +5564,20 @@
     margin-bottom: 3px;
     font-variant-numeric: tabular-nums;
   }
+  /* R-A3a (Jul 2026): one loud line — VALUE · moment · age badge.
+     Same fonts as the rest of My Day: sans values, italic sans moments,
+     mono badges. Category colour rides on the value via .record-accent. */
+  .record-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 3px; }
+  .record-val { font-family: var(--sans); font-size: 20px; font-weight: 700;
+    line-height: 1.15; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .record-dot { color: var(--rule-strong, #c3ccdb); font-weight: 600; }
+  .record-when { font-family: var(--sans); font-style: italic; font-size: 15px;
+    font-weight: 600; color: var(--ink); }
+  .record-age { font-family: var(--mono); font-size: 8px; font-weight: 600;
+    letter-spacing: 0.07em; border-radius: 5px; padding: 2px 6px;
+    background: var(--paper-soft, #f0f3f8); color: var(--ink-soft, #6a7690);
+    align-self: center; white-space: nowrap; }
+  .record-age.fresh { background: #FDF3D3; color: #8a6d1a; }
   /* Accent span inside the headline — the key stat (percentage, amount,
      night count). Picks up the row's category color. */
   .record-row.record-wellbeing .record-accent { color: #356B4E; font-weight: 600; }
@@ -11874,13 +11888,12 @@ function renderTrendRecords(months) {
   const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
   const records = [];
 
-  // Mock A structure: each record provides
-  //   headlineHtml — the WHEN + key stat (e.g., "April 2026 · 96%"),
-  //                  with the stat optionally wrapped in a record-accent span
-  //                  to receive the category color
-  //   descriptor   — the category label + any supplemental context
-  //                  (e.g., "Best satisfaction month · 30 days logged")
-  // jumpYm/jumpYear remain unchanged for click-to-navigate.
+  // R-A3a structure (Jul 2026): each record provides
+  //   val        — the record number, loud ("96%", "₹61,420"), category-coloured
+  //   when       — the moment, italic ("April 2026")
+  //   descriptor — small grey context line below
+  // An age badge ("SET THIS YEAR" / "HELD N MO") is derived from jumpYm/jumpYear,
+  // which also remain the click-to-navigate targets.
 
   // Recompute best satisfaction month directly so we have raw fields.
   let bsBest = null;
@@ -11892,7 +11905,8 @@ function renderTrendRecords(months) {
   if (bsBest) {
     records.push({
       kind: 'wellbeing',
-      headlineHtml: `${ymTitle(bsBest.ym)} <span class="record-accent">&middot; ${(bsBest.avg * 100).toFixed(0)}%</span>`,
+      val: `${(bsBest.avg * 100).toFixed(0)}%`,
+      when: ymTitle(bsBest.ym),
       descriptor: `Best satisfaction month &middot; ${bsBest.days} days logged`,
       jumpYm: bsBest.ym
     });
@@ -11906,7 +11920,8 @@ function renderTrendRecords(months) {
   if (bestWalk) {
     records.push({
       kind: 'wellbeing',
-      headlineHtml: `${ymTitle(bestWalk.ym)} <span class="record-accent">&middot; ${Math.round(bestWalk.walk).toLocaleString('en-IN')} min</span>`,
+      val: `${Math.round(bestWalk.walk).toLocaleString('en-IN')} min`,
+      when: ymTitle(bestWalk.ym),
       descriptor: `Most walked month &middot; ${bestWalk.days} days`,
       jumpYm: bestWalk.ym
     });
@@ -11923,8 +11938,9 @@ function renderTrendRecords(months) {
     if (streakCount && endDate) {
       records.push({
         kind: 'wellbeing',
-        headlineHtml: `${streakCount} consecutive days`,
-        descriptor: `Longest reading streak &middot; ending ${endDate}`,
+        val: `${streakCount} days`,
+        when: `ending ${endDate}`,
+        descriptor: `Longest reading streak`,
         jumpYm: null
       });
     }
@@ -11935,7 +11951,8 @@ function renderTrendRecords(months) {
     const tripsTxt = `${mostTravel.trips} trip${mostTravel.trips === 1 ? '' : 's'}`;
     records.push({
       kind: 'travel',
-      headlineHtml: `${mostTravel.year} <span class="record-accent">&middot; ${nightsTxt} away</span>`,
+      val: `${nightsTxt} away`,
+      when: `${mostTravel.year}`,
       descriptor: `Most travelled year &middot; ${tripsTxt}`,
       jumpYear: mostTravel.year
     });
@@ -11944,7 +11961,8 @@ function renderTrendRecords(months) {
   if (highSpend) {
     records.push({
       kind: 'spend',
-      headlineHtml: `${ymTitle(highSpend.ym)} <span class="record-accent">&middot; ${fmt(highSpend.total)}</span>`,
+      val: fmt(highSpend.total),
+      when: ymTitle(highSpend.ym),
       descriptor: `Highest spend month &middot; ${highSpend.days} days`,
       jumpYm: highSpend.ym
     });
@@ -11953,7 +11971,8 @@ function renderTrendRecords(months) {
   if (highInvest) {
     records.push({
       kind: 'invest',
-      headlineHtml: `${ymTitle(highInvest.ym)} <span class="record-accent">&middot; ${fmt(highInvest.invest)}</span>`,
+      val: fmt(highInvest.invest),
+      when: ymTitle(highInvest.ym),
       descriptor: `Highest invest month`,
       jumpYm: highInvest.ym
     });
@@ -11961,11 +11980,30 @@ function renderTrendRecords(months) {
 
   if (records.length === 0) return '';
 
+  // "held N months" / "set this year" badge — quiet drama on each record
+  function _recAge(ym, year) {
+    const now = new Date(); const cy = now.getFullYear();
+    if (ym) {
+      const [y, m] = ym.split('-').map(Number);
+      if (y === cy) return '<span class="record-age fresh">SET THIS YEAR</span>';
+      const monthsHeld = (cy - y) * 12 + (now.getMonth() + 1 - m);
+      if (monthsHeld >= 24) return `<span class="record-age">HELD ${Math.floor(monthsHeld / 12)} YEARS</span>`;
+      return `<span class="record-age">HELD ${monthsHeld} MO</span>`;
+    }
+    if (year) {
+      if (Number(year) === cy) return '<span class="record-age fresh">SET THIS YEAR</span>';
+      const yrs = cy - Number(year);
+      return `<span class="record-age">HELD ${yrs} YEAR${yrs === 1 ? '' : 'S'}</span>`;
+    }
+    return '';
+  }
   const rowsHtml = records.map(r => {
     const jumpAttr = r.jumpYm ? `data-jump-ym="${escAttr(r.jumpYm)}"` : (r.jumpYear ? `data-jump-year="${escAttr(r.jumpYear)}"` : '');
     const role = jumpAttr ? 'role="button" tabindex="0"' : '';
     return `<div class="record-row record-${r.kind}" ${jumpAttr} ${role}>
-      <div class="record-headline">${r.headlineHtml}</div>
+      <div class="record-line">
+        <span class="record-val record-accent">${r.val}</span><span class="record-dot">&middot;</span><span class="record-when">${r.when}</span>${_recAge(r.jumpYm, r.jumpYear)}
+      </div>
       <div class="record-descriptor">${r.descriptor}</div>
     </div>`;
   }).join('');
