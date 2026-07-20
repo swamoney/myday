@@ -99,7 +99,7 @@
   .card.soon:hover { transform:none; box-shadow:0 6px 20px rgba(30,50,90,0.08); border-color:rgba(255,255,255,0.9); }
 
   /* Daily feature banner — spans all four columns, horizontal, navy. */
-  .card.feat { position:relative; overflow:hidden; grid-column:1 / -1; flex-direction:row; align-items:center; gap:22px; min-height:auto; padding:26px 30px;
+  .card.feat { grid-column:1 / -1; flex-direction:row; align-items:center; gap:22px; min-height:auto; padding:26px 30px;
     background:linear-gradient(120deg,#2b4a72 0%,#1c3252 100%); border:none; box-shadow:0 12px 30px rgba(20,40,80,0.24); }
   .card.feat:hover { transform:translateY(-2px); box-shadow:0 18px 40px rgba(20,40,80,0.32); border:none; }
   .card.feat .feat-txt { display:flex; flex-direction:column; gap:3px; }
@@ -109,7 +109,12 @@
   .card.feat .feat-date { font-family:var(--sans); font-size:16px; font-weight:600; line-height:1.1; color:#fff; }
   .card.feat .feat-day { font-family:var(--sans); font-size:11px; font-weight:400; color:rgba(255,255,255,0.6); margin-top:6px; }
   .card.feat .feat-remain { display:inline-block; background:#f4c430; color:#1d2d4d; font-weight:600; padding:3px 9px; border-radius:6px; margin-top:5px; }
-  .card.feat .feat-ring { flex-shrink:0; }
+  .feat-sym { flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .feat-months { display:grid; grid-template-columns:repeat(4,10px); gap:3px; }
+  .feat-months i { width:10px; height:10px; border-radius:3px; background:rgba(255,255,255,0.14); }
+  .feat-months i.f { background:#9B8CF2; }
+  .feat-months i.h { background:linear-gradient(90deg,#9B8CF2 var(--f,50%), rgba(255,255,255,0.14) 0); }
+  .feat-sym-pct { font-family:var(--sans); font-size:10px; font-weight:600; letter-spacing:0.05em; color:rgba(255,255,255,0.85); }
   @media (max-width:520px){
     .card.feat .feat-status { margin-left:0; width:100%; justify-content:space-between; padding-right:0; margin-top:4px; }
     .card.feat .feat-status-txt { text-align:left; border-right:none; border-left:2px solid rgba(244,196,48,0.65); padding-right:0; padding-left:13px; }
@@ -118,8 +123,6 @@
   .card.feat .c-desc { color:rgba(255,255,255,0.82); font-size:13.5px; margin-top:2px; }
   .card.feat .c-ic { width:58px; height:58px; font-size:27px; border-radius:15px; background:rgba(255,255,255,0.16); color:#fff; flex-shrink:0; }
   .card.feat .c-go { color:rgba(255,255,255,0.6); }
-  .feat-wl { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(255,255,255,0.10); }
-  .feat-wlf { height:100%; width:0; background:linear-gradient(90deg,#4c9c72,#6FCF97); border-radius:0 3px 3px 0; transition:width 0.6s ease; }
   @media (max-width:480px){ .card.feat { flex-direction:column; align-items:flex-start; } }
 
   .c-ic { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:22px; font-family:var(--serif); }
@@ -198,12 +201,10 @@
           <div class="feat-day" id="featDay">—</div>
           <div class="feat-day feat-remain" id="featRemain">—</div>
         </div>
-        <svg class="feat-ring" width="48" height="48" viewBox="0 0 48 48">
-          <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="4"/>
-          <circle id="featRingArc" cx="24" cy="24" r="20" fill="none" stroke="#6FCF97" stroke-width="4" stroke-linecap="round" stroke-dasharray="125.6" stroke-dashoffset="125.6" transform="rotate(-90 24 24)"/>
-          <text id="featRingPct" x="24" y="28" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="600" fill="#fff">—</text>
-        </svg>
-        <div class="feat-wl"><div class="feat-wlf" id="featWaterline"></div></div>
+        <div class="feat-sym" aria-label="Year progress">
+          <div class="feat-months" id="featMonths"></div>
+          <div class="feat-sym-pct" id="featRingPct">—</div>
+        </div>
       </div>
     </a>
     <a class="card shade-money" id="cardMoney">
@@ -340,14 +341,21 @@ function updateDailyStatus() {
   const rmEl = el('featRemain');
   if (rmEl) rmEl.textContent = remain + (remain === 1 ? ' day remains' : ' days remain');
   const pctEl = el('featRingPct'); if (pctEl) pctEl.textContent = pct + '%';
-  const arc = el('featRingArc');
-  if (arc) {
-    const circ = 2 * Math.PI * 20; // r=20
-    arc.setAttribute('stroke-dasharray', circ.toFixed(1));
-    arc.setAttribute('stroke-dashoffset', (circ * (1 - pct / 100)).toFixed(1));
+  // S4: twelve month-cells — past months filled, the current one part-filled
+  // by day-of-month, the rest waiting as ghosts.
+  const mw = el('featMonths');
+  if (mw) {
+    const mIdx = now.getMonth();
+    const daysInMonth = new Date(y, mIdx + 1, 0).getDate();
+    const monthFrac = Math.round((now.getDate() / daysInMonth) * 100);
+    let cells = '';
+    for (let i = 0; i < 12; i++) {
+      if (i < mIdx) cells += '<i class="f"></i>';
+      else if (i === mIdx) cells += '<i class="h" style="--f:' + monthFrac + '%"></i>';
+      else cells += '<i></i>';
+    }
+    mw.innerHTML = cells;
   }
-  const wlf = el('featWaterline');
-  if (wlf) wlf.style.width = pct + '%';   // M1: the year's waterline
 }
 
 
