@@ -5422,6 +5422,26 @@
     position: relative; height: 70px; padding: 0 2px;
   }
 
+  /* Card 0: The Almanac — every year of MyDay as one row of 12 month-bars.
+     One metric at a time (chips switch). Scales to 30 years on one screen. */
+  .alm-chips { display: flex; gap: 7px; flex-wrap: wrap; margin: 2px 0 14px; }
+  .alm-chip { font-family: var(--sans); font-size: 11px; font-weight: 600;
+    border: 1px solid var(--rule); border-radius: 999px; padding: 6px 12px;
+    background: var(--paper); color: var(--ink-soft); cursor: pointer; }
+  .alm-chip.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .alm-row { display: flex; align-items: center; gap: 10px; padding: 9px 0;
+    border-top: 0.5px solid var(--rule); }
+  .alm-row:first-of-type { border-top: none; }
+  .alm-year { font-family: var(--sans); font-weight: 700; font-size: 15px;
+    min-width: 46px; font-variant-numeric: tabular-nums; }
+  .alm-row.alm-best .alm-year::after { content: ' \2605'; color: #C9A227; font-size: 11px; }
+  .alm-bars { display: flex; align-items: flex-end; gap: 2.5px; height: 28px; flex: 1; }
+  .alm-bars i { width: 7px; border-radius: 2px; opacity: 0.85; min-height: 2px; }
+  .alm-bars i.alm-mut { opacity: 0.18; height: 3px !important; }
+  .alm-val { font-family: var(--mono); font-size: 10px; color: var(--ink-soft);
+    min-width: 74px; text-align: right; font-variant-numeric: tabular-nums; }
+  .alm-foot { font-size: 10.5px; color: var(--ink-soft); margin-top: 9px; opacity: 0.8; }
+
   /* Card 2: All-time spending — top-N ranked categories with bars */
   .att-headline {
     font-family: var(--sans); font-size: 24px; font-weight: 700;
@@ -11303,6 +11323,95 @@ function aggregateMonthly() {
   return Object.values(months).sort((a, b) => a.ym.localeCompare(b.ym));
 }
 
+// ---- The Almanac (Trends card 0, Jul 2026) -------------------------------
+let almanacMetric = 'walk';
+const ALM_METRICS = {
+  walk:    { label: 'Walking',      color: '#356B4E' },
+  spend:   { label: 'Spend',        color: '#8A1F1A' },
+  sat:     { label: 'Satisfaction', color: '#A5702F' },
+  reading: { label: 'Reading',      color: '#534AB7' },
+};
+function _almMonthValue(m, metric) {
+  if (metric === 'walk') return m.walk > 0 ? m.walk : null;
+  if (metric === 'sat')  return m.satCount > 0 ? (m.satSum / m.satCount) * 100 : null;
+  if (metric === 'reading') return m.readingYes > 0 ? m.readingYes : null;
+  if (metric === 'spend') {
+    const sp = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
+      .reduce((s, f) => s + (Number(m[f]) || 0), 0) + (Number(m.recurring) || 0);
+    return sp > 0 ? sp : null;
+  }
+  return null;
+}
+function _almYearSummary(list, metric) {
+  if (metric === 'walk') {
+    const mins = list.reduce((s, m) => s + m.walk, 0);
+    const days = list.reduce((s, m) => s + m.walkDays, 0);
+    return days ? { v: mins / days, txt: 'avg ' + Math.round(mins / days) + 'm/day' } : null;
+  }
+  if (metric === 'sat') {
+    const sum = list.reduce((s, m) => s + m.satSum, 0);
+    const n = list.reduce((s, m) => s + m.satCount, 0);
+    return n ? { v: sum / n, txt: 'avg ' + Math.round((sum / n) * 100) + '%' } : null;
+  }
+  if (metric === 'reading') {
+    const d = list.reduce((s, m) => s + m.readingYes, 0);
+    return d ? { v: d, txt: d + ' days' } : null;
+  }
+  if (metric === 'spend') {
+    const t = list.reduce((s, m) => s + (_almMonthValue(m, 'spend') || 0), 0);
+    return t ? { v: t, txt: '\u20B9' + Math.round(t).toLocaleString('en-IN') } : null;
+  }
+  return null;
+}
+function renderTrendAlmanac(months) {
+  const metric = almanacMetric;
+  const color = ALM_METRICS[metric].color;
+  const byYear = {};
+  months.forEach(m => { const y = m.ym.slice(0, 4); (byYear[y] = byYear[y] || []).push(m); });
+  const years = Object.keys(byYear).sort().reverse();          // newest first
+  if (!years.length) return '';
+  // Global max across ALL months so bars are comparable year-to-year
+  let max = 0;
+  months.forEach(m => { const v = _almMonthValue(m, metric); if (v && v > max) max = v; });
+  if (!max) max = 1;
+  // Peak year (\u2605) by summary value
+  let bestYear = null, bestV = -Infinity;
+  years.forEach(y => { const s = _almYearSummary(byYear[y], metric); if (s && s.v > bestV) { bestV = s.v; bestYear = y; } });
+
+  const chips = Object.keys(ALM_METRICS).map(k =>
+    `<button class="alm-chip${k === metric ? ' on' : ''}" data-alm="${k}" type="button">${ALM_METRICS[k].label}</button>`).join('');
+  const rows = years.map(y => {
+    const monthMap = {};
+    byYear[y].forEach(m => { monthMap[Number(m.ym.slice(5, 7))] = m; });
+    let bars = '';
+    for (let mo = 1; mo <= 12; mo++) {
+      const m = monthMap[mo];
+      const v = m ? _almMonthValue(m, metric) : null;
+      if (v === null || v === undefined) bars += `<i class="alm-mut" style="background:${color}"></i>`;
+      else {
+        const hpx = Math.max(3, Math.round((v / max) * 28));
+        bars += `<i style="height:${hpx}px;background:${color}" title="${y}-${String(mo).padStart(2,'0')}"></i>`;
+      }
+    }
+    const s = _almYearSummary(byYear[y], metric);
+    return `<div class="alm-row${y === bestYear ? ' alm-best' : ''}">
+      <span class="alm-year">${y}</span>
+      <div class="alm-bars">${bars}</div>
+      <span class="alm-val">${s ? s.txt : '\u2014'}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="year-card trend-card">
+    <div class="year-card-head">
+      <span class="year-card-title">The Almanac</span>
+      <span class="year-card-meta">every year, 12 bars each</span>
+    </div>
+    <div class="alm-chips">${chips}</div>
+    ${rows}
+    <div class="alm-foot">\u2605 peak year \u00b7 bars share one scale across all years \u2014 in 2046 this card holds twenty rows and still fits one screen.</div>
+  </div>`;
+}
+
 async function renderTrends() {
   const wrap = document.getElementById('trendsWrap');
   const months = aggregateMonthly();
@@ -11318,11 +11427,16 @@ async function renderTrends() {
   //   3. What changes how you feel — habit ↔ satisfaction correlations
   //   4. All-time records — personal bests across the dataset
   let html = '';
-  html += renderTrendYearOverYear(months);
-  html += renderTrendAllTimeSpend(months);
-  html += renderTrendInsights(months);
-  html += renderTrendRecords(months);
+  html += renderTrendAlmanac(months);       // the Almanac supersedes Year-over-year
+  html += renderTrendAllTimeSpend(months);  // kept as-is
+  html += renderTrendInsights(months);      // kept: correlations are distinct value
+  html += renderTrendRecords(months);       // kept (R-A3a face)
   wrap.innerHTML = html;
+
+  // Almanac metric chips re-render Trends with the chosen metric
+  wrap.querySelectorAll('.alm-chip').forEach(c => {
+    c.addEventListener('click', () => { almanacMetric = c.dataset.alm; renderTrends(); });
+  });
 
   // Wire any [data-jump-ym] elements (e.g., record cards link to their month)
   wrap.querySelectorAll('[data-jump-ym]').forEach(el => {
