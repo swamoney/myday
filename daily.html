@@ -5581,6 +5581,14 @@
     margin-top: 6px; text-align: center;
   }
 
+  /* All-time spending reveal */
+  .att-more.hidden { display: none; }
+  .att-reveal { display: block; width: 100%; margin-top: 10px; padding: 8px 10px;
+    background: var(--paper-soft); border: 1px dashed var(--rule-strong);
+    border-radius: 9px; font-family: var(--sans); font-size: 11.5px; font-weight: 600;
+    color: var(--ink-soft); cursor: pointer; text-align: center; }
+  .att-reveal:hover { background: var(--paper); }
+
   /* Card 4: All-time records — Mock A headline-first hierarchy.
      Each row leads with the FACT (e.g., "April 2026 · 96%") as the headline,
      with the category and supplemental context as a small grey descriptor
@@ -11546,6 +11554,16 @@ async function renderTrends() {
   wrap.querySelectorAll('.alm-chip').forEach(c => {
     c.addEventListener('click', () => { almanacMetric = c.dataset.alm; renderTrends(); });
   });
+  // All-time spending: fold/unfold the category tail
+  const revealBtn = wrap.querySelector('#attRevealBtn');
+  if (revealBtn) {
+    revealBtn.addEventListener('click', () => {
+      const more = wrap.querySelector('#attMoreRows');
+      if (!more) return;
+      const nowHidden = more.classList.toggle('hidden');
+      revealBtn.textContent = nowHidden ? revealBtn.dataset.more : 'Show less';
+    });
+  }
 
   // Wire any [data-jump-ym] elements (e.g., record cards link to their month)
   wrap.querySelectorAll('[data-jump-ym]').forEach(el => {
@@ -11879,17 +11897,26 @@ function renderTrendAllTimeSpend(months) {
       <div class="att-bar-track"><div class="att-bar-fill" style="width:${widthPct.toFixed(1)}%; background:${item.color};"></div></div>
     </div>`;
   });
+  // Reveal (Jul 2026): the tail is rendered in full but folded behind a
+  // disclosure — same idiom as the Expenses section's "7 more" reveal.
   let rollup = '';
-  if (restAmt > 0) {
-    const restPct = (restAmt / total) * 100;
-    const restPctLbl = restPct < 0.5 ? '<1%' : Math.round(restPct) + '%';
-    const restLabel = rest.length === 1
-      ? `+ 1 more category`
-      : `+ ${rest.length} more categories`;
-    rollup = `<div class="att-rollup">
-      <span class="att-rollup-name">${restLabel}</span>
-      <span class="att-rollup-amt">${fmt(restAmt)} <span class="att-rollup-pct">&middot; ${restPctLbl}</span></span>
-    </div>`;
+  if (rest.length > 0) {
+    let restRows = '';
+    rest.forEach(item => {
+      const widthPct = Math.max(2, (item.amt / maxAmt) * 100);
+      const sharePct = (item.amt / total) * 100;
+      const shareLbl = sharePct < 0.5 ? '<1%' : Math.round(sharePct) + '%';
+      restRows += `<div class="att-row">
+        <div class="att-row-head">
+          <span class="att-row-name">${item.label}</span>
+          <span class="att-row-amt">${fmt(item.amt)} <span class="att-row-pct">&middot; ${shareLbl}</span></span>
+        </div>
+        <div class="att-bar-track"><div class="att-bar-fill" style="width:${widthPct.toFixed(1)}%; background:${item.color};"></div></div>
+      </div>`;
+    });
+    const moreLbl = rest.length === 1 ? 'Show 1 more category' : `Show ${rest.length} more categories`;
+    rollup = `<div class="att-more hidden" id="attMoreRows">${restRows}</div>
+    <button class="att-reveal" id="attRevealBtn" type="button" data-more="${moreLbl} &middot; ${fmt(restAmt)}">${moreLbl} &middot; ${fmt(restAmt)}</button>`;
   }
 
   return `<div class="year-card trend-card">
@@ -14231,27 +14258,37 @@ function renderHM() {
   const walkEl = document.getElementById('f_walk');
   if (!walkEl) return;
   const heartEl = document.getElementById('f_heart');
-  const w = Number(walkEl.value) || 0;
-  const hp = Number(heartEl && heartEl.value) || 0;
+  // '' = never logged; '0' = an explicit zero (rest day) — different truths.
+  const wRaw = String(walkEl.value ?? '').trim();
+  const hpRaw = String((heartEl && heartEl.value) ?? '').trim();
+  const wLogged = wRaw !== '';
+  const hpLogged = hpRaw !== '';
+  const w = wLogged ? (Number(wRaw) || 0) : 0;
+  const hp = hpLogged ? (Number(hpRaw) || 0) : 0;
   const rd = _hmReadingState();
   const rw = document.getElementById('hmRingWalk');
   if (rw) {
     rw.style.setProperty('--p', Math.min(100, Math.round(w / 60 * 100)) + '%');
-    document.getElementById('hmRingWalkTxt').innerHTML = w > 0 ? `${w}<small>MIN</small>` : '&mdash;';
+    document.getElementById('hmRingWalkTxt').innerHTML = wLogged ? `${w}<small>MIN</small>` : '&mdash;';
   }
   const vw = document.getElementById('hmValWalk');
   if (vw) {
-    if (w > 0) { vw.textContent = (typeof walkBucket === 'function' ? walkBucket(w) : w + ' min'); vw.classList.remove('dim'); }
+    if (wLogged && w > 0) {
+      const b = (typeof walkBucket === 'function') ? walkBucket(w) : null;
+      vw.textContent = w + ' min' + (b && b.label ? ' \u00b7 ' + b.label : '');
+      vw.classList.remove('dim');
+    } else if (wLogged) { vw.textContent = 'Rest day \u00b7 0 min'; vw.classList.remove('dim'); }
     else { vw.textContent = 'not logged \u2014 tap'; vw.classList.add('dim'); }
   }
   const rh = document.getElementById('hmRingHeart');
   if (rh) {
-    rh.style.setProperty('--p', hp > 0 ? '100%' : '0%');
-    document.getElementById('hmRingHeartTxt').innerHTML = hp > 0 ? `${hp}<small>PTS</small>` : '&#9825;';
+    rh.style.setProperty('--p', Math.min(100, Math.round(hp)) + '%');
+    document.getElementById('hmRingHeartTxt').innerHTML = hpLogged ? `${hp}<small>PTS</small>` : '&#9825;';
   }
   const vh = document.getElementById('hmValHeart');
   if (vh) {
-    if (hp > 0) { vh.textContent = hp + ' heart points'; vh.classList.remove('dim'); }
+    if (hpLogged && hp > 0) { vh.textContent = hp + ' heart points'; vh.classList.remove('dim'); }
+    else if (hpLogged) { vh.textContent = '0 points today'; vh.classList.remove('dim'); }
     else { vh.textContent = 'tap to set'; vh.classList.add('dim'); }
   }
   const rr = document.getElementById('hmRingReading');
@@ -14282,12 +14319,16 @@ function renderHM() {
       if (e) { maxW = Math.max(maxW, Number(e.walk) || 0); maxH = Math.max(maxH, Number(e.heart) || 0); }
     });
     _hmSpark('hmSparkWalk', days.map(iso => {
-      const e = allEntries[iso]; const v = e ? Number(e.walk) || 0 : 0;
-      return v > 0 ? v / (maxW || 1) : null;
+      const e = allEntries[iso];
+      if (!e || e.walk === null || e.walk === undefined || e.walk === '') return null;
+      const v = Number(e.walk) || 0;
+      return v > 0 ? v / (maxW || 1) : 0;   // explicit zero -> tiny solid stub
     }), '#3d7a5c');
     _hmSpark('hmSparkHeart', days.map(iso => {
-      const e = allEntries[iso]; const v = e ? Number(e.heart) || 0 : 0;
-      return v > 0 ? v / (maxH || 1) : null;
+      const e = allEntries[iso];
+      if (!e || e.heart === null || e.heart === undefined || e.heart === '') return null;
+      const v = Number(e.heart) || 0;
+      return v > 0 ? v / (maxH || 1) : 0;
     }), '#c2415c');
     _hmSpark('hmSparkReading', days.map(iso => {
       const e = allEntries[iso];
