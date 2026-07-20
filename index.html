@@ -108,6 +108,7 @@
   .card.feat .feat-label { font-family:var(--sans); font-size:8.5px; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#f4c430; margin-bottom:6px; }
   .card.feat .feat-date { font-family:var(--sans); font-size:16px; font-weight:600; line-height:1.1; color:#fff; }
   .card.feat .feat-day { font-family:var(--sans); font-size:11px; font-weight:400; color:rgba(255,255,255,0.6); margin-top:6px; }
+  .card.feat .feat-remain { color:#f4c430; font-weight:600; margin-top:3px; }
   .card.feat .feat-ring { flex-shrink:0; }
   @media (max-width:520px){
     .card.feat .feat-status { margin-left:0; width:100%; justify-content:space-between; padding-right:0; margin-top:4px; }
@@ -195,6 +196,7 @@
           <div class="feat-label">Today</div>
           <div class="feat-date" id="featDate">—</div>
           <div class="feat-day" id="featDay">—</div>
+          <div class="feat-day feat-remain" id="featRemain">—</div>
         </div>
         <svg class="feat-ring" width="48" height="48" viewBox="0 0 48 48">
           <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="4"/>
@@ -334,6 +336,9 @@ function updateDailyStatus() {
   const pct = Math.round((dayOfYear / totalDays) * 100);
   const dEl = el('featDate'); if (dEl) dEl.textContent = dateStr;
   const dyEl = el('featDay'); if (dyEl) dyEl.textContent = 'Day ' + dayOfYear + ' of ' + totalDays;
+  const remain = totalDays - dayOfYear;
+  const rmEl = el('featRemain');
+  if (rmEl) rmEl.textContent = remain + (remain === 1 ? ' day remains' : ' days remain');
   const pctEl = el('featRingPct'); if (pctEl) pctEl.textContent = pct + '%';
   const arc = el('featRingArc');
   if (arc) {
