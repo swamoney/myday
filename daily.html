@@ -11329,12 +11329,17 @@ const ALM_METRICS = {
   walk:    { label: 'Walking',      color: '#356B4E' },
   spend:   { label: 'Spend',        color: '#8A1F1A' },
   sat:     { label: 'Satisfaction', color: '#A5702F' },
-  reading: { label: 'Reading',      color: '#534AB7' },
+  invest:  { label: 'Investment',   color: '#534AB7' },
+  reading: { label: 'Reading',      color: '#5C2E40' },
 };
 function _almMonthValue(m, metric) {
   if (metric === 'walk') return m.walk > 0 ? m.walk : null;
   if (metric === 'sat')  return m.satCount > 0 ? (m.satSum / m.satCount) * 100 : null;
   if (metric === 'reading') return m.readingYes > 0 ? m.readingYes : null;
+  if (metric === 'invest') {
+    const inv = (Number(m.regularInvestment) || 0) + (Number(m.topUp) || 0) - (Number(m.investmentRedemption) || 0);
+    return inv > 0 ? inv : null;
+  }
   if (metric === 'spend') {
     const sp = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
       .reduce((s, f) => s + (Number(m[f]) || 0), 0) + (Number(m.recurring) || 0);
@@ -11359,6 +11364,10 @@ function _almYearSummary(list, metric) {
   }
   if (metric === 'spend') {
     const t = list.reduce((s, m) => s + (_almMonthValue(m, 'spend') || 0), 0);
+    return t ? { v: t, txt: '\u20B9' + Math.round(t).toLocaleString('en-IN') } : null;
+  }
+  if (metric === 'invest') {
+    const t = list.reduce((s, m) => s + (_almMonthValue(m, 'invest') || 0), 0);
     return t ? { v: t, txt: '\u20B9' + Math.round(t).toLocaleString('en-IN') } : null;
   }
   return null;
