@@ -1055,10 +1055,22 @@
         return;
       }
       if (act === 'spell') {
-        var spellOn = editor.getAttribute('spellcheck') === 'true';
-        editor.setAttribute('spellcheck', spellOn ? 'false' : 'true');
-        b.classList.toggle('nk-on', !spellOn);
-        editor.blur(); editor.focus();            // squiggles repaint on a focus cycle
+        var spellNext = editor.getAttribute('spellcheck') === 'true' ? 'false' : 'true';
+        editor.setAttribute('spellcheck', spellNext);
+        b.classList.toggle('nk-on', spellNext === 'true');
+        // Browsers only re-run the checker on a REAL focus cycle (separate
+        // tasks) with caret activity — a synchronous blur/focus is ignored.
+        editor.blur();
+        setTimeout(function () {
+          editor.focus();
+          try {                                    // caret to end = the nudge
+            var r = document.createRange();
+            r.selectNodeContents(editor);
+            r.collapse(false);
+            var sel = window.getSelection();
+            sel.removeAllRanges(); sel.addRange(r);
+          } catch (e) {}
+        }, 30);
         return;
       }
       if (act === 'undo') { doUndo(); return; }
@@ -1185,7 +1197,7 @@
   }
 
   window.NoteEditor = {
-    version: '2.1',
+    version: '2.2',
     versions: versions,
     openHistory: openHistory,
     openPrint: openPrint,
