@@ -172,6 +172,11 @@
   /* Notes cards (books/podcasts/movies/marathi) */
   .ncard { position:relative; background:linear-gradient(160deg,var(--w1,#fff),var(--w2,#f6f8fb)); border:1px solid rgba(255,255,255,0.9); border-radius:16px; padding:14px 16px; cursor:pointer; box-shadow:0 8px 22px rgba(30,47,82,0.06); transition:transform .15s, box-shadow .2s; }
   .ncard:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(30,47,82,0.1); }
+  .nc-row { display:flex; gap:14px; align-items:flex-start; }
+  .nc-ic { width:44px; height:44px; border-radius:12px; background:var(--w2,#e6eaf1); color:var(--acc,#6a7690); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+  .nc-ic svg { width:21px; height:21px; }
+  .nc-body { flex:1; min-width:0; }
+  .nc-kind { font-family:var(--mono); font-size:9px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--acc,#6a7690); margin-bottom:3px; }
   .ncard .nstar { position:absolute; top:14px; right:26px; color:#d7dce4; display:flex; }
   .ncard .nstar.on { color:var(--gold,#f4c430); }
   .ncard .nstar svg { width:15px; height:15px; }
@@ -479,6 +484,12 @@ function el(id) { return document.getElementById(id); }
 let activeSection = 'all-time';
 // Inner Life's wash system, mapped by section character (five washes reused
 // verbatim from introspection's tabs; teal is the one new in-system swatch).
+const SEC_ICONS = {
+  'books': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h3.2v16H4zM9 4h3.2v16H9z"/><path d="m14.6 4.6 3.3-.7 3 15.7-3.3.7z"/></svg>',
+  'podcasts': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M8.8 8.8a4.6 4.6 0 0 0 0 6.4M15.2 8.8a4.6 4.6 0 0 1 0 6.4M5.9 5.9a8.8 8.8 0 0 0 0 12.2M18.1 5.9a8.8 8.8 0 0 1 0 12.2"/></svg>',
+  'marathi': '<svg viewBox="0 0 24 24"><text x="12" y="17.5" text-anchor="middle" font-size="16" font-weight="600" fill="currentColor" font-family="Noto Sans Devanagari, sans-serif">\u092e</text></svg>',
+  'movies': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="10" rx="2"/><path d="m3.5 10-.9-3.6L19.9 2.6l.9 3.6zM7.4 9.2 6 5.7M12.2 8 10.8 4.5M17 6.8 15.6 3.3"/></svg>',
+};
 const SEC_THEMES = {
   'all-time': { w1:'#f2f7f7', w2:'#e2edec', acc:'#4a6f6a' },   // teal (new, same volume)
   'music':    { w1:'#f6f5fb', w2:'#e6e3f3', acc:'#5f57a8' },   // violet
@@ -764,10 +775,16 @@ function render() {
       html += '<div class="ncard' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '"' + secTint + '>' +
         '<button class="nstar' + (r.favourite ? ' on' : '') + '" data-fav="' + escHtml(r.id) + '" type="button" aria-label="All-time favourite">' + (r.favourite ? FR_STAR_ON : FR_STAR_OFF) + '</button>' +
         '<button class="nedit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
-        '<div class="n-title">' + escHtml(r.title) + '</div>' +
-        (r.type ? '<div class="n-src' + (sec.srcReq ? ' req' : '') + '">' + escHtml(r.type) + '</div>' : '') +
-        (preview ? '<div class="n-prev">' + escHtml(preview) + '</div>' : '') +
-        (hasSrc ? '<div class="n-link">' + FR_LINK + '<span>' + escHtml(hostOf(r.source_url) || 'source') + '</span></div>' : '') +
+        '<div class="nc-row">' +
+          '<div class="nc-ic">' + (SEC_ICONS[secOf(r)] || '') + '</div>' +
+          '<div class="nc-body">' +
+            '<div class="nc-kind">' + escHtml(sec.eyebrow || sec.lbl) + '</div>' +
+            '<div class="n-title">' + escHtml(r.title) + '</div>' +
+            (r.type ? '<div class="n-src' + (sec.srcReq ? ' req' : '') + '">' + escHtml(r.type) + '</div>' : '') +
+            (preview ? '<div class="n-prev">' + escHtml(preview) + '</div>' : '') +
+            (hasSrc ? '<div class="n-link">' + FR_LINK + '<span>' + escHtml(hostOf(r.source_url) || 'source') + '</span></div>' : '') +
+          '</div>' +
+        '</div>' +
       '</div>';
     });
     html += '</div>';
