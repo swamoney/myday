@@ -114,7 +114,8 @@
   .feat-months i { width:10px; height:10px; border-radius:3px; background:rgba(255,255,255,0.14); }
   .feat-months i.f { background:#9B8CF2; }
   .feat-months i.h { background:linear-gradient(90deg,#9B8CF2 var(--f,50%), rgba(255,255,255,0.14) 0); }
-  .feat-sym-pct { font-family:var(--sans); font-size:10px; font-weight:600; letter-spacing:0.05em; color:rgba(255,255,255,0.85); }
+  .feat-sym-pct { font-family:var(--sans); font-size:15px; font-weight:700; letter-spacing:0.06em; color:#fff; margin-top:1px; }
+  .feat-sym-cap { font-family:var(--sans); font-size:7.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#B7ABF6; margin-top:1px; }
   @media (max-width:520px){
     .card.feat .feat-status { margin-left:0; width:100%; justify-content:space-between; padding-right:0; margin-top:4px; }
     .card.feat .feat-status-txt { text-align:left; border-right:none; border-left:2px solid rgba(244,196,48,0.65); padding-right:0; padding-left:13px; }
@@ -203,7 +204,8 @@
         </div>
         <div class="feat-sym" aria-label="Year progress">
           <div class="feat-months" id="featMonths"></div>
-          <div class="feat-sym-pct" id="featRingPct">—</div>
+          <div class="feat-sym-pct" id="featRingPct">&mdash;</div>
+          <div class="feat-sym-cap">of 2026 lived</div>
         </div>
       </div>
     </a>
@@ -338,6 +340,8 @@ function updateDailyStatus() {
   const dEl = el('featDate'); if (dEl) dEl.textContent = dateStr;
   const dyEl = el('featDay'); if (dyEl) dyEl.textContent = 'Day ' + dayOfYear + ' of ' + totalDays;
   const remain = totalDays - dayOfYear;
+  const capEl = document.querySelector('.feat-sym-cap');
+  if (capEl) capEl.textContent = 'of ' + y + ' lived';
   const rmEl = el('featRemain');
   if (rmEl) rmEl.textContent = remain + (remain === 1 ? ' day remains' : ' days remain');
   const pctEl = el('featRingPct'); if (pctEl) pctEl.textContent = pct + '%';
