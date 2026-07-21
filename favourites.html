@@ -78,7 +78,9 @@
 
   /* ---- ROW-BOXES (Option D — compact minimal) ---- */
   .rows { display:flex; flex-direction:column; gap:9px; }
-  .row { display:flex; align-items:center; gap:13px; padding:15px 18px; background:#F8FAFC; border:1px solid #E6ECF5; border-radius:15px; cursor:pointer; box-shadow:0 6px 18px rgba(30,47,82,0.05); transition:transform .14s, box-shadow .2s, border-color .15s; }
+  /* Inner Life's favourite treatment, verbatim: rose ring + rose glow */
+  .row.is-fav, .ncard.is-fav, .mrow.is-fav { border-color:#f0cdd6; box-shadow:0 8px 22px rgba(160,74,96,0.14); }
+  .row { display:flex; align-items:center; gap:13px; padding:15px 18px; background:linear-gradient(160deg,var(--w1,#F8FAFC),var(--w2,#eef2f8)); border:1px solid rgba(255,255,255,0.9); border-radius:15px; cursor:pointer; box-shadow:0 8px 22px rgba(30,47,82,0.06); transition:transform .15s, box-shadow .2s, border-color .15s; }
   .row:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(30,47,82,0.09); border-color:#dbe3f0; }
   .row-ic { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:19px; color:#fff; flex-shrink:0; }
   .row-body { flex:1; min-width:0; }
@@ -160,8 +162,8 @@
     .fav-seg > span { flex-direction:column; gap:3px; font-size:10px; padding:8px 4px; min-height:52px; text-align:center; }
   }
   /* Notes cards (books/podcasts/movies/marathi) */
-  .ncard { position:relative; border-bottom:1px solid #eef1f6; padding:14px 2px; cursor:pointer; }
-  .ncard:hover { background:#f8fafc; }
+  .ncard { position:relative; background:linear-gradient(160deg,var(--w1,#fff),var(--w2,#f6f8fb)); border:1px solid rgba(255,255,255,0.9); border-radius:16px; padding:14px 16px; cursor:pointer; box-shadow:0 8px 22px rgba(30,47,82,0.06); transition:transform .15s, box-shadow .2s; }
+  .ncard:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(30,47,82,0.1); }
   .ncard .nstar { position:absolute; top:14px; right:26px; color:#d7dce4; display:flex; }
   .ncard .nstar.on { color:var(--gold,#f4c430); }
   .ncard .nstar svg { width:15px; height:15px; }
@@ -175,8 +177,8 @@
   .n-link { display:inline-flex; align-items:center; gap:5px; margin-top:8px; font-size:11px; font-weight:600; color:#3a5b9c; }
   .n-link svg { width:12px; height:12px; }
   /* Music rows */
-  .mrow { display:flex; align-items:center; gap:12px; padding:11px 2px; border-bottom:1px solid #eef1f6; cursor:pointer; }
-  .mrow:hover { background:#f8fafc; }
+  .mrow { display:flex; align-items:center; gap:12px; padding:11px 14px; background:linear-gradient(160deg,var(--w1,#fff),var(--w2,#f6f8fb)); border:1px solid rgba(255,255,255,0.9); border-radius:15px; cursor:pointer; box-shadow:0 8px 22px rgba(30,47,82,0.06); transition:transform .15s, box-shadow .2s; }
+  .mrow:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(30,47,82,0.1); }
   .m-play { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; background:#3a5b9c; }
   .m-play svg { width:15px; height:15px; margin-left:2px; }
   .m-mid { flex:1; min-width:0; }
@@ -459,6 +461,16 @@ function el(id) { return document.getElementById(id); }
 // B2: every favourite has exactly one section. 'all-time' keeps the original
 // link-list behaviour; music is play-links; the rest are notes (reader pages).
 let activeSection = 'all-time';
+// Inner Life's wash system, mapped by section character (five washes reused
+// verbatim from introspection's tabs; teal is the one new in-system swatch).
+const SEC_THEMES = {
+  'all-time': { w1:'#f2f7f7', w2:'#e2edec', acc:'#4a6f6a' },   // teal (new, same volume)
+  'music':    { w1:'#f8f5f9', w2:'#eae3ec', acc:'#6d5474' },   // = gratitude plum
+  'books':    { w1:'#f8f7f4', w2:'#ecebe5', acc:'#6f6a5c' },   // = diary sand
+  'podcasts': { w1:'#f5f7fa', w2:'#e3e8f1', acc:'#44557c' },   // = introspection blue
+  'marathi':  { w1:'#faf2e0', w2:'#f0e6d2', acc:'#9a7b3a' },   // = WIP gold
+  'movies':   { w1:'#f5f8f4', w2:'#e5ebe2', acc:'#5a7050' },   // = experience green
+};
 const SECTIONS = {
   'all-time': { lbl:'All-Time', kind:'links' },
   'books':    { lbl:'Books', kind:'notes', srcReq:false, eyebrow:'Book note' },
@@ -713,6 +725,9 @@ function render() {
   renderTabs(); renderTags();
   const sec = SECTIONS[activeSection] || SECTIONS['all-time'];
   const list = filteredRows();
+  list.sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0));  // favourites first (Inner Life)
+  const th = SEC_THEMES[activeSection] || SEC_THEMES['all-time'];
+  const secTint = ' style="--w1:' + th.w1 + ';--w2:' + th.w2 + ';--acc:' + th.acc + '"';
   const wrap = el('rowsWrap');
 
   if (list.length === 0) {
@@ -730,7 +745,7 @@ function render() {
     list.forEach(r => {
       const preview = NoteEditor.toPlain(r.note).trim();  // strip tags for the teaser
       const hasSrc = (r.source_url || '').trim();
-      html += '<div class="ncard" data-open="' + escHtml(r.id) + '">' +
+      html += '<div class="ncard' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '"' + secTint + '>' +
         '<button class="nstar' + (r.favourite ? ' on' : '') + '" data-fav="' + escHtml(r.id) + '" type="button" aria-label="All-time favourite">' + (r.favourite ? FR_STAR_ON : FR_STAR_OFF) + '</button>' +
         '<button class="nedit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
         '<div class="n-title">' + escHtml(r.title) + '</div>' +
@@ -755,7 +770,7 @@ function render() {
     let html = '<div class="rows">';
     list.forEach(r => {
       const host = hostOf(r.url);
-      html += '<div class="mrow" data-play="' + escHtml(r.id) + '">' +
+      html += '<div class="mrow' + (r.favourite ? ' is-fav' : '') + '" data-play="' + escHtml(r.id) + '"' + secTint + '>' +
         '<span class="m-play">' + FR_PLAY + '</span>' +
         '<div class="m-mid"><div class="m-title">' + escHtml(r.title) + '</div>' +
           (host ? '<div class="m-host">' + escHtml(host) + '</div>' : '') + '</div>' +
@@ -779,7 +794,7 @@ function render() {
     const v = typeVisual(r.type);
     const host = hostOf(r.url);
     const tagsHtml = (r.tags || []).slice(0, 3).map(t => '<span class="row-tag">' + escHtml(t) + '</span>').join('');
-    html += '<div class="row" data-id="' + escHtml(r.id) + '">' +
+    html += '<div class="row' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '"' + secTint + '>' +
       '<div class="row-ic" style="background:' + v.color + ';box-shadow:0 5px 14px ' + v.color + '59;">' + v.icon + '</div>' +
       '<div class="row-body">' +
         '<div class="row-title">' + escHtml(r.title) + '</div>' +
