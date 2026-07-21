@@ -156,7 +156,14 @@
   .fav-seg > span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:11.5px; font-weight:600; padding:7px 11px; border-radius:8px; color:var(--muted,#6a7690); cursor:pointer; white-space:nowrap; }
   .fav-seg > span svg { width:14px; height:14px; flex-shrink:0; }
   .fav-seg .sl { font-style:normal; font-family:'IBM Plex Sans','Noto Sans Devanagari',sans-serif; }
-  .fav-seg > span.on { background:#fff; color:var(--ink,#182233); box-shadow:0 1px 4px rgba(0,0,0,0.10); }
+  .fav-seg > span.on { background:var(--t-bg,#fff); color:var(--t-acc,var(--ink,#182233)); box-shadow:0 2px 6px rgba(30,40,70,0.16); font-weight:700; }
+  /* chip themes = the section washes (t-bg = w2, t-acc = acc) */
+  .fav-seg > span[data-sec="all-time"] { --t-bg:#e2edec; --t-acc:#4a6f6a; }
+  .fav-seg > span[data-sec="music"]    { --t-bg:#eae3ec; --t-acc:#6d5474; }
+  .fav-seg > span[data-sec="books"]    { --t-bg:#ecebe5; --t-acc:#6f6a5c; }
+  .fav-seg > span[data-sec="podcasts"] { --t-bg:#e6e3f3; --t-acc:#5f57a8; }
+  .fav-seg > span[data-sec="marathi"]  { --t-bg:#f0e6d2; --t-acc:#9a7b3a; }
+  .fav-seg > span[data-sec="movies"]   { --t-bg:#e5ebe2; --t-acc:#5a7050; }
   @media (max-width:560px){
     .fav-seg { display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; }
     .fav-seg > span { flex-direction:column; gap:3px; font-size:10px; padding:8px 4px; min-height:52px; text-align:center; }
@@ -190,9 +197,16 @@
   .m-open { color:#c3ccdb; display:flex; flex-shrink:0; }
   .m-open svg { width:15px; height:15px; }
   /* Reader page (notes) */
-  .fr-page { position:fixed; inset:0; z-index:520; background:#fbfcfe; display:none; flex-direction:column; }
+  .fr-page { position:fixed; inset:0; z-index:520; background:var(--r-bg,#fbfcfe); display:none; flex-direction:column; }
+  /* Inner Life's reader tinting, ported: the open note sits on its section's paper */
+  .fr-page[data-sec="all-time"] { --r-bg:#f0f6f5; --r-bar:#f7fbfa; }
+  .fr-page[data-sec="music"]    { --r-bg:#f5f1f6; --r-bar:#fbf8fb; }
+  .fr-page[data-sec="books"]    { --r-bg:#f7f6f3; --r-bar:#fcfcfa; }
+  .fr-page[data-sec="podcasts"] { --r-bg:#f4f3fa; --r-bar:#faf9fd; }
+  .fr-page[data-sec="marathi"]  { --r-bg:#faf2e0; --r-bar:#fdf9f0; }
+  .fr-page[data-sec="movies"]   { --r-bg:#f0f4ef; --r-bar:#f8fbf7; }
   .fr-page.show { display:flex; }
-  .fr-bar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid #eef1f6; background:#fff; flex-shrink:0; }
+  .fr-bar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid rgba(0,0,0,0.05); background:var(--r-bar,#fff); flex-shrink:0; }
   .fr-back { background:none; border:none; font-size:13px; font-weight:600; color:#3a4560; cursor:pointer; }
   .fr-ttl { flex:1; font-family:var(--serif,Georgia),serif; font-size:14px; font-weight:600; text-align:center; }
   .fr-nav { width:26px; height:26px; border:1px solid #dce3ee; border-radius:7px; background:#fff; color:#3a4560; font-size:15px; line-height:1; cursor:pointer; flex-shrink:0; }
@@ -467,7 +481,7 @@ const SEC_THEMES = {
   'all-time': { w1:'#f2f7f7', w2:'#e2edec', acc:'#4a6f6a' },   // teal (new, same volume)
   'music':    { w1:'#f8f5f9', w2:'#eae3ec', acc:'#6d5474' },   // = gratitude plum
   'books':    { w1:'#f8f7f4', w2:'#ecebe5', acc:'#6f6a5c' },   // = diary sand
-  'podcasts': { w1:'#f5f7fa', w2:'#e3e8f1', acc:'#44557c' },   // = introspection blue
+  'podcasts': { w1:'#f6f5fb', w2:'#e6e3f3', acc:'#5f57a8' },   // violet — airwaves (PD2)
   'marathi':  { w1:'#faf2e0', w2:'#f0e6d2', acc:'#9a7b3a' },   // = WIP gold
   'movies':   { w1:'#f5f8f4', w2:'#e5ebe2', acc:'#5a7050' },   // = experience green
 };
@@ -868,6 +882,7 @@ function openReader(id, keepNav) {
   const r = rows.find(x => x.id === id); if (!r) return;
   if (!keepNav) frNavIds = filteredRows().map(x => x.id);  // arrows follow the list you came from
   const sec = SECTIONS[secOf(r)] || SECTIONS['all-time'];
+  el('frPage').dataset.sec = secOf(r);   // reader wears the box's colour
   frId = id;
   el('frTtl').textContent = sec.lbl;
   el('frEyebrow').textContent = sec.eyebrow || sec.lbl;
