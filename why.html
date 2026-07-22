@@ -366,12 +366,19 @@
   body:not(.p-editing) .bk-stat { background:transparent; padding:0; }
   body:not(.p-editing) .bk-stat > span:not(.on) { display:none; }             /* read mode shows the state only */
   body:not(.p-editing) .bk-stat > span { cursor:default; }
-  body:not(.p-editing) .bk-dts input { pointer-events:none; border-color:transparent; background:transparent; padding-left:0; }
   body:not(.p-editing) .bk-del-row { display:none; }
   #bkStar { padding:7px 10px; }
   #bkStar svg { width:16px; height:16px; color:#c3ccdb; }
   #bkStar.on svg { color:#c9a94a; }
-  .bk-statrow { margin-top:11px; }
+  .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .bk-ro-dates { display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  body.p-editing .bk-ro-dates { display:none; }            /* the real inputs take over in Edit */
+  .bk-ro-dates .rod { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.11em; padding:3px 8px; border-radius:6px; }
+  .bk-ro-dates .rod.plan { background:rgba(244,196,48,0.22); color:#8a6f2f; }     /* = the WIP card badge */
+  .bk-ro-dates .rod.plan.wait { background:transparent; color:#8a94a8; padding-left:0; }
+  .bk-ro-dates .rod.plan.over { background:rgba(138,31,26,0.13); color:#8A1F1A; }
+  .bk-ro-dates .rod.done { background:transparent; color:#2F6F6A; padding-left:0; }
+  .bk-ro-dates .rod.writ { background:transparent; color:#a8b0c0; padding-left:0; }
   .bk-stat { display:inline-flex; gap:4px; background:#eef1f6; padding:4px; border-radius:10px; flex-wrap:wrap; }
   .bk-stat > span { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:6px 11px; border-radius:7px; cursor:pointer; opacity:0.72; transition:opacity .15s; white-space:nowrap; }
   .bk-stat > span[data-st="not_yet"] { background:#f2f4f8; color:#6a7690; }
@@ -608,6 +615,7 @@
               <span data-st="wip">Work in progress</span>
               <span data-st="done">&#10003; Done</span>
             </div>
+            <span class="bk-ro-dates" id="bkDatesRO"></span>
           </div>
           <div class="bk-dts">
             <label>WRITTEN <input type="date" id="bkDreamedOn"></label>
@@ -1672,6 +1680,19 @@ function bkRenderStatus() {
   el('bkLivedWrap').style.display = done ? '' : 'none';   // only Done carries a date field
   el('bkStat').querySelectorAll('[data-st]').forEach(s =>
     s.classList.toggle('on', s.dataset.st === (b.status || 'not_yet')));
+  // Read mode: the dates as the book shows them
+  const ro = el('bkDatesRO');
+  if (ro) {
+    const e = done ? null : bkElapsed(b);
+    let out = '<span class="rod writ">WRITTEN \u00B7 ' + bkFmt(b.dreamed_on || b.created_at) + '</span>';
+    if (b.planned_on) {
+      const cls = 'rod plan' + (e && e.over ? ' over' : (b.status === 'wip' ? '' : ' wait'));
+      out += '<span class="' + cls + '">PLANNED FOR \u00B7 ' + bkFmt(b.planned_on) +
+             (e && e.over ? ' \u00B7 PASSED' : '') + '</span>';
+    }
+    if (done && b.lived_on) out += '<span class="rod done">\u2713 DONE \u00B7 ' + bkFmt(b.lived_on) + '</span>';
+    ro.innerHTML = out;
+  }
   el('bkDel').style.display = done ? 'none' : '';
   const sb = el('bkStar');
   sb.innerHTML = b.starred ? BK_STAR_ON : BK_STAR_OFF;
