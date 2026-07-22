@@ -324,27 +324,20 @@
   @media (max-width:560px) { .stamps { grid-template-columns:repeat(2,minmax(0,1fr)); } }   /* always 2 tracks, so span-2 = full width */
   .stamp .plan { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.1em; color:#8a94a8; margin-top:4px; }
   .stamp .plan.over { color:#8A1F1A; }
-  .stamp.wip .plan { background:rgba(244,196,48,0.22); color:#8a6f2f; padding:3px 8px; border-radius:6px; opacity:1; }
-  .stamp.wip .plan.over { background:rgba(138,31,26,0.13); color:#8A1F1A; }
-  .stamp.wip { background:#f5fbfa; border:2px solid #4e948e; }   /* P2 — teal, diluted */
-  .stamp.wip .st { color:#4e948e; font-size:14.5px; }
-  .stamp.wip .flag { border-top-color:#4e948e; }
-  .stamp .wlab { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.14em; color:#4e948e; margin-top:4px; }
+  .stamp .plan { background:#f4c430; color:#1d2d4d; padding:3px 8px; border-radius:6px; letter-spacing:0.06em; }
+  .stamp .plan.over { background:#8A1F1A; color:#fff; }
   .stamp.big { grid-column:span 2; min-height:100px; }
   .stamp.big .st { font-size:15px; }
   .stamp .bstar { position:absolute; top:7px; left:9px; width:13px; height:13px; color:#c9a94a; z-index:3; }
-  .stamp .flag { position:absolute; top:0; right:0; width:0; height:0; border-top:30px solid #c9a94a; border-left:30px solid transparent; z-index:3; }
-  .stamp .flag i { position:absolute; top:-27px; left:-15px; font-size:10px; color:#fff; font-style:normal; }
   .stamp .edge { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(120,140,170,0.13); }
   .stamp .edge i { display:block; height:100%; background:#3d7a5c; }   /* E1 — moss */
   .stamp .edge.over i { background:#8A1F1A; }
   .stamp { position:relative; border:1px solid #e3eceb; border-radius:11px; padding:12px 10px 16px; min-height:84px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#fbfdfd; cursor:pointer; overflow:hidden; transition:transform .12s, box-shadow .15s; box-shadow:0 3px 10px rgba(30,70,70,0.05); }
   .stamp:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(120,90,20,0.14); }
   .stamp .st { font-family:var(--serif); font-weight:600; font-size:13px; color:#7c8698; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; }
-  .stamp.inked { border:2px solid #2F6F6A; background:#f1f8f7; padding-bottom:12px; transform:rotate(-2deg); box-shadow:0 5px 14px rgba(30,90,85,0.15); }   /* B2 — the deep-teal seal */
+  .stamp.inked { border:2px solid #22334f; background:#f4f6fa; padding-bottom:12px; transform:rotate(-2deg); box-shadow:0 5px 14px rgba(25,45,80,0.15); }   /* X3 — the finished card keeps its tilt */
   .stamp.inked:hover { transform:rotate(-2deg) translateY(-2px); }
-  .stamp.inked .st { color:#2F6F6A; }
-  .stamp .dt { font-family:var(--mono); font-size:7.5px; font-weight:600; letter-spacing:0.1em; color:#2F6F6A; margin-top:5px; border-top:1px solid #d7e6e4; padding-top:4px; }
+  .stamp.inked .st { color:#22334f; }
   .stamp.add { border:1px solid #d5e3e1; background:transparent; box-shadow:none; display:none; }
   body.editing .stamp.add { display:flex; }
   .stamp { position:relative; }
@@ -363,14 +356,20 @@
   .bk-dts label { display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.12em; color:#9a7b3a; }
   .bk-dts input { border:1px solid #e2d9bd; border-radius:7px; background:#fff; font-family:var(--sans); font-size:11.5px; color:#182233; padding:3px 6px; }
   body:not(.p-editing) #bkStar { pointer-events:none; }                       /* readable, not tappable */
-  body:not(.p-editing) .bk-stat { background:transparent; padding:0; }
-  body:not(.p-editing) .bk-stat > span:not(.on) { display:none; }             /* read mode shows the state only */
-  body:not(.p-editing) .bk-stat > span { cursor:default; }
+  body:not(.p-editing) .bk-stat { display:none; }        /* the stamp speaks in read mode */
   body:not(.p-editing) .bk-del-row { display:none; }
   #bkStar { padding:7px 10px; }
   #bkStar svg { width:16px; height:16px; color:#c3ccdb; }
   #bkStar.on svg { color:#c9a94a; }
   .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  /* V3 stamps — one design, three states, used on the page and in the book */
+  .bk-mark { display:inline-block; font-family:var(--mono); font-weight:600; letter-spacing:0.12em; border:2px solid; border-radius:7px; white-space:nowrap; }
+  .bk-mark.not_yet { background:#fbeeef; border-color:#9c3f4a; color:#9c3f4a; transform:rotate(-3deg); }
+  .bk-mark.wip     { background:#f5fbfa; border-color:#4e948e; color:#4e948e; transform:rotate(-3deg); }
+  .bk-mark.done    { background:#22334f; border-color:#22334f; color:#fff; }
+  .bk-stampro .bk-mark { font-size:9px; padding:6px 13px; }
+  .stamp .bk-mark { font-size:7.5px; padding:4px 9px; margin-top:7px; position:relative; z-index:2; }
+  body.p-editing .bk-stampro { display:none; }
   .bk-ro-dates { display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; }
   body.p-editing .bk-ro-dates { display:none; }            /* the real inputs take over in Edit */
   .bk-ro-dates .rod { font-family:var(--sans); font-size:11px; font-weight:600; padding:6px 11px; border-radius:7px; background:#f4c430; color:#1d2d4d; white-space:nowrap; }
@@ -611,6 +610,7 @@
               <span data-st="wip">Work in progress</span>
               <span data-st="done">&#10003; Done</span>
             </div>
+            <span class="bk-stampro" id="bkStampRO"></span>
             <span class="bk-ro-dates" id="bkDatesRO"></span>
           </div>
           <div class="bk-dts">
@@ -1587,18 +1587,22 @@ function bkElapsed(b) {
   if (span <= 0) return { pct: 100, over: true };
   return { pct: Math.max(0, Math.min(100, Math.round(((now - start) / span) * 100))), over: false };
 }
+// One stamp, two sizes: the page hero and the card in the book.
+function bkMark(b, big) {
+  const st = b.status || 'not_yet';
+  const txt = st === 'done' ? ('DONE \u00B7 ' + bkFmt(b.lived_on))
+            : (st === 'wip' ? 'WORK IN PROGRESS' : 'NOT YET');
+  return '<span class="bk-mark ' + st + '">' + txt + '</span>';
+}
 function bkCard(b) {
   const st = b.status || 'not_yet';
   const done = st === 'done', wip = st === 'wip';
   const e = done ? null : bkElapsed(b);
   let inner = '';
   if (b.starred) inner += '<svg class="bstar" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
-  if (wip) inner += '<span class="flag"><i>\u2691</i></span>';
   inner += '<div class="st">' + escHtml(b.title) + '</div>';
-  if (wip) inner += '<div class="wlab">WORK IN PROGRESS</div>';
-  if (done) {
-    inner += '<div class="dt">\u2713 DONE \u00B7 ' + bkFmt(b.lived_on) + '</div>';
-  } else {
+  inner += bkMark(b, false);
+  if (!done) {
     if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">PLANNED FOR \u00B7 ' + bkFmt(b.planned_on) + (e && e.over ? ' \u00B7 PASSED' : '') + '</div>';
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
     if (e) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
@@ -1677,6 +1681,8 @@ function bkRenderStatus() {
   el('bkStat').querySelectorAll('[data-st]').forEach(s =>
     s.classList.toggle('on', s.dataset.st === (b.status || 'not_yet')));
   // Read mode: the dates as the book shows them
+  const sr = el('bkStampRO');
+  if (sr) sr.innerHTML = bkMark(b, true);
   const ro = el('bkDatesRO');
   if (ro) {
     const e = done ? null : bkElapsed(b);
@@ -1685,7 +1691,6 @@ function bkRenderStatus() {
       out += '<span class="rod' + (e && e.over ? ' over' : '') + '">Planned for \u00B7 ' + bkFmt(b.planned_on) +
              (e && e.over ? ' \u00B7 passed' : '') + '</span>';
     }
-    if (done && b.lived_on) out += '<span class="rod">\u2713 Done \u00B7 ' + bkFmt(b.lived_on) + '</span>';
     ro.innerHTML = out;
   }
   el('bkDel').style.display = done ? 'none' : '';
