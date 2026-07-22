@@ -313,27 +313,24 @@
   .bk-book { background:transparent; border:none; border-radius:0; padding:22px 38px 30px; box-shadow:none; }   /* BG4 — no card; gutters match .spine-body */
   @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } }
   .bk-hd { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
-  .bk-hd .bk-t { font-family:var(--serif); font-weight:700; font-size:17px; color:#2b3a55; }
   .bk-count { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#8a94a8; }
   .stamps { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr)); gap:11px; }
   @media (max-width:560px) { .stamps { grid-template-columns:repeat(2,minmax(0,1fr)); } }   /* always 2 tracks, so span-2 = full width */
-  .bk-sh { display:flex; align-items:center; gap:9px; margin:20px 0 9px; }
-  .bk-sh:first-of-type { margin-top:4px; }
-  .bk-sht { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.16em; }
-  .bk-shr { flex:1; border-top:1px solid #e4e9f1; }
-  .stamp .cav { font-family:var(--hand,'Caveat',cursive); font-size:15px; color:#9a7b3a; margin-top:2px; }
-  .stamp .plan { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.1em; color:#9a7b3a; margin-top:4px; }
+  .stamp .plan { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.1em; color:#8a94a8; margin-top:4px; }
   .stamp .plan.over { color:#8A1F1A; }
-  .stamp.wip { background:#fdf8ea; border-color:#c9a94a; }
-  .stamp.wip .st { color:#8a6f2f; font-size:14.5px; }
+  .stamp.wip { background:#f6f7f9; border:2px solid #4a5568; }   /* W3 — graphite */
+  .stamp.wip .st { color:#4a5568; font-size:14.5px; }
+  .stamp.wip .flag { border-top-color:#4a5568; }
+  .stamp.wip .plan { color:#4a5568; opacity:0.75; }
+  .stamp .wlab { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.14em; color:#4a5568; margin-top:4px; }
   .stamp.big { grid-column:span 2; min-height:100px; }
   .stamp.big .st { font-size:15px; }
   .stamp .bstar { position:absolute; top:7px; left:9px; width:13px; height:13px; color:#c9a94a; z-index:3; }
   .stamp .flag { position:absolute; top:0; right:0; width:0; height:0; border-top:30px solid #c9a94a; border-left:30px solid transparent; z-index:3; }
   .stamp .flag i { position:absolute; top:-27px; left:-15px; font-size:10px; color:#fff; font-style:normal; }
-  .stamp .edge { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(160,130,60,0.13); }
-  .stamp .edge i { display:block; height:100%; background:linear-gradient(90deg,#c9a94a,#e0c268); }
-  .stamp .edge.over i { background:linear-gradient(90deg,#a83a30,#8A1F1A); }
+  .stamp .edge { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(120,140,170,0.13); }
+  .stamp .edge i { display:block; height:100%; background:#3d7a5c; }   /* E1 — moss */
+  .stamp .edge.over i { background:#8A1F1A; }
   .stamp { position:relative; border:1px solid #e6eaf1; border-radius:11px; padding:12px 10px 16px; min-height:84px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#fcfdff; cursor:pointer; overflow:hidden; transition:transform .12s, box-shadow .15s; box-shadow:0 3px 10px rgba(30,50,90,0.04); }
   .stamp:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(120,90,20,0.14); }
   .stamp .st { font-family:var(--serif); font-weight:600; font-size:13px; color:#7c8698; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; }
@@ -454,7 +451,7 @@
     <div class="sec-panel hidden" id="secCircle"><div class="ctab" id="circleList"></div></div>
     <div class="sec-panel hidden" id="secBucket">
       <div class="bk-book">
-        <div class="bk-hd"><span class="bk-t">My Bucket List</span><span class="bk-count" id="bkCount"></span></div>
+        <div class="bk-hd"><span class="bk-count" id="bkCount"></span></div>
         <div id="stamps"></div>
       </div>
     </div>
@@ -1586,7 +1583,7 @@ function bkCard(b) {
   if (b.starred) inner += '<svg class="bstar" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
   if (wip) inner += '<span class="flag"><i>\u2691</i></span>';
   inner += '<div class="st">' + escHtml(b.title) + '</div>';
-  if (wip) inner += '<div class="cav">Work in Progress</div>';
+  if (wip) inner += '<div class="wlab">WORK IN PROGRESS</div>';
   if (done) {
     inner += '<div class="dt">\u2713 DONE \u00B7 ' + bkFmt(b.lived_on) + '</div>';
   } else {
@@ -1598,24 +1595,18 @@ function bkCard(b) {
 }
 function renderStamps() {
   const wrap = el('stamps'); if (!wrap) return;
-  const shelves = [
-    { key: 'wip',     lbl: 'WORK IN PROGRESS', col: '#9a7b3a' },
-    { key: 'not_yet', lbl: 'WAITING',          col: '#a8a08c' },
-    { key: 'done',    lbl: 'DONE',             col: '#0F2D5C' },
-  ];
   const doneN = buckets.filter(b => b.status === 'done').length;
   el('bkCount').textContent = buckets.length + ' DREAMS \u00B7 ' + doneN + ' DONE';
-  let html = '';
-  shelves.forEach(sh => {
-    const rows = buckets.filter(b => (b.status || 'not_yet') === sh.key)
-      .sort((a, c) => (c.starred ? 1 : 0) - (a.starred ? 1 : 0));   // starred lead their shelf
-    const isWait = sh.key === 'not_yet';
-    if (!rows.length && !isWait) return;      // empty shelves stay hidden (Waiting keeps the add tile)
-    html += '<div class="bk-sh"><span class="bk-sht" style="color:' + sh.col + '">' + sh.lbl + ' \u00B7 ' + rows.length + '</span><span class="bk-shr"></span></div>';
-    html += '<div class="stamps">' + rows.map(bkCard).join('') +
-      (isWait ? '<div class="stamp add" id="stampAdd"><div class="st">+ New dream</div></div>' : '') + '</div>';
+  // Flat book: one grid. Order carries the meaning — what you're chasing first,
+  // then what waits, then what's finished; starred lead their own group.
+  const rank = { wip: 0, not_yet: 1, done: 2 };
+  const rows = buckets.slice().sort((a, c) => {
+    const ra = rank[a.status || 'not_yet'], rc = rank[c.status || 'not_yet'];
+    if (ra !== rc) return ra - rc;
+    return (c.starred ? 1 : 0) - (a.starred ? 1 : 0);
   });
-  wrap.innerHTML = html;
+  wrap.innerHTML = '<div class="stamps">' + rows.map(bkCard).join('') +
+    '<div class="stamp add" id="stampAdd"><div class="st">+ New dream</div></div></div>';
   wrap.querySelectorAll('[data-bk]').forEach(s =>
     s.addEventListener('click', (e) => { if (e.target.closest('.stx')) return; openDream(s.dataset.bk); }));
   wrap.querySelectorAll('[data-stx]').forEach(x =>
