@@ -316,7 +316,11 @@
   .stamp.inked:hover { transform:rotate(-2deg) translateY(-2px); }
   .stamp.inked .st { color:#8a4a2f; }
   .stamp .dt { font-family:var(--mono); font-size:7.5px; font-weight:600; letter-spacing:0.1em; color:#8a4a2f; margin-top:5px; border-top:1px solid #e0cfc2; padding-top:4px; }
-  .stamp.add { border-style:dashed; border-color:#c9a94a; background:transparent; }
+  .stamp.add { border-style:dashed; border-color:#c9a94a; background:transparent; display:none; }
+  body.editing .stamp.add { display:flex; }
+  .stamp { position:relative; }
+  .stamp .stx { display:none; position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; border:none; background:#8A1F1A; color:#fff; font-size:13px; line-height:1; cursor:pointer; }
+  body.editing .stamp:not(.inked) .stx { display:block; }
   .stamp.add .st { color:#9a7b3a; }
   .stamp.add input { width:100%; border:none; background:transparent; font-family:var(--serif); font-weight:600; font-size:13px; color:#5c4a1a; text-align:center; outline:none; }
   /* — the dream's page (visa) — */
@@ -331,16 +335,21 @@
   .bk-stampbtn:hover { background:#b3963f; }
   .bk-unlive { border:none; background:none; font-family:var(--mono); font-size:8px; letter-spacing:0.08em; color:#b6bfd1; cursor:pointer; }
   .bk-unlive:hover { color:#8A1F1A; }
+  .bk-dts { display:none; align-items:center; gap:12px; flex-wrap:wrap; }
+  body.p-editing #bkWin .bk-dts { display:inline-flex; }
+  .bk-dts label { display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.12em; color:#9a7b3a; }
+  .bk-dts input { border:1px solid #e2d9bd; border-radius:7px; background:#fff; font-family:var(--sans); font-size:11.5px; color:#182233; padding:3px 6px; }
   .bk-del-row { margin-top:34px; padding-top:14px; border-top:1px solid #f0ece0; }
   .bk-del { border:none; background:none; font-family:var(--mono); font-size:8.5px; letter-spacing:0.1em; color:#b6bfd1; cursor:pointer; }
   .bk-del:hover { color:#8A1F1A; }
-  #bkWin .pin { max-width:820px; }
+  #bkWin .pin { max-width:680px; }   /* = Introspection's reader-inner */
   #bkHist { margin-left:auto; }
   /* Shared note editor (note-editor.js). Toolbars only visible while editing. */
   /* One toolbar chrome app-wide: inside the frozen headline unit (like Fav/Inner Life). */
-  #rmToolbar, #pToolbar { display:none; margin:12px 0 2px; }   /* byte-matches Introspection's #rdToolbar */
+  #rmToolbar, #pToolbar, #bkWhyToolbar, #bkHowToolbar { display:none; margin:12px 0 2px; }   /* byte-matches Introspection's #rdToolbar */
   body.rm-editing #rmToolbar { display:flex; }
   body.p-editing #pToolbar { display:flex; }
+  body.p-editing #bkWhyToolbar, body.p-editing #bkHowToolbar { display:flex; }
   .rm-bar .eb, .pbar .eb { padding:7px 12px; font-size:12px; }
   @media (max-width:640px) {
     .rm-title, .ptitle { display:none; }              /* bar keeps buttons only */
@@ -557,6 +566,10 @@
             <span class="bk-visa" id="bkVisa"></span>
             <button class="bk-stampbtn" id="bkStamp" type="button">Stamp it &mdash; lived</button>
             <button class="bk-unlive" id="bkUnlive" type="button">un-stamp</button>
+            <span class="bk-dts" id="bkDts">
+              <label>DREAMED <input type="date" id="bkDreamedOn"></label>
+              <label id="bkLivedWrap">LIVED <input type="date" id="bkLivedOn"></label>
+            </span>
           </div>
         </div>
         <div id="bkWhyToolbar"></div>
@@ -569,6 +582,13 @@
         <div id="bkHowToolbar"></div>
         <div class="pessay ro" id="bkHowRO"></div>
         <div class="pessay inp" id="bkHow" contenteditable="true" data-placeholder="How it actually was&hellip;"></div>
+      </div>
+      <div class="pfoot">
+        <div class="fr">
+          <button class="eb" id="bkCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
+          <button class="eb" id="bkMd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="eb-label">Download .md</span></button>
+          <button class="eb" id="bkPrint" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="eb-label">Print / PDF</span></button>
+        </div>
       </div>
       <div class="bk-del-row"><button class="bk-del" id="bkDel" type="button">Delete this dream (only while un-lived)</button></div>
     </div>
@@ -1520,13 +1540,23 @@ function renderStamps() {
     const inked = b.status === 'lived';
     html += '<div class="stamp' + (inked ? ' inked' : '') + '" data-bk="' + b.id + '">' +
       '<div class="st">' + escHtml(b.title) + '</div>' +
-      (inked ? '<div class="dt">LIVED \u00B7 ' + bkFmt(b.lived_on) + '</div>' : '') +
+      (inked ? '<div class="dt">LIVED \u00B7 ' + bkFmt(b.lived_on) + '</div>' :
+               '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>') +
     '</div>';
   });
   html += '<div class="stamp add" id="stampAdd"><div class="st">+ New dream</div></div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-bk]').forEach(s =>
-    s.addEventListener('click', () => openDream(s.dataset.bk)));
+    s.addEventListener('click', (e) => { if (e.target.closest('.stx')) return; openDream(s.dataset.bk); }));
+  wrap.querySelectorAll('[data-stx]').forEach(x =>
+    x.addEventListener('click', async () => {
+      const b = buckets.find(r => String(r.id) === String(x.dataset.stx));
+      if (!b || b.status === 'lived') return;
+      if (!confirm('Delete "' + b.title + '"? This cannot be undone.')) return;
+      const { error } = await supa.from('bucket_items').delete().eq('id', b.id).eq('user_id', userId);
+      if (error) { console.error(error); toast('Could not delete'); return; }
+      await loadBuckets(); toast('Dream removed');
+    }));
   el('stampAdd').addEventListener('click', bkAddInput);
 }
 function bkAddInput() {
@@ -1569,6 +1599,9 @@ function openDream(id) {
 function bkRenderStatus() {
   const b = bkRow(); if (!b) return;
   const lived = b.status === 'lived';
+  el('bkDreamedOn').value = (b.dreamed_on || String(b.created_at || '').slice(0,10) || '');
+  el('bkLivedOn').value = b.lived_on || '';
+  el('bkLivedWrap').style.display = lived ? '' : 'none';
   const v = el('bkVisa');
   v.className = 'bk-visa ' + (lived ? 'lived' : 'dream');
   v.textContent = lived ? ('STAMPED \u00B7 ' + bkFmt(b.lived_on)) : ('DREAMED \u00B7 ' + bkFmt(b.dreamed_on || b.created_at));
@@ -1651,6 +1684,18 @@ async function bkSetLived(on) {
   bkRenderStatus(); renderStamps();
   if (on) toast('Stamped \u2014 lived \u2726');
 }
+async function bkSaveDate(field, value) {
+  const b = bkRow(); if (!b || !value) { bkRenderStatus(); return; }
+  const rec = {}; rec[field] = value; rec.updated_at = new Date().toISOString();
+  const { error } = await supa.from('bucket_items').update(rec).eq('id', bkId).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save date'); bkRenderStatus(); return; }
+  b[field] = value;
+  bkRenderStatus(); renderStamps();
+}
+el('bkDreamedOn').addEventListener('change', () => bkSaveDate('dreamed_on', el('bkDreamedOn').value));
+el('bkLivedOn').addEventListener('change', () => bkSaveDate('lived_on', el('bkLivedOn').value));
+el('bkWhy').addEventListener('blur', () => saveBucket_());
+el('bkHow').addEventListener('blur', () => saveBucket_());
 el('bkStamp').addEventListener('click', () => bkSetLived(true));
 el('bkUnlive').addEventListener('click', () => { if (confirm('Un-stamp this dream? Its lived date will be cleared.')) bkSetLived(false); });
 el('bkDel').addEventListener('click', async () => {
@@ -1661,7 +1706,12 @@ el('bkDel').addEventListener('click', async () => {
   closeDream(); await loadBuckets(); toast('Dream removed');
 });
 el('bkBack').addEventListener('click', closeDream);
-el('bkEdit').addEventListener('click', () => setBkEditing(!document.body.classList.contains('p-editing')));
+el('bkEdit').addEventListener('click', () => {
+  const on = !document.body.classList.contains('p-editing');
+  setBkEditing(on);
+  if (on) { bkWhyNk.refresh(); bkHowNk.refresh(); bkWhyNk.focusEnd(); }
+  else { saveBucket_(true); }
+});
 el('bkHist').addEventListener('click', () => {
   if (bkId === null) return;
   NoteEditor.openHistory({
@@ -1674,6 +1724,46 @@ el('bkHist').addEventListener('click', () => {
       saveBucket_(true);
     }
   });
+});
+function bkMarkdown_() {
+  const b = bkRow() || {};
+  const lived = b.status === 'lived';
+  let md = '# ' + (b.title || '') + '\n\n';
+  md += '*My Bucket List \u00B7 ' + (lived ? ('Stamped ' + bkFmt(b.lived_on)) : ('Dreamed ' + bkFmt(b.dreamed_on || b.created_at))) + '*\n\n';
+  md += '## Why this dream\n\n' + NoteEditor.toMarkdown(NoteEditor.sanitize(el('bkWhy').innerHTML)) + '\n';
+  if (lived) md += '\n## How it was\n\n' + NoteEditor.toMarkdown(NoteEditor.sanitize(el('bkHow').innerHTML)) + '\n';
+  return md;
+}
+function bkFlash_(id, msg) {
+  const b = el(id); if (!b) return;
+  const l = b.querySelector('.eb-label'); if (!l) return;
+  const t = l.textContent; l.textContent = msg;
+  setTimeout(() => { l.textContent = t; }, 1400);
+}
+el('bkCopy').addEventListener('click', () => {
+  const md = bkMarkdown_(); const done = () => bkFlash_('bkCopy', 'Copied!');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(md).then(done).catch(() => {});
+  else { const t = document.createElement('textarea'); t.value = md; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(t); }
+});
+el('bkMd').addEventListener('click', () => {
+  const b = bkRow() || {};
+  const slug = String(b.title || 'dream').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'dream';
+  const blob = new Blob([bkMarkdown_()], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'bucket-' + slug + '.md';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+el('bkPrint').addEventListener('click', () => {
+  const b = bkRow() || {};
+  const lived = b.status === 'lived';
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9a7b3a}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#8a6f43;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9a7b3a;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
+  const body = '<div class="eyebrow">My Bucket List</div><h1>' + esc(b.title || '') + '</h1>'
+    + '<div class="meta">' + (lived ? ('STAMPED \u00B7 ' + esc(bkFmt(b.lived_on))) : ('DREAMED \u00B7 ' + esc(bkFmt(b.dreamed_on || b.created_at)))) + '</div>'
+    + '<h2>Why this dream</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('bkWhy').innerHTML)) || '') + '</div>'
+    + (lived ? '<h2>How it was</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('bkHow').innerHTML)) || '') + '</div>' : '');
+  NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(b.title || 'Dream') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 const bkWhyNk = NoteEditor.mount({
   toolbar: el('bkWhyToolbar'), editor: el('bkWhy'), reader: el('bkWhyRO'),
