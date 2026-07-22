@@ -217,10 +217,16 @@
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   /* ===== My Mantra + My Circle ===== */
   .why-seg { display:inline-flex; gap:4px; background:#e7ebf1; padding:4px; border-radius:11px; margin-bottom:18px; max-width:100%; }
-  .why-seg > span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:8px; color:#6a7690; cursor:pointer; white-space:nowrap; }
+  .why-seg > span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:8px; background:var(--t-faint,transparent); color:var(--t-acc,#6a7690); opacity:0.72; transition:opacity .15s, background .15s; cursor:pointer; white-space:nowrap; }
   .why-seg > span svg { width:15px; height:15px; flex-shrink:0; }
   .why-seg .seg-l { font-style:normal; background:none; padding:0; }
-  .why-seg > span.on { background:#fff; color:#182233; box-shadow:0 1px 4px rgba(0,0,0,0.10); }
+  .why-seg > span.on { background:var(--t-bg,#fff); color:var(--t-acc,#182233); opacity:1; box-shadow:0 2px 6px rgba(30,40,70,0.16); font-weight:700; }
+  .why-seg > span:hover { opacity:0.9; }
+  /* W2 — four voices */
+  .why-seg > span[data-sec="pillars"] { --t-faint:#f5f7fa; --t-bg:#e3e8f1; --t-acc:#44557c; }
+  .why-seg > span[data-sec="mantra"]  { --t-faint:#f8f5f9; --t-bg:#eae3ec; --t-acc:#6d5474; }
+  .why-seg > span[data-sec="circle"]  { --t-faint:#fdf5f7; --t-bg:#f6e3e8; --t-acc:#a34e63; }
+  .why-seg > span[data-sec="bucket"]  { --t-faint:#faf6ec; --t-bg:#f2e9d2; --t-acc:#9a7b3a; }
   .sec-panel.hidden, #secPillars.hidden { display:none; }
   @media (max-width:560px) {
     .why-seg { display:grid; grid-template-columns:repeat(2,1fr); gap:5px; width:100%; }
@@ -327,6 +333,8 @@
   .bk-hero { padding-bottom:4px; }
   .bkeyebrow { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.18em; color:#9a7b3a; }
   .bkname { font-family:var(--serif); font-weight:700; font-size:26px; line-height:1.2; color:#182233; margin-top:5px; overflow-wrap:anywhere; }
+  body.p-editing #bkName { border-bottom:1px dashed #c9a94a; padding-bottom:2px; outline:none; }
+  body.p-editing #bkName:focus { border-bottom-color:#8a4a2f; }
   .bk-visarow { display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
   .bk-visa { display:inline-block; font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.12em; border-radius:8px; padding:4px 11px; }
   .bk-visa.dream { border:2px dashed #c9a94a; color:#9a7b3a; }
@@ -342,14 +350,13 @@
   .bk-del-row { margin-top:34px; padding-top:14px; border-top:1px solid #f0ece0; }
   .bk-del { border:none; background:none; font-family:var(--mono); font-size:8.5px; letter-spacing:0.1em; color:#b6bfd1; cursor:pointer; }
   .bk-del:hover { color:#8A1F1A; }
-  #bkWin .pin { max-width:680px; }   /* = Introspection's reader-inner */
   #bkHist { margin-left:auto; }
   /* Shared note editor (note-editor.js). Toolbars only visible while editing. */
   /* One toolbar chrome app-wide: inside the frozen headline unit (like Fav/Inner Life). */
-  #rmToolbar, #pToolbar, #bkWhyToolbar, #bkHowToolbar { display:none; margin:12px 0 2px; }   /* byte-matches Introspection's #rdToolbar */
+  #rmToolbar, #pToolbar, #bkWhyToolbar { display:none; margin:12px 0 2px; }   /* byte-matches Introspection's #rdToolbar */
   body.rm-editing #rmToolbar { display:flex; }
   body.p-editing #pToolbar { display:flex; }
-  body.p-editing #bkWhyToolbar, body.p-editing #bkHowToolbar { display:flex; }
+  body.p-editing #bkWhyToolbar { display:flex; }
   .rm-bar .eb, .pbar .eb { padding:7px 12px; font-size:12px; }
   @media (max-width:640px) {
     .rm-title, .ptitle { display:none; }              /* bar keeps buttons only */
@@ -574,15 +581,8 @@
         </div>
         <div id="bkWhyToolbar"></div>
       </div>
-      <div class="pk">Why this dream</div>
       <div class="pessay ro" id="bkWhyRO"></div>
-      <div class="pessay inp" id="bkWhy" contenteditable="true" data-placeholder="Because&hellip;"></div>
-      <div id="bkHowSec" style="display:none">
-        <div class="pk" style="margin-top:26px">How it was</div>
-        <div id="bkHowToolbar"></div>
-        <div class="pessay ro" id="bkHowRO"></div>
-        <div class="pessay inp" id="bkHow" contenteditable="true" data-placeholder="How it actually was&hellip;"></div>
-      </div>
+      <div class="pessay inp" id="bkWhy" contenteditable="true" data-placeholder="Write about this dream&hellip;"></div>
       <div class="pfoot">
         <div class="fr">
           <button class="eb" id="bkCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
@@ -1516,7 +1516,7 @@ NoteEditor.guard.register(
   () => { if (rmDirty && rmId !== null) saveRoadmap(true); if (pDirty && pId !== null) savePerson_(true); }
 );
 // ============ MY BUCKET LIST ============
-let buckets = [], bkId = null, bkWhyBase = '', bkHowBase = '', bkDirty = false, bkTimer = null;
+let buckets = [], bkId = null, bkWhyBase = '', bkDirty = false, bkTimer = null;
 let bkSaving = false, bkQueued = false;
 const BK_MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 function bkFmt(d) {
@@ -1587,9 +1587,7 @@ function openDream(id) {
   el('bkEyebrow').textContent = 'MY BUCKET LIST \u00B7 ENTRY N\u00BA ' + no;
   el('bkName').textContent = b.title;
   el('bkWhy').innerHTML = NoteEditor.toHtml(b.why_html || '');
-  el('bkHow').innerHTML = NoteEditor.toHtml(b.how_html || '');
   bkWhyBase = NoteEditor.sanitize(el('bkWhy').innerHTML);
-  bkHowBase = NoteEditor.sanitize(el('bkHow').innerHTML);
   el('bkSave').textContent = '';
   bkRenderStatus();
   setBkEditing(false);
@@ -1607,31 +1605,40 @@ function bkRenderStatus() {
   v.textContent = lived ? ('STAMPED \u00B7 ' + bkFmt(b.lived_on)) : ('DREAMED \u00B7 ' + bkFmt(b.dreamed_on || b.created_at));
   el('bkStamp').style.display = lived ? 'none' : '';
   el('bkUnlive').style.display = lived ? '' : 'none';
-  el('bkHowSec').style.display = lived ? '' : 'none';
   el('bkDel').style.display = lived ? 'none' : '';
 }
 function bkRenderRead() {
-  const w = el('bkWhyRO'), hw = el('bkHowRO');
+  const w = el('bkWhyRO');
   const wh = NoteEditor.sanitize(el('bkWhy').innerHTML);
-  const ho = NoteEditor.sanitize(el('bkHow').innerHTML);
   w.innerHTML = wh || ''; w.classList.toggle('empty', !NoteEditor.toPlain(wh).trim());
-  if (w.classList.contains('empty')) w.textContent = 'Why this dream\u2026 (tap Edit)';
-  hw.innerHTML = ho || ''; hw.classList.toggle('empty', !NoteEditor.toPlain(ho).trim());
-  if (hw.classList.contains('empty')) hw.textContent = 'How it was\u2026 (tap Edit)';
+  if (w.classList.contains('empty')) w.textContent = 'Write about this dream\u2026 (tap Edit)';
 }
 function bkUpdateWc_() {
-  const n = NoteEditor.toPlain(el('bkWhy').innerHTML + ' ' + el('bkHow').innerHTML).split(/\s+/).filter(Boolean).length;
+  const n = NoteEditor.toPlain(el('bkWhy').innerHTML).split(/\s+/).filter(Boolean).length;
   el('bkWc').textContent = n ? (n + ' words') : '';
 }
+async function bkSaveTitle_() {
+  const b = bkRow(); if (!b) return;
+  const t = (el('bkName').textContent || '').trim().replace(/\s+/g, ' ');
+  if (!t) { el('bkName').textContent = b.title; return; }        // never allow a nameless dream
+  if (t === b.title) return;
+  const { error } = await supa.from('bucket_items')
+    .update({ title: t, updated_at: new Date().toISOString() })
+    .eq('id', bkId).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not rename'); el('bkName').textContent = b.title; return; }
+  b.title = t;
+  el('bkTitleBar').innerHTML = 'My Bucket List &middot; ' + escHtml(t);
+  renderStamps();
+}
 function setBkEditing(on) {
+  el('bkName').contentEditable = on ? 'true' : 'false';
   document.body.classList.toggle('p-editing', !!on);
   const b2 = el('bkEdit'); if (b2) b2.classList.toggle('hot', !!on);
   const l = el('bkEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
   if (!on) {
     const w = NoteEditor.sanitize(el('bkWhy').innerHTML);
-    const ho = NoteEditor.sanitize(el('bkHow').innerHTML);
     if (bkId !== null && w !== bkWhyBase) { NoteEditor.versions.record('bucket-why', bkId, bkWhyBase); bkWhyBase = w; }
-    if (bkId !== null && ho !== bkHowBase) { NoteEditor.versions.record('bucket-how', bkId, bkHowBase); bkHowBase = ho; }
+    bkSaveTitle_();
     bkRenderRead();
   }
   bkUpdateWc_();
@@ -1664,13 +1671,12 @@ async function saveBucketCore_() {
   if (bkId === null) return;
   const b = bkRow(); if (!b) return;
   const why = NoteEditor.sanitize(el('bkWhy').innerHTML);
-  const how = NoteEditor.sanitize(el('bkHow').innerHTML);
-  if (b.why_html === why && b.how_html === how) { bkDirty = false; el('bkSave').textContent = 'Saved'; return; }
+  if (b.why_html === why) { bkDirty = false; el('bkSave').textContent = 'Saved'; return; }
   const { error } = await supa.from('bucket_items')
-    .update({ why_html: why, how_html: how, updated_at: new Date().toISOString() })
+    .update({ why_html: why, updated_at: new Date().toISOString() })
     .eq('id', bkId).eq('user_id', userId);
   if (error) { console.error(error); el('bkSave').textContent = 'Save failed'; return; }
-  b.why_html = why; b.how_html = how;
+  b.why_html = why;
   bkDirty = false; el('bkSave').textContent = 'Saved';
 }
 async function bkSetLived(on) {
@@ -1695,7 +1701,8 @@ async function bkSaveDate(field, value) {
 el('bkDreamedOn').addEventListener('change', () => bkSaveDate('dreamed_on', el('bkDreamedOn').value));
 el('bkLivedOn').addEventListener('change', () => bkSaveDate('lived_on', el('bkLivedOn').value));
 el('bkWhy').addEventListener('blur', () => saveBucket_());
-el('bkHow').addEventListener('blur', () => saveBucket_());
+el('bkName').addEventListener('blur', bkSaveTitle_);
+el('bkName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el('bkName').blur(); } });
 el('bkStamp').addEventListener('click', () => bkSetLived(true));
 el('bkUnlive').addEventListener('click', () => { if (confirm('Un-stamp this dream? Its lived date will be cleared.')) bkSetLived(false); });
 el('bkDel').addEventListener('click', async () => {
@@ -1709,7 +1716,7 @@ el('bkBack').addEventListener('click', closeDream);
 el('bkEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('p-editing');
   setBkEditing(on);
-  if (on) { bkWhyNk.refresh(); bkHowNk.refresh(); bkWhyNk.focusEnd(); }
+  if (on) { bkWhyNk.refresh(); bkWhyNk.focusEnd(); }
   else { saveBucket_(true); }
 });
 el('bkHist').addEventListener('click', () => {
@@ -1730,8 +1737,7 @@ function bkMarkdown_() {
   const lived = b.status === 'lived';
   let md = '# ' + (b.title || '') + '\n\n';
   md += '*My Bucket List \u00B7 ' + (lived ? ('Stamped ' + bkFmt(b.lived_on)) : ('Dreamed ' + bkFmt(b.dreamed_on || b.created_at))) + '*\n\n';
-  md += '## Why this dream\n\n' + NoteEditor.toMarkdown(NoteEditor.sanitize(el('bkWhy').innerHTML)) + '\n';
-  if (lived) md += '\n## How it was\n\n' + NoteEditor.toMarkdown(NoteEditor.sanitize(el('bkHow').innerHTML)) + '\n';
+  md += NoteEditor.toMarkdown(NoteEditor.sanitize(el('bkWhy').innerHTML)) + '\n';
   return md;
 }
 function bkFlash_(id, msg) {
@@ -1761,19 +1767,13 @@ el('bkPrint').addEventListener('click', () => {
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9a7b3a}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#8a6f43;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9a7b3a;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">My Bucket List</div><h1>' + esc(b.title || '') + '</h1>'
     + '<div class="meta">' + (lived ? ('STAMPED \u00B7 ' + esc(bkFmt(b.lived_on))) : ('DREAMED \u00B7 ' + esc(bkFmt(b.dreamed_on || b.created_at)))) + '</div>'
-    + '<h2>Why this dream</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('bkWhy').innerHTML)) || '') + '</div>'
-    + (lived ? '<h2>How it was</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('bkHow').innerHTML)) || '') + '</div>' : '');
+    + '<div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('bkWhy').innerHTML)) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(b.title || 'Dream') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 const bkWhyNk = NoteEditor.mount({
   toolbar: el('bkWhyToolbar'), editor: el('bkWhy'), reader: el('bkWhyRO'),
   onChange: scheduleBkSave,
   onReaderChange: (html) => { el('bkWhy').innerHTML = html; saveBucket_(true); }
-});
-const bkHowNk = NoteEditor.mount({
-  toolbar: el('bkHowToolbar'), editor: el('bkHow'), reader: el('bkHowRO'),
-  onChange: scheduleBkSave,
-  onReaderChange: (html) => { el('bkHow').innerHTML = html; saveBucket_(true); }
 });
 
 el('rmHist').addEventListener('click', () => {
