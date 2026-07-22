@@ -373,12 +373,8 @@
   .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .bk-ro-dates { display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; }
   body.p-editing .bk-ro-dates { display:none; }            /* the real inputs take over in Edit */
-  .bk-ro-dates .rod { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.11em; padding:3px 8px; border-radius:6px; }
-  .bk-ro-dates .rod.plan { background:rgba(244,196,48,0.22); color:#8a6f2f; }     /* = the WIP card badge */
-  .bk-ro-dates .rod.plan.wait { background:transparent; color:#8a94a8; padding-left:0; }
-  .bk-ro-dates .rod.plan.over { background:rgba(138,31,26,0.13); color:#8A1F1A; }
-  .bk-ro-dates .rod.done { background:transparent; color:#2F6F6A; padding-left:0; }
-  .bk-ro-dates .rod.writ { background:transparent; color:#a8b0c0; padding-left:0; }
+  .bk-ro-dates .rod { font-family:var(--sans); font-size:11px; font-weight:600; padding:6px 11px; border-radius:7px; background:#f4c430; color:#1d2d4d; white-space:nowrap; }
+  .bk-ro-dates .rod.over { background:#8A1F1A; color:#fff; }
   .bk-stat { display:inline-flex; gap:4px; background:#eef1f6; padding:4px; border-radius:10px; flex-wrap:wrap; }
   .bk-stat > span { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:6px 11px; border-radius:7px; cursor:pointer; opacity:0.72; transition:opacity .15s; white-space:nowrap; }
   .bk-stat > span[data-st="not_yet"] { background:#f2f4f8; color:#6a7690; }
@@ -1684,13 +1680,12 @@ function bkRenderStatus() {
   const ro = el('bkDatesRO');
   if (ro) {
     const e = done ? null : bkElapsed(b);
-    let out = '<span class="rod writ">WRITTEN \u00B7 ' + bkFmt(b.dreamed_on || b.created_at) + '</span>';
+    let out = '';
     if (b.planned_on) {
-      const cls = 'rod plan' + (e && e.over ? ' over' : (b.status === 'wip' ? '' : ' wait'));
-      out += '<span class="' + cls + '">PLANNED FOR \u00B7 ' + bkFmt(b.planned_on) +
-             (e && e.over ? ' \u00B7 PASSED' : '') + '</span>';
+      out += '<span class="rod' + (e && e.over ? ' over' : '') + '">Planned for \u00B7 ' + bkFmt(b.planned_on) +
+             (e && e.over ? ' \u00B7 passed' : '') + '</span>';
     }
-    if (done && b.lived_on) out += '<span class="rod done">\u2713 DONE \u00B7 ' + bkFmt(b.lived_on) + '</span>';
+    if (done && b.lived_on) out += '<span class="rod">\u2713 Done \u00B7 ' + bkFmt(b.lived_on) + '</span>';
     ro.innerHTML = out;
   }
   el('bkDel').style.display = done ? 'none' : '';
