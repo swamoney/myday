@@ -310,11 +310,12 @@
   #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) { .pscroll { padding-top:20px; } .pin { padding:0 16px 30px; } .pname { font-size:26px; } .pav { width:52px; height:52px; font-size:20px; } }
   /* ===== My Bucket List — the passport ===== */
-  .bk-book { background:transparent; border:none; border-radius:0; padding:2px 0 0; box-shadow:none; }   /* BG4 — the shelves hold the page */
+  .bk-book { background:transparent; border:none; border-radius:0; padding:22px 38px 30px; box-shadow:none; }   /* BG4 — no card; gutters match .spine-body */
+  @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } }
   .bk-hd { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
   .bk-hd .bk-t { font-family:var(--serif); font-weight:700; font-size:17px; color:#2b3a55; }
   .bk-count { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#8a94a8; }
-  .stamps { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:11px; }
+  .stamps { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr)); gap:11px; }
   .bk-sh { display:flex; align-items:center; gap:9px; margin:20px 0 9px; }
   .bk-sh:first-of-type { margin-top:4px; }
   .bk-sht { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.16em; }
@@ -325,6 +326,7 @@
   .stamp.wip { background:#fdf8ea; border-color:#c9a94a; }
   .stamp.wip .st { color:#8a6f2f; font-size:14.5px; }
   .stamp.big { grid-column:span 2; min-height:100px; }
+  @media (max-width:420px) { .stamp.big { grid-column:auto; } }
   .stamp.big .st { font-size:15px; }
   .stamp .bstar { position:absolute; top:7px; left:9px; width:13px; height:13px; color:#c9a94a; z-index:3; }
   .stamp .flag { position:absolute; top:0; right:0; width:0; height:0; border-top:30px solid #c9a94a; border-left:30px solid transparent; z-index:3; }
@@ -356,6 +358,12 @@
   body.p-editing #bkWin .bk-dts { display:inline-flex; }
   .bk-dts label { display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.12em; color:#9a7b3a; }
   .bk-dts input { border:1px solid #e2d9bd; border-radius:7px; background:#fff; font-family:var(--sans); font-size:11.5px; color:#182233; padding:3px 6px; }
+  body:not(.p-editing) #bkStar { pointer-events:none; }                       /* readable, not tappable */
+  body:not(.p-editing) .bk-stat { background:transparent; padding:0; }
+  body:not(.p-editing) .bk-stat > span:not(.on) { display:none; }             /* read mode shows the state only */
+  body:not(.p-editing) .bk-stat > span { cursor:default; }
+  body:not(.p-editing) .bk-dts input { pointer-events:none; border-color:transparent; background:transparent; padding-left:0; }
+  body:not(.p-editing) .bk-del-row { display:none; }
   #bkStar { padding:7px 10px; }
   #bkStar svg { width:16px; height:16px; color:#c3ccdb; }
   #bkStar.on svg { color:#c9a94a; }
@@ -1671,6 +1679,7 @@ function bkRenderStatus() {
   sb.classList.toggle('on', !!b.starred);
 }
 async function bkToggleStar() {
+  if (!bkEditing_()) return;
   const b = bkRow(); if (!b) return;
   const val = !b.starred;
   const { error } = await supa.from('bucket_items')
@@ -1752,7 +1761,9 @@ async function saveBucketCore_() {
   b.why_html = why;
   bkDirty = false; el('bkSave').textContent = 'Saved';
 }
+function bkEditing_() { return document.body.classList.contains('p-editing'); }
 async function bkSetStatus(st) {
+  if (!bkEditing_()) return;                       // status changes need Edit, like every other field
   const b = bkRow(); if (!b || b.status === st) return;
   const rec = { status: st, updated_at: new Date().toISOString() };
   // Only Done carries a date; it defaults to today and stays editable.
@@ -1765,6 +1776,7 @@ async function bkSetStatus(st) {
   if (st === 'done') toast('Done \u2713');
 }
 async function bkSaveDate(field, value) {
+  if (!bkEditing_()) return;
   const b = bkRow(); if (!b || !value) { bkRenderStatus(); return; }
   const rec = {}; rec[field] = value; rec.updated_at = new Date().toISOString();
   const { error } = await supa.from('bucket_items').update(rec).eq('id', bkId).eq('user_id', userId);
