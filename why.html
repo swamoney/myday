@@ -315,10 +315,25 @@
   .bk-hd .bk-t { font-family:var(--serif); font-weight:700; font-size:17px; color:#5c4a1a; }
   .bk-count { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#9a7b3a; }
   .stamps { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:11px; }
-  .stamp { border:2px dashed #cdbd92; border-radius:11px; padding:12px 10px; min-height:78px; display:flex; flex-direction:column; justify-content:center; text-align:center; background:rgba(255,255,255,0.45); cursor:pointer; transition:transform .12s, box-shadow .15s; }
+  .bk-sh { display:flex; align-items:center; gap:9px; margin:20px 0 9px; }
+  .bk-sh:first-of-type { margin-top:4px; }
+  .bk-sht { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.16em; }
+  .bk-shr { flex:1; border-top:1px solid #e6dcc2; }
+  .stamp .cav { font-family:var(--hand,'Caveat',cursive); font-size:15px; color:#9a7b3a; margin-top:2px; }
+  .stamp .plan { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.1em; color:#9a7b3a; margin-top:4px; }
+  .stamp .plan.over { color:#8A1F1A; }
+  .stamp.wip { min-height:94px; }
+  .stamp.wip:first-child { grid-column:span 2; }
+  .stamp.wip .st { color:#8a6f2f; font-size:14.5px; }
+  .stamp .flag { position:absolute; top:0; right:0; width:0; height:0; border-top:30px solid #c9a94a; border-left:30px solid transparent; z-index:3; }
+  .stamp .flag i { position:absolute; top:-27px; left:-15px; font-size:10px; color:#fff; font-style:normal; }
+  .stamp .edge { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(160,130,60,0.13); }
+  .stamp .edge i { display:block; height:100%; background:linear-gradient(90deg,#c9a94a,#e0c268); }
+  .stamp .edge.over i { background:linear-gradient(90deg,#a83a30,#8A1F1A); }
+  .stamp { border:1px solid #e0d7bf; border-radius:11px; padding:12px 10px 16px; min-height:80px; display:flex; flex-direction:column; justify-content:center; text-align:center; background:#fdfbf5; cursor:pointer; overflow:hidden; transition:transform .12s, box-shadow .15s; }
   .stamp:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(120,90,20,0.14); }
-  .stamp .st { font-family:var(--serif); font-weight:600; font-size:13px; color:#7a6a44; line-height:1.3; overflow-wrap:anywhere; }
-  .stamp.inked { border:2px solid #8a4a2f; background:#fff; transform:rotate(-2deg); box-shadow:0 4px 12px rgba(120,60,20,0.15); }
+  .stamp .st { font-family:var(--serif); font-weight:600; font-size:13px; color:#8d8368; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; }
+  .stamp.inked { border:2px solid #8a4a2f; background:#fff; padding-bottom:12px; transform:rotate(-2deg); box-shadow:0 4px 12px rgba(120,60,20,0.15); }
   .stamp.inked:hover { transform:rotate(-2deg) translateY(-2px); }
   .stamp.inked .st { color:#8a4a2f; }
   .stamp .dt { font-family:var(--mono); font-size:7.5px; font-weight:600; letter-spacing:0.1em; color:#8a4a2f; margin-top:5px; border-top:1px solid #e0cfc2; padding-top:4px; }
@@ -347,6 +362,14 @@
   body.p-editing #bkWin .bk-dts { display:inline-flex; }
   .bk-dts label { display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.12em; color:#9a7b3a; }
   .bk-dts input { border:1px solid #e2d9bd; border-radius:7px; background:#fff; font-family:var(--sans); font-size:11.5px; color:#182233; padding:3px 6px; }
+  .bk-statrow { margin-top:11px; }
+  .bk-stat { display:inline-flex; gap:4px; background:#eef1f6; padding:4px; border-radius:10px; flex-wrap:wrap; }
+  .bk-stat > span { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:6px 11px; border-radius:7px; cursor:pointer; opacity:0.72; transition:opacity .15s; white-space:nowrap; }
+  .bk-stat > span[data-st="not_yet"] { background:#f2f4f8; color:#6a7690; }
+  .bk-stat > span[data-st="wip"]     { background:#faf2e0; color:#9a7b3a; }
+  .bk-stat > span[data-st="done"]    { background:#f7efe9; color:#8a4a2f; }
+  .bk-stat > span.on { opacity:1; box-shadow:0 2px 6px rgba(30,40,70,0.14); font-weight:700; }
+  .bk-stat > span:hover { opacity:0.9; }
   .bk-del-row { margin-top:34px; padding-top:14px; border-top:1px solid #f0ece0; }
   .bk-del { border:none; background:none; font-family:var(--mono); font-size:8.5px; letter-spacing:0.1em; color:#b6bfd1; cursor:pointer; }
   .bk-del:hover { color:#8A1F1A; }
@@ -427,7 +450,7 @@
     <div class="sec-panel hidden" id="secBucket">
       <div class="bk-book">
         <div class="bk-hd"><span class="bk-t">My Bucket List</span><span class="bk-count" id="bkCount"></span></div>
-        <div class="stamps" id="stamps"></div>
+        <div id="stamps"></div>
       </div>
     </div>
   </div>
@@ -569,14 +592,17 @@
         <div class="bk-hero">
           <div class="bkeyebrow" id="bkEyebrow"></div>
           <div class="bkname" id="bkName"></div>
-          <div class="bk-visarow">
-            <span class="bk-visa" id="bkVisa"></span>
-            <button class="bk-stampbtn" id="bkStamp" type="button">Stamp it &mdash; lived</button>
-            <button class="bk-unlive" id="bkUnlive" type="button">un-stamp</button>
-            <span class="bk-dts" id="bkDts">
-              <label>DREAMED <input type="date" id="bkDreamedOn"></label>
-              <label id="bkLivedWrap">LIVED <input type="date" id="bkLivedOn"></label>
-            </span>
+          <div class="bk-statrow">
+            <div class="bk-stat" id="bkStat">
+              <span data-st="not_yet">Not yet</span>
+              <span data-st="wip">Work in progress</span>
+              <span data-st="done">&#10003; Done</span>
+            </div>
+          </div>
+          <div class="bk-dts">
+            <label>WRITTEN <input type="date" id="bkDreamedOn"></label>
+            <label>PLANNED FOR <input type="date" id="bkPlannedOn"></label>
+            <label id="bkLivedWrap">DONE <input type="date" id="bkLivedOn"></label>
           </div>
         </div>
         <div id="bkWhyToolbar"></div>
@@ -1531,27 +1557,61 @@ async function loadBuckets() {
   buckets = data || [];
   renderStamps();
 }
+// How much of the runway between WRITTEN and PLANNED FOR has passed.
+// Past the planned date it reads 100% and turns ember.
+function bkElapsed(b) {
+  if (!b.planned_on) return null;
+  const start = new Date((b.dreamed_on || String(b.created_at || '').slice(0,10)) + 'T00:00:00');
+  const end = new Date(b.planned_on + 'T00:00:00');
+  const now = new Date();
+  if (isNaN(start) || isNaN(end)) return null;
+  if (now >= end) return { pct: 100, over: true };
+  const span = end - start;
+  if (span <= 0) return { pct: 100, over: true };
+  return { pct: Math.max(0, Math.min(100, Math.round(((now - start) / span) * 100))), over: false };
+}
+function bkCard(b) {
+  const st = b.status || 'not_yet';
+  const done = st === 'done', wip = st === 'wip';
+  const e = done ? null : bkElapsed(b);
+  let inner = '';
+  if (wip) inner += '<span class="flag"><i>\u2691</i></span>';
+  inner += '<div class="st">' + escHtml(b.title) + '</div>';
+  if (wip) inner += '<div class="cav">Work in Progress</div>';
+  if (done) {
+    inner += '<div class="dt">\u2713 DONE \u00B7 ' + bkFmt(b.lived_on) + '</div>';
+  } else {
+    if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">PLANNED FOR \u00B7 ' + bkFmt(b.planned_on) + (e && e.over ? ' \u00B7 PASSED' : '') + '</div>';
+    inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
+    if (e) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
+  }
+  return '<div class="stamp' + (done ? ' inked' : '') + (wip ? ' wip' : '') + '" data-bk="' + b.id + '">' + inner + '</div>';
+}
 function renderStamps() {
   const wrap = el('stamps'); if (!wrap) return;
-  const lived = buckets.filter(b => b.status === 'lived').length;
-  el('bkCount').textContent = buckets.length + ' DREAMS \u00B7 ' + lived + ' STAMPED';
+  const shelves = [
+    { key: 'wip',     lbl: 'WORK IN PROGRESS', col: '#9a7b3a' },
+    { key: 'not_yet', lbl: 'WAITING',          col: '#a8a08c' },
+    { key: 'done',    lbl: 'DONE',             col: '#8a4a2f' },
+  ];
+  const doneN = buckets.filter(b => b.status === 'done').length;
+  el('bkCount').textContent = buckets.length + ' DREAMS \u00B7 ' + doneN + ' DONE';
   let html = '';
-  buckets.forEach(b => {
-    const inked = b.status === 'lived';
-    html += '<div class="stamp' + (inked ? ' inked' : '') + '" data-bk="' + b.id + '">' +
-      '<div class="st">' + escHtml(b.title) + '</div>' +
-      (inked ? '<div class="dt">LIVED \u00B7 ' + bkFmt(b.lived_on) + '</div>' :
-               '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>') +
-    '</div>';
+  shelves.forEach(sh => {
+    const rows = buckets.filter(b => (b.status || 'not_yet') === sh.key);
+    const isWait = sh.key === 'not_yet';
+    if (!rows.length && !isWait) return;      // empty shelves stay hidden (Waiting keeps the add tile)
+    html += '<div class="bk-sh"><span class="bk-sht" style="color:' + sh.col + '">' + sh.lbl + ' \u00B7 ' + rows.length + '</span><span class="bk-shr"></span></div>';
+    html += '<div class="stamps">' + rows.map(bkCard).join('') +
+      (isWait ? '<div class="stamp add" id="stampAdd"><div class="st">+ New dream</div></div>' : '') + '</div>';
   });
-  html += '<div class="stamp add" id="stampAdd"><div class="st">+ New dream</div></div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-bk]').forEach(s =>
     s.addEventListener('click', (e) => { if (e.target.closest('.stx')) return; openDream(s.dataset.bk); }));
   wrap.querySelectorAll('[data-stx]').forEach(x =>
     x.addEventListener('click', async () => {
       const b = buckets.find(r => String(r.id) === String(x.dataset.stx));
-      if (!b || b.status === 'lived') return;
+      if (!b || b.status === 'done') return;
       if (!confirm('Delete "' + b.title + '"? This cannot be undone.')) return;
       const { error } = await supa.from('bucket_items').delete().eq('id', b.id).eq('user_id', userId);
       if (error) { console.error(error); toast('Could not delete'); return; }
@@ -1596,16 +1656,14 @@ function openDream(id) {
 }
 function bkRenderStatus() {
   const b = bkRow(); if (!b) return;
-  const lived = b.status === 'lived';
+  const done = b.status === 'done';
   el('bkDreamedOn').value = (b.dreamed_on || String(b.created_at || '').slice(0,10) || '');
+  el('bkPlannedOn').value = b.planned_on || '';
   el('bkLivedOn').value = b.lived_on || '';
-  el('bkLivedWrap').style.display = lived ? '' : 'none';
-  const v = el('bkVisa');
-  v.className = 'bk-visa ' + (lived ? 'lived' : 'dream');
-  v.textContent = lived ? ('STAMPED \u00B7 ' + bkFmt(b.lived_on)) : ('DREAMED \u00B7 ' + bkFmt(b.dreamed_on || b.created_at));
-  el('bkStamp').style.display = lived ? 'none' : '';
-  el('bkUnlive').style.display = lived ? '' : 'none';
-  el('bkDel').style.display = lived ? 'none' : '';
+  el('bkLivedWrap').style.display = done ? '' : 'none';   // only Done carries a date field
+  el('bkStat').querySelectorAll('[data-st]').forEach(s =>
+    s.classList.toggle('on', s.dataset.st === (b.status || 'not_yet')));
+  el('bkDel').style.display = done ? 'none' : '';
 }
 function bkRenderRead() {
   const w = el('bkWhyRO');
@@ -1679,16 +1737,17 @@ async function saveBucketCore_() {
   b.why_html = why;
   bkDirty = false; el('bkSave').textContent = 'Saved';
 }
-async function bkSetLived(on) {
-  const b = bkRow(); if (!b) return;
-  const rec = on ? { status: 'lived', lived_on: new Date().toISOString().slice(0,10) }
-                 : { status: 'dreamed', lived_on: null };
-  rec.updated_at = new Date().toISOString();
+async function bkSetStatus(st) {
+  const b = bkRow(); if (!b || b.status === st) return;
+  const rec = { status: st, updated_at: new Date().toISOString() };
+  // Only Done carries a date; it defaults to today and stays editable.
+  if (st === 'done') { if (!b.lived_on) rec.lived_on = new Date().toISOString().slice(0,10); }
+  else rec.lived_on = null;
   const { error } = await supa.from('bucket_items').update(rec).eq('id', bkId).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
   Object.assign(b, rec);
   bkRenderStatus(); renderStamps();
-  if (on) toast('Stamped \u2014 lived \u2726');
+  if (st === 'done') toast('Done \u2713');
 }
 async function bkSaveDate(field, value) {
   const b = bkRow(); if (!b || !value) { bkRenderStatus(); return; }
@@ -1699,14 +1758,16 @@ async function bkSaveDate(field, value) {
   bkRenderStatus(); renderStamps();
 }
 el('bkDreamedOn').addEventListener('change', () => bkSaveDate('dreamed_on', el('bkDreamedOn').value));
+el('bkPlannedOn').addEventListener('change', () => bkSaveDate('planned_on', el('bkPlannedOn').value));
 el('bkLivedOn').addEventListener('change', () => bkSaveDate('lived_on', el('bkLivedOn').value));
+el('bkStat').addEventListener('click', e => {
+  const s = e.target.closest('[data-st]'); if (s) bkSetStatus(s.dataset.st);
+});
 el('bkWhy').addEventListener('blur', () => saveBucket_());
 el('bkName').addEventListener('blur', bkSaveTitle_);
 el('bkName').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el('bkName').blur(); } });
-el('bkStamp').addEventListener('click', () => bkSetLived(true));
-el('bkUnlive').addEventListener('click', () => { if (confirm('Un-stamp this dream? Its lived date will be cleared.')) bkSetLived(false); });
 el('bkDel').addEventListener('click', async () => {
-  const b = bkRow(); if (!b || b.status === 'lived') return;
+  const b = bkRow(); if (!b || b.status === 'done') return;
   if (!confirm('Delete this dream? This cannot be undone.')) return;
   const { error } = await supa.from('bucket_items').delete().eq('id', bkId).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not delete'); return; }
@@ -1734,9 +1795,12 @@ el('bkHist').addEventListener('click', () => {
 });
 function bkMarkdown_() {
   const b = bkRow() || {};
-  const lived = b.status === 'lived';
+  const lived = b.status === 'done';
   let md = '# ' + (b.title || '') + '\n\n';
-  md += '*My Bucket List \u00B7 ' + (lived ? ('Stamped ' + bkFmt(b.lived_on)) : ('Dreamed ' + bkFmt(b.dreamed_on || b.created_at))) + '*\n\n';
+  md += '*My Bucket List \u00B7 ' + (lived ? ('Done ' + bkFmt(b.lived_on)) : (b.status === 'wip' ? 'Work in progress' : 'Not yet')) + '*\n\n';
+  md += '- **Written:** ' + bkFmt(b.dreamed_on || b.created_at) + '\n';
+  if (b.planned_on) md += '- **Planned for:** ' + bkFmt(b.planned_on) + '\n';
+  md += '\n';
   md += NoteEditor.toMarkdown(NoteEditor.sanitize(el('bkWhy').innerHTML)) + '\n';
   return md;
 }
@@ -1762,11 +1826,13 @@ el('bkMd').addEventListener('click', () => {
 });
 el('bkPrint').addEventListener('click', () => {
   const b = bkRow() || {};
-  const lived = b.status === 'lived';
+  const lived = b.status === 'done';
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9a7b3a}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#8a6f43;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#9a7b3a;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">My Bucket List</div><h1>' + esc(b.title || '') + '</h1>'
-    + '<div class="meta">' + (lived ? ('STAMPED \u00B7 ' + esc(bkFmt(b.lived_on))) : ('DREAMED \u00B7 ' + esc(bkFmt(b.dreamed_on || b.created_at)))) + '</div>'
+    + '<div class="meta">' + (lived ? ('\u2713 DONE \u00B7 ' + esc(bkFmt(b.lived_on))) : (b.status === 'wip' ? 'WORK IN PROGRESS' : 'NOT YET'))
+      + ' &middot; WRITTEN ' + esc(bkFmt(b.dreamed_on || b.created_at))
+      + (b.planned_on ? ' &middot; PLANNED FOR ' + esc(bkFmt(b.planned_on)) : '') + '</div>'
     + '<div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('bkWhy').innerHTML)) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(b.title || 'Dream') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
