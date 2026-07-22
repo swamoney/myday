@@ -216,7 +216,7 @@
   .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:#1e2740; color:#fff; padding:11px 20px; border-radius:10px; font-size:13px; opacity:0; pointer-events:none; transition:all .25s; z-index:400; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   /* ===== My Mantra + My Circle ===== */
-  .why-seg { display:inline-flex; gap:4px; background:#e7ebf1; padding:4px; border-radius:11px; margin-bottom:18px; max-width:100%; }
+  .why-seg { display:inline-flex; gap:4px; background:#e7ebf1; padding:4px; border-radius:11px; margin:0 38px 18px; max-width:calc(100% - 76px); }
   .why-seg > span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:8px; background:var(--t-faint,transparent); color:var(--t-acc,#6a7690); opacity:0.72; transition:opacity .15s, background .15s; cursor:pointer; white-space:nowrap; }
   .why-seg > span svg { width:15px; height:15px; flex-shrink:0; }
   .why-seg .seg-l { font-style:normal; background:none; padding:0; }
@@ -227,9 +227,11 @@
   .why-seg > span[data-sec="mantra"]  { --t-faint:#fbf3ef; --t-bg:#f3e2d9; --t-acc:#a0603c; }   /* M4 terracotta */
   .why-seg > span[data-sec="circle"]  { --t-faint:#f7f9fc; --t-bg:#e9eef6; --t-acc:#46586f; }   /* circle rows */
   .why-seg > span[data-sec="bucket"]  { --t-faint:#f6fbfa; --t-bg:#e2eeec; --t-acc:#2F6F6A; }   /* B2 deep teal */
+  #secMantra, #secCircle { padding:0 38px 30px; }
+  @media (max-width:640px) { #secMantra, #secCircle { padding:0 20px 26px; } }
   .sec-panel.hidden, #secPillars.hidden { display:none; }
   @media (max-width:560px) {
-    .why-seg { display:grid; grid-template-columns:repeat(2,1fr); gap:5px; width:100%; }
+    .why-seg { display:grid; grid-template-columns:repeat(2,1fr); gap:5px; margin:0 20px 18px; width:calc(100% - 40px); max-width:none; }
     .why-seg > span { flex-direction:column; gap:3px; font-size:10.5px; padding:8px 4px; min-height:52px; text-align:center; }
   }
   /* Mantra */
@@ -257,11 +259,15 @@
   .bbar { flex:1; height:3px; background:#eef1f6; border-radius:2px; overflow:hidden; }
   .bbar span { display:block; height:100%; }
   /* Card rows — no table, so it reflows cleanly on a phone. */
-  .crow { display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid #eef1f6; cursor:pointer; }
-  .crow:hover { background:#f7f9fc; }
+  .crow { display:flex; align-items:center; gap:13px; padding:14px 16px; margin-bottom:9px; cursor:pointer;
+          background:linear-gradient(160deg,var(--cw1,#f9fbfd),var(--cw2,#eef2f8));
+          border:1px solid color-mix(in srgb, var(--cacc,#8a94a8) 28%, transparent); border-radius:16px;
+          box-shadow:0 8px 22px rgba(30,47,82,0.06); transition:transform .15s, box-shadow .2s; }
+  .crow:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(30,47,82,0.1); }
+  .c-kind { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--cacc,#8a94a8); margin-bottom:2px; }
   .c-av { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:600; font-size:15px; flex-shrink:0; }
   .c-mid { flex:1; min-width:0; display:flex; flex-direction:column; }
-  .c-name { font-weight:600; font-size:14.5px; color:#28324B; }
+  .c-name { font-family:var(--serif); font-weight:600; font-size:15.5px; color:#28324B; }
   .c-note { font-size:12px; color:#8a94a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .c-go { color:#c3ccdb; display:flex; flex-shrink:0; }
   .c-go svg { width:15px; height:15px; }
@@ -318,10 +324,11 @@
   @media (max-width:560px) { .stamps { grid-template-columns:repeat(2,minmax(0,1fr)); } }   /* always 2 tracks, so span-2 = full width */
   .stamp .plan { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.1em; color:#8a94a8; margin-top:4px; }
   .stamp .plan.over { color:#8A1F1A; }
+  .stamp.wip .plan { background:rgba(244,196,48,0.22); color:#8a6f2f; padding:3px 8px; border-radius:6px; opacity:1; }
+  .stamp.wip .plan.over { background:rgba(138,31,26,0.13); color:#8A1F1A; }
   .stamp.wip { background:#f5fbfa; border:2px solid #4e948e; }   /* P2 — teal, diluted */
   .stamp.wip .st { color:#4e948e; font-size:14.5px; }
   .stamp.wip .flag { border-top-color:#4e948e; }
-  .stamp.wip .plan { color:#4e948e; opacity:0.8; }
   .stamp .wlab { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.14em; color:#4e948e; margin-top:4px; }
   .stamp.big { grid-column:span 2; min-height:100px; }
   .stamp.big .st { font-size:15px; }
@@ -1136,10 +1143,10 @@ const M_STAR_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentC
 const M_STAR_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 const M_PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 const BANDS = [
-  { key:'close',    lbl:'Close',    range:'1\u20135',    cap:5,   acc:'#3d7a5c', bg:'#e2efe7' },
-  { key:'sympathy', lbl:'Sympathy', range:'6\u201315',   cap:15,  acc:'#3a5b9c', bg:'#e3e9f5' },
-  { key:'affinity', lbl:'Affinity', range:'16\u201350',  cap:50,  acc:'#8a6f43', bg:'#f2ead9' },
-  { key:'network',  lbl:'Network',  range:'51\u2013150', cap:150, acc:'#6d5474', bg:'#eae3ec' }
+  { key:'close',    lbl:'Close',    range:'1\u20135',    cap:5,   acc:'#3d7a5c', bg:'#e2efe7', w1:'#f4faf6' },
+  { key:'sympathy', lbl:'Sympathy', range:'6\u201315',   cap:15,  acc:'#3a5b9c', bg:'#e3e9f5', w1:'#f5f7fc' },
+  { key:'affinity', lbl:'Affinity', range:'16\u201350',  cap:50,  acc:'#8a6f43', bg:'#f2ead9', w1:'#faf7f0' },
+  { key:'network',  lbl:'Network',  range:'51\u2013150', cap:150, acc:'#6d5474', bg:'#eae3ec', w1:'#faf7fb' }
 ];
 let mantras = [], circle = [], editingMantra = null, editingPerson = null;
 
@@ -1250,9 +1257,10 @@ function renderCircle() {
     // Card rows, not a table: reflows on any width, gives the note real room,
     // and no empty edit cells cutting the panel edge in read mode.
     html += people.map(p =>
-      '<div class="crow" data-open="' + p.id + '">' +
+      '<div class="crow" data-open="' + p.id + '" style="--cw1:' + b.w1 + ';--cw2:' + b.bg + ';--cacc:' + b.acc + '">' +
         '<span class="c-av" style="background:' + b.bg + ';color:' + b.acc + ';">' + escHtml((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
         '<span class="c-mid">' +
+          '<span class="c-kind">' + escHtml(b.lbl) + '</span>' +
           '<span class="c-name">' + escHtml(p.name || '') + '</span>' +
           (p.note ? '<span class="c-note">' + escHtml(p.note) + '</span>' : '') +
         '</span>' +
