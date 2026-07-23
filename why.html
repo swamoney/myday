@@ -236,18 +236,15 @@
   }
   /* Mantra */
   .mgrid { display:flex; flex-direction:column; gap:11px; }
-  .mcard { position:relative; background:linear-gradient(160deg,#ffffff,#fbfcfd); border:1px solid #eceff4; border-radius:15px; padding:18px 20px 16px; box-shadow:0 7px 18px rgba(30,47,82,0.05); }
-  .mcard.is-fav { border-color:#f0cdd6; box-shadow:0 8px 22px rgba(160,74,96,0.13); }
-  .m-fav { position:absolute; top:13px; right:13px; background:none; border:none; padding:0; display:flex; color:#c3ccdb; cursor:pointer; }
-  .m-fav.on { color:#c2415c; }
-  .m-fav svg { width:16px; height:16px; }
+  .mcard { position:relative; background:linear-gradient(160deg,#fff,var(--sh2,#fbfcfd)); border:1px solid var(--shb,#eceff4); border-radius:15px; padding:18px 20px 16px; box-shadow:0 7px 18px rgba(30,47,82,0.05); }
+  .m-num { position:absolute; left:18px; top:17px; font-family:var(--serif); font-weight:700; font-size:26px; line-height:1; letter-spacing:-0.02em; color:var(--sha,#8a94a8); }
+  .m-body { padding-left:34px; }
   .m-edit { position:absolute; bottom:12px; right:13px; display:none; background:none; border:none; color:#b0a184; cursor:pointer; padding:0; }
   body.editing .m-edit { display:flex; }
   .m-edit svg { width:14px; height:14px; }
-  .mq { font-family:var(--serif); font-size:34px; color:#d8c2b6; line-height:0.6; height:14px; }
   .mtext { font-family:var(--serif); font-size:21px; line-height:1.4; color:#182233; padding-right:26px; white-space:pre-wrap; }
   .mmean { font-family:var(--serif); font-size:16px; line-height:1.6; color:#6a7690; margin-top:8px; padding-top:8px; border-top:1px solid #eef1f6; }
-  .msrc { font-family:var(--mono); font-size:10px; letter-spacing:0.06em; color:#a0603c; margin-top:9px; }
+  .msrc { font-family:var(--mono); font-size:10px; letter-spacing:0.06em; color:var(--sha,#a0603c); margin-top:9px; }
   .mcard.add { background:transparent; border:1.5px dashed #cdd6e3; box-shadow:none; color:#8189a0; font-style:italic; text-align:center; padding:14px; cursor:pointer; display:none; }
   body.editing .mcard.add { display:block; }
   .m-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
@@ -598,7 +595,6 @@
     <span class="ptitle" id="mtTitleBar"></span>
     <span class="rm-wc" id="mtWc"></span>
     <span class="psave" id="mtSave"></span>
-    <button class="eb" id="mtFav" type="button" title="Favourite" aria-label="Favourite"></button>
     <button class="eb" id="mtHist" type="button" title="History"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></button>
     <button class="eb" id="mtEdit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="mtEditLabel">Edit</span></button>
   </div>
@@ -1183,8 +1179,6 @@ async function saveRoadmapCore_(force) {
 }
 
 // ===== MY MANTRA + MY CIRCLE =====
-const M_STAR_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
-const M_STAR_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 const M_PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 const BANDS = [
   { key:'close',    lbl:'Close',    range:'1\u20135',    cap:5,   acc:'#3b4252', bg:'#e3e6ec', w1:'#f7f8fa' },
@@ -1219,35 +1213,37 @@ function mtRich(m, field) {
   const plain = (m[field] || '').trim();
   return plain ? escHtml(plain).replace(/\n/g, '<br>') : '';
 }
+// Six near-white shades — wash, border, ink — cycling in the order written.
+const M_SHADES = [
+  { w2:'#fdfbfa', bd:'#f0e6e1', acc:'#b08a76' },   // linen
+  { w2:'#fbfdfc', bd:'#e2ece8', acc:'#6f9a86' },   // sage
+  { w2:'#fbfcfe', bd:'#e4eaf3', acc:'#7086a8' },   // sky
+  { w2:'#fdfcf7', bd:'#efe9d9', acc:'#a8935f' },   // gold
+  { w2:'#fdfbfd', bd:'#ece2ee', acc:'#96789e' },   // plum
+  { w2:'#fafdfd', bd:'#dfebea', acc:'#5f938c' },   // teal
+];
 function renderMantras() {
   const wrap = el('mantraList'); if (!wrap) return;
-  // Favourites first; newest-first order preserved within each group.
-  const list = mantras.slice().sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0));
-  let html = list.map(m =>
-    '<div class="mcard' + (m.favourite ? ' is-fav' : '') + '">' +
-      '<button class="m-fav' + (m.favourite ? ' on' : '') + '" data-fav="' + m.id + '" type="button" aria-label="Favourite">' + (m.favourite ? M_STAR_ON : M_STAR_OFF) + '</button>' +
-      '<div class="mq">&ldquo;</div>' +
-      '<div class="mtext nk-content">' + mtRich(m, 'text') + '</div>' +
-      (mtRich(m, 'meaning') ? '<div class="mmean nk-content">' + mtRich(m, 'meaning') + '</div>' : '') +
-      (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') +
+  // Oldest first: Nº 1 is the first line you ever wrote, and it never moves.
+  const list = mantras.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  let html = list.map((m, i) => {
+    const sh = M_SHADES[i % M_SHADES.length];
+    const tint = ' style="--sh2:' + sh.w2 + ';--shb:' + sh.bd + ';--sha:' + sh.acc + '"';
+    return '<div class="mcard"' + tint + '>' +
+      '<div class="m-num">' + String(i + 1).padStart(2, '0') + '</div>' +
+      '<div class="m-body">' +
+        '<div class="mtext nk-content">' + mtRich(m, 'text') + '</div>' +
+        (mtRich(m, 'meaning') ? '<div class="mmean nk-content">' + mtRich(m, 'meaning') + '</div>' : '') +
+        (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') +
+      '</div>' +
       '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
-    '</div>'
-  ).join('');
+    '</div>';
+  }).join('');
   if (!list.length) html += '<div class="m-empty">No mantras yet \u2014 tap Edit, then add the lines you live by.</div>';
   html += '<div class="mcard add" id="mantraAdd">+ New mantra</div>';
   wrap.innerHTML = html;
 }
-async function toggleMantraFav(id) {
-  const m = mantras.find(x => String(x.id) === String(id)); if (!m) return;
-  const next = !m.favourite;
-  m.favourite = next; renderMantras();
-  try {
-    const { error } = await supa.from('why_mantras').update({ favourite: next }).eq('id', id).eq('user_id', userId);
-    if (error) throw error;
-  } catch (e) { m.favourite = !next; renderMantras(); toast('Could not update'); }
-}
 el('mantraList').addEventListener('click', e => {
-  const fav = e.target.closest('[data-fav]'); if (fav) { toggleMantraFav(fav.dataset.fav); return; }
   const ed = e.target.closest('[data-medit]'); if (ed) { openMantra(ed.dataset.medit); return; }
   if (e.target.closest('#mantraAdd')) { newMantra(); return; }
   const card = e.target.closest('.mcard:not(.add)');
@@ -1581,8 +1577,9 @@ function mtEditing_() { return document.body.classList.contains('p-editing'); }
 function openMantra(id) {
   const m = mantras.find(x => String(x.id) === String(id)); if (!m) return;
   mtId = id;
-  const no = mantras.findIndex(x => String(x.id) === String(id)) + 1;
-  el('mtEyebrow').textContent = 'MY MANTRA \u00B7 N\u00BA ' + no;
+  const ordered = mantras.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const no = ordered.findIndex(x => String(x.id) === String(id)) + 1;
+  el('mtEyebrow').textContent = 'MY MANTRA \u00B7 N\u00BA ' + String(no).padStart(2, '0');
   el('mtLine').innerHTML = mtRich(m, 'text');
   el('mtMean').innerHTML = mtRich(m, 'meaning');
   el('mtSrc').textContent = m.source || '';
@@ -1591,16 +1588,9 @@ function openMantra(id) {
   mtSrcBase = el('mtSrc').textContent;
   el('mtTitleBar').innerHTML = 'My Mantra &middot; ' + escHtml(NoteEditor.toPlain(mtLineBase).slice(0, 60));
   el('mtSave').textContent = '';
-  mtRenderFav();
   setMtEditing(false);
   el('mtWin').classList.add('show');
   document.body.style.overflow = 'hidden';
-}
-function mtRenderFav() {
-  const m = mtRow(); if (!m) return;
-  const b = el('mtFav');
-  b.innerHTML = m.favourite ? M_STAR_ON : M_STAR_OFF;
-  b.classList.toggle('hot', !!m.favourite);
 }
 function mtRenderRead() {
   const line = NoteEditor.sanitize(el('mtLine').innerHTML);
@@ -1715,11 +1705,6 @@ el('mtLine').addEventListener('blur', () => saveMantraPage_());
 el('mtMean').addEventListener('blur', () => saveMantraPage_());
 el('mtSrc').addEventListener('blur', () => saveMantraPage_());
 el('mtSrc').addEventListener('input', scheduleMtSave);
-el('mtFav').addEventListener('click', async () => {
-  const m = mtRow(); if (!m) return;
-  await toggleMantraFav(m.id);
-  mtRenderFav();
-});
 el('mtDel').addEventListener('click', async () => {
   const m = mtRow(); if (!m) return;
   if (!confirm('Delete this mantra? This cannot be undone.')) return;
