@@ -326,18 +326,19 @@
   .stamp .plan.over { color:#8A1F1A; }
   .stamp .plan { background:#f4c430; color:#1d2d4d; padding:3px 8px; border-radius:6px; letter-spacing:0.06em; }
   .stamp .plan.over { background:#8A1F1A; color:#fff; }
-  .stamp.big { grid-column:span 2; min-height:100px; }
+  .stamp.big { grid-column:1 / -1; min-height:104px; transform:rotate(-2deg); }
+  .stamp.big .bk-mark { transform:none; }   /* D3 — the card leans, the mark stays level */
   .stamp.big .st { font-size:15px; }
-  .stamp .bstar { position:absolute; top:7px; left:9px; width:13px; height:13px; color:#c9a94a; z-index:3; }
   .stamp .edge { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(120,140,170,0.13); }
   .stamp .edge i { display:block; height:100%; background:#3d7a5c; }   /* E1 — moss */
   .stamp .edge.over i { background:#8A1F1A; }
   .stamp { position:relative; border:1px solid #efd7da; border-radius:11px; padding:12px 10px 16px; min-height:84px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#fdf7f8; cursor:pointer; overflow:hidden; transition:transform .12s, box-shadow .15s; box-shadow:0 3px 10px rgba(60,40,45,0.05); }
-  .stamp.wip { background:#f8fcfc; border-color:#cfe6e3; }
+  .stamp.wip { background:#f8fcfc; border:2px solid #4e948e; box-shadow:0 5px 14px rgba(30,90,85,0.15); }
   .stamp:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(120,90,20,0.14); }
   .stamp .st { font-family:var(--serif); font-weight:600; font-size:13px; color:#7c8698; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; }
   .stamp.wip .st { color:#4e948e; }
-  .stamp.inked { border:2px solid #22334f; background:#f4f6fa; padding-bottom:12px; transform:rotate(-2deg); box-shadow:0 5px 14px rgba(25,45,80,0.15); }   /* X3 — the finished card keeps its tilt */
+  .stamp.big .st { font-size:23px; font-weight:400; letter-spacing:0.005em; }
+  .stamp.inked { border:2px solid #22334f; background:#f4f6fa; padding-bottom:12px; box-shadow:0 5px 14px rgba(25,45,80,0.15); }
   .stamp.inked:hover { transform:rotate(-2deg) translateY(-2px); }
   .stamp.inked .st { color:#22334f; }
   .stamp.add { border:1px solid #dde3ec; background:transparent; box-shadow:none; display:none; }
@@ -357,12 +358,8 @@
   body.p-editing #bkWin .bk-dts { display:inline-flex; }
   .bk-dts label { display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.12em; color:#9a7b3a; }
   .bk-dts input { border:1px solid #e2d9bd; border-radius:7px; background:#fff; font-family:var(--sans); font-size:11.5px; color:#182233; padding:3px 6px; }
-  body:not(.p-editing) #bkStar { pointer-events:none; }                       /* readable, not tappable */
   body:not(.p-editing) .bk-stat { display:none; }        /* the stamp speaks in read mode */
   body:not(.p-editing) .bk-del-row { display:none; }
-  #bkStar { padding:7px 10px; }
-  #bkStar svg { width:16px; height:16px; color:#c3ccdb; }
-  #bkStar.on svg { color:#c9a94a; }
   .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   /* V3 stamps — one design, three states, used on the page and in the book */
   .bk-mark { display:inline-block; font-family:var(--mono); font-weight:600; letter-spacing:0.12em; border:2px solid; border-radius:7px; white-space:nowrap; }
@@ -596,7 +593,6 @@
     <span class="ptitle" id="bkTitleBar"></span>
     <span class="rm-wc" id="bkWc"></span>
     <span class="psave" id="bkSave"></span>
-    <button class="eb" id="bkStar" type="button" title="Give this dream the wide tile" aria-label="Star"></button>
     <button class="eb" id="bkHist" type="button" title="History"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></button>
     <button class="eb" id="bkEdit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="bkEditLabel">Edit</span></button>
   </div>
@@ -1561,8 +1557,6 @@ NoteEditor.guard.register(
 // ============ MY BUCKET LIST ============
 let buckets = [], bkId = null, bkWhyBase = '', bkDirty = false, bkTimer = null;
 let bkSaving = false, bkQueued = false;
-const BK_STAR_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
-const BK_STAR_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 const BK_MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 function bkFmt(d) {
   if (!d) return '';
@@ -1601,7 +1595,6 @@ function bkCard(b) {
   const done = st === 'done', wip = st === 'wip';
   const e = done ? null : bkElapsed(b);
   let inner = '';
-  if (b.starred) inner += '<svg class="bstar" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
   inner += '<div class="st">' + escHtml(b.title) + '</div>';
   inner += bkMark(b, false);
   if (!done) {
@@ -1609,19 +1602,20 @@ function bkCard(b) {
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
     if (e) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
   }
-  return '<div class="stamp' + (done ? ' inked' : '') + (wip ? ' wip' : '') + (b.starred ? ' big' : '') + '" data-bk="' + b.id + '">' + inner + '</div>';
+  // status alone decides the layout: active and finished dreams span the row
+  return '<div class="stamp' + (done ? ' inked' : '') + (wip ? ' wip' : '') + (done || wip ? ' big' : '') + '" data-bk="' + b.id + '">' + inner + '</div>';
 }
 function renderStamps() {
   const wrap = el('stamps'); if (!wrap) return;
   const doneN = buckets.filter(b => b.status === 'done').length;
   el('bkCount').textContent = buckets.length + ' DREAMS \u00B7 ' + doneN + ' DONE';
   // Flat book: one grid. Order carries the meaning — what you're chasing first,
-  // then what waits, then what's finished; starred lead their own group.
+  // then what waits, then what's finished.
   const rank = { wip: 0, not_yet: 1, done: 2 };
   const rows = buckets.slice().sort((a, c) => {
     const ra = rank[a.status || 'not_yet'], rc = rank[c.status || 'not_yet'];
     if (ra !== rc) return ra - rc;
-    return (c.starred ? 1 : 0) - (a.starred ? 1 : 0);
+    return 0;
   });
   wrap.innerHTML = '<div class="stamps">' + rows.map(bkCard).join('') +
     '<div class="stamp add" id="stampAdd"><div class="st">+ New dream</div></div></div>';
@@ -1696,20 +1690,6 @@ function bkRenderStatus() {
     ro.innerHTML = out;
   }
   el('bkDel').style.display = done ? 'none' : '';
-  const sb = el('bkStar');
-  sb.innerHTML = b.starred ? BK_STAR_ON : BK_STAR_OFF;
-  sb.classList.toggle('on', !!b.starred);
-}
-async function bkToggleStar() {
-  if (!bkEditing_()) return;
-  const b = bkRow(); if (!b) return;
-  const val = !b.starred;
-  const { error } = await supa.from('bucket_items')
-    .update({ starred: val, updated_at: new Date().toISOString() })
-    .eq('id', bkId).eq('user_id', userId);
-  if (error) { console.error(error); toast('Could not save'); return; }
-  b.starred = val;
-  bkRenderStatus(); renderStamps();
 }
 function bkRenderRead() {
   const w = el('bkWhyRO');
@@ -1809,7 +1789,6 @@ async function bkSaveDate(field, value) {
 el('bkDreamedOn').addEventListener('change', () => bkSaveDate('dreamed_on', el('bkDreamedOn').value));
 el('bkPlannedOn').addEventListener('change', () => bkSaveDate('planned_on', el('bkPlannedOn').value));
 el('bkLivedOn').addEventListener('change', () => bkSaveDate('lived_on', el('bkLivedOn').value));
-el('bkStar').addEventListener('click', bkToggleStar);
 el('bkStat').addEventListener('click', e => {
   const s = e.target.closest('[data-st]'); if (s) bkSetStatus(s.dataset.st);
 });
