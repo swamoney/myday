@@ -240,6 +240,9 @@
   .mcard:not(.add) { display:flex; align-items:flex-start; gap:20px; }
   .m-num { flex-shrink:0; min-width:32px; font-family:var(--serif); font-weight:700; font-size:26px; line-height:1.08; letter-spacing:-0.02em; color:var(--sha,#8a94a8); }
   .m-body { flex:1; min-width:0; padding-right:22px; }   /* clear of the edit pen */
+  .m-x { display:none; position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; border:none; background:#8A1F1A; color:#fff; font-size:13px; line-height:1; cursor:pointer; z-index:4; }
+  body.editing .mcard:not(.add) .m-x { display:block; }
+  .mcard { overflow:visible; }
   @media (max-width:520px) { .mcard:not(.add) { gap:14px; } .m-num { font-size:22px; min-width:26px; } }
   .m-edit { position:absolute; bottom:12px; right:13px; display:none; background:none; border:none; color:#b0a184; cursor:pointer; padding:0; }
   body.editing .m-edit { display:flex; }
@@ -1239,6 +1242,7 @@ function renderMantras() {
         (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') +
       '</div>' +
       '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
+      '<button class="m-x" data-mx="' + m.id + '" type="button" aria-label="Delete">&times;</button>' +
     '</div>';
   }).join('');
   if (!list.length) html += '<div class="m-empty">No mantras yet \u2014 tap Edit, then add the lines you live by.</div>';
@@ -1246,6 +1250,18 @@ function renderMantras() {
   wrap.innerHTML = html;
 }
 el('mantraList').addEventListener('click', e => {
+  const del = e.target.closest('[data-mx]');
+  if (del) {
+    const m = mantras.find(x => String(x.id) === String(del.dataset.mx));
+    if (!m) return;
+    const line = NoteEditor.toPlain(mtRich(m, 'text')).trim().slice(0, 60) || 'this mantra';
+    if (!confirm('Delete \u201C' + line + '\u201D? This cannot be undone.')) return;
+    supa.from('why_mantras').delete().eq('id', m.id).eq('user_id', userId).then(async ({ error }) => {
+      if (error) { console.error(error); toast('Could not delete'); return; }
+      await loadMantras(); toast('Deleted');
+    });
+    return;
+  }
   const ed = e.target.closest('[data-medit]'); if (ed) { openMantra(ed.dataset.medit); return; }
   if (e.target.closest('#mantraAdd')) { newMantra(); return; }
   const card = e.target.closest('.mcard:not(.add)');
@@ -1626,8 +1642,8 @@ function setMtEditing(on) {
   }
   mtUpdateWc_();
 }
-async function closeMantra() {
-  await saveMantraPage_(true);        // always flush, then trust the database
+async function closeMantra(skipSave) {
+  if (!skipSave) await saveMantraPage_(true);   // flush, then trust the database
   el('mtWin').classList.remove('show');
   document.body.style.overflow = '';
   setMtEditing(false);
@@ -1712,7 +1728,9 @@ el('mtDel').addEventListener('click', async () => {
   if (!confirm('Delete this mantra? This cannot be undone.')) return;
   const { error } = await supa.from('why_mantras').delete().eq('id', mtId).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not delete'); return; }
-  closeMantra(); await loadMantras(); toast('Deleted');
+  mtDirty = false;
+  await closeMantra(true);   // nothing left to save
+  toast('Deleted');
 });
 el('mtHist').addEventListener('click', () => {
   if (mtId === null) return;
