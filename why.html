@@ -1634,12 +1634,13 @@ function setMtEditing(on) {
   }
   mtUpdateWc_();
 }
-function closeMantra() {
-  if (mtDirty) saveMantraPage_(true);
+async function closeMantra() {
+  await saveMantraPage_(true);        // always flush, then trust the database
   el('mtWin').classList.remove('show');
   document.body.style.overflow = '';
   setMtEditing(false);
   mtId = null;
+  await loadMantras();                // the shelf re-reads what was actually stored
 }
 function scheduleMtSave() {
   mtDirty = true;
@@ -1665,14 +1666,28 @@ async function saveMantraCore_() {
   const mean = NoteEditor.sanitize(el('mtMean').innerHTML);
   const src = (el('mtSrc').textContent || '').trim();
   if (m.text_html === line && m.meaning_html === mean && (m.source || '') === src) {
-    mtDirty = false; el('mtSave').textContent = 'Saved'; return;
+    mtDirty = false; el('mtSave').textContent = 'Saved'; renderMantras(); return;
   }
   const rec = {
     text_html: line, meaning_html: mean, source: src,
     // the plain columns stay in step, so exports and older reads never go stale
     text: NoteEditor.toPlain(line).trim(), meaning: NoteEditor.toPlain(mean).trim()
   };
-  const { error } = await supa.from('why_mantras').update(rec).eq('id', mtId).eq('user_id', userId);
+  let { error } = await supa.from('why_mantras').update(rec).eq('id', mtId).eq('user_id', userId);
+  if (error && /column|schema/i.test(error.message || '')) {
+    // The rich-text columns haven't been added yet — keep the words safe in the
+    // original columns and tell the user what's missing.
+    const plainOnly = { text: rec.text, meaning: rec.meaning, source: rec.source };
+    const retry = await supa.from('why_mantras').update(plainOnly).eq('id', mtId).eq('user_id', userId);
+    if (!retry.error) {
+      Object.assign(m, plainOnly);
+      mtDirty = false;
+      el('mtSave').textContent = 'Saved as plain text \u2014 run the SQL for formatting';
+      renderMantras();
+      return;
+    }
+    error = retry.error;
+  }
   if (error) { console.error(error); el('mtSave').textContent = 'Save failed'; return; }
   Object.assign(m, rec);
   mtDirty = false; el('mtSave').textContent = 'Saved';
@@ -1690,10 +1705,11 @@ async function newMantra() {
   mtLineNk.refresh(); mtLineNk.focusEnd();
 }
 el('mtBack').addEventListener('click', closeMantra);
-el('mtEdit').addEventListener('click', () => {
+el('mtEdit').addEventListener('click', async () => {
   const on = !mtEditing_();
   setMtEditing(on);
-  if (on) { mtLineNk.refresh(); mtMeanNk.refresh(); mtLineNk.focusEnd(); } else { saveMantraPage_(true); }
+  if (on) { mtLineNk.refresh(); mtMeanNk.refresh(); mtLineNk.focusEnd(); }
+  else { await saveMantraPage_(true); renderMantras(); }
 });
 el('mtLine').addEventListener('blur', () => saveMantraPage_());
 el('mtMean').addEventListener('blur', () => saveMantraPage_());
