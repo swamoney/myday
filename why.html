@@ -240,9 +240,9 @@
   .mcard:not(.add) { display:flex; align-items:flex-start; gap:20px; }
   .m-num { flex-shrink:0; min-width:32px; font-family:var(--serif); font-weight:700; font-size:26px; line-height:1.08; letter-spacing:-0.02em; color:var(--sha,#8a94a8); }
   .m-body { flex:1; min-width:0; padding-right:22px; }   /* clear of the edit pen */
-  .m-x { display:none; position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; border:none; background:#8A1F1A; color:#fff; font-size:13px; line-height:1; cursor:pointer; z-index:4; }
+  .m-x { display:none; position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%; border:none; background:#8A1F1A; color:#fff; font-size:13px; line-height:1; cursor:pointer; z-index:4; box-shadow:0 2px 6px rgba(70,20,20,0.25); }
   body.editing .mcard:not(.add) .m-x { display:block; }
-  .mcard { overflow:visible; }
+  body.editing .mcard:not(.add) .m-body { padding-right:38px; }
   @media (max-width:520px) { .mcard:not(.add) { gap:14px; } .m-num { font-size:22px; min-width:26px; } }
   .m-edit { position:absolute; bottom:12px; right:13px; display:none; background:none; border:none; color:#b0a184; cursor:pointer; padding:0; }
   body.editing .m-edit { display:flex; }
@@ -347,7 +347,7 @@
   .stamp.add { border:1px solid #dde3ec; background:transparent; box-shadow:none; display:none; }
   body.editing .stamp.add { display:flex; }
   .stamp { position:relative; }
-  .stamp .stx { display:none; position:absolute; top:-8px; right:-8px; width:22px; height:22px; border-radius:50%; border:none; background:#8A1F1A; color:#fff; font-size:13px; line-height:1; cursor:pointer; }
+  .stamp .stx { display:none; position:absolute; top:7px; right:7px; width:22px; height:22px; border-radius:50%; border:none; background:#8A1F1A; color:#fff; font-size:13px; line-height:1; cursor:pointer; z-index:4; box-shadow:0 2px 6px rgba(70,20,20,0.25); }
   body.editing .stamp:not(.inked) .stx { display:block; }
   .stamp.add .st { color:#8a94a8; }
   .stamp.add input { width:100%; border:none; background:transparent; font-family:var(--serif); font-weight:600; font-size:13px; color:#5c4a1a; text-align:center; outline:none; }
@@ -1199,6 +1199,8 @@ function showSection(sec) {
     if (p) p.classList.toggle('hidden', s !== sec);
   });
   el('whySeg').querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.sec === sec));
+  // Edit belongs to the section you are in — leaving it puts the room back in read mode.
+  if (document.body.classList.contains('editing')) toggleEdit();
 }
 el('whySeg').querySelectorAll(':scope > span').forEach(s =>
   s.addEventListener('click', () => showSection(s.dataset.sec)));
