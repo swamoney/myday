@@ -361,6 +361,24 @@
   .bk-dts input { border:1px solid #e2d9bd; border-radius:7px; background:#fff; font-family:var(--sans); font-size:11.5px; color:#182233; padding:3px 6px; }
   body:not(.p-editing) .bk-stat { display:none; }        /* the stamp speaks in read mode */
   body:not(.p-editing) .bk-del-row { display:none; }
+  /* ===== My Mantra — a page per mantra ===== */
+  #mtWin .pin { max-width:820px; }
+  .mt-hero { padding-bottom:4px; }
+  .mt-eyebrow { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.18em; color:#a0603c; }
+  .mt-line { font-family:var(--serif); font-size:27px; font-weight:600; line-height:1.35; color:#182233; margin-top:8px; outline:none; }
+  body.p-editing #mtLine { border-bottom:1px solid #e8cdbf; padding-bottom:3px; }
+  body.p-editing #mtLine:focus { border-bottom-color:#a0603c; }
+  .mt-srcrow { margin-top:11px; }
+  .mt-src { font-family:var(--mono); font-size:10px; letter-spacing:0.06em; color:#a0603c; outline:none; }
+  .mt-src:empty::before { content:'\2014 source (optional)'; color:#c9b3a6; }
+  body:not(.p-editing) .mt-src:empty { display:none; }
+  body.p-editing .mt-src { border-bottom:1px solid #e8cdbf; padding-bottom:2px; }
+  .mt-del-row { margin-top:34px; padding-top:14px; border-top:1px solid #f2e0d5; }
+  .mt-del { border:none; background:none; font-family:var(--mono); font-size:8.5px; letter-spacing:0.1em; color:#c9b3a6; cursor:pointer; }
+  .mt-del:hover { color:#8A1F1A; }
+  body:not(.p-editing) .mt-del-row { display:none; }
+  #mtHist { margin-left:auto; }
+  .mcard { cursor:pointer; }
   .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   /* V3 stamps — one design, three states, used on the page and in the book */
   .bk-mark { display:inline-block; font-family:var(--mono); font-weight:600; letter-spacing:0.12em; border:2px solid; border-radius:7px; white-space:nowrap; }
@@ -387,10 +405,11 @@
   #bkHist { margin-left:auto; }
   /* Shared note editor (note-editor.js). Toolbars only visible while editing. */
   /* One toolbar chrome app-wide: inside the frozen headline unit (like Fav/Inner Life). */
-  #rmToolbar, #pToolbar, #bkWhyToolbar { display:none; margin:12px 0 2px; }   /* byte-matches Introspection's #rdToolbar */
+  #rmToolbar, #pToolbar, #bkWhyToolbar, #mtLineToolbar, #mtMeanToolbar { display:none; margin:12px 0 2px; }   /* byte-matches Introspection's #rdToolbar */
   body.rm-editing #rmToolbar { display:flex; }
   body.p-editing #pToolbar { display:flex; }
   body.p-editing #bkWhyToolbar { display:flex; }
+  body.p-editing #mtLineToolbar, body.p-editing #mtMeanToolbar { display:flex; }
   .rm-bar .eb, .pbar .eb { padding:7px 12px; font-size:12px; }
   @media (max-width:640px) {
     .rm-title, .ptitle { display:none; }              /* bar keeps buttons only */
@@ -483,21 +502,6 @@
   </div>
 </main>
 
-<div class="modal-overlay hidden" id="mantraModal">
-  <div class="modal">
-    <div class="modal-title" id="mantraModalTitle">New mantra</div>
-    <div class="modal-sub">a line you live by</div>
-    <div class="fld"><label>The mantra</label><textarea id="fMantra" rows="2" placeholder="The line you live by&#8230;"></textarea></div>
-    <div class="fld"><label>What it means to me (optional)</label><textarea id="fMeaning" rows="3" placeholder="Why it matters&#8230;"></textarea></div>
-    <div class="fld"><label>Source (optional)</label><input id="fSource" placeholder="Who said it"></div>
-    <div class="modal-actions">
-      <button class="btn-danger hidden" id="mantraDel" type="button">Delete</button>
-      <span style="flex:1"></span>
-      <button class="btn-ghost" id="mantraCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="mantraSave" type="button">Save</button>
-    </div>
-  </div>
-</div>
 
 <div class="modal-overlay hidden" id="circleModal">
   <div class="modal">
@@ -588,6 +592,43 @@
     </div>
   </div>
 </div>
+<div class="pw" id="mtWin" aria-hidden="true">
+  <div class="pbar">
+    <button class="pback" id="mtBack" type="button">&larr; Back</button>
+    <span class="ptitle" id="mtTitleBar"></span>
+    <span class="rm-wc" id="mtWc"></span>
+    <span class="psave" id="mtSave"></span>
+    <button class="eb" id="mtFav" type="button" title="Favourite" aria-label="Favourite"></button>
+    <button class="eb" id="mtHist" type="button" title="History"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>History</span></button>
+    <button class="eb" id="mtEdit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="mtEditLabel">Edit</span></button>
+  </div>
+  <div class="pscroll">
+    <div class="pin">
+      <div class="p-sticky">
+        <div class="mt-hero">
+          <div class="mt-eyebrow" id="mtEyebrow"></div>
+          <div class="mt-line" id="mtLineRO"></div>
+          <div class="mt-line" id="mtLine" contenteditable="true" data-placeholder="The line you live by&hellip;"></div>
+          <div class="mt-srcrow"><span class="mt-src" id="mtSrc" contenteditable="true"></span></div>
+        </div>
+        <div id="mtLineToolbar"></div>
+      </div>
+      <div class="pk">What it means to me</div>
+      <div id="mtMeanToolbar"></div>
+      <div class="pessay ro" id="mtMeanRO"></div>
+      <div class="pessay inp" id="mtMean" contenteditable="true" data-placeholder="Why it matters&hellip;"></div>
+      <div class="pfoot">
+        <div class="fr">
+          <button class="eb" id="mtCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
+          <button class="eb" id="mtMd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="eb-label">Download .md</span></button>
+          <button class="eb" id="mtPrint" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="eb-label">Print / PDF</span></button>
+        </div>
+      </div>
+      <div class="mt-del-row"><button class="mt-del" id="mtDel" type="button">Delete this mantra</button></div>
+    </div>
+  </div>
+</div>
+
 <div class="pw" id="bkWin" aria-hidden="true">
   <div class="pbar">
     <button class="pback" id="bkBack" type="button">&larr; Back</button>
@@ -1170,6 +1211,14 @@ async function loadMantras() {
   mantras = data || [];
   renderMantras();
 }
+// Rich text with a safe fallback: rows written before the editor existed still
+// hold plain text, so they are escaped on the way out until they're edited.
+function mtRich(m, field) {
+  const html = m[field + '_html'];
+  if (html && html.trim()) return NoteEditor.sanitize(html);
+  const plain = (m[field] || '').trim();
+  return plain ? escHtml(plain).replace(/\n/g, '<br>') : '';
+}
 function renderMantras() {
   const wrap = el('mantraList'); if (!wrap) return;
   // Favourites first; newest-first order preserved within each group.
@@ -1178,8 +1227,8 @@ function renderMantras() {
     '<div class="mcard' + (m.favourite ? ' is-fav' : '') + '">' +
       '<button class="m-fav' + (m.favourite ? ' on' : '') + '" data-fav="' + m.id + '" type="button" aria-label="Favourite">' + (m.favourite ? M_STAR_ON : M_STAR_OFF) + '</button>' +
       '<div class="mq">&ldquo;</div>' +
-      '<div class="mtext">' + escHtml(m.text || '') + '</div>' +
-      (m.meaning ? '<div class="mmean">' + escHtml(m.meaning) + '</div>' : '') +
+      '<div class="mtext">' + mtRich(m, 'text') + '</div>' +
+      (mtRich(m, 'meaning') ? '<div class="mmean">' + mtRich(m, 'meaning') + '</div>' : '') +
       (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') +
       '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
     '</div>'
@@ -1187,40 +1236,6 @@ function renderMantras() {
   if (!list.length) html += '<div class="m-empty">No mantras yet \u2014 tap Edit, then add the lines you live by.</div>';
   html += '<div class="mcard add" id="mantraAdd">+ New mantra</div>';
   wrap.innerHTML = html;
-}
-function openMantraModal(id) {
-  editingMantra = id || null;
-  const m = id ? mantras.find(x => String(x.id) === String(id)) : null;
-  el('mantraModalTitle').textContent = m ? 'Edit mantra' : 'New mantra';
-  el('fMantra').value  = m ? (m.text || '') : '';
-  el('fMeaning').value = m ? (m.meaning || '') : '';
-  el('fSource').value  = m ? (m.source || '') : '';
-  el('mantraDel').classList.toggle('hidden', !m);
-  el('mantraModal').classList.remove('hidden');
-}
-function closeMantraModal() { el('mantraModal').classList.add('hidden'); editingMantra = null; }
-async function saveMantra() {
-  const text = el('fMantra').value.trim();
-  if (!text) { toast('Write the mantra first'); return; }
-  const rec = { text, meaning: el('fMeaning').value.trim(), source: el('fSource').value.trim(), user_id: userId };
-  try {
-    if (editingMantra) {
-      const { error } = await supa.from('why_mantras').update(rec).eq('id', editingMantra).eq('user_id', userId);
-      if (error) throw error;
-    } else {
-      const { error } = await supa.from('why_mantras').insert(rec);
-      if (error) throw error;
-    }
-    closeMantraModal(); await loadMantras(); toast('Saved');
-  } catch (e) { toast('Could not save'); }
-}
-async function deleteMantra() {
-  if (!editingMantra || !confirm('Delete this mantra?')) return;
-  try {
-    const { error } = await supa.from('why_mantras').delete().eq('id', editingMantra).eq('user_id', userId);
-    if (error) throw error;
-    closeMantraModal(); await loadMantras(); toast('Deleted');
-  } catch (e) { toast('Could not delete'); }
 }
 async function toggleMantraFav(id) {
   const m = mantras.find(x => String(x.id) === String(id)); if (!m) return;
@@ -1233,12 +1248,14 @@ async function toggleMantraFav(id) {
 }
 el('mantraList').addEventListener('click', e => {
   const fav = e.target.closest('[data-fav]'); if (fav) { toggleMantraFav(fav.dataset.fav); return; }
-  const ed = e.target.closest('[data-medit]'); if (ed) { openMantraModal(ed.dataset.medit); return; }
-  if (e.target.closest('#mantraAdd')) openMantraModal(null);
+  const ed = e.target.closest('[data-medit]'); if (ed) { openMantra(ed.dataset.medit); return; }
+  if (e.target.closest('#mantraAdd')) { newMantra(); return; }
+  const card = e.target.closest('.mcard:not(.add)');
+  if (card) {
+    const btn = card.querySelector('[data-medit]');
+    if (btn) openMantra(btn.dataset.medit);
+  }
 });
-el('mantraSave').addEventListener('click', saveMantra);
-el('mantraCancel').addEventListener('click', closeMantraModal);
-el('mantraDel').addEventListener('click', deleteMantra);
 
 // ----- Circle -----
 async function loadCircle() {
@@ -1470,6 +1487,7 @@ async function savePersonCore_(force) {
 el('pBack').addEventListener('click', closePerson);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('personWin').classList.contains('show')) closePerson(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('bkWin').classList.contains('show')) closeDream(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('mtWin').classList.contains('show')) closeMantra(); });
 el('pEssay').addEventListener('blur', () => savePerson_());
 el('pEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('p-editing');
@@ -1552,9 +1570,204 @@ const pNk = NoteEditor.mount({
 });
 
 NoteEditor.guard.register(
-  () => rmDirty || pDirty || bkDirty,
+  () => rmDirty || pDirty || bkDirty || mtDirty,
   () => { if (rmDirty && rmId !== null) saveRoadmap(true); if (pDirty && pId !== null) savePerson_(true); }
 );
+// ============ MY MANTRA — a page per mantra ============
+let mtId = null, mtLineBase = '', mtMeanBase = '', mtSrcBase = '', mtDirty = false, mtTimer = null;
+let mtSaving = false, mtQueued = false;
+function mtRow() { return mantras.find(x => String(x.id) === String(mtId)); }
+function mtEditing_() { return document.body.classList.contains('p-editing'); }
+function openMantra(id) {
+  const m = mantras.find(x => String(x.id) === String(id)); if (!m) return;
+  mtId = id;
+  const no = mantras.findIndex(x => String(x.id) === String(id)) + 1;
+  el('mtEyebrow').textContent = 'MY MANTRA \u00B7 N\u00BA ' + no;
+  el('mtLine').innerHTML = mtRich(m, 'text');
+  el('mtMean').innerHTML = mtRich(m, 'meaning');
+  el('mtSrc').textContent = m.source || '';
+  mtLineBase = NoteEditor.sanitize(el('mtLine').innerHTML);
+  mtMeanBase = NoteEditor.sanitize(el('mtMean').innerHTML);
+  mtSrcBase = el('mtSrc').textContent;
+  el('mtTitleBar').innerHTML = 'My Mantra &middot; ' + escHtml(NoteEditor.toPlain(mtLineBase).slice(0, 60));
+  el('mtSave').textContent = '';
+  mtRenderFav();
+  setMtEditing(false);
+  el('mtWin').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function mtRenderFav() {
+  const m = mtRow(); if (!m) return;
+  const b = el('mtFav');
+  b.innerHTML = m.favourite ? M_STAR_ON : M_STAR_OFF;
+  b.classList.toggle('hot', !!m.favourite);
+}
+function mtRenderRead() {
+  const line = NoteEditor.sanitize(el('mtLine').innerHTML);
+  const mean = NoteEditor.sanitize(el('mtMean').innerHTML);
+  const lr = el('mtLineRO');
+  lr.innerHTML = line || '';
+  lr.classList.toggle('empty', !NoteEditor.toPlain(line).trim());
+  if (lr.classList.contains('empty')) lr.textContent = 'The line you live by\u2026 (tap Edit)';
+  const mr = el('mtMeanRO');
+  mr.innerHTML = mean || '';
+  mr.classList.toggle('empty', !NoteEditor.toPlain(mean).trim());
+  if (mr.classList.contains('empty')) mr.textContent = 'What it means to me\u2026 (tap Edit)';
+}
+function mtUpdateWc_() {
+  const n = NoteEditor.toPlain(el('mtLine').innerHTML + ' ' + el('mtMean').innerHTML).split(/\s+/).filter(Boolean).length;
+  el('mtWc').textContent = n ? (n + ' words') : '';
+}
+function setMtEditing(on) {
+  document.body.classList.toggle('p-editing', !!on);
+  el('mtLine').style.display = on ? '' : 'none';
+  el('mtLineRO').style.display = on ? 'none' : '';
+  const b = el('mtEdit'); if (b) b.classList.toggle('hot', !!on);
+  const l = el('mtEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
+  el('mtSrc').contentEditable = on ? 'true' : 'false';
+  if (!on) {
+    const line = NoteEditor.sanitize(el('mtLine').innerHTML);
+    const mean = NoteEditor.sanitize(el('mtMean').innerHTML);
+    if (mtId !== null && line !== mtLineBase) { NoteEditor.versions.record('mantra-line', mtId, mtLineBase); mtLineBase = line; }
+    if (mtId !== null && mean !== mtMeanBase) { NoteEditor.versions.record('mantra-mean', mtId, mtMeanBase); mtMeanBase = mean; }
+    mtRenderRead();
+  }
+  mtUpdateWc_();
+}
+function closeMantra() {
+  if (mtDirty) saveMantraPage_(true);
+  el('mtWin').classList.remove('show');
+  document.body.style.overflow = '';
+  setMtEditing(false);
+  mtId = null;
+}
+function scheduleMtSave() {
+  mtDirty = true;
+  mtUpdateWc_();
+  el('mtSave').textContent = 'Saving\u2026';
+  clearTimeout(mtTimer);
+  mtTimer = setTimeout(() => saveMantraPage_(), 700);
+}
+async function saveMantraPage_(force) {
+  if (mtSaving) { mtQueued = true; return; }
+  mtSaving = true;
+  try { await saveMantraCore_(force); }
+  finally {
+    mtSaving = false;
+    if (mtQueued) { mtQueued = false; saveMantraPage_(true); }
+  }
+}
+async function saveMantraCore_() {
+  clearTimeout(mtTimer);
+  if (mtId === null) return;
+  const m = mtRow(); if (!m) return;
+  const line = NoteEditor.sanitize(el('mtLine').innerHTML);
+  const mean = NoteEditor.sanitize(el('mtMean').innerHTML);
+  const src = (el('mtSrc').textContent || '').trim();
+  if (m.text_html === line && m.meaning_html === mean && (m.source || '') === src) {
+    mtDirty = false; el('mtSave').textContent = 'Saved'; return;
+  }
+  const rec = {
+    text_html: line, meaning_html: mean, source: src,
+    // the plain columns stay in step, so exports and older reads never go stale
+    text: NoteEditor.toPlain(line).trim(), meaning: NoteEditor.toPlain(mean).trim()
+  };
+  const { error } = await supa.from('why_mantras').update(rec).eq('id', mtId).eq('user_id', userId);
+  if (error) { console.error(error); el('mtSave').textContent = 'Save failed'; return; }
+  Object.assign(m, rec);
+  mtDirty = false; el('mtSave').textContent = 'Saved';
+  el('mtTitleBar').innerHTML = 'My Mantra &middot; ' + escHtml(NoteEditor.toPlain(line).slice(0, 60));
+  renderMantras();
+}
+async function newMantra() {
+  const { data, error } = await supa.from('why_mantras')
+    .insert({ user_id: userId, text: '', text_html: '', meaning: '', meaning_html: '', source: '' })
+    .select().single();
+  if (error) { console.error(error); toast('Could not create'); return; }
+  await loadMantras();
+  openMantra(data.id);
+  setMtEditing(true);
+  mtLineNk.refresh(); mtLineNk.focusEnd();
+}
+el('mtBack').addEventListener('click', closeMantra);
+el('mtEdit').addEventListener('click', () => {
+  const on = !mtEditing_();
+  setMtEditing(on);
+  if (on) { mtLineNk.refresh(); mtMeanNk.refresh(); mtLineNk.focusEnd(); } else { saveMantraPage_(true); }
+});
+el('mtLine').addEventListener('blur', () => saveMantraPage_());
+el('mtMean').addEventListener('blur', () => saveMantraPage_());
+el('mtSrc').addEventListener('blur', () => saveMantraPage_());
+el('mtSrc').addEventListener('input', scheduleMtSave);
+el('mtFav').addEventListener('click', async () => {
+  const m = mtRow(); if (!m) return;
+  await toggleMantraFav(m.id);
+  mtRenderFav();
+});
+el('mtDel').addEventListener('click', async () => {
+  const m = mtRow(); if (!m) return;
+  if (!confirm('Delete this mantra? This cannot be undone.')) return;
+  const { error } = await supa.from('why_mantras').delete().eq('id', mtId).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not delete'); return; }
+  closeMantra(); await loadMantras(); toast('Deleted');
+});
+el('mtHist').addEventListener('click', () => {
+  if (mtId === null) return;
+  NoteEditor.openHistory({
+    source: 'mantra-mean', sourceId: mtId,
+    getCurrent: () => NoteEditor.sanitize(el('mtMean').innerHTML),
+    applyRestore: (content) => {
+      mtMeanBase = content;
+      el('mtMean').innerHTML = content;
+      mtRenderRead();
+      saveMantraPage_(true);
+    }
+  });
+});
+function mtMarkdown_() {
+  const m = mtRow() || {};
+  const line = NoteEditor.toPlain(NoteEditor.sanitize(el('mtLine').innerHTML)).trim();
+  let md = '# ' + (line || 'A mantra') + '\n\n';
+  if (m.source) md += '*' + m.source + '*\n\n';
+  md += '## What it means to me\n\n' + (NoteEditor.toMarkdown(NoteEditor.sanitize(el('mtMean').innerHTML)) || '_Nothing written yet._') + '\n';
+  md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) + '_\n';
+  return md;
+}
+el('mtCopy').addEventListener('click', () => {
+  const md = mtMarkdown_(); const done = () => pFlash_('mtCopy', 'Copied!');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(md).then(done).catch(() => {});
+  else { const t = document.createElement('textarea'); t.value = md; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} document.body.removeChild(t); }
+});
+el('mtMd').addEventListener('click', () => {
+  const line = NoteEditor.toPlain(NoteEditor.sanitize(el('mtLine').innerHTML)).trim();
+  const slug = String(line || 'mantra').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'mantra';
+  const blob = new Blob([mtMarkdown_()], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'mantra-' + slug + '.md';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+el('mtPrint').addEventListener('click', () => {
+  const m = mtRow() || {};
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a0603c}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:30px;line-height:1.3;margin:8px 0 6px}.src{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:#a0603c;margin-bottom:22px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a0603c;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}mark{background:#fdf0b8}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
+  const body = '<div class="eyebrow">My Mantra</div>'
+    + '<h1>' + (NoteEditor.toHtml(NoteEditor.sanitize(el('mtLine').innerHTML)) || '') + '</h1>'
+    + (m.source ? '<div class="src">&mdash; ' + esc(m.source) + '</div>' : '')
+    + '<h2>What it means to me</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('mtMean').innerHTML)) || '') + '</div>';
+  NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(NoteEditor.toPlain(mtLineBase).slice(0, 60) || 'Mantra') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
+});
+const mtLineNk = NoteEditor.mount({
+  toolbar: el('mtLineToolbar'), editor: el('mtLine'), reader: el('mtLineRO'),
+  onChange: scheduleMtSave,
+  onReaderChange: (html) => { el('mtLine').innerHTML = html; saveMantraPage_(true); }
+});
+const mtMeanNk = NoteEditor.mount({
+  toolbar: el('mtMeanToolbar'), editor: el('mtMean'), reader: el('mtMeanRO'),
+  onChange: scheduleMtSave,
+  onReaderChange: (html) => { el('mtMean').innerHTML = html; saveMantraPage_(true); }
+});
+
 // ============ MY BUCKET LIST ============
 let buckets = [], bkId = null, bkWhyBase = '', bkDirty = false, bkTimer = null;
 let bkSaving = false, bkQueued = false;
