@@ -44,6 +44,8 @@
   /* Edit + Sign out — icon + label pair at the page end (matches the hub). */
   .end-actions { display:flex; justify-content:center; gap:34px; margin-top:30px; }
   .end-actions .cell { display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .ib.exp:hover { border-color:#2F6F6A; color:#2F6F6A; background:#fff; }
+  .ib:disabled { opacity:0.5; cursor:not-allowed; }
   .ib { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.72); border:1px solid #dce3ee; color:#7a8498; cursor:pointer; transition:all .15s; }
   .ib svg { width:19px; height:19px; }
   .ib.edit:hover { border-color:#a5702f; color:#a5702f; background:#fff; }
@@ -411,7 +413,12 @@
   body.rm-editing #rmToolbar { display:flex; }
   body.p-editing #pToolbar { display:flex; }
   body.p-editing #bkWhyToolbar { display:flex; }
-  body.p-editing #mtLineToolbar, body.p-editing #mtMeanToolbar { display:flex; }
+  /* One toolbar slot: whichever field you're in shows its own toolbar there. */
+  .mt-tools { display:none; }
+  body.p-editing .mt-tools { display:block; }
+  #mtLineToolbar, #mtMeanToolbar { display:none !important; }
+  body.p-editing #mtLineToolbar.on, body.p-editing #mtMeanToolbar.on { display:flex !important; }
+  .mt-tools-cap { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.15em; color:#b6bfd1; margin:2px 0 5px; }
   .rm-bar .eb, .pbar .eb { padding:7px 12px; font-size:12px; }
   @media (max-width:640px) {
     .rm-title, .ptitle { display:none; }              /* bar keeps buttons only */
@@ -494,6 +501,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
       </button>
       <span class="cap" id="editCap">Edit</span>
+    </div>
+    <div class="cell">
+      <button class="ib exp" id="exportBtn" type="button" title="Export all of My Why" aria-label="Export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+      </button>
+      <span class="cap" id="exportCap">Export</span>
     </div>
     <div class="cell">
       <button class="ib out" id="signOutBtn" title="Sign out" aria-label="Sign out">
@@ -612,10 +625,13 @@
           <div class="mt-line" id="mtLine" contenteditable="true" data-placeholder="The line you live by&hellip;"></div>
           <div class="mt-srcrow"><span class="mt-src" id="mtSrc" contenteditable="true"></span></div>
         </div>
-        <div id="mtLineToolbar"></div>
+        <div class="mt-tools">
+          <div class="mt-tools-cap" id="mtToolsCap">FORMATTING THE MANTRA</div>
+          <div id="mtLineToolbar"></div>
+          <div id="mtMeanToolbar"></div>
+        </div>
       </div>
       <div class="pk">What it means to me</div>
-      <div id="mtMeanToolbar"></div>
       <div class="pessay ro" id="mtMeanRO"></div>
       <div class="pessay inp" id="mtMean" contenteditable="true" data-placeholder="Why it matters&hellip;"></div>
       <div class="pfoot">
@@ -881,6 +897,126 @@ async function saveNotes(id, text) {
     setStatus(id, 'Saved');
   } catch (e) { setStatus(id, 'Save failed'); }
 }
+
+// ===== EXPORT — the whole of My Why, in one archive =====
+function xEsc_(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function xRich_(html) { return html && html.trim() ? NoteEditor.sanitize(html) : ''; }
+function xPlain_(html) { return NoteEditor.toPlain(xRich_(html) || '').trim(); }
+async function exportWhy() {
+  if (typeof JSZip === 'undefined') { toast('Export library not loaded'); return; }
+  const cap = el('exportCap'), btn = el('exportBtn');
+  const old = cap ? cap.textContent : '';
+  if (cap) cap.textContent = 'Exporting\u2026';
+  if (btn) btn.disabled = true;
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const zip = new JSZip();
+
+    // --- the raw data, so a future you can rebuild it ---
+    zip.file('pillars.json', JSON.stringify(pillars.map(p => ({
+      code: p.code, num: p.num, brk: p.brk, label: p.label,
+      current_status: p.current_status, notes: p.notes, roadmap: p.roadmap,
+      sort_order: p.sort_order
+    })), null, 2));
+    zip.file('mantras.json', JSON.stringify(mantras.map(m => ({
+      text: m.text, text_html: m.text_html, meaning: m.meaning,
+      meaning_html: m.meaning_html, source: m.source, created_at: m.created_at
+    })), null, 2));
+    zip.file('circle.json', JSON.stringify(circle.map(c => ({
+      name: c.name, band: c.band, note: c.note, why_html: c.why_html, created_at: c.created_at
+    })), null, 2));
+    zip.file('bucket-list.json', JSON.stringify(buckets.map(b => ({
+      title: b.title, status: b.status, dreamed_on: b.dreamed_on,
+      planned_on: b.planned_on, lived_on: b.lived_on, why_html: b.why_html,
+      created_at: b.created_at
+    })), null, 2));
+
+    // --- a readable book of the whole room ---
+    let body = '';
+    body += '<h2>My Why Pillars</h2>';
+    pillars.forEach((p, i) => {
+      body += '<h3>' + (i + 1) + '. ' + xEsc_(p.label || p.code || 'Untitled') + '</h3>';
+      if (p.current_status) body += '<p class="meta">' + xEsc_(p.current_status) + '</p>';
+      if (p.notes) body += '<div>' + xRich_(p.notes) + '</div>';
+      let rm = null;
+      try { rm = p.roadmap ? (typeof p.roadmap === 'string' ? JSON.parse(p.roadmap) : p.roadmap) : null; } catch (e) {}
+      if (rm && rm.essay) body += '<h4>Long-term roadmap</h4><div>' + xRich_(rm.essay) + '</div>';
+      if (rm && rm.milestones && rm.milestones.length) {
+        body += '<ul>' + rm.milestones.map(ms =>
+          '<li>' + (ms.done ? '\u2713 ' : '') + xEsc_(ms.t) + (ms.y ? ' <span class="meta">(' + xEsc_(ms.y) + ')</span>' : '') + '</li>'
+        ).join('') + '</ul>';
+      }
+    });
+
+    const mOrder = mantras.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    body += '<h2>My Mantra</h2>';
+    mOrder.forEach((m, i) => {
+      body += '<h3>' + String(i + 1).padStart(2, '0') + '. ' + (xRich_(m.text_html) || xEsc_(m.text || '')) + '</h3>';
+      if (m.source) body += '<p class="meta">\u2014 ' + xEsc_(m.source) + '</p>';
+      const mean = xRich_(m.meaning_html) || (m.meaning ? xEsc_(m.meaning) : '');
+      if (mean) body += '<div>' + mean + '</div>';
+    });
+
+    body += '<h2>My Circle</h2>';
+    BANDS.forEach(band => {
+      const rows = circle.filter(c => c.band === band.key);
+      if (!rows.length) return;
+      body += '<h3>' + xEsc_(band.lbl) + ' <span class="meta">(' + rows.length + ')</span></h3><ul>';
+      rows.forEach(c => {
+        body += '<li><strong>' + xEsc_(c.name) + '</strong>' + (c.note ? ' \u2014 ' + xEsc_(c.note) : '') + '</li>';
+      });
+      body += '</ul>';
+      rows.forEach(c => { if (c.why_html && xPlain_(c.why_html)) body += '<h4>' + xEsc_(c.name) + '</h4><div>' + xRich_(c.why_html) + '</div>'; });
+    });
+
+    body += '<h2>My Bucket List</h2>';
+    const rank = { wip: 0, not_yet: 1, done: 2 };
+    const bOrder = buckets.slice().sort((a, b) => rank[a.status || 'not_yet'] - rank[b.status || 'not_yet']);
+    bOrder.forEach(b => {
+      const st = b.status === 'done' ? ('\u2713 Done \u00B7 ' + bkFmt(b.lived_on))
+               : (b.status === 'wip' ? 'Work in progress' : 'Not yet');
+      body += '<h3>' + xEsc_(b.title) + '</h3><p class="meta">' + st
+            + ' \u00B7 Written ' + xEsc_(bkFmt(b.dreamed_on || b.created_at))
+            + (b.planned_on ? ' \u00B7 Planned for ' + xEsc_(bkFmt(b.planned_on)) : '') + '</p>';
+      if (b.why_html && xPlain_(b.why_html)) body += '<div>' + xRich_(b.why_html) + '</div>';
+    });
+
+    const doc = '<!doctype html><html><head><meta charset="utf-8"><title>My Why</title>'
+      + '<style>body{font-family:Georgia,serif;max-width:760px;margin:40px auto;padding:0 22px;color:#1c2331;line-height:1.7}'
+      + 'h1{font-size:30px;margin-bottom:2px}h2{margin-top:38px;border-bottom:1px solid #dde3ec;padding-bottom:5px;color:#0F2D5C;font-size:21px}'
+      + 'h3{margin-top:24px;font-size:17px}h4{margin-top:18px;font-size:14px;color:#4a5568}'
+      + '.meta{color:#7a8498;font-size:13px;margin:3px 0}ul{margin:8px 0 8px 20px}li{margin:3px 0}</style>'
+      + '<style>' + NoteEditor.contentCSS('body') + '</style>'
+      + '</head><body><h1>My Why</h1><p class="meta">Exported ' + today + ' \u00B7 '
+      + pillars.length + ' pillars \u00B7 ' + mantras.length + ' mantras \u00B7 '
+      + circle.length + ' people \u00B7 ' + buckets.length + ' dreams</p>' + body + '</body></html>';
+    zip.file('my-why.html', doc);
+
+    zip.file('READ-ME-FIRST.txt',
+      'MY WHY \u2014 exported ' + today + '\n\n'
+      + 'my-why.html    Open this first. The whole room, readable in any browser.\n'
+      + 'pillars.json   The four pillars, their notes and long-term roadmaps.\n'
+      + 'mantras.json   Every mantra, in both plain text and formatted form.\n'
+      + 'circle.json    The people, by band.\n'
+      + 'bucket-list.json  Every dream, with its status and dates.\n\n'
+      + 'The .json files are the raw records \u2014 keep them even if you never open them.\n'
+      + 'They are what a future version of this app would read to bring everything back.\n');
+
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'my-why-' + today + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    toast('Exported My Why');
+  } catch (e) {
+    console.error(e); toast('Export failed');
+  } finally {
+    if (cap) cap.textContent = old || 'Export';
+    if (btn) btn.disabled = false;
+  }
+}
+el('exportBtn').addEventListener('click', exportWhy);
 
 // ===== EDIT MODE =====
 function toggleEdit() {
@@ -1718,7 +1854,7 @@ el('mtBack').addEventListener('click', closeMantra);
 el('mtEdit').addEventListener('click', async () => {
   const on = !mtEditing_();
   setMtEditing(on);
-  if (on) { mtLineNk.refresh(); mtMeanNk.refresh(); mtLineNk.focusEnd(); }
+  if (on) { mtTools_('line'); mtLineNk.refresh(); mtMeanNk.refresh(); mtLineNk.focusEnd(); }
   else { await saveMantraPage_(true); renderMantras(); }
 });
 el('mtLine').addEventListener('blur', () => saveMantraPage_());
@@ -1780,6 +1916,15 @@ el('mtPrint').addEventListener('click', () => {
     + '<h2>What it means to me</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('mtMean').innerHTML)) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(NoteEditor.toPlain(mtLineBase).slice(0, 60) || 'Mantra') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
+// The toolbar follows the cursor: focus a field and its toolbar appears in the slot.
+function mtTools_(which) {
+  const line = which === 'line';
+  el('mtLineToolbar').classList.toggle('on', line);
+  el('mtMeanToolbar').classList.toggle('on', !line);
+  el('mtToolsCap').textContent = line ? 'FORMATTING THE MANTRA' : 'FORMATTING WHAT IT MEANS';
+}
+el('mtLine').addEventListener('focusin', () => mtTools_('line'));
+el('mtMean').addEventListener('focusin', () => mtTools_('mean'));
 const mtLineNk = NoteEditor.mount({
   toolbar: el('mtLineToolbar'), editor: el('mtLine'), reader: el('mtLineRO'),
   onChange: scheduleMtSave,
