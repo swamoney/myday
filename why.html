@@ -954,7 +954,7 @@ async function exportWhy() {
       body += '<h3>' + String(i + 1).padStart(2, '0') + '. ' + (xRich_(m.text_html) || xEsc_(m.text || '')) + '</h3>';
       if (m.source) body += '<p class="meta">\u2014 ' + xEsc_(m.source) + '</p>';
       const mean = xRich_(m.meaning_html) || (m.meaning ? xEsc_(m.meaning) : '');
-      if (mean) body += '<div>' + mean + '</div>';
+      if (mtHasText_(mean)) body += '<div>' + mean + '</div>';
     });
 
     body += '<h2>My Circle</h2>';
@@ -1350,6 +1350,14 @@ async function loadMantras() {
 }
 // Rich text with a safe fallback: rows written before the editor existed still
 // hold plain text, so they are escaped on the way out until they're edited.
+// Markup can be a non-empty string and still be visually blank — <br>, an empty
+// paragraph, a stray &nbsp;. Anything that decides "is there content here?" must
+// test the rendered text, never the string length.
+function mtHasText_(html) {
+  if (!html) return false;
+  if (/<img\b/i.test(html)) return true;
+  return NoteEditor.toPlain(html).replace(/\u00a0/g, ' ').trim().length > 0;
+}
 function mtRich(m, field) {
   const html = m[field + '_html'];
   if (html && html.trim()) return NoteEditor.sanitize(html);
@@ -1372,11 +1380,12 @@ function renderMantras() {
   let html = list.map((m, i) => {
     const sh = M_SHADES[i % M_SHADES.length];
     const tint = ' style="--sh2:' + sh.w2 + ';--shb:' + sh.bd + ';--sha:' + sh.acc + '"';
+    const mean = mtRich(m, 'meaning');
     return '<div class="mcard"' + tint + '>' +
       '<div class="m-num">' + String(i + 1).padStart(2, '0') + '</div>' +
       '<div class="m-body">' +
         '<div class="mtext nk-content">' + mtRich(m, 'text') + '</div>' +
-        (mtRich(m, 'meaning') ? '<div class="mmean nk-content">' + mtRich(m, 'meaning') + '</div>' : '') +
+        (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '') +
         (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') +
       '</div>' +
       '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
@@ -1808,8 +1817,10 @@ async function saveMantraCore_() {
   clearTimeout(mtTimer);
   if (mtId === null) return;
   const m = mtRow(); if (!m) return;
-  const line = NoteEditor.sanitize(el('mtLine').innerHTML);
-  const mean = NoteEditor.sanitize(el('mtMean').innerHTML);
+  let line = NoteEditor.sanitize(el('mtLine').innerHTML);
+  let mean = NoteEditor.sanitize(el('mtMean').innerHTML);
+  if (!mtHasText_(line)) line = '';        // don't bank an empty <br>
+  if (!mtHasText_(mean)) mean = '';
   const src = (el('mtSrc').textContent || '').trim();
   if (m.text_html === line && m.meaning_html === mean && (m.source || '') === src) {
     mtDirty = false; el('mtSave').textContent = 'Saved'; renderMantras(); return;
