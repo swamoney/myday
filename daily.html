@@ -4030,6 +4030,73 @@
     letter-spacing: -0.005em; white-space: nowrap;
   }
 
+  /* Day-wise spending calendar (Month sub-view). One cell per day, tinted by
+     spend and carrying its own amount — the heatmap's numbers only exist in a
+     hover tooltip, which never fires on a phone. Cells land at ~43px on a
+     390px screen, at the touch-target guideline. */
+  .mspend-card {
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 16px 14px 14px; box-shadow: var(--shadow); margin-bottom: 14px;
+  }
+  .mspend-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 13px; padding-bottom: 10px;
+    border-bottom: 1px dashed var(--rule); gap: 6px;
+  }
+  .mspend-title { font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink); }
+  .mspend-meta { font-family: var(--sans); font-size: 11px; font-weight: 500; color: var(--muted); }
+  .mspend-block {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; background: var(--paper-soft); border-radius: 11px;
+    padding: 12px 8px; margin-bottom: 13px;
+  }
+  .mspend-cap {
+    font-family: var(--mono); font-size: 7.5px; font-weight: 600;
+    letter-spacing: 0.14em; color: var(--muted);
+  }
+  .mspend-big {
+    font-family: var(--serif); font-size: 25px; font-weight: 700;
+    letter-spacing: -0.01em; color: var(--ink); font-variant-numeric: tabular-nums;
+  }
+  .mspend-sub { font-size: 10.5px; color: var(--muted); margin-top: 3px; text-align: center; }
+  .mspend-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .mspend-dow {
+    text-align: center; font-size: 8.5px; font-weight: 600;
+    color: var(--rule-strong); padding-bottom: 1px;
+  }
+  .mspend-cell {
+    aspect-ratio: 1; border-radius: 7px; border: none; background: #EEF2F7;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: inherit; padding: 0; cursor: pointer; position: relative;
+    transition: transform 0.12s;
+  }
+  .mspend-cell.out { background: none; cursor: default; }
+  .mspend-cell.future { opacity: 0.45; cursor: default; }
+  .mspend-cell:not(.out):not(.future):hover { transform: scale(1.06); }
+  .mspend-cell.today { box-shadow: inset 0 0 0 2px var(--accent); }
+  .mspend-num { font-size: 9px; font-weight: 600; color: var(--muted); line-height: 1.1; }
+  .mspend-amt {
+    font-family: var(--mono); font-size: 8px; font-weight: 600;
+    line-height: 1.15; letter-spacing: -0.02em;
+  }
+  .mspend-cell.t1 { background: #DCE8DF; }
+  .mspend-cell.t2 { background: #E7E2C4; }
+  .mspend-cell.t3 { background: #F0D3C3; }
+  .mspend-cell.t4 { background: #E9BFC4; }
+  .mspend-cell.t1 .mspend-num, .mspend-cell.t1 .mspend-amt { color: #2E5B43; }
+  .mspend-cell.t2 .mspend-num, .mspend-cell.t2 .mspend-amt { color: #75601A; }
+  .mspend-cell.t3 .mspend-num, .mspend-cell.t3 .mspend-amt { color: #9C5535; }
+  .mspend-cell.t4 .mspend-num, .mspend-cell.t4 .mspend-amt { color: #8A3145; }
+  .mspend-legend {
+    display: flex; align-items: center; gap: 5px; justify-content: flex-end;
+    margin-top: 9px; font-size: 8.5px; color: var(--muted);
+  }
+  .mspend-legend i { width: 11px; height: 11px; border-radius: 3px; display: block; }
+  .mspend-tap {
+    font-family: var(--mono); font-size: 8px; letter-spacing: 0.12em;
+    color: var(--rule-strong); margin-top: 11px; padding-top: 8px;
+    border-top: 1px solid var(--rule);
+  }
   /* Phase 9: Outflow breakdown card (Month sub-view) — Option C hybrid:
      mini-tape at the top showing proportions across all 8 categories,
      followed by sorted-bar lists grouped by Daily / Recurring trees.
@@ -7727,6 +7794,10 @@
       <!-- Phase 9: Month stats card (Away / Long walks / No-sleep nights) — same
            layout/data/design as Year stats but scoped to the current month. -->
       <div id="monthStatsWrap"></div>
+      <!-- Day-wise spending calendar — the month's shape, one cell per day,
+           amount printed in the cell so it reads without hover. Tapping a
+           day opens that date's expenses. -->
+      <div id="monthSpendCalendar"></div>
       <!-- Phase 9: Outflow breakdown chart — proportional mini-tape +
            sorted bars per category. Daily spend + Recurring at group level. -->
       <div id="monthOutflowBreakdown"></div>
@@ -14558,6 +14629,101 @@ function initHMRows() {
 if (document.readyState !== 'loading') initHMRows();
 else document.addEventListener('DOMContentLoaded', initHMRows);
 
+// Day-wise spending calendar for the Month sub-view. Counts daily spend plus
+// recurring logged on that date — the same basis as the Outflow breakdown
+// directly below it, so the two cards agree.
+function renderMonthSpendCalendar() {
+  const wrap = document.getElementById('monthSpendCalendar');
+  if (!wrap) return;
+  if (!monthCursor) { wrap.innerHTML = ''; return; }
+  const [year, month] = monthCursor.split('-').map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const firstDow = new Date(year, month - 1, 1).getDay();
+  const today = isoToday();
+
+  const days = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const iso = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const e = allEntries[iso] || null;
+    let val = 0;
+    if (e) {
+      val = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
+        .reduce((s, fld) => s + (evalExpr(e[fld]) || 0), 0) + recurringSum(e);
+    }
+    days.push({ iso, d, val, hasEntry: !!e, isFuture: iso > today, isToday: iso === today });
+  }
+
+  const spent = days.filter(x => x.val > 0);
+  const total = spent.reduce((s, x) => s + x.val, 0);
+  if (total <= 0) { wrap.innerHTML = ''; return; }     // nothing to show yet
+
+  const max = Math.max(...spent.map(x => x.val), 1);
+  const elapsed = days.filter(x => !x.isFuture).length || 1;
+  const noSpend = days.filter(x => !x.isFuture && x.hasEntry && x.val === 0).length;
+  const avg = total / elapsed;
+
+  const money = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const shortMoney = n => n >= 1000
+    ? '₹' + String((n / 1000).toFixed(1)).replace(/\.0$/, '') + 'k'
+    : '₹' + Math.round(n);
+  const tierOf = v => {
+    if (!v) return 0;
+    const r = v / max;
+    return r <= 0.25 ? 1 : r <= 0.5 ? 2 : r <= 0.75 ? 3 : 4;
+  };
+
+  const DOW = ['S','M','T','W','T','F','S'];
+  let cells = DOW.map(n => `<div class="mspend-dow">${n}</div>`).join('');
+  for (let i = 0; i < firstDow; i++) cells += '<div class="mspend-cell out"></div>';
+  for (const day of days) {
+    const cls = ['mspend-cell', 't' + tierOf(day.val)];
+    if (day.isFuture) cls.push('future');
+    if (day.isToday) cls.push('today');
+    const amt = day.val > 0 ? `<span class="mspend-amt">${shortMoney(day.val)}</span>` : '';
+    const tag = day.isFuture ? 'div' : 'button';
+    const attrs = day.isFuture ? '' : ` type="button" data-mspend-iso="${day.iso}"`;
+    const tip = day.isFuture ? 'future' : (day.val > 0 ? money(day.val) : (day.hasEntry ? 'no spend' : 'no entry'));
+    cells += `<${tag} class="${cls.join(' ')}"${attrs} title="${escAttr(day.d + ': ' + tip)}">
+      <span class="mspend-num">${day.d}</span>${amt}
+    </${tag}>`;
+  }
+
+  const noSpendLine = noSpend > 0
+    ? `${money(avg)} a day · ${noSpend} no-spend day${noSpend === 1 ? '' : 's'}`
+    : `${money(avg)} a day`;
+
+  wrap.innerHTML = `<div class="mspend-card">
+    <div class="mspend-head">
+      <span class="mspend-title">Spending</span>
+      <span class="mspend-meta">daily + recurring</span>
+    </div>
+    <div class="mspend-block">
+      <span class="mspend-cap">THIS MONTH</span>
+      <span class="mspend-big">${money(total)}</span>
+      <span class="mspend-sub">${noSpendLine}</span>
+    </div>
+    <div class="mspend-grid">${cells}</div>
+    <div class="mspend-legend">Less
+      <i style="background:#EEF2F7"></i><i style="background:#DCE8DF"></i>
+      <i style="background:#E7E2C4"></i><i style="background:#F0D3C3"></i>
+      <i style="background:#E9BFC4"></i> More
+    </div>
+    <div class="mspend-tap">TAP ANY DAY › OPENS THAT DATE</div>
+  </div>`;
+
+  wrap.querySelectorAll('[data-mspend-iso]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const iso = btn.getAttribute('data-mspend-iso');
+      if (!iso) return;
+      if (typeof showTab === 'function') showTab('today');
+      if (typeof selectDate === 'function') selectDate(iso);
+      setTimeout(() => {
+        if (typeof revealSearchField === 'function') revealSearchField('food');
+      }, 160);
+    });
+  });
+}
+
 function renderHeatmap() {
   const wrap = document.getElementById('heatmapWrap');
   if (!wrap) return;
@@ -14762,6 +14928,9 @@ function renderMonth() {
   // Phase 9: Outflow breakdown card — same async-render pattern as totals
   // grid + cash-flow card. Reads recurring byGroup from cached recT;
   // re-renders below with fresh data once async fetch completes.
+  // Day-wise spending calendar — sits between Month stats and Outflow breakdown.
+  renderMonthSpendCalendar();
+
   const recTInitial = getRecurringTotalsForMonth(monthCursor);
   renderOutflowBreakdown('monthOutflowBreakdown', 'this month', totals, recTInitial, { type: 'month', cursor: monthCursor });
   // Other breakdown card — top 3 items + rest. Sits directly below the
