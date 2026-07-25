@@ -4723,6 +4723,78 @@
      Ring fills in moss when any days hit 40 min; muted grey when none did.
      Right side lists each day with a thin sliver bar showing minutes scaled
      to the week's max (or 40 min minimum for sensible visuals on low weeks). */
+  /* Week spending — the same anatomy as Long walks, with the goal ring
+     replaced by the week's total. Each day row is a button that opens that
+     date's expenses. */
+  .week-spend {
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 18px 18px 16px; box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+  .week-spend-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px dashed var(--rule); gap: 8px;
+  }
+  .week-spend-title { font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--ink); }
+  .week-spend-meta { font-family: var(--sans); font-size: 11px; font-weight: 500; color: var(--muted); }
+  .week-spend-row {
+    display: grid; grid-template-columns: 130px 1fr;
+    gap: 18px; align-items: center; padding: 4px 4px 6px;
+  }
+  .week-spend-block {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; height: 130px; background: var(--paper-soft); border-radius: 12px; padding: 8px;
+  }
+  .week-spend-cap {
+    font-family: var(--mono); font-size: 8px; font-weight: 600;
+    letter-spacing: 0.14em; color: var(--muted);
+  }
+  .week-spend-big {
+    font-family: var(--serif); font-size: 25px; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.01em; line-height: 1.1;
+    font-variant-numeric: tabular-nums; text-align: center;
+  }
+  .week-spend-sub { font-size: 11px; color: var(--muted); margin-top: 5px; text-align: center; }
+  .week-spend-list { display: flex; flex-direction: column; gap: 7px; }
+  .week-spend-day {
+    display: grid; grid-template-columns: 34px 1fr auto 11px;
+    align-items: center; gap: 9px; width: 100%;
+    background: none; border: none; padding: 6px 4px; border-radius: 8px;
+    cursor: pointer; font-family: inherit; text-align: left;
+    transition: background 0.12s;
+  }
+  .week-spend-day:hover { background: var(--paper-soft); }
+  .week-spend-day:active { transform: scale(0.995); }
+  .week-spend-day.future { cursor: default; opacity: 0.55; }
+  .week-spend-day.future:hover { background: none; }
+  .week-spend-day.today .week-spend-name { color: var(--accent); font-weight: 700; }
+  .week-spend-name { font-size: 11px; font-weight: 600; color: var(--muted); }
+  .week-spend-wrap {
+    position: relative; height: 15px; border-radius: 4px; overflow: hidden;
+    background: rgba(189,201,220,0.3);
+  }
+  .week-spend-bar { height: 100%; border-radius: 4px; }
+  .week-spend-bar[data-bucket="light"]  { background: #5C8B6A; }
+  .week-spend-bar[data-bucket="ok"]     { background: #BA7517; }
+  .week-spend-bar[data-bucket="heavy"]  { background: #C76A66; }
+  .week-spend-bar[data-bucket="heavier"]{ background: #A04A60; }
+  .week-spend-amt {
+    font-family: var(--mono); font-size: 11px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .week-spend-amt[data-bucket="light"]  { color: #5C8B6A; }
+  .week-spend-amt[data-bucket="ok"]     { color: #BA7517; }
+  .week-spend-amt[data-bucket="heavy"]  { color: #C76A66; }
+  .week-spend-amt[data-bucket="heavier"]{ color: #A04A60; }
+  .week-spend-amt.zero, .week-spend-amt.future { color: var(--rule-strong); }
+  .week-spend-go { color: var(--rule-strong); font-size: 13px; line-height: 1; }
+  .week-spend-day.future .week-spend-go { visibility: hidden; }
+  @media (max-width: 380px) {
+    .week-spend-row { grid-template-columns: 108px 1fr; gap: 12px; }
+    .week-spend-block { height: 118px; }
+    .week-spend-big { font-size: 21px; }
+  }
   .week-walks {
     background: var(--paper); border: 1px solid var(--rule); border-radius: 14px;
     padding: 18px 18px 16px; box-shadow: var(--shadow);
@@ -13227,6 +13299,69 @@ function renderWeek() {
     </div>`;
   }
 
+  // Day-wise spending — sits between Cash flow and Long walks. Same two-column
+  // anatomy as Long walks, but the ring's place is taken by the week's total,
+  // since spending has no daily target to complete. Each row opens that date.
+  if (daysLogged > 0) {
+    const spendScale = Math.max(...spendVals, 1);
+    const DAY_NAMES_S = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const spendDays = daysAvailable > 0 ? daysAvailable : 1;
+    const avgSpend = totalSpend / spendDays;
+    const noSpendDays = days.filter((d, i) => d.iso <= today && d.entry && spendVals[i] === 0).length;
+
+    const spendRows = days.map((d, i) => {
+      const dt = new Date(d.iso + 'T00:00:00');
+      const dayName = DAY_NAMES_S[dt.getDay()];
+      const isFuture = d.iso > today;
+      const isToday = d.iso === today;
+      const amt = spendVals[i];
+
+      let rowCls = 'week-spend-day';
+      if (isFuture) rowCls += ' future';
+      else if (isToday) rowCls += ' today';
+
+      let barHtml = '', amtHtml = '';
+      if (isFuture) {
+        amtHtml = '<span class="week-spend-amt future">—</span>';
+      } else if (!d.entry || amt === 0) {
+        amtHtml = '<span class="week-spend-amt zero">—</span>';
+      } else {
+        const ratio = amt / spendScale;
+        const bucketKey = ratio >= 0.75 ? 'heavier' : ratio >= 0.5 ? 'heavy' : ratio >= 0.25 ? 'ok' : 'light';
+        const barWidth = Math.max(2, ratio * 100);
+        barHtml = `<div class="week-spend-bar" data-bucket="${bucketKey}" style="width: ${barWidth.toFixed(1)}%;"></div>`;
+        amtHtml = `<span class="week-spend-amt" data-bucket="${bucketKey}">${fmt(amt)}</span>`;
+      }
+      const tag = isFuture ? 'div' : 'button';
+      const attrs = isFuture ? '' : ` type="button" data-spend-day="${d.iso}" title="Open ${d.iso}"`;
+      return `<${tag} class="${rowCls}"${attrs}>
+        <span class="week-spend-name">${dayName}</span>
+        <div class="week-spend-wrap">${barHtml}</div>
+        ${amtHtml}
+        <span class="week-spend-go">›</span>
+      </${tag}>`;
+    }).join('');
+
+    const noSpendLine = noSpendDays > 0
+      ? `${fmt(avgSpend)} a day · ${noSpendDays} no-spend`
+      : `${fmt(avgSpend)} a day`;
+
+    html += `<div class="week-spend">
+      <div class="week-spend-head">
+        <span class="week-spend-title">Spending</span>
+        <span class="week-spend-meta">tap a day to open it</span>
+      </div>
+      <div class="week-spend-row">
+        <div class="week-spend-block">
+          <span class="week-spend-cap">THIS WEEK</span>
+          <span class="week-spend-big">${fmt(totalSpend)}</span>
+          <span class="week-spend-sub">${noSpendLine}</span>
+        </div>
+        <div class="week-spend-list">${spendRows}</div>
+      </div>
+    </div>`;
+  }
+
   // Phase 9: Long-walks card — completion ring + per-day breakdown.
   // The ring shows X-of-7-days hit ≥40 min target. Bars on the right scale
   // to the week's max walk minutes (or 60 min minimum for sensible visuals
@@ -13354,6 +13489,20 @@ function renderWeek() {
   }
 
   wrap.innerHTML = html;
+
+  // A day row opens that date with its expenses showing — the same route the
+  // search results take (tab first, then date, then reveal the field).
+  wrap.querySelectorAll('[data-spend-day]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const iso = btn.getAttribute('data-spend-day');
+      if (!iso) return;
+      if (typeof showTab === 'function') showTab('today');
+      if (typeof selectDate === 'function') selectDate(iso);
+      setTimeout(() => {
+        if (typeof revealSearchField === 'function') revealSearchField('food');
+      }, 160);
+    });
+  });
 }
 
 // [I] Heatmap calendar — renders the days of monthCursor's month as a grid,
