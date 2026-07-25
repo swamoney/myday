@@ -896,18 +896,21 @@
   /* CC tracking: memo field gets a slate-grey treatment to visually signal
      "this is reference, not a spend category". Same baseline padding as
      other money fields but cool palette instead of warm ember tones. */
-  .section.s-expenses #f_creditCardBill {
+  .section.s-expenses #f_creditCardBill,
+  .section.s-expenses #f_gstPayment {
     background: #F4F6F8;
     border: 1px solid #C9D1D9;
     border-left: 2px solid #8A95A0;
     padding-left: 25px;
   }
-  .section.s-expenses #f_creditCardBill:focus {
+  .section.s-expenses #f_creditCardBill:focus,
+  .section.s-expenses #f_gstPayment:focus {
     background: #FFFFFF;
     border-color: #C9D1D9;
     border-left: 2px solid #6E7A86;
   }
-  .section.s-expenses #f_creditCardBill:not(:placeholder-shown) {
+  .section.s-expenses #f_creditCardBill:not(:placeholder-shown),
+  .section.s-expenses #f_gstPayment:not(:placeholder-shown) {
     background: #FFFFFF;
     border: 1px solid #C9D1D9;
     border-left: 3px solid #6E7A86;
@@ -7079,6 +7082,18 @@
           <input class="input field-note-input" type="text" id="f_creditCardBillNote" placeholder="add a note (optional) — e.g., HDFC Regalia bill paid">
         </div>
       </div>
+      <div class="field">
+        <label>GST Payment <span class="sub">(tracking only — amount received and paid)</span></label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_gstPayment" placeholder="0  or  18000+4200"></div>
+          <button class="plus-btn" data-calc-plus="f_gstPayment">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_gstPayment_calc"></div>
+        <div class="field-note">
+          <span class="field-note-arrow" aria-hidden="true">↳</span>
+          <input class="input field-note-input" type="text" id="f_gstPaymentNote" placeholder="add a note (optional) — e.g., Q2 GST filed">
+        </div>
+      </div>
 
       <!-- Recurring payments — now the last group INSIDE the "8 more" disclosure.
            Cross-date logging engine + all IDs unchanged; only the DOM location
@@ -7862,10 +7877,10 @@ const supa = window.supabase.createClient(
 // CC tracking: creditCardBill is a tracking-only field — saved/displayed
 // like a money input but NEVER summed into any outflow/spend total. Its own
 // dedicated charts in Month and Year views.
-const FIELDS = ['regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','uber','uberNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
-const CALC_FIELDS = ['regularInvestment','topUp','investmentRedemption','food','dmart','uber','shopping','hotelStay','travel','entertainment','taxes','creditCardBill'];
+const FIELDS = ['regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','uber','uberNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','gstPayment','gstPaymentNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
+const CALC_FIELDS = ['regularInvestment','topUp','investmentRedemption','food','dmart','uber','shopping','hotelStay','travel','entertainment','taxes','creditCardBill','gstPayment'];
 const TOGGLE_FIELDS = ['reading'];
-const TEXT_FIELDS = ['foodNote','dmartNote','uberNote','shoppingNote','hotelStayNote','travelNote','entertainmentNote','taxesNote','creditCardBillNote','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
+const TEXT_FIELDS = ['foodNote','dmartNote','uberNote','shoppingNote','hotelStayNote','travelNote','entertainmentNote','taxesNote','creditCardBillNote','gstPaymentNote','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -7875,7 +7890,7 @@ const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','
 const FIELD_TO_COL = {
   regularInvestment:'regular_investment',
   topUp:'top_up',
-  investmentRedemption:'investment_redemption', food:'food', foodNote:'food_note', dmart:'dmart', dmartNote:'groceries_note', uber:'uber', uberNote:'transport_note', shopping:'shopping', shoppingNote:'shopping_note', hotelStay:'hotel_stay', hotelStayNote:'hotel_stay_note', travel:'travel', travelNote:'travel_note', entertainment:'entertainment', entertainmentNote:'entertainment_note', taxes:'taxes', taxesNote:'taxes_note', creditCardBill:'credit_card_bill', creditCardBillNote:'credit_card_bill_note',
+  investmentRedemption:'investment_redemption', food:'food', foodNote:'food_note', dmart:'dmart', dmartNote:'groceries_note', uber:'uber', uberNote:'transport_note', shopping:'shopping', shoppingNote:'shopping_note', hotelStay:'hotel_stay', hotelStayNote:'hotel_stay_note', travel:'travel', travelNote:'travel_note', entertainment:'entertainment', entertainmentNote:'entertainment_note', taxes:'taxes', taxesNote:'taxes_note', creditCardBill:'credit_card_bill', creditCardBillNote:'credit_card_bill_note', gstPayment:'gst_payment', gstPaymentNote:'gst_payment_note',
   walk:'walk', heart:'heart', reading:'reading', readingTakeaway:'reading_takeaway', satisfaction:'overall_satisfaction', introspection:'introspection',
   slot1:'slot1', slot2:'slot2', slot3:'slot3', slot4:'slot4', slot5:'slot5', slot6:'slot6',
   breakfast:'breakfast', lunch:'lunch', dinner:'dinner', nightStay:'night_stay', stayedWith:'stayed_with',
@@ -10808,7 +10823,7 @@ function collapseExpenseDisclosure() {
 // Compute Spent + Invested from the current form values and paint the footer.
 // Mirrors the canonical monthly aggregation:
 //   Spent  = food+dmart+uber+shopping+hotelStay+travel+entertainment+taxes+other
-//            (creditCardBill excluded — it's tracking-only, already counted)
+//            (creditCardBill and gstPayment both excluded — tracking-only)
 //   Invested = regularInvestment + topUp   (redemption shown separately)
 // Reads live input values via evalExpr so "30+50" style entries sum correctly.
 function updateExpenseFooter() {
@@ -10870,7 +10885,8 @@ function updateExpenseFooter() {
 // each date change).
 
 // Field spec: label + value key + optional note key + group.
-// creditCardBill is TRACKING-ONLY — shown with a marker, excluded from Spent.
+// creditCardBill and gstPayment are TRACKING-ONLY — shown with a marker,
+// excluded from Spent. GST is money received and passed on, never an expense.
 const EXP_SUMMARY_SPEC = [
   { key: 'regularInvestment',    label: 'Regular Investment', group: 'invest' },
   { key: 'topUp',                label: 'Top-Up Investment',  group: 'invest' },
@@ -10883,6 +10899,7 @@ const EXP_SUMMARY_SPEC = [
   { key: 'travel',      label: 'Travel Booking', note: 'travelNote',         group: 'spend' },
   { key: 'taxes',       label: 'Taxes',          note: 'taxesNote',          group: 'spend' },
   { key: 'creditCardBill', label: 'Credit Card Bill', note: 'creditCardBillNote', group: 'tracking' },
+  { key: 'gstPayment',     label: 'GST Payment',      note: 'gstPaymentNote',      group: 'tracking' },
 ];
 
 // Track whether the user chose "show all" for the current visit.
@@ -12880,6 +12897,7 @@ const SEARCH_FIELDS = [
   ['dmartNote', 'Groceries note'],
   ['uberNote', 'Transport note'],
   ['creditCardBillNote', 'Credit card bill note'],
+  ['gstPaymentNote', 'GST payment note'],
   ['readingTakeaway', 'Reading takeaway'],
   ['entertainmentNote', 'Entertainment note'],
   ['otherNote', 'Other expenses note'],
