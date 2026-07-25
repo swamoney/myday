@@ -4092,10 +4092,41 @@
     margin-top: 9px; font-size: 8.5px; color: var(--muted);
   }
   .mspend-legend i { width: 11px; height: 11px; border-radius: 3px; display: block; }
+  /* A day carrying a monthly bill (rent, office, subscriptions) is marked, so
+     a spike reads as "the rent landed here" rather than "I overspent". */
+  .mspend-rec {
+    position: absolute; top: 4px; right: 4px;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: currentColor; opacity: 0.55;
+  }
+  .mspend-cell.t0 .mspend-rec, .mspend-cell:not([class*="t1"]):not([class*="t2"]):not([class*="t3"]):not([class*="t4"]) .mspend-rec { background: var(--rule-strong); }
+  .mspend-legend { justify-content: space-between; flex-wrap: wrap; row-gap: 5px; }
+  .mspend-reckey { display: inline-flex; align-items: center; gap: 5px; }
+  .mspend-reckey span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--muted); opacity: 0.55; display: block;
+  }
+  .mspend-swatches { display: inline-flex; align-items: center; gap: 5px; }
   .mspend-tap {
     font-family: var(--mono); font-size: 8px; letter-spacing: 0.12em;
     color: var(--rule-strong); margin-top: 11px; padding-top: 8px;
     border-top: 1px solid var(--rule);
+  }
+  /* The card is ~520px on desktop but only ~390px on a phone, so the type is
+     sized to the space rather than fixed at phone scale — 8px numbers are
+     unreadable on a monitor. */
+  @media (min-width: 500px) {
+    .mspend-grid { gap: 6px; }
+    .mspend-dow { font-size: 11px; }
+    .mspend-num { font-size: 13px; }
+    .mspend-amt { font-size: 11.5px; }
+    .mspend-cell { border-radius: 9px; }
+    .mspend-rec { width: 7px; height: 7px; top: 6px; right: 6px; }
+    .mspend-legend { font-size: 10.5px; }
+    .mspend-legend i { width: 14px; height: 14px; }
+    .mspend-big { font-size: 30px; }
+    .mspend-sub { font-size: 12px; }
+    .mspend-tap { font-size: 9px; }
   }
   /* Phase 9: Outflow breakdown card (Month sub-view) — Option C hybrid:
      mini-tape at the top showing proportions across all 8 categories,
@@ -14645,12 +14676,13 @@ function renderMonthSpendCalendar() {
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = year + '-' + String(month).padStart(2, '0') + '-' + String(d).padStart(2, '0');
     const e = allEntries[iso] || null;
-    let val = 0;
+    let val = 0, rec = 0;
     if (e) {
+      rec = recurringSum(e);
       val = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
-        .reduce((s, fld) => s + (evalExpr(e[fld]) || 0), 0) + recurringSum(e);
+        .reduce((s, fld) => s + (evalExpr(e[fld]) || 0), 0) + rec;
     }
-    days.push({ iso, d, val, hasEntry: !!e, isFuture: iso > today, isToday: iso === today });
+    days.push({ iso, d, val, rec, hasEntry: !!e, isFuture: iso > today, isToday: iso === today });
   }
 
   const spent = days.filter(x => x.val > 0);
@@ -14672,6 +14704,8 @@ function renderMonthSpendCalendar() {
     return r <= 0.25 ? 1 : r <= 0.5 ? 2 : r <= 0.75 ? 3 : 4;
   };
 
+  const anyRecurring = days.some(x => x.rec > 0);
+
   const DOW = ['S','M','T','W','T','F','S'];
   let cells = DOW.map(n => `<div class="mspend-dow">${n}</div>`).join('');
   for (let i = 0; i < firstDow; i++) cells += '<div class="mspend-cell out"></div>';
@@ -14680,11 +14714,13 @@ function renderMonthSpendCalendar() {
     if (day.isFuture) cls.push('future');
     if (day.isToday) cls.push('today');
     const amt = day.val > 0 ? `<span class="mspend-amt">${shortMoney(day.val)}</span>` : '';
+    const recDot = day.rec > 0 ? '<span class="mspend-rec"></span>' : '';
     const tag = day.isFuture ? 'div' : 'button';
     const attrs = day.isFuture ? '' : ` type="button" data-mspend-iso="${day.iso}"`;
-    const tip = day.isFuture ? 'future' : (day.val > 0 ? money(day.val) : (day.hasEntry ? 'no spend' : 'no entry'));
+    let tip = day.isFuture ? 'future' : (day.val > 0 ? money(day.val) : (day.hasEntry ? 'no spend' : 'no entry'));
+    if (day.rec > 0) tip += ' · incl. ' + money(day.rec) + ' recurring';
     cells += `<${tag} class="${cls.join(' ')}"${attrs} title="${escAttr(day.d + ': ' + tip)}">
-      <span class="mspend-num">${day.d}</span>${amt}
+      <span class="mspend-num">${day.d}</span>${amt}${recDot}
     </${tag}>`;
   }
 
@@ -14703,10 +14739,13 @@ function renderMonthSpendCalendar() {
       <span class="mspend-sub">${noSpendLine}</span>
     </div>
     <div class="mspend-grid">${cells}</div>
-    <div class="mspend-legend">Less
-      <i style="background:#EEF2F7"></i><i style="background:#DCE8DF"></i>
-      <i style="background:#E7E2C4"></i><i style="background:#F0D3C3"></i>
-      <i style="background:#E9BFC4"></i> More
+    <div class="mspend-legend">
+      ${anyRecurring ? '<span class="mspend-reckey"><span></span> recurring bill</span>' : '<span></span>'}
+      <span class="mspend-swatches">Less
+        <i style="background:#EEF2F7"></i><i style="background:#DCE8DF"></i>
+        <i style="background:#E7E2C4"></i><i style="background:#F0D3C3"></i>
+        <i style="background:#E9BFC4"></i> More
+      </span>
     </div>
     <div class="mspend-tap">TAP ANY DAY › OPENS THAT DATE</div>
   </div>`;
