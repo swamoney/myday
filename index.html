@@ -127,9 +127,10 @@
   @media (max-width:480px){ .card.feat { flex-direction:column; align-items:flex-start; } }
 
   .c-ic { width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center; font-size:22px; font-family:var(--serif); }
+  .c-ic svg { width:23px; height:23px; }   /* every room icon is drawn, not an OS glyph */
   .c-ic svg { width:24px; height:24px; }
   .c-title { font-family:var(--serif); font-size:20px; font-weight:600; color:#182233; line-height:1.15; padding-right:20px; }
-  .c-desc { font-size:12.5px; color:#6a7690; line-height:1.45; }
+  .c-desc { font-size:12.5px; color:#3D4866; line-height:1.45; }   /* was #6a7690 — 4.26:1, under the 4.5:1 minimum */
   .c-go { position:absolute; top:16px; right:18px; font-size:15px; color:#aab4c8; }
   .card:hover .c-go { color:#5a6a88; }
   .soon-badge { position:absolute; top:15px; right:16px; font-size:8.5px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; background:#eef2f8; color:#8189a0; border:1px solid #dce3ee; padding:2px 7px; border-radius:20px; }
@@ -138,11 +139,18 @@
   /* Shade B — each card a soft tinted wash in its identity colour. */
   #cardWisdom { background:linear-gradient(160deg,#f2f8f4,#e4efe8); }
   #cardFav    { background:linear-gradient(160deg,#fbf1f0,#f4e3e1); }
-  .shade-money { background:linear-gradient(160deg,#fbf5ea,#f3ead9); }
-  .shade-intro { background:linear-gradient(160deg,#f4f0fa,#eae2f3); }
+  /* Each room card is tinted with that room's own paper, so the hub previews
+     what it opens: My Why bronze, Favourites teal, Wisdom blue, Inner Life plum. */
+  .shade-money { background:linear-gradient(160deg,#fbf6ec,#f3e9d6); }
+  .shade-fav   { background:linear-gradient(160deg,#f5faf9,#e6f0ef); }
+  .shade-wis   { background:linear-gradient(160deg,#f2f6fd,#e4edf8); }
+  .shade-intro { background:linear-gradient(160deg,#f9f6fa,#ece4ee); }
 
-  .ic-daily { background:#eaeff6; color:#2b4a72; } .ic-wisdom { background:#dcebe2; color:#3d7a5c; } .ic-fav { background:#f5dcd9; color:#a8443e; }
-  .ic-money { background:#f2e6cf; color:#a5702f; } .ic-intro { background:#e6def0; color:#6b4a7a; }
+  .ic-daily  { background:#eaeff6; color:#2b4a72; }
+  .ic-money  { background:#f0e2c6; color:#8a6f2f; }   /* My Why — bronze */
+  .ic-fav    { background:#dcebe9; color:#4a6f6a; }   /* Favourites — teal */
+  .ic-wisdom { background:#dbe7f7; color:#3a5b9c; }   /* Wisdom — article blue */
+  .ic-intro  { background:#e7dcea; color:#6d5474; }   /* Inner Life — plum */
 
   /* Richer footer — divider, larger serif, bolder rainbow. */
   /* Footer F-A — light glass card, content constrained to a centered island. */
@@ -190,7 +198,7 @@
   <div class="cards">
     <a class="card feat" id="cardDaily">
       <span class="c-go">→</span>
-      <div class="c-ic ic-daily">◷</div>
+      <div class="c-ic ic-daily"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2.1"/></svg></div>
       <div class="feat-txt">
         <div class="c-title">My Day</div>
         <div class="c-desc">Today's entry — the tracker</div>
@@ -215,15 +223,15 @@
       <div class="c-title">My Why</div>
       <div class="c-desc">What it&rsquo;s all for</div>
     </a>
-    <a class="card" id="cardFav">
+    <a class="card shade-fav" id="cardFav">
       <span class="c-go">→</span>
       <div class="c-ic ic-fav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/></svg></div>
       <div class="c-title">My Favourites</div>
       <div class="c-desc">Music, podcasts, books &amp; more</div>
     </a>
-    <a class="card" id="cardWisdom">
+    <a class="card shade-wis" id="cardWisdom">
       <span class="c-go">→</span>
-      <div class="c-ic ic-wisdom">📖</div>
+      <div class="c-ic ic-wisdom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 5.4A1.9 1.9 0 0 1 5.7 3.5H11v16H5.7a1.9 1.9 0 0 0-1.9 1.9z"/><path d="M20.2 5.4a1.9 1.9 0 0 0-1.9-1.9H13v16h5.3a1.9 1.9 0 0 1 1.9 1.9z"/><path d="M11 3.5h2v16h-2z" fill="currentColor" stroke="none" opacity="0.18"/></svg></div>
       <div class="c-title">My Wisdom Library</div>
       <div class="c-desc">What I've learned, kept close</div>
     </a>
