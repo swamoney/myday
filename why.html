@@ -269,6 +269,20 @@
           box-shadow:0 8px 22px rgba(30,47,82,0.06); transition:transform .15s, box-shadow .2s; }
   .crow:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(30,47,82,0.1); }
   .c-kind { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--cacc,#8a94a8); margin-bottom:2px; }
+  /* Order arrows — Edit mode only, and each person can only move inside
+     their own band, so the arrows stop at the top and bottom of that band. */
+  .c-move { display:none; flex-direction:column; gap:3px; flex-shrink:0; }
+  body.editing .c-move { display:flex; }
+  .c-move button {
+    width:26px; height:21px; padding:0; cursor:pointer; border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.8);
+    border:1px solid color-mix(in srgb, var(--cacc,#8a94a8) 30%, transparent);
+    color:var(--cacc,#6a7690);
+  }
+  .c-move button:hover:not(:disabled) { background:#fff; }
+  .c-move button:disabled { opacity:0.28; cursor:default; }
+  .c-move svg { width:12px; height:12px; }
   .c-av { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:600; font-size:15px; flex-shrink:0; }
   .c-mid { flex:1; min-width:0; display:flex; flex-direction:column; }
   .c-name { font-family:var(--serif); font-weight:600; font-size:15.5px; color:#28324B; }
@@ -1420,10 +1434,51 @@ el('mantraList').addEventListener('click', e => {
 
 // ----- Circle -----
 async function loadCircle() {
-  const { data, error } = await supa.from('why_circle').select('*').eq('user_id', userId).order('created_at', { ascending: true });
+  const { data, error } = await supa.from('why_circle').select('*').eq('user_id', userId)
+    .order('sort_order', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true });
   if (error) { console.error(error); return; }
   circle = data || [];
   renderCircle();
+}
+// Band first, then the manual order, then date for anyone not yet numbered.
+function sortCircle_() {
+  const idx = {};
+  BANDS.forEach((b, i) => { idx[b.key] = i; });
+  circle.sort((a, b) => {
+    const ba = idx[a.band] == null ? 99 : idx[a.band];
+    const bb = idx[b.band] == null ? 99 : idx[b.band];
+    if (ba !== bb) return ba - bb;
+    const ao = a.sort_order == null ? Number.MAX_SAFE_INTEGER : a.sort_order;
+    const bo = b.sort_order == null ? Number.MAX_SAFE_INTEGER : b.sort_order;
+    if (ao !== bo) return ao - bo;
+    return new Date(a.created_at) - new Date(b.created_at);
+  });
+}
+// Move one place up or down — never out of the band the person belongs to.
+async function moveCirclePerson(id, dir) {
+  if (!document.body.classList.contains('editing')) return;
+  const p = circle.find(x => String(x.id) === String(id));
+  if (!p) return;
+  const list = circle.filter(x => x.band === p.band);
+  const i = list.findIndex(x => String(x.id) === String(id));
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;      // top and bottom hold
+  list.splice(j, 0, list.splice(i, 1)[0]);
+
+  const updates = [];
+  list.forEach((row, k) => {
+    const want = (k + 1) * 10;
+    if (row.sort_order !== want) { row.sort_order = want; updates.push(row); }
+  });
+  sortCircle_();
+  renderCircle();                                       // move first, save after
+  for (const row of updates) {
+    const { error } = await supa.from('why_circle')
+      .update({ sort_order: row.sort_order, updated_at: new Date().toISOString() })
+      .eq('id', row.id).eq('user_id', userId);
+    if (error) { console.error(error); toast('Could not save the order'); await loadCircle(); return; }
+  }
 }
 function renderCircle() {
   const wrap = el('circleList'); if (!wrap) return;
@@ -1437,13 +1492,19 @@ function renderCircle() {
             '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span></div>';
     // Card rows, not a table: reflows on any width, gives the note real room,
     // and no empty edit cells cutting the panel edge in read mode.
-    html += people.map(p =>
+    html += people.map((p, pi) =>
       '<div class="crow" data-open="' + p.id + '" style="--cw1:' + b.w1 + ';--cw2:' + b.bg + ';--cacc:' + b.acc + '">' +
         '<span class="c-av" style="background:' + b.bg + ';color:' + b.acc + ';">' + escHtml((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
         '<span class="c-mid">' +
           '<span class="c-kind">' + escHtml(b.lbl) + '</span>' +
           '<span class="c-name">' + escHtml(p.name || '') + '</span>' +
           (p.note ? '<span class="c-note">' + escHtml(p.note) + '</span>' : '') +
+        '</span>' +
+        '<span class="c-move">' +
+          '<button data-cmove="' + p.id + '" data-dir="-1" type="button" aria-label="Move up"' + (pi === 0 ? ' disabled' : '') + '>' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg></button>' +
+          '<button data-cmove="' + p.id + '" data-dir="1" type="button" aria-label="Move down"' + (pi === people.length - 1 ? ' disabled' : '') + '>' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' +
         '</span>' +
         '<button class="c-edit" data-cedit="' + p.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
         '<span class="c-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>' +
@@ -1471,6 +1532,10 @@ async function savePerson() {
   const rec = { name, band: el('fBand').value, note: el('fRel').value.trim(), user_id: userId };
   try {
     if (editingPerson) {
+      const prev = circle.find(x => String(x.id) === String(editingPerson));
+      // Changing someone's band drops their old position — they join the
+      // bottom of the new band rather than landing in an arbitrary slot.
+      if (prev && prev.band !== rec.band) rec.sort_order = null;
       const { error } = await supa.from('why_circle').update(rec).eq('id', editingPerson).eq('user_id', userId);
       if (error) throw error;
     } else {
@@ -1489,6 +1554,8 @@ async function deletePerson() {
   } catch (e) { toast('Could not remove'); }
 }
 el('circleList').addEventListener('click', e => {
+  const mv = e.target.closest('[data-cmove]');
+  if (mv) { e.stopPropagation(); moveCirclePerson(mv.dataset.cmove, Number(mv.dataset.dir)); return; }
   const ed = e.target.closest('[data-cedit]'); if (ed) { openCircleModal(ed.dataset.cedit); return; }
   const op = e.target.closest('[data-open]'); if (op) { openPerson(op.dataset.open); return; }  // whole row opens the page
   if (e.target.closest('#circleAdd')) openCircleModal(null);
