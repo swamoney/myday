@@ -4297,6 +4297,7 @@
     color: var(--muted);
     font-size: 11px;
     letter-spacing: 0;
+    margin-right: 1px;
   }
 
   /* Item 1 (Option A): plain ranked list — no bars, no colors. Three columns:
@@ -13880,9 +13881,11 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
   const rowsHtmlPlain = allCats.map(c => {
     const sharePct = grandTotal > 0 ? (c.val / grandTotal * 100) : 0;
     const shareLbl = sharePct >= 0.5 ? Math.round(sharePct) + '%' : '<1%';
-    const groupTag = c.group === 'recurring' ? ' <span class="outflow-bd-row-group">(recurring)</span>' : '';
+    const rowLbl = c.group === 'recurring'
+      ? `<span class="outflow-bd-row-group">Recurring &middot;</span> ${c.label}`
+      : c.label;
     return `<div class="outflow-bd-plain-row" data-row-key="${c.key}">
-      <span class="outflow-bd-plain-lbl">${c.label}${groupTag}</span>
+      <span class="outflow-bd-plain-lbl">${rowLbl}</span>
       <span class="outflow-bd-plain-pct">${shareLbl}</span>
       <span class="outflow-bd-plain-amt">${fmt(c.val)}</span>
     </div>`;
