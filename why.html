@@ -196,9 +196,9 @@
   .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:#1e2740; color:#fff; padding:11px 20px; border-radius:10px; font-size:13px; opacity:0; pointer-events:none; transition:all .25s; z-index:400; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   /* ===== My Mantra + My Circle ===== */
-  .why-seg { display:inline-flex; gap:4px; background:#e7ebf1; padding:4px; border-radius:11px; margin:0 38px 18px; max-width:calc(100% - 76px); }
-  .why-seg > span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; padding:7px 13px; border-radius:8px; background:var(--t-faint,transparent); color:var(--t-acc,#6a7690); opacity:0.72; transition:opacity .15s, background .15s; cursor:pointer; white-space:nowrap; }
-  .why-seg > span svg { width:15px; height:15px; flex-shrink:0; }
+  .why-seg { display:inline-flex; flex-wrap:wrap; gap:4px; background:#e7ebf1; padding:4px; border-radius:11px; margin:0 38px 18px; max-width:calc(100% - 76px); }
+  .why-seg > span { display:inline-flex; align-items:center; justify-content:center; gap:5px; font-size:11px; font-weight:600; padding:6px 10px; border-radius:8px; background:var(--t-faint,transparent); color:var(--t-acc,#6a7690); opacity:0.72; transition:opacity .15s, background .15s; cursor:pointer; white-space:nowrap; }
+  .why-seg > span svg { width:12.5px; height:12.5px; flex-shrink:0; }
   .why-seg .seg-l { font-style:normal; background:none; padding:0; }
   .why-seg > span.on { background:var(--t-bg,#fff); color:var(--t-acc,#182233); opacity:1; box-shadow:0 2px 6px color-mix(in srgb, var(--t-acc,#182233) 26%, transparent); font-weight:700; }
   .why-seg > span:hover { opacity:0.9; }
@@ -212,8 +212,10 @@
   @media (max-width:640px) { #secMantra, #secCircle, #secPlaces { padding:0 20px 26px; } }
   .sec-panel.hidden, #secPillars.hidden { display:none; }
   @media (max-width:560px) {
-    .why-seg { display:grid; grid-template-columns:repeat(2,1fr); gap:5px; margin:0 20px 18px; width:calc(100% - 40px); max-width:none; }
-    .why-seg > span { flex-direction:column; gap:3px; font-size:10.5px; padding:8px 4px; min-height:52px; text-align:center; }
+    /* Chips size to their own words and wrap — no grid, so five (or seven)
+       never leave an empty cell. */
+    .why-seg { display:flex; flex-wrap:wrap; gap:4px; margin:0 20px 18px; width:auto; max-width:calc(100% - 40px); }
+    .why-seg > span { font-size:11px; padding:6px 10px; }
   }
   /* Mantra */
   .mgrid { display:flex; flex-direction:column; gap:11px; }
@@ -331,12 +333,19 @@
   .stamp .edge i { display:block; height:100%; background:#3d7a5c; }   /* E1 — moss */
   .stamp .edge.over i { background:#8A1F1A; }
   .stamp { position:relative; border:1px solid #efd7da; border-radius:11px; padding:12px 10px 16px; min-height:84px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#fdf7f8; cursor:pointer; overflow:hidden; transition:transform .12s, box-shadow .15s; box-shadow:0 3px 10px rgba(60,40,45,0.05); }
-  .stamp.wip { background:#f0f7f6; border:2px solid #1F6F68; box-shadow:0 5px 14px rgba(25,90,84,0.15); }
+  /* Work in progress takes the row and leans; done leans in its own tile.
+     A rotated card keeps its original rectangle, so both need clearance. */
+  .stamp.wip { background:#f0f7f6; border:2px solid #1F6F68; box-shadow:0 5px 14px rgba(25,90,84,0.15);
+               grid-column:1 / -1; min-height:104px; transform:rotate(-2deg); margin:11px 6px 14px; }
+  .stamp.wip + .stamp.wip { margin-top:3px; }
+  .stamp.wip .st { font-size:23px; font-weight:400; letter-spacing:0.005em; }
+  .stamp.wip .bk-mark { transform:none; }   /* the card leans, the mark stays level */
   .stamp:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(120,90,20,0.14); }
   .stamp .st { font-family:var(--serif); font-weight:600; font-size:13px; color:#7c8698; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; }
   .stamp.wip .st { color:#1F6F68; }
-  .stamp.inked { border:2px solid #22334f; background:#f4f6fa; padding-bottom:12px; box-shadow:0 5px 14px rgba(25,45,80,0.15); }
-  .stamp.inked:hover { transform:translateY(-2px); }
+  .stamp.inked { border:2px solid #22334f; background:#f4f6fa; padding-bottom:12px; box-shadow:0 5px 14px rgba(25,45,80,0.15);
+                 transform:rotate(-2deg); margin:6px 4px 9px; }
+  .stamp.inked:hover { transform:rotate(-2deg) translateY(-2px); }
   .stamp.inked .st { color:#22334f; }
   .stamp.add { border:1px solid #dde3ec; background:transparent; box-shadow:none; display:none; }
   body.editing .stamp.add { display:flex; }
