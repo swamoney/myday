@@ -58,16 +58,18 @@
 
   .spine-body { padding:22px 38px 30px; position:relative; }   /* no own ground — matches the other three sections */
   /* The coins along the top open each why's roadmap directly. */
-  .pchips { display:flex; gap:11px; flex-wrap:wrap; margin-bottom:7px; }
-  .pchip { width:46px; height:46px; border-radius:50%; border:none; padding:0; cursor:pointer;
-           display:flex; align-items:center; justify-content:center;
-           font-family:var(--serif); font-weight:600; font-size:16px; color:#fff;
-           transition:transform .14s, box-shadow .2s; }
-  .pchip:hover { transform:translateY(-3px); }
+  .pchips { display:flex; gap:3px; flex-wrap:wrap; margin:0 0 4px -11px; }
+  /* The mark is 22px; the button around it is 44px, so it stays easy to hit. */
+  .pchip { width:44px; height:44px; border:none; padding:0; background:none; cursor:pointer;
+           display:flex; align-items:center; justify-content:center; }
+  .pchip i { display:block; width:22px; height:22px; border-radius:50%;
+             transition:transform .15s, box-shadow .2s; }
+  .pchip:hover i { transform:scale(1.2); }
+  .pchip:active i { transform:scale(1.05); }
   .pchips-cap { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.15em;
                 text-transform:uppercase; color:#aab4c8; margin-bottom:20px; }
   .spine-hold { position:relative; }
-  @media (max-width:640px) { .pchip { width:42px; height:42px; font-size:14.5px; } .pchips { gap:9px; } }
+  @media (max-width:640px) { .pchip { width:42px; height:42px; } .pchip i { width:20px; height:20px; } }
   .spine-line { position:absolute; left:69px; top:30px; bottom:30px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
   .snode { display:grid; grid-template-columns:64px 1fr; align-items:start; gap:24px; padding:22px 0; position:relative; border-bottom:1px solid #eef1f6; transition:padding .15s; }
   .snode:last-child { border-bottom:none; }
@@ -866,16 +868,18 @@ async function loadPillars() {
 
 // Seven colours, spread across however many pillars there are — four whys take
 // red, yellow, blue, violet; seven take the whole arc; five re-space themselves.
-// Every coin is deep enough to carry white, so the seven read as one set
-// rather than four dark-inked and three light-inked.
+// A full rainbow with one rule for the ink: every letter is its own coin's hue
+// taken deep. Deep-blue coins cannot carry a dark letter, so the blues and
+// violet sit lighter than a poster rainbow would — that is the price of every
+// letter reading dark, and the seven reading as one set.
 const RAINBOW = [
-  { lt:'#C4483C', mid:'#A63528', deep:'#7E241A', ink:'#ffffff' },   // ruby
-  { lt:'#B9722A', mid:'#9C5A18', deep:'#77410E', ink:'#ffffff' },   // amber
-  { lt:'#A98420', mid:'#8E6D14', deep:'#6B510C', ink:'#ffffff' },   // ochre
-  { lt:'#3E7C4E', mid:'#2E6640', deep:'#1F4A2D', ink:'#ffffff' },   // forest
-  { lt:'#3A6FB0', mid:'#24528B', deep:'#1A3E6B', ink:'#ffffff' },   // blue
-  { lt:'#5A55A8', mid:'#3E3A82', deep:'#2C2963', ink:'#ffffff' },   // indigo
-  { lt:'#8E5AA5', mid:'#6B3E80', deep:'#4E2B5E', ink:'#ffffff' }    // violet
+  { lt:'#F9A79F', mid:'#F2867C', deep:'#C9564A', ink:'#5E1810' },   // red
+  { lt:'#F8C894', mid:'#F0A85F', deep:'#C87B25', ink:'#5C3205' },   // orange
+  { lt:'#FFE79A', mid:'#F7D368', deep:'#D3AC2C', ink:'#544006' },   // yellow
+  { lt:'#A6D6B2', mid:'#7FBE92', deep:'#4E9060', ink:'#153A21' },   // green
+  { lt:'#A8C6EA', mid:'#7FA8DA', deep:'#4C7BB5', ink:'#10294A' },   // blue
+  { lt:'#BCB8E8', mid:'#9A95D4', deep:'#6A64AE', ink:'#1E1B47' },   // indigo
+  { lt:'#D6B0E2', mid:'#BC8ECC', deep:'#8C61A0', ink:'#361A40' }    // violet
 ];
 function hueFor(i, total) {
   if (total <= 1) return RAINBOW[2];                     // a lone why keeps the gold
@@ -914,11 +918,13 @@ function renderSpine() {
   if (chips) {
     chips.innerHTML = pillars.map((p, i) => {
       const c = hueFor(i, pillars.length);
+      // No letter — the spine below names every why. The dot carries its name for
+      // hovers and screen readers instead.
+      const nm = (p.label || p.code || 'This why') + ' \u2014 roadmap';
       return '<button class="pchip" type="button" data-roadmap="' + p.id + '"'
-        + ' title="' + escHtml((p.label || p.code || 'This why') + ' \u2014 roadmap') + '"'
-        + ' style="background:radial-gradient(circle at 38% 34%, ' + c.lt + ', ' + c.mid + ' 62%, ' + c.deep + ');'
-        + 'color:' + c.ink + ';box-shadow:0 5px 14px ' + c.deep + '4d, inset 0 -3px 6px ' + c.deep + '40;">'
-        + escHtml(p.code || '') + '</button>';
+        + ' title="' + escHtml(nm) + '" aria-label="' + escHtml(nm) + '">'
+        + '<i style="background:radial-gradient(circle at 36% 32%, ' + c.lt + ', ' + c.mid + ' 62%, ' + c.deep + ');'
+        + 'box-shadow:0 3px 8px ' + c.deep + '5e;"></i></button>';
     }).join('');
   }
   const chipCap = el('pchipsCap');
