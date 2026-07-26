@@ -70,7 +70,7 @@
                 text-transform:uppercase; color:#aab4c8; margin-bottom:20px; }
   .spine-hold { position:relative; }
   @media (max-width:640px) { .pchip { width:42px; height:42px; } .pchip i { width:20px; height:20px; } }
-  .spine-line { position:absolute; left:69px; top:30px; bottom:30px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
+  .spine-line { position:absolute; left:31px; top:30px; bottom:30px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
   .snode { display:grid; grid-template-columns:64px 1fr; align-items:start; gap:24px; padding:22px 0; position:relative; border-bottom:1px solid #eef1f6; transition:padding .15s; }
   .snode:last-child { border-bottom:none; }
   .smark { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:21px; font-weight:600; z-index:1; margin-top:2px; }   /* colour set per pillar — see RAINBOW */
@@ -104,7 +104,7 @@
     .why-head { padding:26px 22px; }
     .why-title { font-size:40px; }
     .spine-body { padding:18px 20px 26px; }
-    .spine-line { left:46px; }
+    .spine-line { left:25px; }   /* 52px medallion on mobile */
     .snode { grid-template-columns:52px 1fr; gap:16px; align-items:start; }
     .smark { width:52px; height:52px; font-size:18px; }
     body.editing .snode { padding-right:0; }
@@ -918,15 +918,6 @@ function renderSpine() {
   const chipCap = el('pchipsCap');
   if (chipCap) chipCap.textContent = pillars.length ? 'Tap a why for its roadmap' : '';
 
-  // The line down the spine is built from the pillars' own colours, so it always
-  // matches however many there are.
-  const line = document.querySelector('.spine-line');
-  if (line) {
-    const stops = pillars.map((_, i) => hueFor(i, pillars.length).mid);
-    line.style.background = stops.length > 1 ? 'linear-gradient(' + stops.join(',') + ')'
-                          : (stops[0] || '#e0c98a');
-    line.style.opacity = '0.5';
-  }
 }
 
 // ===== NOTES WHITEBOARD (one free space per why) =====
