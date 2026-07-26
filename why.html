@@ -319,10 +319,14 @@
   .bk-count { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#8a94a8; }
   .stamps { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr)); gap:11px; }
   @media (max-width:560px) { .stamps { grid-template-columns:repeat(2,minmax(0,1fr)); } }   /* always 2 tracks, so span-2 = full width */
-  .stamp .plan { font-family:var(--mono); font-size:7px; font-weight:600; letter-spacing:0.1em; color:#8a94a8; margin-top:4px; }
-  .stamp .plan.over { color:#8A1F1A; }
-  .stamp .plan { background:#f4c430; color:#1d2d4d; padding:3px 8px; border-radius:6px; letter-spacing:0.06em; }
-  .stamp .plan.over { background:#8A1F1A; color:#fff; }
+  /* Two lines: the label whispers, the date carries the weight. */
+  .stamp .plan { display:inline-flex; flex-direction:column; align-items:center; gap:1px;
+                 font-family:var(--mono); background:#f4c430; color:#1d2d4d;
+                 padding:6px 13px; border-radius:8px; margin-top:5px; line-height:1.1;
+                 box-shadow:0 2px 6px rgba(196,150,20,0.35); }
+  .stamp .plan .pk { font-size:6.5px; font-weight:600; letter-spacing:0.16em; opacity:0.72; }
+  .stamp .plan .pv { font-size:12px; font-weight:700; letter-spacing:0.01em; }
+  .stamp .plan.over { background:#8A1F1A; color:#fff; box-shadow:0 2px 6px rgba(138,31,26,0.35); }
   .stamp.big { grid-column:1 / -1; min-height:104px; transform:rotate(-2deg); margin:11px 6px 14px; }
   .stamp.big + .stamp.big { margin-top:3px; }   /* two leaning cards sit parallel — no extra gap needed */
   .stamp.big .bk-mark { transform:none; }   /* D3 — the card leans, the mark stays level */
@@ -423,7 +427,12 @@
   body.p-editing .bk-stampro { display:none; }
   .bk-ro-dates { display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; flex-basis:100%; margin-top:3px; }
   body.p-editing .bk-ro-dates { display:none; }            /* the real inputs take over in Edit */
-  .bk-ro-dates .rod { font-family:var(--sans); font-size:11px; font-weight:600; padding:6px 11px; border-radius:7px; background:#f4c430; color:#1d2d4d; white-space:nowrap; }
+  .bk-ro-dates .rod { display:inline-flex; flex-direction:column; align-items:center; gap:1px;
+                      font-family:var(--mono); padding:7px 14px; border-radius:8px;
+                      background:#f4c430; color:#1d2d4d; white-space:nowrap; line-height:1.1;
+                      box-shadow:0 2px 6px rgba(196,150,20,0.3); }
+  .bk-ro-dates .rod .pk { font-size:7px; font-weight:600; letter-spacing:0.16em; opacity:0.72; }
+  .bk-ro-dates .rod .pv { font-size:13px; font-weight:700; letter-spacing:0.01em; }
   .bk-ro-dates .rod.over { background:#8A1F1A; color:#fff; }
   .bk-stat { display:inline-flex; gap:4px; background:#eef1f6; padding:4px; border-radius:10px; flex-wrap:wrap; }
   .bk-stat > span { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:6px 11px; border-radius:7px; cursor:pointer; opacity:0.72; transition:opacity .15s; white-space:nowrap; }
@@ -2256,7 +2265,9 @@ function bkCard(b) {
   inner += '<div class="st">' + escHtml(b.title) + '</div>';
   inner += bkMark(b, false);
   if (!done) {
-    if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">PLANNED FOR \u00B7 ' + bkFmt(b.planned_on) + (e && e.over ? ' \u00B7 PASSED' : '') + '</div>';
+    if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">'
+      + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
+      + '<span class="pv">' + bkFmt(b.planned_on) + '</span></div>';
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
     if (e) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
   }
@@ -2342,8 +2353,9 @@ function bkRenderStatus() {
     const e = done ? null : bkElapsed(b);
     let out = '';
     if (b.planned_on) {
-      out += '<span class="rod' + (e && e.over ? ' over' : '') + '">Planned for \u00B7 ' + bkFmt(b.planned_on) +
-             (e && e.over ? ' \u00B7 passed' : '') + '</span>';
+      out += '<span class="rod' + (e && e.over ? ' over' : '') + '">'
+        + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
+        + '<span class="pv">' + bkFmt(b.planned_on) + '</span></span>';
     }
     ro.innerHTML = out;
   }
