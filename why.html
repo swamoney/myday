@@ -61,17 +61,20 @@
   .snode { display:grid; grid-template-columns:64px 1fr; align-items:start; gap:24px; padding:22px 0; position:relative; border-bottom:1px solid #eef1f6; transition:padding .15s; }
   .snode:last-child { border-bottom:none; }
   .smark { width:64px; height:64px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:21px; font-weight:600; color:#4a3410; z-index:1; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); margin-top:2px; }
-  .snum { font-family:var(--serif); font-size:46px; font-weight:600; color:#182233; line-height:1; }
-  .snum .brk { font-family:var(--mono); font-size:12px; font-weight:600; color:#a5702f; margin-left:10px; }
+  .snum { font-family:var(--serif); font-size:46px; font-weight:600; color:#182233; line-height:1; letter-spacing:-0.02em; }
+  .snum .brk { font-family:var(--mono); font-size:11px; font-weight:600; color:#a5702f; margin-left:10px; letter-spacing:0.06em; vertical-align:middle; }
   .scontent { min-width:0; }
-  .s-rule { height:3px; width:52px; background:#f4c430; border-radius:2px; margin:9px 0 13px; }
+  .s-rule { height:3px; width:52px; background:#f4c430; border-radius:2px; margin:9px 0 13px; display:none; }   /* the number and the sentence carry it now */
   .s-field { margin-bottom:11px; }
   .s-field:last-child { margin-bottom:0; }
   .s-k { display:block; font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#aab4c8; margin-bottom:3px; }
-  .s-stands { font-family:'Fraunces',serif; font-style:italic; font-size:19px; font-weight:500; color:#182233; line-height:1.3; }
+  /* The meaning reads as a sentence under the number, not as a labelled field. */
+  .s-stands { font-family:'Fraunces',serif; font-style:italic; font-size:19px; font-weight:500; color:#28324B; line-height:1.35; margin-top:11px; }
+  .s-stands.empty { color:#aab4c8; }
+  .s-statusrow { margin-top:13px; }
   .s-stands.empty { color:#c3ccdb; font-style:italic; font-weight:500; }
-  .s-pill { display:inline-flex; align-items:center; gap:7px; padding:6px 14px; border-radius:20px; color:#fff; font-size:12.5px; font-weight:600; }
-  .s-pill .pdot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.6); }
+  .s-pill { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:20px; font-size:12px; font-weight:600; }
+  .s-pill .pdot { width:7px; height:7px; border-radius:50%; }
 
   /* edit affordances */
   .node-tools { position:absolute; right:0; top:50%; transform:translateY(-50%); display:none; gap:6px; z-index:2; }
@@ -100,32 +103,11 @@
   /* selectable rows (read mode) */
   .snode { cursor:pointer; border-radius:10px; }
   body:not(.editing) .snode:hover { background:#f6f8fb; }
-  .snode.active { background:#fbf6ec; }
-  .snode.active .smark { box-shadow:0 0 0 3px rgba(244,196,48,0.55), 0 6px 16px rgba(180,140,40,0.45); }
-  .open-cue { position:absolute; right:6px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:#c39a45; background:linear-gradient(90deg, rgba(251,246,236,0) 0%, #fbf6ec 30%); padding:6px 6px 6px 22px; opacity:0; transition:opacity .15s; pointer-events:none; }
-  body:not(.editing) .snode:hover .open-cue, .snode.active .open-cue { opacity:1; }
-  body.editing .open-cue { display:none; }
 
-  /* notes — sticky-note pinboard, one coloured sticky per why-with-notes */
   .notes-panel { margin-top:22px; }
-  .notes-empty { text-align:center; font-family:var(--serif); font-style:italic; color:#aab4c8; padding:22px; border-top:1px dashed #e0e6ef; }
-  .board { border-top:2px solid #eef1f6; padding-top:22px; display:flex; flex-wrap:wrap; gap:20px; }
-  .sticky { width:min(330px, 100%); min-height:466px; display:flex; flex-direction:column; align-items:flex-start; padding:20px 22px 26px; border-radius:4px; box-shadow:0 8px 18px rgba(30,40,70,0.14); position:relative; }
-  .sticky:nth-child(odd) { transform:rotate(-1.1deg); }
-  .sticky:nth-child(even) { transform:rotate(1.3deg); }
-  .sticky::before { content:''; position:absolute; top:8px; left:50%; transform:translateX(-50%); width:9px; height:9px; border-radius:50%; background:rgba(0,0,0,0.16); box-shadow:inset 0 -1px 2px rgba(0,0,0,0.3); }
-  .sticky-h { display:inline-block; font-family:var(--hand); font-size:27px; font-weight:700; line-height:1; padding-bottom:3px; margin:10px 0 10px; border-bottom:3px solid; }
-  .sticky-st { position:absolute; top:12px; right:14px; font-family:var(--mono); font-size:8px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; opacity:0.45; min-height:10px; }
-  .sticky-txt { width:100%; flex:1 1 auto; min-height:160px; resize:vertical; border:none; background:transparent; font-family:'Caveat',cursive; font-size:21px; line-height:1.45; color:rgba(28,26,18,0.9); }
-  .sticky-txt:focus { outline:none; }
-  .note-modal { position:fixed; inset:0; z-index:400; background:rgba(15,25,45,0.5); display:none; align-items:center; justify-content:center; padding:30px 18px; overflow-y:auto; }
-  .note-modal.show { display:flex; }
-  .note-modal-card { position:relative; }
-  .note-modal .sticky { transform:none !important; margin:0; }
-  .note-close { position:absolute; top:-14px; right:-14px; width:34px; height:34px; border-radius:50%; background:#fff; border:1px solid #e0e6ef; color:#3a4560; font-size:22px; line-height:1; cursor:pointer; box-shadow:0 5px 14px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; z-index:2; padding:0; }
-  .note-close:hover { background:#f4f7fb; }
   .scontent { position:relative; padding-right:44px; }
-  .rm-btn { position:absolute; top:0; right:0; width:34px; height:34px; border-radius:9px; border:1px solid #e0e6ef; background:#fff; color:#7a8498; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2; padding:0; }
+  .rm-btn { position:absolute; top:2px; right:0; width:32px; height:32px; border-radius:9px; border:1px solid #e6ebf3; background:rgba(255,255,255,0.7); color:#8a94a8; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:2; padding:0; transition:color .15s, border-color .15s, background .15s; }
+  .rm-btn:hover { color:#8a6f2f; border-color:#e0d3ae; background:#fff; }
   .rm-btn:hover { border-color:#f4c430; color:#a5702f; background:#fffaf0; }
   .rm-btn svg { width:17px; height:17px; }
   body.editing .rm-btn { display:none; }
@@ -191,8 +173,6 @@
   .ms-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; padding:0 2px; }
   .ms-x:hover { color:#a8443e; }
   .ms.add { justify-content:flex-start; background:transparent; border:none; border-bottom:none; color:#8189a0; font-style:italic; cursor:pointer; padding:12px 2px; }
-  .sticky-txt::placeholder { color:rgba(30,28,20,0.32); font-style:italic; }
-  @media (max-width:560px) { .sticky { width:100%; transform:none !important; } }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
 
   /* ===== MODAL ===== */
@@ -532,12 +512,6 @@
       <div class="spine-line"></div>
       <div id="spine"></div>
       <div class="add-row"><button class="add-why" id="addBtn">&#43; Add a why</button></div>
-      <div class="note-modal" id="noteModal" aria-hidden="true">
-        <div class="note-modal-card">
-          <button class="note-close" id="noteClose" type="button" aria-label="Close">&times;</button>
-          <div id="noteModalBody"></div>
-        </div>
-      </div>
     </div>
     <div class="sec-panel hidden" id="secMantra"><div class="mgrid" id="mantraList"></div></div>
     <div class="sec-panel hidden" id="secCircle"><div class="ctab" id="circleList"></div></div>
@@ -842,8 +816,6 @@ const supa = window.supabase.createClient(
 let userId = null;
 let pillars = [];
 let editingId = null;
-let selectedId = null;
-let notesTimer = null;
 
 function el(id) { return document.getElementById(id); }
 function escHtml(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -870,13 +842,11 @@ async function loadPillars() {
   } else {
     pillars = data;
   }
-  if (selectedId && !pillars.some(p => String(p.id) === String(selectedId))) selectedId = null;
   renderSpine();
   if (typeof loadMantras === 'function') loadMantras();
   if (typeof loadCircle === 'function') loadCircle();
   if (typeof loadPlaces === 'function') loadPlaces();
   if (typeof loadBuckets === 'function') loadBuckets();
-  renderNotes();
 }
 
 function renderSpine() {
@@ -886,8 +856,7 @@ function renderSpine() {
     const standsCls = p.label ? 's-stands' : 's-stands empty';
     const stColor = STATE[p.state || ''] || STATE[''];
     const stTxt = p.current_status ? escHtml(p.current_status) : '&mdash;';
-    const activeCls = (selectedId && String(p.id) === String(selectedId)) ? ' active' : '';
-    return '<div class="snode' + activeCls + '" data-id="' + p.id + '">' +
+    return '<div class="snode" data-id="' + p.id + '">' +
       '<div class="node-tools">' +
         '<button class="nt" data-edit="' + p.id + '" title="Edit">&#9998;</button>' +
         '<button class="nt" data-up="' + p.id + '" title="Move up">&#9650;</button>' +
@@ -896,102 +865,21 @@ function renderSpine() {
       '<div class="smark">' + escHtml(p.code) + '</div>' +
       '<div class="scontent">' +
         '<button class="rm-btn" data-roadmap="' + p.id + '" title="Long-term roadmap">' + RM_ICON + '</button>' +
-        '<div class="snum">' + escHtml(p.num) + '</div>' +
-        '<div class="s-rule"></div>' +
-        '<div class="s-field"><span class="s-k">Stands for</span><div class="' + standsCls + '">' + label + '</div></div>' +
-        '<div class="s-field"><span class="s-k">Current status</span>' +
-          '<span class="s-pill" style="background:' + stColor + ';"><span class="pdot"></span>' + stTxt + '</span>' +
+        '<div class="snum">' + escHtml(p.num) +
+          (p.brk ? '<span class="brk">' + escHtml(p.brk) + '</span>' : '') +
+        '</div>' +
+        '<div class="' + standsCls + '">' + label + '</div>' +
+        '<div class="s-statusrow">' +
+          '<span class="s-pill" style="color:' + stColor + ';background:' + stColor + '1f;"><span class="pdot" style="background:' + stColor + ';"></span>' + stTxt + '</span>' +
         '</div>' +
       '</div>' +
-      '<span class="open-cue">Note &rsaquo;</span>' +
     '</div>';
   }).join('');
 }
 
 // ===== NOTES WHITEBOARD (one free space per why) =====
-// Distinct sticky palette, assigned by pillar position (1st blue, 2nd green, …).
-const STICKY = [
-  { bg:'#cfe0f7', head:'#2c477e' },  // blue
-  { bg:'#cfe9d8', head:'#2f6146' },  // green
-  { bg:'#f7e6c2', head:'#8a5e22' },  // amber
-  { bg:'#e6d3ee', head:'#6b4a7a' },  // plum
-  { bg:'#f7d6d2', head:'#8f3a34' },  // rose
-];
-function stickyColor(i) { return STICKY[i % STICKY.length]; }
 
-function stickyHTML(p) {
-  const i = pillars.findIndex(x => String(x.id) === String(p.id));
-  const c = stickyColor(i < 0 ? 0 : i);
-  const numLine = escHtml(p.num) + (p.brk ? ' &middot; ' + escHtml(p.brk) : '');
-  return '<div class="sticky" style="background:' + c.bg + ';">' +
-    '<span class="sticky-st" id="st_' + p.id + '"></span>' +
-    '<div class="sticky-h" style="color:' + c.head + ';">' + escHtml(p.code) + ' &middot; ' + numLine + '</div>' +
-    '<textarea class="sticky-txt" data-id="' + p.id + '" placeholder="Jot anything for this why…">' + escHtml(p.notes || '') + '</textarea>' +
-  '</div>';
-}
-function openNotes(id) {
-  // Tapping the same why while its note is open closes the popup.
-  if (String(selectedId) === String(id) && el('noteModal').classList.contains('show')) { closeNoteModal(); return; }
-  const p = pillars.find(x => String(x.id) === String(id));
-  if (!p) return;
-  selectedId = id;
-  document.querySelectorAll('#spine .snode').forEach(n => n.classList.toggle('active', n.dataset.id === String(id)));
-  el('noteModalBody').innerHTML = stickyHTML(p);
-  el('noteModal').classList.add('show');
-  document.body.style.overflow = 'hidden';
-  const ta = el('noteModalBody').querySelector('textarea[data-id]');
-  if (ta) setTimeout(function () { try { ta.focus(); } catch (e) {} }, 40);
-}
-function closeNoteModal() {
-  const ta = el('noteModalBody').querySelector('textarea[data-id]');
-  if (ta) saveNotes(ta.dataset.id, ta.value);
-  el('noteModal').classList.remove('show');
-  document.body.style.overflow = '';
-  selectedId = null;
-  document.querySelectorAll('#spine .snode').forEach(n => n.classList.remove('active'));
-  el('noteModalBody').innerHTML = '';
-}
 
-function renderNotes() {
-  const panel = el('notesPanel');
-  if (!panel) return;
-  // Show a sticky for every why that has notes, plus the one currently focused
-  // (so an empty why you just tapped gives you a fresh sticky to write in).
-  const shown = selectedId ? pillars.filter(p => String(p.id) === String(selectedId)) : [];
-  if (!shown.length) {
-    panel.innerHTML = '<div class="notes-empty">Tap a why above to open its note.</div>';
-    return;
-  }
-  panel.innerHTML = '<div class="board">' + shown.map(p => {
-    const i = pillars.findIndex(x => String(x.id) === String(p.id));
-    const c = stickyColor(i < 0 ? 0 : i);
-    const numLine = escHtml(p.num) + (p.brk ? ' &middot; ' + escHtml(p.brk) : '');
-    return '<div class="sticky" style="background:' + c.bg + ';">' +
-      '<span class="sticky-st" id="st_' + p.id + '"></span>' +
-      '<div class="sticky-h" style="color:' + c.head + ';">' + escHtml(p.code) + ' &middot; ' + numLine + '</div>' +
-      '<textarea class="sticky-txt" data-id="' + p.id + '" placeholder="Jot anything for this why…">' + escHtml(p.notes || '') + '</textarea>' +
-    '</div>';
-  }).join('') + '</div>';
-}
-
-function setStatus(id, msg) { const s = el('st_' + id); if (s) s.textContent = msg; }
-
-function scheduleNotesSave(id, text) {
-  setStatus(id, 'Saving…');
-  clearTimeout(notesTimer);
-  notesTimer = setTimeout(() => saveNotes(id, text), 700);
-}
-async function saveNotes(id, text) {
-  clearTimeout(notesTimer);
-  const local = pillars.find(x => String(x.id) === String(id));
-  if (local && local.notes === text) { setStatus(id, 'Saved'); return; }
-  try {
-    const { error } = await supa.from('why_pillars').update({ notes: text }).eq('id', id).eq('user_id', userId);
-    if (error) throw error;
-    if (local) local.notes = text;
-    setStatus(id, 'Saved');
-  } catch (e) { setStatus(id, 'Save failed'); }
-}
 
 // ===== EXPORT — the whole of My Why, in one archive =====
 function xEsc_(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -2706,20 +2594,7 @@ el('spine').addEventListener('click', e => {
   const ed = e.target.closest('[data-edit]'); if (ed) { openModal(ed.dataset.edit); return; }
   const up = e.target.closest('[data-up]'); if (up) { movePillar(up.dataset.up, -1); return; }
   const dn = e.target.closest('[data-down]'); if (dn) { movePillar(dn.dataset.down, 1); return; }
-  if (document.body.classList.contains('editing')) return;
-  const row = e.target.closest('.snode'); if (row && row.dataset.id) openNotes(row.dataset.id);
 });
-
-// Sticky notes: autosave on type (debounced) and on blur.
-el('noteModalBody').addEventListener('input', e => {
-  const ta = e.target.closest('textarea[data-id]'); if (ta) scheduleNotesSave(ta.dataset.id, ta.value);
-});
-el('noteModalBody').addEventListener('focusout', e => {
-  const ta = e.target.closest('textarea[data-id]'); if (ta) saveNotes(ta.dataset.id, ta.value);
-});
-el('noteClose').addEventListener('click', closeNoteModal);
-el('noteModal').addEventListener('click', e => { if (e.target === el('noteModal')) closeNoteModal(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('noteModal').classList.contains('show')) closeNoteModal(); });
 
 boot();
 </script>
