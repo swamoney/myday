@@ -980,11 +980,6 @@ async function exportWhy() {
       let rm = null;
       try { rm = p.roadmap ? (typeof p.roadmap === 'string' ? JSON.parse(p.roadmap) : p.roadmap) : null; } catch (e) {}
       if (rm && rm.essay) body += '<h4>Long-term roadmap</h4><div>' + xRich_(rm.essay) + '</div>';
-      if (rm && rm.milestones && rm.milestones.length) {
-        body += '<ul>' + rm.milestones.map(ms =>
-          '<li>' + (ms.done ? '\u2713 ' : '') + xEsc_(ms.t) + (ms.y ? ' <span class="meta">(' + xEsc_(ms.y) + ')</span>' : '') + '</li>'
-        ).join('') + '</ul>';
-      }
     });
 
     const mOrder = mantras.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -1199,10 +1194,10 @@ el('mDelete').addEventListener('click', deletePillar);
 el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });
 
 // ===== LONG-TERM ROADMAP (per why) =====
-// Stored as JSON in why_pillars.roadmap: { essay: string, milestones: [{t, y, done}] }
+// Stored as JSON in why_pillars.roadmap: { essay: string, essay_edited: iso }
 const RM_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4L3 6.5v13L9 17l6 2.5l6-2.5v-13L15 6.5z"/><path d="M9 4v13"/><path d="M15 6.5v13"/></svg>';
 const MS_CHK  = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-let rmId = null, rmData = { essay: '', milestones: [] }, rmTimer = null;
+let rmId = null, rmData = { essay: '' }, rmTimer = null;
 let rmBaseline = null, rmVTimer = null;
 let rmDirty = false;
 function essayDateFmt_(iso) {
@@ -1225,10 +1220,12 @@ function rmSessionEnd_() {
 }
 
 function rmParse(raw) {
-  if (!raw) return { essay: '', milestones: [] };
-  if (typeof raw === 'object') return { essay: raw.essay || '', milestones: Array.isArray(raw.milestones) ? raw.milestones : [] };
-  try { const o = JSON.parse(raw); return { essay: o.essay || '', milestones: Array.isArray(o.milestones) ? o.milestones : [] }; }
-  catch (e) { return { essay: String(raw), milestones: [] }; }
+  // Milestones are gone: anything still stored is dropped on read, so the next
+  // save writes the essay alone.
+  if (!raw) return { essay: '' };
+  if (typeof raw === 'object') return { essay: raw.essay || '', essay_edited: raw.essay_edited };
+  try { const o = JSON.parse(raw); return { essay: o.essay || '', essay_edited: o.essay_edited }; }
+  catch (e) { return { essay: String(raw) }; }
 }
 function openRoadmap(id) {
   const p = pillars.find(x => String(x.id) === String(id)); if (!p) return;
@@ -1295,20 +1292,6 @@ function closeRoadmap() {
   document.body.style.overflow = '';
   rmId = null;
 }
-// Milestone date helpers. Stored value stays in m.y for backward-compat with
-// existing entries (which held a bare year). New picks store full ISO (YYYY-MM-DD).
-function isoDateVal(v) {
-  v = String(v || '').trim();
-  return /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : '';   // only feed a real ISO date to <input type=date>
-}
-function fmtMsDate(v) {
-  v = String(v || '').trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) {
-    const d = new Date(v + 'T00:00:00');
-    if (!isNaN(d.getTime())) return d.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
-  }
-  return v;   // legacy free-text (e.g. '2027' or 'Someday') shown as-is
-}
 function scheduleRoadmapSave() {
   rmDirty = true;
   rmUpdateWc_();
@@ -1348,7 +1331,7 @@ async function saveRoadmapCore_(force) {
       el('rmSave').textContent = 'Saved';
     } else {
       const theirs = res.theirs;
-      let theirData = { essay: '', milestones: [] };
+      let theirData = { essay: '' };
       try { theirData = JSON.parse(theirs.roadmap || 'null') || theirData; } catch (e2) {}
       await NoteEditor.resolveConflict({
         source: 'roadmap', id, mine: rmData.essay, theirs: theirData.essay || '',
@@ -2581,11 +2564,6 @@ function rmMarkdown_() {
   if (p.label) md += '- **Stands for:** ' + p.label + '\n';
   if (p.current_status) md += '- **Current status:** ' + p.current_status + (rmStateLabel_(p.state) ? ' (' + rmStateLabel_(p.state) + ')' : '') + '\n';
   md += '\n## The long view\n\n' + (NoteEditor.toMarkdown(rmData.essay) || '_Nothing written yet._') + '\n';
-  md += '\n## Milestones\n\n';
-  const ms = rmData.milestones || [];
-  md += ms.length
-    ? ms.map(m => '- [' + (m.done ? 'x' : ' ') + '] ' + (m.t || '') + (m.y ? ' \u2014 ' + m.y : '')).join('\n') + '\n'
-    : '_No milestones yet._\n';
   md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' }) + '_\n';
   return md;
 }
@@ -2611,13 +2589,10 @@ el('rmMd').addEventListener('click', () => {
 el('rmPrint').addEventListener('click', () => {
   const p = rmPillar_();
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const ms = (rmData.milestones || []).map(m =>
-    '<li class="' + (m.done ? 'done' : '') + '">' + (m.done ? '\u2713 ' : '\u25A1 ') + esc(m.t || '') + (m.y ? ' <span class="y">' + esc(m.y) + '</span>' : '') + '</li>').join('');
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a5702f;float:right}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || p.code || 'My Why') + '</h1>'
     + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
-    + '<h2>The long view</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '') + '</div>'
-    + '<h2>Milestones</h2><ul>' + (ms || '<li>No milestones yet.</li>') + '</ul>';
+    + '<h2>The long view</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Roadmap \u2014 ' + esc(p.label || 'My Why') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('roadmapWin').classList.contains('show')) closeRoadmap(); });
