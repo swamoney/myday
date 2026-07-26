@@ -60,7 +60,7 @@
   .spine-line { position:absolute; left:69px; top:30px; bottom:30px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
   .snode { display:grid; grid-template-columns:64px 1fr; align-items:start; gap:24px; padding:22px 0; position:relative; border-bottom:1px solid #eef1f6; transition:padding .15s; }
   .snode:last-child { border-bottom:none; }
-  .smark { width:64px; height:64px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:21px; font-weight:600; color:#4a3410; z-index:1; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); margin-top:2px; }
+  .smark { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:21px; font-weight:600; z-index:1; margin-top:2px; }   /* colour set per pillar — see RAINBOW */
   .snum { font-family:var(--serif); font-size:46px; font-weight:600; color:#182233; line-height:1; letter-spacing:-0.02em; }
   .snum .brk { font-family:var(--mono); font-size:11px; font-weight:600; color:#a5702f; margin-left:10px; letter-spacing:0.06em; vertical-align:middle; }
   .scontent { min-width:0; }
@@ -122,7 +122,7 @@
   .rm-sticky { position:sticky; top:-24px; z-index:8; background:#fbfcfe;
     padding:24px 0 10px; margin:-24px 0 14px; border-bottom:1px solid rgba(20,30,60,0.08); }
   .rm-hero { display:grid; grid-template-columns:76px 1fr; gap:22px; align-items:start; padding-bottom:4px; }
-  .rm-seal { width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:23px; font-weight:600; color:#4a3410; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); }
+  .rm-seal { width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:23px; font-weight:600; color:#4a3410; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); }   /* overridden per pillar in openRoadmap */
   .rm-eyebrow { font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#a5702f; margin-bottom:6px; }
   .rm-num { font-family:var(--serif); font-size:44px; font-weight:600; line-height:1; }
   .rm-rule { height:3px; width:52px; background:#f4c430; border-radius:2px; margin:9px 0 13px; }
@@ -849,20 +849,37 @@ async function loadPillars() {
   if (typeof loadBuckets === 'function') loadBuckets();
 }
 
+// Seven colours, spread across however many pillars there are — four whys take
+// red, yellow, blue, violet; seven take the whole arc; five re-space themselves.
+// The ink on each coin is fixed per hue so the letter stays readable on all of them.
+const RAINBOW = [
+  { lt:'#F58076', mid:'#E4574B', deep:'#B93A2F', ink:'#2a1f08' },   // red
+  { lt:'#F5B36B', mid:'#E8913A', deep:'#C06C1C', ink:'#2a1f08' },   // orange
+  { lt:'#FFDD6E', mid:'#F4C430', deep:'#D9A922', ink:'#4a3410' },   // yellow
+  { lt:'#7CBF8C', mid:'#4E9A62', deep:'#2F7344', ink:'#2a1f08' },   // green
+  { lt:'#6E9BD0', mid:'#3A6FB0', deep:'#24528B', ink:'#ffffff' },   // blue
+  { lt:'#8A85C9', mid:'#5A55A8', deep:'#3E3A82', ink:'#ffffff' },   // indigo
+  { lt:'#B487C5', mid:'#8E5AA5', deep:'#6B3E80', ink:'#ffffff' }    // violet
+];
+function hueFor(i, total) {
+  if (total <= 1) return RAINBOW[2];                     // a lone why keeps the gold
+  return RAINBOW[Math.round(i * (RAINBOW.length - 1) / (total - 1))];
+}
 function renderSpine() {
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
-  el('spine').innerHTML = pillars.map(p => {
+  el('spine').innerHTML = pillars.map((p, idx) => {
     const label = p.label ? escHtml(p.label) : '&mdash;';
     const standsCls = p.label ? 's-stands' : 's-stands empty';
     const stColor = STATE[p.state || ''] || STATE[''];
     const stTxt = p.current_status ? escHtml(p.current_status) : '&mdash;';
+    const hue = hueFor(idx, pillars.length);
     return '<div class="snode" data-id="' + p.id + '">' +
       '<div class="node-tools">' +
         '<button class="nt" data-edit="' + p.id + '" title="Edit">&#9998;</button>' +
         '<button class="nt" data-up="' + p.id + '" title="Move up">&#9650;</button>' +
         '<button class="nt" data-down="' + p.id + '" title="Move down">&#9660;</button>' +
       '</div>' +
-      '<div class="smark">' + escHtml(p.code) + '</div>' +
+      '<div class="smark" style="background:radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ');color:' + hue.ink + ';box-shadow:0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40;">' + escHtml(p.code) + '</div>' +
       '<div class="scontent">' +
         '<button class="rm-btn" data-roadmap="' + p.id + '" title="Long-term roadmap">' + RM_ICON + '</button>' +
         '<div class="snum">' + escHtml(p.num) +
@@ -875,6 +892,16 @@ function renderSpine() {
       '</div>' +
     '</div>';
   }).join('');
+
+  // The line down the spine is built from the pillars' own colours, so it always
+  // matches however many there are.
+  const line = document.querySelector('.spine-line');
+  if (line) {
+    const stops = pillars.map((_, i) => hueFor(i, pillars.length).mid);
+    line.style.background = stops.length > 1 ? 'linear-gradient(' + stops.join(',') + ')'
+                          : (stops[0] || '#e0c98a');
+    line.style.opacity = '0.5';
+  }
 }
 
 // ===== NOTES WHITEBOARD (one free space per why) =====
@@ -1185,6 +1212,14 @@ function openRoadmap(id) {
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   el('rmTitle').innerHTML = 'My Why' + (p.label ? ' &middot; ' + escHtml(p.label) : '');
   el('rmSeal').textContent = p.code || '';
+  {
+    const i = pillars.findIndex(x => String(x.id) === String(p.id));
+    const hue = hueFor(i < 0 ? 0 : i, pillars.length);
+    const seal = el('rmSeal');
+    seal.style.background = 'radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ')';
+    seal.style.color = hue.ink;
+    seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
+  }
   el('rmNum').textContent = p.num || '';
   el('rmStands').innerHTML = p.label ? escHtml(p.label) : '&mdash;';
   el('rmStatus').style.background = STATE[p.state || ''] || STATE[''];
