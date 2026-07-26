@@ -113,7 +113,6 @@
 
   /* selectable rows (read mode) */
   .snode { cursor:pointer; border-radius:10px; }
-  body:not(.editing) .snode:hover { background:#f6f8fb; }
 
   .notes-panel { margin-top:22px; }
   .scontent { position:relative; padding-right:44px; }
@@ -130,12 +129,19 @@
   .rm-save { font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase; color:#3d7a5c; min-width:52px; text-align:right; }
   .rm-scroll { flex:1; overflow-y:auto; padding-top:24px; }
   .rm-inner { max-width:1000px; margin:0 auto; padding:0 30px 34px; border-left:5px solid transparent; transition:border-color .2s; }
-  .rm-sticky { position:sticky; top:-24px; z-index:8; background:#fbfcfe;
-    padding:24px 0 10px; margin:-24px 0 14px; border-bottom:1px solid rgba(20,30,60,0.08); }
+  /* The heading scrolls away with the page — the essay gets the whole screen. */
+  .rm-sticky { padding:0 0 10px; margin:0 0 14px; border-bottom:1px solid rgba(20,30,60,0.08); }
   .rm-hero { display:grid; grid-template-columns:76px 1fr; gap:22px; align-items:start; padding-bottom:4px; }
   .rm-seal { width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:23px; font-weight:600; color:#4a3410; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); }   /* overridden per pillar in openRoadmap */
   .rm-eyebrow { font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#a5702f; margin-bottom:6px; }
-  .rm-num { font-family:var(--serif); font-size:44px; font-weight:600; line-height:1; }
+  .rm-num { font-family:var(--serif); font-size:44px; font-weight:600; line-height:1; letter-spacing:-0.02em; }
+  /* Same wordless treatment as the pillar card: the meaning as a sentence,
+     the standing as a tinted pill. No labels. */
+  .rm-stands { font-family:var(--serif); font-style:italic; font-size:19px; font-weight:500; color:#28324B; line-height:1.35; margin-top:11px; }
+  .rm-stands.empty { color:#aab4c8; }
+  .rm-statusrow { margin-top:12px; }
+  .rm-pill { display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:20px; font-size:12px; font-weight:600; }
+  .rm-pill .pdot { width:7px; height:7px; border-radius:50%; }
   .rm-rule { height:3px; width:52px; background:#f4c430; border-radius:2px; margin:9px 0 13px; }
   .rm-essay.ro { font-family:var(--serif); font-size:18px; line-height:1.75; color:#3a4560; padding:0; white-space:pre-wrap; min-height:40px; }
   .rm-essay.ro.empty { color:#c3ccdb; font-style:italic; }
@@ -463,7 +469,7 @@
   @media (max-width:640px) {
     .rm-title, .ptitle { display:none; }              /* bar keeps buttons only */
     #rmHist, #pHist { margin-left:auto; }
-    .rm-sticky, .p-sticky { top:-20px; padding-top:20px; margin-top:-20px; }
+    .p-sticky { top:-20px; padding-top:20px; margin-top:-20px; }
     .rm-sticky .rm-seal, .rm-sticky .rm-rule { display:none; }   /* compact pinned unit */
     .rm-sticky .rm-hero { display:block; }                        /* seal gone -> one full-width column */
     .p-sticky .pnote { display:none; }
@@ -660,7 +666,8 @@
         <div class="rm-hero-b">
           <div class="rm-eyebrow">Long-term roadmap</div>
           <div class="rm-num" id="rmNum"></div>
-          <div class="rm-rule"></div>
+          <div class="rm-stands" id="rmStands"></div>
+          <div class="rm-statusrow"><span class="rm-pill" id="rmStatus"><span class="pdot"></span><span id="rmStatusTxt"></span></span></div>
         </div>
       </div>
       <div class="essay-date" id="rmDates"></div>
@@ -1236,6 +1243,17 @@ function openRoadmap(id) {
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   el('rmTitle').innerHTML = 'My Why' + (p.label ? ' &middot; ' + escHtml(p.label) : '');
   el('rmSeal').textContent = p.code || '';
+  {
+    const st = STATE[p.state || ''] || STATE[''];
+    const sEl = el('rmStands');
+    sEl.innerHTML = p.label ? escHtml(p.label) : 'Nothing written yet';
+    sEl.classList.toggle('empty', !p.label);
+    const pill = el('rmStatus');
+    pill.style.color = st;
+    pill.style.background = st + '1f';
+    pill.querySelector('.pdot').style.background = st;
+    el('rmStatusTxt').innerHTML = p.current_status ? escHtml(p.current_status) : '&mdash;';
+  }
   {
     const i = pillars.findIndex(x => String(x.id) === String(p.id));
     const hue = hueFor(i < 0 ? 0 : i, pillars.length);
