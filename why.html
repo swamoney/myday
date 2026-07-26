@@ -171,22 +171,6 @@
   /* Flat document: no cards, no boxes — the roadmap reads as one clean page. */
   .rm-essay { width:100%; font-family:var(--serif); font-size:18px; line-height:1.75; color:#1c2331; background:transparent; border:none; border-bottom:1px dashed #e2e8f0; border-radius:0; padding:0 0 10px; min-height:220px; resize:vertical; }
   .rm-essay:focus { outline:none; border-bottom-color:#c9a94a; }
-  .ms-list { display:flex; flex-direction:column; gap:0; }
-  .ms { display:flex; align-items:center; gap:12px; background:transparent; border:none; border-bottom:1px solid #eef1f6; border-radius:0; padding:11px 2px; }
-  .ms-box { width:20px; height:20px; border-radius:6px; border:1.5px solid #cdd6e3; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; cursor:pointer; background:#fff; padding:0; }
-  .ms-box svg { width:11px; height:11px; display:none; }
-  .ms.done .ms-box { background:#3d7a5c; border-color:#3d7a5c; }
-  .ms.done .ms-box svg { display:block; }
-  .ms.done .ms-t { color:#9aa4ba; text-decoration:line-through; }
-  .ms-t { flex:1; font-size:14px; color:#28324B; border:none; background:transparent; font-family:inherit; }
-  .ms-t:focus { outline:none; }
-  .ms-y { min-width:96px; font-family:var(--mono); font-size:10px; font-weight:600; color:#a5702f; background:#fdf6e3; border:1px solid #f0e2bd; padding:4px 12px; border-radius:20px; text-align:center; white-space:nowrap; flex-shrink:0; }
-  .ms-y.empty { color:#c9d0dc; background:transparent; border-color:#eef1f6; }
-  .ms-d { font-family:var(--mono); font-size:11px; font-weight:600; color:#a5702f; background:#fdf6e3; border:1px solid #f0e2bd; padding:5px 10px; border-radius:10px; flex-shrink:0; }
-  .ms-d:focus { outline:none; border-color:#c9a94a; }
-  .ms-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; padding:0 2px; }
-  .ms-x:hover { color:#a8443e; }
-  .ms.add { justify-content:flex-start; background:transparent; border:none; border-bottom:none; color:#8189a0; font-style:italic; cursor:pointer; padding:12px 2px; }
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
 
   /* ===== MODAL ===== */
@@ -457,7 +441,14 @@
   #bkHist { margin-left:auto; }
   /* Shared note editor (note-editor.js). Toolbars only visible while editing. */
   /* One toolbar chrome app-wide: inside the frozen headline unit (like Fav/Inner Life). */
-  #rmToolbar, #pToolbar, #bkWhyToolbar, #mtLineToolbar, #mtMeanToolbar { display:none; margin:12px 0 2px; }   /* byte-matches Introspection's #rdToolbar */
+  #rmToolbar, #pToolbar, #bkWhyToolbar, #mtLineToolbar, #mtMeanToolbar { display:none; margin:12px 0 2px; }
+  /* The heading scrolls away, but the toolbar follows you down the essay —
+     otherwise formatting only works in the first screenful. */
+  body.rm-editing #rmToolbar {
+    position:sticky; top:0; z-index:9;
+    background:#fbfcfe; margin:0 0 10px; padding:10px 0 8px;
+    box-shadow:0 8px 12px -10px rgba(20,30,60,0.35);
+  }   /* byte-matches Introspection's #rdToolbar */
   body.rm-editing #rmToolbar { display:flex; }
   body.p-editing #pToolbar { display:flex; }
   body.p-editing #bkWhyToolbar { display:flex; }
@@ -673,14 +664,11 @@
         </div>
       </div>
       <div class="essay-date" id="rmDates"></div>
-      <div id="rmToolbar"></div>
       </div>
+      <div id="rmToolbar"></div>
       <div class="rm-sec">
         <div class="rm-essay ro" id="rmEssayRO"></div>
         <div class="rm-essay inp" id="rmEssay" contenteditable="true" data-placeholder="Write the long view for this why&#8230;"></div>
-      </div>
-      <div class="rm-sec" id="rmMsSec">
-        <div class="ms-list" id="rmList"></div>
       </div>
       <div class="rm-foot">
         <div class="foot-r">
@@ -1283,7 +1271,6 @@ function openRoadmap(id) {
   el('rmSave').textContent = '';
   setRoadmapEditing(false);   // always opens read-only
   renderRoadmapRead();
-  renderMilestones();
   el('roadmapWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -1321,24 +1308,6 @@ function fmtMsDate(v) {
     if (!isNaN(d.getTime())) return d.toLocaleDateString(undefined, { day:'numeric', month:'short', year:'numeric' });
   }
   return v;   // legacy free-text (e.g. '2027' or 'Someday') shown as-is
-}
-function renderMilestones() {
-  const list = el('rmList'); if (!list) return;
-  const editing = document.body.classList.contains('rm-editing');
-  const rows = (rmData.milestones || []).map((m, i) =>
-    '<div class="ms' + (m.done ? ' done' : '') + '" data-i="' + i + '">' +
-      '<button class="ms-box" data-toggle="' + i + '" type="button" aria-label="Done"' + (editing ? '' : ' disabled') + '>' + MS_CHK + '</button>' +
-      '<input class="ms-t" data-text="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="A long-term step\u2026"' + (editing ? '' : ' readonly') + '>' +
-      (editing
-        ? '<input class="ms-d" type="date" data-date="' + i + '" value="' + escHtml(isoDateVal(m.y)) + '">'
-        : (fmtMsDate(m.y) ? '<span class="ms-y">' + escHtml(fmtMsDate(m.y)) + '</span>' : '<span class="ms-y empty">&mdash;</span>')) +
-      '<button class="ms-x" data-del="' + i + '" type="button" aria-label="Remove">&times;</button>' +
-    '</div>'
-  ).join('');
-  list.innerHTML = rows + '<div class="ms add" id="msAdd">+ Add a milestone</div>';
-  // Milestones only appear when there are some (or while editing, so you can add).
-  const sec = el('rmMsSec');
-  if (sec) sec.style.display = (editing || (rmData.milestones && rmData.milestones.length)) ? '' : 'none';
 }
 function scheduleRoadmapSave() {
   rmDirty = true;
@@ -1393,7 +1362,7 @@ async function saveRoadmapCore_(force) {
           rmLoadedUpd = theirs.updated_at; rmDirty = false;
           el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
           rmBaseline = NoteEditor.sanitize(el('rmEssay').innerHTML);
-          renderRoadmapRead(); renderMilestones();
+          renderRoadmapRead();
           el('rmSave').textContent = 'Saved';
         }
       });
@@ -2598,7 +2567,6 @@ el('pHist').addEventListener('click', () => {
 el('rmEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('rm-editing');
   setRoadmapEditing(on);
-  renderMilestones();
   if (on) { rmNk.refresh(); rmNk.focusEnd(); } else { saveRoadmap(true); }
 });
 
@@ -2654,22 +2622,6 @@ el('rmPrint').addEventListener('click', () => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('roadmapWin').classList.contains('show')) closeRoadmap(); });
 el('rmEssay').addEventListener('blur', () => saveRoadmap());
-el('rmList').addEventListener('click', e => {
-  const add = e.target.closest('#msAdd');
-  if (add) { rmData.milestones.push({ t: '', y: '', done: false }); renderMilestones(); scheduleRoadmapSave();
-    const inputs = el('rmList').querySelectorAll('.ms-t'); const last = inputs[inputs.length - 1]; if (last) last.focus(); return; }
-  const tg = e.target.closest('[data-toggle]');
-  if (tg) { const i = +tg.dataset.toggle; rmData.milestones[i].done = !rmData.milestones[i].done; renderMilestones(); scheduleRoadmapSave(); return; }
-  const dl = e.target.closest('[data-del]');
-  if (dl) { const i = +dl.dataset.del; rmData.milestones.splice(i, 1); renderMilestones(); scheduleRoadmapSave(); return; }
-});
-el('rmList').addEventListener('change', e => {
-  const d = e.target.closest('[data-date]'); if (d) { rmData.milestones[+d.dataset.date].y = d.value; scheduleRoadmapSave(); }
-});
-el('rmList').addEventListener('input', e => {
-  const t = e.target.closest('[data-text]'); if (t) { rmData.milestones[+t.dataset.text].t = t.value; scheduleRoadmapSave(); return; }
-  const d = e.target.closest('[data-date]'); if (d) { rmData.milestones[+d.dataset.date].y = d.value; scheduleRoadmapSave(); }
-});
 
 el('pchips').addEventListener('click', e => {
   const c = e.target.closest('[data-roadmap]');
