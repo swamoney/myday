@@ -208,8 +208,9 @@
   .why-seg > span[data-sec="circle"]  { --t-faint:#f7f9fc; --t-bg:#e9eef6; --t-acc:#46586f; }   /* circle rows */
   .why-seg > span[data-sec="bucket"]  { --t-faint:#f6fbfa; --t-bg:#e2eeec; --t-acc:#2F6F6A; }   /* B2 deep teal */
   .why-seg > span[data-sec="places"]  { --t-faint:#f2f9f8; --t-bg:#dfeeeb; --t-acc:#3f6560; }   /* explore — green-teal */
-  #secMantra, #secCircle, #secPlaces { padding:0 38px 30px; }
-  @media (max-width:640px) { #secMantra, #secCircle, #secPlaces { padding:0 20px 26px; } }
+  .why-seg > span[data-sec="priority"] { --t-faint:#f6f4fa; --t-bg:#e9e4f2; --t-acc:#5b4a86; }   /* priority — amethyst */
+  #secMantra, #secCircle, #secPlaces, #secPriority { padding:0 38px 30px; }
+  @media (max-width:640px) { #secMantra, #secCircle, #secPlaces, #secPriority { padding:0 20px 26px; } }
   .sec-panel.hidden, #secPillars.hidden { display:none; }
   @media (max-width:560px) {
     /* Chips size to their own words and wrap — no grid, so five (or seven)
@@ -366,6 +367,75 @@
   .bk-dts input { border:1px solid #e2d9bd; border-radius:7px; background:#fff; font-family:var(--sans); font-size:11.5px; color:#182233; padding:3px 6px; }
   body:not(.p-editing) .bk-stat { display:none; }        /* the stamp speaks in read mode */
   body:not(.p-editing) .bk-del-row { display:none; }
+  /* ===== My Priority — the four quadrants, drawn as a real matrix =====
+     Urgent and important are axes, not categories, so placing a task is a
+     judgement each time rather than a menu pick. */
+  .pr-axtop { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin:0 0 5px 22px; }
+  .pr-axtop span { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.16em; color:#95a4bb; text-align:center; }
+  .pr-axrow { display:flex; gap:6px; }
+  .pr-axleft { display:flex; flex-direction:column; justify-content:space-around; width:16px; flex-shrink:0; }
+  .pr-axleft span { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.16em; color:#95a4bb;
+                    writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; }
+  .pr-mx { flex:1; min-width:0; display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+  .pr-q { position:relative; border:1px solid; border-radius:14px; padding:13px 13px 15px; min-height:136px;
+          display:flex; flex-direction:column; }
+  .pr-qh { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  .pr-qc { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.14em; }
+  .pr-qv { font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:0.14em; padding:3px 7px; border-radius:5px; }
+  .pr-qs { font-family:var(--serif); font-size:12.5px; font-style:italic; color:#28324B; margin-bottom:7px; }
+  .pr-qn { position:absolute; top:12px; right:13px; font-family:var(--serif); font-size:22px; font-weight:700; opacity:0.22; }
+  .pr-tks { display:flex; flex-direction:column; gap:4px; margin-top:2px; }
+  .pr-tk { display:flex; align-items:flex-start; gap:7px; width:100%; background:none; border:none; padding:4px 2px;
+           border-radius:7px; cursor:pointer; text-align:left; font-family:inherit; transition:background .12s; }
+  .pr-tk:hover { background:rgba(255,255,255,0.7); }
+  .pr-tkd { width:5px; height:5px; border-radius:50%; flex-shrink:0; margin-top:6px; }
+  .pr-tkt { font-size:12.5px; color:#28324B; line-height:1.35; overflow-wrap:anywhere; }
+  .pr-qempty { font-size:11.5px; color:#aab4c8; font-style:italic; padding:6px 2px; }
+  .pr-addrow { margin-top:16px; }
+  .pr-add { border:1px dashed #cdd6e3; background:none; color:#5b4a86; font-family:inherit; font-size:12px;
+            font-weight:600; padding:9px 16px; border-radius:10px; cursor:pointer; display:none; }
+  body.editing .pr-add { display:inline-block; }
+  .pr-add:hover { border-color:#5b4a86; }
+  /* the archive — this year open, older years folded away */
+  .pr-arch { margin-top:30px; padding-top:18px; border-top:1px solid #e4e9f1; }
+  .pr-archhd { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:11px; }
+  .pr-archt { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; }
+  .pr-archn { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#8B97AC; }
+  .pr-yr { margin-bottom:9px; }
+  .pr-yrhd { display:flex; align-items:center; gap:9px; width:100%; background:none; border:none; padding:7px 2px;
+             cursor:pointer; font-family:inherit; text-align:left; }
+  .pr-yrhd .y { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.13em; color:#5A6478; }
+  .pr-yrhd .n { font-family:var(--mono); font-size:9px; color:#95a4bb; }
+  .pr-yrhd .r { flex:1; border-top:1px solid #eef1f6; }
+  .pr-yrhd .cv { color:#aab4c8; font-size:11px; transition:transform .15s; }
+  .pr-yr.open .pr-yrhd .cv { transform:rotate(90deg); }
+  .pr-yrbody { display:none; flex-direction:column; gap:7px; padding-top:4px; }
+  .pr-yr.open .pr-yrbody { display:flex; }
+  .pr-ou { display:flex; align-items:center; gap:11px; background:#fff; border:1px solid #eaeef4; border-radius:13px;
+           padding:10px 13px; cursor:pointer; }
+  .pr-os { width:27px; height:27px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+           font-size:13px; font-weight:700; flex-shrink:0; }
+  .pr-om { flex:1; min-width:0; }
+  .pr-ot { font-family:var(--serif); font-size:13.5px; font-weight:600; color:#28324B; }
+  .pr-on { font-size:11px; color:#5A6478; margin-top:1px; overflow-wrap:anywhere; }
+  .pr-od { text-align:right; flex-shrink:0; }
+  .pr-od b { display:block; font-family:var(--mono); font-size:8px; letter-spacing:0.13em; }
+  .pr-od i { display:block; font-family:var(--mono); font-size:9px; font-style:normal; color:#95a4bb; margin-top:2px; }
+  /* where the years went */
+  .pr-balance { margin-top:26px; padding-top:18px; border-top:1px solid #e4e9f1; display:flex; flex-direction:column; gap:8px; }
+  .pr-bt { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; margin-bottom:3px; }
+  .pr-br { display:flex; align-items:center; gap:11px; }
+  .pr-by { font-family:var(--mono); font-size:10px; font-weight:600; color:#5A6478; width:36px; flex-shrink:0; }
+  .pr-bb { flex:1; height:15px; border-radius:4px; overflow:hidden; display:flex; background:#eef1f6; }
+  .pr-bb i { display:block; height:100%; }
+  .pr-bq { font-family:var(--mono); font-size:10px; font-weight:700; width:58px; text-align:right; flex-shrink:0; color:#2E6640; }
+  .pr-empty { font-size:12.5px; color:#8B97AC; padding:10px 2px; }
+  @media (max-width:560px) {
+    .pr-mx { grid-template-columns:1fr; }
+    .pr-axtop { display:none; }
+    .pr-axleft { display:none; }
+    .pr-axrow { gap:0; }
+  }
   /* ===== My Explore List — one flat list, cities filter it ===== */
   .pl-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:11px; }
   .pl-chip { font-size:11px; font-weight:600; padding:6px 12px; border-radius:20px; cursor:pointer;
@@ -522,6 +592,7 @@
       <span data-sec="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6"/><path d="M18.5 20c0-2.6-1-4.2-2.5-5"/></svg><i class="seg-l">My Circle</i></span>
       <span data-sec="bucket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20.4h4.6v-4.6h4.6v-4.6h4.6V6.6H21"/></svg><i class="seg-l">My Bucket List</i></span>
       <span data-sec="places"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="m15.2 8.8-2.1 5.3-5.3 2.1 2.1-5.3z" fill="currentColor" stroke="none"/></svg><i class="seg-l">My Explore List</i></span>
+      <span data-sec="priority"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="2.2"/><path d="M12 3.5v17"/><path d="M3.5 12h17"/></svg><i class="seg-l">My Priority</i></span>
     </div>
     <div class="spine-body" id="secPillars">
       <div class="pchips" id="pchips"></div>
@@ -534,6 +605,22 @@
     </div>
     <div class="sec-panel hidden" id="secMantra"><div class="mgrid" id="mantraList"></div></div>
     <div class="sec-panel hidden" id="secCircle"><div class="ctab" id="circleList"></div></div>
+    <div class="sec-panel hidden" id="secPriority">
+      <div class="pr-axtop"><span>NOT URGENT</span><span>URGENT</span></div>
+      <div class="pr-axrow">
+        <div class="pr-axleft"><span>IMPORTANT</span><span>NOT IMPORTANT</span></div>
+        <div class="pr-mx" id="priMatrix"></div>
+      </div>
+      <div class="pr-addrow"><button class="pr-add" id="priAdd" type="button">+ Add a task</button></div>
+      <div class="pr-arch">
+        <div class="pr-archhd">
+          <span class="pr-archt">What I closed</span>
+          <span class="pr-archn" id="priArchCount"></span>
+        </div>
+        <div id="priArchive"></div>
+      </div>
+      <div class="pr-balance" id="priBalance"></div>
+    </div>
     <div class="sec-panel hidden" id="secPlaces">
       <div class="pl-chips" id="plChips"></div>
       <div class="pl-count" id="plCount"></div>
@@ -570,6 +657,59 @@
   </div>
 </main>
 
+
+<div class="modal-overlay hidden" id="priModal">
+  <div class="modal">
+    <div class="modal-title" id="priModalTitle">Add a task</div>
+    <div class="modal-sub" id="priModalSub">what it is, and where it belongs</div>
+    <div class="fld"><label>The task</label><input id="fPriTitle" placeholder="e.g. Draft the will"></div>
+    <div class="fld"><label>Note (optional)</label><input id="fPriNote" placeholder="e.g. no deadline, matters most"></div>
+    <div class="fld"><label>Where it belongs</label>
+      <select id="fPriQ">
+        <option value="q1">Q1 &middot; Do &mdash; urgent and important</option>
+        <option value="q2">Q2 &middot; Decide &mdash; important, not urgent</option>
+        <option value="q3">Q3 &middot; Delegate &mdash; urgent, not important</option>
+        <option value="q4">Q4 &middot; Delete &mdash; neither</option>
+      </select>
+    </div>
+    <div class="fld hidden" id="fPriMoveWrap">
+      <label>Why did it move?</label>
+      <input id="fPriMoveWhy" placeholder="e.g. left it too long and it became urgent">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger hidden" id="priDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="priCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="priSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="priCloseModal">
+  <div class="modal">
+    <div class="modal-title" id="priCloseTitle">Close this task</div>
+    <div class="modal-sub">a task leaves by one of three doors &mdash; each is a decision worth recording</div>
+    <div class="fld"><label>How did it end?</label>
+      <select id="fPriOutcome">
+        <option value="done">Done &mdash; I finished it</option>
+        <option value="delegated">Delegated &mdash; someone else owns it</option>
+        <option value="deleted">Eliminated &mdash; I decided not to</option>
+      </select>
+    </div>
+    <div class="fld hidden" id="fPriWhoWrap"><label>Who has it now?</label>
+      <input id="fPriWho" placeholder="e.g. Sagar">
+    </div>
+    <div class="fld"><label id="fPriWhyLabel">What happened</label>
+      <input id="fPriWhy" placeholder="one line you will want to read in ten years">
+    </div>
+    <div class="fld"><label>On</label><input type="date" id="fPriOn"></div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="priCloseCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="priCloseSave" type="button">Record it</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay hidden" id="placeModal">
   <div class="modal">
@@ -861,6 +1001,7 @@ async function loadPillars() {
   if (typeof loadMantras === 'function') loadMantras();
   if (typeof loadCircle === 'function') loadCircle();
   if (typeof loadPlaces === 'function') loadPlaces();
+  if (typeof loadPriority === 'function') loadPriority();
   if (typeof loadBuckets === 'function') loadBuckets();
 }
 
@@ -961,6 +1102,11 @@ async function exportWhy() {
     zip.file('circle.json', JSON.stringify(circle.map(c => ({
       name: c.name, band: c.band, note: c.note, why_html: c.why_html, created_at: c.created_at
     })), null, 2));
+    zip.file('priority.json', JSON.stringify(priority.map(t => ({
+      title: t.title, quadrant: t.quadrant, note: t.note, status: t.status,
+      outcome_note: t.outcome_note, delegated_to: t.delegated_to,
+      closed_on: t.closed_on, moves: t.moves, created_at: t.created_at
+    })), null, 2));
     zip.file('explore-list.json', JSON.stringify(places.map(p => ({
       name: p.name, city: p.city, kind: p.kind, note: p.note,
       status: p.status, last_on: p.last_on, created_at: p.created_at
@@ -1016,6 +1162,29 @@ async function exportWhy() {
       if (b.why_html && xPlain_(b.why_html)) body += '<div>' + xRich_(b.why_html) + '</div>';
     });
 
+    body += '<h2>My Priority</h2>';
+    ['q1','q2','q3','q4'].forEach(k => {
+      const q = PRI_Q[k];
+      const openRows = priority.filter(t => (t.status || 'open') === 'open' && (t.quadrant || 'q2') === k);
+      if (!openRows.length) return;
+      body += '<h3>' + q.code + ' \u00B7 ' + q.verb + ' <span class="meta">(' + q.sub + ')</span></h3><ul>';
+      openRows.forEach(t => { body += '<li>' + xEsc_(t.title) + (t.note ? ' <span class="meta">' + xEsc_(t.note) + '</span>' : '') + '</li>'; });
+      body += '</ul>';
+    });
+    const priClosed = priority.filter(t => (t.status || 'open') !== 'open');
+    if (priClosed.length) {
+      body += '<h3>Closed</h3><ul>';
+      priClosed.slice().sort((a, b) => String(b.closed_on || '').localeCompare(String(a.closed_on || ''))).forEach(t => {
+        const o = PRI_OUT[t.status] || PRI_OUT.done;
+        body += '<li><strong>' + xEsc_(t.title) + '</strong> \u2014 ' + xEsc_(o.lbl)
+              + (t.delegated_to ? ' to ' + xEsc_(t.delegated_to) : '')
+              + ' \u00B7 ' + xEsc_((PRI_Q[t.quadrant || 'q2'] || {}).code || '')
+              + ' \u00B7 ' + xEsc_(priFmt(t.closed_on))
+              + (t.outcome_note ? '<br><span class="meta">' + xEsc_(t.outcome_note) + '</span>' : '') + '</li>';
+      });
+      body += '</ul>';
+    }
+
     body += '<h2>My Explore List</h2>';
     const byCity = {};
     places.forEach(p => { const c = (p.city || 'Elsewhere').trim() || 'Elsewhere'; (byCity[c] = byCity[c] || []).push(p); });
@@ -1050,7 +1219,8 @@ async function exportWhy() {
       + 'mantras.json   Every mantra, in both plain text and formatted form.\n'
       + 'circle.json    The people, by band.\n'
       + 'bucket-list.json  Every dream, with its status and dates.\n'
-      + 'explore-list.json Places worth going, by city.\n\n'
+      + 'explore-list.json Places worth going, by city.\n'
+      + 'priority.json     The four quadrants, open and closed, with outcomes.\n\n'
       + 'The .json files are the raw records \u2014 keep them even if you never open them.\n'
       + 'They are what a future version of this app would read to bring everything back.\n');
 
@@ -1364,10 +1534,11 @@ const BANDS = [
   { key:'affinity', lbl:'Affinity', range:'16\u201350',  cap:50,  acc:'#8a6f43', bg:'#f2ead9', w1:'#faf7f0' },
   { key:'network',  lbl:'Network',  range:'51\u2013150', cap:150, acc:'#6d5474', bg:'#eae3ec', w1:'#faf7fb' }
 ];
-let mantras = [], circle = [], places = [], placeCity = 'All', editingPlace = null, editingMantra = null, editingPerson = null;
+let mantras = [], circle = [], places = [], placeCity = 'All', editingPlace = null,
+    priority = [], editingPri = null, closingPri = null, priOpenYears = {}, editingMantra = null, editingPerson = null;
 
 function showSection(sec) {
-  ['pillars','mantra','circle','bucket','places'].forEach(s => {
+  ['pillars','mantra','circle','bucket','places','priority'].forEach(s => {
     const p = el('sec' + s.charAt(0).toUpperCase() + s.slice(1));
     if (p) p.classList.toggle('hidden', s !== sec);
   });
@@ -1824,6 +1995,226 @@ NoteEditor.guard.register(
   () => rmDirty || pDirty || bkDirty || mtDirty,
   () => { if (rmDirty && rmId !== null) saveRoadmap(true); if (pDirty && pId !== null) savePerson_(true); }
 );
+// ============ MY PRIORITY — the four quadrants ============
+// The verbs matter more than the labels: a quadrant tells you what to DO with a
+// thing, not merely where it sits.
+const PRI_Q = {
+  q1: { code:'Q1', verb:'DO',       sub:'Urgent &amp; important',   acc:'#9c3f4a', w1:'#fdf5f6', w2:'#f7e6e8' },
+  q2: { code:'Q2', verb:'DECIDE',   sub:'Important, not urgent',    acc:'#2E6640', w1:'#f3f9f5', w2:'#e4f0e9' },
+  q3: { code:'Q3', verb:'DELEGATE', sub:'Urgent, not important',    acc:'#a06a2c', w1:'#fdf8f1', w2:'#f7ecda' },
+  q4: { code:'Q4', verb:'DELETE',   sub:'Neither',                  acc:'#5f6b85', w1:'#f7f8fb', w2:'#eceff5' }
+};
+// Reading order follows the matrix, not the numbers: not-urgent sits left.
+const PRI_GRID = ['q2','q1','q4','q3'];
+const PRI_OUT = {
+  done:      { sym:'\u2713',  lbl:'DONE',       col:'#2E6640' },
+  delegated: { sym:'\u2192',  lbl:'DELEGATED',  col:'#a06a2c' },
+  deleted:   { sym:'\u00D7',  lbl:'ELIMINATED', col:'#5f6b85' }
+};
+function priMoves(t) {
+  try { const m = JSON.parse(t.moves || '[]'); return Array.isArray(m) ? m : []; }
+  catch (e) { return []; }
+}
+function priFmt(d) {
+  if (!d) return '';
+  const dt = new Date(String(d) + 'T00:00:00');
+  return isNaN(dt) ? '' : dt.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+}
+async function loadPriority() {
+  const { data, error } = await supa.from('why_priority').select('*').eq('user_id', userId)
+    .order('sort_order', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true });
+  if (error) { console.error(error); return; }
+  priority = data || [];
+  renderPriority();
+}
+function renderPriority() {
+  const mx = el('priMatrix'); if (!mx) return;
+  const open = priority.filter(t => (t.status || 'open') === 'open');
+
+  mx.innerHTML = PRI_GRID.map(key => {
+    const q = PRI_Q[key];
+    const rows = open.filter(t => (t.quadrant || 'q2') === key);
+    const items = rows.length
+      ? rows.map(t => '<button class="pr-tk" type="button" data-pri="' + t.id + '">'
+          + '<span class="pr-tkd" style="background:' + q.acc + '"></span>'
+          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button>').join('')
+      : '<div class="pr-qempty">nothing here</div>';
+    return '<div class="pr-q" style="background:linear-gradient(160deg,' + q.w1 + ',' + q.w2 + ');border-color:' + q.acc + '3d">'
+      + '<div class="pr-qh"><span class="pr-qc" style="color:' + q.acc + '">' + q.code + '</span>'
+      + '<span class="pr-qv" style="background:' + q.acc + '1f;color:' + q.acc + '">' + q.verb + '</span></div>'
+      + '<div class="pr-qs">' + q.sub + '</div>'
+      + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
+      + '<div class="pr-tks">' + items + '</div></div>';
+  }).join('');
+
+  renderPriArchive();
+  renderPriBalance();
+}
+function renderPriArchive() {
+  const wrap = el('priArchive'); if (!wrap) return;
+  const closed = priority.filter(t => (t.status || 'open') !== 'open')
+    .sort((a, b) => String(b.closed_on || '').localeCompare(String(a.closed_on || '')));
+  const cnt = el('priArchCount');
+  if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' TASK' : ' TASKS')) : '';
+  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
+
+  // This year stays open; earlier years fold away, so thirty years of records
+  // never turn into thirty years of scrolling.
+  const thisYear = String(new Date().getFullYear());
+  const years = {};
+  closed.forEach(t => {
+    const y = String(t.closed_on || t.updated_at || '').slice(0, 4) || 'Undated';
+    (years[y] = years[y] || []).push(t);
+  });
+  wrap.innerHTML = Object.keys(years).sort().reverse().map(y => {
+    const isOpen = priOpenYears[y] !== undefined ? priOpenYears[y] : (y === thisYear);
+    const rows = years[y].map(t => {
+      const o = PRI_OUT[t.status] || PRI_OUT.done;
+      const who = t.status === 'delegated' && t.delegated_to ? ' \u00B7 ' + escHtml(t.delegated_to) : '';
+      const q = PRI_Q[t.quadrant || 'q2'];
+      return '<div class="pr-ou" data-pri="' + t.id + '">'
+        + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
+        + '<span class="pr-om"><div class="pr-ot">' + escHtml(t.title || '') + '</div>'
+        + (t.outcome_note ? '<div class="pr-on">' + escHtml(t.outcome_note) + '</div>' : '')
+        + '</span>'
+        + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
+        + '<i>' + escHtml(q.code + ' \u00B7 ' + priFmt(t.closed_on)) + '</i></span></div>';
+    }).join('');
+    return '<div class="pr-yr' + (isOpen ? ' open' : '') + '" data-year="' + y + '">'
+      + '<button class="pr-yrhd" type="button" data-yr="' + y + '">'
+      + '<span class="cv">\u203A</span><span class="y">' + y + '</span>'
+      + '<span class="n">' + years[y].length + '</span><span class="r"></span></button>'
+      + '<div class="pr-yrbody">' + rows + '</div></div>';
+  }).join('');
+}
+function renderPriBalance() {
+  const wrap = el('priBalance'); if (!wrap) return;
+  const closed = priority.filter(t => (t.status || 'open') !== 'open' && t.closed_on);
+  if (closed.length < 4) { wrap.innerHTML = ''; return; }   // nothing honest to say yet
+  const years = {};
+  closed.forEach(t => {
+    const y = String(t.closed_on).slice(0, 4);
+    years[y] = years[y] || { q1:0, q2:0, q3:0, q4:0, n:0 };
+    years[y][t.quadrant || 'q2']++; years[y].n++;
+  });
+  const rows = Object.keys(years).sort().map(y => {
+    const d = years[y];
+    const seg = ['q1','q2','q3','q4'].map(k =>
+      '<i style="width:' + (d[k] / d.n * 100).toFixed(1) + '%;background:' + PRI_Q[k].acc + '"></i>').join('');
+    return '<div class="pr-br"><span class="pr-by">' + y + '</span>'
+      + '<span class="pr-bb">' + seg + '</span>'
+      + '<span class="pr-bq">' + Math.round(d.q2 / d.n * 100) + '% Q2</span></div>';
+  }).join('');
+  wrap.innerHTML = '<div class="pr-bt">Where the years went</div>' + rows;
+}
+function openPriModal(id) {
+  editingPri = id;
+  const t = id ? priority.find(x => String(x.id) === String(id)) : null;
+  el('priModalTitle').textContent = t ? 'Edit task' : 'Add a task';
+  el('fPriTitle').value = t ? (t.title || '') : '';
+  el('fPriNote').value = t ? (t.note || '') : '';
+  el('fPriQ').value = t ? (t.quadrant || 'q2') : 'q2';
+  el('fPriMoveWhy').value = '';
+  el('fPriMoveWrap').classList.add('hidden');
+  el('priDel').classList.toggle('hidden', !t);
+  el('priModalSub').innerHTML = t
+    ? 'moving it between quadrants is recorded \u2014 that is the pattern worth seeing later'
+    : 'what it is, and where it belongs';
+  el('priModal').classList.remove('hidden');
+}
+function closePriModal() { el('priModal').classList.add('hidden'); editingPri = null; }
+el('fPriQ').addEventListener('change', () => {
+  const t = editingPri ? priority.find(x => String(x.id) === String(editingPri)) : null;
+  const moved = !!t && (t.quadrant || 'q2') !== el('fPriQ').value;
+  el('fPriMoveWrap').classList.toggle('hidden', !moved);
+});
+async function savePri() {
+  const title = el('fPriTitle').value.trim();
+  if (!title) { toast('Add a task first'); return; }
+  const q = el('fPriQ').value;
+  const rec = { title, note: el('fPriNote').value.trim(), quadrant: q,
+                user_id: userId, updated_at: new Date().toISOString() };
+  try {
+    if (editingPri) {
+      const prev = priority.find(x => String(x.id) === String(editingPri));
+      if (prev && (prev.quadrant || 'q2') !== q) {
+        // A Q2 task you neglect becomes a Q1 crisis. Recording the move is the
+        // only way to see, years later, what you let ripen.
+        const log = priMoves(prev);
+        log.push({ from: prev.quadrant || 'q2', to: q,
+                   on: new Date().toISOString().slice(0, 10),
+                   why: el('fPriMoveWhy').value.trim() });
+        rec.moves = JSON.stringify(log);
+      }
+      const { error } = await supa.from('why_priority').update(rec).eq('id', editingPri).eq('user_id', userId);
+      if (error) throw error;
+    } else {
+      const { error } = await supa.from('why_priority').insert(rec);
+      if (error) throw error;
+    }
+    closePriModal(); await loadPriority(); toast('Saved');
+  } catch (e) { console.error(e); toast('Could not save'); }
+}
+async function deletePri() {
+  if (!editingPri) return;
+  if (!confirm('Remove this task entirely? To record that you chose not to do it, close it as Eliminated instead \u2014 that keeps the decision.')) return;
+  const { error } = await supa.from('why_priority').delete().eq('id', editingPri).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not delete'); return; }
+  closePriModal(); await loadPriority(); toast('Removed');
+}
+function openPriClose(id) {
+  closingPri = id;
+  const t = priority.find(x => String(x.id) === String(id)); if (!t) return;
+  el('priCloseTitle').textContent = t.title || 'Close this task';
+  el('fPriOutcome').value = (t.status && t.status !== 'open') ? t.status : (t.quadrant === 'q4' ? 'deleted' : 'done');
+  el('fPriWho').value = t.delegated_to || '';
+  el('fPriWhy').value = t.outcome_note || '';
+  el('fPriOn').value = t.closed_on || new Date().toISOString().slice(0, 10);
+  priOutcomeUi_();
+  el('priCloseModal').classList.remove('hidden');
+}
+function priOutcomeUi_() {
+  const v = el('fPriOutcome').value;
+  el('fPriWhoWrap').classList.toggle('hidden', v !== 'delegated');
+  el('fPriWhyLabel').textContent = v === 'deleted' ? 'Why you decided not to'
+    : (v === 'delegated' ? 'What you handed over' : 'What happened');
+}
+el('fPriOutcome').addEventListener('change', priOutcomeUi_);
+async function savePriClose() {
+  if (!closingPri) return;
+  const v = el('fPriOutcome').value;
+  const rec = { status: v, outcome_note: el('fPriWhy').value.trim(),
+                delegated_to: v === 'delegated' ? el('fPriWho').value.trim() : '',
+                closed_on: el('fPriOn').value || new Date().toISOString().slice(0, 10),
+                updated_at: new Date().toISOString() };
+  const { error } = await supa.from('why_priority').update(rec).eq('id', closingPri).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  el('priCloseModal').classList.add('hidden'); closingPri = null;
+  await loadPriority(); toast('Recorded');
+}
+el('priMatrix').addEventListener('click', e => {
+  const t = e.target.closest('[data-pri]'); if (!t) return;
+  // In Edit mode a task opens for changing; otherwise it opens to be closed.
+  if (document.body.classList.contains('editing')) openPriModal(t.dataset.pri);
+  else openPriClose(t.dataset.pri);
+});
+el('priArchive').addEventListener('click', e => {
+  const y = e.target.closest('[data-yr]');
+  if (y) { const k = y.dataset.yr;
+    const box = y.closest('.pr-yr');
+    const nowOpen = !box.classList.contains('open');
+    priOpenYears[k] = nowOpen; box.classList.toggle('open', nowOpen); return; }
+  const t = e.target.closest('[data-pri]');
+  if (t) openPriClose(t.dataset.pri);
+});
+el('priAdd').addEventListener('click', () => openPriModal(null));
+el('priSave').addEventListener('click', savePri);
+el('priCancel').addEventListener('click', closePriModal);
+el('priDel').addEventListener('click', deletePri);
+el('priCloseSave').addEventListener('click', savePriClose);
+el('priCloseCancel').addEventListener('click', () => { el('priCloseModal').classList.add('hidden'); closingPri = null; });
+
 // ============ MY EXPLORE LIST — places worth going, city by city ============
 const PL_KINDS = {
   eat:   { lbl:'Restaurant', icon:'<path d="M6 3v8a2.5 2.5 0 0 0 5 0V3"/><path d="M8.5 11v10"/><path d="M17 3c-1.4 1.4-2 3.2-2 5.2 0 1.6.7 2.8 2 3.3V21"/>' },
