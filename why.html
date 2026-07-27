@@ -377,22 +377,24 @@
   .pr-axleft span { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.16em; color:#95a4bb;
                     writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; }
   .pr-mx { flex:1; min-width:0; display:grid; grid-template-columns:1fr 1fr; gap:11px; }
-  .pr-q { position:relative; border:1px solid; border-radius:14px; padding:13px 13px 15px; min-height:136px;
-          display:flex; flex-direction:column; }
-  .pr-qh { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
-  .pr-qc { font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:0.14em; }
-  .pr-qv { font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:0.14em; padding:3px 7px; border-radius:5px; }
-  .pr-qs { font-family:var(--serif); font-size:12.5px; font-style:italic; color:#28324B; margin-bottom:7px; }
-  .pr-qn { position:absolute; top:12px; right:13px; font-family:var(--serif); font-size:22px; font-weight:700; opacity:0.22; }
-  .pr-tks { display:flex; flex-direction:column; gap:4px; margin-top:2px; }
+  .pr-q { position:relative; border:1px solid; border-radius:14px; padding:13px 13px 15px; min-height:150px;
+          display:flex; flex-direction:column; box-shadow:0 4px 12px rgba(30,47,82,0.045); }
+  /* The quadrant's name is an eyebrow; what belongs in it is the heading. */
+  .pr-qc { font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:0.15em;
+           text-transform:uppercase; opacity:0.72; margin-bottom:6px; padding-right:26px; }
+  .pr-qv { display:inline-block; align-self:flex-start; font-family:var(--sans); font-size:11.5px;
+           font-weight:600; letter-spacing:0.005em; color:#fff; padding:5px 11px; border-radius:6px; line-height:1.35; }
+  .pr-qn { position:absolute; top:12px; right:13px; font-family:var(--serif); font-size:22px; font-weight:700; opacity:0.2; }
+  .pr-tks { display:flex; flex-direction:column; gap:4px; margin-top:12px; }
   .pr-tkrow { display:flex; align-items:flex-start; gap:8px; border-radius:7px; transition:background .12s; }
   .pr-tkrow:hover { background:rgba(255,255,255,0.7); }
   /* An empty circle is the universal "mark this finished" control, so closing a
      task never depends on knowing a mode. */
   .pr-tkbox { flex-shrink:0; width:26px; height:26px; margin-top:1px; padding:0; border:none; background:none;
               cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  .pr-tkbox i { display:block; width:15px; height:15px; border-radius:50%; border:1.8px solid; opacity:0.5;
-                transition:opacity .14s, background .14s; }
+  .pr-tkbox i { display:flex; align-items:center; justify-content:center; width:18px; height:18px;
+                border-radius:5px; border:1.5px solid; opacity:0.42; transition:opacity .14s; }
+  .pr-tkbox i svg { width:11px; height:11px; }
   .pr-tkbox:hover i { opacity:1; }
   .pr-tk { flex:1; min-width:0; background:none; border:none; padding:5px 2px 5px 0; cursor:pointer;
            text-align:left; font-family:inherit; }
@@ -680,10 +682,10 @@
     <div class="fld"><label>Note (optional)</label><input id="fPriNote" placeholder="e.g. no deadline, matters most"></div>
     <div class="fld"><label>Where it belongs</label>
       <select id="fPriQ">
-        <option value="q1">Q1 &middot; Do &mdash; urgent and important</option>
+        <option value="q1">Q1 &middot; Do &mdash; urgent &amp; important</option>
         <option value="q2">Q2 &middot; Decide &mdash; important, not urgent</option>
         <option value="q3">Q3 &middot; Delegate &mdash; urgent, not important</option>
-        <option value="q4">Q4 &middot; Delete &mdash; neither</option>
+        <option value="q4">Q4 &middot; Delete &mdash; not important &amp; not urgent</option>
       </select>
     </div>
     <div class="fld hidden" id="fPriMoveWrap">
@@ -2018,10 +2020,10 @@ NoteEditor.guard.register(
 // The verbs matter more than the labels: a quadrant tells you what to DO with a
 // thing, not merely where it sits.
 const PRI_Q = {
-  q1: { code:'Q1', verb:'DO',       sub:'Urgent &amp; important',   acc:'#9c3f4a', w1:'#fdf5f6', w2:'#f7e6e8' },
-  q2: { code:'Q2', verb:'DECIDE',   sub:'Important, not urgent',    acc:'#2E6640', w1:'#f3f9f5', w2:'#e4f0e9' },
-  q3: { code:'Q3', verb:'DELEGATE', sub:'Urgent, not important',    acc:'#a06a2c', w1:'#fdf8f1', w2:'#f7ecda' },
-  q4: { code:'Q4', verb:'DELETE',   sub:'Neither',                  acc:'#5f6b85', w1:'#f7f8fb', w2:'#eceff5' }
+  q1: { code:'Q1', verb:'Do',       sub:'Urgent &amp; important',          acc:'#9c3f4a', w2:'#fdf3f4' },
+  q2: { code:'Q2', verb:'Decide',   sub:'Important, not urgent',           acc:'#2E6640', w2:'#f2f8f4' },
+  q3: { code:'Q3', verb:'Delegate', sub:'Urgent, not important',           acc:'#a06a2c', w2:'#fdf8f0' },
+  q4: { code:'Q4', verb:'Delete',   sub:'Not important &amp; not urgent',  acc:'#5f6b85', w2:'#f6f7fa' }
 };
 // Q1 Q2 / Q3 Q4 — the standard numbering, which is simply reading order.
 const PRI_GRID = ['q1','q2','q3','q4'];
@@ -2057,14 +2059,15 @@ function renderPriority() {
     const items = rows.length
       ? rows.map(t => '<div class="pr-tkrow">'
           + '<button class="pr-tkbox" type="button" data-priclose="' + t.id + '" title="Close this task" aria-label="Close this task">'
-          + '<i style="border-color:' + q.acc + '"></i></button>'
+          + '<i style="border-color:' + q.acc + ';color:' + q.acc + '">'
+          + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+          + '</i></button>'
           + '<button class="pr-tk" type="button" data-pri="' + t.id + '" title="Edit">'
           + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button></div>').join('')
       : '<div class="pr-qempty">nothing here</div>';
-    return '<div class="pr-q" style="background:linear-gradient(160deg,' + q.w1 + ',' + q.w2 + ');border-color:' + q.acc + '3d">'
-      + '<div class="pr-qh"><span class="pr-qc" style="color:' + q.acc + '">' + q.code + '</span>'
-      + '<span class="pr-qv" style="background:' + q.acc + '1f;color:' + q.acc + '">' + q.verb + '</span></div>'
-      + '<div class="pr-qs">' + q.sub + '</div>'
+    return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
+      + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + ' \u00B7 ' + q.verb + '</div>'
+      + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
       + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
       + '<div class="pr-tks">' + items + '</div></div>';
   }).join('');
