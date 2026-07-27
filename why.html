@@ -439,6 +439,10 @@
   .pr-bb i { display:block; height:100%; }
   .pr-bq { font-family:var(--mono); font-size:10px; font-weight:700; width:58px; text-align:right; flex-shrink:0; color:#2E6640; }
   .pr-empty { font-size:12.5px; color:#8B97AC; padding:10px 2px; }
+  .pr-warn { background:#fdf3f2; border:1px solid #edd3d0; border-radius:10px; padding:11px 13px;
+             font-size:11.5px; line-height:1.55; color:#7a3b34; margin-bottom:4px; }
+  .pr-warn b { color:#5f2a24; }
+  .btn-primary.is-danger { background:#8A1F1A; border-color:#8A1F1A; }
   @media (max-width:560px) {
     .pr-mx { grid-template-columns:1fr; }
     .pr-axtop { display:none; }
@@ -704,15 +708,20 @@
         <option value="done">&#10003; Completed &mdash; I finished it</option>
         <option value="delegated">&#8594; Delegated &mdash; someone else owns it now</option>
         <option value="deleted">&times; Cancelled &mdash; I decided not to do it</option>
+        <option value="remove">&#128465; Remove &mdash; delete it entirely, no record kept</option>
       </select>
     </div>
     <div class="fld hidden" id="fPriWhoWrap"><label>Who has it now?</label>
       <input id="fPriWho" placeholder="e.g. Sagar">
     </div>
-    <div class="fld"><label id="fPriWhyLabel">What happened</label>
+    <div class="fld" id="fPriWhyWrap"><label id="fPriWhyLabel">What happened</label>
       <input id="fPriWhy" placeholder="one line you will want to read in ten years">
     </div>
-    <div class="fld"><label>On</label><input type="date" id="fPriOn"></div>
+    <div class="fld" id="fPriOnWrap"><label>On</label><input type="date" id="fPriOn"></div>
+    <div class="pr-warn hidden" id="priRemoveWarn">
+      This deletes the task outright &mdash; it will not appear in the archive and cannot be recovered.
+      If you simply decided against it, choose <b>Cancelled</b> instead so the decision is kept.
+    </div>
     <div class="modal-actions">
       <span style="flex:1"></span>
       <button class="btn-ghost" id="priCloseCancel" type="button">Cancel</button>
@@ -2180,6 +2189,7 @@ function openPriClose(id) {
   const t = priority.find(x => String(x.id) === String(id)); if (!t) return;
   el('priCloseTitle').textContent = t.title || '';
   el('fPriOutcome').value = (t.status && t.status !== 'open') ? t.status : (t.quadrant === 'q4' ? 'deleted' : 'done');
+  el('priCloseSave').classList.remove('is-danger');
   el('fPriWho').value = t.delegated_to || '';
   el('fPriWhy').value = t.outcome_note || '';
   el('fPriOn').value = t.closed_on || new Date().toISOString().slice(0, 10);
@@ -2188,7 +2198,14 @@ function openPriClose(id) {
 }
 function priOutcomeUi_() {
   const v = el('fPriOutcome').value;
+  const gone = v === 'remove';
   el('fPriWhoWrap').classList.toggle('hidden', v !== 'delegated');
+  // Removing keeps nothing, so there is nothing to write down or date.
+  el('fPriWhyWrap').classList.toggle('hidden', gone);
+  el('fPriOnWrap').classList.toggle('hidden', gone);
+  el('priRemoveWarn').classList.toggle('hidden', !gone);
+  el('priCloseSave').textContent = gone ? 'Remove it' : 'Close the task';
+  el('priCloseSave').classList.toggle('is-danger', gone);
   el('fPriWhyLabel').textContent = v === 'deleted' ? 'Why you decided against it'
     : (v === 'delegated' ? 'What you handed over' : 'What happened');
 }
@@ -2196,6 +2213,15 @@ el('fPriOutcome').addEventListener('change', priOutcomeUi_);
 async function savePriClose() {
   if (!closingPri) return;
   const v = el('fPriOutcome').value;
+  if (v === 'remove') {
+    const t = priority.find(x => String(x.id) === String(closingPri));
+    if (!confirm('Remove \u201C' + ((t && t.title) || 'this task') + '\u201D entirely?\u000A\u000ANo record will be kept.')) return;
+    const { error } = await supa.from('why_priority').delete().eq('id', closingPri).eq('user_id', userId);
+    if (error) { console.error(error); toast('Could not remove'); return; }
+    el('priCloseModal').classList.add('hidden'); closingPri = null;
+    await loadPriority(); toast('Removed');
+    return;
+  }
   const rec = { status: v, outcome_note: el('fPriWhy').value.trim(),
                 delegated_to: v === 'delegated' ? el('fPriWho').value.trim() : '',
                 closed_on: el('fPriOn').value || new Date().toISOString().slice(0, 10),
