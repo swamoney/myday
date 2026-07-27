@@ -385,11 +385,20 @@
   .pr-qs { font-family:var(--serif); font-size:12.5px; font-style:italic; color:#28324B; margin-bottom:7px; }
   .pr-qn { position:absolute; top:12px; right:13px; font-family:var(--serif); font-size:22px; font-weight:700; opacity:0.22; }
   .pr-tks { display:flex; flex-direction:column; gap:4px; margin-top:2px; }
-  .pr-tk { display:flex; align-items:flex-start; gap:7px; width:100%; background:none; border:none; padding:4px 2px;
-           border-radius:7px; cursor:pointer; text-align:left; font-family:inherit; transition:background .12s; }
-  .pr-tk:hover { background:rgba(255,255,255,0.7); }
-  .pr-tkd { width:5px; height:5px; border-radius:50%; flex-shrink:0; margin-top:6px; }
+  .pr-tkrow { display:flex; align-items:flex-start; gap:8px; border-radius:7px; transition:background .12s; }
+  .pr-tkrow:hover { background:rgba(255,255,255,0.7); }
+  /* An empty circle is the universal "mark this finished" control, so closing a
+     task never depends on knowing a mode. */
+  .pr-tkbox { flex-shrink:0; width:26px; height:26px; margin-top:1px; padding:0; border:none; background:none;
+              cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .pr-tkbox i { display:block; width:15px; height:15px; border-radius:50%; border:1.8px solid; opacity:0.5;
+                transition:opacity .14s, background .14s; }
+  .pr-tkbox:hover i { opacity:1; }
+  .pr-tk { flex:1; min-width:0; background:none; border:none; padding:5px 2px 5px 0; cursor:pointer;
+           text-align:left; font-family:inherit; }
   .pr-tkt { font-size:12.5px; color:#28324B; line-height:1.35; overflow-wrap:anywhere; }
+  .pr-hint { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.13em;
+             color:#aab4c8; margin-top:12px; }
   .pr-qempty { font-size:11.5px; color:#aab4c8; font-style:italic; padding:6px 2px; }
   .pr-addrow { margin-top:16px; }
   .pr-add { border:1px dashed #cdd6e3; background:none; color:#5b4a86; font-family:inherit; font-size:12px;
@@ -611,6 +620,7 @@
         <div class="pr-axleft"><span>IMPORTANT</span><span>NOT IMPORTANT</span></div>
         <div class="pr-mx" id="priMatrix"></div>
       </div>
+      <div class="pr-hint">TAP THE CIRCLE TO CLOSE A TASK &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT IT</div>
       <div class="pr-addrow"><button class="pr-add" id="priAdd" type="button">+ Add a task</button></div>
       <div class="pr-arch">
         <div class="pr-archhd">
@@ -687,13 +697,13 @@
 
 <div class="modal-overlay hidden" id="priCloseModal">
   <div class="modal">
-    <div class="modal-title" id="priCloseTitle">Close this task</div>
-    <div class="modal-sub">a task leaves by one of three doors &mdash; each is a decision worth recording</div>
-    <div class="fld"><label>How did it end?</label>
+    <div class="modal-title">How did this end?</div>
+    <div class="modal-sub" id="priCloseTitle"></div>
+    <div class="fld"><label>Completed, handed over, or dropped</label>
       <select id="fPriOutcome">
-        <option value="done">Done &mdash; I finished it</option>
-        <option value="delegated">Delegated &mdash; someone else owns it</option>
-        <option value="deleted">Eliminated &mdash; I decided not to</option>
+        <option value="done">&#10003; Completed &mdash; I finished it</option>
+        <option value="delegated">&#8594; Delegated &mdash; someone else owns it now</option>
+        <option value="deleted">&times; Cancelled &mdash; I decided not to do it</option>
       </select>
     </div>
     <div class="fld hidden" id="fPriWhoWrap"><label>Who has it now?</label>
@@ -706,7 +716,7 @@
     <div class="modal-actions">
       <span style="flex:1"></span>
       <button class="btn-ghost" id="priCloseCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="priCloseSave" type="button">Record it</button>
+      <button class="btn-primary" id="priCloseSave" type="button">Close the task</button>
     </div>
   </div>
 </div>
@@ -2007,9 +2017,9 @@ const PRI_Q = {
 // Reading order follows the matrix, not the numbers: not-urgent sits left.
 const PRI_GRID = ['q2','q1','q4','q3'];
 const PRI_OUT = {
-  done:      { sym:'\u2713',  lbl:'DONE',       col:'#2E6640' },
+  done:      { sym:'\u2713',  lbl:'COMPLETED',  col:'#2E6640' },
   delegated: { sym:'\u2192',  lbl:'DELEGATED',  col:'#a06a2c' },
-  deleted:   { sym:'\u00D7',  lbl:'ELIMINATED', col:'#5f6b85' }
+  deleted:   { sym:'\u00D7',  lbl:'CANCELLED',  col:'#5f6b85' }
 };
 function priMoves(t) {
   try { const m = JSON.parse(t.moves || '[]'); return Array.isArray(m) ? m : []; }
@@ -2036,9 +2046,11 @@ function renderPriority() {
     const q = PRI_Q[key];
     const rows = open.filter(t => (t.quadrant || 'q2') === key);
     const items = rows.length
-      ? rows.map(t => '<button class="pr-tk" type="button" data-pri="' + t.id + '">'
-          + '<span class="pr-tkd" style="background:' + q.acc + '"></span>'
-          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button>').join('')
+      ? rows.map(t => '<div class="pr-tkrow">'
+          + '<button class="pr-tkbox" type="button" data-priclose="' + t.id + '" title="Close this task" aria-label="Close this task">'
+          + '<i style="border-color:' + q.acc + '"></i></button>'
+          + '<button class="pr-tk" type="button" data-pri="' + t.id + '" title="Edit">'
+          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button></div>').join('')
       : '<div class="pr-qempty">nothing here</div>';
     return '<div class="pr-q" style="background:linear-gradient(160deg,' + q.w1 + ',' + q.w2 + ');border-color:' + q.acc + '3d">'
       + '<div class="pr-qh"><span class="pr-qc" style="color:' + q.acc + '">' + q.code + '</span>'
@@ -2158,7 +2170,7 @@ async function savePri() {
 }
 async function deletePri() {
   if (!editingPri) return;
-  if (!confirm('Remove this task entirely? To record that you chose not to do it, close it as Eliminated instead \u2014 that keeps the decision.')) return;
+  if (!confirm('Remove this task entirely, leaving no record?\u000A\u000AIf you simply decided against it, close it as Cancelled instead \u2014 that keeps the decision and the reason.')) return;
   const { error } = await supa.from('why_priority').delete().eq('id', editingPri).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not delete'); return; }
   closePriModal(); await loadPriority(); toast('Removed');
@@ -2166,7 +2178,7 @@ async function deletePri() {
 function openPriClose(id) {
   closingPri = id;
   const t = priority.find(x => String(x.id) === String(id)); if (!t) return;
-  el('priCloseTitle').textContent = t.title || 'Close this task';
+  el('priCloseTitle').textContent = t.title || '';
   el('fPriOutcome').value = (t.status && t.status !== 'open') ? t.status : (t.quadrant === 'q4' ? 'deleted' : 'done');
   el('fPriWho').value = t.delegated_to || '';
   el('fPriWhy').value = t.outcome_note || '';
@@ -2177,7 +2189,7 @@ function openPriClose(id) {
 function priOutcomeUi_() {
   const v = el('fPriOutcome').value;
   el('fPriWhoWrap').classList.toggle('hidden', v !== 'delegated');
-  el('fPriWhyLabel').textContent = v === 'deleted' ? 'Why you decided not to'
+  el('fPriWhyLabel').textContent = v === 'deleted' ? 'Why you decided against it'
     : (v === 'delegated' ? 'What you handed over' : 'What happened');
 }
 el('fPriOutcome').addEventListener('change', priOutcomeUi_);
@@ -2194,10 +2206,10 @@ async function savePriClose() {
   await loadPriority(); toast('Recorded');
 }
 el('priMatrix').addEventListener('click', e => {
-  const t = e.target.closest('[data-pri]'); if (!t) return;
-  // In Edit mode a task opens for changing; otherwise it opens to be closed.
-  if (document.body.classList.contains('editing')) openPriModal(t.dataset.pri);
-  else openPriClose(t.dataset.pri);
+  const c = e.target.closest('[data-priclose]');
+  if (c) { openPriClose(c.dataset.priclose); return; }
+  const t = e.target.closest('[data-pri]');
+  if (t) openPriModal(t.dataset.pri);
 });
 el('priArchive').addEventListener('click', e => {
   const y = e.target.closest('[data-yr]');
