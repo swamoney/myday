@@ -276,6 +276,14 @@
   .c-name { font-family:var(--serif); font-weight:600; font-size:15.5px; color:#28324B; }
   /* An optional tag for what the band cannot say — a city, a company, how you
      met. Sentence case, because place names in capitals read as abbreviations. */
+  /* Tag filters. Only tags shared by two or more people earn a chip — a one-off
+     tag would add a chip nobody ever taps, and forty of those is a wall. */
+  .cl-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:13px; }
+  .cl-chip { font-size:11px; font-weight:600; padding:6px 11px; border-radius:20px; cursor:pointer;
+             background:#fff; border:1px solid #dfe5ee; color:#4A5570; transition:border-color .12s; }
+  .cl-chip:hover { border-color:#b9c4d4; }
+  .cl-chip.on { background:#46586f; border-color:#46586f; color:#fff; }
+  .cl-chip .n { opacity:0.6; margin-left:5px; font-family:var(--mono); font-size:9px; }
   .c-nmrow { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
   .c-tag { display:inline-block; font-family:var(--sans); font-size:10px; font-weight:600;
            letter-spacing:0.01em; color:#fff; padding:3px 9px; border-radius:6px; line-height:1.3; }
@@ -640,7 +648,10 @@
       <div class="add-row"><button class="add-why" id="addBtn">&#43; Add a why</button></div>
     </div>
     <div class="sec-panel hidden" id="secMantra"><div class="mgrid" id="mantraList"></div></div>
-    <div class="sec-panel hidden" id="secCircle"><div class="ctab" id="circleList"></div></div>
+    <div class="sec-panel hidden" id="secCircle">
+      <div class="cl-chips" id="circleChips"></div>
+      <div class="ctab" id="circleList"></div>
+    </div>
     <div class="sec-panel hidden" id="secPriority">
       <div class="pr-tb">
         <button class="pr-tbtn solid" id="priAdd" type="button">
@@ -1586,9 +1597,12 @@ const BANDS = [
     desc:'People you know and recognise, but no longer actively keep up with.' }
 ];
 let mantras = [], circle = [], places = [], placeCity = 'All', editingPlace = null,
+    circleTag = '',
     priority = [], editingPri = null, closingPri = null, priOpenYears = {}, editingMantra = null, editingPerson = null;
 
 function showSection(sec) {
+  // Arriving at a partial list with no memory of why is worse than one more tap.
+  if (sec !== 'circle') circleTag = '';
   ['pillars','mantra','circle','bucket','places','priority'].forEach(s => {
     const p = el('sec' + s.charAt(0).toUpperCase() + s.slice(1));
     if (p) p.classList.toggle('hidden', s !== sec);
@@ -1725,22 +1739,49 @@ async function moveCirclePerson(id, dir) {
     if (error) { console.error(error); toast('Could not save the order'); await loadCircle(); return; }
   }
 }
+// Free text, so Pune / pune / "Pune " must count as one tag.
+function clTagKey(t) { return (t || '').trim().toLowerCase(); }
+function renderCircleChips() {
+  const wrap = el('circleChips'); if (!wrap) return;
+  const counts = {}, labels = {};
+  circle.forEach(p => {
+    const k = clTagKey(p.tag);
+    if (!k) return;
+    counts[k] = (counts[k] || 0) + 1;
+    if (!labels[k]) labels[k] = p.tag.trim();
+  });
+  // Two or more, plus whatever is currently selected so it never vanishes.
+  const keys = Object.keys(counts)
+    .filter(k => counts[k] > 1 || k === circleTag)
+    .sort((a, b) => counts[b] - counts[a] || labels[a].localeCompare(labels[b]));
+  if (!keys.length) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = '<button class="cl-chip' + (circleTag ? '' : ' on') + '" type="button" data-ctag="">'
+      + 'All<span class="n">' + circle.length + '</span></button>'
+    + keys.map(k => '<button class="cl-chip' + (circleTag === k ? ' on' : '') + '" type="button" data-ctag="'
+      + escHtml(k) + '">' + escHtml(labels[k]) + '<span class="n">' + counts[k] + '</span></button>').join('');
+}
 function renderCircle() {
   const wrap = el('circleList'); if (!wrap) return;
+  renderCircleChips();
+  const editing = document.body.classList.contains('editing');
   let html = '';
   BANDS.forEach(b => {
-    const people = circle.filter(p => p.band === b.key);
-    if (!people.length && !document.body.classList.contains('editing')) return;
+    let people = circle.filter(p => p.band === b.key);
+    if (circleTag) people = people.filter(p => clTagKey(p.tag) === circleTag);
+    // While filtered, a ring with nobody in it is noise — hide it even in Edit.
+    if (!people.length && (circleTag || !editing)) return;
     // The fifth ring is uncapped by definition, so it shows a count with no bar
     // that could never fill.
     const capped = b.cap > 0;
     const pct = capped ? Math.min(100, (people.length / b.cap) * 100) : 0;
-    const count = capped ? (people.length + ' of ' + b.cap)
+    // Filtered, the header counts the people you are looking at, not the ring.
+    const count = circleTag ? (people.length + (people.length === 1 ? ' person' : ' people'))
+                : capped ? (people.length + ' of ' + b.cap)
                          : (people.length + (people.length === 1 ? ' person' : ' people'));
     html += '<div class="bhead"><span class="bt" style="color:' + b.acc + ';">' + escHtml(b.lbl)
           + ' <i>(' + b.range + ')</i></span>'
           + '<span class="bc">' + count + '</span>'
-          + (capped ? '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span>'
+          + (capped && !circleTag ? '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span>'
                     : '<span class="bbar bare"></span>')
           + '</div>'
           + '<div class="bdesc">' + b.desc + '</div>';
@@ -1813,6 +1854,11 @@ async function deletePerson() {
     closeCircleModal(); await loadCircle(); toast('Removed');
   } catch (e) { toast('Could not remove'); }
 }
+el('circleChips').addEventListener('click', e => {
+  const c = e.target.closest('[data-ctag]'); if (!c) return;
+  circleTag = c.dataset.ctag || '';
+  renderCircle();
+});
 el('circleList').addEventListener('click', e => {
   const mv = e.target.closest('[data-cmove]');
   if (mv) { e.stopPropagation(); moveCirclePerson(mv.dataset.cmove, Number(mv.dataset.dir)); return; }
