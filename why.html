@@ -490,10 +490,14 @@
   .rmx { margin:22px 0 6px; padding-top:18px; border-top:1px solid #e4e9f1; }
   .rmx-hd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
   .rmx-t { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; }
-  .rmx-add { display:none; border:1px solid #dfe5ee; background:#fff; color:#5b4a86; font-family:inherit;
-             font-size:11.5px; font-weight:600; padding:6px 12px; border-radius:9px; cursor:pointer; }
-  body.rm-editing .rmx-add { display:inline-block; }
-  .rmx-add:hover { border-color:#5b4a86; }
+  /* Filled, like My Priority's — and it wears this pillar's own rainbow colour. */
+  .rmx-add { display:none; align-items:center; gap:6px; font-family:inherit; font-size:11.5px; font-weight:600;
+             padding:7px 12px; border-radius:9px; cursor:pointer; color:#fff;
+             background:var(--rmx-acc,#5b4a86); border:1px solid var(--rmx-acc,#5b4a86);
+             transition:filter .14s; }
+  .rmx-add svg { width:14px; height:14px; flex-shrink:0; }
+  .rmx-add:hover { filter:brightness(0.92); }
+  body.rm-editing .rmx-add { display:inline-flex; }
   .pr-warn { background:#fdf3f2; border:1px solid #edd3d0; border-radius:10px; padding:11px 13px;
              font-size:11.5px; line-height:1.55; color:#7a3b34; margin-bottom:4px; }
   .pr-warn b { color:#5f2a24; }
@@ -735,6 +739,28 @@
 </main>
 
 
+<div class="modal-overlay hidden" id="rmxModal">
+  <div class="modal">
+    <div class="modal-title" id="rmxModalTitle">Add a target</div>
+    <div class="modal-sub" id="rmxModalSub">what you are aiming at, and where it belongs</div>
+    <div class="fld"><label>The target</label><input id="fRmxTitle" placeholder="e.g. Reach the corpus"></div>
+    <div class="fld"><label>Where it belongs</label>
+      <select id="fRmxQ">
+        <option value="q1">Q1 &middot; Do &mdash; urgent &amp; important</option>
+        <option value="q2">Q2 &middot; Decide &mdash; important, not urgent</option>
+        <option value="q3">Q3 &middot; Delegate &mdash; urgent, not important</option>
+        <option value="q4">Q4 &middot; Delete &mdash; not important &amp; not urgent</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger hidden" id="rmxDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="rmxCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="rmxSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="priModal">
   <div class="modal">
     <div class="modal-title" id="priModalTitle">Add a task</div>
@@ -895,7 +921,10 @@
       </div>
         <div class="rmx">
           <div class="rmx-hd"><span class="rmx-t">The targets</span>
-            <button class="rmx-add" id="rmxAdd" type="button">+ Add a target</button></div>
+            <button class="rmx-add" id="rmxAdd" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              <span>Add a target</span>
+            </button></div>
           <div class="pr-axtop"><span>URGENT</span><span>NOT URGENT</span></div>
           <div class="pr-axrow">
             <div class="pr-axleft"><span>IMPORTANT</span><span>NOT IMPORTANT</span></div>
@@ -1514,6 +1543,9 @@ function openRoadmap(id) {
     seal.style.background = 'radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ')';
     seal.style.color = hue.ink;
     seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
+    // The add button wears this pillar's own rainbow colour.
+    const rmxBtn = el('rmxAdd');
+    if (rmxBtn) rmxBtn.style.setProperty('--rmx-acc', hue.deep);
   }
   el('rmNum').textContent = p.num || '';
   el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
@@ -1555,14 +1587,37 @@ function renderRmx() {
       + '<div class="pr-tks">' + items + '</div></div>';
   }).join('');
 }
-el('rmxAdd').addEventListener('click', () => {
-  const t = prompt('The target');
-  if (!t || !t.trim()) return;
-  const q = prompt('Which quadrant? 1 = do now, 2 = important not urgent, 3 = delegate, 4 = drop', '2');
-  const key = ({ '1':'q1', '2':'q2', '3':'q3', '4':'q4' })[(q || '2').trim()] || 'q2';
+let editingRmx = null;
+function openRmxModal(id) {
+  editingRmx = id;
+  const t = id ? (rmData.targets || []).find(x => x.id === id) : null;
+  el('rmxModalTitle').textContent = t ? 'Edit target' : 'Add a target';
+  el('fRmxTitle').value = t ? (t.t || '') : '';
+  el('fRmxQ').value = t ? (t.q || 'q2') : 'q2';
+  el('rmxDel').classList.toggle('hidden', !t);
+  el('rmxModal').classList.remove('hidden');
+  setTimeout(() => el('fRmxTitle').focus(), 30);
+}
+function closeRmxModal() { el('rmxModal').classList.add('hidden'); editingRmx = null; }
+el('rmxAdd').addEventListener('click', () => openRmxModal(null));
+el('rmxSave').addEventListener('click', () => {
+  const v = el('fRmxTitle').value.trim();
+  if (!v) { toast('Add a target first'); return; }
   rmData.targets = rmData.targets || [];
-  rmData.targets.push({ id: 't' + Date.now(), t: t.trim(), q: key, done: false });
-  renderRmx(); scheduleRoadmapSave();
+  if (editingRmx) {
+    const t = rmData.targets.find(x => x.id === editingRmx);
+    if (t) { t.t = v; t.q = el('fRmxQ').value; }
+  } else {
+    rmData.targets.push({ id: 't' + Date.now(), t: v, q: el('fRmxQ').value, done: false });
+  }
+  closeRmxModal(); renderRmx(); scheduleRoadmapSave();
+});
+el('rmxCancel').addEventListener('click', closeRmxModal);
+el('rmxDel').addEventListener('click', () => {
+  if (!editingRmx) return;
+  if (!confirm('Delete this target?')) return;
+  rmData.targets = (rmData.targets || []).filter(x => x.id !== editingRmx);
+  closeRmxModal(); renderRmx(); scheduleRoadmapSave();
 });
 el('rmxMatrix').addEventListener('click', e => {
   const tk = e.target.closest('[data-rmxtick]');
@@ -1572,19 +1627,7 @@ el('rmxMatrix').addEventListener('click', e => {
     return;
   }
   const ed = e.target.closest('[data-rmxedit]');
-  if (ed && document.body.classList.contains('rm-editing')) {
-    const t = (rmData.targets || []).find(x => x.id === ed.dataset.rmxedit); if (!t) return;
-    const nv = prompt('The target', t.t);
-    if (nv === null) return;
-    if (!nv.trim()) { rmData.targets = rmData.targets.filter(x => x.id !== t.id); }
-    else {
-      t.t = nv.trim();
-      const q = prompt('Which quadrant? 1-4', String(['q1','q2','q3','q4'].indexOf(t.q || 'q2') + 1));
-      const key = ({ '1':'q1', '2':'q2', '3':'q3', '4':'q4' })[(q || '').trim()];
-      if (key) t.q = key;
-    }
-    renderRmx(); scheduleRoadmapSave();
-  }
+  if (ed) openRmxModal(ed.dataset.rmxedit);
 });
 function renderRoadmapRead() {
   el('rmDates').textContent = essayDateFmt_(rmData.essay_edited);
