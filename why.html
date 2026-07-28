@@ -174,7 +174,9 @@
   .loading { text-align:center; padding:60px 20px; color:#8189a0; font-family:var(--mono); font-size:12px; letter-spacing:0.1em; text-transform:uppercase; }
 
   /* ===== MODAL ===== */
-  .modal-overlay { position:fixed; inset:0; z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(18,26,44,0.55); backdrop-filter:blur(4px); }
+  /* Above the full-screen pages (.rmw, .pw, #mtWin are all 500), or a modal
+     opened from inside one is invisible until you close the page. */
+  .modal-overlay { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(18,26,44,0.55); backdrop-filter:blur(4px); }
   .modal { width:100%; max-width:440px; background:#fff; border-radius:18px; padding:26px 24px; box-shadow:0 30px 70px rgba(10,20,40,0.35); max-height:90vh; overflow-y:auto; }
   .modal-title { font-family:var(--serif); font-size:22px; font-weight:600; color:#182233; margin-bottom:4px; }
   .modal-sub { font-family:var(--mono); font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:#8189a0; margin-bottom:18px; }
@@ -739,6 +741,34 @@
 </main>
 
 
+<div class="modal-overlay hidden" id="rmxCloseModal">
+  <div class="modal">
+    <div class="modal-title">How did this end?</div>
+    <div class="modal-sub" id="rmxCloseTitle"></div>
+    <div class="fld"><label>Reached, handed over, or dropped</label>
+      <select id="fRmxOutcome">
+        <option value="done">&#10003; Reached &mdash; I got there</option>
+        <option value="delegated">&#8594; Delegated &mdash; someone else owns it now</option>
+        <option value="deleted">&times; Cancelled &mdash; I decided against it</option>
+        <option value="remove">&#128465; Remove &mdash; delete it entirely, no record kept</option>
+      </select>
+    </div>
+    <div class="fld hidden" id="fRmxWhoWrap"><label>Who has it now?</label><input id="fRmxWho" placeholder="e.g. Sagar"></div>
+    <div class="fld" id="fRmxWhyWrap"><label id="fRmxWhyLabel">What happened</label>
+      <input id="fRmxWhy" placeholder="one line you will want to read in ten years"></div>
+    <div class="fld" id="fRmxOnWrap"><label>On</label><input type="date" id="fRmxOn"></div>
+    <div class="pr-warn hidden" id="rmxRemoveWarn">
+      This deletes the target outright &mdash; it will not appear in the archive and cannot be recovered.
+      If you simply decided against it, choose <b>Cancelled</b> instead so the decision is kept.
+    </div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="rmxCloseCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="rmxCloseSave" type="button">Close the target</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="rmxModal">
   <div class="modal">
     <div class="modal-title" id="rmxModalTitle">Add a target</div>
@@ -929,6 +959,14 @@
           <div class="pr-axrow">
             <div class="pr-axleft"><span>IMPORTANT</span><span>NOT IMPORTANT</span></div>
             <div class="pr-mx" id="rmxMatrix"></div>
+          </div>
+          <div class="pr-hint">TAP THE CIRCLE TO CLOSE A TARGET &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT IT</div>
+          <div class="pr-arch">
+            <div class="pr-archhd">
+              <span class="pr-archt">What I closed</span>
+              <span class="pr-archn" id="rmxArchCount"></span>
+            </div>
+            <div id="rmxArchive"></div>
           </div>
         </div>
       <div id="rmToolbar"></div>
@@ -1512,7 +1550,11 @@ function rmParse(raw) {
   // Milestones are gone: anything still stored is dropped on read, so the next
   // save writes the essay alone.
   const norm = o => ({ essay: o.essay || '', essay_edited: o.essay_edited,
-                       targets: Array.isArray(o.targets) ? o.targets : [] });
+                       targets: (Array.isArray(o.targets) ? o.targets : []).map(t => ({
+                         id: t.id, t: t.t, q: t.q || 'q2',
+                         status: t.status || (t.done ? 'done' : 'open'),   // older rows used done:true
+                         outcome: t.outcome || '', who: t.who || '', on: t.on || ''
+                       })) });
   if (!raw) return norm({});
   if (typeof raw === 'object') return norm(raw);
   try { return norm(JSON.parse(raw)); }
@@ -1569,25 +1611,54 @@ function renderRmx() {
   const list = (rmData.targets || []);
   mx.innerHTML = PRI_GRID.map(key => {
     const q = PRI_Q[key];
-    const rows = list.filter(t => (t.q || 'q2') === key && !t.done);
-    const done = list.filter(t => (t.q || 'q2') === key && t.done);
+    const rows = list.filter(t => (t.q || 'q2') === key && t.status === 'open');
     const line = t => '<div class="pr-tkrow">'
-      + '<button class="pr-tkbox" type="button" data-rmxtick="' + t.id + '" aria-label="Mark reached">'
-      + '<i style="border-color:' + q.acc + ';color:' + q.acc + (t.done ? ';background:' + q.acc : '') + '">'
-      + '<svg viewBox="0 0 24 24" fill="none" stroke="' + (t.done ? '#fff' : 'currentColor') + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      + '<button class="pr-tkbox" type="button" data-rmxclose="' + t.id + '" aria-label="Close this target">'
+      + '<i style="border-color:' + q.acc + ';color:' + q.acc + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
       + '</i></button>'
       + '<button class="pr-tk" type="button" data-rmxedit="' + t.id + '">'
-      + '<span class="pr-tkt"' + (t.done ? ' style="opacity:0.5;text-decoration:line-through"' : '') + '>'
-      + escHtml(t.t || '') + '</span></button></div>';
-    const items = (rows.concat(done)).map(line).join('') || '<div class="pr-qempty">nothing here</div>';
+      + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>';
+    const items = rows.map(line).join('') || '<div class="pr-qempty">nothing here</div>';
     return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
       + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + ' \u00B7 ' + q.verb + '</div>'
       + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
       + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
       + '<div class="pr-tks">' + items + '</div></div>';
   }).join('');
+  renderRmxArchive();
 }
-let editingRmx = null;
+function renderRmxArchive() {
+  const wrap = el('rmxArchive'); if (!wrap) return;
+  const closed = (rmData.targets || []).filter(t => t.status && t.status !== 'open')
+    .sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
+  const cnt = el('rmxArchCount');
+  if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' TARGET' : ' TARGETS')) : '';
+  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
+  const thisYear = String(new Date().getFullYear());
+  const years = {};
+  closed.forEach(t => { const y = String(t.on || '').slice(0, 4) || 'Undated'; (years[y] = years[y] || []).push(t); });
+  wrap.innerHTML = Object.keys(years).sort().reverse().map(y => {
+    const isOpen = rmxOpenYears[y] !== undefined ? rmxOpenYears[y] : (y === thisYear);
+    const rows = years[y].map(t => {
+      const o = PRI_OUT[t.status] || PRI_OUT.done;
+      const q = PRI_Q[t.q || 'q2'];
+      const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
+      return '<div class="pr-ou" data-rmxedit="' + t.id + '">'
+        + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
+        + '<span class="pr-om"><div class="pr-ot">' + escHtml(t.t || '') + '</div>'
+        + (t.outcome ? '<div class="pr-on">' + escHtml(t.outcome) + '</div>' : '') + '</span>'
+        + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
+        + '<i>' + escHtml(q.code + ' \u00B7 ' + priFmt(t.on)) + '</i></span></div>';
+    }).join('');
+    return '<div class="pr-yr' + (isOpen ? ' open' : '') + '">'
+      + '<button class="pr-yrhd" type="button" data-rmxyr="' + y + '">'
+      + '<span class="cv">\u203A</span><span class="y">' + y + '</span>'
+      + '<span class="n">' + years[y].length + '</span><span class="r"></span></button>'
+      + '<div class="pr-yrbody">' + rows + '</div></div>';
+  }).join('');
+}
+let editingRmx = null, closingRmx = null, rmxOpenYears = {};
 function openRmxModal(id) {
   editingRmx = id;
   const t = id ? (rmData.targets || []).find(x => x.id === id) : null;
@@ -1608,7 +1679,7 @@ el('rmxSave').addEventListener('click', () => {
     const t = rmData.targets.find(x => x.id === editingRmx);
     if (t) { t.t = v; t.q = el('fRmxQ').value; }
   } else {
-    rmData.targets.push({ id: 't' + Date.now(), t: v, q: el('fRmxQ').value, done: false });
+    rmData.targets.push({ id: 't' + Date.now(), t: v, q: el('fRmxQ').value, status: 'open', outcome: '', who: '', on: '' });
   }
   closeRmxModal(); renderRmx(); scheduleRoadmapSave();
 });
@@ -1619,15 +1690,60 @@ el('rmxDel').addEventListener('click', () => {
   rmData.targets = (rmData.targets || []).filter(x => x.id !== editingRmx);
   closeRmxModal(); renderRmx(); scheduleRoadmapSave();
 });
-el('rmxMatrix').addEventListener('click', e => {
-  const tk = e.target.closest('[data-rmxtick]');
-  if (tk) {
-    const t = (rmData.targets || []).find(x => x.id === tk.dataset.rmxtick);
-    if (t) { t.done = !t.done; renderRmx(); scheduleRoadmapSave(); }
-    return;
+function openRmxClose(id) {
+  closingRmx = id;
+  const t = (rmData.targets || []).find(x => x.id === id); if (!t) return;
+  el('rmxCloseTitle').textContent = t.t || '';
+  el('fRmxOutcome').value = (t.status && t.status !== 'open') ? t.status : 'done';
+  el('fRmxWho').value = t.who || '';
+  el('fRmxWhy').value = t.outcome || '';
+  el('fRmxOn').value = t.on || new Date().toISOString().slice(0, 10);
+  el('rmxCloseSave').classList.remove('is-danger');
+  rmxOutcomeUi_();
+  el('rmxCloseModal').classList.remove('hidden');
+}
+function rmxOutcomeUi_() {
+  const v = el('fRmxOutcome').value, gone = v === 'remove';
+  el('fRmxWhoWrap').classList.toggle('hidden', v !== 'delegated');
+  el('fRmxWhyWrap').classList.toggle('hidden', gone);
+  el('fRmxOnWrap').classList.toggle('hidden', gone);
+  el('rmxRemoveWarn').classList.toggle('hidden', !gone);
+  el('rmxCloseSave').textContent = gone ? 'Remove it' : 'Close the target';
+  el('rmxCloseSave').classList.toggle('is-danger', gone);
+  el('fRmxWhyLabel').textContent = v === 'deleted' ? 'Why you decided against it'
+    : (v === 'delegated' ? 'What you handed over' : 'What happened');
+}
+el('fRmxOutcome').addEventListener('change', rmxOutcomeUi_);
+el('rmxCloseCancel').addEventListener('click', () => { el('rmxCloseModal').classList.add('hidden'); closingRmx = null; });
+el('rmxCloseSave').addEventListener('click', () => {
+  if (!closingRmx) return;
+  const v = el('fRmxOutcome').value;
+  const t = (rmData.targets || []).find(x => x.id === closingRmx);
+  if (v === 'remove') {
+    if (!confirm('Remove \u201C' + ((t && t.t) || 'this target') + '\u201D entirely?\u000A\u000ANo record will be kept.')) return;
+    rmData.targets = (rmData.targets || []).filter(x => x.id !== closingRmx);
+  } else if (t) {
+    t.status = v;
+    t.outcome = el('fRmxWhy').value.trim();
+    t.who = v === 'delegated' ? el('fRmxWho').value.trim() : '';
+    t.on = el('fRmxOn').value || new Date().toISOString().slice(0, 10);
   }
+  el('rmxCloseModal').classList.add('hidden'); closingRmx = null;
+  renderRmx(); scheduleRoadmapSave();
+});
+el('rmxMatrix').addEventListener('click', e => {
+  const c = e.target.closest('[data-rmxclose]');
+  if (c) { openRmxClose(c.dataset.rmxclose); return; }
   const ed = e.target.closest('[data-rmxedit]');
   if (ed) openRmxModal(ed.dataset.rmxedit);
+});
+el('rmxArchive').addEventListener('click', e => {
+  const y = e.target.closest('[data-rmxyr]');
+  if (y) { const k = y.dataset.rmxyr, box = y.closest('.pr-yr');
+    const now = !box.classList.contains('open');
+    rmxOpenYears[k] = now; box.classList.toggle('open', now); return; }
+  const ed = e.target.closest('[data-rmxedit]');
+  if (ed) openRmxClose(ed.dataset.rmxedit);
 });
 function renderRoadmapRead() {
   el('rmDates').textContent = essayDateFmt_(rmData.essay_edited);
