@@ -456,8 +456,10 @@
   .pr-tbtn.solid:hover { background:#4d3e73; border-color:#4d3e73; }
   /* the archive — this year open, older years folded away */
   .pr-arch { margin-top:30px; padding-top:18px; border-top:1px solid #e4e9f1; }
-  .pr-archhd { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:11px; }
-  .pr-archt { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; }
+  .pr-archhd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:13px; }
+  /* Filled, like the add button beside it — same colour, same shape. */
+  .pr-archt { display:inline-block; font-family:var(--sans); font-size:13px; font-weight:600;
+              color:#fff; background:var(--arch-acc,#5b4a86); padding:6px 13px; border-radius:9px; line-height:1.3; }
   .pr-archn { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#8B97AC; }
   .pr-yr { margin-bottom:9px; }
   .pr-yrhd { display:flex; align-items:center; gap:9px; width:100%; background:none; border:none; padding:7px 2px;
@@ -490,6 +492,11 @@
   .pr-empty { font-size:12.5px; color:#8B97AC; padding:10px 2px; }
   /* The same grid as My Priority, here holding a pillar's own targets. */
   .rmx { margin:22px 0 6px; padding-top:18px; border-top:1px solid #e4e9f1; }
+  /* Closes the matrix and opens the writing — a rule broken by its own label. */
+  .rm-div { display:flex; align-items:center; gap:14px; margin:30px 0 20px; }
+  .rm-div span { flex:1; height:1px; background:linear-gradient(90deg,transparent,#d8dfe9,transparent); }
+  .rm-div i { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.22em;
+              color:#aab4c8; font-style:normal; white-space:nowrap; }
   .rmx-hd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
   .rmx-t { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; }
   /* Filled, like My Priority's — and it wears this pillar's own rainbow colour. */
@@ -950,7 +957,7 @@
       <div class="essay-date" id="rmDates"></div>
       </div>
         <div class="rmx">
-          <div class="rmx-hd"><span class="rmx-t">The targets</span>
+          <div class="rmx-hd"><span class="rmx-t"></span>
             <button class="rmx-add" id="rmxAdd" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
               <span>Add a target</span>
@@ -963,12 +970,13 @@
           <div class="pr-hint">TAP THE CIRCLE TO CLOSE A TARGET &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT IT</div>
           <div class="pr-arch">
             <div class="pr-archhd">
-              <span class="pr-archt">What I closed</span>
+              <span class="pr-archt" id="rmxArchT">What I closed</span>
               <span class="pr-archn" id="rmxArchCount"></span>
             </div>
             <div id="rmxArchive"></div>
           </div>
         </div>
+      <div class="rm-div"><span></span><i>THE LONG VIEW</i><span></span></div>
       <div id="rmToolbar"></div>
       <div class="rm-sec">
         <div class="rm-essay ro" id="rmEssayRO"></div>
@@ -1166,13 +1174,13 @@ async function loadPillars() {
 // violet sit lighter than a poster rainbow would — that is the price of every
 // letter reading dark, and the seven reading as one set.
 const RAINBOW = [
-  { lt:'#F9A79F', mid:'#F2867C', deep:'#C9564A', ink:'#5E1810' },   // red
-  { lt:'#F8C894', mid:'#F0A85F', deep:'#C87B25', ink:'#5C3205' },   // orange
-  { lt:'#FFE79A', mid:'#F7D368', deep:'#D3AC2C', ink:'#544006' },   // yellow
-  { lt:'#A6D6B2', mid:'#7FBE92', deep:'#4E9060', ink:'#153A21' },   // green
-  { lt:'#A8C6EA', mid:'#7FA8DA', deep:'#4C7BB5', ink:'#10294A' },   // blue
-  { lt:'#BCB8E8', mid:'#9A95D4', deep:'#6A64AE', ink:'#1E1B47' },   // indigo
-  { lt:'#D6B0E2', mid:'#BC8ECC', deep:'#8C61A0', ink:'#361A40' }    // violet
+  { lt:'#F9A79F', mid:'#F2867C', deep:'#C9564A', ink:'#5E1810', solid:'#c05247' },   // red
+  { lt:'#F8C894', mid:'#F0A85F', deep:'#C87B25', ink:'#5C3205', solid:'#a3641e' },   // orange
+  { lt:'#FFE79A', mid:'#F7D368', deep:'#D3AC2C', ink:'#544006', solid:'#8b711d' },   // yellow
+  { lt:'#A6D6B2', mid:'#7FBE92', deep:'#4E9060', ink:'#153A21', solid:'#468156' },   // green
+  { lt:'#A8C6EA', mid:'#7FA8DA', deep:'#4C7BB5', ink:'#10294A', solid:'#4876ad' },   // blue
+  { lt:'#BCB8E8', mid:'#9A95D4', deep:'#6A64AE', ink:'#1E1B47', solid:'#6a64ae' },   // indigo
+  { lt:'#D6B0E2', mid:'#BC8ECC', deep:'#8C61A0', ink:'#361A40', solid:'#8c61a0' }    // violet
 ];
 function hueFor(i, total) {
   if (total <= 1) return RAINBOW[2];                     // a lone why keeps the gold
@@ -1587,7 +1595,9 @@ function openRoadmap(id) {
     seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
     // The add button wears this pillar's own rainbow colour.
     const rmxBtn = el('rmxAdd');
-    if (rmxBtn) rmxBtn.style.setProperty('--rmx-acc', hue.deep);
+    if (rmxBtn) rmxBtn.style.setProperty('--rmx-acc', hue.solid);   // deep enough for white
+    const rmxT = el('rmxArchT');
+    if (rmxT) rmxT.style.setProperty('--arch-acc', hue.solid);   // matches the add button
   }
   el('rmNum').textContent = p.num || '';
   el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
