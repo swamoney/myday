@@ -222,6 +222,17 @@
   .mgrid { display:flex; flex-direction:column; gap:11px; }
   .mcard { position:relative; background:linear-gradient(160deg,#fff,var(--sh2,#fbfcfd)); border:1px solid var(--shb,#eceff4); border-radius:15px; padding:18px 20px 16px; box-shadow:0 7px 18px rgba(30,47,82,0.05); }
   .mcard:not(.add) { display:flex; align-items:flex-start; gap:20px; }
+  /* A handle rather than a whole draggable card, so scrolling the list never
+     picks a mantra up by accident. */
+  .m-grip { display:none; position:absolute; left:4px; top:50%; transform:translateY(-50%);
+            width:26px; height:38px; border:none; background:none; padding:0; color:#c3ccdb;
+            cursor:grab; align-items:center; justify-content:center; touch-action:none; }
+  .m-grip svg { width:16px; height:16px; }
+  .m-grip:active { cursor:grabbing; color:#8a94a8; }
+  body.editing .mcard:not(.add) .m-grip { display:flex; }
+  body.editing .mcard:not(.add) { padding-left:34px; }
+  .mcard.mt-drag { opacity:0.45; }
+  .mcard.mt-over { box-shadow:0 -3px 0 0 #a0603c, 0 7px 18px rgba(30,47,82,0.05); }
   .m-num { flex-shrink:0; min-width:32px; font-family:var(--serif); font-weight:700; font-size:26px; line-height:1.08; letter-spacing:-0.02em; color:var(--sha,#8a94a8); }
   .m-body { flex:1; min-width:0; padding-right:22px; }   /* clear of the edit pen */
   .m-x { display:none; position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%; border:none; background:#8A1F1A; color:#fff; font-size:13px; line-height:1; cursor:pointer; z-index:4; box-shadow:0 2px 6px rgba(70,20,20,0.25); }
@@ -475,6 +486,14 @@
   .pr-bb i { display:block; height:100%; }
   .pr-bq { font-family:var(--mono); font-size:10px; font-weight:700; width:58px; text-align:right; flex-shrink:0; color:#2E6640; }
   .pr-empty { font-size:12.5px; color:#8B97AC; padding:10px 2px; }
+  /* The same grid as My Priority, here holding a pillar's own targets. */
+  .rmx { margin:22px 0 6px; padding-top:18px; border-top:1px solid #e4e9f1; }
+  .rmx-hd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .rmx-t { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; }
+  .rmx-add { display:none; border:1px solid #dfe5ee; background:#fff; color:#5b4a86; font-family:inherit;
+             font-size:11.5px; font-weight:600; padding:6px 12px; border-radius:9px; cursor:pointer; }
+  body.rm-editing .rmx-add { display:inline-block; }
+  .rmx-add:hover { border-color:#5b4a86; }
   .pr-warn { background:#fdf3f2; border:1px solid #edd3d0; border-radius:10px; padding:11px 13px;
              font-size:11.5px; line-height:1.55; color:#7a3b34; margin-bottom:4px; }
   .pr-warn b { color:#5f2a24; }
@@ -874,6 +893,15 @@
       </div>
       <div class="essay-date" id="rmDates"></div>
       </div>
+        <div class="rmx">
+          <div class="rmx-hd"><span class="rmx-t">The targets</span>
+            <button class="rmx-add" id="rmxAdd" type="button">+ Add a target</button></div>
+          <div class="pr-axtop"><span>URGENT</span><span>NOT URGENT</span></div>
+          <div class="pr-axrow">
+            <div class="pr-axleft"><span>IMPORTANT</span><span>NOT IMPORTANT</span></div>
+            <div class="pr-mx" id="rmxMatrix"></div>
+          </div>
+        </div>
       <div id="rmToolbar"></div>
       <div class="rm-sec">
         <div class="rm-essay ro" id="rmEssayRO"></div>
@@ -1454,10 +1482,12 @@ function rmSessionEnd_() {
 function rmParse(raw) {
   // Milestones are gone: anything still stored is dropped on read, so the next
   // save writes the essay alone.
-  if (!raw) return { essay: '' };
-  if (typeof raw === 'object') return { essay: raw.essay || '', essay_edited: raw.essay_edited };
-  try { const o = JSON.parse(raw); return { essay: o.essay || '', essay_edited: o.essay_edited }; }
-  catch (e) { return { essay: String(raw) }; }
+  const norm = o => ({ essay: o.essay || '', essay_edited: o.essay_edited,
+                       targets: Array.isArray(o.targets) ? o.targets : [] });
+  if (!raw) return norm({});
+  if (typeof raw === 'object') return norm(raw);
+  try { return norm(JSON.parse(raw)); }
+  catch (e) { return norm({ essay: String(raw) }); }
 }
 function openRoadmap(id) {
   const p = pillars.find(x => String(x.id) === String(id)); if (!p) return;
@@ -1498,9 +1528,64 @@ function openRoadmap(id) {
   el('rmSave').textContent = '';
   setRoadmapEditing(false);   // always opens read-only
   renderRoadmapRead();
+  renderRmx();
   el('roadmapWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
+function renderRmx() {
+  const mx = el('rmxMatrix'); if (!mx) return;
+  const list = (rmData.targets || []);
+  mx.innerHTML = PRI_GRID.map(key => {
+    const q = PRI_Q[key];
+    const rows = list.filter(t => (t.q || 'q2') === key && !t.done);
+    const done = list.filter(t => (t.q || 'q2') === key && t.done);
+    const line = t => '<div class="pr-tkrow">'
+      + '<button class="pr-tkbox" type="button" data-rmxtick="' + t.id + '" aria-label="Mark reached">'
+      + '<i style="border-color:' + q.acc + ';color:' + q.acc + (t.done ? ';background:' + q.acc : '') + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="' + (t.done ? '#fff' : 'currentColor') + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      + '</i></button>'
+      + '<button class="pr-tk" type="button" data-rmxedit="' + t.id + '">'
+      + '<span class="pr-tkt"' + (t.done ? ' style="opacity:0.5;text-decoration:line-through"' : '') + '>'
+      + escHtml(t.t || '') + '</span></button></div>';
+    const items = (rows.concat(done)).map(line).join('') || '<div class="pr-qempty">nothing here</div>';
+    return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
+      + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + ' \u00B7 ' + q.verb + '</div>'
+      + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
+      + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
+      + '<div class="pr-tks">' + items + '</div></div>';
+  }).join('');
+}
+el('rmxAdd').addEventListener('click', () => {
+  const t = prompt('The target');
+  if (!t || !t.trim()) return;
+  const q = prompt('Which quadrant? 1 = do now, 2 = important not urgent, 3 = delegate, 4 = drop', '2');
+  const key = ({ '1':'q1', '2':'q2', '3':'q3', '4':'q4' })[(q || '2').trim()] || 'q2';
+  rmData.targets = rmData.targets || [];
+  rmData.targets.push({ id: 't' + Date.now(), t: t.trim(), q: key, done: false });
+  renderRmx(); scheduleRoadmapSave();
+});
+el('rmxMatrix').addEventListener('click', e => {
+  const tk = e.target.closest('[data-rmxtick]');
+  if (tk) {
+    const t = (rmData.targets || []).find(x => x.id === tk.dataset.rmxtick);
+    if (t) { t.done = !t.done; renderRmx(); scheduleRoadmapSave(); }
+    return;
+  }
+  const ed = e.target.closest('[data-rmxedit]');
+  if (ed && document.body.classList.contains('rm-editing')) {
+    const t = (rmData.targets || []).find(x => x.id === ed.dataset.rmxedit); if (!t) return;
+    const nv = prompt('The target', t.t);
+    if (nv === null) return;
+    if (!nv.trim()) { rmData.targets = rmData.targets.filter(x => x.id !== t.id); }
+    else {
+      t.t = nv.trim();
+      const q = prompt('Which quadrant? 1-4', String(['q1','q2','q3','q4'].indexOf(t.q || 'q2') + 1));
+      const key = ({ '1':'q1', '2':'q2', '3':'q3', '4':'q4' })[(q || '').trim()];
+      if (key) t.q = key;
+    }
+    renderRmx(); scheduleRoadmapSave();
+  }
+});
 function renderRoadmapRead() {
   el('rmDates').textContent = essayDateFmt_(rmData.essay_edited);
   const ro = el('rmEssayRO'); if (!ro) return;
@@ -1576,6 +1661,7 @@ async function saveRoadmapCore_(force) {
           el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
           rmBaseline = NoteEditor.sanitize(el('rmEssay').innerHTML);
           renderRoadmapRead();
+  renderRmx();
           el('rmSave').textContent = 'Saved';
         }
       });
@@ -1588,6 +1674,7 @@ async function saveRoadmapCore_(force) {
 }
 
 // ===== MY MANTRA + MY CIRCLE =====
+const M_GRIP = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
 const M_PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 const BANDS = [
   { key:'close',    lbl:'Close',            range:'1\u20135',    cap:5,   acc:'#35786f', bg:'#eef7f6', w1:'#fbfefd',
@@ -1621,7 +1708,9 @@ el('whySeg').querySelectorAll(':scope > span').forEach(s =>
 
 // ----- Mantra -----
 async function loadMantras() {
-  const { data, error } = await supa.from('why_mantras').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+  const { data, error } = await supa.from('why_mantras').select('*').eq('user_id', userId)
+    .order('sort_order', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true });
   if (error) { console.error(error); return; }
   mantras = data || [];
   renderMantras();
@@ -1651,15 +1740,26 @@ const M_SHADES = [
   { w2:'#fdfbfd', bd:'#ece2ee', acc:'#96789e' },   // plum
   { w2:'#fafdfd', bd:'#dfebea', acc:'#5f938c' },   // teal
 ];
+function mtSorted_() {
+  return mantras.slice().sort((a, b) => {
+    const ao = a.sort_order, bo = b.sort_order;
+    if (ao != null && bo != null && ao !== bo) return ao - bo;
+    if (ao != null && bo == null) return -1;
+    if (ao == null && bo != null) return 1;
+    return new Date(a.created_at) - new Date(b.created_at);
+  });
+}
 function renderMantras() {
   const wrap = el('mantraList'); if (!wrap) return;
-  // Oldest first: Nº 1 is the first line you ever wrote, and it never moves.
-  const list = mantras.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  // Your order, oldest-first until you move something. The number belongs to the
+  // position, so reordering renumbers the list.
+  const list = mtSorted_();
   let html = list.map((m, i) => {
     const sh = M_SHADES[i % M_SHADES.length];
     const tint = ' style="--sh2:' + sh.w2 + ';--shb:' + sh.bd + ';--sha:' + sh.acc + '"';
     const mean = mtRich(m, 'meaning');
-    return '<div class="mcard"' + tint + '>' +
+    return '<div class="mcard" draggable="false" data-mid="' + m.id + '"' + tint + '>' +
+      '<button class="m-grip" data-mgrip="' + m.id + '" type="button" aria-label="Drag to reorder" title="Drag to reorder">' + M_GRIP + '</button>' +
       '<div class="m-num">' + String(i + 1).padStart(2, '0') + '</div>' +
       '<div class="m-body">' +
         '<div class="mtext nk-content">' + mtRich(m, 'text') + '</div>' +
@@ -1674,6 +1774,57 @@ function renderMantras() {
   html += '<div class="mcard add" id="mantraAdd">+ New mantra</div>';
   wrap.innerHTML = html;
 }
+let mtDrag = null;
+function mtCardAt_(y) {
+  const cards = Array.from(el('mantraList').querySelectorAll('.mcard[data-mid]'));
+  for (const c of cards) {
+    const r = c.getBoundingClientRect();
+    if (y < r.top + r.height / 2) return c;
+  }
+  return null;
+}
+el('mantraList').addEventListener('pointerdown', e => {
+  const g = e.target.closest('[data-mgrip]'); if (!g) return;
+  e.preventDefault();
+  const card = g.closest('.mcard');
+  mtDrag = { id: g.dataset.mgrip, card };
+  card.classList.add('mt-drag');
+  g.setPointerCapture(e.pointerId);
+});
+el('mantraList').addEventListener('pointermove', e => {
+  if (!mtDrag) return;
+  const list = el('mantraList');
+  list.querySelectorAll('.mt-over').forEach(c => c.classList.remove('mt-over'));
+  const before = mtCardAt_(e.clientY);
+  if (before && before !== mtDrag.card) before.classList.add('mt-over');
+  if (before !== mtDrag.card) {
+    if (before) list.insertBefore(mtDrag.card, before);
+    else list.insertBefore(mtDrag.card, el('mantraAdd'));
+  }
+});
+el('mantraList').addEventListener('pointerup', async e => {
+  if (!mtDrag) return;
+  const card = mtDrag.card; mtDrag = null;
+  card.classList.remove('mt-drag');
+  el('mantraList').querySelectorAll('.mt-over').forEach(c => c.classList.remove('mt-over'));
+  const ids = Array.from(el('mantraList').querySelectorAll('.mcard[data-mid]')).map(c => c.dataset.mid);
+  // Rewrite every position, so the numbers down the page always read 01, 02, 03.
+  const rows = ids.map((id, i) => ({ id, n: (i + 1) * 10 }));
+  rows.forEach(r => {
+    const m = mantras.find(x => String(x.id) === String(r.id));
+    if (m) m.sort_order = r.n;
+  });
+  renderMantras();
+  try {
+    // sort_order only — touching updated_at here would look like an edit.
+    await Promise.all(rows.map(r =>
+      supa.from('why_mantras').update({ sort_order: r.n }).eq('id', r.id).eq('user_id', userId)));
+  } catch (err) { console.error(err); toast('Could not save the order'); await loadMantras(); }
+});
+el('mantraList').addEventListener('pointercancel', () => {
+  if (!mtDrag) return;
+  mtDrag.card.classList.remove('mt-drag'); mtDrag = null; renderMantras();
+});
 el('mantraList').addEventListener('click', e => {
   const del = e.target.closest('[data-mx]');
   if (del) {
@@ -3092,6 +3243,7 @@ el('rmHist').addEventListener('click', () => {
       rmData.essay = content; rmBaseline = content;
       el('rmEssay').innerHTML = content;
       renderRoadmapRead();
+  renderRmx();
       saveRoadmap(true);
     }
   });
