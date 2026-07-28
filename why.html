@@ -240,7 +240,13 @@
   /* Circle */
   .bhead { display:flex; align-items:center; gap:10px; margin:18px 0 4px; }
   .bhead:first-child { margin-top:0; }
-  .bt { font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; }
+  .bt { font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; white-space:nowrap; }
+  .bt i { font-style:normal; opacity:0.6; letter-spacing:0.08em; }
+  /* The descriptions teach the framework — useful while you are placing people,
+     clutter once you know it by heart. So: Edit mode only. */
+  .bdesc { display:none; font-size:11.5px; color:#8a94a8; line-height:1.5; margin:-3px 0 9px; max-width:94%; }
+  body.editing .bdesc { display:block; }
+  .bbar.bare { background:none; }
   .bc { font-family:var(--mono); font-size:9.5px; color:#9aa4ba; }
   .bbar { flex:1; height:3px; background:#eef1f6; border-radius:2px; overflow:hidden; }
   .bbar span { display:block; height:100%; }
@@ -792,12 +798,7 @@
     <div class="modal-sub">the people who matter</div>
     <div class="fld"><label>Name</label><input id="fPerson" placeholder="Their name"></div>
     <div class="fld"><label>Circle</label>
-      <select id="fBand">
-        <option value="close">Close (1&ndash;5)</option>
-        <option value="sympathy">Sympathy (6&ndash;15)</option>
-        <option value="affinity">Affinity (16&ndash;50)</option>
-        <option value="network">Network (51&ndash;150)</option>
-      </select>
+      <select id="fBand"></select>
     </div>
     <div class="fld"><label>Tag (optional)</label><input id="fTag" placeholder="e.g. Pune, Fergusson College, met at the marathon"></div>
     <div class="fld"><label>Note (optional)</label><input id="fRel" placeholder="e.g. oldest friend"></div>
@@ -1573,10 +1574,16 @@ async function saveRoadmapCore_(force) {
 // ===== MY MANTRA + MY CIRCLE =====
 const M_PEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
 const BANDS = [
-  { key:'close',    lbl:'Close',         range:'1\u20135',    cap:5,   acc:'#3b4252', bg:'#e3e6ec', w1:'#f7f8fa' },
-  { key:'sympathy', lbl:'Sympathy',      range:'6\u201315',   cap:10,  acc:'#3a5b9c', bg:'#e3e9f5', w1:'#f5f7fc' },
-  { key:'affinity', lbl:'Social Circle', range:'16\u201350',  cap:35,  acc:'#8a6f43', bg:'#f2ead9', w1:'#faf7f0' },
-  { key:'network',  lbl:'My Community',  range:'51\u2013150', cap:100, acc:'#6d5474', bg:'#eae3ec', w1:'#faf7fb' }
+  { key:'close',    lbl:'Close',            range:'1\u20135',    cap:5,   acc:'#3b4252', bg:'#e3e6ec', w1:'#f7f8fa',
+    desc:'Your call-at-2am people. If life hits hard, these are the ones who drop everything.' },
+  { key:'sympathy', lbl:'My Confidants',    range:'6\u201315',   cap:10,  acc:'#3a5b9c', bg:'#e3e9f5', w1:'#f5f7fc',
+    desc:'Close friends and family you actively keep warm \u2014 fun and emotional support both.' },
+  { key:'affinity', lbl:'My Active Circle', range:'16\u201350',  cap:35,  acc:'#8a6f43', bg:'#f2ead9', w1:'#faf7f0',
+    desc:'People you genuinely enjoy \u2014 colleagues you would happily meet, friends of friends who became real friends.' },
+  { key:'network',  lbl:'My Community',     range:'51\u2013150', cap:100, acc:'#6d5474', bg:'#eae3ec', w1:'#faf7fb',
+    desc:'The broader meaningful contacts \u2014 people you would invite to a wedding, who would not feel awkward showing up.' },
+  { key:'wider',    lbl:'The Wider World',  range:'150+',        cap:0,   acc:'#5f6b85', bg:'#e7eaf0', w1:'#f8f9fb',
+    desc:'People you know and recognise, but no longer actively keep up with.' }
 ];
 let mantras = [], circle = [], places = [], placeCity = 'All', editingPlace = null,
     priority = [], editingPri = null, closingPri = null, priOpenYears = {}, editingMantra = null, editingPerson = null;
@@ -1724,10 +1731,19 @@ function renderCircle() {
   BANDS.forEach(b => {
     const people = circle.filter(p => p.band === b.key);
     if (!people.length && !document.body.classList.contains('editing')) return;
-    const pct = Math.min(100, (people.length / b.cap) * 100);
-    html += '<div class="bhead"><span class="bt" style="color:' + b.acc + ';">' + b.lbl + '</span>' +
-            '<span class="bc">' + people.length + ' of ' + b.cap + ' \u00B7 ' + b.range + '</span>' +
-            '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span></div>';
+    // The fifth ring is uncapped by definition, so it shows a count with no bar
+    // that could never fill.
+    const capped = b.cap > 0;
+    const pct = capped ? Math.min(100, (people.length / b.cap) * 100) : 0;
+    const count = capped ? (people.length + ' of ' + b.cap)
+                         : (people.length + (people.length === 1 ? ' person' : ' people'));
+    html += '<div class="bhead"><span class="bt" style="color:' + b.acc + ';">' + escHtml(b.lbl)
+          + ' <i>(' + b.range + ')</i></span>'
+          + '<span class="bc">' + count + '</span>'
+          + (capped ? '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span>'
+                    : '<span class="bbar bare"></span>')
+          + '</div>'
+          + '<div class="bdesc">' + b.desc + '</div>';
     // Card rows, not a table: reflows on any width, gives the note real room,
     // and no empty edit cells cutting the panel edge in read mode.
     html += people.map((p, pi) =>
@@ -1760,6 +1776,8 @@ function openCircleModal(id) {
   const p = id ? circle.find(x => String(x.id) === String(id)) : null;
   el('circleModalTitle').textContent = p ? 'Edit person' : 'Add someone';
   el('fPerson').value = p ? (p.name || '') : '';
+  el('fBand').innerHTML = BANDS.map(b =>
+    '<option value="' + b.key + '">' + escHtml(b.lbl) + ' (' + b.range + ')</option>').join('');
   el('fBand').value = p ? (p.band || 'close') : 'close';
   el('fRel').value = p ? (p.note || '') : '';
   el('fTag').value = p ? (p.tag || '') : '';
