@@ -268,7 +268,12 @@
   .c-av { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-weight:600; font-size:15px; flex-shrink:0; }
   .c-mid { flex:1; min-width:0; display:flex; flex-direction:column; }
   .c-name { font-family:var(--serif); font-weight:600; font-size:15.5px; color:#28324B; }
-  .c-note { font-size:12px; color:#8a94a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* An optional tag for what the band cannot say — a city, a company, how you
+     met. Sentence case, because place names in capitals read as abbreviations. */
+  .c-nmrow { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .c-tag { display:inline-block; font-family:var(--sans); font-size:10px; font-weight:600;
+           letter-spacing:0.01em; color:#fff; padding:3px 9px; border-radius:6px; line-height:1.3; }
+  .c-note { font-size:12px; color:#8a94a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
   .c-go { color:#c3ccdb; display:flex; flex-shrink:0; }
   .c-go svg { width:15px; height:15px; }
   .c-edit { display:none; background:none; border:none; color:#b8c2d0; cursor:pointer; padding:0; flex-shrink:0; }
@@ -794,6 +799,7 @@
         <option value="network">Network (51&ndash;150)</option>
       </select>
     </div>
+    <div class="fld"><label>Tag (optional)</label><input id="fTag" placeholder="e.g. Pune, Fergusson College, met at the marathon"></div>
     <div class="fld"><label>Note (optional)</label><input id="fRel" placeholder="e.g. oldest friend"></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="circleDel" type="button">Delete</button>
@@ -1136,7 +1142,7 @@ async function exportWhy() {
       meaning_html: m.meaning_html, source: m.source, created_at: m.created_at
     })), null, 2));
     zip.file('circle.json', JSON.stringify(circle.map(c => ({
-      name: c.name, band: c.band, note: c.note, why_html: c.why_html, created_at: c.created_at
+      name: c.name, band: c.band, tag: c.tag, note: c.note, why_html: c.why_html, created_at: c.created_at
     })), null, 2));
     zip.file('priority.json', JSON.stringify(priority.map(t => ({
       title: t.title, quadrant: t.quadrant, note: t.note, status: t.status,
@@ -1180,7 +1186,9 @@ async function exportWhy() {
       if (!rows.length) return;
       body += '<h3>' + xEsc_(band.lbl) + ' <span class="meta">(' + rows.length + ')</span></h3><ul>';
       rows.forEach(c => {
-        body += '<li><strong>' + xEsc_(c.name) + '</strong>' + (c.note ? ' \u2014 ' + xEsc_(c.note) : '') + '</li>';
+        body += '<li><strong>' + xEsc_(c.name) + '</strong>'
+              + (c.tag ? ' <span class="meta">(' + xEsc_(c.tag) + ')</span>' : '')
+              + (c.note ? ' \u2014 ' + xEsc_(c.note) : '') + '</li>';
       });
       body += '</ul>';
       rows.forEach(c => { if (c.why_html && xPlain_(c.why_html)) body += '<h4>' + xEsc_(c.name) + '</h4><div>' + xRich_(c.why_html) + '</div>'; });
@@ -1727,7 +1735,9 @@ function renderCircle() {
         '<span class="c-av" style="background:' + b.bg + ';color:' + b.acc + ';">' + escHtml((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
         '<span class="c-mid">' +
           '<span class="c-kind">' + escHtml(b.lbl) + '</span>' +
-          '<span class="c-name">' + escHtml(p.name || '') + '</span>' +
+          '<span class="c-nmrow"><span class="c-name">' + escHtml(p.name || '') + '</span>' +
+            (p.tag && p.tag.trim() ? '<span class="c-tag" style="background:' + b.acc + '">' + escHtml(p.tag.trim()) + '</span>' : '') +
+          '</span>' +
           (p.note ? '<span class="c-note">' + escHtml(p.note) + '</span>' : '') +
         '</span>' +
         '<span class="c-move">' +
@@ -1752,6 +1762,7 @@ function openCircleModal(id) {
   el('fPerson').value = p ? (p.name || '') : '';
   el('fBand').value = p ? (p.band || 'close') : 'close';
   el('fRel').value = p ? (p.note || '') : '';
+  el('fTag').value = p ? (p.tag || '') : '';
   el('circleDel').classList.toggle('hidden', !p);
   el('circleModal').classList.remove('hidden');
 }
@@ -1759,7 +1770,8 @@ function closeCircleModal() { el('circleModal').classList.add('hidden'); editing
 async function savePerson() {
   const name = el('fPerson').value.trim();
   if (!name) { toast('Add a name first'); return; }
-  const rec = { name, band: el('fBand').value, note: el('fRel').value.trim(), user_id: userId };
+  const rec = { name, band: el('fBand').value, note: el('fRel').value.trim(),
+                tag: el('fTag').value.trim(), user_id: userId };
   try {
     if (editingPerson) {
       const prev = circle.find(x => String(x.id) === String(editingPerson));
