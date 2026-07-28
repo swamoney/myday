@@ -500,6 +500,8 @@
               color:#7a8498; font-style:normal; white-space:nowrap; }
   .rmx-hd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
   .rmx-t { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; }
+  /* No verb here — the four names are complete thoughts on their own. */
+  #rmxMatrix .pr-qc { letter-spacing:0.18em; }
   /* Filled, like My Priority's — and it wears this pillar's own rainbow colour. */
   .rmx-add { display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:11.5px; font-weight:600;
              padding:7px 12px; border-radius:9px; cursor:pointer; color:#fff;
@@ -783,10 +785,10 @@
     <div class="fld"><label>The target</label><input id="fRmxTitle" placeholder="e.g. Reach the corpus"></div>
     <div class="fld"><label>Where it belongs</label>
       <select id="fRmxQ">
-        <option value="q1">Q1 &middot; Do &mdash; urgent &amp; important</option>
-        <option value="q2">Q2 &middot; Decide &mdash; important, not urgent</option>
-        <option value="q3">Q3 &middot; Delegate &mdash; urgent, not important</option>
-        <option value="q4">Q4 &middot; Delete &mdash; not important &amp; not urgent</option>
+        <option value="q1">Q1 &middot; Current priority</option>
+        <option value="q2">Q2 &middot; Building toward</option>
+        <option value="q3">Q3 &middot; Long game</option>
+        <option value="q4">Q4 &middot; Not thinking, for now</option>
       </select>
     </div>
     <div class="modal-actions">
@@ -962,9 +964,9 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
               <span>Add a target</span>
             </button></div>
-          <div class="pr-axtop"><span>URGENT</span><span>NOT URGENT</span></div>
+          <div class="pr-axtop"><span>SOONER</span><span>LATER</span></div>
           <div class="pr-axrow">
-            <div class="pr-axleft"><span>IMPORTANT</span><span>NOT IMPORTANT</span></div>
+            <div class="pr-axleft"><span>ACTIVE</span><span>NOT ACTIVE</span></div>
             <div class="pr-mx" id="rmxMatrix"></div>
           </div>
           <div class="pr-hint">TAP THE CIRCLE TO CLOSE A TARGET &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT IT</div>
@@ -1620,7 +1622,7 @@ function renderRmx() {
   const mx = el('rmxMatrix'); if (!mx) return;
   const list = (rmData.targets || []);
   mx.innerHTML = PRI_GRID.map(key => {
-    const q = PRI_Q[key];
+    const q = RMX_Q[key];
     const rows = list.filter(t => (t.q || 'q2') === key && t.status === 'open');
     const line = t => '<div class="pr-tkrow">'
       + '<button class="pr-tkbox" type="button" data-rmxclose="' + t.id + '" aria-label="Close this target">'
@@ -1631,7 +1633,7 @@ function renderRmx() {
       + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>';
     const items = rows.map(line).join('') || '<div class="pr-qempty">nothing here</div>';
     return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
-      + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + ' \u00B7 ' + q.verb + '</div>'
+      + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + '</div>'
       + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
       + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
       + '<div class="pr-tks">' + items + '</div></div>';
@@ -1652,7 +1654,7 @@ function renderRmxArchive() {
     const isOpen = rmxOpenYears[y] !== undefined ? rmxOpenYears[y] : (y === thisYear);
     const rows = years[y].map(t => {
       const o = PRI_OUT[t.status] || PRI_OUT.done;
-      const q = PRI_Q[t.q || 'q2'];
+      const q = RMX_Q[t.q || 'q2'];
       const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
       return '<div class="pr-ou" data-rmxedit="' + t.id + '">'
         + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
@@ -2446,6 +2448,14 @@ const PRI_Q = {
   q2: { code:'Q2', verb:'Decide',   sub:'Important, not urgent',           acc:'#2E6640', w2:'#f2f8f4' },
   q3: { code:'Q3', verb:'Delegate', sub:'Urgent, not important',           acc:'#a06a2c', w2:'#fdf8f0' },
   q4: { code:'Q4', verb:'Delete',   sub:'Not important &amp; not urgent',  acc:'#5f6b85', w2:'#f6f7fa' }
+};
+// The roadmap holds targets, not tasks, so it reads as a ladder through time
+// rather than a grid of urgency. Same four boxes, its own vocabulary.
+const RMX_Q = {
+  q1: { code:'Q1', sub:'Current priority',      acc:'#9c3f4a', w2:'#fdf3f4' },
+  q2: { code:'Q2', sub:'Building toward',       acc:'#2E6640', w2:'#f2f8f4' },
+  q3: { code:'Q3', sub:'Long game',             acc:'#a06a2c', w2:'#fdf8f0' },
+  q4: { code:'Q4', sub:'Not thinking, for now', acc:'#5f6b85', w2:'#f6f7fa' }
 };
 // Q1 Q2 / Q3 Q4 — the standard numbering, which is simply reading order.
 const PRI_GRID = ['q1','q2','q3','q4'];
