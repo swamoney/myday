@@ -2333,7 +2333,12 @@ el('circleList').addEventListener('click', e => {
 function pDaysAgo_(iso) {
   const d = new Date(String(iso) + 'T00:00:00');
   if (isNaN(d)) return '';
-  const n = Math.round((Date.now() - d.getTime()) / 86400000);
+  // Compare midnight to midnight. Measuring from a date to the current moment
+  // makes yesterday afternoon read as two days.
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const then  = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const n = Math.round((today - then) / 86400000);
   if (n <= 0) return 'today';
   if (n === 1) return 'yesterday';
   if (n < 60) return n + ' days ago';
