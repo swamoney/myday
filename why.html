@@ -324,6 +324,29 @@
   .phero { display:flex; gap:20px; align-items:center; padding-bottom:4px; }
   .pav { width:66px; height:66px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:26px; font-weight:600; flex-shrink:0; }
   .peyebrow { font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#9aa4ba; }
+  /* Last spoke — the elapsed gap is the fact that makes you pick up the phone. */
+  .p-ls { background:#fff; border:1px solid #eaeef4; border-radius:14px; padding:13px 16px; margin:4px 0 22px; }
+  .p-lsrow { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
+  .p-lslab { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.16em; color:#aab4c8; }
+  .p-lsval { font-family:var(--serif); font-size:17px; font-weight:600; color:#28324B; }
+  .p-lsago { font-family:var(--mono); font-size:9.5px; color:#95a4bb; }
+  .p-lsnote { font-size:12px; color:#5A6478; margin-top:5px; }
+  .p-lsbtns { margin-left:auto; display:flex; gap:6px; }
+  .p-lsb { font-family:inherit; font-size:10.5px; font-weight:600; color:#5A6478; background:#fff;
+           border:1px solid #e0e6ef; border-radius:8px; padding:5px 10px; cursor:pointer; }
+  .p-lsb.on { background:#eef1f6; color:#28324B; }
+  .p-lslist { margin-top:12px; padding-top:11px; border-top:1px solid #f0f3f8; display:flex; flex-direction:column; gap:7px; }
+  .p-lsi { display:flex; gap:12px; align-items:baseline; }
+  .p-lsi i { font-family:var(--mono); font-size:9px; font-style:normal; color:#95a4bb; min-width:78px; flex-shrink:0; }
+  .p-lsi span { font-size:12px; color:#5A6478; overflow-wrap:anywhere; }
+  .p-lsempty { font-size:12.5px; color:#aab4c8; font-style:italic; }
+  .p-mxwrap { margin-bottom:6px; }
+  .p-mxhd { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .p-addbtn { display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:11.5px;
+              font-weight:600; padding:7px 12px; border-radius:9px; cursor:pointer; color:#fff;
+              background:var(--p-acc,#46586f); border:1px solid var(--p-acc,#46586f); transition:filter .14s; }
+  .p-addbtn svg { width:14px; height:14px; flex-shrink:0; }
+  .p-addbtn:hover { filter:brightness(0.92); }
   .pnamerow { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; margin:2px 0 7px; }
   .pname { font-family:var(--serif); font-size:32px; font-weight:600; line-height:1.1; }
   /* The same tag as the index card, scaled to sit beside a 32px name. */
@@ -766,6 +789,69 @@
 </main>
 
 
+<div class="modal-overlay hidden" id="pTalkModal">
+  <div class="modal">
+    <div class="modal-title">Record a conversation</div>
+    <div class="modal-sub">when you spoke, and what it was about</div>
+    <div class="fld"><label>When</label><input type="date" id="fTalkOn"></div>
+    <div class="fld"><label>What it was</label><input id="fTalkNote" placeholder="e.g. the hospital call"></div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="pTalkCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="pTalkSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="pIntModal">
+  <div class="modal">
+    <div class="modal-title" id="pIntTitle">Add an intention</div>
+    <div class="modal-sub">something you mean to do with them</div>
+    <div class="fld"><label>The intention</label><input id="fIntTitle" placeholder="e.g. Take her to Kashi"></div>
+    <div class="fld"><label>Where it belongs</label>
+      <select id="fIntQ">
+        <option value="q1">Q1 &middot; Current priority</option>
+        <option value="q2">Q2 &middot; Building toward</option>
+        <option value="q3">Q3 &middot; Long game</option>
+        <option value="q4">Q4 &middot; Not thinking, for now</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger hidden" id="pIntDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="pIntCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="pIntSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="pIntCloseModal">
+  <div class="modal">
+    <div class="modal-title">How did this end?</div>
+    <div class="modal-sub" id="pIntCloseTitle"></div>
+    <div class="fld"><label>Done, handed over, or let go</label>
+      <select id="fIntOutcome">
+        <option value="done">&#10003; Done &mdash; it happened</option>
+        <option value="delegated">&#8594; Delegated &mdash; someone else did it</option>
+        <option value="deleted">&times; Let go &mdash; I decided against it</option>
+        <option value="remove">&#128465; Remove &mdash; delete it entirely, no record kept</option>
+      </select>
+    </div>
+    <div class="fld hidden" id="fIntWhoWrap"><label>Who did it?</label><input id="fIntWho" placeholder="e.g. Sagar"></div>
+    <div class="fld" id="fIntWhyWrap"><label id="fIntWhyLabel">What happened</label>
+      <input id="fIntWhy" placeholder="one line you will want to read in ten years"></div>
+    <div class="fld" id="fIntOnWrap"><label>On</label><input type="date" id="fIntOn"></div>
+    <div class="pr-warn hidden" id="pIntRemoveWarn">
+      This deletes it outright &mdash; no record will be kept. If you simply decided against it, choose <b>Let go</b>.
+    </div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="pIntCloseCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="pIntCloseSave" type="button">Close it</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="rmxCloseModal">
   <div class="modal">
     <div class="modal-title">How did this end?</div>
@@ -1118,12 +1204,36 @@
       <div class="essay-date" id="pDates"></div>
       <div id="pToolbar"></div>
       </div>
+      <div class="p-ls" id="pLastSpoke"></div>
+
+      <div class="p-mxwrap">
+        <div class="p-mxhd"><span></span>
+          <button class="p-addbtn" id="pIntAdd" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            <span>Add an intention</span>
+          </button>
+        </div>
+        <div class="pr-axtop"><span>SOONER</span><span>LATER</span></div>
+        <div class="pr-axrow">
+          <div class="pr-axleft"><span>ACTIVE</span><span>NOT ACTIVE</span></div>
+          <div class="pr-mx" id="pIntMatrix"></div>
+        </div>
+        <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
+        <div class="pr-arch">
+          <div class="pr-archhd">
+            <span class="pr-archt" id="pIntArchT">The ledger</span>
+            <span class="pr-archn" id="pIntArchCount"></span>
+          </div>
+          <div id="pIntArchive"></div>
+        </div>
+      </div>
+
+      <div class="rm-div" id="pMomDiv"><span></span><i>IMPORTANT MOMENTS</i><span></span></div>
+      <div class="pblk" id="pMomentsSec"><div id="pMoments"></div></div>
+      <div class="rm-div"><span></span><i>THE LONG NOTE</i><span></span></div>
       <div class="pessay ro" id="pEssayRO"></div>
       <div class="pessay inp" id="pEssay" contenteditable="true" data-placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></div>
-      <div class="pblk" id="pMomentsSec">
-        <div class="pk">Moments worth keeping</div>
-        <div id="pMoments"></div>
-      </div>
+
       <div class="pfoot">
         <div class="fr">
           <button class="eb" id="pCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
@@ -2214,9 +2324,95 @@ el('circleList').addEventListener('click', e => {
   if (e.target.closest('#circleAdd')) openCircleModal(null);
 });
 
+function pDaysAgo_(iso) {
+  const d = new Date(String(iso) + 'T00:00:00');
+  if (isNaN(d)) return '';
+  const n = Math.round((Date.now() - d.getTime()) / 86400000);
+  if (n <= 0) return 'today';
+  if (n === 1) return 'yesterday';
+  if (n < 60) return n + ' days ago';
+  const m = Math.round(n / 30.4);
+  return m < 24 ? m + ' months ago' : Math.round(n / 365) + ' years ago';
+}
+function renderLastSpoke() {
+  const wrap = el('pLastSpoke'); if (!wrap) return;
+  const list = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
+  const last = list[list.length - 1];
+  const btns = '<span class="p-lsbtns">'
+    + (list.length > 1 ? '<button class="p-lsb' + (pHistOpen ? ' on' : '') + '" id="pHistBtn" type="button">History</button>' : '')
+    + '<button class="p-lsb" id="pTalkBtn" type="button">Record</button></span>';
+  if (!last) {
+    wrap.innerHTML = '<div class="p-lsrow"><span class="p-lslab">LAST SPOKE</span>'
+      + '<span class="p-lsempty">nothing recorded yet</span>' + btns + '</div>';
+    return;
+  }
+  let html = '<div class="p-lsrow"><span class="p-lslab">LAST SPOKE</span>'
+    + '<span class="p-lsval">' + escHtml(priFmt(last.on)) + '</span>'
+    + '<span class="p-lsago">' + pDaysAgo_(last.on) + '</span>' + btns + '</div>'
+    + (last.note ? '<div class="p-lsnote">' + escHtml(last.note) + '</div>' : '');
+  if (pHistOpen && list.length > 1) {
+    html += '<div class="p-lslist">' + list.slice().reverse().map(c =>
+      '<div class="p-lsi"><i>' + escHtml(priFmt(c.on)) + '</i><span>' + escHtml(c.note || '') + '</span></div>').join('') + '</div>';
+  }
+  wrap.innerHTML = html;
+}
+function renderIntents() {
+  const mx = el('pIntMatrix'); if (!mx) return;
+  const list = pData.intents || [];
+  mx.innerHTML = PRI_GRID.map(key => {
+    const q = RMX_Q[key];
+    const rows = list.filter(t => (t.q || 'q2') === key && t.status === 'open');
+    const items = rows.map(t => '<div class="pr-tkrow">'
+      + '<button class="pr-tkbox" type="button" data-intclose="' + t.id + '" aria-label="Close this">'
+      + '<i style="border-color:' + q.acc + ';color:' + q.acc + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      + '</i></button>'
+      + '<button class="pr-tk" type="button" data-intedit="' + t.id + '">'
+      + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>').join('')
+      || '<div class="pr-qempty">nothing here</div>';
+    return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
+      + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + '</div>'
+      + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
+      + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
+      + '<div class="pr-tks">' + items + '</div></div>';
+  }).join('');
+  renderIntArchive();
+}
+function renderIntArchive() {
+  const wrap = el('pIntArchive'); if (!wrap) return;
+  const closed = (pData.intents || []).filter(t => t.status && t.status !== 'open')
+    .sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
+  const cnt = el('pIntArchCount');
+  if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' CLOSED' : ' CLOSED')) : '';
+  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
+  const thisYear = String(new Date().getFullYear());
+  const years = {};
+  closed.forEach(t => { const y = String(t.on || '').slice(0, 4) || 'Undated'; (years[y] = years[y] || []).push(t); });
+  wrap.innerHTML = Object.keys(years).sort().reverse().map(y => {
+    const isOpen = pIntYears[y] !== undefined ? pIntYears[y] : (y === thisYear);
+    const rows = years[y].map(t => {
+      const o = PRI_OUT[t.status] || PRI_OUT.done, q = RMX_Q[t.q || 'q2'], ci = PRI_CHIP[t.q || 'q2'];
+      const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
+      return '<div class="pr-ou" data-intedit="' + t.id + '">'
+        + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
+        + '<span class="pr-om"><div class="pr-ot">' + escHtml(t.t || '') + '</div>'
+        + (t.outcome ? '<div class="pr-on">' + escHtml(t.outcome) + '</div>' : '') + '</span>'
+        + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
+        + '<span class="pr-pair"><i class="pr-chip" style="background:' + ci + '1f;color:' + ci + '">' + q.code + '</i>'
+        + '<i class="pr-chip neutral">' + escHtml(priFmt(t.on)) + '</i></span></span></div>';
+    }).join('');
+    return '<div class="pr-yr' + (isOpen ? ' open' : '') + '">'
+      + '<button class="pr-yrhd" type="button" data-intyr="' + y + '">'
+      + '<span class="cv">\u203A</span><span class="y">' + y + '</span>'
+      + '<span class="n">' + years[y].length + '</span><span class="r"></span></button>'
+      + '<div class="pr-yrbody">' + rows + '</div></div>';
+  }).join('');
+}
 // ===== CIRCLE: PERSON PAGE (essay + moments) =====
-// Stored as JSON in why_circle.page: { essay: string, moments: [{y, t}] }
-let pId = null, pData = { essay: '', moments: [] }, pTimer = null;
+// Stored as JSON in why_circle.page:
+//   { essay, moments:[{y,t}], contacts:[{on,note}], intents:[{id,t,q,status,outcome,who,on}] }
+// contacts is newest-last; the last entry is what "Last spoke" reads.
+let pId = null, pData = { essay: '', moments: [], contacts: [], intents: [] }, pTimer = null, pHistOpen = false, editingInt = null, closingInt = null, pIntYears = {};
 let pBaseline = null, pVTimer = null;
 let pDirty = false;
 function pUpdateWc_() {
@@ -2233,10 +2429,19 @@ function pSessionEnd_() {
 }
 
 function pParse(raw) {
-  if (!raw) return { essay: '', moments: [] };
-  if (typeof raw === 'object') return { essay: raw.essay || '', moments: Array.isArray(raw.moments) ? raw.moments : [] };
-  try { const o = JSON.parse(raw); return { essay: o.essay || '', moments: Array.isArray(o.moments) ? o.moments : [] }; }
-  catch (e) { return { essay: String(raw), moments: [] }; }
+  const norm = o => ({
+    essay: o.essay || '',
+    moments: Array.isArray(o.moments) ? o.moments : [],
+    contacts: Array.isArray(o.contacts) ? o.contacts : [],
+    intents: (Array.isArray(o.intents) ? o.intents : []).map(t => ({
+      id: t.id, t: t.t, q: t.q || 'q2', status: t.status || 'open',
+      outcome: t.outcome || '', who: t.who || '', on: t.on || ''
+    }))
+  });
+  if (!raw) return norm({});
+  if (typeof raw === 'object') return norm(raw);
+  try { return norm(JSON.parse(raw)); }
+  catch (e) { return norm({ essay: String(raw) }); }
 }
 function openPerson(id) {
   const p = circle.find(x => String(x.id) === String(id)); if (!p) return;
@@ -2253,6 +2458,9 @@ function openPerson(id) {
   } else ptg.style.display = 'none';
   el('pAvatar').textContent = (p.name || '?').trim().charAt(0).toUpperCase();
   el('pAvatar').style.background = b.bg;
+  pHistOpen = false;
+  const pab = el('pIntAdd'); if (pab) pab.style.setProperty('--p-acc', b.acc);
+  const pat = el('pIntArchT'); if (pat) pat.style.setProperty('--arch-acc', b.acc);
   el('pAvatar').style.color = b.acc;
   el('pBand').textContent = b.lbl + ' (' + b.range + ')';
   el('pBand').style.background = b.bg;
@@ -2271,6 +2479,8 @@ function openPerson(id) {
   setPersonEditing(false);
   renderPersonRead();
   renderMoments();
+  renderLastSpoke();
+  renderIntents();
   el('personWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -2295,8 +2505,17 @@ function setPersonEditing(on) {
   const l = el('pEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
   if (!on) renderPersonRead();
 }
+function pMomentsVisible_() {
+  const any = (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim());
+  const on = document.body.classList.contains('p-editing');
+  const show = any || on;   // hidden entirely when empty, unless you are editing
+  const sec = el('pMomentsSec'), div = el('pMomDiv');
+  if (sec) sec.style.display = show ? '' : 'none';
+  if (div) div.style.display = show ? '' : 'none';
+}
 function renderMoments() {
   const list = el('pMoments'); if (!list) return;
+  pMomentsVisible_();
   const editing = document.body.classList.contains('p-editing');
   const rows = (pData.moments || []).map((m, i) =>
     '<div class="mo">' +
@@ -2363,7 +2582,7 @@ async function savePersonCore_(force) {
           pLoadedUpd = theirs.updated_at; pDirty = false;
           el('pEssay').innerHTML = NoteEditor.toHtml(pData.essay || '');
           pBaseline = NoteEditor.sanitize(el('pEssay').innerHTML);
-          renderPersonRead(); renderMoments();
+          renderPersonRead(); renderMoments(); renderLastSpoke(); renderIntents();
           el('pSave').textContent = 'Saved';
         }
       });
@@ -2380,7 +2599,107 @@ el('pEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('p-editing');
   setPersonEditing(on);
   renderMoments();
+  renderLastSpoke();
+  renderIntents();
   if (on) { pNk.refresh(); pNk.focusEnd(); } else { savePerson_(true); }
+});
+el('pLastSpoke').addEventListener('click', e => {
+  if (e.target.closest('#pHistBtn')) { pHistOpen = !pHistOpen; renderLastSpoke(); return; }
+  if (e.target.closest('#pTalkBtn')) {
+    el('fTalkOn').value = new Date().toISOString().slice(0, 10);
+    el('fTalkNote').value = '';
+    el('pTalkModal').classList.remove('hidden');
+  }
+});
+el('pTalkCancel').addEventListener('click', () => el('pTalkModal').classList.add('hidden'));
+el('pTalkSave').addEventListener('click', () => {
+  const on = el('fTalkOn').value; if (!on) { toast('Pick a date'); return; }
+  pData.contacts = pData.contacts || [];
+  pData.contacts.push({ on, note: el('fTalkNote').value.trim() });
+  el('pTalkModal').classList.add('hidden');
+  renderLastSpoke(); schedulePersonSave();
+});
+function openIntModal(id) {
+  editingInt = id;
+  const t = id ? (pData.intents || []).find(x => x.id === id) : null;
+  el('pIntTitle').textContent = t ? 'Edit intention' : 'Add an intention';
+  el('fIntTitle').value = t ? (t.t || '') : '';
+  el('fIntQ').value = t ? (t.q || 'q2') : 'q2';
+  el('pIntDel').classList.toggle('hidden', !t);
+  el('pIntModal').classList.remove('hidden');
+  setTimeout(() => el('fIntTitle').focus(), 30);
+}
+el('pIntAdd').addEventListener('click', () => openIntModal(null));
+el('pIntCancel').addEventListener('click', () => { el('pIntModal').classList.add('hidden'); editingInt = null; });
+el('pIntSave').addEventListener('click', () => {
+  const v = el('fIntTitle').value.trim(); if (!v) { toast('Add something first'); return; }
+  pData.intents = pData.intents || [];
+  if (editingInt) {
+    const t = pData.intents.find(x => x.id === editingInt);
+    if (t) { t.t = v; t.q = el('fIntQ').value; }
+  } else {
+    pData.intents.push({ id: 'i' + Date.now(), t: v, q: el('fIntQ').value, status: 'open', outcome: '', who: '', on: '' });
+  }
+  el('pIntModal').classList.add('hidden'); editingInt = null;
+  renderIntents(); schedulePersonSave();
+});
+el('pIntDel').addEventListener('click', () => {
+  if (!editingInt || !confirm('Delete this intention?')) return;
+  pData.intents = (pData.intents || []).filter(x => x.id !== editingInt);
+  el('pIntModal').classList.add('hidden'); editingInt = null;
+  renderIntents(); schedulePersonSave();
+});
+function pIntOutcomeUi_() {
+  const v = el('fIntOutcome').value, gone = v === 'remove';
+  el('fIntWhoWrap').classList.toggle('hidden', v !== 'delegated');
+  el('fIntWhyWrap').classList.toggle('hidden', gone);
+  el('fIntOnWrap').classList.toggle('hidden', gone);
+  el('pIntRemoveWarn').classList.toggle('hidden', !gone);
+  el('pIntCloseSave').textContent = gone ? 'Remove it' : 'Close it';
+  el('pIntCloseSave').classList.toggle('is-danger', gone);
+  el('fIntWhyLabel').textContent = v === 'deleted' ? 'Why you decided against it'
+    : (v === 'delegated' ? 'What they did' : 'What happened');
+}
+el('fIntOutcome').addEventListener('change', pIntOutcomeUi_);
+el('pIntCloseCancel').addEventListener('click', () => { el('pIntCloseModal').classList.add('hidden'); closingInt = null; });
+el('pIntCloseSave').addEventListener('click', () => {
+  if (!closingInt) return;
+  const v = el('fIntOutcome').value;
+  const t = (pData.intents || []).find(x => x.id === closingInt);
+  if (v === 'remove') {
+    if (!confirm('Remove this entirely?\u000A\u000ANo record will be kept.')) return;
+    pData.intents = (pData.intents || []).filter(x => x.id !== closingInt);
+  } else if (t) {
+    t.status = v; t.outcome = el('fIntWhy').value.trim();
+    t.who = v === 'delegated' ? el('fIntWho').value.trim() : '';
+    t.on = el('fIntOn').value || new Date().toISOString().slice(0, 10);
+  }
+  el('pIntCloseModal').classList.add('hidden'); closingInt = null;
+  renderIntents(); schedulePersonSave();
+});
+el('pIntMatrix').addEventListener('click', e => {
+  const c = e.target.closest('[data-intclose]');
+  if (c) {
+    closingInt = c.dataset.intclose;
+    const t = (pData.intents || []).find(x => x.id === closingInt); if (!t) return;
+    el('pIntCloseTitle').textContent = t.t || '';
+    el('fIntOutcome').value = 'done'; el('fIntWho').value = t.who || '';
+    el('fIntWhy').value = t.outcome || '';
+    el('fIntOn').value = t.on || new Date().toISOString().slice(0, 10);
+    el('pIntCloseSave').classList.remove('is-danger');
+    pIntOutcomeUi_();
+    el('pIntCloseModal').classList.remove('hidden');
+    return;
+  }
+  const ed = e.target.closest('[data-intedit]');
+  if (ed) openIntModal(ed.dataset.intedit);
+});
+el('pIntArchive').addEventListener('click', e => {
+  const y = e.target.closest('[data-intyr]');
+  if (y) { const k = y.dataset.intyr, box = y.closest('.pr-yr');
+    const now = !box.classList.contains('open'); pIntYears[k] = now; box.classList.toggle('open', now); return; }
+  const ed = e.target.closest('[data-intedit]');
+  if (ed) openIntModal(ed.dataset.intedit);
 });
 el('pMoments').addEventListener('click', e => {
   if (e.target.closest('#moAdd')) { pData.moments.push({ y: '', t: '' }); renderMoments(); schedulePersonSave();
