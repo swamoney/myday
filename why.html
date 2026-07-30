@@ -524,6 +524,12 @@
     .pr-axrow { gap:0; }
   }
   /* ===== My Explore List — one flat list, cities filter it ===== */
+  .pl-tb { display:flex; justify-content:flex-end; margin-bottom:13px; }
+  .pl-addbtn { display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:11.5px;
+               font-weight:600; padding:7px 12px; border-radius:9px; cursor:pointer; color:#fff;
+               background:#2c5f96; border:1px solid #2c5f96; transition:filter .14s; }
+  .pl-addbtn svg { width:14px; height:14px; flex-shrink:0; }
+  .pl-addbtn:hover { filter:brightness(0.92); }
   .pl-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:11px; }
   .pl-chip { font-size:11px; font-weight:600; padding:6px 12px; border-radius:20px; cursor:pointer;
              background:var(--c1,#fff); border:1px solid var(--cb,#dfe5ee); color:var(--cacc,#4A5570);
@@ -718,6 +724,12 @@
       <div class="pr-balance" id="priBalance"></div>
     </div>
     <div class="sec-panel hidden" id="secPlaces">
+      <div class="pl-tb">
+        <button class="pl-addbtn" id="placeAddBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          <span>Add a place</span>
+        </button>
+      </div>
       <div class="pl-chips" id="plChips"></div>
       <div class="pl-count" id="plCount"></div>
       <div class="pl-list" id="placeList"></div>
@@ -2811,7 +2823,6 @@ function renderPlaces() {
       ? 'Nothing in ' + escHtml(placeCity) + ' yet.'
       : 'No places yet \u2014 tap Edit, then add somewhere worth going.') + '</div>';
   }
-  html += '<div class="addrow" id="placeAdd">+ Add a place</div>';
   wrap.innerHTML = html;
 }
 function openPlaceModal(id) {
@@ -2862,6 +2873,7 @@ async function deletePlace() {
   if (error) { console.error(error); toast('Could not delete'); return; }
   closePlaceModal(); await loadPlaces(); toast('Deleted');
 }
+el('placeAddBtn').addEventListener('click', () => openPlaceModal(null));
 el('plChips').addEventListener('click', e => {
   const c = e.target.closest('[data-city]'); if (!c) return;
   placeCity = c.dataset.city;
@@ -2880,7 +2892,6 @@ el('placeList').addEventListener('click', e => {
     });
     return;
   }
-  if (e.target.closest('#placeAdd')) { openPlaceModal(null); return; }
   const row = e.target.closest('[data-place]');
   if (row) openPlaceModal(row.dataset.place);
 });
