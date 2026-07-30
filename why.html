@@ -364,7 +364,10 @@
   .pblk { margin-top:26px; }
   .pk { font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#3a5b9c; margin-bottom:7px; }
   .mo { display:flex; align-items:center; gap:12px; padding:10px 2px; border-bottom:1px solid #eef1f6; }
-  .mo-y { font-family:var(--mono); font-size:11px; font-weight:600; color:#8a6f43; width:64px; flex-shrink:0; background:transparent; border:none; }
+  .mo-y { font-family:var(--mono); font-size:11px; font-weight:600; color:#35786f; width:132px; flex-shrink:0; background:transparent; border:none; }
+  /* Read mode shows Jun 1994; edit mode opens a real date picker. */
+  .mo-y.ro { width:62px; padding:0; line-height:1.6; }
+  @media (max-width:520px) { .mo-y { width:118px; } .mo-y.ro { width:58px; } }
   .mo-t { flex:1; font-size:14.5px; color:#3a4560; background:transparent; border:none; font-family:inherit; }
   .mo-y:focus, .mo-t:focus { outline:none; }
   .mo-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; }
@@ -811,7 +814,7 @@
     <div class="fld"><label>Where it belongs</label>
       <select id="fIntQ">
         <option value="q1">Q1 &middot; Current priority</option>
-        <option value="q2">Q2 &middot; Building toward</option>
+        <option value="q2">Q2 &middot; Next in line</option>
         <option value="q3">Q3 &middot; Long game</option>
         <option value="q4">Q4 &middot; Not thinking, for now</option>
       </select>
@@ -2360,7 +2363,7 @@ function renderIntents() {
   const mx = el('pIntMatrix'); if (!mx) return;
   const list = pData.intents || [];
   mx.innerHTML = PRI_GRID.map(key => {
-    const q = RMX_Q[key];
+    const q = PERSON_Q[key];
     const rows = list.filter(t => (t.q || 'q2') === key && t.status === 'open');
     const items = rows.map(t => '<div class="pr-tkrow">'
       + '<button class="pr-tkbox" type="button" data-intclose="' + t.id + '" aria-label="Close this">'
@@ -2391,7 +2394,7 @@ function renderIntArchive() {
   wrap.innerHTML = Object.keys(years).sort().reverse().map(y => {
     const isOpen = pIntYears[y] !== undefined ? pIntYears[y] : (y === thisYear);
     const rows = years[y].map(t => {
-      const o = PRI_OUT[t.status] || PRI_OUT.done, q = RMX_Q[t.q || 'q2'], ci = PRI_CHIP[t.q || 'q2'];
+      const o = PRI_OUT[t.status] || PRI_OUT.done, q = PERSON_Q[t.q || 'q2'], ci = PRI_CHIP[t.q || 'q2'];
       const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
       return '<div class="pr-ou" data-intedit="' + t.id + '">'
         + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
@@ -2513,13 +2516,33 @@ function pMomentsVisible_() {
   if (sec) sec.style.display = show ? '' : 'none';
   if (div) div.style.display = show ? '' : 'none';
 }
+// Older moments hold just a year; keep them readable rather than blanking them.
+function moIso_(v) {
+  const s = String(v || '').trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (/^\d{4}$/.test(s)) return s + '-01-01';
+  return '';
+}
+function moShow_(v) {
+  const s = String(v || '').trim();
+  if (/^\d{4}$/.test(s)) return s;
+  const iso = moIso_(s);
+  if (!iso) return s;
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
+}
 function renderMoments() {
   const list = el('pMoments'); if (!list) return;
   pMomentsVisible_();
   const editing = document.body.classList.contains('p-editing');
   const rows = (pData.moments || []).map((m, i) =>
     '<div class="mo">' +
-      '<input class="mo-y" data-my="' + i + '" value="' + escHtml(m.y || '') + '" placeholder="year" maxlength="7"' + (editing ? '' : ' readonly') + '>' +
+      // The full date is stored; only month and year are ever shown, so you can
+      // still sort by date or find an anniversary years from now.
+      (editing
+        ? '<input class="mo-y" type="date" data-my="' + i + '" value="' + escHtml(moIso_(m.y)) + '">'
+        : '<span class="mo-y ro">' + escHtml(moShow_(m.y)) + '</span>') +
       '<input class="mo-t" data-mt="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="What happened\u2026"' + (editing ? '' : ' readonly') + '>' +
       '<button class="mo-x" data-mx="' + i + '" type="button" aria-label="Remove">&times;</button>' +
     '</div>'
@@ -2790,6 +2813,14 @@ const PRI_Q = {
 };
 // The roadmap holds targets, not tasks, so it reads as a ladder through time
 // rather than a grid of urgency. Same four boxes, its own vocabulary.
+// A person's page borrows the same ladder but calls Q2 what it is there:
+// the things lined up next with them.
+const PERSON_Q = {
+  q1: { code:'Q1', sub:'Current priority',      acc:'#9c3f4a', w2:'#fdf3f4' },
+  q2: { code:'Q2', sub:'Next in line',          acc:'#2E6640', w2:'#f2f8f4' },
+  q3: { code:'Q3', sub:'Long game',             acc:'#a06a2c', w2:'#fdf8f0' },
+  q4: { code:'Q4', sub:'Not thinking, for now', acc:'#5f6b85', w2:'#f6f7fa' }
+};
 const RMX_Q = {
   q1: { code:'Q1', sub:'Current priority',      acc:'#9c3f4a', w2:'#fdf3f4' },
   q2: { code:'Q2', sub:'Building toward',       acc:'#2E6640', w2:'#f2f8f4' },
