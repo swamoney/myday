@@ -338,7 +338,10 @@
   .p-lslist { margin-top:12px; padding-top:11px; border-top:1px solid #f0f3f8; display:flex; flex-direction:column; gap:7px; }
   .p-lsi { display:flex; gap:12px; align-items:baseline; }
   .p-lsi i { font-family:var(--mono); font-size:9px; font-style:normal; color:#95a4bb; min-width:78px; flex-shrink:0; }
-  .p-lsi span { font-size:12px; color:#5A6478; overflow-wrap:anywhere; }
+  .p-lsi span { font-size:12px; color:#5A6478; overflow-wrap:anywhere; flex:1; }
+  .p-lsx { flex-shrink:0; width:22px; height:22px; border-radius:50%; border:none; background:none;
+           color:#c3ccdb; font-size:15px; line-height:1; cursor:pointer; padding:0; transition:color .14s, background .14s; }
+  .p-lsx:hover { background:#fdf3f2; color:#8A1F1A; }
   .p-lsempty { font-size:12.5px; color:#aab4c8; font-style:italic; }
   .p-mxwrap { margin-bottom:6px; }
   .p-mxhd { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
@@ -2342,7 +2345,7 @@ function renderLastSpoke() {
   const list = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
   const last = list[list.length - 1];
   const btns = '<span class="p-lsbtns">'
-    + (list.length > 1 ? '<button class="p-lsb' + (pHistOpen ? ' on' : '') + '" id="pHistBtn" type="button">History</button>' : '')
+    + (list.length ? '<button class="p-lsb' + (pHistOpen ? ' on' : '') + '" id="pHistBtn" type="button">History</button>' : '')
     + '<button class="p-lsb" id="pTalkBtn" type="button">Record</button></span>';
   if (!last) {
     wrap.innerHTML = '<div class="p-lsrow"><span class="p-lslab">LAST SPOKE</span>'
@@ -2353,9 +2356,12 @@ function renderLastSpoke() {
     + '<span class="p-lsval">' + escHtml(priFmt(last.on)) + '</span>'
     + '<span class="p-lsago">' + pDaysAgo_(last.on) + '</span>' + btns + '</div>'
     + (last.note ? '<div class="p-lsnote">' + escHtml(last.note) + '</div>' : '');
-  if (pHistOpen && list.length > 1) {
+  if (pHistOpen && list.length) {
     html += '<div class="p-lslist">' + list.slice().reverse().map(c =>
-      '<div class="p-lsi"><i>' + escHtml(priFmt(c.on)) + '</i><span>' + escHtml(c.note || '') + '</span></div>').join('') + '</div>';
+      '<div class="p-lsi"><i>' + escHtml(priFmt(c.on)) + '</i>'
+      + '<span>' + escHtml(c.note || '') + '</span>'
+      + '<button class="p-lsx" type="button" data-talkdel="' + escHtml(c.on + '|' + (c.note || '')) + '" aria-label="Delete this record">&times;</button>'
+      + '</div>').join('') + '</div>';
   }
   wrap.innerHTML = html;
 }
@@ -2627,6 +2633,16 @@ el('pEdit').addEventListener('click', () => {
   if (on) { pNk.refresh(); pNk.focusEnd(); } else { savePerson_(true); }
 });
 el('pLastSpoke').addEventListener('click', e => {
+  const del = e.target.closest('[data-talkdel]');
+  if (del) {
+    const [on, note] = del.dataset.talkdel.split('|');
+    if (!confirm('Delete this record?\u000A\u000A' + priFmt(on) + (note ? ' \u2014 ' + note : ''))) return;
+    // Remove one match only, in case two share a date and a note.
+    const i = (pData.contacts || []).findIndex(c => c.on === on && (c.note || '') === note);
+    if (i > -1) pData.contacts.splice(i, 1);
+    renderLastSpoke(); schedulePersonSave(); toast('Deleted');
+    return;
+  }
   if (e.target.closest('#pHistBtn')) { pHistOpen = !pHistOpen; renderLastSpoke(); return; }
   if (e.target.closest('#pTalkBtn')) {
     el('fTalkOn').value = new Date().toISOString().slice(0, 10);
