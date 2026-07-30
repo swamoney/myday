@@ -478,9 +478,13 @@
   .pr-om { flex:1; min-width:0; }
   .pr-ot { font-family:var(--serif); font-size:13.5px; font-weight:600; color:#28324B; }
   .pr-on { font-size:11px; color:#5A6478; margin-top:1px; overflow-wrap:anywhere; }
-  .pr-od { text-align:right; flex-shrink:0; }
-  .pr-od b { display:block; font-family:var(--mono); font-size:8px; letter-spacing:0.13em; }
-  .pr-od i { display:block; font-family:var(--mono); font-size:9px; font-style:normal; color:#95a4bb; margin-top:2px; }
+  .pr-od { flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+  .pr-od b { font-family:var(--mono); font-size:8px; letter-spacing:0.13em; }
+  /* The quadrant keeps its own colour; the date stays neutral beside it. */
+  .pr-pair { display:flex; gap:4px; }
+  .pr-chip { font-family:var(--mono); font-size:8.5px; font-style:normal; font-weight:600;
+             letter-spacing:0.06em; padding:3px 7px; border-radius:5px; white-space:nowrap; }
+  .pr-chip.neutral { background:#eef1f6; color:#5A6478; }
   /* where the years went */
   .pr-balance { margin-top:26px; padding-top:18px; border-top:1px solid #e4e9f1; display:flex; flex-direction:column; gap:8px; }
   .pr-bt { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B; margin-bottom:3px; }
@@ -1656,12 +1660,16 @@ function renderRmxArchive() {
       const o = PRI_OUT[t.status] || PRI_OUT.done;
       const q = RMX_Q[t.q || 'q2'];
       const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
+      const ci = PRI_CHIP[t.q || 'q2'];
       return '<div class="pr-ou" data-rmxedit="' + t.id + '">'
         + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
         + '<span class="pr-om"><div class="pr-ot">' + escHtml(t.t || '') + '</div>'
         + (t.outcome ? '<div class="pr-on">' + escHtml(t.outcome) + '</div>' : '') + '</span>'
         + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
-        + '<i>' + escHtml(q.code + ' \u00B7 ' + priFmt(t.on)) + '</i></span></div>';
+        + '<span class="pr-pair">'
+          + '<i class="pr-chip" style="background:' + ci + '1f;color:' + ci + '">' + q.code + '</i>'
+          + '<i class="pr-chip neutral">' + escHtml(priFmt(t.on)) + '</i>'
+        + '</span></span></div>';
     }).join('');
     return '<div class="pr-yr' + (isOpen ? ' open' : '') + '">'
       + '<button class="pr-yrhd" type="button" data-rmxyr="' + y + '">'
@@ -2459,6 +2467,7 @@ const RMX_Q = {
 };
 // Q1 Q2 / Q3 Q4 — the standard numbering, which is simply reading order.
 const PRI_GRID = ['q1','q2','q3','q4'];
+const PRI_CHIP = { q1:'#9c3f4a', q2:'#2e6640', q3:'#905f27', q4:'#5d6882' };   // ink deep enough for a 12% ground
 const PRI_OUT = {
   done:      { sym:'\u2713',  lbl:'COMPLETED',  col:'#2E6640' },
   delegated: { sym:'\u2192',  lbl:'DELEGATED',  col:'#a06a2c' },
@@ -2529,13 +2538,17 @@ function renderPriArchive() {
       const o = PRI_OUT[t.status] || PRI_OUT.done;
       const who = t.status === 'delegated' && t.delegated_to ? ' \u00B7 ' + escHtml(t.delegated_to) : '';
       const q = PRI_Q[t.quadrant || 'q2'];
+      const ci = PRI_CHIP[t.quadrant || 'q2'];
       return '<div class="pr-ou" data-pri="' + t.id + '">'
         + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
         + '<span class="pr-om"><div class="pr-ot">' + escHtml(t.title || '') + '</div>'
         + (t.outcome_note ? '<div class="pr-on">' + escHtml(t.outcome_note) + '</div>' : '')
         + '</span>'
         + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
-        + '<i>' + escHtml(q.code + ' \u00B7 ' + priFmt(t.closed_on)) + '</i></span></div>';
+        + '<span class="pr-pair">'
+          + '<i class="pr-chip" style="background:' + ci + '1f;color:' + ci + '">' + q.code + '</i>'
+          + '<i class="pr-chip neutral">' + escHtml(priFmt(t.closed_on)) + '</i>'
+        + '</span></span></div>';
     }).join('');
     return '<div class="pr-yr' + (isOpen ? ' open' : '') + '" data-year="' + y + '">'
       + '<button class="pr-yrhd" type="button" data-yr="' + y + '">'
