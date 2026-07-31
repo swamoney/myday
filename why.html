@@ -461,7 +461,9 @@
   .mo-y:focus, .mo-t:focus { outline:none; }
   .mo-x { background:none; border:none; color:#c3ccdb; font-size:17px; cursor:pointer; }
   .mo-x:hover { color:#a8443e; }
-  body:not(.p-editing) .mo-x, body:not(.p-editing) .mo.add { display:none; }
+  /* The Add button is always available, so the row controls are too. */
+  #personWin .mo-x { display:block; }
+  body:not(.p-editing) .mo-x { display:none; }
   .mo.add { border-bottom:none; color:#8189a0; font-style:italic; cursor:pointer; padding:12px 2px; }
   .pfoot { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:28px; padding-top:18px; border-top:1px solid #eef1f6; }
   /* Small, unboxed, and out of the way — they are the least-used controls here. */
@@ -2815,19 +2817,16 @@ function moShow_(v) {
 }
 function renderMoments() {
   const list = el('pMoments'); if (!list) return;
-  const editing = document.body.classList.contains('p-editing');
+  // The full date is stored; only month and year are ever shown, so you can
+  // still sort by date or find an anniversary years from now.
   const rows = (pData.moments || []).map((m, i) =>
     '<div class="mo">' +
-      // The full date is stored; only month and year are ever shown, so you can
-      // still sort by date or find an anniversary years from now.
-      (editing
-        ? '<input class="mo-y" type="date" data-my="' + i + '" value="' + escHtml(moIso_(m.y)) + '">'
-        : '<span class="mo-y ro">' + escHtml(moShow_(m.y)) + '</span>') +
-      '<input class="mo-t" data-mt="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="What happened\u2026"' + (editing ? '' : ' readonly') + '>' +
+      '<input class="mo-y" type="date" data-my="' + i + '" value="' + escHtml(moIso_(m.y)) + '" aria-label="When">' +
+      '<input class="mo-t" data-mt="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="What happened\u2026">' +
       '<button class="mo-x" data-mx="' + i + '" type="button" aria-label="Remove">&times;</button>' +
     '</div>'
   ).join('');
-  list.innerHTML = rows + '<div class="mo add" id="moAdd">+ Add a moment</div>';
+  list.innerHTML = rows;
   // Every section is always listed; collapsing is what keeps the page short.
 }
 function schedulePersonSave() {
@@ -3021,15 +3020,23 @@ el('pIntArchive').addEventListener('click', e => {
   if (ed) openIntModal(ed.dataset.intedit);
 });
 el('pMoments').addEventListener('click', e => {
-  if (e.target.closest('#moAdd')) { pData.moments.push({ y: '', t: '' }); renderMoments(); schedulePersonSave();
-    const ins = el('pMoments').querySelectorAll('.mo-t'); const last = ins[ins.length - 1]; if (last) last.focus(); return; }
   const x = e.target.closest('[data-mx]');
-  if (x) { pData.moments.splice(+x.dataset.mx, 1); renderMoments(); schedulePersonSave(); }
+  if (!x) return;
+  const m = pData.moments[+x.dataset.mx] || {};
+  const named = (m.t || '').trim();
+  if (named && !confirm('Delete this moment?\u000A\u000A' + named)) return;
+  pData.moments.splice(+x.dataset.mx, 1);
+  renderMoments(); schedulePersonSave();
 });
-el('pMoments').addEventListener('input', e => {
-  const y = e.target.closest('[data-my]'); if (y) { pData.moments[+y.dataset.my].y = y.value; schedulePersonSave(); return; }
-  const t = e.target.closest('[data-mt]'); if (t) { pData.moments[+t.dataset.mt].t = t.value; schedulePersonSave(); }
-});
+// change fires for the date picker, input for typing — both need saving.
+function pMomEdit_(e) {
+  const y = e.target.closest('[data-my]');
+  if (y) { pData.moments[+y.dataset.my].y = y.value; schedulePersonSave(); return; }
+  const t = e.target.closest('[data-mt]');
+  if (t) { pData.moments[+t.dataset.mt].t = t.value; schedulePersonSave(); }
+}
+el('pMoments').addEventListener('input', pMomEdit_);
+el('pMoments').addEventListener('change', pMomEdit_);
 
 // ----- Person export -----
 function pPerson_() { return circle.find(x => String(x.id) === String(pId)) || {}; }
