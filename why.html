@@ -1343,7 +1343,8 @@
       <div class="p-colB">
       <section class="p-card" id="pMomentsSec" data-sec="mom">
         <div class="p-ch"><button class="p-ct" type="button" data-toggle="mom"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Important moments</span></button>
-          <span class="p-cn" id="pMomSum"></span></div>
+          <span class="p-cn" id="pMomSum"></span>
+          <button class="p-cb solid" id="pMomAdd" type="button">Add</button></div>
         <div class="p-sbody"><div id="pMoments"></div></div>
       </section>
 
@@ -2634,7 +2635,7 @@ function renderIntents() {
   const mx = el('pIntMatrix'); if (!mx) return;
   const list = pData.intents || [];
   mx.innerHTML = PRI_GRID.map(key => {
-    const q = PERSON_Q[key];
+    const q = Object.assign({}, PERSON_Q[key], PERSON_SOFT[key]);
     const rows = list.filter(t => (t.q || 'q2') === key && t.status === 'open');
     const items = rows.map(t => '<div class="pr-tkrow">'
       + '<button class="pr-tkbox" type="button" data-intclose="' + t.id + '" aria-label="Close this">'
@@ -2644,8 +2645,7 @@ function renderIntents() {
       + '<button class="pr-tk" type="button" data-intedit="' + t.id + '">'
       + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>').join('')
       || '<div class="pr-qempty">nothing here</div>';
-    const style = 'background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border:2px solid ' + q.acc + '66;'
-      + 'box-shadow:0 4px 12px ' + q.acc + '1f;';
+    const style = 'background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border:1.5px solid ' + q.acc + '4d;';
     return '<div class="pr-q" style="' + style + '">'
       + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + '</div>'
       + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
@@ -2669,7 +2669,8 @@ function renderIntArchive() {
   wrap.innerHTML = Object.keys(years).sort().reverse().map(y => {
     const isOpen = pIntYears[y] !== undefined ? pIntYears[y] : (y === thisYear);
     const rows = years[y].map(t => {
-      const o = PRI_OUT[t.status] || PRI_OUT.done, q = PERSON_Q[t.q || 'q2'], ci = PRI_CHIP[t.q || 'q2'];
+      const o = PRI_OUT[t.status] || PRI_OUT.done, q = PERSON_Q[t.q || 'q2'],
+            ci = (PERSON_SOFT[t.q || 'q2'] || {}).acc || PRI_CHIP[t.q || 'q2'];
       const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
       return '<div class="pr-ou" data-intedit="' + t.id + '">'
         + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
@@ -2940,6 +2941,14 @@ function openIntModal(id) {
   setTimeout(() => el('fIntTitle').focus(), 30);
 }
 el('pIntAdd').addEventListener('click', () => openIntModal(null));
+el('pMomAdd').addEventListener('click', () => {
+  pData.moments = pData.moments || [];
+  pData.moments.push({ y: '', t: '' });
+  renderMoments(); schedulePersonSave();
+  // Land the cursor in the row that was just created.
+  const rows = el('pMoments').querySelectorAll('.mo-t');
+  const last = rows[rows.length - 1]; if (last) { last.removeAttribute('readonly'); last.focus(); }
+});
 el('pIntCancel').addEventListener('click', () => { el('pIntModal').classList.add('hidden'); editingInt = null; });
 el('pIntSave').addEventListener('click', () => {
   const v = el('fIntTitle').value.trim(); if (!v) { toast('Add something first'); return; }
@@ -3152,6 +3161,12 @@ const PRI_Q = {
 // rather than a grid of urgency. Same four boxes, its own vocabulary.
 // A person's page borrows the same ladder but calls Q2 what it is there:
 // the things lined up next with them.
+const PERSON_SOFT = {
+  q1: { acc:'#8a5a5e', w2:'#fcf5f6' },
+  q2: { acc:'#3f6b52', w2:'#f5f9f6' },
+  q3: { acc:'#846d45', w2:'#fcf9f3' },
+  q4: { acc:'#6b7180', w2:'#f8f8fa' }
+};
 const PERSON_Q = {
   q1: { code:'Q1', sub:'Current priority',      acc:'#9c3f4a', w2:'#fdf3f4' },
   q2: { code:'Q2', sub:'Next in line',          acc:'#2E6640', w2:'#f2f8f4' },
