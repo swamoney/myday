@@ -3033,17 +3033,22 @@ el('pPrint').addEventListener('click', () => {
   const ms = (pData.moments || []).map(m => '<li><span class="y">' + esc(moShow_(m.y)) + '</span>' + esc(m.t || '') + '</li>').join('');
   const talks = (pData.contacts || []).slice().sort((a, b) => String(b.on).localeCompare(String(a.on)));
   const lastT = talks[0];
-  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3a5b9c;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}ul{list-style:none;padding:0;margin:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;padding:5px 0;line-height:1.55;border:none} ul.dt li{display:flex;gap:14px;align-items:baseline}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#777;min-width:80px;flex-shrink:0} .tagp{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:#666;margin-left:8px} .big{font-family:'Fraunces',Georgia,serif;font-size:17px;margin-bottom:6px} .box{border:1px solid #d5d5d5;border-radius:6px;padding:14px 17px;margin-top:16px;page-break-inside:avoid} .bh{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.2em;color:#888;margin-bottom:9px} .box h3{font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;margin:12px 0 3px} .box h3:first-child{margin-top:0}.box .essay{font-size:15px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#888;margin:30px 0 10px;font-weight:700;padding-bottom:6px;border-bottom:1px solid #ddd;page-break-after:avoid}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}ul{list-style:none;padding:0;margin:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;padding:5px 0;line-height:1.55;border:none} ul.dt li{display:flex;gap:14px;align-items:baseline}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#777;min-width:80px;flex-shrink:0} .tagp{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:#666;margin-left:8px} .big{font-family:'Fraunces',Georgia,serif;font-size:17px;margin-bottom:6px} h3{font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;margin:14px 0 3px} .subh{font-family:'IBM Plex Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#999;margin:18px 0 6px;padding-top:12px;border-top:1px solid #eee} .essay{font-size:15px} .lead{font-family:'Fraunces',Georgia,serif;font-size:17px;margin-bottom:7px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   // A box only when there is something to put in it — a sparse person should
   // print as half a page, not five empty frames.
-  const box = (label, inner) => inner ? '<div class="box"><div class="bh">' + label + '</div>' + inner + '</div>' : '';
+  // No boxes: a small tracked label with a rule beneath, and nothing enclosed.
+  const sec = (label, inner) => inner ? '<h2>' + label + '</h2>' + inner : '';
   const talkBody = lastT
-    ? '<p class="big">' + esc(priFmt(lastT.on)) + (lastT.note ? ' \u2014 ' + esc(lastT.note) : '') + '</p>'
+    ? '<p class="lead">' + esc(priFmt(lastT.on)) + (lastT.note ? ' \u2014 ' + esc(lastT.note) : '') + '</p>'
       + (talks.length > 1 ? '<ul class="dt">' + talks.slice(1).map(t =>
           '<li><span class="y">' + esc(priFmt(t.on)) + '</span>' + esc(t.note || '') + '</li>').join('') + '</ul>' : '')
     : '';
-  const nextBody = prMatrix_(pData.intents, PERSON_Q, esc).replace(/^<h2>The matrix<\/h2>/, '');
-  const ledgerBody = prLedger_(pData.intents, PERSON_Q, esc, 'x').replace(/^<h2>x<\/h2>/, '');
+  // The ledger belongs inside What is next, as it does on screen.
+  const nextBody = prMatrix_(pData.intents, PERSON_Q, esc).replace(/^<h2>The matrix<\/h2>/, '')
+    + (function () {
+        const l = prLedger_(pData.intents, PERSON_Q, esc, 'x').replace(/^<h2>x<\/h2>/, '');
+        return l ? '<div class="subh">The ledger</div>' + l : '';
+      })();
   const noteBody = (function () {
     const note = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '');
     return note ? '<div class="essay">' + note + '</div>' : '';
@@ -3051,11 +3056,10 @@ el('pPrint').addEventListener('click', () => {
   const body = '<div class="eyebrow">My Circle</div><h1>' + esc(p.name || '')
     + (p.tag ? ' <span class="tagp">' + esc(p.tag) + '</span>' : '') + '</h1>'
     + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
-    + box('LAST SPOKE', talkBody)
-    + box('WHAT IS NEXT', nextBody)
-    + box('THE LEDGER', ledgerBody)
-    + box('IMPORTANT MOMENTS', ms ? '<ul class="dt">' + ms + '</ul>' : '')
-    + box('IN MY WORDS', noteBody);
+    + sec('LAST SPOKE', talkBody)
+    + sec('WHAT IS NEXT', nextBody)
+    + sec('IMPORTANT MOMENTS', ms ? '<ul class="dt">' + ms + '</ul>' : '')
+    + sec('THE LONG NOTE', noteBody);
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(p.name || 'Person') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 
