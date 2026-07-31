@@ -344,6 +344,13 @@
   .p-sbody { display:none; padding-bottom:2px; }
   .p-card.open .p-sbody { display:block; }
   .p-card:not(.open) { margin-bottom:12px; }
+  /* A quiet sub-heading inside a section, one step down from the section label. */
+  .p-sub { margin-top:22px; padding-top:15px; border-top:1px solid #eef1f6; }
+  .p-subh { display:flex; align-items:center; gap:10px; margin-bottom:11px; }
+  .p-subl { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.18em;
+            text-transform:uppercase; color:#8B97AC; }
+  .p-subh::after { content:''; flex:1; height:1px; background:#f0f3f8; order:1; }
+  .p-subh .p-cn { order:2; }
   /* The heading takes the person's own ring colour, at wash strength — enough
      to mark a section, quiet enough to appear five times on one page. */
   /* Navy, the same on every person's page — the band already shows in the tag. */
@@ -1258,7 +1265,7 @@
       <section class="p-card" data-sec="ls">
         <div class="p-ch"><button class="p-ct" type="button" data-toggle="ls"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Last spoke</span></button>
           <span class="p-cn" id="pLsSum"></span>
-          <button class="p-cb" id="pTalkAdd" type="button">Record</button></div>
+          <button class="p-cb solid" id="pTalkAdd" type="button">Record</button></div>
         <div class="p-sbody"><div class="p-ls" id="pLastSpoke"></div></div>
       </section>
 
@@ -1273,13 +1280,13 @@
           <div class="pr-mx" id="pIntMatrix"></div>
         </div>
         <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
+          <!-- Closing an intention does not move it elsewhere; it belongs here. -->
+          <div class="p-sub" id="pLedgerSec">
+            <div class="p-subh"><span class="p-subl">The ledger</span>
+              <span class="p-cn" id="pIntArchCount"></span></div>
+            <div id="pIntArchive"></div>
+          </div>
         </div>
-      </section>
-
-      <section class="p-card" id="pLedgerSec" data-sec="led">
-        <div class="p-ch"><button class="p-ct" type="button" data-toggle="led"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">The ledger</span></button>
-          <span class="p-cn" id="pIntArchCount"></span></div>
-        <div class="p-sbody"><div id="pIntArchive"></div></div>
       </section>
 
       <section class="p-card" id="pMomentsSec" data-sec="mom">
@@ -2524,36 +2531,20 @@ function pDaysAgo_(iso) {
   const m = Math.round(n / 30.4);
   return m < 24 ? m + ' months ago' : Math.round(n / 365) + ' years ago';
 }
-// Which sections you leave open persists per person, so a page shapes itself
-// to how you actually use it. Open by default only when there is something in it.
-function pSecKey_() { return 'myday.person.' + (pId || '0') + '.open'; }
-function pSecState_() {
-  try { const o = JSON.parse(localStorage.getItem(pSecKey_()) || 'null'); return o && typeof o === 'object' ? o : null; }
-  catch (e) { return null; }
-}
-function pSecSave_(state) {
-  try { localStorage.setItem(pSecKey_(), JSON.stringify(state)); } catch (e) {}
-}
+// Every section starts closed, every time. The page then always opens the same
+// way, whoever you are looking at and however long since you last looked.
 function pApplySections() {
-  const saved = pSecState_() || {};
-  const has = {
-    ls:   (pData.contacts || []).length > 0,
-    next: (pData.intents || []).some(t => (t.status || 'open') === 'open'),
-    led:  (pData.intents || []).some(t => t.status && t.status !== 'open'),
-    mom:  (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim()),
-    note: !!NoteEditor.toPlain(pData.essay || '').trim()
-  };
-  document.querySelectorAll('#personWin .p-card[data-sec]').forEach(sec => {
-    const k = sec.dataset.sec;
-    const open = saved[k] !== undefined ? saved[k] : has[k];
-    sec.classList.toggle('open', !!open);
-  });
+  document.querySelectorAll('#personWin .p-card[data-sec]').forEach(sec => sec.classList.remove('open'));
   const set = (id, txt) => { const e = el(id); if (e) e.textContent = txt; };
   const talks = pData.contacts || [];
   const last = talks.slice().sort((a, b) => String(a.on).localeCompare(String(b.on)))[talks.length - 1];
   set('pLsSum', last ? pDaysAgo_(last.on) : 'never');
-  const openN = (pData.intents || []).filter(t => (t.status || 'open') === 'open').length;
-  set('pNextSum', openN ? openN + ' open' : 'none');
+  const ints = pData.intents || [];
+  const openN = ints.filter(t => (t.status || 'open') === 'open').length;
+  const doneN = ints.filter(t => t.status && t.status !== 'open').length;
+  set('pNextSum', (openN || doneN)
+    ? [openN ? openN + ' open' : '', doneN ? doneN + ' closed' : ''].filter(Boolean).join(' \u00B7 ')
+    : 'none');
   const momN = (pData.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim()).length;
   set('pMomSum', momN ? String(momN) : 'none');
   const words = NoteEditor.toPlain(pData.essay || '').trim().split(/\s+/).filter(Boolean).length;
@@ -2562,11 +2553,7 @@ function pApplySections() {
 document.addEventListener('click', e => {
   const t = e.target.closest('#personWin [data-toggle]'); if (!t) return;
   const sec = t.closest('.p-card'); if (!sec) return;
-  const now = !sec.classList.contains('open');
-  sec.classList.toggle('open', now);
-  const state = pSecState_() || {};
-  state[t.dataset.toggle] = now;
-  pSecSave_(state);
+  sec.classList.toggle('open', !sec.classList.contains('open'));
 });
 function renderLastSpoke() {
   const wrap = el('pLastSpoke'); if (!wrap) return;
