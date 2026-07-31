@@ -334,8 +334,11 @@
             box-shadow:0 5px 16px rgba(30,47,82,0.05); }
   .p-card:last-of-type { margin-bottom:4px; }
   .p-ch { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  /* The heading takes the person's own ring colour, at wash strength — enough
+     to mark a section, quiet enough to appear five times on one page. */
   .p-cl { font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:0.2em;
-          text-transform:uppercase; color:#8B97AC; }
+          text-transform:uppercase; color:var(--p-ink,#8B97AC); background:var(--p-wash,transparent);
+          padding:5px 10px; border-radius:7px; }
   .p-cn { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#aab4c8; }
   .p-cb { font-family:inherit; font-size:10.5px; font-weight:600; color:#5A6478; background:#fff;
           border:1px solid #e0e6ef; border-radius:8px; padding:5px 11px; cursor:pointer; }
@@ -344,8 +347,9 @@
   .p-cb.solid:hover { filter:brightness(0.92); }
   .p-ls { padding:0; }
   .p-lsrow { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
-  .p-lslab { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.16em; color:#aab4c8; }
-  .p-lsval { font-family:var(--serif); font-size:17px; font-weight:600; color:#28324B; }
+  /* One size with the rest of the card; the rule marks it instead. */
+  .p-lsval { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B;
+             border-bottom:2px solid var(--p-acc,#c6cfdd); padding-bottom:1px; }
   .p-lsago { font-family:var(--mono); font-size:9.5px; color:#95a4bb; }
   .p-lsnote { font-size:12px; color:#5A6478; margin-top:5px; }
   .p-lsbtns { margin-left:auto; display:flex; gap:6px; }
@@ -2505,12 +2509,13 @@ function renderLastSpoke() {
   const btns = list.length
     ? '<span class="p-lsbtns"><button class="p-lsb' + (pHistOpen ? ' on' : '') + '" id="pHistBtn" type="button">History</button></span>'
     : '';
+  // The card heading already says LAST SPOKE; repeating it inside was a leftover
+  // from before the card existed.
   if (!last) {
-    wrap.innerHTML = '<div class="p-lsrow"><span class="p-lslab">LAST SPOKE</span>'
-      + '<span class="p-lsempty">nothing recorded yet</span>' + btns + '</div>';
+    wrap.innerHTML = '<div class="p-lsrow"><span class="p-lsempty">nothing recorded yet</span>' + btns + '</div>';
     return;
   }
-  let html = '<div class="p-lsrow"><span class="p-lslab">LAST SPOKE</span>'
+  let html = '<div class="p-lsrow">'
     + '<span class="p-lsval">' + escHtml(priFmt(last.on)) + '</span>'
     + '<span class="p-lsago">' + pDaysAgo_(last.on) + '</span>' + btns + '</div>'
     + (last.note ? '<div class="p-lsnote">' + escHtml(last.note) + '</div>' : '');
@@ -2630,6 +2635,15 @@ function openPerson(id) {
   el('pAvatar').style.background = b.bg;
   pHistOpen = false;
   const pab = el('pIntAdd'); if (pab) pab.style.setProperty('--p-acc', b.acc);
+  // Two bands cannot carry their own accent on their own wash, so the chip ink
+  // is set per band rather than reusing the accent.
+  const CHIP_INK = { close:'#35786f', sympathy:'#3a5b9c', affinity:'#7c633c', network:'#6d5474', wider:'#5d6882' };
+  const pwin = el('personWin');
+  if (pwin) {
+    pwin.style.setProperty('--p-wash', b.bg);
+    pwin.style.setProperty('--p-ink', CHIP_INK[b.key] || b.acc);
+    pwin.style.setProperty('--p-acc', b.acc);
+  }
   el('pAvatar').style.color = b.acc;
   el('pBand').textContent = b.lbl + ' (' + b.range + ')';
   el('pBand').style.background = b.bg;
