@@ -312,7 +312,8 @@
   body.editing .addrow { display:block; }
   .c-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
   /* ===== Circle: person page ===== */
-  .pw { position:fixed; inset:0; z-index:520; background:#fbfcfe; display:none; flex-direction:column; }
+  .pw { position:fixed; inset:0; z-index:520; background:#eef2f8;
+        background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%); display:none; flex-direction:column; }
   .pw.show { display:flex; }
   .pbar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid #eef1f6; background:#fff; flex-shrink:0; }
   .pback { background:none; border:none; font-size:13px; font-weight:600; color:#3a4560; cursor:pointer; }
@@ -326,7 +327,22 @@
   .pav { width:66px; height:66px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:26px; font-weight:600; flex-shrink:0; }
   .peyebrow { font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#9aa4ba; }
   /* Last spoke — the elapsed gap is the fact that makes you pick up the phone. */
-  .p-ls { background:#fff; border:1px solid #eaeef4; border-radius:14px; padding:13px 16px; margin:4px 0 22px; }
+  /* R2 — each section is its own sheet. The page ground darkens so the cards
+     read as paper laid on a surface. */
+  .pw .pin { background:none; }
+  .p-card { background:#fff; border:1px solid #e9edf3; border-radius:15px; padding:16px 18px; margin-bottom:14px;
+            box-shadow:0 5px 16px rgba(30,47,82,0.05); }
+  .p-card:last-of-type { margin-bottom:4px; }
+  .p-ch { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
+  .p-cl { font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:0.2em;
+          text-transform:uppercase; color:#8B97AC; }
+  .p-cn { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#aab4c8; }
+  .p-cb { font-family:inherit; font-size:10.5px; font-weight:600; color:#5A6478; background:#fff;
+          border:1px solid #e0e6ef; border-radius:8px; padding:5px 11px; cursor:pointer; }
+  .p-cb:hover { border-color:#b9c4d4; }
+  .p-cb.solid { background:var(--p-acc,#46586f); border-color:var(--p-acc,#46586f); color:#fff; }
+  .p-cb.solid:hover { filter:brightness(0.92); }
+  .p-ls { padding:0; }
   .p-lsrow { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
   .p-lslab { font-family:var(--mono); font-size:8px; font-weight:700; letter-spacing:0.16em; color:#aab4c8; }
   .p-lsval { font-family:var(--serif); font-size:17px; font-weight:600; color:#28324B; }
@@ -1220,35 +1236,40 @@
       <div class="essay-date" id="pDates"></div>
       <div id="pToolbar"></div>
       </div>
-      <div class="p-ls" id="pLastSpoke"></div>
+      <!-- One heading system for every section; colour belongs to the content. -->
+      <section class="p-card">
+        <div class="p-ch"><span class="p-cl">Last spoke</span>
+          <button class="p-cb" id="pTalkAdd" type="button">Record</button></div>
+        <div class="p-ls" id="pLastSpoke"></div>
+      </section>
 
-      <div class="p-mxwrap">
-        <div class="p-mxhd"><span></span>
-          <button class="p-addbtn" id="pIntAdd" type="button">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-            <span>Add an intention</span>
-          </button>
-        </div>
+      <section class="p-card">
+        <div class="p-ch"><span class="p-cl">What is next</span>
+          <button class="p-cb solid" id="pIntAdd" type="button">Add</button></div>
         <div class="pr-axtop"><span>SOONER</span><span>LATER</span></div>
         <div class="pr-axrow">
           <div class="pr-axleft"><span>ACTIVE</span><span>NOT ACTIVE</span></div>
           <div class="pr-mx" id="pIntMatrix"></div>
         </div>
         <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
-        <div class="pr-arch">
-          <div class="pr-archhd">
-            <span class="pr-archt" id="pIntArchT">The ledger</span>
-            <span class="pr-archn" id="pIntArchCount"></span>
-          </div>
-          <div id="pIntArchive"></div>
-        </div>
-      </div>
+      </section>
 
-      <div class="rm-div" id="pMomDiv"><span></span><i>IMPORTANT MOMENTS</i><span></span></div>
-      <div class="pblk" id="pMomentsSec"><div id="pMoments"></div></div>
-      <div class="rm-div short"><span></span></div>
-      <div class="pessay ro" id="pEssayRO"></div>
-      <div class="pessay inp" id="pEssay" contenteditable="true" data-placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></div>
+      <section class="p-card" id="pLedgerSec">
+        <div class="p-ch"><span class="p-cl">The ledger</span>
+          <span class="p-cn" id="pIntArchCount"></span></div>
+        <div id="pIntArchive"></div>
+      </section>
+
+      <section class="p-card" id="pMomentsSec">
+        <div class="p-ch"><span class="p-cl">Important moments</span></div>
+        <div id="pMoments"></div>
+      </section>
+
+      <section class="p-card">
+        <div class="p-ch"><span class="p-cl">In my words</span></div>
+        <div class="pessay ro" id="pEssayRO"></div>
+        <div class="pessay inp" id="pEssay" contenteditable="true" data-placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></div>
+      </section>
 
       <div class="pfoot">
         <div class="fr">
@@ -2481,9 +2502,9 @@ function renderLastSpoke() {
   const wrap = el('pLastSpoke'); if (!wrap) return;
   const list = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
   const last = list[list.length - 1];
-  const btns = '<span class="p-lsbtns">'
-    + (list.length ? '<button class="p-lsb' + (pHistOpen ? ' on' : '') + '" id="pHistBtn" type="button">History</button>' : '')
-    + '<button class="p-lsb" id="pTalkBtn" type="button">Record</button></span>';
+  const btns = list.length
+    ? '<span class="p-lsbtns"><button class="p-lsb' + (pHistOpen ? ' on' : '') + '" id="pHistBtn" type="button">History</button></span>'
+    : '';
   if (!last) {
     wrap.innerHTML = '<div class="p-lsrow"><span class="p-lslab">LAST SPOKE</span>'
       + '<span class="p-lsempty">nothing recorded yet</span>' + btns + '</div>';
@@ -2530,7 +2551,10 @@ function renderIntArchive() {
     .sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
   const cnt = el('pIntArchCount');
   if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' CLOSED' : ' CLOSED')) : '';
-  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
+  // An empty ledger is a heading with nothing under it — hide the card instead.
+  const sec = el('pLedgerSec');
+  if (sec) sec.style.display = closed.length ? '' : 'none';
+  if (!closed.length) { wrap.innerHTML = ''; return; }
   const thisYear = String(new Date().getFullYear());
   const years = {};
   closed.forEach(t => { const y = String(t.on || '').slice(0, 4) || 'Undated'; (years[y] = years[y] || []).push(t); });
@@ -2606,7 +2630,6 @@ function openPerson(id) {
   el('pAvatar').style.background = b.bg;
   pHistOpen = false;
   const pab = el('pIntAdd'); if (pab) pab.style.setProperty('--p-acc', b.acc);
-  const pat = el('pIntArchT'); if (pat) pat.style.setProperty('--arch-acc', b.acc);
   el('pAvatar').style.color = b.acc;
   el('pBand').textContent = b.lbl + ' (' + b.range + ')';
   el('pBand').style.background = b.bg;
@@ -2655,9 +2678,8 @@ function pMomentsVisible_() {
   const any = (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim());
   const on = document.body.classList.contains('p-editing');
   const show = any || on;   // hidden entirely when empty, unless you are editing
-  const sec = el('pMomentsSec'), div = el('pMomDiv');
+  const sec = el('pMomentsSec');
   if (sec) sec.style.display = show ? '' : 'none';
-  if (div) div.style.display = show ? '' : 'none';
 }
 // Older moments hold just a year; keep them readable rather than blanking them.
 function moIso_(v) {
@@ -2769,6 +2791,11 @@ el('pEdit').addEventListener('click', () => {
   renderIntents();
   if (on) { pNk.refresh(); pNk.focusEnd(); } else { savePerson_(true); }
 });
+el('pTalkAdd').addEventListener('click', () => {
+  el('fTalkOn').value = new Date().toISOString().slice(0, 10);
+  el('fTalkNote').value = '';
+  el('pTalkModal').classList.remove('hidden');
+});
 el('pLastSpoke').addEventListener('click', e => {
   const del = e.target.closest('[data-talkdel]');
   if (del) {
@@ -2781,11 +2808,6 @@ el('pLastSpoke').addEventListener('click', e => {
     return;
   }
   if (e.target.closest('#pHistBtn')) { pHistOpen = !pHistOpen; renderLastSpoke(); return; }
-  if (e.target.closest('#pTalkBtn')) {
-    el('fTalkOn').value = new Date().toISOString().slice(0, 10);
-    el('fTalkNote').value = '';
-    el('pTalkModal').classList.remove('hidden');
-  }
 });
 el('pTalkCancel').addEventListener('click', () => el('pTalkModal').classList.add('hidden'));
 el('pTalkSave').addEventListener('click', () => {
@@ -2930,7 +2952,7 @@ function prMatrix_(items, QMAP, esc) {
     const rows = open.filter(t => (t.q || 'q2') === k);
     if (!rows.length) return;
     const q = QMAP[k];
-    out += '<h3>' + esc(q.code + ' \u00B7 ' + String(q.sub).replace(/&amp;/g, '&')) + '</h3><ul>'
+    out += '<h3 style="color:' + q.acc + '">' + esc(q.code + ' \u00B7 ' + String(q.sub).replace(/&amp;/g, '&')) + '</h3><ul>'
         + rows.map(t => '<li>' + esc(t.t || t.title || '') + '</li>').join('') + '</ul>';
   });
   return out;
@@ -2951,24 +2973,32 @@ el('pPrint').addEventListener('click', () => {
   const p = pPerson_();
   const b = BANDS.find(x => x.key === p.band) || BANDS[0];
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const ms = (pData.moments || []).map(m => '<li>' + (m.y ? '<span class="y">' + esc(moShow_(m.y)) + '</span> ' : '') + esc(m.t || '') + '</li>').join('');
+  const ms = (pData.moments || []).map(m => '<li><span class="y">' + esc(moShow_(m.y)) + '</span>' + esc(m.t || '') + '</li>').join('');
   const talks = (pData.contacts || []).slice().sort((a, b) => String(b.on).localeCompare(String(a.on)));
   const lastT = talks[0];
-  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3a5b9c;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}.rule{width:110px;height:2px;background:#ccc;margin:30px auto 22px;border-radius:1px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3a5b9c;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}ul{list-style:none;padding:0;margin:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;padding:5px 0;line-height:1.55;border:none} ul.dt li{display:flex;gap:14px;align-items:baseline}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#777;min-width:80px;flex-shrink:0} .tagp{font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;color:#666;margin-left:8px} .big{font-family:'Fraunces',Georgia,serif;font-size:17px;margin-bottom:6px} .box{border:1px solid #d5d5d5;border-radius:6px;padding:14px 17px;margin-top:16px;page-break-inside:avoid} .bh{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.2em;color:#888;margin-bottom:9px} .box h3{font-family:'IBM Plex Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;margin:12px 0 3px} .box h3:first-child{margin-top:0}.box .essay{font-size:15px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
+  // A box only when there is something to put in it — a sparse person should
+  // print as half a page, not five empty frames.
+  const box = (label, inner) => inner ? '<div class="box"><div class="bh">' + label + '</div>' + inner + '</div>' : '';
+  const talkBody = lastT
+    ? '<p class="big">' + esc(priFmt(lastT.on)) + (lastT.note ? ' \u2014 ' + esc(lastT.note) : '') + '</p>'
+      + (talks.length > 1 ? '<ul class="dt">' + talks.slice(1).map(t =>
+          '<li><span class="y">' + esc(priFmt(t.on)) + '</span>' + esc(t.note || '') + '</li>').join('') + '</ul>' : '')
+    : '';
+  const nextBody = prMatrix_(pData.intents, PERSON_Q, esc).replace(/^<h2>The matrix<\/h2>/, '');
+  const ledgerBody = prLedger_(pData.intents, PERSON_Q, esc, 'x').replace(/^<h2>x<\/h2>/, '');
+  const noteBody = (function () {
+    const note = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '');
+    return note ? '<div class="essay">' + note + '</div>' : '';
+  })();
   const body = '<div class="eyebrow">My Circle</div><h1>' + esc(p.name || '')
-    + (p.tag ? ' <span class="meta">(' + esc(p.tag) + ')</span>' : '') + '</h1>'
+    + (p.tag ? ' <span class="tagp">' + esc(p.tag) + '</span>' : '') + '</h1>'
     + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
-    + (lastT ? '<h2>Last spoke</h2><ul><li><strong>' + esc(priFmt(lastT.on)) + '</strong>'
-        + (lastT.note ? ' \u2014 ' + esc(lastT.note) : '') + '</li></ul>' : '')
-    + (talks.length > 1 ? '<h2>Every conversation</h2><ul>' + talks.map(t =>
-        '<li>' + esc(priFmt(t.on)) + (t.note ? ' \u2014 ' + esc(t.note) : '') + '</li>').join('') + '</ul>' : '')
-    + prMatrix_(pData.intents, PERSON_Q, esc)
-    + prLedger_(pData.intents, PERSON_Q, esc, 'The ledger')
-    + (ms ? '<h2>Important moments</h2><ul>' + ms + '</ul>' : '')
-    + (function () {
-        const note = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '');
-        return note ? '<div class="rule"></div><div class="essay">' + note + '</div>' : '';
-      })();
+    + box('LAST SPOKE', talkBody)
+    + box('WHAT IS NEXT', nextBody)
+    + box('THE LEDGER', ledgerBody)
+    + box('IMPORTANT MOMENTS', ms ? '<ul class="dt">' + ms + '</ul>' : '')
+    + box('IN MY WORDS', noteBody);
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(p.name || 'Person') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 
