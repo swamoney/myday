@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#203a72">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
 <style>
   :root { --serif:'Fraunces',Georgia,serif; --sans:'IBM Plex Sans',-apple-system,system-ui,sans-serif; --mono:'IBM Plex Mono','SF Mono',monospace; --hand:'Caveat',cursive; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
@@ -312,7 +312,13 @@
   body.editing .addrow { display:block; }
   .c-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
   /* ===== Circle: person page ===== */
+  /* My Circle's own material: sage and cream, Newsreader for names and writing.
+     Deliberately unlike the other rooms — a person is not a ledger entry. */
+  #personWin { --pc-bg:#EFEEE9; --pc-card:#FBFBF9; --pc-bord:#DCDBD4; --pc-line:#E7E6DF;
+               --pc-deep:#2F4B3F; --pc-wash:#E4EAE3; --pc-ink:#1C2F27; --pc-mut:#6B6C64; --pc-faint:#8A8B84; }
   .pw { position:fixed; inset:0; z-index:520; background:#fbfcfe; display:none; flex-direction:column; }
+  #personWin { background:var(--pc-bg); }
+  #personWin .pin { max-width:1000px; }
   .pw.show { display:flex; }
   .pbar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid #eef1f6; background:#fff; flex-shrink:0; }
   .pback { background:none; border:none; font-size:13px; font-weight:600; color:#3a4560; cursor:pointer; }
@@ -331,19 +337,22 @@
   .pw .pin { background:none; }
   /* R1 — one sheet, five sections. A label and a hairline running to the edge,
      identical every time; colour stays with the content. */
-  .p-card { background:none; border:none; border-radius:0; padding:0; margin:0 0 30px; box-shadow:none; }
-  .p-card:last-of-type { margin-bottom:6px; }
-  .p-ch { display:flex; align-items:center; gap:11px; margin-bottom:13px; }
-  .p-ch::after { content:''; flex:1; height:1px; background:#e6ebf2; order:1; }
+  /* Desktop: two columns, everything open, the note full width beneath at a
+     proper reading measure. Phone: one column, sections collapse. */
+  #personWin .p-grid { display:grid; grid-template-columns:1.25fr 1fr; gap:0;
+                       border-top:1px solid var(--pc-line); }
+  #personWin .p-colA { padding:24px 30px 30px 0; border-right:1px solid var(--pc-line); }
+  #personWin .p-colB { padding:24px 0 30px 30px; }
+  .p-card { background:none; border:none; border-radius:0; padding:0; margin:0 0 28px; box-shadow:none; }
+  .p-colB .p-card:last-child, .p-colA .p-card:last-child { margin-bottom:0; }
+  .p-card.p-note { margin:0; padding:26px 0 10px; border-top:1px solid var(--pc-line); }
+  .p-ch { display:flex; align-items:center; gap:12px; margin-bottom:13px; }
+  .p-ch::after { content:''; flex:1; height:1px; background:var(--pc-line); order:1; }
   .p-ch .p-cb, .p-ch .p-cn { order:2; }
-  /* The heading is the control: tap anywhere on the label to open or close. */
   .p-ct { display:flex; align-items:center; gap:9px; background:none; border:none; padding:0;
-          cursor:pointer; font-family:inherit; }
-  .p-cv { width:13px; height:13px; color:#aab4c8; flex-shrink:0; transition:transform .16s; }
-  .p-card.open .p-cv { transform:rotate(90deg); }
-  .p-sbody { display:none; padding-bottom:2px; }
-  .p-card.open .p-sbody { display:block; }
-  .p-card:not(.open) { margin-bottom:12px; }
+          cursor:default; font-family:inherit; }
+  .p-cv { display:none; width:13px; height:13px; color:var(--pc-faint); flex-shrink:0; transition:transform .16s; }
+  .p-sbody { display:block; }
   /* A quiet sub-heading inside a section, one step down from the section label. */
   .p-sub { margin-top:22px; padding-top:15px; border-top:1px solid #eef1f6; }
   .p-subh { display:flex; align-items:center; gap:10px; margin-bottom:11px; }
@@ -354,16 +363,35 @@
   /* The heading takes the person's own ring colour, at wash strength — enough
      to mark a section, quiet enough to appear five times on one page. */
   /* Navy, the same on every person's page — the band already shows in the tag. */
-  .p-cl { font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:0.2em;
-          text-transform:uppercase; color:#22334f; background:#e7eaf0;
-          padding:5px 10px; border-radius:7px; }
-  .p-cn { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#aab4c8; white-space:nowrap; }
-  .p-cb { font-family:inherit; font-size:10.5px; font-weight:600; color:#5A6478; background:#fff;
-          border:1px solid #e0e6ef; border-radius:8px; padding:5px 11px; cursor:pointer; }
-  .p-cb:hover { border-color:#b9c4d4; }
-  .p-cb.solid { background:var(--p-acc,#46586f); border-color:var(--p-acc,#46586f); color:#fff; }
-  .p-cb.solid:hover { filter:brightness(0.92); }
+  .p-cl { font-family:var(--mono); font-size:9.5px; font-weight:600; letter-spacing:0.2em;
+          text-transform:uppercase; color:var(--pc-deep); background:none; padding:0; }
+  .p-cn { font-family:var(--mono); font-size:10px; font-weight:400; letter-spacing:0.02em; color:var(--pc-mut); white-space:nowrap; }
+  .p-cb { font-family:var(--mono); font-size:9.5px; font-weight:500; letter-spacing:0.12em;
+          text-transform:uppercase; color:var(--pc-deep); background:none;
+          border:1px solid var(--pc-bord); border-radius:3px; padding:5px 10px; cursor:pointer; }
+  .p-cb:hover { background:var(--pc-wash); }
+  .p-cb.solid { background:var(--pc-deep); border-color:var(--pc-deep); color:#fff; }
+  .p-cb.solid:hover { filter:brightness(1.15); }
   .p-ls { padding:0; }
+  /* The one fact worth seeing before you read anything. */
+  #personWin .p-lastline { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-top:9px; }
+  #personWin .p-lslab { font-family:var(--mono); font-size:9px; letter-spacing:0.2em; text-transform:uppercase; color:var(--pc-mut); }
+  #personWin .p-lsbig { font-family:'Newsreader',Georgia,serif; font-size:22px; color:var(--pc-ink); line-height:1; }
+  #personWin .p-lssub { font-size:11.5px; color:var(--pc-faint); }
+  #personWin .p-note .pessay, #personWin .p-note .p-sbody { max-width:660px; }
+  @media (max-width:820px) {
+    #personWin .p-grid { grid-template-columns:1fr; border-top:none; }
+    #personWin .p-colA { padding:20px 0 0; border-right:none; }
+    #personWin .p-colB { padding:0; }
+    /* Only here does a section fold — the desktop has the room to show it all. */
+    #personWin .p-ct { cursor:pointer; }
+    #personWin .p-cv { display:block; }
+    #personWin .p-card.open .p-cv { transform:rotate(90deg); }
+    #personWin .p-sbody { display:none; padding-bottom:2px; }
+    #personWin .p-card.open .p-sbody { display:block; }
+    #personWin .p-card { margin-bottom:16px; padding-top:16px; border-top:1px solid var(--pc-line); }
+    #personWin .p-card.p-note { padding-top:16px; }
+  }
   .p-lsrow { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
   /* One size with the rest of the card; the rule marks it instead. */
   .p-lsval { font-family:var(--serif); font-size:15px; font-weight:600; color:#28324B;
@@ -390,16 +418,17 @@
   .p-addbtn svg { width:14px; height:14px; flex-shrink:0; }
   .p-addbtn:hover { filter:brightness(0.92); }
   .pnamerow { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; margin:2px 0 7px; }
-  .pname { font-family:var(--serif); font-size:32px; font-weight:600; line-height:1.1; }
+  .pname { font-family:'Newsreader',Georgia,serif; font-size:40px; font-weight:400; line-height:1.05; color:var(--pc-ink,#1C2F27); letter-spacing:-0.01em; }
   /* The same tag as the index card, scaled to sit beside a 32px name. */
-  .ptag { display:inline-block; font-family:var(--sans); font-size:12px; font-weight:600;
-          letter-spacing:0.01em; color:#fff; padding:4px 11px; border-radius:7px; line-height:1.3; }
+  .ptag { display:inline-block; font-family:var(--sans); font-size:12.5px; font-weight:500;
+          letter-spacing:0.01em; color:var(--pc-deep,#2F4B3F); background:var(--pc-wash,#E4EAE3) !important;
+          padding:3px 11px; border-radius:999px; line-height:1.4; }
   @media (max-width:640px) { .ptag { font-size:11px; padding:3px 9px; } }
   .pmeta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .pnote { font-size:12.5px; color:#8a94a8; }
-  .pessay.ro { font-family:var(--serif); font-size:18px; line-height:1.75; color:#1c2331; white-space:pre-wrap; min-height:40px; }
+  .pessay.ro { font-family:'Newsreader',Georgia,serif; font-size:16px; line-height:1.8; color:#1C2F27; white-space:pre-wrap; min-height:40px; }
   .pessay.ro.empty { color:#c3ccdb; font-style:italic; }
-  .pessay.inp { display:none; width:100%; font-family:var(--serif); font-size:18px; line-height:1.75; color:#1c2331; background:transparent; border:none; border-bottom:1px dashed #e2e8f0; padding:0 0 10px; min-height:200px; resize:vertical; }
+  .pessay.inp { display:none; width:100%; font-family:'Newsreader',Georgia,serif; font-size:16px; line-height:1.8; color:#1C2F27; background:transparent; border:none; border-bottom:1px dashed #e2e8f0; padding:0 0 10px; min-height:200px; resize:vertical; }
   .pessay.inp:focus { outline:none; border-bottom-color:#c9a94a; }
   body.p-editing .pessay.ro { display:none; }
   body.p-editing .pessay.inp { display:block; }
@@ -1252,6 +1281,9 @@
         <div class="pb">
           <div class="peyebrow">My Circle</div>
           <div class="pnamerow"><span class="pname" id="pName"></span><span class="ptag" id="pTag"></span></div>
+          <div class="p-lastline"><span class="p-lslab">Last spoke</span>
+            <span class="p-lsbig" id="pLastBig">&mdash;</span>
+            <span class="p-lssub" id="pLastSub"></span></div>
           <div class="pmeta"><span class="bd" id="pBand"></span><span class="pnote" id="pNote"></span></div>
         </div>
       </div>
@@ -1259,13 +1291,8 @@
       <div id="pToolbar"></div>
       </div>
       <!-- One heading system for every section; colour belongs to the content. -->
-      <section class="p-card" data-sec="ls">
-        <div class="p-ch"><button class="p-ct" type="button" data-toggle="ls"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Last spoke</span></button>
-          <span class="p-cn" id="pLsSum"></span>
-          <button class="p-cb solid" id="pTalkAdd" type="button">Record</button></div>
-        <div class="p-sbody"><div class="p-ls" id="pLastSpoke"></div></div>
-      </section>
-
+      <div class="p-grid">
+      <div class="p-colA">
       <section class="p-card" data-sec="next">
         <div class="p-ch"><button class="p-ct" type="button" data-toggle="next"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">What is next</span></button>
           <span class="p-cn" id="pNextSum"></span>
@@ -1285,14 +1312,25 @@
           </div>
         </div>
       </section>
+      </div>
 
+      <div class="p-colB">
       <section class="p-card" id="pMomentsSec" data-sec="mom">
         <div class="p-ch"><button class="p-ct" type="button" data-toggle="mom"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Important moments</span></button>
           <span class="p-cn" id="pMomSum"></span></div>
         <div class="p-sbody"><div id="pMoments"></div></div>
       </section>
 
-      <section class="p-card" data-sec="note">
+      <section class="p-card" data-sec="ls">
+        <div class="p-ch"><button class="p-ct" type="button" data-toggle="ls"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Recent conversation</span></button>
+          <span class="p-cn" id="pLsSum"></span>
+          <button class="p-cb solid" id="pTalkAdd" type="button">Record</button></div>
+        <div class="p-sbody"><div class="p-ls" id="pLastSpoke"></div></div>
+      </section>
+      </div>
+      </div>
+
+      <section class="p-card p-note" data-sec="note">
         <div class="p-ch"><button class="p-ct" type="button" data-toggle="note"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">The long note</span></button>
           <span class="p-cn" id="pNoteSum"></span></div>
         <div class="p-sbody">
@@ -2531,7 +2569,9 @@ function pDaysAgo_(iso) {
 // Every section starts closed, every time. The page then always opens the same
 // way, whoever you are looking at and however long since you last looked.
 function pApplySections() {
-  document.querySelectorAll('#personWin .p-card[data-sec]').forEach(sec => sec.classList.remove('open'));
+  // Open is the resting state. On a phone the stylesheet hides bodies unless a
+  // section carries .open, so this starts everything expanded on both.
+  document.querySelectorAll('#personWin .p-card[data-sec]').forEach(sec => sec.classList.add('open'));
   const set = (id, txt) => { const e = el(id); if (e) e.textContent = txt; };
   const talks = pData.contacts || [];
   const last = talks.slice().sort((a, b) => String(a.on).localeCompare(String(b.on)))[talks.length - 1];
@@ -2676,6 +2716,11 @@ function openPerson(id) {
   pData = pParse(p.page);
   el('pTitle').innerHTML = 'My Circle &middot; ' + escHtml(p.name || '');
   el('pName').textContent = p.name || '';
+  const talksAll = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
+  const lastTalk = talksAll[talksAll.length - 1];
+  el('pLastBig').textContent = lastTalk ? pDaysAgo_(lastTalk.on).replace(/^t/, 'T').replace(/^y/, 'Y') : 'Never';
+  el('pLastSub').textContent = lastTalk
+    ? priFmt(lastTalk.on) + (lastTalk.note ? ' \u00B7 ' + lastTalk.note : '') : 'no conversation recorded';
   const ptg = el('pTag');
   if (p.tag && p.tag.trim()) {
     ptg.textContent = p.tag.trim();
