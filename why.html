@@ -333,13 +333,22 @@
      identical every time; colour stays with the content. */
   .p-card { background:none; border:none; border-radius:0; padding:0; margin:0 0 30px; box-shadow:none; }
   .p-card:last-of-type { margin-bottom:6px; }
-  .p-ch { display:flex; align-items:center; gap:12px; margin-bottom:13px; }
+  .p-ch { display:flex; align-items:center; gap:11px; margin-bottom:13px; }
   .p-ch::after { content:''; flex:1; height:1px; background:#e6ebf2; order:1; }
   .p-ch .p-cb, .p-ch .p-cn { order:2; }
+  /* The heading is the control: tap anywhere on the label to open or close. */
+  .p-ct { display:flex; align-items:center; gap:9px; background:none; border:none; padding:0;
+          cursor:pointer; font-family:inherit; }
+  .p-cv { width:13px; height:13px; color:#aab4c8; flex-shrink:0; transition:transform .16s; }
+  .p-card.open .p-cv { transform:rotate(90deg); }
+  .p-sbody { display:none; padding-bottom:2px; }
+  .p-card.open .p-sbody { display:block; }
+  .p-card:not(.open) { margin-bottom:12px; }
   /* The heading takes the person's own ring colour, at wash strength — enough
      to mark a section, quiet enough to appear five times on one page. */
+  /* Navy, the same on every person's page — the band already shows in the tag. */
   .p-cl { font-family:var(--mono); font-size:8.5px; font-weight:700; letter-spacing:0.2em;
-          text-transform:uppercase; color:var(--p-ink,#8B97AC); background:var(--p-wash,transparent);
+          text-transform:uppercase; color:#22334f; background:#e7eaf0;
           padding:5px 10px; border-radius:7px; }
   .p-cn { font-family:var(--mono); font-size:8.5px; font-weight:600; letter-spacing:0.14em; color:#aab4c8; white-space:nowrap; }
   .p-cb { font-family:inherit; font-size:10.5px; font-weight:600; color:#5A6478; background:#fff;
@@ -1246,38 +1255,46 @@
       <div id="pToolbar"></div>
       </div>
       <!-- One heading system for every section; colour belongs to the content. -->
-      <section class="p-card">
-        <div class="p-ch"><span class="p-cl">Last spoke</span>
+      <section class="p-card" data-sec="ls">
+        <div class="p-ch"><button class="p-ct" type="button" data-toggle="ls"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Last spoke</span></button>
+          <span class="p-cn" id="pLsSum"></span>
           <button class="p-cb" id="pTalkAdd" type="button">Record</button></div>
-        <div class="p-ls" id="pLastSpoke"></div>
+        <div class="p-sbody"><div class="p-ls" id="pLastSpoke"></div></div>
       </section>
 
-      <section class="p-card">
-        <div class="p-ch"><span class="p-cl">What is next</span>
+      <section class="p-card" data-sec="next">
+        <div class="p-ch"><button class="p-ct" type="button" data-toggle="next"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">What is next</span></button>
+          <span class="p-cn" id="pNextSum"></span>
           <button class="p-cb solid" id="pIntAdd" type="button">Add</button></div>
+        <div class="p-sbody">
         <div class="pr-axtop"><span>SOONER</span><span>LATER</span></div>
         <div class="pr-axrow">
           <div class="pr-axleft"><span>ACTIVE</span><span>NOT ACTIVE</span></div>
           <div class="pr-mx" id="pIntMatrix"></div>
         </div>
         <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
+        </div>
       </section>
 
-      <section class="p-card" id="pLedgerSec">
-        <div class="p-ch"><span class="p-cl">The ledger</span>
+      <section class="p-card" id="pLedgerSec" data-sec="led">
+        <div class="p-ch"><button class="p-ct" type="button" data-toggle="led"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">The ledger</span></button>
           <span class="p-cn" id="pIntArchCount"></span></div>
-        <div id="pIntArchive"></div>
+        <div class="p-sbody"><div id="pIntArchive"></div></div>
       </section>
 
-      <section class="p-card" id="pMomentsSec">
-        <div class="p-ch"><span class="p-cl">Important moments</span></div>
-        <div id="pMoments"></div>
+      <section class="p-card" id="pMomentsSec" data-sec="mom">
+        <div class="p-ch"><button class="p-ct" type="button" data-toggle="mom"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Important moments</span></button>
+          <span class="p-cn" id="pMomSum"></span></div>
+        <div class="p-sbody"><div id="pMoments"></div></div>
       </section>
 
-      <section class="p-card">
-        <div class="p-ch"><span class="p-cl">In my words</span></div>
+      <section class="p-card" data-sec="note">
+        <div class="p-ch"><button class="p-ct" type="button" data-toggle="note"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">In my words</span></button>
+          <span class="p-cn" id="pNoteSum"></span></div>
+        <div class="p-sbody">
         <div class="pessay ro" id="pEssayRO"></div>
         <div class="pessay inp" id="pEssay" contenteditable="true" data-placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></div>
+        </div>
       </section>
 
       <div class="pfoot">
@@ -2507,6 +2524,50 @@ function pDaysAgo_(iso) {
   const m = Math.round(n / 30.4);
   return m < 24 ? m + ' months ago' : Math.round(n / 365) + ' years ago';
 }
+// Which sections you leave open persists per person, so a page shapes itself
+// to how you actually use it. Open by default only when there is something in it.
+function pSecKey_() { return 'myday.person.' + (pId || '0') + '.open'; }
+function pSecState_() {
+  try { const o = JSON.parse(localStorage.getItem(pSecKey_()) || 'null'); return o && typeof o === 'object' ? o : null; }
+  catch (e) { return null; }
+}
+function pSecSave_(state) {
+  try { localStorage.setItem(pSecKey_(), JSON.stringify(state)); } catch (e) {}
+}
+function pApplySections() {
+  const saved = pSecState_() || {};
+  const has = {
+    ls:   (pData.contacts || []).length > 0,
+    next: (pData.intents || []).some(t => (t.status || 'open') === 'open'),
+    led:  (pData.intents || []).some(t => t.status && t.status !== 'open'),
+    mom:  (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim()),
+    note: !!NoteEditor.toPlain(pData.essay || '').trim()
+  };
+  document.querySelectorAll('#personWin .p-card[data-sec]').forEach(sec => {
+    const k = sec.dataset.sec;
+    const open = saved[k] !== undefined ? saved[k] : has[k];
+    sec.classList.toggle('open', !!open);
+  });
+  const set = (id, txt) => { const e = el(id); if (e) e.textContent = txt; };
+  const talks = pData.contacts || [];
+  const last = talks.slice().sort((a, b) => String(a.on).localeCompare(String(b.on)))[talks.length - 1];
+  set('pLsSum', last ? pDaysAgo_(last.on) : 'never');
+  const openN = (pData.intents || []).filter(t => (t.status || 'open') === 'open').length;
+  set('pNextSum', openN ? openN + ' open' : 'none');
+  const momN = (pData.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim()).length;
+  set('pMomSum', momN ? String(momN) : 'none');
+  const words = NoteEditor.toPlain(pData.essay || '').trim().split(/\s+/).filter(Boolean).length;
+  set('pNoteSum', words ? words + ' words' : 'empty');
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('#personWin [data-toggle]'); if (!t) return;
+  const sec = t.closest('.p-card'); if (!sec) return;
+  const now = !sec.classList.contains('open');
+  sec.classList.toggle('open', now);
+  const state = pSecState_() || {};
+  state[t.dataset.toggle] = now;
+  pSecSave_(state);
+});
 function renderLastSpoke() {
   const wrap = el('pLastSpoke'); if (!wrap) return;
   const list = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
@@ -2566,10 +2627,9 @@ function renderIntArchive() {
     .sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
   const cnt = el('pIntArchCount');
   if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' CLOSED' : ' CLOSED')) : '';
-  // An empty ledger is a heading with nothing under it — hide the card instead.
-  const sec = el('pLedgerSec');
-  if (sec) sec.style.display = closed.length ? '' : 'none';
-  if (!closed.length) { wrap.innerHTML = ''; return; }
+  // Collapsed rather than hidden: the heading tells you the section is empty,
+  // and gives you somewhere to look when it is not.
+  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
   const thisYear = String(new Date().getFullYear());
   const years = {};
   closed.forEach(t => { const y = String(t.on || '').slice(0, 4) || 'Undated'; (years[y] = years[y] || []).push(t); });
@@ -2674,6 +2734,7 @@ function openPerson(id) {
   renderMoments();
   renderLastSpoke();
   renderIntents();
+  pApplySections();
   el('personWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -2701,9 +2762,8 @@ function setPersonEditing(on) {
 function pMomentsVisible_() {
   const any = (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim());
   const on = document.body.classList.contains('p-editing');
-  const show = any || on;   // hidden entirely when empty, unless you are editing
   const sec = el('pMomentsSec');
-  if (sec) sec.style.display = show ? '' : 'none';
+  if (sec) sec.style.display = '';   // always present; closed when empty
 }
 // Older moments hold just a year; keep them readable rather than blanking them.
 function moIso_(v) {
@@ -2794,7 +2854,7 @@ async function savePersonCore_(force) {
           pLoadedUpd = theirs.updated_at; pDirty = false;
           el('pEssay').innerHTML = NoteEditor.toHtml(pData.essay || '');
           pBaseline = NoteEditor.sanitize(el('pEssay').innerHTML);
-          renderPersonRead(); renderMoments(); renderLastSpoke(); renderIntents();
+          renderPersonRead(); renderMoments(); renderLastSpoke(); renderIntents(); pApplySections();
           el('pSave').textContent = 'Saved';
         }
       });
@@ -2813,6 +2873,7 @@ el('pEdit').addEventListener('click', () => {
   renderMoments();
   renderLastSpoke();
   renderIntents();
+  pApplySections();
   if (on) { pNk.refresh(); pNk.focusEnd(); } else { savePerson_(true); }
 });
 el('pTalkAdd').addEventListener('click', () => {
