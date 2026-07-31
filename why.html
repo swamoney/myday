@@ -1553,6 +1553,13 @@ const PR_STYLE = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,s
   + ".meta{font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:#777;}"
   + "ul{margin:0 0 4px 18px;}li{margin-bottom:6px;}"
   + ".essay p{margin-bottom:11px;}.num{font-weight:600;}"
+  // Each mantra is a block, not a heading — no rules, and nothing left behind
+  // when a mantra has no source or no meaning written yet.
+  + ".mant{margin:0 0 26px;page-break-inside:avoid;}"
+  + ".mant-l{font-size:19px;font-weight:600;line-height:1.4;}"
+  + ".mant-l .num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#999;margin-right:11px;}"
+  + ".mant-s{font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:#777;margin-top:3px;}"
+  + ".mant .essay{margin-top:9px;}"
   + "</style>";
 function prEsc_(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function prOpen_(title, body) {
@@ -1573,10 +1580,16 @@ function printSection() {
   if (activeSec === 'mantra') {
     const list = mtSorted_();
     const body = '<div class="eyebrow">My Why</div><h1>My Mantra</h1>'
-      + list.map((m, i) => '<h2><span class="num">' + String(i + 1).padStart(2, '0') + '</span> '
-        + e(NoteEditor.toPlain(m.text_html || m.text || '')) + '</h2>'
-        + (m.source ? '<div class="meta">' + e(m.source) + '</div>' : '')
-        + '<div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(m.meaning_html || m.meaning || '')) || '') + '</div>').join('');
+      + list.map((m, i) => {
+        const line = e(NoteEditor.toPlain(m.text_html || m.text || '')).trim();
+        const src = e(m.source || '').trim();
+        const mean = NoteEditor.toHtml(NoteEditor.sanitize(m.meaning_html || m.meaning || '')) || '';
+        return '<div class="mant">'
+          + '<div class="mant-l"><span class="num">' + String(i + 1).padStart(2, '0') + '</span>' + line + '</div>'
+          + (src ? '<div class="mant-s">' + src + '</div>' : '')
+          + (mean ? '<div class="essay">' + mean + '</div>' : '')
+          + '</div>';
+      }).join('');
     prOpen_('My Mantra', body); return;
   }
   if (activeSec === 'priority') {
