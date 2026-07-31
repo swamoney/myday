@@ -513,9 +513,6 @@
   .pr-hint { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.13em;
              color:#aab4c8; margin-top:12px; }
   .pr-qempty { font-size:11.5px; color:#aab4c8; font-style:italic; padding:6px 2px; }
-  /* An empty quadrant should not compete with a full one. */
-  .pr-q.quiet { opacity:0.6; }
-  .pr-q.quiet .pr-qv { opacity:0.75; }
   /* The section's own controls: add is the daily action and keeps its words;
      edit is a pencil, the same mark used on mantra and circle cards. */
   .pr-tb { display:flex; justify-content:flex-end; gap:7px; margin-bottom:13px; }
@@ -1296,7 +1293,7 @@
       </section>
 
       <section class="p-card" data-sec="note">
-        <div class="p-ch"><button class="p-ct" type="button" data-toggle="note"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">In my words</span></button>
+        <div class="p-ch"><button class="p-ct" type="button" data-toggle="note"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">The long note</span></button>
           <span class="p-cn" id="pNoteSum"></span></div>
         <div class="p-sbody">
         <div class="pessay ro" id="pEssayRO"></div>
@@ -2595,12 +2592,9 @@ function renderIntents() {
       + '<button class="pr-tk" type="button" data-intedit="' + t.id + '">'
       + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>').join('')
       || '<div class="pr-qempty">nothing here</div>';
-    const full = rows.length > 0;
-    const style = full
-      ? 'background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border:2px solid ' + q.acc + '66;'
-        + 'box-shadow:0 4px 12px ' + q.acc + '1f;'
-      : 'background:#fcfdfe;border:1px dashed #e2e8f1;';
-    return '<div class="pr-q' + (full ? '' : ' quiet') + '" style="' + style + '">'
+    const style = 'background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border:2px solid ' + q.acc + '66;'
+      + 'box-shadow:0 4px 12px ' + q.acc + '1f;';
+    return '<div class="pr-q" style="' + style + '">'
       + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + '</div>'
       + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
       + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
@@ -2746,12 +2740,6 @@ function setPersonEditing(on) {
   const l = el('pEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
   if (!on) renderPersonRead();
 }
-function pMomentsVisible_() {
-  const any = (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim());
-  const on = document.body.classList.contains('p-editing');
-  const sec = el('pMomentsSec');
-  if (sec) sec.style.display = '';   // always present; closed when empty
-}
 // Older moments hold just a year; keep them readable rather than blanking them.
 function moIso_(v) {
   const s = String(v || '').trim();
@@ -2770,7 +2758,6 @@ function moShow_(v) {
 }
 function renderMoments() {
   const list = el('pMoments'); if (!list) return;
-  pMomentsVisible_();
   const editing = document.body.classList.contains('p-editing');
   const rows = (pData.moments || []).map((m, i) =>
     '<div class="mo">' +
@@ -2784,9 +2771,7 @@ function renderMoments() {
     '</div>'
   ).join('');
   list.innerHTML = rows + '<div class="mo add" id="moAdd">+ Add a moment</div>';
-  // Moments only appear when there are some (or while editing, so you can add).
-  const sec = el('pMomentsSec');
-  if (sec) sec.style.display = (editing || (pData.moments && pData.moments.length)) ? '' : 'none';
+  // Every section is always listed; collapsing is what keeps the page short.
 }
 function schedulePersonSave() {
   pDirty = true;
