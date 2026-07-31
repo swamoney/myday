@@ -2788,16 +2788,52 @@ el('pMd').addEventListener('click', () => {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+// Print builders. These have to be updated whenever a page gains a section —
+// that is exactly how last spoke, the matrix and the ledger went missing.
+function prMatrix_(items, QMAP, esc) {
+  const open = (items || []).filter(t => (t.status || 'open') === 'open');
+  if (!open.length) return '';
+  let out = '<h2>The matrix</h2>';
+  ['q1','q2','q3','q4'].forEach(k => {
+    const rows = open.filter(t => (t.q || 'q2') === k);
+    if (!rows.length) return;
+    const q = QMAP[k];
+    out += '<h3>' + esc(q.code + ' \u00B7 ' + String(q.sub).replace(/&amp;/g, '&')) + '</h3><ul>'
+        + rows.map(t => '<li>' + esc(t.t || t.title || '') + '</li>').join('') + '</ul>';
+  });
+  return out;
+}
+function prLedger_(items, QMAP, esc, heading) {
+  const closed = (items || []).filter(t => t.status && t.status !== 'open')
+    .sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
+  if (!closed.length) return '';
+  return '<h2>' + heading + '</h2><ul>' + closed.map(t => {
+    const o = PRI_OUT[t.status] || PRI_OUT.done, q = QMAP[t.q || 'q2'];
+    return '<li><strong>' + esc(t.t || '') + '</strong> \u2014 ' + esc(o.lbl)
+      + (t.who ? ' to ' + esc(t.who) : '')
+      + ' \u00B7 ' + esc(q.code) + ' \u00B7 ' + esc(priFmt(t.on))
+      + (t.outcome ? '<br><span class="meta">' + esc(t.outcome) + '</span>' : '') + '</li>';
+  }).join('') + '</ul>';
+}
 el('pPrint').addEventListener('click', () => {
   const p = pPerson_();
   const b = BANDS.find(x => x.key === p.band) || BANDS[0];
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const ms = (pData.moments || []).map(m => '<li>' + (m.y ? '<span class="y">' + esc(m.y) + '</span> ' : '') + esc(m.t || '') + '</li>').join('');
+  const ms = (pData.moments || []).map(m => '<li>' + (m.y ? '<span class="y">' + esc(moShow_(m.y)) + '</span> ' : '') + esc(m.t || '') + '</li>').join('');
+  const talks = (pData.contacts || []).slice().sort((a, b) => String(b.on).localeCompare(String(a.on)));
+  const lastT = talks[0];
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:32px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#3a5b9c;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}.y{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a6f43;font-weight:600;margin-right:8px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
-  const body = '<div class="eyebrow">My Circle</div><h1>' + esc(p.name || '') + '</h1>'
+  const body = '<div class="eyebrow">My Circle</div><h1>' + esc(p.name || '')
+    + (p.tag ? ' <span class="meta">(' + esc(p.tag) + ')</span>' : '') + '</h1>'
     + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
-    + '<div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '') + '</div>'
-    + (ms ? '<h2>Moments worth keeping</h2><ul>' + ms + '</ul>' : '');
+    + (lastT ? '<h2>Last spoke</h2><ul><li><strong>' + esc(priFmt(lastT.on)) + '</strong>'
+        + (lastT.note ? ' \u2014 ' + esc(lastT.note) : '') + '</li></ul>' : '')
+    + (talks.length > 1 ? '<h2>Every conversation</h2><ul>' + talks.map(t =>
+        '<li>' + esc(priFmt(t.on)) + (t.note ? ' \u2014 ' + esc(t.note) : '') + '</li>').join('') + '</ul>' : '')
+    + prMatrix_(pData.intents, PERSON_Q, esc)
+    + prLedger_(pData.intents, PERSON_Q, esc, 'The ledger')
+    + (ms ? '<h2>Important moments</h2><ul>' + ms + '</ul>' : '')
+    + '<h2>The long note</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(p.name || 'Person') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 
@@ -3880,7 +3916,9 @@ el('rmPrint').addEventListener('click', () => {
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a5702f;float:right}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || p.code || 'My Why') + '</h1>'
     + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
-    + '<h2>The long view</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '') + '</div>';
+    + prMatrix_(rmData.targets, RMX_Q, esc)
+    + prLedger_(rmData.targets, RMX_Q, esc, 'The ledger')
+    + '<h2>Additional note</h2><div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Roadmap \u2014 ' + esc(p.label || 'My Why') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('roadmapWin').classList.contains('show')) closeRoadmap(); });
