@@ -495,6 +495,9 @@
   .pr-hint { font-family:var(--mono); font-size:8px; font-weight:600; letter-spacing:0.13em;
              color:#aab4c8; margin-top:12px; }
   .pr-qempty { font-size:11.5px; color:#aab4c8; font-style:italic; padding:6px 2px; }
+  /* An empty quadrant should not compete with a full one. */
+  .pr-q.quiet { opacity:0.6; }
+  .pr-q.quiet .pr-qv { opacity:0.75; }
   /* The section's own controls: add is the daily action and keeps its words;
      edit is a pencil, the same mark used on mantra and circle cards. */
   .pr-tb { display:flex; justify-content:flex-end; gap:7px; margin-bottom:13px; }
@@ -2542,7 +2545,12 @@ function renderIntents() {
       + '<button class="pr-tk" type="button" data-intedit="' + t.id + '">'
       + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>').join('')
       || '<div class="pr-qempty">nothing here</div>';
-    return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
+    const full = rows.length > 0;
+    const style = full
+      ? 'background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border:2px solid ' + q.acc + '66;'
+        + 'box-shadow:0 4px 12px ' + q.acc + '1f;'
+      : 'background:#fcfdfe;border:1px dashed #e2e8f1;';
+    return '<div class="pr-q' + (full ? '' : ' quiet') + '" style="' + style + '">'
       + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + '</div>'
       + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
       + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
