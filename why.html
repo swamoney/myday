@@ -1096,7 +1096,7 @@
             <div id="rmxArchive"></div>
           </div>
         </div>
-      <div class="rm-div"><span></span><i>ADDITIONAL NOTE</i><span></span></div>
+      <div class="rm-div short"><span></span></div>
       <div id="rmToolbar"></div>
       <div class="rm-sec">
         <div class="rm-essay ro" id="rmEssayRO"></div>
@@ -4048,14 +4048,14 @@ el('rmMd').addEventListener('click', () => {
 el('rmPrint').addEventListener('click', () => {
   const p = rmPillar_();
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a5702f;float:right}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:'Fraunces',serif;font-weight:600;font-size:30px;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:18px}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:15px;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a5702f;float:right}.noterule{width:110px;height:2px;background:#ccc;margin:30px auto 22px;border-radius:1px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || p.code || 'My Why') + '</h1>'
     + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
     + prMatrix_(rmData.targets, RMX_Q, esc)
     + prLedger_(rmData.targets, RMX_Q, esc, 'The ledger')
     + (function () {
         const note = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '');
-        return note ? '<h2>Additional note</h2><div class="essay">' + note + '</div>' : '';
+        return note ? '<div class="noterule"></div><div class="essay">' + note + '</div>' : '';
       })();
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Roadmap \u2014 ' + esc(p.label || 'My Why') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
 });
