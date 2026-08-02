@@ -2642,7 +2642,8 @@ function renderLastSpoke() {
   // One list, newest first. The header already carries the latest, so featuring
   // it again here said the same thing twice.
   const list = (pData.contacts || []).slice().sort((a, b) => String(b.on).localeCompare(String(a.on)));
-  if (!list.length) { wrap.innerHTML = '<div class="p-lsempty">nothing recorded \u2014 and that is fine</div>'; return; }
+  // The heading and its Record button already say the section exists.
+  if (!list.length) { wrap.innerHTML = ''; return; }
   wrap.innerHTML = '<div class="p-lslist">' + list.map(c =>
     '<div class="p-lsi"><i>' + escHtml(priFmt(c.on)) + '</i>'
     + '<span>' + escHtml(c.note || '') + '</span>'
@@ -2680,7 +2681,7 @@ function renderIntArchive() {
   if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' CLOSED' : ' CLOSED')) : '';
   // Collapsed rather than hidden: the heading tells you the section is empty,
   // and gives you somewhere to look when it is not.
-  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
+  if (!closed.length) { wrap.innerHTML = ''; return; }
   const thisYear = String(new Date().getFullYear());
   const years = {};
   closed.forEach(t => { const y = String(t.on || '').slice(0, 4) || 'Undated'; (years[y] = years[y] || []).push(t); });
@@ -2859,7 +2860,7 @@ function renderMoments() {
       '<button class="mo-x" data-mx="' + i + '" type="button" aria-label="Remove">&times;</button>' +
     '</div>'
   ).join('');
-  list.innerHTML = rows;
+  list.innerHTML = rows;   // empty means empty; the Add button is the invitation
   // Every section is always listed; collapsing is what keeps the page short.
 }
 function schedulePersonSave() {
