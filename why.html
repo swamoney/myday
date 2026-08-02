@@ -394,6 +394,7 @@
                           margin-left:auto; text-align:right; flex-shrink:0; }
   #personWin .p-lslab { font-family:var(--mono); font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--pc-mut); }
   #personWin .p-lsbig { font-family:'Newsreader',Georgia,serif; font-size:26px; color:var(--pc-ink); line-height:1; }
+  #personWin .p-lsbig.none { color:#C9C8C1; }
   #personWin .p-lssub { font-size:12px; color:var(--pc-faint); }
   @media (max-width:820px) {
     #personWin .p-lastcol { align-items:flex-start; text-align:left; margin:12px 0 0; width:100%; }
@@ -2748,9 +2749,12 @@ function openPerson(id) {
   el('pName').textContent = p.name || '';
   const talksAll = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
   const lastTalk = talksAll[talksAll.length - 1];
-  el('pLastBig').textContent = lastTalk ? pDaysAgo_(lastTalk.on).replace(/^t/, 'T').replace(/^y/, 'Y') : 'Never';
-  el('pLastSub').textContent = lastTalk
-    ? priFmt(lastTalk.on) + (lastTalk.note ? ' \u00B7 ' + lastTalk.note : '') : 'no conversation recorded';
+  const bigEl = el('pLastBig'), subEl = el('pLastSub');
+  bigEl.textContent = lastTalk ? pDaysAgo_(lastTalk.on).replace(/^t/, 'T').replace(/^y/, 'Y') : '\u2014';
+  bigEl.classList.toggle('none', !lastTalk);
+  subEl.textContent = lastTalk
+    ? priFmt(lastTalk.on) + (lastTalk.note ? ' \u00B7 ' + lastTalk.note : '') : '';
+  subEl.style.display = lastTalk ? '' : 'none';
   const rh = rhythmOf(p.rhythm), rEl = el('pRhythm');
   if (rEl) {
     let over = false;
