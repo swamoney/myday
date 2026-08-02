@@ -260,6 +260,41 @@ backup ever taken, silently.** This happened: `bucket_items`, `why_places` and
 **Test a restore occasionally.** A backup you have never restored is a hope, not a
 backup.
 
+### 6.1 Four ways a backup has silently failed
+
+All four were found on one evening in August 2026, by checking rather than trusting.
+Every one produced a backup that looked perfectly healthy.
+
+**1 · Tables missing from the lists.** `bucket_items`, `why_places` and
+`why_priority` were in neither list for weeks. Nothing warned. See the procedure
+above.
+
+**2 · Supabase caps a plain `select()` at 1000 rows.** The database held 2,761
+daily entries; the backup contained exactly 1,000 and said nothing. A round number
+in a row count is a warning sign, not a coincidence.
+
+The export now pages with `.range(from, from + 999)` until a short block returns.
+**This applies to every table**, and will bite again the first time another table
+crosses 1,000 rows — `note_versions` is at 109 and grows with every edit.
+
+*How to check:* run `select count(*) from public.<table>;` in Supabase and compare
+it against the count `restore.html` reports. They must match.
+
+**3 · Not every table has `created_at`.** Adding `ORDER BY created_at` to the
+paging broke `user_prefs` and `note_versions`, exporting **zero rows** from both.
+The sort column is now chosen per table, and a rejected sort falls back to an
+unsorted fetch rather than losing the table. **Never let a sorting preference cost
+you data.**
+
+**4 · A shared script with no `?v=` never updates.** `note-editor.js` was loaded
+unversioned by all four pages, so a fixed file could sit on GitHub while every
+browser kept running the old one. A fix can look deployed and not be.
+
+**Every `<script src>` for a shared file carries a version parameter.**
+
+**The lesson common to all four:** the backup reported success in each case.
+Only counting rows against the database found them.
+
 ---
 
 ## 7. Migrations
@@ -300,6 +335,8 @@ not the script.
 - Should the roadmap and My Priority adopt the person page's softened palette, or
   stay full-strength on their blue-white ground?
 - Recent conversation will need the aggregate view eventually. Not yet.
+- `restore.html` writes with upsert on id, so a restore adds and updates but never
+  deletes. Verify that still holds if the restore logic is ever rewritten.
 
 ---
 
