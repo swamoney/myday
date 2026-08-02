@@ -699,8 +699,11 @@
     function _fetchAll(t) {
       var PAGE = 1000, rows = [], guard = 0;
       function step(from) {
-        return c.supa.from(t).select('*').eq('user_id', c.userId)
-          .range(from, from + PAGE - 1)
+        var q = c.supa.from(t).select('*').eq('user_id', c.userId);
+        // Paging needs a stable sort or blocks can overlap or skip.
+        q = (t === 'entries') ? q.order('entry_date', { ascending: true })
+                              : q.order('created_at', { ascending: true, nullsFirst: true });
+        return q.range(from, from + PAGE - 1)
           .then(function (r) {
             if (r && r.error) throw r.error;
             var got = (r && r.data) || [];
