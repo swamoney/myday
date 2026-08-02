@@ -693,11 +693,29 @@
   }
   function exportLibrary() {
     var c = vCtx(); if (!c || !c.supa || !c.userId) { alert('Not signed in.'); return; }
-    Promise.all(EXPORT_TABLES.map(function (t) {
-      return c.supa.from(t).select('*').eq('user_id', c.userId)
-        .then(function (r) { return { table: t, rows: (r && r.data) || [], error: r && r.error ? String(r.error.message || r.error) : null }; },
-              function (e) { return { table: t, rows: [], error: String(e && e.message || e) }; });
-    })).then(function (results) {
+    /* Supabase caps a plain select() at 1000 rows and says nothing about it.
+       A backup that stops at 1000 looks perfectly healthy and is not. Page
+       through in blocks until a short block comes back. */
+    function _fetchAll(t) {
+      var PAGE = 1000, rows = [], guard = 0;
+      function step(from) {
+        return c.supa.from(t).select('*').eq('user_id', c.userId)
+          .range(from, from + PAGE - 1)
+          .then(function (r) {
+            if (r && r.error) throw r.error;
+            var got = (r && r.data) || [];
+            rows = rows.concat(got);
+            guard++;
+            // A full block means there may be more; a short one means the end.
+            if (got.length === PAGE && guard < 500) return step(from + PAGE);
+            return { table: t, rows: rows, error: null };
+          });
+      }
+      return step(0).then(null, function (e) {
+        return { table: t, rows: rows, error: String(e && e.message || e) };
+      });
+    }
+    Promise.all(EXPORT_TABLES.map(_fetchAll)).then(function (results) {
       var day = new Date().toISOString().slice(0, 10);
       var jsonName = 'myday-' + day + '.json';
       var mdName = 'myday-' + day + '.md';
