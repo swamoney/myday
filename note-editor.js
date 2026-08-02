@@ -604,8 +604,11 @@
     if (order) q = q.order(order, { ascending: true });
     return q.then(function (r) { return (r && r.data) || []; }, function () { return []; });
   }
+  // EVERY table the app writes to. Adding a table without adding it here means
+  // that data sits outside every backup ever taken — silently.
   var EXPORT_TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',
-                       'why_pillars','why_mantras','why_circle','wisdom','note_versions'];
+                       'why_pillars','why_mantras','why_circle','why_priority',
+                       'bucket_items','why_places','wisdom','note_versions'];
   function _dl(name, text, type) {
     var blob = new Blob([text], { type: type });
     var url = URL.createObjectURL(blob);
