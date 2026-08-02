@@ -2620,17 +2620,15 @@ function pApplySections() {
   const set = (id, txt) => { const e = el(id); if (e) e.textContent = txt; };
   const talks = pData.contacts || [];
   const last = talks.slice().sort((a, b) => String(a.on).localeCompare(String(b.on)))[talks.length - 1];
-  set('pLsSum', last ? pDaysAgo_(last.on) : 'never');
+  set('pLsSum', last ? pDaysAgo_(last.on) : '');
   const ints = pData.intents || [];
   const openN = ints.filter(t => (t.status || 'open') === 'open').length;
   const doneN = ints.filter(t => t.status && t.status !== 'open').length;
-  set('pNextSum', (openN || doneN)
-    ? [openN ? openN + ' open' : '', doneN ? doneN + ' closed' : ''].filter(Boolean).join(' \u00B7 ')
-    : 'none');
+  set('pNextSum', [openN ? openN + ' open' : '', doneN ? doneN + ' closed' : ''].filter(Boolean).join(' \u00B7 '));
   const momN = (pData.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim()).length;
-  set('pMomSum', momN ? String(momN) : 'none');
+  set('pMomSum', momN ? String(momN) : '');
   const words = NoteEditor.toPlain(pData.essay || '').trim().split(/\s+/).filter(Boolean).length;
-  set('pNoteSum', words ? words + ' words' : 'empty');
+  set('pNoteSum', words ? words + ' words' : '');
 }
 document.addEventListener('click', e => {
   const t = e.target.closest('#personWin [data-toggle]'); if (!t) return;
