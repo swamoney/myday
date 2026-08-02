@@ -699,10 +699,12 @@
     function _fetchAll(t) {
       var PAGE = 1000, rows = [], guard = 0;
       function step(from) {
+        // Paging needs a stable sort, but the sort column differs per table
+        // and two tables have none at all.
+        var SORT = { entries:'entry_date', user_prefs:null, note_versions:'saved_at' };
+        var col = SORT.hasOwnProperty(t) ? SORT[t] : 'created_at';
         var q = c.supa.from(t).select('*').eq('user_id', c.userId);
-        // Paging needs a stable sort or blocks can overlap or skip.
-        q = (t === 'entries') ? q.order('entry_date', { ascending: true })
-                              : q.order('created_at', { ascending: true, nullsFirst: true });
+        if (col) q = q.order(col, { ascending: true, nullsFirst: true });
         return q.range(from, from + PAGE - 1)
           .then(function (r) {
             if (r && r.error) throw r.error;
@@ -715,7 +717,16 @@
           });
       }
       return step(0).then(null, function (e) {
-        return { table: t, rows: rows, error: String(e && e.message || e) };
+        // A rejected sort must not cost us the table. Try again unsorted.
+        var msg = String(e && e.message || e);
+        if (/does not exist|column/i.test(msg)) {
+          return c.supa.from(t).select('*').eq('user_id', c.userId).range(0, 99999)
+            .then(function (r) {
+              if (r && r.error) return { table: t, rows: [], error: String(r.error.message || r.error) };
+              return { table: t, rows: (r && r.data) || [], error: null };
+            });
+        }
+        return { table: t, rows: rows, error: msg };
       });
     }
     Promise.all(EXPORT_TABLES.map(_fetchAll)).then(function (results) {
