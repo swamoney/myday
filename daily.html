@@ -11620,7 +11620,7 @@ function aggregateMonthly() {
         regularInvestment: 0, topUp: 0, investmentRedemption: 0,
         recurring: 0,
         walk: 0, walkDays: 0,
-        readingYes: 0, daysLogged: 0
+        readingYes: 0, awayNights: 0, daysLogged: 0
       };
     }
     const e = allEntries[date];
@@ -11645,6 +11645,9 @@ function aggregateMonthly() {
     const w = Number(e.walk);
     if (!isNaN(w) && w > 0) { m.walk += w; m.walkDays++; }
     if (e.reading === 'Yes') m.readingYes++;
+    // A night away = somewhere recorded, and that somewhere is not home.
+    const ns = String(e.nightStay || '').trim();
+    if (ns && !isHomeAddress(ns)) m.awayNights++;
   }
   // Sorted ascending by ym
   return Object.values(months).sort((a, b) => a.ym.localeCompare(b.ym));
@@ -11658,11 +11661,13 @@ const ALM_METRICS = {
   sat:     { label: 'Satisfaction', color: '#A5702F' },
   invest:  { label: 'Investment',   color: '#534AB7' },
   reading: { label: 'Brain Food',   color: '#5C2E40' },
+  away:    { label: 'Nights away',  color: '#2c6f8a' },
 };
 function _almMonthValue(m, metric) {
   if (metric === 'walk') return m.walk > 0 ? m.walk : null;
   if (metric === 'sat')  return m.satCount > 0 ? (m.satSum / m.satCount) * 100 : null;
   if (metric === 'reading') return m.readingYes > 0 ? m.readingYes : null;
+  if (metric === 'away') return m.awayNights > 0 ? m.awayNights : null;
   if (metric === 'invest') {
     const inv = (Number(m.regularInvestment) || 0) + (Number(m.topUp) || 0) - (Number(m.investmentRedemption) || 0);
     return inv > 0 ? inv : null;
@@ -11688,6 +11693,10 @@ function _almYearSummary(list, metric) {
   if (metric === 'reading') {
     const d = list.reduce((s, m) => s + m.readingYes, 0);
     return d ? { v: d, txt: d + ' days' } : null;
+  }
+  if (metric === 'away') {
+    const n = list.reduce((s, m) => s + m.awayNights, 0);
+    return n ? { v: n, txt: n + (n === 1 ? ' night' : ' nights') } : null;
   }
   if (metric === 'spend') {
     const t = list.reduce((s, m) => s + (_almMonthValue(m, 'spend') || 0), 0);
