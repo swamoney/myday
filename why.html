@@ -310,8 +310,13 @@
   .cl-chip.on { background:#46586f; border-color:#46586f; color:#fff; }
   .cl-chip .n { opacity:0.6; margin-left:5px; font-family:var(--mono); font-size:0.5625rem; }
   .c-nmrow { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
-  .c-tag { display:inline-block; font-family:var(--sans); font-size:0.625rem; font-weight:600;
-           letter-spacing:0.01em; color:#fff; padding:3px 9px; border-radius:6px; line-height:1.3; }
+  .c-tag { display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:0.625rem;
+           font-weight:600; letter-spacing:0.01em; color:#4A5570; background:#f2f3f6;
+           padding:3px 9px; border-radius:6px; line-height:1.3; }
+  /* The dot carries the tag; the chip stays out of the way. */
+  .c-tag i { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .cl-chip i, .tag-pick button i { display:inline-block; width:6px; height:6px; border-radius:50%;
+                                   margin-right:6px; vertical-align:1px; flex-shrink:0; }
   .c-note { font-size:0.75rem; color:#8a94a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
   .c-go { color:#c3ccdb; display:flex; flex-shrink:0; }
   .c-go svg { width:15px; height:15px; }
@@ -2522,11 +2527,12 @@ function renderCircleChips() {
       + 'All<span class="n">' + circle.length + '</span></button>'
     + keys.map(k => {
       const tc = tagColour(labels[k]);
-      const st = circleTag === k
-        ? 'background:' + tc.ink + ';border-color:' + tc.ink + ';color:#fff'
-        : 'background:' + tc.wash + ';border-color:' + tc.wash + ';color:' + tc.ink;
-      return '<button class="cl-chip' + (circleTag === k ? ' on' : '') + '" type="button" style="' + st
-        + '" data-ctag="' + escHtml(k) + '">' + escHtml(labels[k])
+      const on = circleTag === k;
+      // Selected fills with the tag's colour; otherwise the dot alone carries it.
+      const st = on ? 'background:' + tc.ink + ';border-color:' + tc.ink + ';color:#fff' : '';
+      return '<button class="cl-chip' + (on ? ' on' : '') + '" type="button" style="' + st
+        + '" data-ctag="' + escHtml(k) + '">'
+        + '<i style="background:' + (on ? '#fff' : tc.ink) + '"></i>' + escHtml(labels[k])
         + '<span class="n">' + counts[k] + '</span></button>';
     }).join('');
 }
@@ -2565,7 +2571,7 @@ function renderCircle() {
           '<span class="c-nmrow"><span class="c-name">' + escHtml(p.name || '') + '</span>' +
             (p.tag && p.tag.trim() ? (function () {
               const tc = tagColour(p.tag);
-              return '<span class="c-tag" style="background:' + tc.wash + ';color:' + tc.ink + '">'
+              return '<span class="c-tag"><i style="background:' + tc.ink + '"></i>'
                 + escHtml(p.tag.trim()) + '</span>';
             })() : '') +
           '</span>' +
@@ -2602,11 +2608,11 @@ function renderTagPicker() {
   const cur = clTagKey(el('fTag').value);
   wrap.innerHTML = keys.map(k => {
     const tc = tagColour(labels[k]);
-    const st = cur === k
-      ? 'background:' + tc.ink + ';border-color:' + tc.ink + ';color:#fff'
-      : 'background:' + tc.wash + ';border-color:' + tc.wash + ';color:' + tc.ink;
-    return '<button type="button" style="' + st + '" class="' + (cur === k ? 'on' : '')
-      + '" data-tagpick="' + escHtml(labels[k]) + '">' + escHtml(labels[k]) + '</button>';
+    const on = cur === k;
+    const st = on ? 'background:' + tc.ink + ';border-color:' + tc.ink + ';color:#fff' : '';
+    return '<button type="button" style="' + st + '" class="' + (on ? 'on' : '')
+      + '" data-tagpick="' + escHtml(labels[k]) + '">'
+      + '<i style="background:' + (on ? '#fff' : tc.ink) + '"></i>' + escHtml(labels[k]) + '</button>';
   }).join('');
 }
 el('fTagPick').addEventListener('click', e => {
@@ -2849,9 +2855,10 @@ function openPerson(id) {
   const ptc = tagColour(p.tag);
   const ptg = el('pTag');
   if (p.tag && p.tag.trim()) {
-    ptg.textContent = p.tag.trim();
-    ptg.style.background = ptc.wash;
-    ptg.style.color = ptc.ink;
+    ptg.innerHTML = '<i style="display:inline-block;width:6px;height:6px;border-radius:50%;'
+      + 'background:' + ptc.ink + ';margin-right:6px;vertical-align:1px"></i>' + escHtml(p.tag.trim());
+    ptg.style.background = 'var(--pc-wash,#E4EAE3)';
+    ptg.style.color = 'var(--pc-deep,#2F4B3F)';
     ptg.style.display = '';
   } else ptg.style.display = 'none';
   el('pAvatar').textContent = (p.name || '?').trim().charAt(0).toUpperCase();
