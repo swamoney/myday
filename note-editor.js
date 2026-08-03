@@ -979,13 +979,13 @@
     }
     function restoreRange() {
       var s = window.getSelection();
-      if (s && s.rangeCount && editor.contains(s.getRangeAt(0).commonAncestorContainer)) return; // live selection wins
+      if (s && s.rangeCount && editor.contains(s.getRangeAt(0).commonAncestorContainer)) return true; // live selection wins
       if (savedRange && editor.contains(savedRange.commonAncestorContainer)) {
-        s.removeAllRanges(); s.addRange(savedRange); return;
+        s.removeAllRanges(); s.addRange(savedRange); return true;
       }
-      var r = document.createRange();                       // fall back to end
-      r.selectNodeContents(editor); r.collapse(false);
-      s.removeAllRanges(); s.addRange(r);
+      // No caret anywhere in this note. Silently formatting the end of the
+      // note is worse than doing nothing — that is the phantom bold.
+      return false;
     }
     function exec(cmd, val) { try { document.execCommand(cmd, false, val == null ? null : val); } catch (e) {} }
 
@@ -1030,7 +1030,7 @@
       });
     }
     function applySwatch(kind, key) {
-      editor.focus(); restoreRange();
+      editor.focus(); if (!restoreRange()) return;
       var list = kind === 'text' ? TEXT_SW : HIGH_SW;
       var sw = null;
       list.forEach(function (s) { if (s.key === key) sw = s; });
@@ -1053,13 +1053,29 @@
       if (!e.target.closest('[data-nk-pop]') && !e.target.closest('.nk-pop')) closePops();
     });
 
+    /* Which block tag the caret actually sits in — the DOM is the truth, and it
+       reads the same in every browser. */
+    function curBlock() {
+      var s = window.getSelection();
+      if (!s || !s.rangeCount) return '';
+      var n = s.getRangeAt(0).startContainer;
+      if (n.nodeType === 3) n = n.parentNode;
+      while (n && n !== editor) {
+        var t = (n.tagName || '').toLowerCase();
+        if (t === 'h1' || t === 'h2' || t === 'h3' || t === 'h4' ||
+            t === 'blockquote' || t === 'p' || t === 'pre' || t === 'li') return t;
+        n = n.parentNode;
+      }
+      return '';
+    }
+
     /* toolbar state */
     function refresh() {
       toolbar.querySelectorAll('.nk-b[data-nk-cmd]').forEach(function (b) {
         var active = false;
         try {
           if (b.dataset.nkCmd === 'formatBlock') {
-            active = (document.queryCommandValue('formatBlock') || '').toLowerCase() === (b.dataset.nkVal || '').toLowerCase();
+            active = curBlock() === (b.dataset.nkVal || '').toLowerCase();
           } else active = document.queryCommandState(b.dataset.nkCmd);
         } catch (e) {}
         b.classList.toggle('on', active);
@@ -1075,7 +1091,7 @@
       if (act === 'link') { activeInst = inst; saveRange(); openLink(); return; }
       if (act === 'check') { insertChecklist(); return; }
       if (act === 'clearfmt') {
-        editor.focus(); restoreRange();
+        editor.focus(); if (!restoreRange()) return;
         var s = window.getSelection();
         if (!s || !s.rangeCount || s.isCollapsed) return;   // needs a selection; no surprises
         recordNow();                                        // one Undo brings it all back
@@ -1087,7 +1103,11 @@
       }
       if (act === 'undo') { doUndo(); return; }
       if (act === 'redo') { doRedo(); return; }
-      if (act === 'hr') { editor.focus(); restoreRange(); recordNow(); exec('insertHTML', '<hr><p><br></p>'); noteChanged(); return; }
+      if (act === 'hr') {
+        editor.focus();
+        if (!restoreRange()) return;
+        recordNow(); exec('insertHTML', '<hr><p><br></p>'); noteChanged(); return;
+      }
       if (pop) {
         saveRange();
         var want = pop === 'text' ? popText : popHigh;
@@ -1096,11 +1116,13 @@
         return;
       }
       if (!cmd) return;
-      editor.focus(); restoreRange();
+      editor.focus();
+      if (!restoreRange()) { refresh(); return; }   // no caret: do nothing
+      recordNow();
       if (cmd === 'formatBlock') {
-        var cur = '';
-        try { cur = (document.queryCommandValue('formatBlock') || '').toLowerCase(); } catch (e2) {}
-        exec('formatBlock', cur === (b.dataset.nkVal || '').toLowerCase() ? 'p' : b.dataset.nkVal);
+        // Tapping the same block again returns it to a paragraph.
+        var want = (b.dataset.nkVal || '').toLowerCase();
+        exec('formatBlock', curBlock() === want ? 'p' : want);
       } else exec(cmd);
       refresh(); noteChanged();
     });
@@ -1125,7 +1147,7 @@
 
     /* checklist */
     function insertChecklist() {
-      editor.focus(); restoreRange();
+      editor.focus(); if (!restoreRange()) return;
       recordNow();
       exec('insertHTML', '<ul class="fr-check"><li><span class="fr-cb" contenteditable="false"></span>&nbsp;</li></ul><p><br></p>');
       noteChanged();
@@ -1193,16 +1215,16 @@
         var r = document.createRange(); r.selectNodeContents(editor); r.collapse(false);
         var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
       },
-      insertHTML: function (html) { editor.focus(); restoreRange(); recordNow(); exec('insertHTML', html); noteChanged(); },
+      insertHTML: function (html) { editor.focus(); if (!restoreRange()) return; recordNow(); exec('insertHTML', html); noteChanged(); },
       applyLink: function (url) {
-        editor.focus(); restoreRange();
+        editor.focus(); if (!restoreRange()) return;
         var sel = window.getSelection();
         recordNow();
         if (sel && sel.isCollapsed) exec('insertHTML', '<a href="' + url.replace(/"/g, '&quot;') + '">' + esc(url) + '</a>');
         else exec('createLink', url);
         noteChanged();
       },
-      removeLink: function () { editor.focus(); restoreRange(); recordNow(); exec('unlink'); noteChanged(); },
+      removeLink: function () { editor.focus(); if (!restoreRange()) return; recordNow(); exec('unlink'); noteChanged(); },
       closePopovers: closePops
     };
     return inst;
