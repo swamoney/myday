@@ -11611,6 +11611,15 @@ function renderDailyWalkChart(monthYM, walk, daysInMonth) {
 // Returns array of {ym, sat, satCount, spendByCat:{food,dmart,uber,other}, topUp, walk, readingYes}
 function aggregateMonthly() {
   const months = {};
+  // Same rule the Year card uses, so the two can never disagree: home is a
+  // registered address, or simply where you slept most that year.
+  const modalByYear = {};
+  const perYear = {};
+  for (const date of Object.keys(allEntries)) {
+    const y = date.slice(0, 4);
+    (perYear[y] = perYear[y] || []).push({ entry: allEntries[date] });
+  }
+  Object.keys(perYear).forEach(y => { modalByYear[y] = _modalNightStay(perYear[y]); });
   for (const date of Object.keys(allEntries)) {
     const ym = date.slice(0, 7);
     if (!months[ym]) {
@@ -11645,9 +11654,9 @@ function aggregateMonthly() {
     const w = Number(e.walk);
     if (!isNaN(w) && w > 0) { m.walk += w; m.walkDays++; }
     if (e.reading === 'Yes') m.readingYes++;
-    // A night away = somewhere recorded, and that somewhere is not home.
-    const ns = String(e.nightStay || '').trim();
-    if (ns && !isHomeAddress(ns)) m.awayNights++;
+    // Normalised exactly as the Year card normalises it.
+    const ns = (e.nightStay || '').trim().toLowerCase().slice(0, 64);
+    if (_isAwayFromHome(ns, modalByYear[date.slice(0, 4)])) m.awayNights++;
   }
   // Sorted ascending by ym
   return Object.values(months).sort((a, b) => a.ym.localeCompare(b.ym));
