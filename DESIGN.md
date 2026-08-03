@@ -118,6 +118,30 @@ other. Check the gap to every existing colour, not just to the background.
 
 ---
 
+### 2.7 Reuse a calculation; never write a second one
+
+**When a calculation already exists, call it. Do not write your own version.**
+Two implementations of the same idea will always drift, and the newer one is
+usually the naive one.
+
+**What this cost.** The Year card counts nights away from home using
+`_isAwayFromHome(value, modalKey)`, which normalises the address (trim,
+lowercase, truncate to 64) and treats each year's most-frequent address as home
+even when it was never registered. Adding the same figure to the Almanac, a
+fresh version was written that did neither — so any year lived at a different
+address, or with the address typed slightly differently, counted **every night
+as travel**. The Year card was right and the Almanac was wrong, on the same data,
+in the same file.
+
+The same applies to output paths. `pParse`, `priFmt`, `moShow_`, `clTagKey`,
+`PRI_OUT` and `rhythmOf` each exist once and are called from the screen, the
+print builder, the `.md` export and the zip export. Where that discipline
+slipped, sections went missing silently — see §8.
+
+**Before writing any helper, search the file for one that already does it.**
+A shared function that is slightly awkward to call is always better than two
+functions that agree today.
+
 ## 3. How work gets done
 
 **Mock first, always.** Static HTML with labelled options at real phone width,
@@ -318,9 +342,17 @@ run, and a migration you are afraid to re-run is a migration you will not run.
 **Deployment:** push to `swamoney/myday`, bump `?v=` on changed assets. Without the
 bump the browser serves stale CSS and the change appears not to have happened.
 
-**Print is a separate implementation.** The screen and the print output are built
-by different code. Changing one does **not** change the other — this has caused
-three bugs. When a section is added or renamed, update both.
+**There are four output paths, and they are separate code.** The screen, the
+print builder, the person `.md` export and the zip export each render the same
+data independently. Changing one does **not** change the others.
+
+This has caused four bugs: print missing the matrix and ledger; the roadmap print
+missing its targets; the zip export reading `c.why_html`, a field that no longer
+existed, so every person exported as a name with nothing under it; and the person
+`.md` missing last spoke, the matrix, the ledger, conversations, tag and rhythm.
+
+**When a section is added or renamed, update all four.** They share helpers where
+possible (§2.7); where they cannot, they must be changed together in one edit.
 
 **Build scripts live in `/tmp/`** and are throwaway. The output is the deliverable,
 not the script.
