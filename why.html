@@ -9,11 +9,21 @@
 <meta name="theme-color" content="#203a72">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   /* Text scales with the reader's own setting; 1rem = their base size. */
   html { font-size:100%; }
-  :root { --serif:'Fraunces',Georgia,serif; --sans:'IBM Plex Sans',-apple-system,system-ui,sans-serif; --mono:'IBM Plex Mono','SF Mono',monospace; --hand:'Caveat',cursive; }
+  /* A visible marker for anyone navigating by keyboard — invisible to touch
+     and mouse users, essential to everyone else. */
+  :focus-visible { outline:2px solid #4a5f9c; outline-offset:2px; border-radius:3px; }
+  /* Honour the reader's own "reduce motion" setting rather than overriding it. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration:0.01ms !important; animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important; scroll-behavior:auto !important;
+    }
+  }
+  :root { --serif:'Fraunces', 'Noto Serif Devanagari',Georgia,serif; --sans:'IBM Plex Sans', 'Noto Serif Devanagari',-apple-system,system-ui,sans-serif; --mono:'IBM Plex Mono','SF Mono',monospace; --hand:'Caveat',cursive; }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body { font-family:var(--sans); line-height:1.5; min-height:100vh; color:#0A1325; }
   body { padding:26px 18px 70px; background:#eef2f8; background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%); background-attachment:fixed; }
@@ -1559,9 +1569,12 @@ async function exportWhy() {
       text: m.text, text_html: m.text_html, meaning: m.meaning,
       meaning_html: m.meaning_html, source: m.source, created_at: m.created_at
     })), null, 2));
-    zip.file('circle.json', JSON.stringify(circle.map(c => ({
-      name: c.name, band: c.band, tag: c.tag, rhythm: c.rhythm, note: c.note, why_html: c.why_html, created_at: c.created_at
-    })), null, 2));
+    zip.file('circle.json', JSON.stringify(circle.map(c => {
+      const pg = pParse(c.page);
+      return { name: c.name, band: c.band, tag: c.tag, rhythm: c.rhythm, note: c.note,
+               essay: pg.essay, moments: pg.moments, contacts: pg.contacts, intents: pg.intents,
+               created_at: c.created_at };
+    }), null, 2));
     zip.file('priority.json', JSON.stringify(priority.map(t => ({
       title: t.title, quadrant: t.quadrant, note: t.note, status: t.status,
       outcome_note: t.outcome_note, delegated_to: t.delegated_to,
@@ -1606,10 +1619,49 @@ async function exportWhy() {
       rows.forEach(c => {
         body += '<li><strong>' + xEsc_(c.name) + '</strong>'
               + (c.tag ? ' <span class="meta">(' + xEsc_(c.tag) + ')</span>' : '')
+              + (c.rhythm ? ' <span class="meta">' + xEsc_(rhythmOf(c.rhythm).lbl) + '</span>' : '')
               + (c.note ? ' \u2014 ' + xEsc_(c.note) : '') + '</li>';
       });
       body += '</ul>';
-      rows.forEach(c => { if (c.why_html && xPlain_(c.why_html)) body += '<h4>' + xEsc_(c.name) + '</h4><div>' + xRich_(c.why_html) + '</div>'; });
+      rows.forEach(c => {
+        const pg = pParse(c.page);
+        const open = (pg.intents || []).filter(t => (t.status || 'open') === 'open');
+        const closed = (pg.intents || []).filter(t => t.status && t.status !== 'open');
+        const moms = (pg.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim());
+        const talks = (pg.contacts || []).slice().sort((a, b) => String(b.on).localeCompare(String(a.on)));
+        const note = pg.essay && xPlain_(pg.essay) ? pg.essay : '';
+        if (!open.length && !closed.length && !moms.length && !talks.length && !note) return;
+        body += '<h4>' + xEsc_(c.name) + '</h4>';
+        if (talks.length) {
+          body += '<p class="meta">Last spoke ' + xEsc_(priFmt(talks[0].on))
+                + (talks[0].note ? ' \u00B7 ' + xEsc_(talks[0].note) : '') + '</p>';
+        }
+        if (open.length) {
+          body += '<p class="meta">What is next</p><ul>';
+          ['q1','q2','q3','q4'].forEach(q => open.filter(t => (t.q || 'q2') === q).forEach(t => {
+            body += '<li>' + xEsc_(t.t || '') + ' <span class="meta">'
+                  + xEsc_((PERSON_Q[q] || {}).sub || '') + '</span></li>';
+          }));
+          body += '</ul>';
+        }
+        if (closed.length) {
+          body += '<p class="meta">The ledger</p><ul>' + closed.map(t => {
+            const o = PRI_OUT[t.status] || PRI_OUT.done;
+            return '<li>' + xEsc_(t.t || '') + ' \u2014 ' + xEsc_(o.lbl)
+                 + (t.who ? ' to ' + xEsc_(t.who) : '') + ' \u00B7 ' + xEsc_(priFmt(t.on))
+                 + (t.outcome ? '<br><span class="meta">' + xEsc_(t.outcome) + '</span>' : '') + '</li>';
+          }).join('') + '</ul>';
+        }
+        if (moms.length) {
+          body += '<p class="meta">Important moments</p><ul>' + moms.map(m =>
+            '<li>' + xEsc_(moShow_(m.y)) + ' \u2014 ' + xEsc_(m.t || '') + '</li>').join('') + '</ul>';
+        }
+        if (talks.length > 1) {
+          body += '<p class="meta">Recent conversation</p><ul>' + talks.map(t =>
+            '<li>' + xEsc_(priFmt(t.on)) + (t.note ? ' \u2014 ' + xEsc_(t.note) : '') + '</li>').join('') + '</ul>';
+        }
+        if (note) body += '<div>' + xRich_(note) + '</div>';
+      });
     });
 
     body += '<h2>My Bucket List</h2>';
