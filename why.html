@@ -410,6 +410,11 @@
                          text-transform:uppercase; color:var(--pc-mut); }
   #personWin .pb { flex:1 1 240px; min-width:0; }
   #personWin .pmeta .pnote { color:var(--pc-faint); }
+  /* Several tags sit side by side, each with its own dot. */
+  #personWin .ptag { display:inline-flex; gap:6px; flex-wrap:wrap; }
+  #personWin .p-tag1 { display:inline-flex; align-items:center; gap:5px; font-size:0.75rem;
+                       color:var(--pc-deep); background:var(--pc-wash); padding:3px 11px; border-radius:999px; }
+  #personWin .p-tag1 i { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
   #personWin .p-rhythm { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.08em;
                          color:var(--pc-deep); background:var(--pc-wash); padding:3px 9px; border-radius:999px; }
   /* Past about half again the interval — a nudge, never a warning. */
@@ -1157,7 +1162,7 @@
     <div class="fld"><label>How often, ideally</label>
       <select id="fRhythm"></select>
     </div>
-    <div class="fld"><label>Tag (optional)</label><input id="fTag" placeholder="e.g. Pune, Fergusson College, met at the marathon">
+    <div class="fld"><label>Tag (optional)</label><input id="fTag" placeholder="Family, Fergusson &mdash; separate with commas">
       <div class="tag-pick" id="fTagPick"></div>
     </div>
     <div class="fld"><label>Note (optional)</label><input id="fRel" placeholder="e.g. oldest friend"></div>
@@ -2556,21 +2561,33 @@ function tagColour(tag) {
   const k = clTagKey(tag);
   if (!k) return { ink:'#5A6478', wash:'#f2f3f6' };
   const all = [];
-  circle.forEach(p => { const t = clTagKey(p.tag); if (t && all.indexOf(t) < 0) all.push(t); });
+  circle.forEach(p => clTagKeys(p.tag).forEach(t => { if (all.indexOf(t) < 0) all.push(t); }));
   all.sort();
   const i = all.indexOf(k);
   const p = TAG_PAL[(i < 0 ? all.length : i) % TAG_PAL.length];
   return { ink: p[0], wash: p[1] };
 }
 function clTagKey(t) { return (t || '').trim().toLowerCase(); }
+// A person can wear several tags. They live in one text field separated by
+// commas, so nothing about the column or the backup has to change.
+function clTags(t) {
+  return String(t || '').split(',').map(x => x.trim()).filter(Boolean);
+}
+function clTagKeys(t) {
+  const out = [];
+  clTags(t).forEach(x => { const k = clTagKey(x); if (k && out.indexOf(k) < 0) out.push(k); });
+  return out;
+}
 function renderCircleChips() {
   const wrap = el('circleChips'); if (!wrap) return;
   const counts = {}, labels = {};
   circle.forEach(p => {
-    const k = clTagKey(p.tag);
-    if (!k) return;
-    counts[k] = (counts[k] || 0) + 1;
-    if (!labels[k]) labels[k] = p.tag.trim();
+    clTags(p.tag).forEach(one => {
+      const k = clTagKey(one);
+      if (!k) return;
+      counts[k] = (counts[k] || 0) + 1;
+      if (!labels[k]) labels[k] = one;
+    });
   });
   // Two or more, plus whatever is currently selected so it never vanishes.
   const keys = Object.keys(counts)
@@ -2597,7 +2614,7 @@ function renderCircle() {
   let html = '';
   BANDS.forEach(b => {
     let people = circle.filter(p => p.band === b.key);
-    if (circleTag) people = people.filter(p => clTagKey(p.tag) === circleTag);
+    if (circleTag) people = people.filter(p => clTagKeys(p.tag).indexOf(circleTag) > -1);
     // While filtered, a ring with nobody in it is noise — hide it even in Edit.
     if (!people.length && (circleTag || !editing)) return;
     // The fifth ring is uncapped by definition, so it shows a count with no bar
@@ -2623,11 +2640,11 @@ function renderCircle() {
         '<span class="c-mid">' +
           '<span class="c-kind">' + escHtml(b.lbl) + '</span>' +
           '<span class="c-nmrow"><span class="c-name">' + escHtml(p.name || '') + '</span>' +
-            (p.tag && p.tag.trim() ? (function () {
-              const tc = tagColour(p.tag);
+            clTags(p.tag).map(one => {
+              const tc = tagColour(one);
               return '<span class="c-tag"><i style="background:' + tc.ink + '"></i>'
-                + escHtml(p.tag.trim()) + '</span>';
-            })() : '') +
+                + escHtml(one) + '</span>';
+            }).join('') +
           '</span>' +
           (p.note ? '<span class="c-note">' + escHtml(p.note) + '</span>' : '') +
         '</span>' +
@@ -2650,19 +2667,21 @@ function renderTagPicker() {
   const wrap = el('fTagPick'); if (!wrap) return;
   const counts = {}, labels = {};
   circle.forEach(p => {
-    const k = clTagKey(p.tag);
-    if (!k) return;
-    counts[k] = (counts[k] || 0) + 1;
-    if (!labels[k]) labels[k] = p.tag.trim();
+    clTags(p.tag).forEach(one => {
+      const k = clTagKey(one);
+      if (!k) return;
+      counts[k] = (counts[k] || 0) + 1;
+      if (!labels[k]) labels[k] = one;
+    });
   });
   // Commonest first, so the tags you actually reuse are the easiest to reach.
   const keys = Object.keys(counts)
     .sort((a, b) => counts[b] - counts[a] || labels[a].localeCompare(labels[b]));
   if (!keys.length) { wrap.innerHTML = ''; return; }
-  const cur = clTagKey(el('fTag').value);
+  const cur = clTagKeys(el('fTag').value);
   wrap.innerHTML = keys.map(k => {
     const tc = tagColour(labels[k]);
-    const on = cur === k;
+    const on = cur.indexOf(k) > -1;
     const st = on ? 'background:' + tc.ink + ';border-color:' + tc.ink + ';color:#fff' : '';
     return '<button type="button" style="' + st + '" class="' + (on ? 'on' : '')
       + '" data-tagpick="' + escHtml(labels[k]) + '">'
@@ -2673,7 +2692,12 @@ el('fTagPick').addEventListener('click', e => {
   const b = e.target.closest('[data-tagpick]'); if (!b) return;
   const t = el('fTag');
   // Tapping the chosen one again clears it, so the picker can undo itself.
-  t.value = (clTagKey(t.value) === clTagKey(b.dataset.tagpick)) ? '' : b.dataset.tagpick;
+  // Tapping a chip adds it; tapping a chosen one removes it.
+  const picked = b.dataset.tagpick, pk = clTagKey(picked);
+  const list = clTags(t.value);
+  const at = list.findIndex(x => clTagKey(x) === pk);
+  if (at > -1) list.splice(at, 1); else list.push(picked);
+  t.value = list.join(', ');
   renderTagPicker();
 });
 el('fTag').addEventListener('input', renderTagPicker);
@@ -2906,13 +2930,14 @@ function openPerson(id) {
     rEl.style.display = rh.key ? '' : 'none';
     rEl.classList.toggle('over', over);
   }
-  const ptc = tagColour(p.tag);
   const ptg = el('pTag');
   if (p.tag && p.tag.trim()) {
-    ptg.innerHTML = '<i style="display:inline-block;width:6px;height:6px;border-radius:50%;'
-      + 'background:' + ptc.ink + ';margin-right:6px;vertical-align:1px"></i>' + escHtml(p.tag.trim());
-    ptg.style.background = 'var(--pc-wash,#E4EAE3)';
-    ptg.style.color = 'var(--pc-deep,#2F4B3F)';
+    ptg.innerHTML = clTags(p.tag).map(one => {
+      const tc = tagColour(one);
+      return '<span class="p-tag1"><i style="background:' + tc.ink + '"></i>' + escHtml(one) + '</span>';
+    }).join('');
+    ptg.style.background = 'none';
+    ptg.style.padding = '0';
     ptg.style.display = '';
   } else ptg.style.display = 'none';
   el('pAvatar').textContent = (p.name || '?').trim().charAt(0).toUpperCase();
