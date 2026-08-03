@@ -1194,6 +1194,8 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<!-- The export builds a zip; without this the button can only report failure. -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <div class="rmw" id="roadmapWin" aria-hidden="true">
   <div class="rm-bar">
     <button class="rm-back" id="rmBack" type="button">&larr; Back</button>
@@ -3228,14 +3230,52 @@ el('pMoments').addEventListener('change', pMomEdit_);
 // ----- Person export -----
 function pPerson_() { return circle.find(x => String(x.id) === String(pId)) || {}; }
 function pMarkdown_() {
+  // Mirrors the page, section for section. When the page gains a section this
+  // must gain one too — that is how everything below went missing before.
   const p = pPerson_();
   const b = BANDS.find(x => x.key === p.band) || BANDS[0];
+  const talks = (pData.contacts || []).slice().sort((a, c) => String(c.on).localeCompare(String(a.on)));
+  const ints = pData.intents || [];
+  const open = ints.filter(t => (t.status || 'open') === 'open');
+  const closed = ints.filter(t => t.status && t.status !== 'open')
+    .sort((a, c) => String(c.on || '').localeCompare(String(a.on || '')));
+  const ms = (pData.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim());
+
   let md = '# ' + (p.name || 'Someone') + '\n\n';
   md += '- **Circle:** ' + b.lbl + ' (' + b.range + ')\n';
+  if (p.tag) md += '- **Tag:** ' + p.tag + '\n';
+  if (p.rhythm) md += '- **In touch:** ' + rhythmOf(p.rhythm).lbl + '\n';
   if (p.note) md += '- **Note:** ' + p.note + '\n';
-  md += '\n' + (NoteEditor.toMarkdown(pData.essay) || '_Nothing written yet._') + '\n';
-  const ms = pData.moments || [];
-  if (ms.length) md += '\n## Moments worth keeping\n\n' + ms.map(m => '- ' + (m.y ? '**' + m.y + '** \u2014 ' : '') + (m.t || '')).join('\n') + '\n';
+  if (talks.length) md += '- **Last spoke:** ' + priFmt(talks[0].on)
+    + (talks[0].note ? ' \u2014 ' + talks[0].note : '') + '\n';
+
+  if (open.length) {
+    md += '\n## What is next\n';
+    ['q1','q2','q3','q4'].forEach(q => {
+      const rows = open.filter(t => (t.q || 'q2') === q);
+      if (!rows.length) return;
+      md += '\n**' + (PERSON_Q[q] || {}).sub + '**\n\n'
+          + rows.map(t => '- ' + (t.t || '')).join('\n') + '\n';
+    });
+  }
+  if (closed.length) {
+    md += '\n## The ledger\n\n' + closed.map(t => {
+      const o = PRI_OUT[t.status] || PRI_OUT.done;
+      return '- **' + (t.t || '') + '** \u2014 ' + o.lbl + (t.who ? ' to ' + t.who : '')
+           + ' \u00B7 ' + priFmt(t.on) + (t.outcome ? '  \n  _' + t.outcome + '_' : '');
+    }).join('\n') + '\n';
+  }
+  if (ms.length) {
+    md += '\n## Important moments\n\n'
+        + ms.map(m => '- **' + moShow_(m.y) + '** \u2014 ' + (m.t || '')).join('\n') + '\n';
+  }
+  if (talks.length) {
+    md += '\n## Recent conversation\n\n'
+        + talks.map(t => '- ' + priFmt(t.on) + (t.note ? ' \u2014 ' + t.note : '')).join('\n') + '\n';
+  }
+  const note = NoteEditor.toMarkdown(pData.essay);
+  if (note && note.trim()) md += '\n## The long note\n\n' + note + '\n';
+
   md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' }) + '_\n';
   return md;
 }
