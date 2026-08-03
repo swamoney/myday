@@ -2484,6 +2484,25 @@ async function moveCirclePerson(id, dir) {
   }
 }
 // Free text, so Pune / pune / "Pune " must count as one tag.
+// A tag keeps one colour everywhere, assigned by its position in your sorted
+// list of tags — nothing stored, no migration, and the first ten are always
+// different from one another. The palette
+// avoids the six My Why chip hues and the five band hues so a tag can never be
+// mistaken for either. Olive deepened to clear 4.5 on its own wash.
+const TAG_PAL = [['#7a4a72','#f7f0f6'], ['#2f6f6a','#eaf4f3'], ['#9c5a2c','#fbf1e8'],
+                 ['#4a5f9c','#eef1f9'], ['#647230','#f2f5e9'], ['#96455f','#fbeff2'],
+                 ['#4d6b8a','#eef3f8'], ['#8a5a2f','#f8f1ea'], ['#3f6b52','#ebf3ee'],
+                 ['#6b4a86','#f2eef8']];
+function tagColour(tag) {
+  const k = clTagKey(tag);
+  if (!k) return { ink:'#5A6478', wash:'#f2f3f6' };
+  const all = [];
+  circle.forEach(p => { const t = clTagKey(p.tag); if (t && all.indexOf(t) < 0) all.push(t); });
+  all.sort();
+  const i = all.indexOf(k);
+  const p = TAG_PAL[(i < 0 ? all.length : i) % TAG_PAL.length];
+  return { ink: p[0], wash: p[1] };
+}
 function clTagKey(t) { return (t || '').trim().toLowerCase(); }
 function renderCircleChips() {
   const wrap = el('circleChips'); if (!wrap) return;
@@ -2501,8 +2520,15 @@ function renderCircleChips() {
   if (!keys.length) { wrap.innerHTML = ''; return; }
   wrap.innerHTML = '<button class="cl-chip' + (circleTag ? '' : ' on') + '" type="button" data-ctag="">'
       + 'All<span class="n">' + circle.length + '</span></button>'
-    + keys.map(k => '<button class="cl-chip' + (circleTag === k ? ' on' : '') + '" type="button" data-ctag="'
-      + escHtml(k) + '">' + escHtml(labels[k]) + '<span class="n">' + counts[k] + '</span></button>').join('');
+    + keys.map(k => {
+      const tc = tagColour(labels[k]);
+      const st = circleTag === k
+        ? 'background:' + tc.ink + ';border-color:' + tc.ink + ';color:#fff'
+        : 'background:' + tc.wash + ';border-color:' + tc.wash + ';color:' + tc.ink;
+      return '<button class="cl-chip' + (circleTag === k ? ' on' : '') + '" type="button" style="' + st
+        + '" data-ctag="' + escHtml(k) + '">' + escHtml(labels[k])
+        + '<span class="n">' + counts[k] + '</span></button>';
+    }).join('');
 }
 function renderCircle() {
   const wrap = el('circleList'); if (!wrap) return;
@@ -2537,7 +2563,11 @@ function renderCircle() {
         '<span class="c-mid">' +
           '<span class="c-kind">' + escHtml(b.lbl) + '</span>' +
           '<span class="c-nmrow"><span class="c-name">' + escHtml(p.name || '') + '</span>' +
-            (p.tag && p.tag.trim() ? '<span class="c-tag" style="background:' + b.acc + '">' + escHtml(p.tag.trim()) + '</span>' : '') +
+            (p.tag && p.tag.trim() ? (function () {
+              const tc = tagColour(p.tag);
+              return '<span class="c-tag" style="background:' + tc.wash + ';color:' + tc.ink + '">'
+                + escHtml(p.tag.trim()) + '</span>';
+            })() : '') +
           '</span>' +
           (p.note ? '<span class="c-note">' + escHtml(p.note) + '</span>' : '') +
         '</span>' +
@@ -2570,9 +2600,14 @@ function renderTagPicker() {
     .sort((a, b) => counts[b] - counts[a] || labels[a].localeCompare(labels[b]));
   if (!keys.length) { wrap.innerHTML = ''; return; }
   const cur = clTagKey(el('fTag').value);
-  wrap.innerHTML = keys.map(k =>
-    '<button type="button" class="' + (cur === k ? 'on' : '') + '" data-tagpick="'
-    + escHtml(labels[k]) + '">' + escHtml(labels[k]) + '</button>').join('');
+  wrap.innerHTML = keys.map(k => {
+    const tc = tagColour(labels[k]);
+    const st = cur === k
+      ? 'background:' + tc.ink + ';border-color:' + tc.ink + ';color:#fff'
+      : 'background:' + tc.wash + ';border-color:' + tc.wash + ';color:' + tc.ink;
+    return '<button type="button" style="' + st + '" class="' + (cur === k ? 'on' : '')
+      + '" data-tagpick="' + escHtml(labels[k]) + '">' + escHtml(labels[k]) + '</button>';
+  }).join('');
 }
 el('fTagPick').addEventListener('click', e => {
   const b = e.target.closest('[data-tagpick]'); if (!b) return;
@@ -2811,10 +2846,12 @@ function openPerson(id) {
     rEl.style.display = rh.key ? '' : 'none';
     rEl.classList.toggle('over', over);
   }
+  const ptc = tagColour(p.tag);
   const ptg = el('pTag');
   if (p.tag && p.tag.trim()) {
     ptg.textContent = p.tag.trim();
-    ptg.style.background = b.acc;
+    ptg.style.background = ptc.wash;
+    ptg.style.color = ptc.ink;
     ptg.style.display = '';
   } else ptg.style.display = 'none';
   el('pAvatar').textContent = (p.name || '?').trim().charAt(0).toUpperCase();
