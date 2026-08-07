@@ -116,6 +116,30 @@
            font-feature-settings:'tnum' 1; font-weight:500; color:var(--ink); }
   .empty { font-size:0.78125rem; color:#aab4c8; font-style:italic; padding:12px 0; }
 
+  /* ---- reorder handles, only while editing ---- */
+  .mv { display:none; gap:3px; flex-shrink:0; }
+  body.editing .mv { display:flex; }
+  .mv button { width:26px; height:26px; border-radius:7px; border:1px solid #dfe5ee; background:#fff;
+               color:#8B97AC; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .mv button:hover:not(:disabled) { border-color:var(--acc); color:var(--acc); }
+  .mv button:disabled { opacity:0.3; cursor:default; }
+  .mv svg { width:13px; height:13px; }
+
+  /* ---- the footer, matching My Why ---- */
+  .end-actions { display:flex; justify-content:center; gap:34px; margin-top:30px; }
+  .end-actions .cell { display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .fb { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+        background:rgba(255,255,255,0.72); border:1px solid #dce3ee; color:#7a8498; cursor:pointer; transition:all .15s; }
+  .fb svg { width:19px; height:19px; }
+  .fb.edit:hover { border-color:#a5702f; color:#a5702f; background:#fff; }
+  .fb.prn:hover  { border-color:#46586f; color:#46586f; background:#fff; }
+  .fb.exp:hover  { border-color:#2F6F6A; color:#2F6F6A; background:#fff; }
+  .fb.out:hover  { border-color:#a8443e; color:#a8443e; background:#fff; }
+  .fb.hot { border-color:#a5702f; color:#a5702f; background:#fff; }
+  .cap { font-family:var(--mono); font-size:0.59375rem; letter-spacing:0.14em;
+         text-transform:uppercase; color:#9aa4ba; }
+  @media (max-width:520px) { .end-actions { gap:22px; } }
+
   /* ---- history ---- */
   .hist { background:#fff; border:1px solid #e4e9f1; border-radius:15px; padding:18px 20px;
           box-shadow:0 5px 16px rgba(30,47,82,0.05); margin-bottom:14px; }
@@ -227,6 +251,33 @@
       <div class="sec" id="secEtf" style="--acc:var(--blue)"></div>
       <div class="sec" id="secEq" style="--acc:var(--plum)"></div>
     </div>
+
+    <div class="end-actions">
+      <div class="cell">
+        <button class="fb edit" id="editToggle" type="button" title="Edit" aria-label="Edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </button>
+        <span class="cap" id="editCap">Edit</span>
+      </div>
+      <div class="cell">
+        <button class="fb prn" id="printBtn" type="button" title="Print" aria-label="Print">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 9V3.5h11V9"/><rect x="3.5" y="9" width="17" height="7.5" rx="1.8"/><path d="M6.5 14h11v6.5h-11z"/></svg>
+        </button>
+        <span class="cap">Print</span>
+      </div>
+      <div class="cell">
+        <button class="fb exp" id="exportBtn" type="button" title="Export" aria-label="Export">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4 17v2.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V17"/></svg>
+        </button>
+        <span class="cap">Export</span>
+      </div>
+      <div class="cell">
+        <button class="fb out" id="signOutBtn" type="button" title="Sign out" aria-label="Sign out">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v2"/><path d="M20 12H9"/><path d="m17 9 3 3-3 3"/></svg>
+        </button>
+        <span class="cap">Sign out</span>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -280,6 +331,14 @@ function toast(m) { const t = el('toast'); t.textContent = m; t.classList.add('s
 
 let userId = null, holdings = [], meta = { usd_rate: 83, rate_on: null }, snaps = [], editing = null, histOpen = false;
 
+const UP_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+const DN_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+function mvBtns(id, i, n) {
+  return '<span class="mv">'
+    + '<button type="button" data-mv="up" data-id="' + id + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">' + UP_I + '</button>'
+    + '<button type="button" data-mv="down" data-id="' + id + '"' + (i === n - 1 ? ' disabled' : '') + ' aria-label="Move down">' + DN_I + '</button>'
+    + '</span>';
+}
 const KINDS = {
   mf:  { lbl:'Mutual funds',  eyebrow:'Scheme &middot; invested',        cur:'inr', nameLbl:'Scheme name',  acc:'var(--mfc)' },
   etf: { lbl:'UCITS ETFs',    eyebrow:'Units &middot; invested',         cur:'usd', nameLbl:'ETF name',     acc:'var(--blue)' },
@@ -350,12 +409,13 @@ function renderSection(kind) {
   if (!rows.length) {
     body = '<div class="empty">Nothing here yet.</div>';
   } else if (kind === 'etf') {
-    body = rows.map(h => {
+    body = rows.map((h, i) => {
       const acc = Number(h.acc_units) || 0, tgt = Number(h.target_units) || 0;
       const pct = tgt > 0 ? Math.round(acc / tgt * 100) : 0;
       const avg = acc > 0 ? (Number(h.invested) || 0) / acc : null;
       return '<div class="etf" data-edit="' + h.id + '">'
         + '<div class="etf-top"><span class="row-n">' + escHtml(h.name) + '</span>'
+        + mvBtns(h.id, i, rows.length)
         + '<span class="row-v">' + usd(h.invested) + '</span></div>'
         + '<div class="row-meta">'
           + '<span><b>' + acc + '</b> / ' + tgt + ' units</span>'
@@ -366,8 +426,9 @@ function renderSection(kind) {
         + '</div>';
     }).join('');
   } else {
-    body = rows.map(h => '<div class="row" data-edit="' + h.id + '">'
+    body = rows.map((h, i) => '<div class="row" data-edit="' + h.id + '">'
       + '<span class="row-n">' + escHtml(h.name) + '</span>'
+      + mvBtns(h.id, i, rows.length)
       + '<span class="row-v">' + inr(h.invested) + '</span></div>').join('');
   }
   const conv = (kind === 'etf' && rows.length)
@@ -511,7 +572,29 @@ el('hmDel').addEventListener('click', async () => {
   } catch (e) { console.error(e); toast('Could not delete'); }
 });
 
+// Rewrite every position in the kind, so the numbers stay evenly spaced and a
+// later insert never has to renumber the whole list.
+async function moveHolding(id, dir) {
+  const me = holdings.find(x => String(x.id) === String(id));
+  if (!me) return;
+  const list = holdings.filter(x => x.kind === me.kind);
+  const at = list.findIndex(x => String(x.id) === String(id));
+  const to = dir === 'up' ? at - 1 : at + 1;
+  if (to < 0 || to >= list.length) return;
+  list.splice(to, 0, list.splice(at, 1)[0]);
+  const rows = list.map((x, i) => ({ id: x.id, n: (i + 1) * 10 }));
+  rows.forEach(r => { const x = holdings.find(y => String(y.id) === String(r.id)); if (x) x.sort_order = r.n; });
+  renderAll();
+  try {
+    // sort_order only — a reorder is not an edit, so updated_at is left alone.
+    await Promise.all(rows.map(r =>
+      supa.from('wealth_holdings').update({ sort_order: r.n }).eq('id', r.id).eq('user_id', userId)));
+  } catch (err) { console.error(err); toast('Could not save the order'); await loadAll(); }
+}
+
 document.addEventListener('click', e => {
+  const mv = e.target.closest('[data-mv]');
+  if (mv) { e.stopPropagation(); moveHolding(mv.dataset.id, mv.dataset.mv); return; }
   const a = e.target.closest('[data-add]');
   if (a) { openHold(a.dataset.add, null); return; }
   const ed = e.target.closest('[data-edit]');
@@ -519,6 +602,19 @@ document.addEventListener('click', e => {
 });
 
 /* ---------- rate ---------- */
+el('editToggle').addEventListener('click', () => {
+  const on = !document.body.classList.contains('editing');
+  document.body.classList.toggle('editing', on);
+  el('editToggle').classList.toggle('hot', on);
+  el('editCap').textContent = on ? 'Done' : 'Edit';
+});
+
+el('signOutBtn').addEventListener('click', async () => {
+  if (!confirm('Sign out on this device?')) return;
+  try { await supa.auth.signOut(); } catch (e) {}
+  location.href = '/';
+});
+
 el('rateBtn').addEventListener('click', () => {
   el('fRate').value = meta.usd_rate != null ? meta.usd_rate : '';
   el('fRateOn').value = meta.rate_on || today();
@@ -544,6 +640,111 @@ el('histBtn').addEventListener('click', () => {
   el('histCard').classList.toggle('hidden', !histOpen);
   el('histBtn').classList.toggle('on', histOpen);
   if (histOpen) renderHistory();
+});
+
+/* ---------- print ----------
+   A separate rendering from the screen. When a section is added here, it must
+   be added to the export too — see DESIGN.md on the four output paths. */
+function prEsc(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function buildPrint() {
+  const rate = Number(meta.usd_rate) || 0;
+  let body = '<div class="eyebrow">My Wealth</div><h1>' + inr(grandTotal()) + '</h1>'
+    + '<div class="meta">Total invested &middot; ' + fmtDate(today())
+    + ' &middot; $1 = ' + inr(rate) + (meta.rate_on ? ' (set ' + fmtDate(meta.rate_on) + ')' : '') + '</div>';
+  ['mf','etf','eq'].forEach(kind => {
+    const k = KINDS[kind], rows = holdings.filter(x => x.kind === kind);
+    if (!rows.length) return;
+    body += '<h2>' + prEsc(k.lbl).toUpperCase() + '</h2><ul>' + rows.map(x => {
+      const amt = k.cur === 'usd' ? usd(x.invested) : inr(x.invested);
+      let extra = '';
+      if (kind === 'etf') {
+        const a = Number(x.acc_units) || 0, t = Number(x.target_units) || 0;
+        const avg = a > 0 ? usd((Number(x.invested) || 0) / a) : null;
+        extra = '<br><span class="m">' + a + ' / ' + t + ' units'
+              + (avg ? ' &middot; avg ' + avg + ' per unit' : '') + '</span>';
+      }
+      return '<li><span>' + prEsc(x.name) + extra + '</span><b>' + amt + '</b></li>';
+    }).join('') + '</ul>'
+      + '<div class="tot"><span>Total</span><b>'
+      + (k.cur === 'usd' ? usd(totalOf(kind)) + ' &middot; ' + inr(totalOf(kind) * rate) : inr(totalOf(kind)))
+      + '</b></div>';
+  });
+  const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;"
+    + "max-width:720px;margin:40px auto;padding:0 24px}"
+    + ".eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#999}"
+    + "h1{font-family:'IBM Plex Sans',sans-serif;font-variant-numeric:tabular-nums;font-size:34px;font-weight:600;margin:6px 0 3px}"
+    + ".meta{font-family:'IBM Plex Sans',sans-serif;font-size:12px;color:#777}"
+    + "h2{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;color:#888;margin:28px 0 8px;"
+    + "padding-bottom:6px;border-bottom:1px solid #ddd;page-break-after:avoid}"
+    + "ul{list-style:none;padding:0;margin:0}"
+    + "li{display:flex;justify-content:space-between;gap:16px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;"
+    + "padding:6px 0;line-height:1.5}"
+    + "li b{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}"
+    + ".m{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#777}"
+    + ".tot{display:flex;justify-content:space-between;font-family:'IBM Plex Sans',sans-serif;font-size:13px;"
+    + "font-weight:600;padding:9px 0 0;margin-top:4px;border-top:1px solid #eee}"
+    + ".tot b{font-variant-numeric:tabular-nums}"
+    + ".foot{font-family:'IBM Plex Sans',sans-serif;font-size:10.5px;color:#999;margin-top:34px;"
+    + "padding-top:10px;border-top:1px solid #eee}</style>";
+  const w = window.open('', '_blank');
+  if (!w) { toast('Allow pop-ups to print'); return; }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Wealth</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">'
+    + style + '</head><body>' + body
+    + '<div class="foot">Printed ' + fmtDate(today()) + '</div>'
+    + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt>'
+    + '</body></html>');
+  w.document.close();
+}
+el('printBtn').addEventListener('click', buildPrint);
+
+/* ---------- export ----------
+   Holdings AND the dated history. The history is the part that cannot be
+   reconstructed later, so it must never be left out of an export. */
+function dl(name, text, type) {
+  const b = new Blob([text], { type }), u = URL.createObjectURL(b);
+  const a = document.createElement('a'); a.href = u; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(u), 2000);
+}
+el('exportBtn').addEventListener('click', () => {
+  const rate = Number(meta.usd_rate) || 0;
+  const payload = {
+    app: 'MyDay', room: 'My Wealth', exported: new Date().toISOString(),
+    usd_rate: rate, rate_on: meta.rate_on,
+    totals: { mutual_funds: totalOf('mf'), ucits_etfs_usd: totalOf('etf'),
+              ucits_etfs_inr: totalOf('etf') * rate, direct_equity: totalOf('eq'),
+              grand_total_inr: grandTotal() },
+    holdings: holdings.map(x => ({
+      kind: x.kind, name: x.name, invested: x.invested,
+      target_units: x.target_units, acc_units: x.acc_units,
+      avg_cost: (x.kind === 'etf' && Number(x.acc_units) > 0)
+        ? (Number(x.invested) || 0) / Number(x.acc_units) : null,
+      created_at: x.created_at
+    })),
+    history: snaps.map(s => ({ on_date: s.on_date, kind: s.kind, name: s.name,
+                               invested: s.invested, acc_units: s.acc_units }))
+  };
+  const d = today();
+  dl('my-wealth-' + d + '.json', JSON.stringify(payload, null, 2), 'application/json');
+  let md = '# My Wealth\n\n**' + inr(grandTotal()) + '** invested as of ' + fmtDate(d)
+    + '  \n$1 = ' + inr(rate) + (meta.rate_on ? ' (set ' + fmtDate(meta.rate_on) + ')' : '') + '\n';
+  ['mf','etf','eq'].forEach(kind => {
+    const k = KINDS[kind], rows = holdings.filter(x => x.kind === kind);
+    if (!rows.length) return;
+    md += '\n## ' + k.lbl + '\n\n' + rows.map(x => {
+      const amt = k.cur === 'usd' ? usd(x.invested) : inr(x.invested);
+      if (kind !== 'etf') return '- ' + x.name + ' — ' + amt;
+      const a = Number(x.acc_units) || 0, t = Number(x.target_units) || 0;
+      const avg = a > 0 ? ', avg ' + usd((Number(x.invested) || 0) / a) + '/unit' : '';
+      return '- ' + x.name + ' — ' + amt + '  \n  _' + a + ' / ' + t + ' units' + avg + '_';
+    }).join('\n') + '\n\n**Total: '
+      + (k.cur === 'usd' ? usd(totalOf(kind)) + ' · ' + inr(totalOf(kind) * rate) : inr(totalOf(kind)))
+      + '**\n';
+  });
+  md += '\n---\n\n_' + snaps.length + ' dated points kept in the .json._  \n_Exported ' + fmtDate(d) + '_\n';
+  dl('my-wealth-' + d + '.md', md, 'text/markdown');
+  toast('Exported');
 });
 
 /* ---------- auth ---------- */
