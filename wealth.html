@@ -386,8 +386,17 @@ function today() { return new Date().toISOString().slice(0, 10); }
 /* ---------- totals ---------- */
 // One helper, called everywhere. Two implementations of the same sum would
 // eventually disagree, and this is money.
+function ofKind(kind) {
+  return holdings.filter(h => h.kind === kind).sort((a, b) => {
+    const ao = a.sort_order, bo = b.sort_order;
+    if (ao != null && bo != null && ao !== bo) return ao - bo;
+    if (ao != null && bo == null) return -1;
+    if (ao == null && bo != null) return 1;
+    return String(a.created_at || '').localeCompare(String(b.created_at || ''));
+  });
+}
 function totalOf(kind) {
-  return holdings.filter(h => h.kind === kind).reduce((s, h) => s + (Number(h.invested) || 0), 0);
+  return ofKind(kind).reduce((s, h) => s + (Number(h.invested) || 0), 0);
 }
 function grandTotal() {
   return totalOf('mf') + totalOf('eq') + totalOf('etf') * (Number(meta.usd_rate) || 0);
@@ -418,7 +427,7 @@ function renderCrown() {
 
 function renderSection(kind) {
   const k = KINDS[kind];
-  const rows = holdings.filter(h => h.kind === kind);
+  const rows = ofKind(kind);
   const tot = totalOf(kind);
   let body = '';
   if (!rows.length) {
@@ -566,7 +575,7 @@ el('hmSave').addEventListener('click', async () => {
       const { data, error } = await supa.from('wealth_holdings').update(rec).eq('id', editing).eq('user_id', userId).select().single();
       if (error) throw error; saved = data;
     } else {
-      rec.sort_order = (holdings.filter(x => x.kind === kind).length + 1) * 10;
+      rec.sort_order = (ofKind(kind).length + 1) * 10;
       const { data, error } = await supa.from('wealth_holdings').insert(rec).select().single();
       if (error) throw error; saved = data;
     }
@@ -595,7 +604,7 @@ let justMoved = null, moveT = null;
 async function moveHolding(id, dir) {
   const me = holdings.find(x => String(x.id) === String(id));
   if (!me) return;
-  const list = holdings.filter(x => x.kind === me.kind);
+  const list = ofKind(me.kind);
   const at = list.findIndex(x => String(x.id) === String(id));
   const to = dir === 'up' ? at - 1 : at + 1;
   if (to < 0 || to >= list.length) return;
@@ -674,7 +683,7 @@ function buildPrint() {
     + '<div class="meta">Total invested &middot; ' + fmtDate(today())
     + ' &middot; $1 = ' + inr(rate) + (meta.rate_on ? ' (set ' + fmtDate(meta.rate_on) + ')' : '') + '</div>';
   ['mf','etf','eq'].forEach(kind => {
-    const k = KINDS[kind], rows = holdings.filter(x => x.kind === kind);
+    const k = KINDS[kind], rows = ofKind(kind);
     if (!rows.length) return;
     body += '<h2>' + prEsc(k.lbl).toUpperCase() + '</h2><ul>' + rows.map(x => {
       const amt = k.cur === 'usd' ? usd(x.invested) : inr(x.invested);
@@ -752,7 +761,7 @@ el('exportBtn').addEventListener('click', () => {
   let md = '# My Wealth\n\n**' + inr(grandTotal()) + '** invested as of ' + fmtDate(d)
     + '  \n$1 = ' + inr(rate) + (meta.rate_on ? ' (set ' + fmtDate(meta.rate_on) + ')' : '') + '\n';
   ['mf','etf','eq'].forEach(kind => {
-    const k = KINDS[kind], rows = holdings.filter(x => x.kind === kind);
+    const k = KINDS[kind], rows = ofKind(kind);
     if (!rows.length) return;
     md += '\n## ' + k.lbl + '\n\n' + rows.map(x => {
       const amt = k.cur === 'usd' ? usd(x.invested) : inr(x.invested);
