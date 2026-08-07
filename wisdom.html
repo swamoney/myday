@@ -38,6 +38,13 @@
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body { background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.5; min-height:100vh; }
   body { padding:26px 18px 70px; background-image:radial-gradient(rgba(15,45,92,0.03) 1px, transparent 1px); background-size:20px 20px; }
+  /* Shown inside My Library: drop this room's own hero and page padding, since
+     the room around it already provides both. One file, two contexts — no
+     second implementation to keep in step. */
+  html.is-embed body { padding:0; background:none; }
+  html.is-embed .lib-hero { display:none; }
+  html.is-embed .lib-shell { box-shadow:none; border:none; border-radius:0; background:none; }
+  html.is-embed .lib-body { padding-top:0; }
   main { max-width:920px; margin:0 auto; }
   input, textarea, button, select { font-family:inherit; font-size:inherit; color:inherit; }
   textarea { resize:vertical; }
@@ -203,6 +210,11 @@
 </style>
 </head>
 <body>
+<script>
+  // ?embed=1 means this room is being shown inside My Library. Set before paint
+  // so the hero never flashes.
+  if (location.search.indexOf('embed=1') > -1) document.documentElement.classList.add('is-embed');
+</script>
 
 <!-- CONFIG GUARD -->
 <script src="config.js"></script>

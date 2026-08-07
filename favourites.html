@@ -163,20 +163,6 @@
   .type-chip { font-size:0.75rem; padding:6px 12px; border-radius:20px; border:1px solid #dce3ee; background:#f4f7fb; color:#3a4560; cursor:pointer; font-weight:500; font-family:inherit; }
   .type-chip:hover { border-color:#c9a94a; }
   .type-chip.active { background:#0F2D5C; color:#fff; border-color:#0F2D5C; }
-  /* ===== Wisdom rows — the passage given room ===== */
-  .wrow { background:linear-gradient(160deg,#fff,var(--w1,#f7f9fc)); border:1px solid var(--w2,#eaeef4);
-          border-radius:13px; padding:14px 16px; margin-bottom:9px; cursor:pointer; transition:border-color .14s; }
-  .wrow:hover { border-color:var(--acc,#2f5187); }
-  .w-top { display:flex; align-items:baseline; gap:9px; }
-  .w-ic { font-size:0.8125rem; flex-shrink:0; }
-  .w-title { flex:1; font-family:var(--serif); font-size:0.9375rem; color:#1c2331; line-height:1.35; }
-  .w-src { font-size:0.625rem; color:#8B97AC; white-space:nowrap; }
-  .w-essence { font-family:var(--serif); font-style:italic; font-size:0.875rem; line-height:1.65;
-               color:#3a4459; margin-top:9px; padding-left:12px; border-left:2px solid var(--acc,#2f5187); }
-  .w-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:10px; }
-  .w-tag { font-size:0.625rem; color:var(--acc,#2f5187); background:var(--w2,#e3e8f1);
-           padding:2px 8px; border-radius:5px; }
-
   /* ===== Favourites sections ===== */
   .fav-seg { display:inline-flex; flex-wrap:wrap; gap:4px; background:var(--paper-soft,#e7ebf1); padding:4px; border-radius:12px; margin-bottom:14px; max-width:100%; }
   .fav-seg > span { display:inline-flex; align-items:center; justify-content:center; gap:6px; font-size:0.7188rem; font-weight:600; padding:7px 11px; border-radius:8px; background:var(--t-faint,transparent); color:var(--t-acc,var(--muted,#6a7690)); opacity:0.72; transition:opacity .15s, background .15s; cursor:pointer; white-space:nowrap; }
@@ -605,7 +591,7 @@ function typeVisual(type) {
 async function boot() {
   const { data: { session } } = await supa.auth.getSession();
   if (session && session.user) {
-    userId = session.user.id; showApp(); await Promise.all([loadRows(), loadWisdom()]);
+    userId = session.user.id; showApp(); await loadRows();
   } else {
     el('authOverlay').classList.remove('hidden');
   }
@@ -623,7 +609,7 @@ async function handleSignIn() {
     if (error) throw error;
     if (!data || !data.user) throw new Error('No user returned');
     userId = data.user.id; el('authPw').value = '';
-    showApp(); await Promise.all([loadRows(), loadWisdom()]);
+    showApp(); await loadRows();
   } catch (e) {
     errorEl.textContent = (e && e.message) ? e.message : 'Sign in failed';
     errorEl.classList.remove('hidden');
@@ -636,25 +622,6 @@ async function handleSignOut() {
 }
 
 // ===== DATA =====
-// Wisdom lives in its own table. Loaded alongside, never merged into `rows`,
-// so nothing else in this room has to know it exists.
-let wisdomRows = [];
-const WIS_SRC = {
-  book:    { lbl:'Book',    icon:'\uD83D\uDCD6' },
-  podcast: { lbl:'Podcast', icon:'\uD83C\uDFA7' },
-  movie:   { lbl:'Movie',   icon:'\uD83C\uDFAC' },
-  article: { lbl:'Article', icon:'\u270E' },
-  talk:    { lbl:'Talk',    icon:'\uD83C\uDF99' },
-  other:   { lbl:'Note',    icon:'\u2022' }
-};
-async function loadWisdom() {
-  try {
-    const { data, error } = await supa.from('wisdom').select('*').eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    wisdomRows = data || [];
-  } catch (e) { console.error('wisdom', e); wisdomRows = []; }
-}
 async function loadRows() {
   try {
     const { data, error } = await supa.from('bookmarks').select('*').eq('user_id', userId).order('created_at', { ascending: false });
@@ -808,7 +775,7 @@ function renderTags() {
 }
 function render() {
   el('loadingState') && el('loadingState').remove();
-  el('count').textContent = rows.length + wisdomRows.length;
+  el('count').textContent = rows.length;
   renderSectionNav();
   renderTabs(); renderTags();
   const sec = SECTIONS[activeSection] || SECTIONS['all-time'];
@@ -818,37 +785,15 @@ function render() {
   const secTint = ' style="--w1:' + th.w1 + ';--w2:' + th.w2 + ';--acc:' + th.acc + '"';
   const wrap = el('rowsWrap');
 
-  // ---- WISDOM: the passage is the reason the entry exists, so it leads ----
+  // ---- WISDOM: the room itself, shown in place ----
+  // Not a second rendering of the same data. The Wisdom room is loaded as it
+  // is, minus its own hero, so editing and reading behave exactly as before
+  // and there is nothing here to keep in step with it.
   if (sec.kind === 'wisdom') {
-    const q = (searchTerm || '').toLowerCase();
-    const wl = wisdomRows.filter(r => {
-      if (activeTag && !(r.tags || []).some(t => String(t).toLowerCase() === String(activeTag).toLowerCase())) return false;
-      if (!q) return true;
-      return [r.title, r.source_name, r.essence, (r.tags || []).join(' ')]
-        .some(x => String(x || '').toLowerCase().includes(q));
-    });
-    if (!wl.length) {
-      wrap.innerHTML = '<div class="empty"><div class="big">Nothing in Wisdom yet</div>'
-        + '<div class="small">' + (activeTag || searchTerm ? 'Nothing under this filter or search.'
-          : 'Passages worth keeping, and what they taught you.') + '</div></div>';
-      return;
+    if (!wrap.querySelector('#wisFrame')) {
+      wrap.innerHTML = '<iframe id="wisFrame" src="wisdom.html?embed=1" title="Wisdom"'
+        + ' style="width:100%;border:none;min-height:70vh;display:block;background:none"></iframe>';
     }
-    wrap.innerHTML = '<div class="rows">' + wl.map(r => {
-      const m = WIS_SRC[r.source_type] || WIS_SRC.other;
-      const tags = (r.tags || []).slice(0, 4).map(t =>
-        '<span class="w-tag">' + escHtml(t) + '</span>').join('');
-      return '<div class="wrow"' + secTint + ' data-wopen="' + escHtml(r.id) + '">'
-        + '<div class="w-top"><span class="w-ic">' + m.icon + '</span>'
-        + '<span class="w-title">' + escHtml(r.title || '') + '</span>'
-        + (r.source_name ? '<span class="w-src">' + escHtml(r.source_name) + '</span>' : '') + '</div>'
-        + (r.essence ? '<div class="w-essence">' + escHtml(r.essence) + '</div>' : '')
-        + (tags ? '<div class="w-tags">' + tags + '</div>' : '')
-        + '</div>';
-    }).join('') + '</div>';
-    wrap.querySelectorAll('[data-wopen]').forEach(el2 => el2.addEventListener('click', () => {
-      // The full note lives in the Wisdom room's own reader.
-      location.href = 'wisdom.html#' + el2.dataset.wopen;
-    }));
     return;
   }
 
