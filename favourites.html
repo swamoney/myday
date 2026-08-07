@@ -1356,6 +1356,7 @@ async function exportAll() {
       zip.file('wisdom-library/' + name + '.html', r.note);
     });
     // A clickable HTML index, grouped by type.
+    let body = '';
     const wis = rows.filter(r => secOf(r) === 'wisdom');
     if (wis.length) {
       body += '<h2>Wisdom Library</h2><ul>';
@@ -1371,7 +1372,6 @@ async function exportAll() {
     const byType = {};
     rows.filter(r => secOf(r) !== 'wisdom')
         .forEach(r => { const t = r.type || 'Other'; (byType[t] = byType[t] || []).push(r); });
-    let body = '';
     Object.keys(byType).sort().forEach(t => {
       body += '<h2>' + escHtml(t) + '</h2><ul>';
       byType[t].forEach(r => {
