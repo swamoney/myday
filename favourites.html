@@ -1337,11 +1337,40 @@ async function exportAll() {
   try {
     const zip = new JSZip();
     // Raw data
-    const data = rows.map(r => ({ title: r.title, url: r.url, type: r.type, tags: r.tags, note: r.note, created_at: r.created_at, updated_at: r.updated_at }));
+    // Every field, not a chosen few. section, essence and favourite were all
+    // being dropped, which meant a wisdom entry exported without its passage
+    // and without any record of which section it belonged to.
+    const data = rows.map(r => ({
+      title: r.title, section: secOf(r), url: r.url, source_url: r.source_url,
+      type: r.type, tags: r.tags, essence: r.essence, note: r.note,
+      favourite: !!r.favourite, created_at: r.created_at, updated_at: r.updated_at
+    }));
     zip.file('bookmarks.json', JSON.stringify(data, null, 2));
+    // A saved page is a whole HTML file. Written out as one, so it opens in any
+    // browser in thirty years without this app or its database.
+    const used = {};
+    rows.filter(r => isDoc(r.note)).forEach(r => {
+      let name = String(r.title || 'page').replace(/[^\w\u0900-\u097F -]+/g, '').trim().slice(0, 60) || 'page';
+      used[name] = (used[name] || 0) + 1;
+      if (used[name] > 1) name += ' (' + used[name] + ')';
+      zip.file('wisdom-library/' + name + '.html', r.note);
+    });
     // A clickable HTML index, grouped by type.
+    const wis = rows.filter(r => secOf(r) === 'wisdom');
+    if (wis.length) {
+      body += '<h2>Wisdom Library</h2><ul>';
+      wis.forEach(r => {
+        const file = isDoc(r.note)
+          ? ' <a href="wisdom-library/' + escHtml(String(r.title || 'page').replace(/[^\w\u0900-\u097F -]+/g, '').trim().slice(0, 60) || 'page') + '.html">open the page</a>'
+          : '';
+        body += '<li><b>' + escHtml(r.title || '') + '</b>' + file
+             + (r.essence ? '<br><i style="color:#555">' + escHtml(r.essence) + '</i>' : '') + '</li>';
+      });
+      body += '</ul>';
+    }
     const byType = {};
-    rows.forEach(r => { const t = r.type || 'Other'; (byType[t] = byType[t] || []).push(r); });
+    rows.filter(r => secOf(r) !== 'wisdom')
+        .forEach(r => { const t = r.type || 'Other'; (byType[t] = byType[t] || []).push(r); });
     let body = '';
     Object.keys(byType).sort().forEach(t => {
       body += '<h2>' + escHtml(t) + '</h2><ul>';

@@ -334,6 +334,21 @@ run, and a migration you are afraid to re-run is a migration you will not run.
 
 ---
 
+### 7.1 SQL is plain ASCII with sparse comments
+
+**No em dashes, no box-drawing rules, no decorative comment headers.** Write the
+statements and little else.
+
+**Why.** A migration written in the prose style of this document failed twice in
+one session. A header line reading `-- MY LIBRARY — Wisdom becomes...` lost its
+`--` somewhere between here and the SQL editor, so Postgres read `MY LIBRARY` and
+went looking for a table called `My`. It also tripped Supabase's RLS linter into
+warning about a table of that name. Removing every comment and every non-ASCII
+character fixed both at once.
+
+The style that reads well in a document is not the style that survives being
+copied into a query editor.
+
 ## 8. Working practices
 
 **Files:** working copies in `/home/claude/myday/`, deliverables copied to
@@ -341,6 +356,13 @@ run, and a migration you are afraid to re-run is a migration you will not run.
 
 **Deployment:** push to `swamoney/myday`, bump `?v=` on changed assets. Without the
 bump the browser serves stale CSS and the change appears not to have happened.
+
+**A section in My Library is defined in four places** and they must agree: the
+chip markup in `favSeg`, the option in the `fSection` dropdown, the entry in
+`SECTIONS`, and the colour variables in the chip's own CSS. Adding Wisdom needed
+all four; missing the chip made the section unreachable, and missing the dropdown
+option made every wisdom-only field invisible. The first two now check themselves
+on load and warn in the console when they diverge.
 
 **There are four output paths, and they are separate code.** The screen, the
 print builder, the person `.md` export and the zip export each render the same
