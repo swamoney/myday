@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#16202f">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   /* Text scales with the reader's own setting; 1rem = their base size. */
   html { font-size:100%; }
@@ -29,21 +29,32 @@
   * { box-sizing:border-box; margin:0; padding:0; }
   body { font-family:var(--sans); color:var(--ink); background:#eef2f8;
          background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%);
-         min-height:100vh; padding:22px 14px 70px; -webkit-text-size-adjust:100%; }
-  .wrap { max-width:640px; margin:0 auto; }
+         background-attachment:fixed; min-height:100vh; padding:26px 18px 70px;
+         -webkit-text-size-adjust:100%; }
+  .wrap { max-width:920px; margin:0 auto; }
   .hidden { display:none !important; }
 
-  /* ---- top bar ---- */
-  .top { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
-  .back { font-family:var(--sans); font-size:0.8125rem; color:#4A5570; text-decoration:none; }
-  .back:hover { color:var(--ink); }
-  .top-t { font-family:var(--serif); font-size:1.375rem; font-weight:600; }
-  .top-r { margin-left:auto; display:flex; gap:8px; }
+  /* ---- the head, matching My Why exactly ---- */
+  .room { border-radius:22px; overflow:hidden; box-shadow:0 20px 50px rgba(20,30,60,0.14); margin-bottom:20px; }
+  .w-head { background:linear-gradient(155deg,#203a72,#0f1f42); color:#fff;
+            padding:30px 38px 30px; position:relative; }
+  .head-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:22px; }
+  .hub-back { font-family:var(--mono); font-size:0.6875rem; letter-spacing:0.1em;
+              text-transform:uppercase; color:rgba(255,255,255,0.55); text-decoration:none; }
+  .hub-back:hover { color:rgba(255,255,255,0.85); }
+  .w-eyebrow { font-family:'Caveat',cursive; font-weight:500; font-size:1.4375rem;
+               letter-spacing:0.01em; color:#f3d585; margin-bottom:12px; }
+  .w-title { font-family:var(--serif); font-size:3.125rem; font-weight:600;
+             letter-spacing:-0.02em; line-height:1; }
+  .w-line { font-family:var(--serif); font-style:italic; font-size:1rem; margin-top:13px;
+            color:rgba(255,255,255,0.7); max-width:520px; }
+  .head-r { display:flex; gap:8px; }
   .ib { display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:0.625rem;
-        letter-spacing:0.12em; text-transform:uppercase; color:#4A5570; background:#fff;
-        border:1px solid #dfe5ee; border-radius:8px; padding:7px 11px; cursor:pointer; }
-  .ib:hover { border-color:#b9c4d4; }
-  .ib.on { background:var(--ink); border-color:var(--ink); color:#fff; }
+        letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.75);
+        background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22);
+        border-radius:8px; padding:7px 11px; cursor:pointer; }
+  .ib:hover { background:rgba(255,255,255,0.18); color:#fff; }
+  .ib.on { background:#fff; border-color:#fff; color:#203a72; }
 
   /* ---- the one number you check ---- */
   .crown { background:linear-gradient(155deg,#16202f,#243449); border-radius:15px;
@@ -149,9 +160,18 @@
            opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:950; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   .loading { text-align:center; padding:60px 20px; color:#4A5570; font-size:0.875rem; }
+  @media (max-width:640px) {
+    .w-head { padding:26px 22px; }
+    .w-title { font-size:2.5rem; }
+  }
   @media (max-width:520px) {
     body { padding:16px 12px 60px; }
     .crown-v { font-size:2rem; }
+  }
+  /* Three sections side by side once there is room, as the wider page allows. */
+  @media (min-width:820px) {
+    .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; align-items:start; }
+    .grid3 .sec { margin-bottom:0; }
   }
 </style>
 </head>
@@ -174,21 +194,29 @@
 
 <main id="app" class="hidden">
   <div class="wrap">
-    <div class="top">
-      <a class="back" href="/">&larr; Hub</a>
-      <span class="top-t">My Wealth</span>
-      <span class="top-r">
-        <button class="ib" id="rateBtn" type="button">Rate</button>
-        <button class="ib" id="histBtn" type="button">History</button>
-      </span>
+    <div class="room">
+      <div class="w-head">
+        <div class="head-top">
+          <a class="hub-back" href="/">&larr; Hub</a>
+          <span class="head-r">
+            <button class="ib" id="rateBtn" type="button">Rate</button>
+            <button class="ib" id="histBtn" type="button">History</button>
+          </span>
+        </div>
+        <div class="w-eyebrow">What I put in, quietly</div>
+        <div class="w-title">My Wealth</div>
+        <div class="w-line">Not what it is worth today &mdash; what I have actually put in, and the shape that makes over thirty years.</div>
+      </div>
     </div>
 
     <div class="crown" id="crown"></div>
     <div class="hist hidden" id="histCard"></div>
 
-    <div class="sec" id="secMf" style="--acc:var(--gold)"></div>
-    <div class="sec" id="secEtf" style="--acc:var(--blue)"></div>
-    <div class="sec" id="secEq" style="--acc:var(--plum)"></div>
+    <div class="grid3">
+      <div class="sec" id="secMf" style="--acc:var(--gold)"></div>
+      <div class="sec" id="secEtf" style="--acc:var(--blue)"></div>
+      <div class="sec" id="secEq" style="--acc:var(--plum)"></div>
+    </div>
   </div>
 </main>
 
