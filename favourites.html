@@ -575,7 +575,7 @@ const SECTIONS = {
   // section can be removed again without unpicking a migration.
   // An ordinary notes section that also carries a passage. Same table, same
   // editor, same reader as Books and Podcasts — nothing of its own to maintain.
-  'wisdom':   { lbl:'Wisdom', kind:'notes', srcReq:false, eyebrow:'Passage', essence:true }
+  'wisdom':   { lbl:'Wisdom', kind:'notes', srcReq:false, eyebrow:'', essence:true }
 };
 const FR_STAR_ON = '<svg viewBox=\"0 0 24 24\" fill=\"currentColor\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linejoin=\"round\"><polygon points=\"12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9\"/></svg>';
 const FR_STAR_OFF = '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linejoin=\"round\"><polygon points=\"12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9\"/></svg>';
@@ -869,7 +869,9 @@ function render() {
         '<div class="nc-row">' +
           '<div class="nc-ic">' + (SEC_ICONS[secOf(r)] || '') + '</div>' +
           '<div class="nc-body">' +
-            '<div class="nc-kind">' + escHtml(sec.eyebrow || sec.lbl) + '</div>' +
+            // No eyebrow where a section sets it empty — the chip above already
+            // says which section you are in.
+            (sec.eyebrow === '' ? '' : '<div class="nc-kind">' + escHtml(sec.eyebrow || sec.lbl) + '</div>') +
             '<div class="n-title">' + escHtml(r.title) + '</div>' +
             (r.type ? '<div class="n-src' + (sec.srcReq ? ' req' : '') + '">' + escHtml(r.type) + '</div>' : '') +
             (essence ? '<div class="n-essence">' + escHtml(essence) + '</div>' : '') +
@@ -1238,7 +1240,7 @@ function shapeModalForSection(sec) {
   el('lblUrl').textContent = isMusic ? 'Link to play' : 'Link (URL)';
   el('hintUrl').textContent = isMusic ? 'Opens to play (Spotify, YouTube\u2026).' : 'Opens when you tap the item.';
   // Source link — shown for notes sections; required for marathi
-  el('fldSource').classList.toggle('hidden', !isNotes);
+  el('fldSource').classList.toggle('hidden', !isNotes || !!s.essence);
   el('lblSource').textContent = s.srcReq ? 'Source link (required)' : 'Source link (optional)';
   // The passage — only Wisdom carries one.
   el('fldEssence').classList.toggle('hidden', !s.essence);
