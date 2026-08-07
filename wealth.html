@@ -48,13 +48,18 @@
              letter-spacing:-0.02em; line-height:1; }
   .w-line { font-family:var(--serif); font-style:italic; font-size:1rem; margin-top:13px;
             color:rgba(255,255,255,0.7); max-width:520px; }
-  .head-r { display:flex; gap:8px; }
-  .ib { display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:0.625rem;
-        letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.75);
-        background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.22);
-        border-radius:8px; padding:7px 11px; cursor:pointer; }
-  .ib:hover { background:rgba(255,255,255,0.18); color:#fff; }
-  .ib.on { background:#fff; border-color:#fff; color:#203a72; }
+  /* Rate and History live on the dark card, where their effect is visible: the
+     rate governs that total, and the history is that total over time. */
+  .crown-ctrl { display:flex; align-items:center; gap:8px; margin-top:16px;
+                padding-top:15px; border-top:1px solid rgba(255,255,255,0.14); }
+  .crown-hint { flex:1; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.18em;
+                text-transform:uppercase; color:rgba(255,255,255,0.4); }
+  .ib { width:34px; height:34px; border-radius:9px; display:inline-flex; align-items:center;
+        justify-content:center; color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.1);
+        border:1px solid rgba(255,255,255,0.22); cursor:pointer; padding:0; transition:all .14s; }
+  .ib svg { width:16px; height:16px; }
+  .ib:hover { background:rgba(255,255,255,0.2); color:#fff; }
+  .ib.on { background:#fff; border-color:#fff; color:#16202f; }
 
   /* ---- the one number you check ---- */
   .crown { background:linear-gradient(155deg,#16202f,#243449); border-radius:15px;
@@ -245,10 +250,6 @@
       <div class="w-head">
         <div class="head-top">
           <a class="hub-back" href="/">&larr; Hub</a>
-          <span class="head-r">
-            <button class="ib" id="rateBtn" type="button">Rate</button>
-            <button class="ib" id="histBtn" type="button">History</button>
-          </span>
         </div>
         <div class="w-eyebrow">What I put in, quietly</div>
         <div class="w-title">My Wealth</div>
@@ -354,6 +355,8 @@ function mvBtns(id, i, n) {
       + ' title="Move down" aria-label="Move down">' + DN_I + '</button>'
     + '</span>';
 }
+const RATE_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13"/><path d="m14 5 3 3-3 3"/><path d="M20 16H7"/><path d="m10 13-3 3 3 3"/></svg>';
+const HIST_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V10"/><path d="M9 20V4"/><path d="M15 20v-7"/><path d="M21 20V7"/></svg>';
 const KINDS = {
   mf:  { lbl:'Mutual funds',  eyebrow:'Scheme &middot; invested',        cur:'inr', nameLbl:'Scheme name',  acc:'var(--mfc)' },
   etf: { lbl:'UCITS ETFs',    eyebrow:'Units &middot; invested',         cur:'usd', nameLbl:'ETF name',     acc:'var(--blue)' },
@@ -422,7 +425,12 @@ function renderCrown() {
     + '<div class="crown-leg">' + parts.map(p =>
         '<div class="cl-row"><i style="background:' + p.c + '"></i>' + p.lbl
         + '<b>' + inr(p.v) + '</b><u>' + (g > 0 ? Math.round(p.v / g * 100) : 0) + '%</u></div>').join('')
-      + '</div>';
+      + '</div>'
+    + '<div class="crown-ctrl">'
+      + '<span class="crown-hint">Set rate &middot; See history</span>'
+      + '<button class="ib" id="rateBtn" type="button" title="Set the dollar rate" aria-label="Set the dollar rate">' + RATE_I + '</button>'
+      + '<button class="ib' + (histOpen ? ' on' : '') + '" id="histBtn" type="button" title="How it grew" aria-label="How it grew">' + HIST_I + '</button>'
+    + '</div>';
 }
 
 function renderSection(kind) {
@@ -646,7 +654,10 @@ el('signOutBtn').addEventListener('click', async () => {
   location.href = '/';
 });
 
-el('rateBtn').addEventListener('click', () => {
+// The card is redrawn on every render, so these are delegated rather than bound
+// to elements that will be replaced.
+document.addEventListener('click', e => {
+  if (!e.target.closest('#rateBtn')) return;
   el('fRate').value = meta.usd_rate != null ? meta.usd_rate : '';
   el('fRateOn').value = meta.rate_on || today();
   el('rateModal').classList.remove('hidden');
@@ -666,11 +677,15 @@ el('rmSave').addEventListener('click', async () => {
   } catch (e) { console.error(e); toast('Could not save the rate'); }
 });
 
-el('histBtn').addEventListener('click', () => {
+document.addEventListener('click', e => {
+  if (!e.target.closest('#histBtn')) return;
   histOpen = !histOpen;
   el('histCard').classList.toggle('hidden', !histOpen);
-  el('histBtn').classList.toggle('on', histOpen);
-  if (histOpen) renderHistory();
+  renderCrown();                       // redraws the symbol in its new state
+  if (histOpen) {
+    renderHistory();
+    el('histCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
 });
 
 /* ---------- print ----------
