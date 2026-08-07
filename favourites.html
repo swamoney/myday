@@ -859,8 +859,8 @@ function render() {
   if (sec.kind === 'notes') {
     let html = '<div class="rows">';
     list.forEach(r => {
-      // A saved page is not a note — say so rather than printing its markup.
-      const preview = isDoc(r.note) ? 'A saved page' : NoteEditor.toPlain(r.note).trim();
+      // Never print a saved page's markup as a teaser; the passage speaks for it.
+      const preview = isDoc(r.note) ? '' : NoteEditor.toPlain(r.note).trim();
       const essence = (r.essence || '').trim();   // Wisdom only; the words themselves
       const hasSrc = (r.source_url || '').trim();
       html += '<div class="ncard' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '"' + secTint + '>' +
@@ -874,7 +874,7 @@ function render() {
             (r.type ? '<div class="n-src' + (sec.srcReq ? ' req' : '') + '">' + escHtml(r.type) + '</div>' : '') +
             (essence ? '<div class="n-essence">' + escHtml(essence) + '</div>' : '') +
             (preview ? '<div class="n-prev">' + escHtml(preview) + '</div>' : '') +
-            (hasSrc ? '<div class="n-link">' + FR_LINK + '<span>' + escHtml(hostOf(r.source_url) || 'source') + '</span></div>' : '') +
+            (hasSrc && !sec.essence ? '<div class="n-link">' + FR_LINK + '<span>' + escHtml(hostOf(r.source_url) || 'source') + '</span></div>' : '') +
           '</div>' +
         '</div>' +
       '</div>';
@@ -1249,7 +1249,8 @@ function shapeModalForSection(sec) {
   el('fldNote').classList.toggle('hidden', isMusic || isNotes);
   el('lblNote').textContent = 'Note (optional)';
   const hand = el('noteHand');
-  hand.classList.toggle('hidden', !isNotes);
+  // A wisdom entry is a saved page, not something you write here.
+  hand.classList.toggle('hidden', !isNotes || !!s.essence);
   if (isNotes) {
     el('noteHandTxt').textContent = editingId
       ? 'Your note opens in the full-width editor, with formatting, highlights and images.'
