@@ -589,11 +589,16 @@ document.addEventListener('pointerdown', e => {
   const g = e.target.closest('[data-grip]'); if (!g) return;
   e.preventDefault();
   const row = g.closest('[data-hid]'), box = row.closest('.sec');
-  drag = { row, box };
+  drag = { row, box, grip: g };
   row.classList.add('dragging');
+  // Capture sends every later pointer event to the grip, so the move and up
+  // handlers have to live on the grip too.
   try { g.setPointerCapture(e.pointerId); } catch (err) {}
+  g.addEventListener('pointermove', onMove);
+  g.addEventListener('pointerup', onUp);
+  g.addEventListener('pointercancel', onCancel);
 });
-document.addEventListener('pointermove', e => {
+function onMove(e) {
   if (!drag) return;
   drag.box.querySelectorAll('.over').forEach(r => r.classList.remove('over'));
   const before = rowAt_(drag.box, e.clientY, drag.row);
@@ -604,10 +609,16 @@ document.addEventListener('pointermove', e => {
     const last = Array.from(drag.box.querySelectorAll('[data-hid]')).pop();
     if (last && last !== drag.row) drag.box.insertBefore(drag.row, add || null);
   }
-});
-document.addEventListener('pointerup', async () => {
+}
+function detach_(g) {
+  g.removeEventListener('pointermove', onMove);
+  g.removeEventListener('pointerup', onUp);
+  g.removeEventListener('pointercancel', onCancel);
+}
+async function onUp() {
   if (!drag) return;
-  const box = drag.box, row = drag.row; drag = null;
+  const box = drag.box, row = drag.row, grip = drag.grip; drag = null;
+  detach_(grip);
   row.classList.remove('dragging');
   box.querySelectorAll('.over').forEach(r => r.classList.remove('over'));
   const ids = Array.from(box.querySelectorAll('[data-hid]')).map(r => r.dataset.hid);
@@ -620,11 +631,13 @@ document.addEventListener('pointerup', async () => {
     await Promise.all(rows.map(r =>
       supa.from('wealth_holdings').update({ sort_order: r.n }).eq('id', r.id).eq('user_id', userId)));
   } catch (err) { console.error(err); toast('Could not save the order'); await loadAll(); }
-});
-document.addEventListener('pointercancel', () => {
+}
+function onCancel() {
   if (!drag) return;
-  drag.row.classList.remove('dragging'); drag = null; renderAll();
-});
+  const grip = drag.grip;
+  drag.row.classList.remove('dragging'); drag = null;
+  detach_(grip); renderAll();
+}
 
 document.addEventListener('click', e => {
   if (e.target.closest('[data-grip]')) { e.stopPropagation(); return; }
