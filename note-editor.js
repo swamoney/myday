@@ -608,7 +608,8 @@
   // that data sits outside every backup ever taken — silently.
   var EXPORT_TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',
                        'why_pillars','why_mantras','why_circle','why_priority',
-                       'bucket_items','why_places','wisdom','note_versions'];
+                       'bucket_items','why_places','wisdom','note_versions',
+                       'wealth_holdings','wealth_snapshots','wealth_meta'];
   function _dl(name, text, type) {
     var blob = new Blob([text], { type: type });
     var url = URL.createObjectURL(blob);
@@ -701,7 +702,8 @@
       function step(from) {
         // Paging needs a stable sort, but the sort column differs per table
         // and two tables have none at all.
-        var SORT = { entries:'entry_date', user_prefs:null, note_versions:'saved_at' };
+        var SORT = { entries:'entry_date', user_prefs:null, note_versions:'saved_at',
+                     wealth_snapshots:'on_date', wealth_meta:null };
         var col = SORT.hasOwnProperty(t) ? SORT[t] : 'created_at';
         var q = c.supa.from(t).select('*').eq('user_id', c.userId);
         if (col) q = q.order(col, { ascending: true, nullsFirst: true });

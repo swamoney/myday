@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Wealth</title>
+<meta name="theme-color" content="#16202f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Text scales with the reader's own setting; 1rem = their base size. */
+  html { font-size:100%; }
+  /* A visible marker for anyone navigating by keyboard. */
+  :focus-visible { outline:2px solid #4a5f9c; outline-offset:2px; border-radius:3px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration:0.01ms !important; animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important; scroll-behavior:auto !important;
+    }
+  }
+  :root {
+    --serif:'Fraunces',Georgia,'Noto Serif Devanagari',serif;
+    --sans:'IBM Plex Sans',system-ui,'Noto Serif Devanagari',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --ink:#16202f; --mut:#5A6478; --faint:#8B97AC; --line:#e6ebf2;
+    --gold:#8a6f2f; --blue:#2c5f96; --plum:#6d5474;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--sans); color:var(--ink); background:#eef2f8;
+         background-image:linear-gradient(165deg,#fbfcfe 0%,#e9eef6 100%);
+         min-height:100vh; padding:22px 14px 70px; -webkit-text-size-adjust:100%; }
+  .wrap { max-width:640px; margin:0 auto; }
+  .hidden { display:none !important; }
+
+  /* ---- top bar ---- */
+  .top { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .back { font-family:var(--sans); font-size:0.8125rem; color:#4A5570; text-decoration:none; }
+  .back:hover { color:var(--ink); }
+  .top-t { font-family:var(--serif); font-size:1.375rem; font-weight:600; }
+  .top-r { margin-left:auto; display:flex; gap:8px; }
+  .ib { display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:0.625rem;
+        letter-spacing:0.12em; text-transform:uppercase; color:#4A5570; background:#fff;
+        border:1px solid #dfe5ee; border-radius:8px; padding:7px 11px; cursor:pointer; }
+  .ib:hover { border-color:#b9c4d4; }
+  .ib.on { background:var(--ink); border-color:var(--ink); color:#fff; }
+
+  /* ---- the one number you check ---- */
+  .crown { background:linear-gradient(155deg,#16202f,#243449); border-radius:15px;
+           padding:22px 22px 20px; margin-bottom:14px; box-shadow:0 8px 24px rgba(22,32,47,0.18); }
+  .crown-l { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.22em;
+             text-transform:uppercase; color:rgba(255,255,255,0.5); }
+  .crown-v { font-family:var(--serif); font-size:2.375rem; color:#fff; line-height:1.05; margin:6px 0 4px; }
+  .crown-s { font-size:0.71875rem; color:rgba(255,255,255,0.55); }
+  .crown-bar { display:flex; height:7px; border-radius:4px; overflow:hidden; margin:16px 0 13px; background:rgba(255,255,255,0.12); }
+  .crown-bar span { display:block; }
+  .crown-leg { display:flex; flex-direction:column; gap:8px; }
+  .cl-row { display:flex; align-items:center; gap:7px; font-size:0.71875rem; color:rgba(255,255,255,0.8); }
+  .cl-row i { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+  .cl-row b { margin-left:auto; font-family:var(--mono); font-weight:500; color:#fff; }
+  .cl-row u { font-family:var(--mono); text-decoration:none; color:rgba(255,255,255,0.45);
+              min-width:38px; text-align:right; }
+
+  /* ---- a section ---- */
+  .sec { background:#fff; border:1px solid #e4e9f1; border-radius:15px; padding:18px 20px 6px;
+         box-shadow:0 5px 16px rgba(30,47,82,0.05); margin-bottom:14px; }
+  .sec-h { display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
+           padding-bottom:11px; border-bottom:2px solid var(--acc); }
+  .sec-k { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.2em;
+           text-transform:uppercase; color:var(--acc); }
+  .sec-t { font-family:var(--serif); font-size:1.0625rem; margin-top:3px; }
+  .sec-n { font-family:var(--mono); font-size:0.53125rem; letter-spacing:0.16em; color:var(--faint); }
+  .sec-v { font-family:var(--serif); font-size:1.375rem; color:var(--acc); line-height:1.1; margin-top:2px; }
+  .sec-r { text-align:right; }
+  .sec-add { display:block; width:100%; font-family:var(--mono); font-size:0.625rem; letter-spacing:0.12em;
+             text-transform:uppercase; color:var(--acc); background:none; border:1px dashed #dfe5ee;
+             border-radius:8px; padding:9px; margin:12px 0 14px; cursor:pointer; }
+  .sec-add:hover { border-color:var(--acc); }
+
+  .row { display:flex; align-items:baseline; gap:12px; padding:11px 0;
+         border-bottom:1px solid var(--line); cursor:pointer; }
+  .row:hover { background:#fbfcfe; }
+  .row-n { flex:1; font-size:0.84375rem; line-height:1.4; overflow-wrap:anywhere; }
+  .row-v { font-family:var(--mono); font-size:0.8125rem; color:var(--acc); white-space:nowrap; }
+  .row-meta { display:flex; gap:14px; margin-top:5px; font-family:var(--mono);
+              font-size:0.59375rem; color:var(--faint); flex-wrap:wrap; }
+  .row-meta b { color:var(--ink); font-weight:600; }
+  .bar { display:block; height:3px; background:#e9edf3; border-radius:2px; margin-top:7px; overflow:hidden; }
+  .bar span { display:block; height:100%; border-radius:2px; background:var(--acc); }
+  .etf { padding:13px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+  .etf:hover { background:#fbfcfe; }
+  .etf-top { display:flex; align-items:baseline; gap:12px; }
+  .conv { display:flex; justify-content:space-between; padding:12px 0 14px;
+          font-size:0.75rem; color:var(--mut); }
+  .conv b { font-family:var(--mono); font-weight:500; color:var(--ink); }
+  .empty { font-size:0.78125rem; color:#aab4c8; font-style:italic; padding:12px 0; }
+
+  /* ---- history ---- */
+  .hist { background:#fff; border:1px solid #e4e9f1; border-radius:15px; padding:18px 20px;
+          box-shadow:0 5px 16px rgba(30,47,82,0.05); margin-bottom:14px; }
+  .hist-h { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
+  .hist-t { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.2em;
+            text-transform:uppercase; color:var(--faint); }
+  .spark { display:flex; align-items:flex-end; gap:3px; height:70px; }
+  .spark span { flex:1; background:var(--ink); border-radius:2px 2px 0 0; opacity:0.75; min-height:2px; }
+  .spark-x { display:flex; justify-content:space-between; font-family:var(--mono);
+             font-size:0.53125rem; color:var(--faint); margin-top:7px; }
+
+  /* ---- modal ---- */
+  .modal-overlay { position:fixed; inset:0; z-index:900; display:flex; align-items:center;
+                   justify-content:center; padding:20px; background:rgba(18,26,44,0.55); backdrop-filter:blur(4px); }
+  .modal { width:100%; max-width:400px; background:#fff; border-radius:16px; padding:22px;
+           max-height:88vh; overflow-y:auto; }
+  .modal-title { font-family:var(--serif); font-size:1.1875rem; font-weight:600; }
+  .modal-sub { font-size:0.75rem; color:var(--mut); margin:3px 0 16px; }
+  .fld { margin-bottom:13px; }
+  .fld label { display:block; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.14em;
+               text-transform:uppercase; color:var(--faint); margin-bottom:5px; }
+  .fld input, .fld select { width:100%; font-family:inherit; font-size:0.875rem; color:var(--ink);
+        background:#fff; border:1px solid #dfe5ee; border-radius:8px; padding:10px 12px; }
+  .fld input:focus, .fld select:focus { outline:none; border-color:var(--ink); }
+  .fld .calc { font-family:var(--mono); font-size:0.8125rem; color:var(--mut);
+               background:#f7f9fc; border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  .modal-actions { display:flex; align-items:center; gap:9px; margin-top:18px; }
+  .btn-primary { background:var(--ink); color:#fff; border:none; border-radius:9px;
+                 padding:10px 18px; font-family:inherit; font-size:0.8125rem; font-weight:600; cursor:pointer; }
+  .btn-ghost { background:none; border:1px solid #dfe5ee; border-radius:9px; padding:10px 16px;
+               font-family:inherit; font-size:0.8125rem; color:var(--mut); cursor:pointer; }
+  .btn-danger { background:none; border:1px solid #e8c9c4; color:#8A1F1A; border-radius:9px;
+                padding:10px 16px; font-family:inherit; font-size:0.8125rem; cursor:pointer; }
+
+  /* ---- auth ---- */
+  .auth-overlay { position:fixed; inset:0; background:#eef2f8; z-index:250; display:flex;
+                  align-items:center; justify-content:center; padding:20px; }
+  .auth-box { width:100%; max-width:380px; background:#fff; border:1px solid #dfe5ee;
+              border-radius:16px; padding:28px 22px; text-align:center; }
+  .auth-title { font-family:var(--serif); font-size:1.625rem; margin-bottom:4px; }
+  .auth-subtitle { font-family:var(--mono); font-size:0.6875rem; letter-spacing:0.16em;
+                   text-transform:uppercase; color:#4A5570; margin-bottom:22px; }
+  .auth-form { display:flex; flex-direction:column; gap:10px; }
+  .auth-input { width:100%; background:#fbfcfe; border:1px solid #dfe5ee; border-radius:10px;
+                padding:13px 14px; font-size:0.9375rem; font-family:inherit; }
+  .auth-error { font-family:var(--mono); font-size:0.6875rem; color:#8A1F1A; padding:6px 10px;
+                background:#FCE9E2; border-radius:6px; }
+  .auth-submit { background:var(--ink); color:#fff; border:none; border-radius:10px; padding:13px;
+                 font-size:0.875rem; font-weight:500; font-family:inherit; cursor:pointer; }
+  .toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(20px);
+           background:var(--ink); color:#fff; font-size:0.8125rem; padding:10px 18px; border-radius:9px;
+           opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:950; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .loading { text-align:center; padding:60px 20px; color:#4A5570; font-size:0.875rem; }
+  @media (max-width:520px) {
+    body { padding:16px 12px 60px; }
+    .crown-v { font-size:2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-overlay hidden" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-title">My Wealth</div>
+    <div class="auth-subtitle">Sign in to continue</div>
+    <div class="auth-form">
+      <input type="email" class="auth-input" id="authEmail" placeholder="Email" autocomplete="email">
+      <input type="password" class="auth-input" id="authPw" placeholder="Password" autocomplete="current-password">
+      <div class="auth-error hidden" id="authError"></div>
+      <button class="auth-submit" id="authSubmit">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading" id="bootLoading">Loading&hellip;</div>
+
+<main id="app" class="hidden">
+  <div class="wrap">
+    <div class="top">
+      <a class="back" href="/">&larr; Hub</a>
+      <span class="top-t">My Wealth</span>
+      <span class="top-r">
+        <button class="ib" id="rateBtn" type="button">Rate</button>
+        <button class="ib" id="histBtn" type="button">History</button>
+      </span>
+    </div>
+
+    <div class="crown" id="crown"></div>
+    <div class="hist hidden" id="histCard"></div>
+
+    <div class="sec" id="secMf" style="--acc:var(--gold)"></div>
+    <div class="sec" id="secEtf" style="--acc:var(--blue)"></div>
+    <div class="sec" id="secEq" style="--acc:var(--plum)"></div>
+  </div>
+</main>
+
+<div class="modal-overlay hidden" id="holdModal">
+  <div class="modal">
+    <div class="modal-title" id="hmTitle">Add</div>
+    <div class="modal-sub" id="hmSub"></div>
+    <div class="fld"><label id="hmNameLbl">Scheme name</label><input id="fName" placeholder="e.g. Parag Parikh Flexi Cap"></div>
+    <div class="fld hidden" id="fTargetWrap"><label>Target units</label><input id="fTarget" type="number" inputmode="decimal" step="any" placeholder="120"></div>
+    <div class="fld hidden" id="fUnitsWrap"><label>Accumulated units</label><input id="fUnits" type="number" inputmode="decimal" step="any" placeholder="86"></div>
+    <div class="fld"><label id="fInvLbl">Invested so far</label><input id="fInv" type="number" inputmode="decimal" step="any" placeholder="0"></div>
+    <div class="fld hidden" id="fAvgWrap"><label>Average cost per unit</label><div class="calc" id="fAvg">&mdash;</div></div>
+    <div class="modal-actions">
+      <button class="btn-danger hidden" id="hmDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="hmCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="hmSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="rateModal">
+  <div class="modal">
+    <div class="modal-title">The dollar rate</div>
+    <div class="modal-sub">Typed by you, never fetched &mdash; a service that exists today may not exist in 2040.</div>
+    <div class="fld"><label>1 US dollar equals (&#8377;)</label><input id="fRate" type="number" inputmode="decimal" step="any"></div>
+    <div class="fld"><label>As of</label><input id="fRateOn" type="date"></div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="rmCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="rmSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="config.js?v=20260803a"></script>
+<script>
+if (!window.MYDAY_CONFIG || !window.MYDAY_CONFIG.SUPABASE_URL) {
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Configuration error</h2><p>config.js is missing or didn\'t load.</p></div>';
+  throw new Error('config.js missing');
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const supa = window.supabase.createClient(window.MYDAY_CONFIG.SUPABASE_URL, window.MYDAY_CONFIG.SUPABASE_ANON_KEY);
+const el = id => document.getElementById(id);
+function escHtml(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(m) { const t = el('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
+
+let userId = null, holdings = [], meta = { usd_rate: 83, rate_on: null }, snaps = [], editing = null, histOpen = false;
+
+const KINDS = {
+  mf:  { lbl:'Mutual funds',  eyebrow:'Scheme &middot; invested',        cur:'inr', nameLbl:'Scheme name',  acc:'var(--gold)' },
+  etf: { lbl:'UCITS ETFs',    eyebrow:'Units &middot; invested',         cur:'usd', nameLbl:'ETF name',     acc:'var(--blue)' },
+  eq:  { lbl:'Direct equity', eyebrow:'Script &middot; invested',        cur:'inr', nameLbl:'Script name',  acc:'var(--plum)' }
+};
+
+/* ---------- money ---------- */
+// Indian grouping: the last three digits, then pairs. Written out rather than
+// relying on a locale that may not be present on every device.
+function inr(n) {
+  const neg = n < 0; let s = String(Math.round(Math.abs(n) || 0)), out = '';
+  if (s.length > 3) {
+    out = s.slice(-3); s = s.slice(0, -3);
+    while (s.length > 2) { out = s.slice(-2) + ',' + out; s = s.slice(0, -2); }
+    if (s) out = s + ',' + out;
+  } else out = s;
+  return (neg ? '-' : '') + '\u20B9' + out;
+}
+function usd(n) {
+  return '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+function money(n, cur) { return cur === 'usd' ? usd(n) : inr(n); }
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(String(iso) + 'T00:00:00');
+  return isNaN(d) ? String(iso) : d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+}
+function today() { return new Date().toISOString().slice(0, 10); }
+
+/* ---------- totals ---------- */
+// One helper, called everywhere. Two implementations of the same sum would
+// eventually disagree, and this is money.
+function totalOf(kind) {
+  return holdings.filter(h => h.kind === kind).reduce((s, h) => s + (Number(h.invested) || 0), 0);
+}
+function grandTotal() {
+  return totalOf('mf') + totalOf('eq') + totalOf('etf') * (Number(meta.usd_rate) || 0);
+}
+
+/* ---------- render ---------- */
+function renderCrown() {
+  const g = grandTotal();
+  const parts = [
+    { lbl:'Mutual funds',  v: totalOf('mf'), c:'#8a6f2f' },
+    { lbl:'UCITS ETFs',    v: totalOf('etf') * (Number(meta.usd_rate) || 0), c:'#2c5f96' },
+    { lbl:'Direct equity', v: totalOf('eq'), c:'#6d5474' }
+  ];
+  const bar = g > 0
+    ? parts.map(p => '<span style="width:' + (p.v / g * 100) + '%;background:' + p.c + '"></span>').join('')
+    : '';
+  el('crown').innerHTML =
+    '<div class="crown-l">Total invested</div>'
+    + '<div class="crown-v">' + inr(g) + '</div>'
+    + '<div class="crown-s">' + fmtDate(today()) + ' &middot; $1 = ' + inr(meta.usd_rate)
+      + (meta.rate_on ? ' <span style="opacity:.7">(set ' + fmtDate(meta.rate_on) + ')</span>' : '') + '</div>'
+    + '<div class="crown-bar">' + bar + '</div>'
+    + '<div class="crown-leg">' + parts.map(p =>
+        '<div class="cl-row"><i style="background:' + p.c + '"></i>' + p.lbl
+        + '<b>' + inr(p.v) + '</b><u>' + (g > 0 ? Math.round(p.v / g * 100) : 0) + '%</u></div>').join('')
+      + '</div>';
+}
+
+function renderSection(kind) {
+  const k = KINDS[kind];
+  const rows = holdings.filter(h => h.kind === kind);
+  const tot = totalOf(kind);
+  let body = '';
+  if (!rows.length) {
+    body = '<div class="empty">Nothing here yet.</div>';
+  } else if (kind === 'etf') {
+    body = rows.map(h => {
+      const acc = Number(h.acc_units) || 0, tgt = Number(h.target_units) || 0;
+      const pct = tgt > 0 ? Math.round(acc / tgt * 100) : 0;
+      const avg = acc > 0 ? (Number(h.invested) || 0) / acc : null;
+      return '<div class="etf" data-edit="' + h.id + '">'
+        + '<div class="etf-top"><span class="row-n">' + escHtml(h.name) + '</span>'
+        + '<span class="row-v">' + usd(h.invested) + '</span></div>'
+        + '<div class="row-meta">'
+          + '<span><b>' + acc + '</b> / ' + tgt + ' units</span>'
+          + (avg != null ? '<span>avg ' + usd(avg) + ' / unit</span>' : '')
+          + (tgt > 0 ? '<span>' + pct + '%</span>' : '')
+        + '</div>'
+        + (tgt > 0 ? '<span class="bar"><span style="width:' + Math.min(pct, 100) + '%"></span></span>' : '')
+        + '</div>';
+    }).join('');
+  } else {
+    body = rows.map(h => '<div class="row" data-edit="' + h.id + '">'
+      + '<span class="row-n">' + escHtml(h.name) + '</span>'
+      + '<span class="row-v">' + inr(h.invested) + '</span></div>').join('');
+  }
+  const conv = (kind === 'etf' && rows.length)
+    ? '<div class="conv"><span>In rupees at ' + inr(meta.usd_rate) + '</span><b>'
+      + inr(tot * (Number(meta.usd_rate) || 0)) + '</b></div>' : '';
+  el('sec' + kind.charAt(0).toUpperCase() + kind.slice(1)).innerHTML =
+    '<div class="sec-h"><div><div class="sec-k">' + k.eyebrow + '</div>'
+    + '<div class="sec-t">' + k.lbl + '</div></div>'
+    + '<div class="sec-r"><div class="sec-n">' + rows.length + (rows.length === 1 ? ' HOLDING' : ' HOLDINGS') + '</div>'
+    + '<div class="sec-v">' + money(tot, k.cur) + '</div></div></div>'
+    + body + conv
+    + '<button class="sec-add" type="button" data-add="' + kind + '">+ Add</button>';
+}
+
+function renderAll() {
+  renderCrown();
+  ['mf','etf','eq'].forEach(renderSection);
+  if (histOpen) renderHistory();
+}
+
+function renderHistory() {
+  const byDate = {};
+  snaps.forEach(s => {
+    const rate = Number(meta.usd_rate) || 0;
+    const v = (Number(s.invested) || 0) * (s.kind === 'etf' ? rate : 1);
+    byDate[s.on_date] = (byDate[s.on_date] || 0) + v;
+  });
+  const dates = Object.keys(byDate).sort();
+  const card = el('histCard');
+  if (!dates.length) {
+    card.innerHTML = '<div class="hist-h"><span class="hist-t">How it grew</span></div>'
+      + '<div class="empty">Nothing recorded yet. Every change you make from today is dated and kept.</div>';
+    return;
+  }
+  const show = dates.slice(-30);
+  const mx = Math.max.apply(null, show.map(d => byDate[d])) || 1;
+  card.innerHTML = '<div class="hist-h"><span class="hist-t">How it grew</span>'
+    + '<span class="hist-t">' + dates.length + ' dated points</span></div>'
+    + '<div class="spark">' + show.map(d =>
+        '<span style="height:' + Math.max(2, byDate[d] / mx * 100) + '%" title="'
+        + fmtDate(d) + ' — ' + inr(byDate[d]) + '"></span>').join('') + '</div>'
+    + '<div class="spark-x"><span>' + fmtDate(show[0]) + '</span><span>'
+      + fmtDate(show[show.length - 1]) + '</span></div>';
+}
+
+/* ---------- load ---------- */
+async function loadAll() {
+  const [h, m, s] = await Promise.all([
+    supa.from('wealth_holdings').select('*').eq('user_id', userId).order('sort_order', { ascending:true, nullsFirst:false }).order('created_at', { ascending:true }),
+    supa.from('wealth_meta').select('*').eq('user_id', userId).maybeSingle(),
+    supa.from('wealth_snapshots').select('*').eq('user_id', userId).order('on_date', { ascending:true }).limit(5000)
+  ]);
+  if (h.error) { toast('Could not load holdings'); console.error(h.error); }
+  holdings = (h.data) || [];
+  if (m && m.data) meta = m.data;
+  snaps = (s && s.data) || [];
+  renderAll();
+}
+
+/* ---------- the dated record ---------- */
+// Written on every change. The holding row is the present; this is the past,
+// and the past is the part that cannot be reconstructed later.
+async function snapshot(h) {
+  try {
+    await supa.from('wealth_snapshots').upsert({
+      user_id: userId, on_date: today(), holding_id: h.id,
+      kind: h.kind, name: h.name,
+      invested: Number(h.invested) || 0,
+      acc_units: h.acc_units == null ? null : Number(h.acc_units)
+    }, { onConflict: 'user_id,on_date,holding_id' });
+  } catch (e) { console.error('snapshot', e); }
+}
+
+/* ---------- edit ---------- */
+function openHold(kind, id) {
+  editing = id || null;
+  const h = id ? holdings.find(x => String(x.id) === String(id)) : null;
+  const k = KINDS[h ? h.kind : kind];
+  el('holdModal').dataset.kind = h ? h.kind : kind;
+  el('hmTitle').textContent = h ? 'Edit' : 'Add';
+  el('hmSub').textContent = k.lbl;
+  el('hmNameLbl').textContent = k.nameLbl;
+  el('fName').value = h ? (h.name || '') : '';
+  el('fInv').value = h ? (h.invested != null ? h.invested : '') : '';
+  el('fInvLbl').textContent = 'Invested so far (' + (k.cur === 'usd' ? '$' : '\u20B9') + ')';
+  const isEtf = (h ? h.kind : kind) === 'etf';
+  el('fTargetWrap').classList.toggle('hidden', !isEtf);
+  el('fUnitsWrap').classList.toggle('hidden', !isEtf);
+  el('fAvgWrap').classList.toggle('hidden', !isEtf);
+  el('fTarget').value = h && h.target_units != null ? h.target_units : '';
+  el('fUnits').value = h && h.acc_units != null ? h.acc_units : '';
+  el('hmDel').classList.toggle('hidden', !h);
+  updateAvg();
+  el('holdModal').classList.remove('hidden');
+  setTimeout(() => { try { el('fName').focus(); } catch (e) {} }, 30);
+}
+function updateAvg() {
+  const u = parseFloat(el('fUnits').value), v = parseFloat(el('fInv').value);
+  el('fAvg').textContent = (u > 0 && !isNaN(v)) ? usd(v / u) + ' \u2014 calculated' : '\u2014';
+}
+el('fUnits').addEventListener('input', updateAvg);
+el('fInv').addEventListener('input', updateAvg);
+el('hmCancel').addEventListener('click', () => { el('holdModal').classList.add('hidden'); editing = null; });
+
+el('hmSave').addEventListener('click', async () => {
+  const name = el('fName').value.trim();
+  if (!name) { toast('Give it a name'); return; }
+  const kind = el('holdModal').dataset.kind;
+  const rec = {
+    user_id: userId, kind, name,
+    invested: parseFloat(el('fInv').value) || 0,
+    target_units: kind === 'etf' ? (parseFloat(el('fTarget').value) || null) : null,
+    acc_units: kind === 'etf' ? (parseFloat(el('fUnits').value) || null) : null,
+    updated_at: new Date().toISOString()
+  };
+  try {
+    let saved;
+    if (editing) {
+      const { data, error } = await supa.from('wealth_holdings').update(rec).eq('id', editing).eq('user_id', userId).select().single();
+      if (error) throw error; saved = data;
+    } else {
+      rec.sort_order = (holdings.filter(x => x.kind === kind).length + 1) * 10;
+      const { data, error } = await supa.from('wealth_holdings').insert(rec).select().single();
+      if (error) throw error; saved = data;
+    }
+    await snapshot(saved);
+    el('holdModal').classList.add('hidden'); editing = null;
+    await loadAll();
+    toast('Saved');
+  } catch (e) { console.error(e); toast('Could not save'); }
+});
+
+el('hmDel').addEventListener('click', async () => {
+  if (!editing) return;
+  const h = holdings.find(x => String(x.id) === String(editing));
+  if (!confirm('Delete \u201C' + ((h && h.name) || 'this') + '\u201D?\u000A\u000AIts dated history is kept.')) return;
+  try {
+    await supa.from('wealth_holdings').delete().eq('id', editing).eq('user_id', userId);
+    el('holdModal').classList.add('hidden'); editing = null;
+    await loadAll(); toast('Deleted');
+  } catch (e) { console.error(e); toast('Could not delete'); }
+});
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-add]');
+  if (a) { openHold(a.dataset.add, null); return; }
+  const ed = e.target.closest('[data-edit]');
+  if (ed) { openHold(null, ed.dataset.edit); return; }
+});
+
+/* ---------- rate ---------- */
+el('rateBtn').addEventListener('click', () => {
+  el('fRate').value = meta.usd_rate != null ? meta.usd_rate : '';
+  el('fRateOn').value = meta.rate_on || today();
+  el('rateModal').classList.remove('hidden');
+});
+el('rmCancel').addEventListener('click', () => el('rateModal').classList.add('hidden'));
+el('rmSave').addEventListener('click', async () => {
+  const r = parseFloat(el('fRate').value);
+  if (!r || r <= 0) { toast('Enter a rate'); return; }
+  try {
+    const { error } = await supa.from('wealth_meta').upsert({
+      user_id: userId, usd_rate: r, rate_on: el('fRateOn').value || today()
+    }, { onConflict: 'user_id' });
+    if (error) throw error;
+    meta = { usd_rate: r, rate_on: el('fRateOn').value || today() };
+    el('rateModal').classList.add('hidden');
+    renderAll(); toast('Rate saved');
+  } catch (e) { console.error(e); toast('Could not save the rate'); }
+});
+
+el('histBtn').addEventListener('click', () => {
+  histOpen = !histOpen;
+  el('histCard').classList.toggle('hidden', !histOpen);
+  el('histBtn').classList.toggle('on', histOpen);
+  if (histOpen) renderHistory();
+});
+
+/* ---------- auth ---------- */
+async function boot() {
+  const { data: { session } } = await supa.auth.getSession();
+  el('bootLoading').classList.add('hidden');
+  if (session && session.user) {
+    userId = session.user.id;
+    el('app').classList.remove('hidden');
+    await loadAll();
+  } else {
+    el('authOverlay').classList.remove('hidden');
+  }
+}
+el('authSubmit').addEventListener('click', async () => {
+  const email = el('authEmail').value.trim(), pw = el('authPw').value;
+  const err = el('authError'), btn = el('authSubmit');
+  err.classList.add('hidden');
+  if (!email || !pw) { err.textContent = 'Email and password required'; err.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.textContent = 'Signing in\u2026';
+  try {
+    const { data, error } = await supa.auth.signInWithPassword({ email, password: pw });
+    if (error) throw error;
+    userId = data.user.id;
+    el('authPw').value = '';
+    el('authOverlay').classList.add('hidden');
+    el('app').classList.remove('hidden');
+    await loadAll();
+  } catch (e) {
+    err.textContent = (e && e.message) || 'Could not sign in'; err.classList.remove('hidden');
+  } finally { btn.disabled = false; btn.textContent = 'Sign in'; }
+});
+el('authPw').addEventListener('keydown', e => { if (e.key === 'Enter') el('authSubmit').click(); });
+
+boot();
+</script>
+</body>
+</html>
