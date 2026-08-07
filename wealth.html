@@ -116,14 +116,17 @@
            font-feature-settings:'tnum' 1; font-weight:500; color:var(--ink); }
   .empty { font-size:0.78125rem; color:#aab4c8; font-style:italic; padding:12px 0; }
 
-  /* ---- reorder handles, only while editing ---- */
-  .mv { display:none; gap:3px; flex-shrink:0; }
-  body.editing .mv { display:flex; }
-  .mv button { width:26px; height:26px; border-radius:7px; border:1px solid #dfe5ee; background:#fff;
-               color:#8B97AC; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
-  .mv button:hover:not(:disabled) { border-color:var(--acc); color:var(--acc); }
-  .mv button:disabled { opacity:0.3; cursor:default; }
-  .mv svg { width:13px; height:13px; }
+  /* ---- a grip, the same as My Mantra uses ----
+     A handle rather than a draggable row, so scrolling a long list never picks
+     something up by accident. Pointer events, so mouse and touch share one path. */
+  .grip { display:none; width:24px; height:30px; border:none; background:none; padding:0;
+          color:#c3ccdb; cursor:grab; align-items:center; justify-content:center;
+          flex-shrink:0; touch-action:none; margin-left:-4px; }
+  .grip svg { width:15px; height:15px; }
+  .grip:active { cursor:grabbing; color:#8a94a8; }
+  body.editing .grip { display:flex; }
+  .row.dragging, .etf.dragging { opacity:0.45; }
+  .row.over, .etf.over { box-shadow:0 -3px 0 0 var(--acc); }
 
   /* ---- the footer, matching My Why ---- */
   .end-actions { display:flex; justify-content:center; gap:34px; margin-top:30px; }
@@ -331,13 +334,10 @@ function toast(m) { const t = el('toast'); t.textContent = m; t.classList.add('s
 
 let userId = null, holdings = [], meta = { usd_rate: 83, rate_on: null }, snaps = [], editing = null, histOpen = false;
 
-const UP_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
-const DN_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-function mvBtns(id, i, n) {
-  return '<span class="mv">'
-    + '<button type="button" data-mv="up" data-id="' + id + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">' + UP_I + '</button>'
-    + '<button type="button" data-mv="down" data-id="' + id + '"' + (i === n - 1 ? ' disabled' : '') + ' aria-label="Move down">' + DN_I + '</button>'
-    + '</span>';
+const GRIP_I = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
+function gripBtn(id) {
+  return '<button class="grip" data-grip="' + id + '" type="button" aria-label="Drag to reorder" title="Drag to reorder">'
+    + GRIP_I + '</button>';
 }
 const KINDS = {
   mf:  { lbl:'Mutual funds',  eyebrow:'Scheme &middot; invested',        cur:'inr', nameLbl:'Scheme name',  acc:'var(--mfc)' },
@@ -409,13 +409,13 @@ function renderSection(kind) {
   if (!rows.length) {
     body = '<div class="empty">Nothing here yet.</div>';
   } else if (kind === 'etf') {
-    body = rows.map((h, i) => {
+    body = rows.map(h => {
       const acc = Number(h.acc_units) || 0, tgt = Number(h.target_units) || 0;
       const pct = tgt > 0 ? Math.round(acc / tgt * 100) : 0;
       const avg = acc > 0 ? (Number(h.invested) || 0) / acc : null;
-      return '<div class="etf" data-edit="' + h.id + '">'
-        + '<div class="etf-top"><span class="row-n">' + escHtml(h.name) + '</span>'
-        + mvBtns(h.id, i, rows.length)
+      return '<div class="etf" data-edit="' + h.id + '" data-hid="' + h.id + '">'
+        + '<div class="etf-top">' + gripBtn(h.id)
+        + '<span class="row-n">' + escHtml(h.name) + '</span>'
         + '<span class="row-v">' + usd(h.invested) + '</span></div>'
         + '<div class="row-meta">'
           + '<span><b>' + acc + '</b> / ' + tgt + ' units</span>'
@@ -426,9 +426,9 @@ function renderSection(kind) {
         + '</div>';
     }).join('');
   } else {
-    body = rows.map((h, i) => '<div class="row" data-edit="' + h.id + '">'
+    body = rows.map(h => '<div class="row" data-edit="' + h.id + '" data-hid="' + h.id + '">'
+      + gripBtn(h.id)
       + '<span class="row-n">' + escHtml(h.name) + '</span>'
-      + mvBtns(h.id, i, rows.length)
       + '<span class="row-v">' + inr(h.invested) + '</span></div>').join('');
   }
   const conv = (kind === 'etf' && rows.length)
@@ -572,17 +572,47 @@ el('hmDel').addEventListener('click', async () => {
   } catch (e) { console.error(e); toast('Could not delete'); }
 });
 
-// Rewrite every position in the kind, so the numbers stay evenly spaced and a
-// later insert never has to renumber the whole list.
-async function moveHolding(id, dir) {
-  const me = holdings.find(x => String(x.id) === String(id));
-  if (!me) return;
-  const list = holdings.filter(x => x.kind === me.kind);
-  const at = list.findIndex(x => String(x.id) === String(id));
-  const to = dir === 'up' ? at - 1 : at + 1;
-  if (to < 0 || to >= list.length) return;
-  list.splice(to, 0, list.splice(at, 1)[0]);
-  const rows = list.map((x, i) => ({ id: x.id, n: (i + 1) * 10 }));
+/* ---------- drag to reorder ----------
+   A holding only ever moves within its own section, so the drag is scoped to
+   the section it started in. */
+let drag = null;
+function rowAt_(box, y, me) {
+  const rows = Array.from(box.querySelectorAll('[data-hid]'));
+  for (const r of rows) {
+    if (r === me) continue;
+    const b = r.getBoundingClientRect();
+    if (y < b.top + b.height / 2) return r;
+  }
+  return null;
+}
+document.addEventListener('pointerdown', e => {
+  const g = e.target.closest('[data-grip]'); if (!g) return;
+  e.preventDefault();
+  const row = g.closest('[data-hid]'), box = row.closest('.sec');
+  drag = { row, box };
+  row.classList.add('dragging');
+  try { g.setPointerCapture(e.pointerId); } catch (err) {}
+});
+document.addEventListener('pointermove', e => {
+  if (!drag) return;
+  drag.box.querySelectorAll('.over').forEach(r => r.classList.remove('over'));
+  const before = rowAt_(drag.box, e.clientY, drag.row);
+  if (before) { before.classList.add('over'); drag.box.insertBefore(drag.row, before); }
+  else {
+    // Past the last row: drop it at the end of the list, above the Add button.
+    const add = drag.box.querySelector('[data-add]');
+    const last = Array.from(drag.box.querySelectorAll('[data-hid]')).pop();
+    if (last && last !== drag.row) drag.box.insertBefore(drag.row, add || null);
+  }
+});
+document.addEventListener('pointerup', async () => {
+  if (!drag) return;
+  const box = drag.box, row = drag.row; drag = null;
+  row.classList.remove('dragging');
+  box.querySelectorAll('.over').forEach(r => r.classList.remove('over'));
+  const ids = Array.from(box.querySelectorAll('[data-hid]')).map(r => r.dataset.hid);
+  // Rewrite every position, so the order stays evenly spaced however often you move things.
+  const rows = ids.map((id, i) => ({ id, n: (i + 1) * 10 }));
   rows.forEach(r => { const x = holdings.find(y => String(y.id) === String(r.id)); if (x) x.sort_order = r.n; });
   renderAll();
   try {
@@ -590,11 +620,14 @@ async function moveHolding(id, dir) {
     await Promise.all(rows.map(r =>
       supa.from('wealth_holdings').update({ sort_order: r.n }).eq('id', r.id).eq('user_id', userId)));
   } catch (err) { console.error(err); toast('Could not save the order'); await loadAll(); }
-}
+});
+document.addEventListener('pointercancel', () => {
+  if (!drag) return;
+  drag.row.classList.remove('dragging'); drag = null; renderAll();
+});
 
 document.addEventListener('click', e => {
-  const mv = e.target.closest('[data-mv]');
-  if (mv) { e.stopPropagation(); moveHolding(mv.dataset.id, mv.dataset.mv); return; }
+  if (e.target.closest('[data-grip]')) { e.stopPropagation(); return; }
   const a = e.target.closest('[data-add]');
   if (a) { openHold(a.dataset.add, null); return; }
   const ed = e.target.closest('[data-edit]');
