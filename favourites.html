@@ -163,7 +163,27 @@
   .type-chip { font-size:0.75rem; padding:6px 12px; border-radius:20px; border:1px solid #dce3ee; background:#f4f7fb; color:#3a4560; cursor:pointer; font-weight:500; font-family:inherit; }
   .type-chip:hover { border-color:#c9a94a; }
   .type-chip.active { background:#0F2D5C; color:#fff; border-color:#0F2D5C; }
+  /* A saved HTML page, shown as it was written. */
+  .doc-overlay { position:fixed; inset:0; z-index:240; background:#fff; display:flex; flex-direction:column; }
+  .doc-bar { display:flex; align-items:center; gap:12px; padding:11px 15px; background:#f8fafc;
+             border-bottom:1px solid #dfe5ee; flex-shrink:0; }
+  .doc-title { flex:1; font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#1c2331;
+               white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .doc-btn { background:none; border:1px solid #dfe5ee; border-radius:8px; padding:7px 12px;
+             font-family:inherit; font-size:0.78125rem; color:#4A5570; cursor:pointer; white-space:nowrap; }
+  .doc-btn:hover { border-color:#2f5187; color:#2f5187; }
+  .doc-frame { flex:1; border:0; width:100%; background:#fff; }
+
   /* The passage — the words themselves, given room above your own note. */
+  .upload-row { display:flex; align-items:center; gap:10px; }
+  .upload-btn { display:inline-flex; align-items:center; gap:6px; background:#e8eef8; color:#2f5187;
+                border:1px solid #dfe5ee; border-radius:8px; padding:8px 14px; font-size:0.78125rem;
+                font-weight:600; cursor:pointer; white-space:nowrap; }
+  .upload-btn:hover { border-color:#2f5187; }
+  .upload-name { font-size:0.71875rem; color:#8B97AC; font-style:italic; overflow:hidden;
+                 text-overflow:ellipsis; white-space:nowrap; }
+  .upload-name.loaded { color:#356B4E; font-style:normal; font-weight:600; }
+
   .n-essence { font-family:var(--serif); font-style:italic; font-size:0.875rem; line-height:1.65;
                color:#3a4459; margin:8px 0 2px; padding-left:11px;
                border-left:2px solid var(--acc,#2f5187); }
@@ -400,6 +420,15 @@
       <label id="lblSource">Source link</label>
       <input id="fSource" placeholder="https://&#8230; where it&#8217;s from" inputmode="url">
     </div>
+    <div class="field hidden" id="fldUpload">
+      <label>Saved page (optional)</label>
+      <div class="upload-row">
+        <label class="upload-btn" for="fFile">Choose an HTML file</label>
+        <input type="file" id="fFile" accept=".html,.htm,text/html" style="display:none">
+        <span class="upload-name" id="fFileName">No file chosen</span>
+      </div>
+      <div class="hint">The whole page is kept, and opens as it was written. Leave this alone to write a note instead.</div>
+    </div>
     <div class="field hidden" id="fldEssence">
       <label>The passage</label>
       <textarea id="fEssence" rows="3" placeholder="The line worth keeping, in their words&#8230;"></textarea>
@@ -433,6 +462,15 @@
       <button class="btn-save" id="saveBtn">Save</button>
     </div>
   </div>
+</div>
+
+<div class="doc-overlay hidden" id="docOverlay">
+  <div class="doc-bar">
+    <button class="doc-btn" id="docBack" type="button">&larr; Back</button>
+    <span class="doc-title" id="docTitle"></span>
+    <button class="doc-btn" id="docEdit" type="button">Edit</button>
+  </div>
+  <iframe class="doc-frame" id="docFrame" title="Saved page" sandbox="allow-same-origin allow-popups"></iframe>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -661,12 +699,14 @@ async function saveBookmark() {
   // Marathi must carry a source so you can return to it.
   if (s.srcReq && !source) { fail('A source link is required for \u092e\u0930\u093e\u0920\u0940'); return; }
   const tags = el('fTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  // An uploaded page replaces the note entirely — it is the note.
   const record = {
     user_id: userId, title, section,
     url: (section === 'all-time' || section === 'music') ? url : '',
     source_url: (s.kind === 'notes') ? source : '',
     type: el('fType').value.trim(),
-    tags, note: (section === 'music') ? '' : el('fNote').value.trim(),
+    tags, note: pendingDoc != null ? pendingDoc
+            : ((section === 'music') ? '' : el('fNote').value.trim()),
     essence: s.essence ? el('fEssence').value.trim() : '',
     updated_at: new Date().toISOString(),
   };
@@ -812,7 +852,8 @@ function render() {
   if (sec.kind === 'notes') {
     let html = '<div class="rows">';
     list.forEach(r => {
-      const preview = NoteEditor.toPlain(r.note).trim();  // strip tags for the teaser
+      // A saved page is not a note — say so rather than printing its markup.
+      const preview = isDoc(r.note) ? 'A saved page' : NoteEditor.toPlain(r.note).trim();
       const essence = (r.essence || '').trim();   // Wisdom only; the words themselves
       const hasSrc = (r.source_url || '').trim();
       html += '<div class="ncard' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '"' + secTint + '>' +
@@ -941,8 +982,23 @@ function frSessionEnd_() {
   frBaseline = null;
 }
 
+// A wisdom entry's note may be a complete HTML file you uploaded, not a rich
+// text fragment. Those cannot go through NoteEditor — they get their own frame.
+function isDoc(s) {
+  const t = String(s || '').trim().slice(0, 400).toLowerCase();
+  return t.indexOf('<!doctype html') === 0 || t.indexOf('<html') === 0;
+}
+function openDocReader(r) {
+  el('docTitle').textContent = r.title || '';
+  const frame = el('docFrame');
+  // srcdoc keeps it sandboxed and needs no blob URL to clean up afterwards.
+  frame.srcdoc = r.note || '';
+  el('docOverlay').classList.remove('hidden');
+  el('docOverlay').dataset.id = r.id;
+}
 function openReader(id, keepNav) {
   const r = rows.find(x => x.id === id); if (!r) return;
+  if (isDoc(r.note)) { openDocReader(r); return; }
   if (!keepNav) frNavIds = filteredRows().map(x => x.id);  // arrows follow the list you came from
   const sec = SECTIONS[secOf(r)] || SECTIONS['all-time'];
   el('frPage').dataset.sec = secOf(r);   // reader wears the box's colour
@@ -1161,6 +1217,7 @@ function shapeModalForSection(sec) {
   el('lblSource').textContent = s.srcReq ? 'Source link (required)' : 'Source link (optional)';
   // The passage — only Wisdom carries one.
   el('fldEssence').classList.toggle('hidden', !s.essence);
+  el('fldUpload').classList.toggle('hidden', !s.essence);
   // Note field: All-Time keeps its short inline note (it has no reader page).
   // The notes sections write in the full-width editor instead, so the cramped
   // textarea is removed entirely there.
@@ -1189,12 +1246,20 @@ function openModal(id) {
     el('fTags').value = (r.tags || []).join(', ');
     el('fNote').value = r.note || '';
     el('fEssence').value = r.essence || '';
+    pendingDoc = null;
+    el('fFileName').textContent = isDoc(r.note) ? 'A saved page is attached' : 'No file chosen';
+    el('fFileName').classList.toggle('loaded', isDoc(r.note));
+    el('fFile').value = '';
     el('deleteBtn').classList.remove('hidden');
   } else {
     el('modalTitle').textContent = 'New favourite';
     el('fSection').value = (activeSection && SECTIONS[activeSection]) ? activeSection : 'all-time';
     el('fTitle').value = ''; el('fUrl').value = ''; el('fSource').value = '';
     el('fType').value = ''; el('fTags').value = ''; el('fNote').value = ''; el('fEssence').value = '';
+    pendingDoc = null;
+    el('fFileName').textContent = 'No file chosen';
+    el('fFileName').classList.remove('loaded');
+    el('fFile').value = '';
     el('deleteBtn').classList.add('hidden');
   }
   shapeModalForSection(el('fSection').value);
@@ -1204,6 +1269,29 @@ function openModal(id) {
 }
 function closeModal() { el('modalOverlay').classList.add('hidden'); editingId = null; }
 
+let pendingDoc = null;   // an uploaded page waiting to be saved
+el('fFile').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    pendingDoc = String(rd.result || '');
+    const n = el('fFileName');
+    n.textContent = file.name; n.classList.add('loaded');
+  };
+  rd.onerror = () => toast('Could not read that file');
+  rd.readAsText(file);
+});
+el('docBack').addEventListener('click', () => {
+  el('docFrame').srcdoc = '';               // stop whatever the page was doing
+  el('docOverlay').classList.add('hidden');
+});
+el('docEdit').addEventListener('click', () => {
+  const id = el('docOverlay').dataset.id;
+  el('docFrame').srcdoc = '';
+  el('docOverlay').classList.add('hidden');
+  if (id) openModal(id);
+});
 el('openNoteBtn').addEventListener('click', () => {
   const id = editingId; if (!id) return;
   closeModal();
