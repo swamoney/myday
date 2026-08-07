@@ -345,6 +345,7 @@
         <span data-sec="marathi"><svg viewBox="0 0 24 24"><text x="12" y="17.5" text-anchor="middle" font-size="16" font-weight="600" fill="currentColor" font-family="Noto Sans Devanagari, sans-serif">म</text></svg><i class="sl">मराठी</i></span>
         <span data-sec="movies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="10" rx="2"/><path d="m3.5 10-.9-3.6L19.9 2.6l.9 3.6zM7.4 9.2 6 5.7M12.2 8 10.8 4.5M17 6.8 15.6 3.3"/></svg><i class="sl">Movies/Live</i></span>
         <span data-sec="music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><i class="sl">Music</i></span>
+        <span data-sec="wisdom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg><i class="sl">Wisdom</i></span>
       </div>
 
       <div class="tabs" id="typeTabs"></div>
@@ -759,6 +760,16 @@ function filteredRows() {
 
 function renderSectionNav() {
   const seg = el('favSeg'); if (!seg) return;
+  // The chips are written in the markup while the sections live in SECTIONS.
+  // Two lists that must agree, so say so loudly when they do not.
+  if (!renderSectionNav._checked) {
+    renderSectionNav._checked = true;
+    const inNav = Array.from(seg.querySelectorAll(':scope > span')).map(s => s.dataset.sec);
+    Object.keys(SECTIONS).forEach(k => {
+      if (inNav.indexOf(k) < 0) console.warn('Section "' + k + '" has no chip in favSeg');
+    });
+    inNav.forEach(k => { if (!SECTIONS[k]) console.warn('Chip "' + k + '" has no section'); });
+  }
   seg.querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.sec === activeSection));
 }
 (function wireSectionNav(){
