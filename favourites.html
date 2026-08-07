@@ -164,7 +164,10 @@
   .type-chip:hover { border-color:#c9a94a; }
   .type-chip.active { background:#0F2D5C; color:#fff; border-color:#0F2D5C; }
   /* A saved HTML page, shown as it was written. */
-  .doc-overlay { position:fixed; inset:0; z-index:240; background:#fff; display:flex; flex-direction:column; }
+  .doc-overlay { position:fixed; inset:0; z-index:240; background:#fff; display:flex;
+                 flex-direction:column; overflow:hidden; }
+  /* The saved page scrolls inside its frame; the page behind must not scroll too. */
+  body.doc-open { overflow:hidden; }
   .doc-bar { display:flex; align-items:center; gap:12px; padding:11px 15px; background:#f8fafc;
              border-bottom:1px solid #dfe5ee; flex-shrink:0; }
   .doc-title { flex:1; font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#1c2331;
@@ -469,7 +472,6 @@
   <div class="doc-bar">
     <button class="doc-btn" id="docBack" type="button">&larr; Back</button>
     <span class="doc-title" id="docTitle"></span>
-    <button class="doc-btn" id="docEdit" type="button">Edit</button>
   </div>
   <iframe class="doc-frame" id="docFrame" title="Saved page" sandbox="allow-same-origin allow-popups"></iframe>
 </div>
@@ -989,6 +991,23 @@ function frSessionEnd_() {
 
 // A wisdom entry's note may be a complete HTML file you uploaded, not a rich
 // text fragment. Those cannot go through NoteEditor — they get their own frame.
+// Pull the title and the opening passage out of a saved page. Parsed rather
+// than pattern-matched, so a page with an unusual shape cannot mislead it.
+function readDoc(html) {
+  const out = { title: '', passage: '' };
+  try {
+    const d = new DOMParser().parseFromString(String(html || ''), 'text/html');
+    const h1 = d.querySelector('h1');
+    out.title = ((h1 && h1.textContent) || (d.title || '')).trim().slice(0, 200);
+    // The first paragraph with something real in it.
+    const ps = Array.from(d.querySelectorAll('p, blockquote'));
+    for (const p of ps) {
+      const t = (p.textContent || '').replace(/\s+/g, ' ').trim();
+      if (t.length > 30) { out.passage = t.slice(0, 300); break; }
+    }
+  } catch (e) { console.error('readDoc', e); }
+  return out;
+}
 function isDoc(s) {
   const t = String(s || '').trim().slice(0, 400).toLowerCase();
   return t.indexOf('<!doctype html') === 0 || t.indexOf('<html') === 0;
@@ -999,6 +1018,7 @@ function openDocReader(r) {
   // srcdoc keeps it sandboxed and needs no blob URL to clean up afterwards.
   frame.srcdoc = r.note || '';
   el('docOverlay').classList.remove('hidden');
+  document.body.classList.add('doc-open');
   el('docOverlay').dataset.id = r.id;
 }
 function openReader(id, keepNav) {
@@ -1283,20 +1303,20 @@ el('fFile').addEventListener('change', e => {
     pendingDoc = String(rd.result || '');
     const n = el('fFileName');
     n.textContent = file.name; n.classList.add('loaded');
+    // Read the page rather than asking you to retype what it already says.
+    const got = readDoc(pendingDoc);
+    if (got.title && !el('fTitle').value.trim()) el('fTitle').value = got.title;
+    if (got.passage && !el('fEssence').value.trim()) el('fEssence').value = got.passage;
   };
   rd.onerror = () => toast('Could not read that file');
   rd.readAsText(file);
 });
-el('docBack').addEventListener('click', () => {
+function closeDoc() {
   el('docFrame').srcdoc = '';               // stop whatever the page was doing
   el('docOverlay').classList.add('hidden');
-});
-el('docEdit').addEventListener('click', () => {
-  const id = el('docOverlay').dataset.id;
-  el('docFrame').srcdoc = '';
-  el('docOverlay').classList.add('hidden');
-  if (id) openModal(id);
-});
+  document.body.classList.remove('doc-open');
+}
+el('docBack').addEventListener('click', closeDoc);
 el('openNoteBtn').addEventListener('click', () => {
   const id = editingId; if (!id) return;
   closeModal();
