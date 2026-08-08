@@ -490,7 +490,13 @@ function renderAll() {
 // date. That is the true total, and the only figure worth drawing.
 function totalsByMonth() {
   const rate = Number(meta.usd_rate) || 0;
-  const rows = (snaps || []).slice().sort((a, b) => String(a.on_date).localeCompare(String(b.on_date)));
+  // Only holdings you still have. A deleted one keeps its snapshots, and
+  // counting those would push the curve above the total on the card.
+  const live = {};
+  holdings.forEach(x => { live[String(x.id)] = true; });
+  const rows = (snaps || [])
+    .filter(s => live[String(s.holding_id)])
+    .sort((a, b) => String(a.on_date).localeCompare(String(b.on_date)));
   const latest = {};          // holding -> its most recent value so far
   const byMonth = {};         // month  -> the total at the end of that month
   rows.forEach(s => {
@@ -501,7 +507,11 @@ function totalsByMonth() {
     });
     byMonth[String(s.on_date).slice(0, 7)] = t;   // last write in a month wins
   });
-  return Object.keys(byMonth).sort().map(m => ({ m, v: byMonth[m] }));
+  const out = Object.keys(byMonth).sort().map(m => ({ m, v: byMonth[m] }));
+  // The most recent point is today's total, whatever the snapshots say — so the
+  // end of the line always agrees with the figure on the card above it.
+  if (out.length) out[out.length - 1].v = grandTotal();
+  return out;
 }
 function monthLabel(m) {
   const d = new Date(m + '-01T00:00:00');
@@ -509,7 +519,7 @@ function monthLabel(m) {
 }
 function renderHistory() {
   const card = el('histCard');
-  const pts = totalsByMonth();
+  let pts = totalsByMonth();
   if (!pts.length) {
     card.innerHTML = '<div class="hist-h"><span class="hist-t">How it grew</span></div>'
       + '<div class="empty">Nothing recorded yet. Every change you make from today is dated and kept.</div>';
@@ -517,12 +527,9 @@ function renderHistory() {
   }
   const head = '<div class="hist-h"><span class="hist-t">How it grew</span>'
     + '<span class="hist-t">' + pts.length + (pts.length === 1 ? ' MONTH' : ' MONTHS') + '</span></div>';
-  if (pts.length === 1) {
-    card.innerHTML = head + '<div class="hist-one">' + inr(pts[0].v)
-      + '<span>' + monthLabel(pts[0].m) + '</span></div>'
-      + '<div class="empty">One month recorded. The line appears once there are two.</div>';
-    return;
-  }
+  // A single month still draws — a short flat line reading as "this is where it
+  // begins" rather than a message explaining why there is no chart.
+  if (pts.length === 1) pts = [{ m: pts[0].m, v: pts[0].v }, pts[0]];
   // A line rather than bars: thirty years fits the same card as two, because
   // adding points makes it longer, not thinner.
   const W = 300, H = 76, mx = Math.max.apply(null, pts.map(p => p.v)) || 1;
