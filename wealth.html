@@ -164,10 +164,12 @@
   .hist-h { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
   .hist-t { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.2em;
             text-transform:uppercase; color:var(--faint); }
-  .spark { display:flex; align-items:flex-end; gap:3px; height:70px; }
-  .spark span { flex:1; background:var(--ink); border-radius:2px 2px 0 0; opacity:0.75; min-height:2px; }
-  .spark-x { display:flex; justify-content:space-between; font-family:var(--mono);
-             font-size:0.53125rem; color:var(--faint); margin-top:7px; }
+  .hist-svg { width:100%; height:86px; display:block; overflow:visible; }
+  .hist-x { display:flex; justify-content:space-between; gap:12px; font-family:var(--mono);
+            font-size:0.53125rem; color:var(--faint); margin-top:8px; }
+  .hist-one { font-family:var(--sans); font-variant-numeric:tabular-nums; font-weight:500;
+              font-size:1.5rem; color:var(--ink); display:flex; align-items:baseline; gap:10px; }
+  .hist-one span { font-family:var(--mono); font-size:0.625rem; color:var(--faint); }
 
   /* ---- modal ---- */
   .modal-overlay { position:fixed; inset:0; z-index:900; display:flex; align-items:center;
@@ -482,29 +484,68 @@ function renderAll() {
   if (histOpen) renderHistory();
 }
 
-function renderHistory() {
-  const byDate = {};
-  snaps.forEach(s => {
-    const rate = Number(meta.usd_rate) || 0;
-    const v = (Number(s.invested) || 0) * (s.kind === 'etf' ? rate : 1);
-    byDate[s.on_date] = (byDate[s.on_date] || 0) + v;
+// A snapshot is written for a holding only on the day it changes, so summing
+// the rows on each date charts how much you edited, not what you had. Carry
+// each holding forward instead: on any date, its most recent value up to that
+// date. That is the true total, and the only figure worth drawing.
+function totalsByMonth() {
+  const rate = Number(meta.usd_rate) || 0;
+  const rows = (snaps || []).slice().sort((a, b) => String(a.on_date).localeCompare(String(b.on_date)));
+  const latest = {};          // holding -> its most recent value so far
+  const byMonth = {};         // month  -> the total at the end of that month
+  rows.forEach(s => {
+    latest[s.holding_id] = { v: Number(s.invested) || 0, kind: s.kind };
+    let t = 0;
+    Object.keys(latest).forEach(k => {
+      t += latest[k].v * (latest[k].kind === 'etf' ? rate : 1);
+    });
+    byMonth[String(s.on_date).slice(0, 7)] = t;   // last write in a month wins
   });
-  const dates = Object.keys(byDate).sort();
+  return Object.keys(byMonth).sort().map(m => ({ m, v: byMonth[m] }));
+}
+function monthLabel(m) {
+  const d = new Date(m + '-01T00:00:00');
+  return isNaN(d) ? m : d.toLocaleDateString('en-GB', { month:'short', year:'2-digit' });
+}
+function renderHistory() {
   const card = el('histCard');
-  if (!dates.length) {
+  const pts = totalsByMonth();
+  if (!pts.length) {
     card.innerHTML = '<div class="hist-h"><span class="hist-t">How it grew</span></div>'
       + '<div class="empty">Nothing recorded yet. Every change you make from today is dated and kept.</div>';
     return;
   }
-  const show = dates.slice(-30);
-  const mx = Math.max.apply(null, show.map(d => byDate[d])) || 1;
-  card.innerHTML = '<div class="hist-h"><span class="hist-t">How it grew</span>'
-    + '<span class="hist-t">' + dates.length + ' dated points</span></div>'
-    + '<div class="spark">' + show.map(d =>
-        '<span style="height:' + Math.max(2, byDate[d] / mx * 100) + '%" title="'
-        + fmtDate(d) + ' — ' + inr(byDate[d]) + '"></span>').join('') + '</div>'
-    + '<div class="spark-x"><span>' + fmtDate(show[0]) + '</span><span>'
-      + fmtDate(show[show.length - 1]) + '</span></div>';
+  const head = '<div class="hist-h"><span class="hist-t">How it grew</span>'
+    + '<span class="hist-t">' + pts.length + (pts.length === 1 ? ' MONTH' : ' MONTHS') + '</span></div>';
+  if (pts.length === 1) {
+    card.innerHTML = head + '<div class="hist-one">' + inr(pts[0].v)
+      + '<span>' + monthLabel(pts[0].m) + '</span></div>'
+      + '<div class="empty">One month recorded. The line appears once there are two.</div>';
+    return;
+  }
+  // A line rather than bars: thirty years fits the same card as two, because
+  // adding points makes it longer, not thinner.
+  const W = 300, H = 76, mx = Math.max.apply(null, pts.map(p => p.v)) || 1;
+  const xy = pts.map((p, i) => [
+    (i * (W / (pts.length - 1))),
+    H - (p.v / mx) * (H - 6)
+  ]);
+  const line = xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const area = line + ' ' + W + ',' + H + ' 0,' + H;
+  const last = xy[xy.length - 1];
+  card.innerHTML = head
+    + '<svg class="hist-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img"'
+      + ' aria-label="Total invested by month">'
+      + '<defs><linearGradient id="histFill" x1="0" y1="0" x2="0" y2="1">'
+        + '<stop offset="0" stop-color="#16202f" stop-opacity="0.22"/>'
+        + '<stop offset="1" stop-color="#16202f" stop-opacity="0"/></linearGradient></defs>'
+      + '<polygon points="' + area + '" fill="url(#histFill)"/>'
+      + '<polyline points="' + line + '" fill="none" stroke="#16202f" stroke-width="1.8"'
+        + ' stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
+      + '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.6" fill="#16202f"/>'
+    + '</svg>'
+    + '<div class="hist-x"><span>' + monthLabel(pts[0].m) + ' \u00B7 ' + inr(pts[0].v) + '</span>'
+      + '<span>' + monthLabel(pts[pts.length - 1].m) + ' \u00B7 ' + inr(pts[pts.length - 1].v) + '</span></div>';
 }
 
 /* ---------- load ---------- */
