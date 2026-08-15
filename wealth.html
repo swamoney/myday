@@ -208,33 +208,50 @@
   .dc-badge { background:#16202f; color:#f3d585; font-weight:600; border-radius:999px;
               padding:1px 7px; font-size:0.59375rem; letter-spacing:0; }
   .dc-qs { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-  .dc-q { border:1px solid; border-radius:8px; padding:10px 6px; font-family:inherit;
-          font-size:0.8125rem; cursor:pointer; }
-  .dc-q.on { border-width:2px; padding:9px 5px; font-weight:600; }
-  .dc-verdict { background:#f7f9fc; border:1px solid var(--line); border-radius:8px;
-                padding:10px 12px; font-size:0.78125rem; color:var(--mut);
-                margin-bottom:13px; min-height:38px; }
+  .dc-q { border:1px solid; border-radius:8px; padding:9px 6px 8px; font-family:inherit;
+          font-size:0.8125rem; cursor:pointer; display:flex; flex-direction:column;
+          align-items:center; gap:5px; }
+  .dc-q.on { border-width:2px; padding:8px 5px 7px; font-weight:600; }
+  .dc-qc { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em;
+           text-transform:uppercase; border-radius:999px; padding:2px 8px; }
+  .dc-verdict { font-size:0.78125rem; font-style:italic; color:#b6bdc9;
+                margin:11px 2px 13px; min-height:20px; }
   .dc-outs { display:flex; gap:7px; margin-bottom:6px; }
   .dc-outs button { flex:1; font-family:inherit; font-size:0.71875rem; font-weight:600;
-                    color:var(--ink); background:#fff; border:1px solid #dfe5ee;
+                    color:#fff; background:rgba(255,255,255,0.08);
+                    border:1px solid rgba(255,255,255,0.28);
                     border-radius:8px; padding:9px 4px; cursor:pointer; }
-  .dc-outs button:hover { border-color:var(--ink); }
-  .dc-outs .dc-no { border-color:#e8c9c4; color:#8A1F1A; }
-  .dc-outs .dc-no:hover { border-color:#8A1F1A; }
+  .dc-outs button:hover { border-color:#fff; }
+  .dc-outs .dc-no { border-color:#e2a49e; color:#f2b3ac; }
+  .dc-outs .dc-no:hover { border-color:#f2b3ac; }
   .dc-lh { display:flex; justify-content:space-between; font-family:var(--mono);
            font-size:0.5625rem; letter-spacing:0.18em; text-transform:uppercase;
-           color:var(--faint); padding:16px 0 5px; border-bottom:1px solid var(--line); }
-  .dc-row { align-items:center; gap:9px; }
+           color:rgba(255,255,255,0.45); padding:16px 0 5px;
+           border-bottom:1px solid rgba(255,255,255,0.14); }
+  .dc-row { align-items:center; gap:9px; border-bottom-color:rgba(255,255,255,0.12); }
+  .dc-row:hover { background:transparent; }
   .dc-chip { border-radius:999px; padding:2px 9px; font-size:0.65625rem; font-weight:600;
              white-space:nowrap; }
-  .dc-when { font-family:var(--mono); font-size:0.59375rem; color:var(--mut); white-space:nowrap; }
-  .dc-when.due { color:#854F0B; font-weight:600; }
-  .dc-gone { text-decoration:line-through; color:var(--mut); }
-  .dc-v { color:var(--ink); }
-  .dc-year { font-family:var(--mono); font-size:0.625rem; color:#0F6E56; padding:9px 0 2px; }
-  .dc-year.old { color:var(--faint); }
-  .dc-sec { padding-bottom:16px; }
-  .dc-sec .sec-h { margin-bottom:13px; }
+  .dc-when { font-family:var(--mono); font-size:0.59375rem; color:#b6bdc9; white-space:nowrap; }
+  .dc-when.due { color:#f3d585; font-weight:600; }
+  .dc-gone { text-decoration:line-through; color:rgba(255,255,255,0.55); }
+  .dc-v { color:#fff; }
+  .dc-year { font-family:var(--mono); font-size:0.625rem; color:#7fd6a4; padding:9px 0 2px; }
+  .dc-year.old { color:rgba(255,255,255,0.45); }
+  .dc-sec { padding-bottom:16px; color:#fff;
+            background:linear-gradient(155deg,#16202f,#243449);
+            border-color:transparent;
+            box-shadow:0 8px 24px rgba(22,32,47,0.18); }
+  .dc-sec .sec-h { align-items:center; background:#f3d585; margin:-18px -20px 13px;
+                   padding:13px 20px 12px; border-bottom:none; border-radius:14px 14px 0 0; }
+  .dc-sec .sec-t { color:#16202f; font-weight:600; margin-top:0; }
+  .dc-sec .sec-n { color:#5c4708; }
+  .dc-sec .fld label { color:rgba(255,255,255,0.5); }
+  .dc-sec .fld input { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.22); color:#fff; }
+  .dc-sec .fld input::placeholder { color:rgba(255,255,255,0.4); }
+  .dc-sec .fld input:focus { border-color:#f3d585; background:rgba(255,255,255,0.12); }
+  .dc-sec .row { border-bottom-color:rgba(255,255,255,0.12); }
+  .dc-sec .row:hover { background:rgba(255,255,255,0.06); }
 
   /* ---- auth ---- */
   .auth-overlay { position:fixed; inset:0; background:#eef2f8; z-index:250; display:flex;
@@ -314,13 +331,13 @@
       <div class="sec" id="secEq" style="--acc:var(--plum)"></div>
     </div>
 
-    <div class="sec dc-sec hidden" id="dcSec" style="--acc:#a5702f">
+    <div class="sec dc-sec hidden" id="dcSec">
       <div class="sec-h">
-        <div><div class="sec-k">Before the money moves</div><div class="sec-t">Before I spend</div></div>
+        <div class="sec-t">Before I spend</div>
         <div class="sec-n">REVIEW &middot; DECIDE &middot; PLAN</div>
       </div>
       <div class="fld"><label>What is it?</label><input id="dcName" placeholder="e.g. New laptop"></div>
-      <div class="fld"><label>Cost (&#8377;)</label><input id="dcCost" type="number" inputmode="decimal" step="any" placeholder="0"></div>
+      <div class="fld"><label>Approx cost (&#8377;)</label><input id="dcCost" type="number" inputmode="decimal" step="any" placeholder="0"></div>
       <div class="fld"><label>Which is true?</label><div class="dc-qs" id="dcQs"></div></div>
       <div class="dc-verdict" id="dcVerdict"></div>
       <div class="dc-outs">
@@ -397,7 +414,7 @@
     <div class="modal-title">Edit decision</div>
     <div class="modal-sub">Change its fate as the thinking changes.</div>
     <div class="fld"><label>What is it?</label><input id="deName"></div>
-    <div class="fld"><label>Cost (&#8377;)</label><input id="deCost" type="number" inputmode="decimal" step="any"></div>
+    <div class="fld"><label>Approx cost (&#8377;)</label><input id="deCost" type="number" inputmode="decimal" step="any"></div>
     <div class="fld"><label>Category</label><select id="deCat"></select></div>
     <div class="fld"><label>Status</label><select id="deStatus">
       <option value="reviewing">Reviewing</option>
@@ -834,12 +851,12 @@ document.addEventListener('click', e => {
 const DC_CATS = {
   need:       { lbl:'Need',       q:'Must I?',        fill:'#E6F1FB', ink:'#0C447C', bd:'#378ADD',
                 verdict:'A need \u2014 plan it rather than postpone it.' },
-  lifestyle:  { lbl:'Lifestyle',  q:'Eases my days?', fill:'#E1F5EE', ink:'#04342C', bd:'#1D9E75',
+  lifestyle:  { lbl:'Comfort',    q:'Eases my days?', fill:'#E1F5EE', ink:'#04342C', bd:'#1D9E75',
                 verdict:'Comfort. Worth it only if it survives a wait \u2014 park it?' },
   meaningful: { lbl:'Meaningful', q:'Feeds my Why?',  fill:'#EEEDFE', ink:'#26215C', bd:'#7F77DD',
                 verdict:'Feeds your Why \u2014 plan it with a date to look forward to.' },
-  want:       { lbl:'Want',       q:'Just want it',   fill:'#FAEEDA', ink:'#412402', bd:'#BA7517',
-                verdict:'A want. It earns 30 days \u2014 park it and see if it still calls.' }
+  want:       { lbl:'Desire',     q:'Just want it',   fill:'#FAEEDA', ink:'#412402', bd:'#BA7517',
+                verdict:'A desire. It earns 30 days \u2014 park it and see if it still calls.' }
 };
 let dcSel = null, dcEditing = null;
 
@@ -868,7 +885,9 @@ function dcRenderQs() {
     const c = DC_CATS[k];
     return '<button type="button" class="dc-q' + (dcSel === k ? ' on' : '') + '" data-dcq="' + k + '"'
       + ' style="background:' + c.fill + ';border-color:' + c.bd + ';color:' + c.ink + '"'
-      + ' aria-pressed="' + (dcSel === k) + '">' + c.q + '</button>';
+      + ' aria-pressed="' + (dcSel === k) + '">'
+      + '<span class="dc-qc" style="background:' + c.ink + ';color:' + c.fill + '">' + c.lbl + '</span>'
+      + '<span>' + c.q + '</span></button>';
   }).join('');
   el('dcVerdict').textContent = dcSel ? DC_CATS[dcSel].verdict : 'Pick the question that is true.';
 }
