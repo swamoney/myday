@@ -671,27 +671,30 @@
   /* Wordless: a brief centred rule rather than a line across the page. */
   .rm-div.short { justify-content:center; }
   .rm-div.short span { flex:none; width:110px; height:2px; border-radius:1px; background:#c6cfdd; }
-  .rmx-hd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
-  .rmx-t { font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#28324B; }
-  /* No verb here — the four names are complete thoughts on their own. */
-  /* Filled, like My Priority's — and it wears this pillar's own rainbow colour. */
-  .rmx-add { display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:0.7188rem; font-weight:600;
-             padding:7px 12px; border-radius:9px; cursor:pointer; color:#fff;
-             background:var(--rmx-acc,#5b4a86); border:1px solid var(--rmx-acc,#5b4a86);
-             transition:filter .14s; }
-  .rmx-add svg { width:14px; height:14px; flex-shrink:0; }
-  .rmx-add:hover { filter:brightness(0.92); }
   /* ===== The pillar passbook (pp-) — replaces the roadmap matrix (Aug 2026).
      Text wears the pillar's ink; solid draws only borders and bullets. */
   .pp-standing { background:var(--pp-tint,#f5f7fb); border-left:3px solid var(--pp-sol,#8189a0);
                  border-radius:0 10px 10px 0; padding:12px 14px 13px; margin-bottom:16px; }
-  .pp-sec { display:block; width:100%; text-align:left; background:none; border:none;
-            font-family:inherit; color:inherit; padding:0; cursor:pointer; }
   .pp-sec.pp-to { margin-top:11px; padding-top:10px; border-top:1px dashed var(--pp-sol,#8189a0); }
-  .pp-hd { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .pp-hd { display:flex; align-items:baseline; gap:6px; }
   .pp-lbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
             text-transform:uppercase; color:var(--pp-ink,#28324B); }
-  .pp-pen { font-size:0.6563rem; color:#8B97AC; margin-left:5px; }
+  .pp-pen { font-size:0.6563rem; color:#8B97AC; margin-left:2px; background:none; border:none;
+            cursor:pointer; padding:0 2px; }
+  .pp-additem { margin-left:auto; font-family:var(--mono); font-size:0.59375rem; letter-spacing:0.1em;
+                color:var(--pp-ink,#28324B); background:none; border:none; cursor:pointer; padding:0 2px; }
+  .pp-itrow { display:flex; align-items:flex-start; gap:9px; margin-top:7px; }
+  .pp-circ { width:18px; height:18px; min-width:18px; margin-top:2px; border:2px solid var(--pp-sol,#8189a0);
+             border-radius:50%; background:#fff; cursor:pointer; display:flex; align-items:center;
+             justify-content:center; color:transparent; font-size:0.6875rem; font-weight:700; padding:0; }
+  .pp-circ:hover { color:var(--pp-sol,#8189a0); }
+  .pp-ittxt { flex:1; text-align:left; background:none; border:none; font-family:inherit;
+              font-size:0.875rem; line-height:1.5; color:#28324B; cursor:pointer; padding:0; }
+  .pp-journey { display:block; width:100%; font-family:var(--mono); font-size:0.625rem;
+                letter-spacing:0.12em; text-transform:uppercase; color:#5A6478; background:none;
+                border:1px dashed #d9dfeb; border-radius:8px; padding:8px; margin-top:12px; cursor:pointer; }
+  .pp-complete { background:#0F6E56; color:#fff; border:none; border-radius:9px; padding:10px 14px;
+                 font-family:inherit; font-size:0.8125rem; font-weight:600; cursor:pointer; }
   .pp-since { font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; }
   .pp-it { display:flex; gap:8px; font-size:0.875rem; line-height:1.5; margin-top:5px; color:#28324B; }
   .pp-it::before { content:'\2022'; color:var(--pp-sol,#8189a0); }
@@ -705,9 +708,6 @@
   .pp-dotk { color:#8B97AC; min-width:16px; text-align:center; }
   .pp-w { font-size:0.875rem; line-height:1.45; flex:1; color:#28324B; }
   .pp-d { font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; white-space:nowrap; }
-  #ppSecModal textarea { width:100%; font-family:inherit; font-size:0.875rem; color:inherit;
-                         background:#fff; border:1px solid #dfe5ee; border-radius:8px;
-                         padding:10px 12px; resize:vertical; }
   .pr-warn { background:#fdf3f2; border:1px solid #edd3d0; border-radius:10px; padding:11px 13px;
              font-size:0.7188rem; line-height:1.55; color:#7a3b34; margin-bottom:4px; }
   .pr-warn b { color:#5f2a24; }
@@ -1038,9 +1038,8 @@
 <div class="modal-overlay hidden" id="ppSecModal">
   <div class="modal">
     <div class="modal-title" id="ppSecTitle">Edit</div>
-    <div class="modal-sub">rename the heading; one line per item &mdash; two-three works best</div>
+    <div class="modal-sub">rename this heading &mdash; each why speaks its own language</div>
     <div class="fld"><label>Heading</label><input id="fPpLbl" maxlength="24"></div>
-    <div class="fld"><label>Items &mdash; one per line</label><textarea id="fPpItems" rows="4"></textarea></div>
     <div class="modal-actions">
       <span style="flex:1"></span>
       <button class="btn-ghost" id="ppSecCancel" type="button">Cancel</button>
@@ -1049,9 +1048,24 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="ppItemModal">
+  <div class="modal">
+    <div class="modal-title" id="ppItemTitle">Add an item</div>
+    <div class="modal-sub">short enough to hold in the head</div>
+    <div class="fld"><label>The item</label><input id="fPpItem" placeholder="e.g. Sunday call, without fail"></div>
+    <div class="modal-actions">
+      <button class="btn-danger hidden" id="ppItemDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="ppItemCancel" type="button">Cancel</button>
+      <button class="pp-complete hidden" id="ppItemDone" type="button">Complete &#10003;</button>
+      <button class="btn-primary" id="ppItemSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="ppLogModal">
   <div class="modal">
-    <div class="modal-title" id="ppLogTitle">What I did</div>
+    <div class="modal-title" id="ppLogTitle">Add Journey</div>
     <div class="modal-sub">a line for the trail, with its month</div>
     <div class="fld"><label>What happened</label><input id="fPpText" placeholder="e.g. Booked Diwali tickets home"></div>
     <div class="fld"><label>Kind</label>
@@ -1235,11 +1249,6 @@
       <div class="essay-date" id="rmDates"></div>
       </div>
         <div class="rmx">
-          <div class="rmx-hd"><span class="rmx-t"></span>
-            <button class="rmx-add" id="rmxAdd" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-              <span>What I did</span>
-            </button></div>
           <div class="pp-standing" id="ppStanding"></div>
           <div class="pr-arch">
             <div class="pr-archhd">
@@ -1247,6 +1256,7 @@
               <span class="pr-archn" id="rmxArchCount"></span>
             </div>
             <div id="ppLedger"></div>
+            <button class="pp-journey" id="ppJourney" type="button">+ Add Journey</button>
           </div>
         </div>
       <div class="rm-div short"><span></span></div>
@@ -2090,9 +2100,6 @@ function openRoadmap(id) {
     seal.style.background = 'radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ')';
     seal.style.color = hue.ink;
     seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
-    // The add button wears this pillar's own rainbow colour.
-    const rmxBtn = el('rmxAdd');
-    if (rmxBtn) rmxBtn.style.setProperty('--rmx-acc', hue.solid);   // deep enough for white
     const rmxT = el('rmxArchT');
     if (rmxT) rmxT.style.setProperty('--arch-acc', hue.solid);   // matches the add button
   }
@@ -2170,19 +2177,21 @@ function renderPp() {
   box.style.setProperty('--pp-tint', ppBlend_(hue.lt, 0.26));
   box.style.setProperty('--pp-sol', hue.solid);
   box.style.setProperty('--pp-ink', hue.ink);
-  const items = a => a.length
-    ? a.map(t => '<div class="pp-it">' + escHtml(t) + '</div>').join('')
+  const items = (a, sec) => a.length
+    ? a.map((t, i2) => '<div class="pp-itrow">'
+        + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button>'
+        + '<button class="pp-ittxt" type="button" data-ppedit="' + sec + ':' + i2 + '">' + escHtml(t) + '</button>'
+        + '</div>').join('')
     : '<div class="pp-it pp-emptyline">\u2014</div>';
+  const hd = (sec, lbl, since) => '<span class="pp-hd">'
+    + '<span class="pp-lbl">' + escHtml(lbl) + '</span>'
+    + '<button class="pp-pen" type="button" data-pprename="' + sec + '" aria-label="Rename heading">\u270E</button>'
+    + '<button class="pp-additem" type="button" data-ppadditem="' + sec + '">+ ADD</button>'
+    + (since ? '<span class="pp-since">since ' + ppMonth_(since) + '</span>' : '')
+    + '</span>';
   box.innerHTML =
-    '<button class="pp-sec" type="button" data-ppsec="now">'
-      + '<span class="pp-hd"><span><span class="pp-lbl">' + escHtml(pp.nowLbl) + '</span>'
-      + '<span class="pp-pen">\u270E</span></span>'
-      + '<span class="pp-since">since ' + ppMonth_(pp.since) + '</span></span>'
-      + items(pp.now) + '</button>'
-    + '<button class="pp-sec pp-to" type="button" data-ppsec="toward">'
-      + '<span class="pp-hd"><span><span class="pp-lbl">' + escHtml(pp.toLbl) + '</span>'
-      + '<span class="pp-pen">\u270E</span></span></span>'
-      + items(pp.toward) + '</button>';
+    '<div class="pp-sec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>'
+    + '<div class="pp-sec pp-to">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>';
   renderPpLedger();
 }
 function renderPpLedger() {
@@ -2211,38 +2220,78 @@ function renderPpLedger() {
       + '<div class="pr-yrbody">' + years[y].map(row).join('') + '</div></div>';
   }).join('');
 }
-let ppSecEditing_ = null, ppLogEditing_ = null;
+let ppSecEditing_ = null, ppLogEditing_ = null, ppItemEditing_ = null;
+function ppList_(sec) { return sec === 'now' ? rmData.pp.now : rmData.pp.toward; }
+function ppTouchSince_(sec) { if (sec === 'now') rmData.pp.since = ppMonthNow_(); }
+// Completing an item is the only bridge from the standing lists to the trail.
+function ppComplete_(sec, idx) {
+  const list = ppList_(sec);
+  const t = list[idx]; if (t == null) return;
+  list.splice(idx, 1);
+  rmData.pp.log.push({ id: ppId_(), m: ppMonthNow_(), t: t, k: 'done' });
+  ppTouchSince_(sec);
+  renderPp(); scheduleRoadmapSave();
+  toast('Into the trail \u2713');
+}
 function ppOpenSec(which) {
   ppSecEditing_ = which;
   const pp = rmData.pp;
-  el('ppSecTitle').textContent = 'Edit \u201C' + (which === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
+  el('ppSecTitle').textContent = 'Rename \u201C' + (which === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
   el('fPpLbl').value = which === 'now' ? pp.nowLbl : pp.toLbl;
-  el('fPpItems').value = (which === 'now' ? pp.now : pp.toward).join('\n');
   el('ppSecModal').classList.remove('hidden');
-  setTimeout(() => el('fPpItems').focus(), 30);
+  setTimeout(() => el('fPpLbl').focus(), 30);
 }
 el('ppSecSave').addEventListener('click', () => {
   if (!ppSecEditing_) return;
   const pp = rmData.pp;
   const lbl = el('fPpLbl').value.trim() || (ppSecEditing_ === 'now' ? 'Now' : 'Lineups');
-  const items = el('fPpItems').value.split('\n').map(s => s.trim()).filter(Boolean);
-  const old = ppSecEditing_ === 'now' ? pp.now : pp.toward;
-  // Changed course: standing lines that leave the list become dated notes.
-  old.filter(t => items.indexOf(t) === -1).forEach(t => {
-    pp.log.push({ id: ppId_(), m: ppMonthNow_(), t: 'Changed course \u2014 was: ' + t, k: 'note' });
-  });
-  if (ppSecEditing_ === 'now') {
-    if (items.join('\n') !== pp.now.join('\n')) pp.since = ppMonthNow_();
-    pp.nowLbl = lbl; pp.now = items;
-  } else { pp.toLbl = lbl; pp.toward = items; }
+  if (ppSecEditing_ === 'now') pp.nowLbl = lbl; else pp.toLbl = lbl;
   el('ppSecModal').classList.add('hidden'); ppSecEditing_ = null;
   renderPp(); scheduleRoadmapSave();
 });
 el('ppSecCancel').addEventListener('click', () => { el('ppSecModal').classList.add('hidden'); ppSecEditing_ = null; });
+function ppOpenItem(sec, idx) {
+  ppItemEditing_ = { sec: sec, idx: idx };
+  const isNew = idx < 0;
+  const pp = rmData.pp;
+  el('ppItemTitle').textContent = (isNew ? 'Add to \u201C' : 'Edit \u201C')
+    + (sec === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
+  el('fPpItem').value = isNew ? '' : (ppList_(sec)[idx] || '');
+  el('ppItemDel').classList.toggle('hidden', isNew);
+  el('ppItemDone').classList.toggle('hidden', isNew);
+  el('ppItemModal').classList.remove('hidden');
+  setTimeout(() => el('fPpItem').focus(), 30);
+}
+el('ppItemSave').addEventListener('click', () => {
+  if (!ppItemEditing_) return;
+  const t = el('fPpItem').value.trim();
+  if (!t) { toast('Write the item first'); return; }
+  const list = ppList_(ppItemEditing_.sec);
+  if (ppItemEditing_.idx < 0) list.push(t);
+  else list[ppItemEditing_.idx] = t;
+  ppTouchSince_(ppItemEditing_.sec);
+  el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
+  renderPp(); scheduleRoadmapSave();
+});
+el('ppItemDone').addEventListener('click', () => {
+  if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
+  const at = ppItemEditing_;
+  el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
+  ppComplete_(at.sec, at.idx);
+});
+el('ppItemDel').addEventListener('click', () => {
+  if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
+  if (!confirm('Delete this item?\u000A\u000ANo record will be kept.')) return;
+  ppList_(ppItemEditing_.sec).splice(ppItemEditing_.idx, 1);
+  ppTouchSince_(ppItemEditing_.sec);
+  el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
+  renderPp(); scheduleRoadmapSave();
+});
+el('ppItemCancel').addEventListener('click', () => { el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null; });
 function ppOpenLog(id) {
   ppLogEditing_ = id;
   const e = id ? (rmData.pp.log || []).find(x => x.id === id) : null;
-  el('ppLogTitle').textContent = e ? 'Edit entry' : 'What I did';
+  el('ppLogTitle').textContent = e ? 'Edit entry' : 'Add Journey';
   el('fPpText').value = e ? e.t : '';
   el('fPpKind').value = e ? e.k : 'done';
   el('fPpMonth').value = e ? e.m : ppMonthNow_();
@@ -2252,7 +2301,7 @@ function ppOpenLog(id) {
 }
 el('ppLogSave').addEventListener('click', () => {
   const t = el('fPpText').value.trim();
-  if (!t) { toast('Write what you did first'); return; }
+  if (!t) { toast('Write what happened first'); return; }
   const pp = rmData.pp;
   const m = el('fPpMonth').value || ppMonthNow_();
   const k = el('fPpKind').value === 'done' ? 'done' : 'note';
@@ -2271,10 +2320,16 @@ el('ppLogDel').addEventListener('click', () => {
   el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
   renderPpLedger(); scheduleRoadmapSave();
 });
-el('rmxAdd').addEventListener('click', () => ppOpenLog(null));
+el('ppJourney').addEventListener('click', () => ppOpenLog(null));
 el('ppStanding').addEventListener('click', e => {
-  const s = e.target.closest('[data-ppsec]');
-  if (s) ppOpenSec(s.dataset.ppsec);
+  const dn = e.target.closest('[data-ppdone]');
+  if (dn) { const p = dn.dataset.ppdone.split(':'); ppComplete_(p[0], Number(p[1])); return; }
+  const ed = e.target.closest('[data-ppedit]');
+  if (ed) { const p = ed.dataset.ppedit.split(':'); ppOpenItem(p[0], Number(p[1])); return; }
+  const rn = e.target.closest('[data-pprename]');
+  if (rn) { ppOpenSec(rn.dataset.pprename); return; }
+  const ad = e.target.closest('[data-ppadditem]');
+  if (ad) ppOpenItem(ad.dataset.ppadditem, -1);
 });
 el('ppLedger').addEventListener('click', e => {
   const y = e.target.closest('[data-ppyr]');

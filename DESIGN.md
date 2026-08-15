@@ -299,15 +299,26 @@ and a dated ledger. Not *when will I act* but *where I am heading, and what I
 actually did*.
 
 **The standing block** holds two renamable lists — starter names “Now” and
-“Lineups”, two-three lines each works best — with a “since Month Year” on
+“Lineups”, two-three items each works best — with a “since Month Year” on
 the first. **Every why names its own sections** (Parents may speak of rituals
 and dreams, Health of habits and milestones); renaming never touches data.
-**Changed course is logged, not erased**: a standing line that leaves the list
-becomes a dated ledger note automatically.
+**Items are individual rows**, each with a tap-circle in the pillar's solid.
+**Completing is the only bridge to the trail**: tap the circle (or Complete in
+the item popup) and the item leaves the list and lands in the trail as ✓,
+dated that month, on its own. The item popup's other doors are edit-and-save
+and “Delete — no record kept” (§4.4's Remove). Any change to the Now list
+— add, complete, delete — refreshes its “since”. There is deliberately no
+automatic changed-course logging: with explicit doors, a direction that ends
+is either completed (recorded) or deleted (not); anything worth narrating goes
+into the trail in the person's own words.
 
 **The ledger** is task-first, then Month Year; ✓ (green) for completed,
 · for notes. Current year flat, past years folded (§4.4, reusing pr-yr),
-counted “N · M ✓”. Nothing pruned (§5).
+counted “N · M ✓”. Nothing pruned (§5). The trail owns one button,
+**+ Add Journey**, for old records and things done outside the lists — the
+entry popup takes text, ✓/· kind, and a month picker so the past goes in
+with its true dates. There is no add button anywhere else: the present writes
+itself, one completed circle at a time.
 
 **Colour**: each why wears its own RAINBOW hue — ink for all text, solid for
 decoration only (borders, bullets); solid fails the 4.5 floor as text on the
