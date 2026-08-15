@@ -187,6 +187,13 @@ scale.
 **My Why chips** — Pillars `#8a6f2f` · Circle `#98455a` · Priority `#5b4a86` ·
 Mantra `#63682f` · Bucket `#2F6F6A` · Explore `#2c5f96`.
 
+**My Wealth** (Aug 2026 warm recolour) — parchment ground `#e5decd`, warm-white
+cards `#fefdf8`, coffee-dark crown and decisions card `#2a2519 → #3b3322`, navy
+header `#22315e → #121d3d`, gold `#ebd590`. Accents as text: Mutual funds
+`#6c7641` · UCITS ETFs `#916b37` · Direct equity `#8f4f40`. Bars keep the
+brighter decorative tones `#8d9858` / `#bd9153` / `#b1725f` — decorative only,
+never as text: the text versions are darkened to clear the 4.5 floor.
+
 **The rainbow** (pillar medallions) carries a light tone, a deep tone, an ink and a
 `solid` shade. The `solid` exists because the mid-tones cannot carry white text —
 use it for anything filled.
