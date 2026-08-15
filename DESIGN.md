@@ -292,6 +292,35 @@ writing — on a dark card a dark field is invisible — and every field label
 is a gold pill, the band's own colour carried down through the form and into
 the edit popup.
 
+### 4.7 The pillar passbook (My Why, Aug 2026)
+
+Each why's four-quadrant time matrix became a **passbook**: a standing block
+and a dated ledger. Not *when will I act* but *where I am heading, and what I
+actually did*.
+
+**The standing block** holds two renamable lists — starter names “Now” and
+“Lineups”, two-three lines each works best — with a “since Month Year” on
+the first. **Every why names its own sections** (Parents may speak of rituals
+and dreams, Health of habits and milestones); renaming never touches data.
+**Changed course is logged, not erased**: a standing line that leaves the list
+becomes a dated ledger note automatically.
+
+**The ledger** is task-first, then Month Year; ✓ (green) for completed,
+· for notes. Current year flat, past years folded (§4.4, reusing pr-yr),
+counted “N · M ✓”. Nothing pruned (§5).
+
+**Colour**: each why wears its own RAINBOW hue — ink for all text, solid for
+decoration only (borders, bullets); solid fails the 4.5 floor as text on the
+tints, ink clears 9.4–13.8 on all seven. Tint = lt blended 26% into white.
+
+**Data**: rides `why_pillars.roadmap` JSON as `pp` — no new table, no backup
+change. `rmParse.norm()` strips unknown keys, so `pp` is carried through
+explicitly; forgetting that would silently drop the passbook on every read.
+**The old `targets` array is never rewritten**: `ppFrom_` reads it once when
+`pp` is absent (open q1 → now, q2+q3 → toward, open q4 → “Parked” notes,
+closed → dated entries), so the migration is fully reversible and the
+quadrants remain in every backup. The long-view essay below is untouched.
+
 ---
 
 ## 5. Things that will grow without limit

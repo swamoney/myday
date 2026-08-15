@@ -674,7 +674,6 @@
   .rmx-hd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
   .rmx-t { font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#28324B; }
   /* No verb here — the four names are complete thoughts on their own. */
-  #rmxMatrix .pr-qc { letter-spacing:0.18em; }
   /* Filled, like My Priority's — and it wears this pillar's own rainbow colour. */
   .rmx-add { display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:0.7188rem; font-weight:600;
              padding:7px 12px; border-radius:9px; cursor:pointer; color:#fff;
@@ -682,6 +681,33 @@
              transition:filter .14s; }
   .rmx-add svg { width:14px; height:14px; flex-shrink:0; }
   .rmx-add:hover { filter:brightness(0.92); }
+  /* ===== The pillar passbook (pp-) — replaces the roadmap matrix (Aug 2026).
+     Text wears the pillar's ink; solid draws only borders and bullets. */
+  .pp-standing { background:var(--pp-tint,#f5f7fb); border-left:3px solid var(--pp-sol,#8189a0);
+                 border-radius:0 10px 10px 0; padding:12px 14px 13px; margin-bottom:16px; }
+  .pp-sec { display:block; width:100%; text-align:left; background:none; border:none;
+            font-family:inherit; color:inherit; padding:0; cursor:pointer; }
+  .pp-sec.pp-to { margin-top:11px; padding-top:10px; border-top:1px dashed var(--pp-sol,#8189a0); }
+  .pp-hd { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+  .pp-lbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
+            text-transform:uppercase; color:var(--pp-ink,#28324B); }
+  .pp-pen { font-size:0.6563rem; color:#8B97AC; margin-left:5px; }
+  .pp-since { font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; }
+  .pp-it { display:flex; gap:8px; font-size:0.875rem; line-height:1.5; margin-top:5px; color:#28324B; }
+  .pp-it::before { content:'\2022'; color:var(--pp-sol,#8189a0); }
+  .pp-it.pp-emptyline { color:#aab4c8; font-style:italic; }
+  .pp-it.pp-emptyline::before { content:''; }
+  .pp-row { display:flex; gap:10px; width:100%; text-align:left; background:none; border:none;
+            font-family:inherit; padding:8px 2px; border-bottom:1px solid #eef1f6;
+            align-items:baseline; cursor:pointer; }
+  .pp-row:hover { background:#f8fafd; }
+  .pp-tick { color:#0F6E56; font-weight:600; font-size:0.875rem; min-width:16px; }
+  .pp-dotk { color:#8B97AC; min-width:16px; text-align:center; }
+  .pp-w { font-size:0.875rem; line-height:1.45; flex:1; color:#28324B; }
+  .pp-d { font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; white-space:nowrap; }
+  #ppSecModal textarea { width:100%; font-family:inherit; font-size:0.875rem; color:inherit;
+                         background:#fff; border:1px solid #dfe5ee; border-radius:8px;
+                         padding:10px 12px; resize:vertical; }
   .pr-warn { background:#fdf3f2; border:1px solid #edd3d0; border-radius:10px; padding:11px 13px;
              font-size:0.7188rem; line-height:1.55; color:#7a3b34; margin-bottom:4px; }
   .pr-warn b { color:#5f2a24; }
@@ -1009,52 +1035,36 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="rmxCloseModal">
+<div class="modal-overlay hidden" id="ppSecModal">
   <div class="modal">
-    <div class="modal-title">How did this end?</div>
-    <div class="modal-sub" id="rmxCloseTitle"></div>
-    <div class="fld"><label>Reached, handed over, or dropped</label>
-      <select id="fRmxOutcome">
-        <option value="done">&#10003; Reached &mdash; I got there</option>
-        <option value="delegated">&#8594; Delegated &mdash; someone else owns it now</option>
-        <option value="deleted">&times; Cancelled &mdash; I decided against it</option>
-        <option value="remove">&#128465; Remove &mdash; delete it entirely, no record kept</option>
-      </select>
-    </div>
-    <div class="fld hidden" id="fRmxWhoWrap"><label>Who has it now?</label><input id="fRmxWho" placeholder="e.g. Sagar"></div>
-    <div class="fld" id="fRmxWhyWrap"><label id="fRmxWhyLabel">What happened</label>
-      <input id="fRmxWhy" placeholder="one line you will want to read in ten years"></div>
-    <div class="fld" id="fRmxOnWrap"><label>On</label><input type="date" id="fRmxOn"></div>
-    <div class="pr-warn hidden" id="rmxRemoveWarn">
-      This deletes the target outright &mdash; it will not appear in the archive and cannot be recovered.
-      If you simply decided against it, choose <b>Cancelled</b> instead so the decision is kept.
-    </div>
+    <div class="modal-title" id="ppSecTitle">Edit</div>
+    <div class="modal-sub">rename the heading; one line per item &mdash; two-three works best</div>
+    <div class="fld"><label>Heading</label><input id="fPpLbl" maxlength="24"></div>
+    <div class="fld"><label>Items &mdash; one per line</label><textarea id="fPpItems" rows="4"></textarea></div>
     <div class="modal-actions">
       <span style="flex:1"></span>
-      <button class="btn-ghost" id="rmxCloseCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="rmxCloseSave" type="button">Close the target</button>
+      <button class="btn-ghost" id="ppSecCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="ppSecSave" type="button">Save</button>
     </div>
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="rmxModal">
+<div class="modal-overlay hidden" id="ppLogModal">
   <div class="modal">
-    <div class="modal-title" id="rmxModalTitle">Add a target</div>
-    <div class="modal-sub" id="rmxModalSub">what you are aiming at, and where it belongs</div>
-    <div class="fld"><label>The target</label><input id="fRmxTitle" placeholder="e.g. Reach the corpus"></div>
-    <div class="fld"><label>Where it belongs</label>
-      <select id="fRmxQ">
-        <option value="q1">Q1 &middot; Current priority</option>
-        <option value="q2">Q2 &middot; Building toward</option>
-        <option value="q3">Q3 &middot; Long game</option>
-        <option value="q4">Q4 &middot; Not thinking, for now</option>
-      </select>
-    </div>
+    <div class="modal-title" id="ppLogTitle">What I did</div>
+    <div class="modal-sub">a line for the trail, with its month</div>
+    <div class="fld"><label>What happened</label><input id="fPpText" placeholder="e.g. Booked Diwali tickets home"></div>
+    <div class="fld"><label>Kind</label>
+      <select id="fPpKind">
+        <option value="done">Completed &#10003;</option>
+        <option value="note">Note &middot;</option>
+      </select></div>
+    <div class="fld"><label>When</label><input id="fPpMonth" type="month"></div>
     <div class="modal-actions">
-      <button class="btn-danger hidden" id="rmxDel" type="button">Delete</button>
+      <button class="btn-danger hidden" id="ppLogDel" type="button">Delete</button>
       <span style="flex:1"></span>
-      <button class="btn-ghost" id="rmxCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="rmxSave" type="button">Save</button>
+      <button class="btn-ghost" id="ppLogCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="ppLogSave" type="button">Save</button>
     </div>
   </div>
 </div>
@@ -1228,20 +1238,15 @@
           <div class="rmx-hd"><span class="rmx-t"></span>
             <button class="rmx-add" id="rmxAdd" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-              <span>Add a target</span>
+              <span>What I did</span>
             </button></div>
-          <div class="pr-axtop"><span>SOONER</span><span>LATER</span></div>
-          <div class="pr-axrow">
-            <div class="pr-axleft"><span>ACTIVE</span><span>NOT ACTIVE</span></div>
-            <div class="pr-mx" id="rmxMatrix"></div>
-          </div>
-          <div class="pr-hint">TAP THE CIRCLE TO CLOSE A TARGET &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT IT</div>
+          <div class="pp-standing" id="ppStanding"></div>
           <div class="pr-arch">
             <div class="pr-archhd">
-              <span class="pr-archt" id="rmxArchT">The ledger</span>
+              <span class="pr-archt" id="rmxArchT">The trail</span>
               <span class="pr-archn" id="rmxArchCount"></span>
             </div>
-            <div id="rmxArchive"></div>
+            <div id="ppLedger"></div>
           </div>
         </div>
       <div class="rm-div short"><span></span></div>
@@ -1606,7 +1611,15 @@ async function exportWhy() {
       if (p.notes) body += '<div>' + xRich_(p.notes) + '</div>';
       let rm = null;
       try { rm = p.roadmap ? (typeof p.roadmap === 'string' ? JSON.parse(p.roadmap) : p.roadmap) : null; } catch (e) {}
-      if (rm && rm.essay) body += '<h4>Long-term roadmap</h4><div>' + xRich_(rm.essay) + '</div>';
+      if (rm) {
+        const pp = ppFrom_(rm.pp, rm.targets || []);
+        const li = a => '<ul>' + (a.length ? a.map(t => '<li>' + xEsc_(t) + '</li>').join('') : '<li>\u2014</li>') + '</ul>';
+        body += '<h4>' + xEsc_(pp.nowLbl) + '</h4>' + li(pp.now);
+        body += '<h4>' + xEsc_(pp.toLbl) + '</h4>' + li(pp.toward);
+        const lg = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+        if (lg.length) body += '<h4>The trail</h4><ul>' + lg.map(e => '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + xEsc_(e.t) + ' \u2014 ' + xEsc_(ppMonth_(e.m)) + '</li>').join('') + '</ul>';
+        if (rm.essay) body += '<h4>Long-term roadmap</h4><div>' + xRich_(rm.essay) + '</div>';
+      }
     });
 
     const mOrder = mantras.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
@@ -2034,12 +2047,19 @@ function rmSessionEnd_() {
 function rmParse(raw) {
   // Milestones are gone: anything still stored is dropped on read, so the next
   // save writes the essay alone.
-  const norm = o => ({ essay: o.essay || '', essay_edited: o.essay_edited,
-                       targets: (Array.isArray(o.targets) ? o.targets : []).map(t => ({
-                         id: t.id, t: t.t, q: t.q || 'q2',
-                         status: t.status || (t.done ? 'done' : 'open'),   // older rows used done:true
-                         outcome: t.outcome || '', who: t.who || '', on: t.on || ''
-                       })) });
+  const norm = o => {
+    const r = { essay: o.essay || '', essay_edited: o.essay_edited,
+                targets: (Array.isArray(o.targets) ? o.targets : []).map(t => ({
+                  id: t.id, t: t.t, q: t.q || 'q2',
+                  status: t.status || (t.done ? 'done' : 'open'),   // older rows used done:true
+                  outcome: t.outcome || '', who: t.who || '', on: t.on || ''
+                })) };
+    // The passbook rides the same JSON; norm() strips unknown keys, so pp must
+    // be carried through explicitly or it would vanish on the next read.
+    // Absent -> built once from the old quadrants, which stay untouched.
+    r.pp = ppFrom_(o.pp, r.targets);
+    return r;
+  };
   if (!raw) return norm({});
   if (typeof raw === 'object') return norm(raw);
   try { return norm(JSON.parse(raw)); }
@@ -2089,153 +2109,206 @@ function openRoadmap(id) {
   el('rmSave').textContent = '';
   setRoadmapEditing(false);   // always opens read-only
   renderRoadmapRead();
-  renderRmx();
+  renderPp();
   el('roadmapWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
-function renderRmx() {
-  const mx = el('rmxMatrix'); if (!mx) return;
-  const list = (rmData.targets || []);
-  mx.innerHTML = PRI_GRID.map(key => {
-    const q = RMX_Q[key];
-    const rows = list.filter(t => (t.q || 'q2') === key && t.status === 'open');
-    const line = t => '<div class="pr-tkrow">'
-      + '<button class="pr-tkbox" type="button" data-rmxclose="' + t.id + '" aria-label="Close this target">'
-      + '<i style="border-color:' + q.acc + ';color:' + q.acc + '">'
-      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
-      + '</i></button>'
-      + '<button class="pr-tk" type="button" data-rmxedit="' + t.id + '">'
-      + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>';
-    const items = rows.map(line).join('') || '<div class="pr-qempty">nothing here</div>';
-    return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
-      + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + '</div>'
-      + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
-      + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
-      + '<div class="pr-tks">' + items + '</div></div>';
-  }).join('');
-  renderRmxArchive();
+/* ===== The pillar passbook (pp-) =====
+   Replaces the four-quadrant roadmap matrix (Aug 2026). Each why keeps two
+   renamable standing lists — starter names "Now" and "Lineups" — and a dated
+   ledger. The old targets are read once by ppFrom_ and never rewritten. */
+function ppMonthNow_() { return new Date().toISOString().slice(0, 7); }
+function ppMonth_(m) {
+  if (!m) return '';
+  const p = String(m).split('-');
+  try { return new Date(Number(p[0]), Number(p[1]) - 1, 1)
+    .toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }); }
+  catch (e) { return String(m); }
 }
-function renderRmxArchive() {
-  const wrap = el('rmxArchive'); if (!wrap) return;
-  const closed = (rmData.targets || []).filter(t => t.status && t.status !== 'open')
-    .sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
-  const cnt = el('rmxArchCount');
-  if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' TARGET' : ' TARGETS')) : '';
-  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
+function ppId_() { return 'e' + Date.now() + Math.floor(Math.random() * 1000); }
+function ppBlend_(hex, a) {
+  const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  return 'rgb(' + c.map(v => Math.round(v * a + 255 * (1 - a))).join(',') + ')';
+}
+function ppFrom_(pp, targets) {
+  if (pp && typeof pp === 'object') {
+    return { nowLbl: pp.nowLbl || 'Now', toLbl: pp.toLbl || 'Lineups',
+             now: Array.isArray(pp.now) ? pp.now : [],
+             toward: Array.isArray(pp.toward) ? pp.toward : [],
+             since: pp.since || ppMonthNow_(),
+             log: (Array.isArray(pp.log) ? pp.log : []).map(e => ({
+               id: e.id || ppId_(), m: e.m || ppMonthNow_(),
+               t: e.t || '', k: e.k === 'done' ? 'done' : 'note' })) };
+  }
+  // One-time read of the old quadrants into the passbook.
+  const out = { nowLbl: 'Now', toLbl: 'Lineups', now: [], toward: [], since: ppMonthNow_(), log: [] };
+  (targets || []).forEach(t => {
+    const title = (t.t || '').trim(); if (!title) return;
+    const st = t.status || 'open';
+    const m = (t.on || '').slice(0, 7) || ppMonthNow_();
+    const tail = t.outcome ? ' \u2014 ' + t.outcome : '';
+    if (st === 'open') {
+      if (t.q === 'q1') out.now.push(title);
+      else if (t.q === 'q4') out.log.push({ id: ppId_(), m: ppMonthNow_(), t: 'Parked: ' + title, k: 'note' });
+      else out.toward.push(title);
+    } else if (st === 'done') {
+      out.log.push({ id: ppId_(), m: m, t: title + tail, k: 'done' });
+    } else if (st === 'delegated') {
+      out.log.push({ id: ppId_(), m: m, t: title + ' \u2014 delegated' + (t.who ? ' to ' + t.who : '') + tail, k: 'note' });
+    } else {
+      out.log.push({ id: ppId_(), m: m, t: title + ' \u2014 let go' + tail, k: 'note' });
+    }
+  });
+  return out;
+}
+let ppOpenYears_ = {};
+function renderPp() {
+  const box = el('ppStanding'); if (!box) return;
+  const pp = rmData.pp || (rmData.pp = ppFrom_(null, rmData.targets));
+  const i = pillars.findIndex(x => String(x.id) === String(rmId));
+  const hue = hueFor(i < 0 ? 0 : i, pillars.length);
+  box.style.setProperty('--pp-tint', ppBlend_(hue.lt, 0.26));
+  box.style.setProperty('--pp-sol', hue.solid);
+  box.style.setProperty('--pp-ink', hue.ink);
+  const items = a => a.length
+    ? a.map(t => '<div class="pp-it">' + escHtml(t) + '</div>').join('')
+    : '<div class="pp-it pp-emptyline">\u2014</div>';
+  box.innerHTML =
+    '<button class="pp-sec" type="button" data-ppsec="now">'
+      + '<span class="pp-hd"><span><span class="pp-lbl">' + escHtml(pp.nowLbl) + '</span>'
+      + '<span class="pp-pen">\u270E</span></span>'
+      + '<span class="pp-since">since ' + ppMonth_(pp.since) + '</span></span>'
+      + items(pp.now) + '</button>'
+    + '<button class="pp-sec pp-to" type="button" data-ppsec="toward">'
+      + '<span class="pp-hd"><span><span class="pp-lbl">' + escHtml(pp.toLbl) + '</span>'
+      + '<span class="pp-pen">\u270E</span></span></span>'
+      + items(pp.toward) + '</button>';
+  renderPpLedger();
+}
+function renderPpLedger() {
+  const wrap = el('ppLedger'); if (!wrap) return;
+  const pp = rmData.pp; const cnt = el('rmxArchCount');
+  const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+  const done = log.filter(e => e.k === 'done').length;
+  if (cnt) cnt.textContent = log.length
+    ? (log.length + (log.length === 1 ? ' ENTRY' : ' ENTRIES') + (done ? ' \u00B7 ' + done + ' \u2713' : '')) : '';
+  if (!log.length) { wrap.innerHTML = '<div class="pr-empty">Nothing yet \u2014 the first entry starts the trail.</div>'; return; }
+  const row = e => '<button class="pp-row" type="button" data-pplog="' + e.id + '">'
+    + (e.k === 'done' ? '<span class="pp-tick">\u2713</span>' : '<span class="pp-dotk">\u00B7</span>')
+    + '<span class="pp-w">' + escHtml(e.t) + '</span>'
+    + '<span class="pp-d">' + ppMonth_(e.m) + '</span></button>';
   const thisYear = String(new Date().getFullYear());
   const years = {};
-  closed.forEach(t => { const y = String(t.on || '').slice(0, 4) || 'Undated'; (years[y] = years[y] || []).push(t); });
+  log.forEach(e => { const y = String(e.m).slice(0, 4); (years[y] = years[y] || []).push(e); });
   wrap.innerHTML = Object.keys(years).sort().reverse().map(y => {
-    const isOpen = rmxOpenYears[y] !== undefined ? rmxOpenYears[y] : (y === thisYear);
-    const rows = years[y].map(t => {
-      const o = PRI_OUT[t.status] || PRI_OUT.done;
-      const q = RMX_Q[t.q || 'q2'];
-      const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
-      const ci = PRI_CHIP[t.q || 'q2'];
-      return '<div class="pr-ou" data-rmxedit="' + t.id + '">'
-        + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
-        + '<span class="pr-om"><div class="pr-ot">' + escHtml(t.t || '') + '</div>'
-        + (t.outcome ? '<div class="pr-on">' + escHtml(t.outcome) + '</div>' : '') + '</span>'
-        + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
-        + '<span class="pr-pair">'
-          + '<i class="pr-chip" style="background:' + ci + '1f;color:' + ci + '">' + q.code + '</i>'
-          + '<i class="pr-chip neutral">' + escHtml(priFmt(t.on)) + '</i>'
-        + '</span></span></div>';
-    }).join('');
+    if (y === thisYear) return years[y].map(row).join('');
+    const isOpen = !!ppOpenYears_[y];
+    const dn = years[y].filter(e => e.k === 'done').length;
     return '<div class="pr-yr' + (isOpen ? ' open' : '') + '">'
-      + '<button class="pr-yrhd" type="button" data-rmxyr="' + y + '">'
+      + '<button class="pr-yrhd" type="button" data-ppyr="' + y + '">'
       + '<span class="cv">\u203A</span><span class="y">' + y + '</span>'
-      + '<span class="n">' + years[y].length + '</span><span class="r"></span></button>'
-      + '<div class="pr-yrbody">' + rows + '</div></div>';
+      + '<span class="n">' + years[y].length + (dn ? ' \u00B7 ' + dn + ' \u2713' : '') + '</span><span class="r"></span></button>'
+      + '<div class="pr-yrbody">' + years[y].map(row).join('') + '</div></div>';
   }).join('');
 }
-let editingRmx = null, closingRmx = null, rmxOpenYears = {};
-function openRmxModal(id) {
-  editingRmx = id;
-  const t = id ? (rmData.targets || []).find(x => x.id === id) : null;
-  el('rmxModalTitle').textContent = t ? 'Edit target' : 'Add a target';
-  el('fRmxTitle').value = t ? (t.t || '') : '';
-  el('fRmxQ').value = t ? (t.q || 'q2') : 'q2';
-  el('rmxDel').classList.toggle('hidden', !t);
-  el('rmxModal').classList.remove('hidden');
-  setTimeout(() => el('fRmxTitle').focus(), 30);
+let ppSecEditing_ = null, ppLogEditing_ = null;
+function ppOpenSec(which) {
+  ppSecEditing_ = which;
+  const pp = rmData.pp;
+  el('ppSecTitle').textContent = 'Edit \u201C' + (which === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
+  el('fPpLbl').value = which === 'now' ? pp.nowLbl : pp.toLbl;
+  el('fPpItems').value = (which === 'now' ? pp.now : pp.toward).join('\n');
+  el('ppSecModal').classList.remove('hidden');
+  setTimeout(() => el('fPpItems').focus(), 30);
 }
-function closeRmxModal() { el('rmxModal').classList.add('hidden'); editingRmx = null; }
-el('rmxAdd').addEventListener('click', () => openRmxModal(null));
-el('rmxSave').addEventListener('click', () => {
-  const v = el('fRmxTitle').value.trim();
-  if (!v) { toast('Add a target first'); return; }
-  rmData.targets = rmData.targets || [];
-  if (editingRmx) {
-    const t = rmData.targets.find(x => x.id === editingRmx);
-    if (t) { t.t = v; t.q = el('fRmxQ').value; }
-  } else {
-    rmData.targets.push({ id: 't' + Date.now(), t: v, q: el('fRmxQ').value, status: 'open', outcome: '', who: '', on: '' });
-  }
-  closeRmxModal(); renderRmx(); scheduleRoadmapSave();
+el('ppSecSave').addEventListener('click', () => {
+  if (!ppSecEditing_) return;
+  const pp = rmData.pp;
+  const lbl = el('fPpLbl').value.trim() || (ppSecEditing_ === 'now' ? 'Now' : 'Lineups');
+  const items = el('fPpItems').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const old = ppSecEditing_ === 'now' ? pp.now : pp.toward;
+  // Changed course: standing lines that leave the list become dated notes.
+  old.filter(t => items.indexOf(t) === -1).forEach(t => {
+    pp.log.push({ id: ppId_(), m: ppMonthNow_(), t: 'Changed course \u2014 was: ' + t, k: 'note' });
+  });
+  if (ppSecEditing_ === 'now') {
+    if (items.join('\n') !== pp.now.join('\n')) pp.since = ppMonthNow_();
+    pp.nowLbl = lbl; pp.now = items;
+  } else { pp.toLbl = lbl; pp.toward = items; }
+  el('ppSecModal').classList.add('hidden'); ppSecEditing_ = null;
+  renderPp(); scheduleRoadmapSave();
 });
-el('rmxCancel').addEventListener('click', closeRmxModal);
-el('rmxDel').addEventListener('click', () => {
-  if (!editingRmx) return;
-  if (!confirm('Delete this target?')) return;
-  rmData.targets = (rmData.targets || []).filter(x => x.id !== editingRmx);
-  closeRmxModal(); renderRmx(); scheduleRoadmapSave();
-});
-function openRmxClose(id) {
-  closingRmx = id;
-  const t = (rmData.targets || []).find(x => x.id === id); if (!t) return;
-  el('rmxCloseTitle').textContent = t.t || '';
-  el('fRmxOutcome').value = (t.status && t.status !== 'open') ? t.status : 'done';
-  el('fRmxWho').value = t.who || '';
-  el('fRmxWhy').value = t.outcome || '';
-  el('fRmxOn').value = t.on || new Date().toISOString().slice(0, 10);
-  el('rmxCloseSave').classList.remove('is-danger');
-  rmxOutcomeUi_();
-  el('rmxCloseModal').classList.remove('hidden');
+el('ppSecCancel').addEventListener('click', () => { el('ppSecModal').classList.add('hidden'); ppSecEditing_ = null; });
+function ppOpenLog(id) {
+  ppLogEditing_ = id;
+  const e = id ? (rmData.pp.log || []).find(x => x.id === id) : null;
+  el('ppLogTitle').textContent = e ? 'Edit entry' : 'What I did';
+  el('fPpText').value = e ? e.t : '';
+  el('fPpKind').value = e ? e.k : 'done';
+  el('fPpMonth').value = e ? e.m : ppMonthNow_();
+  el('ppLogDel').classList.toggle('hidden', !e);
+  el('ppLogModal').classList.remove('hidden');
+  setTimeout(() => el('fPpText').focus(), 30);
 }
-function rmxOutcomeUi_() {
-  const v = el('fRmxOutcome').value, gone = v === 'remove';
-  el('fRmxWhoWrap').classList.toggle('hidden', v !== 'delegated');
-  el('fRmxWhyWrap').classList.toggle('hidden', gone);
-  el('fRmxOnWrap').classList.toggle('hidden', gone);
-  el('rmxRemoveWarn').classList.toggle('hidden', !gone);
-  el('rmxCloseSave').textContent = gone ? 'Remove it' : 'Close the target';
-  el('rmxCloseSave').classList.toggle('is-danger', gone);
-  el('fRmxWhyLabel').textContent = v === 'deleted' ? 'Why you decided against it'
-    : (v === 'delegated' ? 'What you handed over' : 'What happened');
-}
-el('fRmxOutcome').addEventListener('change', rmxOutcomeUi_);
-el('rmxCloseCancel').addEventListener('click', () => { el('rmxCloseModal').classList.add('hidden'); closingRmx = null; });
-el('rmxCloseSave').addEventListener('click', () => {
-  if (!closingRmx) return;
-  const v = el('fRmxOutcome').value;
-  const t = (rmData.targets || []).find(x => x.id === closingRmx);
-  if (v === 'remove') {
-    if (!confirm('Remove \u201C' + ((t && t.t) || 'this target') + '\u201D entirely?\u000A\u000ANo record will be kept.')) return;
-    rmData.targets = (rmData.targets || []).filter(x => x.id !== closingRmx);
-  } else if (t) {
-    t.status = v;
-    t.outcome = el('fRmxWhy').value.trim();
-    t.who = v === 'delegated' ? el('fRmxWho').value.trim() : '';
-    t.on = el('fRmxOn').value || new Date().toISOString().slice(0, 10);
-  }
-  el('rmxCloseModal').classList.add('hidden'); closingRmx = null;
-  renderRmx(); scheduleRoadmapSave();
+el('ppLogSave').addEventListener('click', () => {
+  const t = el('fPpText').value.trim();
+  if (!t) { toast('Write what you did first'); return; }
+  const pp = rmData.pp;
+  const m = el('fPpMonth').value || ppMonthNow_();
+  const k = el('fPpKind').value === 'done' ? 'done' : 'note';
+  if (ppLogEditing_) {
+    const e = pp.log.find(x => x.id === ppLogEditing_);
+    if (e) { e.t = t; e.m = m; e.k = k; }
+  } else pp.log.push({ id: ppId_(), m: m, t: t, k: k });
+  el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
+  renderPpLedger(); scheduleRoadmapSave();
 });
-el('rmxMatrix').addEventListener('click', e => {
-  const c = e.target.closest('[data-rmxclose]');
-  if (c) { openRmxClose(c.dataset.rmxclose); return; }
-  const ed = e.target.closest('[data-rmxedit]');
-  if (ed) openRmxModal(ed.dataset.rmxedit);
+el('ppLogCancel').addEventListener('click', () => { el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null; });
+el('ppLogDel').addEventListener('click', () => {
+  if (!ppLogEditing_) return;
+  if (!confirm('Delete this entry?\u000A\u000ANo record will be kept.')) return;
+  rmData.pp.log = rmData.pp.log.filter(x => x.id !== ppLogEditing_);
+  el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
+  renderPpLedger(); scheduleRoadmapSave();
 });
-el('rmxArchive').addEventListener('click', e => {
-  const y = e.target.closest('[data-rmxyr]');
-  if (y) { const k = y.dataset.rmxyr, box = y.closest('.pr-yr');
+el('rmxAdd').addEventListener('click', () => ppOpenLog(null));
+el('ppStanding').addEventListener('click', e => {
+  const s = e.target.closest('[data-ppsec]');
+  if (s) ppOpenSec(s.dataset.ppsec);
+});
+el('ppLedger').addEventListener('click', e => {
+  const y = e.target.closest('[data-ppyr]');
+  if (y) { const k = y.dataset.ppyr, box = y.closest('.pr-yr');
     const now = !box.classList.contains('open');
-    rmxOpenYears[k] = now; box.classList.toggle('open', now); return; }
-  const ed = e.target.closest('[data-rmxedit]');
-  if (ed) openRmxClose(ed.dataset.rmxedit);
+    ppOpenYears_[k] = now; box.classList.toggle('open', now); return; }
+  const ed = e.target.closest('[data-pplog]');
+  if (ed) ppOpenLog(ed.dataset.pplog);
 });
+function ppMd_() {
+  const pp = rmData.pp; if (!pp) return '';
+  let s = '';
+  s += '\n## ' + pp.nowLbl + ' (since ' + ppMonth_(pp.since) + ')\n\n';
+  s += pp.now.length ? pp.now.map(t => '- ' + t).join('\n') + '\n' : '_\u2014_\n';
+  s += '\n## ' + pp.toLbl + '\n\n';
+  s += pp.toward.length ? pp.toward.map(t => '- ' + t).join('\n') + '\n' : '_\u2014_\n';
+  const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+  if (log.length) {
+    s += '\n## The trail\n\n';
+    s += log.map(e => '- ' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + e.t + ' \u2014 ' + ppMonth_(e.m)).join('\n') + '\n';
+  }
+  return s;
+}
+function ppPrintHtml_(esc) {
+  const pp = rmData.pp; if (!pp) return '';
+  const list = a => '<ul>' + (a.length ? a.map(t => '<li>' + esc(t) + '</li>').join('') : '<li>\u2014</li>') + '</ul>';
+  let s = '<h2>' + esc(pp.nowLbl) + ' \u00B7 since ' + esc(ppMonth_(pp.since)) + '</h2>' + list(pp.now)
+        + '<h2>' + esc(pp.toLbl) + '</h2>' + list(pp.toward);
+  const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+  if (log.length) s += '<h2>The trail</h2><ul>' + log.map(e =>
+    '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + esc(e.t)
+    + '<span class="y">' + esc(ppMonth_(e.m)) + '</span></li>').join('') + '</ul>';
+  return s;
+}
 function renderRoadmapRead() {
   el('rmDates').textContent = essayDateFmt_(rmData.essay_edited);
   const ro = el('rmEssayRO'); if (!ro) return;
@@ -2311,7 +2384,7 @@ async function saveRoadmapCore_(force) {
           el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
           rmBaseline = NoteEditor.sanitize(el('rmEssay').innerHTML);
           renderRoadmapRead();
-  renderRmx();
+  renderPp();
           el('rmSave').textContent = 'Saved';
         }
       });
@@ -3443,12 +3516,6 @@ const PERSON_Q = {
   q3: { code:'Q3', sub:'Long game',             acc:'#a06a2c', w2:'#fdf8f0' },
   q4: { code:'Q4', sub:'Not thinking, for now', acc:'#5f6b85', w2:'#f6f7fa' }
 };
-const RMX_Q = {
-  q1: { code:'Q1', sub:'Current priority',      acc:'#9c3f4a', w2:'#fdf3f4' },
-  q2: { code:'Q2', sub:'Building toward',       acc:'#2E6640', w2:'#f2f8f4' },
-  q3: { code:'Q3', sub:'Long game',             acc:'#a06a2c', w2:'#fdf8f0' },
-  q4: { code:'Q4', sub:'Not thinking, for now', acc:'#5f6b85', w2:'#f6f7fa' }
-};
 // Q1 Q2 / Q3 Q4 — the standard numbering, which is simply reading order.
 const PRI_GRID = ['q1','q2','q3','q4'];
 const PRI_CHIP = { q1:'#9c3f4a', q2:'#2e6640', q3:'#905f27', q4:'#5d6882' };   // ink deep enough for a 12% ground
@@ -4418,7 +4485,7 @@ el('rmHist').addEventListener('click', () => {
       rmData.essay = content; rmBaseline = content;
       el('rmEssay').innerHTML = content;
       renderRoadmapRead();
-  renderRmx();
+  renderPp();
       saveRoadmap(true);
     }
   });
@@ -4452,6 +4519,7 @@ function rmMarkdown_() {
   if (head) md += '**' + head + '**\n\n';
   if (p.label) md += '- **Stands for:** ' + p.label + '\n';
   if (p.current_status) md += '- **Current status:** ' + p.current_status + (rmStateLabel_(p.state) ? ' (' + rmStateLabel_(p.state) + ')' : '') + '\n';
+  md += ppMd_();
   md += '\n## The long view\n\n' + (NoteEditor.toMarkdown(rmData.essay) || '_Nothing written yet._') + '\n';
   md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' }) + '_\n';
   return md;
@@ -4481,8 +4549,7 @@ el('rmPrint').addEventListener('click', () => {
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.875rem;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:0.8125rem;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:1.125rem}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:0.9375rem;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;color:#a5702f;float:right}.noterule{width:110px;height:2px;background:#ccc;margin:30px auto 22px;border-radius:1px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || p.code || 'My Why') + '</h1>'
     + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
-    + prMatrix_(rmData.targets, RMX_Q, esc)
-    + prLedger_(rmData.targets, RMX_Q, esc, 'The ledger')
+    + ppPrintHtml_(esc)
     + (function () {
         const note = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '');
         return note ? '<div class="noterule"></div><div class="essay">' + note + '</div>' : '';
