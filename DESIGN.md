@@ -326,7 +326,28 @@ never changes its kind. Current year flat, past years folded (§4.4, reusing
 pr-yr), counted “N · M ✓”. Nothing pruned (§5). The standing block and
 the trail carry no buttons of their own; old records enter through the one
 door with their true month, and the present writes itself, one completed
-circle at a time.
+circle at a time. **Completing always asks for the month** — things are
+often finished before they are marked, and a trail that silently stamps
+“now” lies a little every time.
+
+**Journey pages** (Aug 2026): every trail entry can open into its own page —
+pillar-hued header (solid to ink), the line as a serif title, its month, and
+a long-form body: plain text, blank line = paragraph, the format that will
+still open in 2056. Tapping a row opens the page; the entry popup moved one
+tap deeper (the ✎ in the page header, which also deletes — the page goes
+with the entry, and the confirm says so). Storied rows wear a quiet ¶ in
+the trail and in print, md, and export.
+
+**Journey storage rule**: bodies live in their own table, `why_journeys`
+(one row per page, unique on user_id + entry_id), and NEVER in the roadmap
+JSON — that blob is rewritten on every circle-tap, and thirty years of
+essays inside it would make each tap slower and riskier every year. Page ids
+load per pillar (one light query on open); a body loads only when its page
+does. `why_journeys` joined `EXPORT_TABLES` (18) and the restore list on the
+day it was born (§6). The room's zip export is the complete archive: each
+story is echoed under its trail line in the book AND written as a standalone
+.md in `why-journeys/` (the wisdom-library pattern); the quick per-pillar
+print/copy stay lines-only with the ¶ — the page is the story's home.
 
 **Colour**: each why wears its own RAINBOW hue — ink for all text, solid for
 decoration only (borders, bullets); solid fails the 4.5 floor as text on the
