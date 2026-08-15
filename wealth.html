@@ -195,18 +195,8 @@
                 padding:10px 16px; font-family:inherit; font-size:0.8125rem; cursor:pointer; }
 
   /* ---- decisions (dc-) ----
-     The matrix that runs before money moves. Opens from the header button;
-     the page itself stays exactly as it was. */
-  .dc-open { display:inline-flex; align-items:center; gap:7px; font-family:var(--mono);
-             font-size:0.625rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase;
-             color:#2a2519; background:#ebd590;
-             border:1px solid #ebd590; border-radius:9px;
-             padding:8px 13px; cursor:pointer; transition:all .14s; }
-  .dc-open:hover { background:#f2dfa6; }
-  .dc-open.on { background:#fff; border-color:#fff; }
-  .dc-open svg { width:14px; height:14px; }
-  .dc-badge { background:#2a2519; color:#ebd590; font-weight:600; border-radius:999px;
-              padding:1px 7px; font-size:0.59375rem; letter-spacing:0; }
+     The matrix that runs before money moves. Always open, sitting below the
+     holdings and above the footer icons. */
   .dc-qs { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
   .dc-q { border:1px solid; border-radius:8px; padding:9px 6px 8px; font-family:inherit;
           font-size:0.8125rem; cursor:pointer; display:flex; flex-direction:column;
@@ -324,10 +314,6 @@
       <div class="w-head">
         <div class="head-top">
           <a class="hub-back" href="/">&larr; Hub</a>
-          <button class="dc-open" id="dcOpen" type="button" title="Decisions" aria-label="Decisions">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 21h8"/><path d="M4 7h16"/><path d="m6 7-2.5 6a2.9 2.9 0 0 0 5 0Z"/><path d="m18 7-2.5 6a2.9 2.9 0 0 0 5 0Z"/></svg>
-            Before I spend<span class="dc-badge hidden" id="dcBadge"></span>
-          </button>
         </div>
         <div class="w-eyebrow">What I put in, quietly</div>
         <div class="w-title">My Wealth</div>
@@ -344,7 +330,7 @@
       <div class="sec" id="secEq" style="--acc:var(--eqc)"></div>
     </div>
 
-    <div class="sec dc-sec hidden" id="dcSec">
+    <div class="sec dc-sec" id="dcSec">
       <div class="sec-h">
         <div class="sec-t">Before I spend</div>
         <div class="sec-n">REVIEW &middot; DECIDE &middot; PLAN</div>
@@ -689,7 +675,8 @@ async function loadAll() {
   snaps = (s && s.data) || [];
   decisions = (dq && dq.data) || [];
   renderAll();
-  dcBadge();
+  dcRenderQs();
+  dcRenderLists();
 }
 
 /* ---------- the dated record ---------- */
@@ -882,18 +869,7 @@ function dcChip(cat) {
 }
 function dcPlus30() { const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().slice(0, 10); }
 function dcOf(status) { return decisions.filter(x => x.status === status); }
-function dcDueCount() {
-  const t = today();
-  return dcOf('reviewing').filter(x => x.review_on && x.review_on <= t).length;
-}
 function dcYear(x) { return String(x.decided_on || x.created_at || '').slice(0, 4); }
-
-// The badge means "a parked item is due", so it stays quiet otherwise.
-function dcBadge() {
-  const n = dcDueCount(), b = el('dcBadge');
-  b.textContent = n;
-  b.classList.toggle('hidden', n === 0);
-}
 
 function dcRenderQs() {
   el('dcQs').innerHTML = Object.keys(DC_CATS).map(k => {
@@ -961,31 +937,12 @@ function dcRenderLists() {
   el('dcLists').innerHTML = h;
 }
 
-function dcSecOpen() { return !el('dcSec').classList.contains('hidden'); }
-// The button toggles the section and stays lit while it is open, the way the
-// History button already behaves. The section sits above the footer icons.
-function dcToggleSec() {
-  const open = !dcSecOpen();
-  el('dcSec').classList.toggle('hidden', !open);
-  el('dcOpen').classList.toggle('on', open);
-  if (open) {
-    dcSel = null;
-    el('dcName').value = '';
-    el('dcCost').value = '';
-    dcRenderQs();
-    dcRenderLists();
-    el('dcSec').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    setTimeout(() => { try { el('dcName').focus(); } catch (e) {} }, 30);
-  }
-}
-
 async function dcReload() {
   const { data, error } = await supa.from('money_decisions').select('*')
     .eq('user_id', userId).order('created_at', { ascending: true }).limit(5000);
   if (error) { console.error(error); toast('Could not load decisions'); return; }
   decisions = data || [];
-  dcBadge();
-  if (dcSecOpen()) dcRenderLists();
+  dcRenderLists();
 }
 
 async function dcQuickSave(status) {
@@ -1038,7 +995,6 @@ function dcEditFlds() {
 
 el('deCat').innerHTML = Object.keys(DC_CATS).map(k =>
   '<option value="' + k + '">' + DC_CATS[k].lbl + '</option>').join('');
-el('dcOpen').addEventListener('click', dcToggleSec);
 el('dcPark').addEventListener('click', () => dcQuickSave('reviewing'));
 el('dcPlan').addEventListener('click', () => dcQuickSave('planned'));
 el('dcLetgo').addEventListener('click', () => dcQuickSave('letgo'));
@@ -1094,8 +1050,7 @@ el('dmEdit').addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
-  if (!el('dmEdit').classList.contains('hidden')) { el('dmEdit').classList.add('hidden'); dcEditing = null; return; }
-  if (dcSecOpen()) dcToggleSec();
+  if (!el('dmEdit').classList.contains('hidden')) { el('dmEdit').classList.add('hidden'); dcEditing = null; }
 });
 
 // The decisions body for the print page, read from the same data and DC_CATS.
