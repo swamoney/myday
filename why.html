@@ -679,10 +679,13 @@
   .pp-hd { display:flex; align-items:baseline; gap:6px; }
   .pp-lbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
             text-transform:uppercase; color:var(--pp-ink,#28324B); }
-  .pp-pen { font-size:0.6563rem; color:#8B97AC; margin-left:2px; background:none; border:none;
-            cursor:pointer; padding:0 2px; }
-  .pp-additem { margin-left:auto; font-family:var(--mono); font-size:0.59375rem; letter-spacing:0.1em;
-                color:var(--pp-ink,#28324B); background:none; border:none; cursor:pointer; padding:0 2px; }
+  .pp-pen { display:none; font-size:0.6563rem; color:#8B97AC; margin-left:2px; background:none;
+            border:none; cursor:pointer; padding:0 2px; }
+  body.rm-editing .pp-pen { display:inline-block; }
+  .pp-oneadd { display:block; width:100%; font-family:var(--mono); font-size:0.625rem;
+               letter-spacing:0.12em; text-transform:uppercase; color:var(--pp-ink,#28324B);
+               background:rgba(255,255,255,0.55); border:1px dashed var(--pp-sol,#8189a0);
+               border-radius:8px; padding:8px; margin-top:13px; cursor:pointer; }
   .pp-itrow { display:flex; align-items:flex-start; gap:9px; margin-top:7px; }
   .pp-circ { width:18px; height:18px; min-width:18px; margin-top:2px; border:2px solid var(--pp-sol,#8189a0);
              border-radius:50%; background:#fff; cursor:pointer; display:flex; align-items:center;
@@ -695,7 +698,7 @@
                 border:1px dashed #d9dfeb; border-radius:8px; padding:8px; margin-top:12px; cursor:pointer; }
   .pp-complete { background:#0F6E56; color:#fff; border:none; border-radius:9px; padding:10px 14px;
                  font-family:inherit; font-size:0.8125rem; font-weight:600; cursor:pointer; }
-  .pp-since { font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; }
+  .pp-since { margin-left:auto; font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; }
   .pp-it { display:flex; gap:8px; font-size:0.875rem; line-height:1.5; margin-top:5px; color:#28324B; }
   .pp-it::before { content:'\2022'; color:var(--pp-sol,#8189a0); }
   .pp-it.pp-emptyline { color:#aab4c8; font-style:italic; }
@@ -1053,6 +1056,8 @@
     <div class="modal-title" id="ppItemTitle">Add an item</div>
     <div class="modal-sub">short enough to hold in the head</div>
     <div class="fld"><label>The item</label><input id="fPpItem" placeholder="e.g. Sunday call, without fail"></div>
+    <div class="fld hidden" id="ppItemWhereWrap"><label>Where</label>
+      <select id="fPpWhere"><option value="now">Now</option><option value="toward">Lineups</option></select></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="ppItemDel" type="button">Delete</button>
       <span style="flex:1"></span>
@@ -1068,11 +1073,6 @@
     <div class="modal-title" id="ppLogTitle">Add Journey</div>
     <div class="modal-sub">a line for the trail, with its month</div>
     <div class="fld"><label>What happened</label><input id="fPpText" placeholder="e.g. Booked Diwali tickets home"></div>
-    <div class="fld"><label>Kind</label>
-      <select id="fPpKind">
-        <option value="done">Completed &#10003;</option>
-        <option value="note">Note &middot;</option>
-      </select></div>
     <div class="fld"><label>When</label><input id="fPpMonth" type="month"></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="ppLogDel" type="button">Delete</button>
@@ -2186,12 +2186,12 @@ function renderPp() {
   const hd = (sec, lbl, since) => '<span class="pp-hd">'
     + '<span class="pp-lbl">' + escHtml(lbl) + '</span>'
     + '<button class="pp-pen" type="button" data-pprename="' + sec + '" aria-label="Rename heading">\u270E</button>'
-    + '<button class="pp-additem" type="button" data-ppadditem="' + sec + '">+ ADD</button>'
     + (since ? '<span class="pp-since">since ' + ppMonth_(since) + '</span>' : '')
     + '</span>';
   box.innerHTML =
     '<div class="pp-sec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>'
-    + '<div class="pp-sec pp-to">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>';
+    + '<div class="pp-sec pp-to">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>'
+    + '<button class="pp-oneadd" type="button" data-ppadd>+ Add</button>';
   renderPpLedger();
 }
 function renderPpLedger() {
@@ -2254,9 +2254,15 @@ function ppOpenItem(sec, idx) {
   ppItemEditing_ = { sec: sec, idx: idx };
   const isNew = idx < 0;
   const pp = rmData.pp;
-  el('ppItemTitle').textContent = (isNew ? 'Add to \u201C' : 'Edit \u201C')
-    + (sec === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
+  el('ppItemTitle').textContent = isNew ? 'Add an item'
+    : 'Edit \u201C' + (sec === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
   el('fPpItem').value = isNew ? '' : (ppList_(sec)[idx] || '');
+  // One add for the whole block: the popup asks where, in this why's own words.
+  const ws = el('fPpWhere');
+  ws.options[0].textContent = pp.nowLbl;
+  ws.options[1].textContent = pp.toLbl;
+  ws.value = 'now';
+  el('ppItemWhereWrap').classList.toggle('hidden', !isNew);
   el('ppItemDel').classList.toggle('hidden', isNew);
   el('ppItemDone').classList.toggle('hidden', isNew);
   el('ppItemModal').classList.remove('hidden');
@@ -2266,10 +2272,11 @@ el('ppItemSave').addEventListener('click', () => {
   if (!ppItemEditing_) return;
   const t = el('fPpItem').value.trim();
   if (!t) { toast('Write the item first'); return; }
-  const list = ppList_(ppItemEditing_.sec);
+  const sec = ppItemEditing_.idx < 0 ? el('fPpWhere').value : ppItemEditing_.sec;
+  const list = ppList_(sec);
   if (ppItemEditing_.idx < 0) list.push(t);
   else list[ppItemEditing_.idx] = t;
-  ppTouchSince_(ppItemEditing_.sec);
+  ppTouchSince_(sec);
   el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
   renderPp(); scheduleRoadmapSave();
 });
@@ -2293,7 +2300,6 @@ function ppOpenLog(id) {
   const e = id ? (rmData.pp.log || []).find(x => x.id === id) : null;
   el('ppLogTitle').textContent = e ? 'Edit entry' : 'Add Journey';
   el('fPpText').value = e ? e.t : '';
-  el('fPpKind').value = e ? e.k : 'done';
   el('fPpMonth').value = e ? e.m : ppMonthNow_();
   el('ppLogDel').classList.toggle('hidden', !e);
   el('ppLogModal').classList.remove('hidden');
@@ -2304,11 +2310,11 @@ el('ppLogSave').addEventListener('click', () => {
   if (!t) { toast('Write what happened first'); return; }
   const pp = rmData.pp;
   const m = el('fPpMonth').value || ppMonthNow_();
-  const k = el('fPpKind').value === 'done' ? 'done' : 'note';
   if (ppLogEditing_) {
+    // Legacy migrated notes keep their quiet dot; the kind is never edited.
     const e = pp.log.find(x => x.id === ppLogEditing_);
-    if (e) { e.t = t; e.m = m; e.k = k; }
-  } else pp.log.push({ id: ppId_(), m: m, t: t, k: k });
+    if (e) { e.t = t; e.m = m; }
+  } else pp.log.push({ id: ppId_(), m: m, t: t, k: 'done' });
   el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
   renderPpLedger(); scheduleRoadmapSave();
 });
@@ -2328,8 +2334,8 @@ el('ppStanding').addEventListener('click', e => {
   if (ed) { const p = ed.dataset.ppedit.split(':'); ppOpenItem(p[0], Number(p[1])); return; }
   const rn = e.target.closest('[data-pprename]');
   if (rn) { ppOpenSec(rn.dataset.pprename); return; }
-  const ad = e.target.closest('[data-ppadditem]');
-  if (ad) ppOpenItem(ad.dataset.ppadditem, -1);
+  const ad = e.target.closest('[data-ppadd]');
+  if (ad) ppOpenItem(null, -1);
 });
 el('ppLedger').addEventListener('click', e => {
   const y = e.target.closest('[data-ppyr]');
