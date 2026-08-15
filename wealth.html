@@ -194,6 +194,45 @@
   .btn-danger { background:none; border:1px solid #e8c9c4; color:#8A1F1A; border-radius:9px;
                 padding:10px 16px; font-family:inherit; font-size:0.8125rem; cursor:pointer; }
 
+  /* ---- decisions (dc-) ----
+     The matrix that runs before money moves. Opens from the header button;
+     the page itself stays exactly as it was. */
+  .dc-open { display:inline-flex; align-items:center; gap:7px; font-family:var(--mono);
+             font-size:0.625rem; letter-spacing:0.12em; text-transform:uppercase;
+             color:rgba(255,255,255,0.8); background:rgba(255,255,255,0.1);
+             border:1px solid rgba(255,255,255,0.22); border-radius:9px;
+             padding:8px 13px; cursor:pointer; transition:all .14s; }
+  .dc-open:hover { background:rgba(255,255,255,0.2); color:#fff; }
+  .dc-open svg { width:14px; height:14px; }
+  .dc-badge { background:#f3d585; color:#16202f; font-weight:600; border-radius:999px;
+              padding:1px 7px; font-size:0.59375rem; letter-spacing:0; }
+  .dc-qs { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  .dc-q { border:1px solid; border-radius:8px; padding:10px 6px; font-family:inherit;
+          font-size:0.8125rem; cursor:pointer; }
+  .dc-q.on { border-width:2px; padding:9px 5px; font-weight:600; }
+  .dc-verdict { background:#f7f9fc; border:1px solid var(--line); border-radius:8px;
+                padding:10px 12px; font-size:0.78125rem; color:var(--mut);
+                margin-bottom:13px; min-height:38px; }
+  .dc-outs { display:flex; gap:7px; margin-bottom:6px; }
+  .dc-outs button { flex:1; font-family:inherit; font-size:0.71875rem; font-weight:600;
+                    color:var(--ink); background:#fff; border:1px solid #dfe5ee;
+                    border-radius:8px; padding:9px 4px; cursor:pointer; }
+  .dc-outs button:hover { border-color:var(--ink); }
+  .dc-outs .dc-no { border-color:#e8c9c4; color:#8A1F1A; }
+  .dc-outs .dc-no:hover { border-color:#8A1F1A; }
+  .dc-lh { display:flex; justify-content:space-between; font-family:var(--mono);
+           font-size:0.5625rem; letter-spacing:0.18em; text-transform:uppercase;
+           color:var(--faint); padding:16px 0 5px; border-bottom:1px solid var(--line); }
+  .dc-row { align-items:center; gap:9px; }
+  .dc-chip { border-radius:999px; padding:2px 9px; font-size:0.65625rem; font-weight:600;
+             white-space:nowrap; }
+  .dc-when { font-family:var(--mono); font-size:0.59375rem; color:var(--mut); white-space:nowrap; }
+  .dc-when.due { color:#854F0B; font-weight:600; }
+  .dc-gone { text-decoration:line-through; color:var(--mut); }
+  .dc-v { color:var(--ink); }
+  .dc-year { font-family:var(--mono); font-size:0.625rem; color:#0F6E56; padding:9px 0 2px; }
+  .dc-year.old { color:var(--faint); }
+
   /* ---- auth ---- */
   .auth-overlay { position:fixed; inset:0; background:#eef2f8; z-index:250; display:flex;
                   align-items:center; justify-content:center; padding:20px; }
@@ -252,6 +291,10 @@
       <div class="w-head">
         <div class="head-top">
           <a class="hub-back" href="/">&larr; Hub</a>
+          <button class="dc-open" id="dcOpen" type="button" title="Decisions" aria-label="Decisions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 21h8"/><path d="M4 7h16"/><path d="m6 7-2.5 6a2.9 2.9 0 0 0 5 0Z"/><path d="m18 7-2.5 6a2.9 2.9 0 0 0 5 0Z"/></svg>
+            Decisions<span class="dc-badge hidden" id="dcBadge"></span>
+          </button>
         </div>
         <div class="w-eyebrow">What I put in, quietly</div>
         <div class="w-title">My Wealth</div>
@@ -329,6 +372,52 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="dmModal">
+  <div class="modal">
+    <div class="modal-title">Decisions</div>
+    <div class="modal-sub">Before the money moves &mdash; review, decide, plan.</div>
+    <div class="fld"><label>What is it?</label><input id="dcName" placeholder="e.g. New laptop"></div>
+    <div class="fld"><label>Cost (&#8377;)</label><input id="dcCost" type="number" inputmode="decimal" step="any" placeholder="0"></div>
+    <div class="fld"><label>Which is true?</label><div class="dc-qs" id="dcQs"></div></div>
+    <div class="dc-verdict" id="dcVerdict"></div>
+    <div class="dc-outs">
+      <button type="button" id="dcPark">Park for review</button>
+      <button type="button" id="dcPlan">Plan it</button>
+      <button type="button" class="dc-no" id="dcLetgo">Let it go</button>
+    </div>
+    <div id="dcLists"></div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="dcClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="dmEdit">
+  <div class="modal">
+    <div class="modal-title">Edit decision</div>
+    <div class="modal-sub">Change its fate as the thinking changes.</div>
+    <div class="fld"><label>What is it?</label><input id="deName"></div>
+    <div class="fld"><label>Cost (&#8377;)</label><input id="deCost" type="number" inputmode="decimal" step="any"></div>
+    <div class="fld"><label>Category</label><select id="deCat"></select></div>
+    <div class="fld"><label>Status</label><select id="deStatus">
+      <option value="reviewing">Reviewing</option>
+      <option value="planned">Planned</option>
+      <option value="bought">Bought</option>
+      <option value="letgo">Let go</option>
+    </select></div>
+    <div class="fld hidden" id="deReviewWrap"><label>Review on</label><input id="deReview" type="date"></div>
+    <div class="fld hidden" id="deTargetWrap"><label>When (e.g. Diwali, after bonus)</label><input id="deTarget"></div>
+    <div class="fld"><label>Notes</label><input id="deNotes" placeholder="Why, or why not"></div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="deDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="deCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="deSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="config.js?v=20260803a"></script>
@@ -345,7 +434,7 @@ const el = id => document.getElementById(id);
 function escHtml(s) { return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function toast(m) { const t = el('toast'); t.textContent = m; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 1800); }
 
-let userId = null, holdings = [], meta = { usd_rate: 83, rate_on: null }, snaps = [], editing = null, histOpen = false;
+let userId = null, holdings = [], meta = { usd_rate: 83, rate_on: null }, snaps = [], editing = null, histOpen = false, decisions = [];
 
 const UP_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
 const DN_I = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
@@ -557,16 +646,19 @@ function renderHistory() {
 
 /* ---------- load ---------- */
 async function loadAll() {
-  const [h, m, s] = await Promise.all([
+  const [h, m, s, dq] = await Promise.all([
     supa.from('wealth_holdings').select('*').eq('user_id', userId).order('sort_order', { ascending:true, nullsFirst:false }).order('created_at', { ascending:true }),
     supa.from('wealth_meta').select('*').eq('user_id', userId).maybeSingle(),
-    supa.from('wealth_snapshots').select('*').eq('user_id', userId).order('on_date', { ascending:true }).limit(5000)
+    supa.from('wealth_snapshots').select('*').eq('user_id', userId).order('on_date', { ascending:true }).limit(5000),
+    supa.from('money_decisions').select('*').eq('user_id', userId).order('created_at', { ascending:true }).limit(5000)
   ]);
   if (h.error) { toast('Could not load holdings'); console.error(h.error); }
   holdings = (h.data) || [];
   if (m && m.data) meta = m.data;
   snaps = (s && s.data) || [];
+  decisions = (dq && dq.data) || [];
   renderAll();
+  dcBadge();
 }
 
 /* ---------- the dated record ---------- */
@@ -736,6 +828,282 @@ document.addEventListener('click', e => {
   }
 });
 
+/* ---------- decisions ----------
+   The matrix that runs BEFORE money moves. Categories are defined once, in
+   DC_CATS; the questions, chips, verdicts, the edit dropdown, the print and
+   the export all read from it (DESIGN.md 2.7). Never restate one elsewhere. */
+const DC_CATS = {
+  need:       { lbl:'Need',       q:'Must I?',        fill:'#E6F1FB', ink:'#0C447C', bd:'#378ADD',
+                verdict:'A need \u2014 plan it rather than postpone it.' },
+  lifestyle:  { lbl:'Lifestyle',  q:'Eases my days?', fill:'#E1F5EE', ink:'#04342C', bd:'#1D9E75',
+                verdict:'Comfort. Worth it only if it survives a wait \u2014 park it?' },
+  meaningful: { lbl:'Meaningful', q:'Feeds my Why?',  fill:'#EEEDFE', ink:'#26215C', bd:'#7F77DD',
+                verdict:'Feeds your Why \u2014 plan it with a date to look forward to.' },
+  want:       { lbl:'Want',       q:'Just want it',   fill:'#FAEEDA', ink:'#412402', bd:'#BA7517',
+                verdict:'A want. It earns 30 days \u2014 park it and see if it still calls.' }
+};
+let dcSel = null, dcEditing = null;
+
+function dcChip(cat) {
+  const c = DC_CATS[cat];
+  if (!c) return '';
+  return '<span class="dc-chip" style="background:' + c.fill + ';color:' + c.ink + '">' + c.lbl + '</span>';
+}
+function dcPlus30() { const d = new Date(); d.setDate(d.getDate() + 30); return d.toISOString().slice(0, 10); }
+function dcOf(status) { return decisions.filter(x => x.status === status); }
+function dcDueCount() {
+  const t = today();
+  return dcOf('reviewing').filter(x => x.review_on && x.review_on <= t).length;
+}
+function dcYear(x) { return String(x.decided_on || x.created_at || '').slice(0, 4); }
+
+// The badge means "a parked item is due", so it stays quiet otherwise.
+function dcBadge() {
+  const n = dcDueCount(), b = el('dcBadge');
+  b.textContent = n;
+  b.classList.toggle('hidden', n === 0);
+}
+
+function dcRenderQs() {
+  el('dcQs').innerHTML = Object.keys(DC_CATS).map(k => {
+    const c = DC_CATS[k];
+    return '<button type="button" class="dc-q' + (dcSel === k ? ' on' : '') + '" data-dcq="' + k + '"'
+      + ' style="background:' + c.fill + ';border-color:' + c.bd + ';color:' + c.ink + '"'
+      + ' aria-pressed="' + (dcSel === k) + '">' + c.q + '</button>';
+  }).join('');
+  el('dcVerdict').textContent = dcSel ? DC_CATS[dcSel].verdict : 'Pick the question that is true.';
+}
+
+function dcRowHtml(x) {
+  const gone = x.status === 'letgo';
+  let when = '';
+  if (x.status === 'reviewing' && x.review_on) {
+    const due = x.review_on <= today();
+    when = '<span class="dc-when' + (due ? ' due' : '') + '">' + (due ? 'due ' : 'review ') + fmtDate(x.review_on) + '</span>';
+  } else if (x.status === 'planned' && x.target_label) {
+    when = '<span class="dc-when">' + escHtml(x.target_label) + '</span>';
+  } else if ((x.status === 'bought' || gone) && x.decided_on) {
+    when = '<span class="dc-when">' + (gone ? 'let go ' : 'bought ') + fmtDate(x.decided_on) + '</span>';
+  }
+  return '<div class="row dc-row" data-dc="' + x.id + '">'
+    + '<span class="row-n' + (gone ? ' dc-gone' : '') + '">' + escHtml(x.name) + '</span>'
+    + dcChip(x.category) + when
+    + '<span class="row-v dc-v' + (gone ? ' dc-gone' : '') + '">' + inr(x.cost) + '</span></div>';
+}
+
+function dcRenderLists() {
+  const rev = dcOf('reviewing').slice().sort((a, b) =>
+    String(a.review_on || '9999').localeCompare(String(b.review_on || '9999')));
+  const plan = dcOf('planned');
+  const yr = String(new Date().getFullYear());
+  const done = decisions.filter(x => x.status === 'bought' || x.status === 'letgo');
+  const doneNow = done.filter(x => dcYear(x) === yr).sort((a, b) =>
+    String(b.decided_on || '').localeCompare(String(a.decided_on || '')));
+  // Older years fold into one line each; the rows are kept, never pruned (DESIGN.md 5).
+  const older = {};
+  done.filter(x => dcYear(x) && dcYear(x) < yr).forEach(x => {
+    const y = dcYear(x);
+    older[y] = older[y] || { n: 0, saved: 0 };
+    older[y].n++;
+    if (x.status === 'letgo') older[y].saved += Number(x.cost) || 0;
+  });
+  const savedNow = doneNow.filter(x => x.status === 'letgo').reduce((s, x) => s + (Number(x.cost) || 0), 0);
+  const nRes = doneNow.filter(x => x.status === 'letgo').length;
+  let h = '';
+  h += '<div class="dc-lh"><span>Reviewing</span><span>' + (rev.length || '\u2014') + '</span></div>' + rev.map(dcRowHtml).join('');
+  h += '<div class="dc-lh"><span>Planned</span><span>' + (plan.length || '\u2014') + '</span></div>' + plan.map(dcRowHtml).join('');
+  h += '<div class="dc-lh"><span>Decided \u00B7 ' + yr + '</span><span>' + (doneNow.length || '\u2014') + '</span></div>' + doneNow.map(dcRowHtml).join('');
+  if (nRes) h += '<div class="dc-year">' + yr + ' \u00B7 ' + inr(savedNow) + ' let go \u00B7 ' + nRes + (nRes === 1 ? ' item' : ' items') + ' resisted</div>';
+  Object.keys(older).sort().reverse().forEach(y => {
+    h += '<div class="dc-year old">' + y + ' \u00B7 ' + older[y].n + ' decided \u00B7 ' + inr(older[y].saved) + ' let go</div>';
+  });
+  el('dcLists').innerHTML = h;
+}
+
+function dcOpenModal() {
+  dcSel = null;
+  el('dcName').value = '';
+  el('dcCost').value = '';
+  dcRenderQs();
+  dcRenderLists();
+  el('dmModal').classList.remove('hidden');
+  setTimeout(() => { try { el('dcName').focus(); } catch (e) {} }, 30);
+}
+
+async function dcReload() {
+  const { data, error } = await supa.from('money_decisions').select('*')
+    .eq('user_id', userId).order('created_at', { ascending: true }).limit(5000);
+  if (error) { console.error(error); toast('Could not load decisions'); return; }
+  decisions = data || [];
+  dcBadge();
+  if (!el('dmModal').classList.contains('hidden')) dcRenderLists();
+}
+
+async function dcQuickSave(status) {
+  const name = el('dcName').value.trim();
+  if (!name) { toast('Give it a name'); return; }
+  if (!dcSel) { toast('Pick the question that is true'); return; }
+  const rec = {
+    user_id: userId, name,
+    cost: parseFloat(el('dcCost').value) || 0,
+    category: dcSel, status,
+    review_on: status === 'reviewing' ? dcPlus30() : null,
+    decided_on: status === 'letgo' ? today() : null
+  };
+  try {
+    const { error } = await supa.from('money_decisions').insert(rec);
+    if (error) throw error;
+    el('dcName').value = ''; el('dcCost').value = '';
+    dcSel = null; dcRenderQs();
+    await dcReload();
+    toast(status === 'reviewing' ? 'Parked \u2014 review ' + fmtDate(rec.review_on)
+        : status === 'planned' ? 'Planned \u2014 open it to set when'
+        : 'Let go \u2014 recorded');
+  } catch (e) { console.error(e); toast('Could not save'); }
+}
+
+function dcOpenEdit(id) {
+  const x = decisions.find(y => String(y.id) === String(id));
+  if (!x) return;
+  dcEditing = id;
+  el('deName').value = x.name || '';
+  el('deCost').value = x.cost != null ? x.cost : '';
+  el('deCat').value = x.category || 'want';
+  el('deStatus').value = x.status || 'reviewing';
+  el('deReview').value = x.review_on || '';
+  el('deTarget').value = x.target_label || '';
+  el('deNotes').value = x.notes || '';
+  dcEditFlds();
+  el('dmEdit').classList.remove('hidden');
+  setTimeout(() => { try { el('deName').focus(); } catch (e) {} }, 30);
+}
+function dcEditFlds() {
+  const s = el('deStatus').value;
+  el('deReviewWrap').classList.toggle('hidden', s !== 'reviewing');
+  el('deTargetWrap').classList.toggle('hidden', s !== 'planned');
+}
+
+el('deCat').innerHTML = Object.keys(DC_CATS).map(k =>
+  '<option value="' + k + '">' + DC_CATS[k].lbl + '</option>').join('');
+el('dcOpen').addEventListener('click', dcOpenModal);
+el('dcClose').addEventListener('click', () => el('dmModal').classList.add('hidden'));
+el('dcPark').addEventListener('click', () => dcQuickSave('reviewing'));
+el('dcPlan').addEventListener('click', () => dcQuickSave('planned'));
+el('dcLetgo').addEventListener('click', () => dcQuickSave('letgo'));
+el('dcQs').addEventListener('click', e => {
+  const b = e.target.closest('[data-dcq]');
+  if (!b) return;
+  dcSel = dcSel === b.dataset.dcq ? null : b.dataset.dcq;
+  dcRenderQs();
+});
+el('dcLists').addEventListener('click', e => {
+  const r = e.target.closest('[data-dc]');
+  if (r) dcOpenEdit(r.dataset.dc);
+});
+el('deStatus').addEventListener('change', dcEditFlds);
+el('deCancel').addEventListener('click', () => { el('dmEdit').classList.add('hidden'); dcEditing = null; });
+el('deSave').addEventListener('click', async () => {
+  if (!dcEditing) return;
+  const x = decisions.find(y => String(y.id) === String(dcEditing));
+  const s = el('deStatus').value;
+  const rec = {
+    name: el('deName').value.trim() || (x && x.name) || 'Untitled',
+    cost: parseFloat(el('deCost').value) || 0,
+    category: el('deCat').value,
+    status: s,
+    review_on: s === 'reviewing' ? (el('deReview').value || dcPlus30()) : null,
+    target_label: s === 'planned' ? (el('deTarget').value.trim() || null) : null,
+    decided_on: (s === 'bought' || s === 'letgo') ? ((x && x.decided_on) || today()) : null,
+    notes: el('deNotes').value.trim() || null,
+    updated_at: new Date().toISOString()
+  };
+  try {
+    const { error } = await supa.from('money_decisions').update(rec).eq('id', dcEditing).eq('user_id', userId);
+    if (error) throw error;
+    el('dmEdit').classList.add('hidden'); dcEditing = null;
+    await dcReload();
+    toast('Saved');
+  } catch (e) { console.error(e); toast('Could not save'); }
+});
+el('deDel').addEventListener('click', async () => {
+  if (!dcEditing) return;
+  const x = decisions.find(y => String(y.id) === String(dcEditing));
+  if (!confirm('Delete \u201C' + ((x && x.name) || 'this') + '\u201D?\u000A\u000ARemove is for mistakes; a decided item is worth keeping.')) return;
+  try {
+    await supa.from('money_decisions').delete().eq('id', dcEditing).eq('user_id', userId);
+    el('dmEdit').classList.add('hidden'); dcEditing = null;
+    await dcReload();
+    toast('Deleted');
+  } catch (e) { console.error(e); toast('Could not delete'); }
+});
+el('dmModal').addEventListener('click', e => {
+  if (e.target === el('dmModal')) el('dmModal').classList.add('hidden');
+});
+el('dmEdit').addEventListener('click', e => {
+  if (e.target === el('dmEdit')) { el('dmEdit').classList.add('hidden'); dcEditing = null; }
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (!el('dmEdit').classList.contains('hidden')) { el('dmEdit').classList.add('hidden'); dcEditing = null; return; }
+  if (!el('dmModal').classList.contains('hidden')) el('dmModal').classList.add('hidden');
+});
+
+// The decisions body for the print page, read from the same data and DC_CATS.
+function dcPrint() {
+  if (!decisions.length) return '';
+  const yr = String(new Date().getFullYear());
+  const groups = [
+    ['Reviewing', dcOf('reviewing')],
+    ['Planned', dcOf('planned')],
+    ['Decided ' + yr, decisions.filter(x => (x.status === 'bought' || x.status === 'letgo') && dcYear(x) === yr)]
+  ];
+  let out = '<h2>DECISIONS</h2>';
+  let any = false;
+  groups.forEach(g => {
+    if (!g[1].length) return;
+    any = true;
+    out += '<ul>' + g[1].map(x => {
+      const c = DC_CATS[x.category];
+      let m = g[0] + (c ? ' \u00B7 ' + c.lbl : '');
+      if (x.status === 'reviewing' && x.review_on) m += ' \u00B7 review ' + fmtDate(x.review_on);
+      if (x.status === 'planned' && x.target_label) m += ' \u00B7 ' + prEsc(x.target_label);
+      if ((x.status === 'bought' || x.status === 'letgo') && x.decided_on)
+        m += ' \u00B7 ' + (x.status === 'letgo' ? 'let go ' : 'bought ') + fmtDate(x.decided_on);
+      return '<li><span' + (x.status === 'letgo' ? ' class="gone"' : '') + '>' + prEsc(x.name)
+        + '<br><span class="m">' + m + '</span></span><b>' + inr(x.cost) + '</b></li>';
+    }).join('') + '</ul>';
+  });
+  return any ? out : '';
+}
+
+// The decisions section for the .md export, read from the same data and DC_CATS.
+function dcMd() {
+  if (!decisions.length) return '';
+  const yr = String(new Date().getFullYear());
+  let out = '';
+  [['Reviewing', 'reviewing'], ['Planned', 'planned']].forEach(p => {
+    const rows = dcOf(p[1]);
+    if (!rows.length) return;
+    out += '\n**' + p[0] + '**\n\n' + rows.map(x => {
+      const c = DC_CATS[x.category];
+      const extra = p[1] === 'reviewing'
+        ? (x.review_on ? ', review ' + fmtDate(x.review_on) : '')
+        : (x.target_label ? ', ' + x.target_label : '');
+      return '- ' + x.name + ' \u2014 ' + inr(x.cost) + ' _(' + (c ? c.lbl : '') + extra + ')_';
+    }).join('\n') + '\n';
+  });
+  const done = decisions.filter(x => (x.status === 'bought' || x.status === 'letgo') && dcYear(x) === yr);
+  if (done.length) {
+    out += '\n**Decided ' + yr + '**\n\n' + done.map(x => {
+      const c = DC_CATS[x.category];
+      return '- ' + (x.status === 'letgo' ? '~~' + x.name + '~~' : x.name) + ' \u2014 ' + inr(x.cost)
+        + ' _(' + (c ? c.lbl : '')
+        + (x.decided_on ? ', ' + (x.status === 'letgo' ? 'let go ' : 'bought ') + fmtDate(x.decided_on) : '') + ')_';
+    }).join('\n') + '\n';
+  }
+  return out ? '\n## Decisions\n' + out : '';
+}
+
 /* ---------- print ----------
    A separate rendering from the screen. When a section is added here, it must
    be added to the export too — see DESIGN.md on the four output paths. */
@@ -763,6 +1131,7 @@ function buildPrint() {
       + (k.cur === 'usd' ? usd(totalOf(kind)) + ' &middot; ' + inr(totalOf(kind) * rate) : inr(totalOf(kind)))
       + '</b></div>';
   });
+  body += dcPrint();
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;"
     + "max-width:720px;margin:40px auto;padding:0 24px}"
     + ".eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#999}"
@@ -775,6 +1144,7 @@ function buildPrint() {
     + "padding:6px 0;line-height:1.5}"
     + "li b{font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}"
     + ".m{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#777}"
+    + ".gone{text-decoration:line-through;color:#777}"
     + ".tot{display:flex;justify-content:space-between;font-family:'IBM Plex Sans',sans-serif;font-size:13px;"
     + "font-weight:600;padding:9px 0 0;margin-top:4px;border-top:1px solid #eee}"
     + ".tot b{font-variant-numeric:tabular-nums}"
@@ -817,7 +1187,10 @@ el('exportBtn').addEventListener('click', () => {
       created_at: x.created_at
     })),
     history: snaps.map(s => ({ on_date: s.on_date, kind: s.kind, name: s.name,
-                               invested: s.invested, acc_units: s.acc_units }))
+                               invested: s.invested, acc_units: s.acc_units })),
+    decisions: decisions.map(x => ({ name: x.name, cost: x.cost, category: x.category,
+      status: x.status, review_on: x.review_on, target_label: x.target_label,
+      decided_on: x.decided_on, notes: x.notes, created_at: x.created_at }))
   };
   const d = today();
   dl('my-wealth-' + d + '.json', JSON.stringify(payload, null, 2), 'application/json');
@@ -836,6 +1209,7 @@ el('exportBtn').addEventListener('click', () => {
       + (k.cur === 'usd' ? usd(totalOf(kind)) + ' · ' + inr(totalOf(kind) * rate) : inr(totalOf(kind)))
       + '**\n';
   });
+  md += dcMd();
   md += '\n---\n\n_' + snaps.length + ' dated points kept in the .json._  \n_Exported ' + fmtDate(d) + '_\n';
   dl('my-wealth-' + d + '.md', md, 'text/markdown');
   toast('Exported');

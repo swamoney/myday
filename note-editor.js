@@ -609,7 +609,7 @@
   var EXPORT_TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',
                        'why_pillars','why_mantras','why_circle','why_priority',
                        'bucket_items','why_places','wisdom','note_versions',
-                       'wealth_holdings','wealth_snapshots','wealth_meta'];
+                       'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions'];
   function _dl(name, text, type) {
     var blob = new Blob([text], { type: type });
     var url = URL.createObjectURL(blob);

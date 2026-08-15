@@ -326,7 +326,7 @@ Only counting rows against the database found them.
 `migrate_catchup.sql` is **idempotent** — safe to run any number of times. Every
 statement is `if not exists`, or drops a policy before recreating it.
 
-It ends with a query listing the tables the backup expects. **It should return 13
+It ends with a query listing the tables the backup expects. **It should return 17
 rows.** A missing row means data is not being backed up.
 
 Never write a migration that cannot be run twice. You will lose track of what has
@@ -363,6 +363,11 @@ chip markup in `favSeg`, the option in the `fSection` dropdown, the entry in
 all four; missing the chip made the section unreachable, and missing the dropdown
 option made every wisdom-only field invisible. The first two now check themselves
 on load and warn in the console when they diverge.
+
+**The decision matrix's categories are defined once**, in `DC_CATS` in
+`wealth.html`. The question buttons, the chips, the verdicts, the edit
+dropdown, the print body and the `.md` export all read from it. Never restate
+a category, its colour or its wording anywhere else.
 
 **There are four output paths, and they are separate code.** The screen, the
 print builder, the person `.md` export and the zip export each render the same
