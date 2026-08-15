@@ -252,6 +252,20 @@
   .dc-sec .fld input:focus { border-color:#f3d585; background:rgba(255,255,255,0.12); }
   .dc-sec .row { border-bottom-color:rgba(255,255,255,0.12); }
   .dc-sec .row:hover { background:rgba(255,255,255,0.06); }
+  .dc-yrbar { display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+              font-family:var(--mono); font-size:0.65625rem; letter-spacing:0.06em;
+              color:rgba(255,255,255,0.75); background:rgba(255,255,255,0.05);
+              border:1px solid rgba(255,255,255,0.12); border-radius:8px;
+              padding:9px 12px; margin-top:7px; cursor:pointer; }
+  .dc-yrbar:hover { background:rgba(255,255,255,0.1); }
+  .dc-yrbar .dc-chev { transition:transform .15s; color:rgba(255,255,255,0.45); }
+  .dc-yrbar[aria-expanded="true"] .dc-chev { transform:rotate(90deg); }
+  .dc-yrbar b { color:#fff; font-weight:600; }
+  .dc-yrbar .dc-saved { margin-left:auto; color:#7fd6a4; }
+  .dc-yrrows { padding:0 4px; }
+  .dc-delwarn { font-size:0.75rem; color:#8A1F1A; background:#FCE9E2; border-radius:8px;
+                padding:9px 12px; margin-bottom:13px; line-height:1.5; }
+  .btn-primary.danger { background:#8A1F1A; }
 
   /* ---- auth ---- */
   .auth-overlay { position:fixed; inset:0; background:#eef2f8; z-index:250; display:flex;
@@ -421,12 +435,14 @@
       <option value="planned">Planned</option>
       <option value="bought">Bought</option>
       <option value="letgo">Let go</option>
+      <option value="delete">Delete &mdash; no record kept</option>
     </select></div>
+    <div class="dc-delwarn hidden" id="deWarn">This removes it completely &mdash; no history, no let-go
+      count, nothing kept. For mistakes only; a decided item is worth keeping.</div>
     <div class="fld hidden" id="deReviewWrap"><label>Review on</label><input id="deReview" type="date"></div>
     <div class="fld hidden" id="deTargetWrap"><label>When (e.g. Diwali, after bonus)</label><input id="deTarget"></div>
     <div class="fld"><label>Notes</label><input id="deNotes" placeholder="Why, or why not"></div>
     <div class="modal-actions">
-      <button class="btn-danger" id="deDel" type="button">Delete</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" id="deCancel" type="button">Cancel</button>
       <button class="btn-primary" id="deSave" type="button">Save</button>
@@ -858,7 +874,7 @@ const DC_CATS = {
   want:       { lbl:'Desire',     q:'Just want it',   fill:'#FAEEDA', ink:'#412402', bd:'#BA7517',
                 verdict:'A desire. It earns 30 days \u2014 park it and see if it still calls.' }
 };
-let dcSel = null, dcEditing = null;
+let dcSel = null, dcEditing = null, dcYrOpen = {};
 
 function dcChip(cat) {
   const c = DC_CATS[cat];
@@ -917,12 +933,13 @@ function dcRenderLists() {
   const done = decisions.filter(x => x.status === 'bought' || x.status === 'letgo');
   const doneNow = done.filter(x => dcYear(x) === yr).sort((a, b) =>
     String(b.decided_on || '').localeCompare(String(a.decided_on || '')));
-  // Older years fold into one line each; the rows are kept, never pruned (DESIGN.md 5).
+  // Older years fold to one bar each, rows one tap away; kept forever (DESIGN.md 4.4 and 5).
   const older = {};
   done.filter(x => dcYear(x) && dcYear(x) < yr).forEach(x => {
     const y = dcYear(x);
-    older[y] = older[y] || { n: 0, saved: 0 };
+    older[y] = older[y] || { n: 0, saved: 0, rows: [] };
     older[y].n++;
+    older[y].rows.push(x);
     if (x.status === 'letgo') older[y].saved += Number(x.cost) || 0;
   });
   const savedNow = doneNow.filter(x => x.status === 'letgo').reduce((s, x) => s + (Number(x.cost) || 0), 0);
@@ -933,7 +950,14 @@ function dcRenderLists() {
   h += '<div class="dc-lh"><span>Decided \u00B7 ' + yr + '</span><span>' + (doneNow.length || '\u2014') + '</span></div>' + doneNow.map(dcRowHtml).join('');
   if (nRes) h += '<div class="dc-year">' + yr + ' \u00B7 ' + inr(savedNow) + ' let go \u00B7 ' + nRes + (nRes === 1 ? ' item' : ' items') + ' resisted</div>';
   Object.keys(older).sort().reverse().forEach(y => {
-    h += '<div class="dc-year old">' + y + ' \u00B7 ' + older[y].n + ' decided \u00B7 ' + inr(older[y].saved) + ' let go</div>';
+    const open = !!dcYrOpen[y];
+    const rows = older[y].rows.slice().sort((a, b) =>
+      String(b.decided_on || '').localeCompare(String(a.decided_on || '')));
+    h += '<button type="button" class="dc-yrbar" data-dcyr="' + y + '" aria-expanded="' + open + '">'
+      + '<span class="dc-chev">\u25B8</span><b>' + y + '</b>'
+      + '<span>' + older[y].n + ' decided</span>'
+      + '<span class="dc-saved">' + inr(older[y].saved) + ' let go</span></button>'
+      + '<div class="dc-yrrows' + (open ? '' : ' hidden') + '">' + rows.map(dcRowHtml).join('') + '</div>';
   });
   el('dcLists').innerHTML = h;
 }
@@ -1007,6 +1031,10 @@ function dcEditFlds() {
   const s = el('deStatus').value;
   el('deReviewWrap').classList.toggle('hidden', s !== 'reviewing');
   el('deTargetWrap').classList.toggle('hidden', s !== 'planned');
+  const del = s === 'delete';
+  el('deWarn').classList.toggle('hidden', !del);
+  el('deSave').classList.toggle('danger', del);
+  el('deSave').textContent = del ? 'Delete' : 'Save';
 }
 
 el('deCat').innerHTML = Object.keys(DC_CATS).map(k =>
@@ -1022,6 +1050,8 @@ el('dcQs').addEventListener('click', e => {
   dcRenderQs();
 });
 el('dcLists').addEventListener('click', e => {
+  const yb = e.target.closest('[data-dcyr]');
+  if (yb) { dcYrOpen[yb.dataset.dcyr] = !dcYrOpen[yb.dataset.dcyr]; dcRenderLists(); return; }
   const r = e.target.closest('[data-dc]');
   if (r) dcOpenEdit(r.dataset.dc);
 });
@@ -1031,6 +1061,16 @@ el('deSave').addEventListener('click', async () => {
   if (!dcEditing) return;
   const x = decisions.find(y => String(y.id) === String(dcEditing));
   const s = el('deStatus').value;
+  if (s === 'delete') {
+    if (!confirm('Delete \u201C' + ((x && x.name) || 'this') + '\u201D?\u000A\u000ANothing will be kept \u2014 for mistakes only.')) return;
+    try {
+      await supa.from('money_decisions').delete().eq('id', dcEditing).eq('user_id', userId);
+      el('dmEdit').classList.add('hidden'); dcEditing = null;
+      await dcReload();
+      toast('Deleted');
+    } catch (e) { console.error(e); toast('Could not delete'); }
+    return;
+  }
   const rec = {
     name: el('deName').value.trim() || (x && x.name) || 'Untitled',
     cost: parseFloat(el('deCost').value) || 0,
@@ -1049,17 +1089,6 @@ el('deSave').addEventListener('click', async () => {
     await dcReload();
     toast('Saved');
   } catch (e) { console.error(e); toast('Could not save'); }
-});
-el('deDel').addEventListener('click', async () => {
-  if (!dcEditing) return;
-  const x = decisions.find(y => String(y.id) === String(dcEditing));
-  if (!confirm('Delete \u201C' + ((x && x.name) || 'this') + '\u201D?\u000A\u000ARemove is for mistakes; a decided item is worth keeping.')) return;
-  try {
-    await supa.from('money_decisions').delete().eq('id', dcEditing).eq('user_id', userId);
-    el('dmEdit').classList.add('hidden'); dcEditing = null;
-    await dcReload();
-    toast('Deleted');
-  } catch (e) { console.error(e); toast('Could not delete'); }
 });
 el('dmEdit').addEventListener('click', e => {
   if (e.target === el('dmEdit')) { el('dmEdit').classList.add('hidden'); dcEditing = null; }
@@ -1095,6 +1124,20 @@ function dcPrint() {
         + '<br><span class="m">' + m + '</span></span><b>' + inr(x.cost) + '</b></li>';
     }).join('') + '</ul>';
   });
+  const older = {};
+  decisions.filter(x => (x.status === 'bought' || x.status === 'letgo') && dcYear(x) && dcYear(x) < yr)
+    .forEach(x => {
+      const y = dcYear(x);
+      older[y] = older[y] || { n: 0, saved: 0 };
+      older[y].n++;
+      if (x.status === 'letgo') older[y].saved += Number(x.cost) || 0;
+    });
+  const ys = Object.keys(older).sort().reverse();
+  if (ys.length) {
+    any = true;
+    out += '<ul>' + ys.map(y => '<li><span><span class="m">' + y + ' \u00B7 '
+      + older[y].n + ' decided</span></span><b>' + inr(older[y].saved) + ' let go</b></li>').join('') + '</ul>';
+  }
   return any ? out : '';
 }
 
@@ -1122,6 +1165,19 @@ function dcMd() {
         + ' _(' + (c ? c.lbl : '')
         + (x.decided_on ? ', ' + (x.status === 'letgo' ? 'let go ' : 'bought ') + fmtDate(x.decided_on) : '') + ')_';
     }).join('\n') + '\n';
+  }
+  const older = {};
+  decisions.filter(x => (x.status === 'bought' || x.status === 'letgo') && dcYear(x) && dcYear(x) < yr)
+    .forEach(x => {
+      const y = dcYear(x);
+      older[y] = older[y] || { n: 0, saved: 0 };
+      older[y].n++;
+      if (x.status === 'letgo') older[y].saved += Number(x.cost) || 0;
+    });
+  const ys = Object.keys(older).sort().reverse();
+  if (ys.length) {
+    out += '\n**Earlier years**\n\n' + ys.map(y =>
+      '- ' + y + ' \u2014 ' + older[y].n + ' decided, ' + inr(older[y].saved) + ' let go').join('\n') + '\n';
   }
   return out ? '\n## Decisions\n' + out : '';
 }
