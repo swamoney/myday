@@ -682,10 +682,11 @@
   .pp-pen { display:none; font-size:0.6563rem; color:#8B97AC; margin-left:2px; background:none;
             border:none; cursor:pointer; padding:0 2px; }
   body.rm-editing .pp-pen { display:inline-block; }
-  .pp-oneadd { display:block; width:100%; font-family:var(--mono); font-size:0.625rem;
-               letter-spacing:0.12em; text-transform:uppercase; color:var(--pp-ink,#28324B);
-               background:rgba(255,255,255,0.55); border:1px dashed var(--pp-sol,#8189a0);
-               border-radius:8px; padding:8px; margin-top:13px; cursor:pointer; }
+  .pp-top { display:flex; justify-content:flex-end; margin-bottom:12px; }
+  .pp-aj { font-family:var(--mono); font-size:0.625rem; font-weight:600; letter-spacing:0.1em;
+           text-transform:uppercase; color:#fff; background:#5f6b85; border:none; border-radius:9px;
+           padding:8px 13px; cursor:pointer; }
+  .pp-aj:hover { filter:brightness(0.92); }
   .pp-itrow { display:flex; align-items:flex-start; gap:9px; margin-top:7px; }
   .pp-circ { width:18px; height:18px; min-width:18px; margin-top:2px; border:2px solid var(--pp-sol,#8189a0);
              border-radius:50%; background:#fff; cursor:pointer; display:flex; align-items:center;
@@ -693,9 +694,6 @@
   .pp-circ:hover { color:var(--pp-sol,#8189a0); }
   .pp-ittxt { flex:1; text-align:left; background:none; border:none; font-family:inherit;
               font-size:0.875rem; line-height:1.5; color:#28324B; cursor:pointer; padding:0; }
-  .pp-journey { display:block; width:100%; font-family:var(--mono); font-size:0.625rem;
-                letter-spacing:0.12em; text-transform:uppercase; color:#5A6478; background:none;
-                border:1px dashed #d9dfeb; border-radius:8px; padding:8px; margin-top:12px; cursor:pointer; }
   .pp-complete { background:#0F6E56; color:#fff; border:none; border-radius:9px; padding:10px 14px;
                  font-family:inherit; font-size:0.8125rem; font-weight:600; cursor:pointer; }
   .pp-since { margin-left:auto; font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; }
@@ -1053,11 +1051,9 @@
 
 <div class="modal-overlay hidden" id="ppItemModal">
   <div class="modal">
-    <div class="modal-title" id="ppItemTitle">Add an item</div>
+    <div class="modal-title" id="ppItemTitle">Edit item</div>
     <div class="modal-sub">short enough to hold in the head</div>
     <div class="fld"><label>The item</label><input id="fPpItem" placeholder="e.g. Sunday call, without fail"></div>
-    <div class="fld hidden" id="ppItemWhereWrap"><label>Where</label>
-      <select id="fPpWhere"><option value="now">Now</option><option value="toward">Lineups</option></select></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="ppItemDel" type="button">Delete</button>
       <span style="flex:1"></span>
@@ -1071,9 +1067,15 @@
 <div class="modal-overlay hidden" id="ppLogModal">
   <div class="modal">
     <div class="modal-title" id="ppLogTitle">Add Journey</div>
-    <div class="modal-sub">a line for the trail, with its month</div>
-    <div class="fld"><label>What happened</label><input id="fPpText" placeholder="e.g. Booked Diwali tickets home"></div>
-    <div class="fld"><label>When</label><input id="fPpMonth" type="month"></div>
+    <div class="modal-sub">one door for now, lineups, and the trail</div>
+    <div class="fld"><label>What is it?</label><input id="fPpText" placeholder="e.g. Booked Diwali tickets home"></div>
+    <div class="fld" id="ppLogWhereWrap"><label>Where</label>
+      <select id="fPpWhere">
+        <option value="now">Now</option>
+        <option value="toward">Lineups</option>
+        <option value="trail">The trail</option>
+      </select></div>
+    <div class="fld" id="ppLogMonthWrap"><label>When</label><input id="fPpMonth" type="month"></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="ppLogDel" type="button">Delete</button>
       <span style="flex:1"></span>
@@ -1249,6 +1251,7 @@
       <div class="essay-date" id="rmDates"></div>
       </div>
         <div class="rmx">
+          <div class="pp-top"><button class="pp-aj" id="ppJourney" type="button">+ Add Journey</button></div>
           <div class="pp-standing" id="ppStanding"></div>
           <div class="pr-arch">
             <div class="pr-archhd">
@@ -1256,7 +1259,6 @@
               <span class="pr-archn" id="rmxArchCount"></span>
             </div>
             <div id="ppLedger"></div>
-            <button class="pp-journey" id="ppJourney" type="button">+ Add Journey</button>
           </div>
         </div>
       <div class="rm-div short"><span></span></div>
@@ -2190,8 +2192,9 @@ function renderPp() {
     + '</span>';
   box.innerHTML =
     '<div class="pp-sec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>'
-    + '<div class="pp-sec pp-to">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>'
-    + '<button class="pp-oneadd" type="button" data-ppadd>+ Add</button>';
+    + '<div class="pp-sec pp-to">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>';
+  const aj = el('ppJourney');
+  if (aj) aj.style.background = hue.solid;   // solid carries white (RAINBOW note)
   renderPpLedger();
 }
 function renderPpLedger() {
@@ -2252,31 +2255,20 @@ el('ppSecSave').addEventListener('click', () => {
 el('ppSecCancel').addEventListener('click', () => { el('ppSecModal').classList.add('hidden'); ppSecEditing_ = null; });
 function ppOpenItem(sec, idx) {
   ppItemEditing_ = { sec: sec, idx: idx };
-  const isNew = idx < 0;
   const pp = rmData.pp;
-  el('ppItemTitle').textContent = isNew ? 'Add an item'
-    : 'Edit \u201C' + (sec === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
-  el('fPpItem').value = isNew ? '' : (ppList_(sec)[idx] || '');
-  // One add for the whole block: the popup asks where, in this why's own words.
-  const ws = el('fPpWhere');
-  ws.options[0].textContent = pp.nowLbl;
-  ws.options[1].textContent = pp.toLbl;
-  ws.value = 'now';
-  el('ppItemWhereWrap').classList.toggle('hidden', !isNew);
-  el('ppItemDel').classList.toggle('hidden', isNew);
-  el('ppItemDone').classList.toggle('hidden', isNew);
+  el('ppItemTitle').textContent = 'Edit \u201C' + (sec === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
+  el('fPpItem').value = ppList_(sec)[idx] || '';
+  el('ppItemDel').classList.remove('hidden');
+  el('ppItemDone').classList.remove('hidden');
   el('ppItemModal').classList.remove('hidden');
   setTimeout(() => el('fPpItem').focus(), 30);
 }
 el('ppItemSave').addEventListener('click', () => {
-  if (!ppItemEditing_) return;
+  if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
   const t = el('fPpItem').value.trim();
   if (!t) { toast('Write the item first'); return; }
-  const sec = ppItemEditing_.idx < 0 ? el('fPpWhere').value : ppItemEditing_.sec;
-  const list = ppList_(sec);
-  if (ppItemEditing_.idx < 0) list.push(t);
-  else list[ppItemEditing_.idx] = t;
-  ppTouchSince_(sec);
+  ppList_(ppItemEditing_.sec)[ppItemEditing_.idx] = t;
+  ppTouchSince_(ppItemEditing_.sec);
   el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
   renderPp(); scheduleRoadmapSave();
 });
@@ -2297,26 +2289,46 @@ el('ppItemDel').addEventListener('click', () => {
 el('ppItemCancel').addEventListener('click', () => { el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null; });
 function ppOpenLog(id) {
   ppLogEditing_ = id;
-  const e = id ? (rmData.pp.log || []).find(x => x.id === id) : null;
+  const pp = rmData.pp;
+  const e = id ? (pp.log || []).find(x => x.id === id) : null;
   el('ppLogTitle').textContent = e ? 'Edit entry' : 'Add Journey';
   el('fPpText').value = e ? e.t : '';
   el('fPpMonth').value = e ? e.m : ppMonthNow_();
+  // The one door: adding asks where; editing a trail entry never moves it.
+  const ws = el('fPpWhere');
+  ws.options[0].textContent = pp.nowLbl;
+  ws.options[1].textContent = pp.toLbl;
+  ws.value = 'now';
+  el('ppLogWhereWrap').classList.toggle('hidden', !!e);
+  el('ppLogMonthWrap').classList.toggle('hidden', !e);
   el('ppLogDel').classList.toggle('hidden', !e);
   el('ppLogModal').classList.remove('hidden');
   setTimeout(() => el('fPpText').focus(), 30);
 }
 el('ppLogSave').addEventListener('click', () => {
   const t = el('fPpText').value.trim();
-  if (!t) { toast('Write what happened first'); return; }
+  if (!t) { toast('Write it first'); return; }
   const pp = rmData.pp;
-  const m = el('fPpMonth').value || ppMonthNow_();
   if (ppLogEditing_) {
     // Legacy migrated notes keep their quiet dot; the kind is never edited.
     const e = pp.log.find(x => x.id === ppLogEditing_);
-    if (e) { e.t = t; e.m = m; }
-  } else pp.log.push({ id: ppId_(), m: m, t: t, k: 'done' });
-  el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
-  renderPpLedger(); scheduleRoadmapSave();
+    if (e) { e.t = t; e.m = el('fPpMonth').value || ppMonthNow_(); }
+    el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
+    renderPpLedger(); scheduleRoadmapSave();
+    return;
+  }
+  const where = el('fPpWhere').value;
+  if (where === 'trail') {
+    pp.log.push({ id: ppId_(), m: el('fPpMonth').value || ppMonthNow_(), t: t, k: 'done' });
+    el('ppLogModal').classList.add('hidden');
+    renderPpLedger(); scheduleRoadmapSave();
+  } else {
+    ppList_(where).push(t);
+    ppTouchSince_(where);
+    el('ppLogModal').classList.add('hidden');
+    renderPp(); scheduleRoadmapSave();
+  }
+  toast('Added');
 });
 el('ppLogCancel').addEventListener('click', () => { el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null; });
 el('ppLogDel').addEventListener('click', () => {
@@ -2326,6 +2338,9 @@ el('ppLogDel').addEventListener('click', () => {
   el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
   renderPpLedger(); scheduleRoadmapSave();
 });
+el('fPpWhere').addEventListener('change', () => {
+  el('ppLogMonthWrap').classList.toggle('hidden', el('fPpWhere').value !== 'trail');
+});
 el('ppJourney').addEventListener('click', () => ppOpenLog(null));
 el('ppStanding').addEventListener('click', e => {
   const dn = e.target.closest('[data-ppdone]');
@@ -2333,9 +2348,7 @@ el('ppStanding').addEventListener('click', e => {
   const ed = e.target.closest('[data-ppedit]');
   if (ed) { const p = ed.dataset.ppedit.split(':'); ppOpenItem(p[0], Number(p[1])); return; }
   const rn = e.target.closest('[data-pprename]');
-  if (rn) { ppOpenSec(rn.dataset.pprename); return; }
-  const ad = e.target.closest('[data-ppadd]');
-  if (ad) ppOpenItem(null, -1);
+  if (rn) ppOpenSec(rn.dataset.pprename);
 });
 el('ppLedger').addEventListener('click', e => {
   const y = e.target.closest('[data-ppyr]');

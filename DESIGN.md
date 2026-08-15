@@ -307,10 +307,14 @@ and dreams, Health of habits and milestones); renaming never touches data.
 the item popup) and the item leaves the list and lands in the trail as ✓,
 dated that month, on its own. The item popup's other doors are edit-and-save
 and “Delete — no record kept” (§4.4's Remove). Any change to the Now list
-— add, complete, delete — refreshes its “since”. **One + Add serves the
-whole block**; its popup asks where, wearing the why's own heading names.
-**Rename pencils show only in the roadmap's existing Edit mode** (rm-editing)
-— reading mode is circles, items, one + Add and + Add Journey, nothing else. There is deliberately no
+— add, complete, delete — refreshes its “since”. **One door for
+everything: + Add Journey**, up top in the pillar's solid (solid carries
+white), serves all three places — its popup asks where (Now, Lineups, or The
+trail, the first two wearing the why's own heading names) and the month field
+appears only for the trail. Editing a trail entry never moves it between
+places. **Rename pencils show only in the roadmap's existing Edit mode**
+(rm-editing) — reading mode is circles, items, and the one button, nothing
+else. There is deliberately no
 automatic changed-course logging: with explicit doors, a direction that ends
 is either completed (recorded) or deleted (not); anything worth narrating goes
 into the trail in the person's own words.
@@ -319,11 +323,10 @@ into the trail in the person's own words.
 The note kind is retired from the interface — legacy migrated notes
 (“Parked:…”, delegations) keep their quiet · read-only, and editing one
 never changes its kind. Current year flat, past years folded (§4.4, reusing
-pr-yr), counted “N · M ✓”. Nothing pruned (§5). The trail owns one button,
-**+ Add Journey**, for old records and things done outside the lists — the
-entry popup takes text, ✓/· kind, and a month picker so the past goes in
-with its true dates. There is no add button anywhere else: the present writes
-itself, one completed circle at a time.
+pr-yr), counted “N · M ✓”. Nothing pruned (§5). The standing block and
+the trail carry no buttons of their own; old records enter through the one
+door with their true month, and the present writes itself, one completed
+circle at a time.
 
 **Colour**: each why wears its own RAINBOW hue — ink for all text, solid for
 decoration only (borders, bullets); solid fails the 4.5 floor as text on the
