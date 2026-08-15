@@ -687,6 +687,33 @@
            text-transform:uppercase; color:#fff; background:#5f6b85; border:none; border-radius:9px;
            padding:8px 13px; cursor:pointer; }
   .pp-aj:hover { filter:brightness(0.92); }
+  .pp-mark { font-size:0.6875rem; color:#8B97AC; margin-left:4px; }
+  .pp-page { position:fixed; inset:0; background:#fbfcfe; z-index:260; display:none; overflow:auto; }
+  .pp-page.on { display:block; }
+  .pp-pghead { color:#fff; padding:20px 22px 22px; }
+  .pp-pgtop { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .pp-pgback, .pp-pgpen { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em;
+        text-transform:uppercase; color:rgba(255,255,255,0.85); background:none; border:none;
+        cursor:pointer; padding:2px 4px; }
+  .pp-pgwhy { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.18em;
+              text-transform:uppercase; color:rgba(255,255,255,0.75); }
+  .pp-pgt { font-family:var(--serif); font-size:1.5rem; font-weight:600; margin-top:5px; line-height:1.25; }
+  .pp-pgm { font-family:var(--mono); font-size:0.6563rem; color:rgba(255,255,255,0.75); margin-top:7px; }
+  .pp-pgbody { max-width:560px; margin:0 auto; padding:24px 22px 90px; }
+  .pp-pgbody .pg-p { font-family:var(--serif); font-size:1rem; line-height:1.75; color:#1d2536;
+                     margin-bottom:16px; white-space:pre-wrap; }
+  .pp-pgtools { display:flex; justify-content:flex-end; gap:9px; margin-bottom:14px; }
+  .pp-pgbtn { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; text-transform:uppercase;
+              color:#5A6478; background:#fff; border:1px solid #cdd6e4; border-radius:8px;
+              padding:6px 12px; cursor:pointer; }
+  .pp-pgbtn.primary { background:#0A1325; color:#fff; border-color:#0A1325; }
+  .pp-write { width:100%; min-height:46vh; font-family:var(--serif); font-size:1rem; line-height:1.75;
+              color:#1d2536; background:#fff; border:1px solid #dfe5ee; border-radius:12px;
+              padding:16px 18px; resize:vertical; }
+  .pp-pgempty { text-align:center; padding:30px 0 10px; }
+  .pp-pgempty button { font-family:var(--mono); font-size:0.6563rem; letter-spacing:0.12em;
+        text-transform:uppercase; color:#5A6478; background:none; border:1px dashed #c6cfdd;
+        border-radius:9px; padding:11px 18px; cursor:pointer; }
   .pp-itrow { display:flex; align-items:flex-start; gap:9px; margin-top:7px; }
   .pp-circ { width:18px; height:18px; min-width:18px; margin-top:2px; border:2px solid var(--pp-sol,#8189a0);
              border-radius:50%; background:#fff; cursor:pointer; display:flex; align-items:center;
@@ -852,7 +879,7 @@
 <body>
 
 <script src="config.js?v=20260802b"></script>
-<script src="note-editor.js?v=20260815a"></script>
+<script src="note-editor.js?v=20260815b"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -1047,6 +1074,32 @@
       <button class="btn-primary" id="ppSecSave" type="button">Save</button>
     </div>
   </div>
+</div>
+
+<div class="modal-overlay hidden" id="ppDoneModal">
+  <div class="modal">
+    <div class="modal-title">Into the trail &#10003;</div>
+    <div class="modal-sub">it lands with the month it truly happened</div>
+    <div class="fld"><label>When did this happen?</label><input id="fPdMonth" type="month"></div>
+    <div class="modal-actions">
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="ppDoneCancel" type="button">Cancel</button>
+      <button class="pp-complete" id="ppDoneSave" type="button">Complete &#10003;</button>
+    </div>
+  </div>
+</div>
+
+<div class="pp-page" id="ppPage">
+  <div class="pp-pghead" id="ppPageHead">
+    <div class="pp-pgtop">
+      <button class="pp-pgback" id="ppPageBack" type="button">&larr; Back to the trail</button>
+      <button class="pp-pgpen" id="ppPagePen" type="button">&#9998; Entry</button>
+    </div>
+    <div class="pp-pgwhy" id="ppPageWhy"></div>
+    <div class="pp-pgt" id="ppPageT"></div>
+    <div class="pp-pgm" id="ppPageM"></div>
+  </div>
+  <div class="pp-pgbody" id="ppPageBody"></div>
 </div>
 
 <div class="modal-overlay hidden" id="ppItemModal">
@@ -1583,6 +1636,15 @@ async function exportWhy() {
     const today = new Date().toISOString().slice(0, 10);
     const zip = new JSZip();
 
+    // --- the journey pages: fetched once, filed standalone, echoed in the book ---
+    const xJourneys = {};
+    try {
+      const { data: jrows } = await supa.from('why_journeys')
+        .select('entry_id, body').eq('user_id', userId);
+      (jrows || []).forEach(r => { if (r.body && r.body.trim()) xJourneys[String(r.entry_id)] = r.body; });
+    } catch (e) { console.error(e); }
+    const xSafe_ = s => String(s || '').replace(/[^A-Za-z0-9 _-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60) || 'entry';
+
     // --- the raw data, so a future you can rebuild it ---
     zip.file('pillars.json', JSON.stringify(pillars.map(p => ({
       code: p.code, num: p.num, brk: p.brk, label: p.label,
@@ -1629,7 +1691,18 @@ async function exportWhy() {
         body += '<h4>' + xEsc_(pp.nowLbl) + '</h4>' + li(pp.now);
         body += '<h4>' + xEsc_(pp.toLbl) + '</h4>' + li(pp.toward);
         const lg = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
-        if (lg.length) body += '<h4>The trail</h4><ul>' + lg.map(e => '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + xEsc_(e.t) + ' \u2014 ' + xEsc_(ppMonth_(e.m)) + '</li>').join('') + '</ul>';
+        if (lg.length) body += '<h4>The trail</h4><ul>' + lg.map(e => {
+          let s2 = '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + xEsc_(e.t) + ' \u2014 ' + xEsc_(ppMonth_(e.m));
+          const jb = xJourneys[String(e.id)];
+          if (jb) s2 += '<div class="meta" style="white-space:pre-wrap">' + xEsc_(jb) + '</div>';
+          return s2 + '</li>';
+        }).join('') + '</ul>';
+        lg.forEach(e => {
+          const jb = xJourneys[String(e.id)];
+          if (!jb) return;
+          zip.file('why-journeys/' + xSafe_(p.label || p.code) + ' - ' + xSafe_(e.t) + '.md',
+            '# ' + e.t + '\n\n' + ppMonth_(e.m) + ' \u00B7 ' + (p.label || '') + '\n\n' + jb + '\n');
+        });
         if (rm.essay) body += '<h4>Long-term roadmap</h4><div>' + xRich_(rm.essay) + '</div>';
       }
     });
@@ -2119,6 +2192,7 @@ function openRoadmap(id) {
   setRoadmapEditing(false);   // always opens read-only
   renderRoadmapRead();
   renderPp();
+  ppLoadPageIds_();
   el('roadmapWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -2207,7 +2281,8 @@ function renderPpLedger() {
   if (!log.length) { wrap.innerHTML = '<div class="pr-empty">Nothing yet \u2014 the first entry starts the trail.</div>'; return; }
   const row = e => '<button class="pp-row" type="button" data-pplog="' + e.id + '">'
     + (e.k === 'done' ? '<span class="pp-tick">\u2713</span>' : '<span class="pp-dotk">\u00B7</span>')
-    + '<span class="pp-w">' + escHtml(e.t) + '</span>'
+    + '<span class="pp-w">' + escHtml(e.t)
+    + (ppPages_.has(String(e.id)) ? '<span class="pp-mark">\u00B6</span>' : '') + '</span>'
     + '<span class="pp-d">' + ppMonth_(e.m) + '</span></button>';
   const thisYear = String(new Date().getFullYear());
   const years = {};
@@ -2224,17 +2299,121 @@ function renderPpLedger() {
   }).join('');
 }
 let ppSecEditing_ = null, ppLogEditing_ = null, ppItemEditing_ = null;
+/* ===== Journey pages =====
+   The story behind a trail entry lives in why_journeys — one row per page —
+   never in the roadmap JSON, so thirty years of essays cannot slow a tap. */
+let ppPages_ = new Set(), ppPageEntry_ = null, ppPageBody_ = '';
+async function ppLoadPageIds_() {
+  ppPages_ = new Set();
+  try {
+    const { data } = await supa.from('why_journeys')
+      .select('entry_id').eq('user_id', userId).eq('pillar_id', String(rmId));
+    (data || []).forEach(r => ppPages_.add(String(r.entry_id)));
+  } catch (e) { console.error(e); }
+  renderPpLedger();
+}
+function ppPageHue_() {
+  const i = pillars.findIndex(x => String(x.id) === String(rmId));
+  return hueFor(i < 0 ? 0 : i, pillars.length);
+}
+async function ppOpenPage(id) {
+  const e = (rmData.pp.log || []).find(x => x.id === id);
+  if (!e) return;
+  ppPageEntry_ = id;
+  const hue = ppPageHue_();
+  el('ppPageHead').style.background = 'linear-gradient(155deg,' + hue.solid + ',' + hue.ink + ')';
+  const p = pillars.find(x => String(x.id) === String(rmId));
+  el('ppPageWhy').textContent = ((p && p.label) ? p.label : 'My Why') + ' \u00B7 The trail';
+  el('ppPageT').textContent = e.t;
+  el('ppPageM').textContent = ppMonth_(e.m);
+  el('ppPage').classList.add('on');
+  el('ppPageBody').innerHTML = '<div class="pg-p" style="color:#8B97AC">\u2026</div>';
+  let body = '';
+  try {
+    const { data } = await supa.from('why_journeys').select('body')
+      .eq('user_id', userId).eq('entry_id', String(id)).maybeSingle();
+    body = (data && data.body) || '';
+  } catch (er) { console.error(er); }
+  if (ppPageEntry_ !== id) return;   // closed or switched while loading
+  ppPageBody_ = body;
+  ppRenderPage_(body);
+}
+function ppRenderPage_(body) {
+  const box = el('ppPageBody');
+  if (!body.trim()) {
+    box.innerHTML = '<div class="pp-pgempty"><button type="button" id="ppWriteStart">Write the story</button></div>';
+    return;
+  }
+  box.innerHTML = '<div class="pp-pgtools"><button class="pp-pgbtn" type="button" id="ppWriteEdit">Edit</button></div>'
+    + body.split(/\n\s*\n/).map(par => '<div class="pg-p">' + escHtml(par) + '</div>').join('');
+}
+function ppOpenWriter_(body) {
+  el('ppPageBody').innerHTML =
+    '<div class="pp-pgtools">'
+    + '<button class="pp-pgbtn" type="button" id="ppWriteCancel">Cancel</button>'
+    + '<button class="pp-pgbtn primary" type="button" id="ppWriteSave">Save story</button></div>'
+    + '<textarea class="pp-write" id="ppWriteBox" placeholder="What happened, and what it meant. A blank line starts a new paragraph."></textarea>';
+  el('ppWriteBox').value = body;
+  setTimeout(() => el('ppWriteBox').focus(), 30);
+}
+async function ppSaveStory_() {
+  const id = ppPageEntry_; if (!id) return;
+  const body = el('ppWriteBox').value.replace(/\s+$/, '');
+  try {
+    if (!body.trim()) {
+      await supa.from('why_journeys').delete().eq('user_id', userId).eq('entry_id', String(id));
+      ppPages_.delete(String(id));
+    } else {
+      await supa.from('why_journeys').upsert({
+        user_id: userId, pillar_id: String(rmId), entry_id: String(id),
+        body: body, updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,entry_id' });
+      ppPages_.add(String(id));
+    }
+    toast('Story saved');
+  } catch (e) { console.error(e); toast('Could not save the story'); return; }
+  ppPageBody_ = body;
+  ppRenderPage_(body);
+  renderPpLedger();
+}
+el('ppPageBody').addEventListener('click', e => {
+  if (e.target.closest('#ppWriteStart')) { ppPageBody_ = ''; ppOpenWriter_(''); return; }
+  if (e.target.closest('#ppWriteEdit')) { ppOpenWriter_(ppPageBody_); return; }
+  if (e.target.closest('#ppWriteCancel')) { ppRenderPage_(ppPageBody_); return; }
+  if (e.target.closest('#ppWriteSave')) ppSaveStory_();
+});
+el('ppPageBack').addEventListener('click', () => {
+  el('ppPage').classList.remove('on'); ppPageEntry_ = null;
+});
+el('ppPagePen').addEventListener('click', () => {
+  if (ppPageEntry_) ppOpenLog(ppPageEntry_);
+});
+el('ppDoneCancel').addEventListener('click', () => { el('ppDoneModal').classList.add('hidden'); ppDone_ = null; });
+el('ppDoneSave').addEventListener('click', () => {
+  el('ppDoneModal').classList.add('hidden');
+  ppCompleteDo_(el('fPdMonth').value);
+});
 function ppList_(sec) { return sec === 'now' ? rmData.pp.now : rmData.pp.toward; }
 function ppTouchSince_(sec) { if (sec === 'now') rmData.pp.since = ppMonthNow_(); }
 // Completing an item is the only bridge from the standing lists to the trail.
+// It always asks for the month: things are often finished before they are marked.
+let ppDone_ = null;
 function ppComplete_(sec, idx) {
-  const list = ppList_(sec);
-  const t = list[idx]; if (t == null) return;
-  list.splice(idx, 1);
-  rmData.pp.log.push({ id: ppId_(), m: ppMonthNow_(), t: t, k: 'done' });
-  ppTouchSince_(sec);
+  const t = ppList_(sec)[idx]; if (t == null) return;
+  ppDone_ = { sec: sec, idx: idx };
+  el('fPdMonth').value = ppMonthNow_();
+  el('ppDoneModal').classList.remove('hidden');
+}
+function ppCompleteDo_(m) {
+  if (!ppDone_) return;
+  const list = ppList_(ppDone_.sec);
+  const t = list[ppDone_.idx]; if (t == null) { ppDone_ = null; return; }
+  list.splice(ppDone_.idx, 1);
+  rmData.pp.log.push({ id: ppId_(), m: m || ppMonthNow_(), t: t, k: 'done' });
+  ppTouchSince_(ppDone_.sec);
+  ppDone_ = null;
   renderPp(); scheduleRoadmapSave();
-  toast('Into the trail \u2713');
+  toast('Into the trail \u2713 ' + ppMonth_(m));
 }
 function ppOpenSec(which) {
   ppSecEditing_ = which;
@@ -2313,6 +2492,7 @@ el('ppLogSave').addEventListener('click', () => {
     // Legacy migrated notes keep their quiet dot; the kind is never edited.
     const e = pp.log.find(x => x.id === ppLogEditing_);
     if (e) { e.t = t; e.m = el('fPpMonth').value || ppMonthNow_(); }
+    if (e && ppPageEntry_ === e.id) { el('ppPageT').textContent = e.t; el('ppPageM').textContent = ppMonth_(e.m); }
     el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
     renderPpLedger(); scheduleRoadmapSave();
     return;
@@ -2331,11 +2511,17 @@ el('ppLogSave').addEventListener('click', () => {
   toast('Added');
 });
 el('ppLogCancel').addEventListener('click', () => { el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null; });
-el('ppLogDel').addEventListener('click', () => {
+el('ppLogDel').addEventListener('click', async () => {
   if (!ppLogEditing_) return;
-  if (!confirm('Delete this entry?\u000A\u000ANo record will be kept.')) return;
-  rmData.pp.log = rmData.pp.log.filter(x => x.id !== ppLogEditing_);
+  if (!confirm('Delete this entry?\u000A\u000ANothing will be kept \u2014 its story page goes with it.')) return;
+  const id = ppLogEditing_;
+  rmData.pp.log = rmData.pp.log.filter(x => x.id !== id);
+  try {
+    await supa.from('why_journeys').delete().eq('user_id', userId).eq('entry_id', String(id));
+  } catch (e) { console.error(e); }
+  ppPages_.delete(String(id));
   el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
+  if (ppPageEntry_ === id) { el('ppPage').classList.remove('on'); ppPageEntry_ = null; }
   renderPpLedger(); scheduleRoadmapSave();
 });
 el('fPpWhere').addEventListener('change', () => {
@@ -2356,7 +2542,7 @@ el('ppLedger').addEventListener('click', e => {
     const now = !box.classList.contains('open');
     ppOpenYears_[k] = now; box.classList.toggle('open', now); return; }
   const ed = e.target.closest('[data-pplog]');
-  if (ed) ppOpenLog(ed.dataset.pplog);
+  if (ed) ppOpenPage(ed.dataset.pplog);
 });
 function ppMd_() {
   const pp = rmData.pp; if (!pp) return '';
@@ -2368,7 +2554,7 @@ function ppMd_() {
   const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
   if (log.length) {
     s += '\n## The trail\n\n';
-    s += log.map(e => '- ' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + e.t + ' \u2014 ' + ppMonth_(e.m)).join('\n') + '\n';
+    s += log.map(e => '- ' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + e.t + (ppPages_.has(String(e.id)) ? ' \u00B6' : '') + ' \u2014 ' + ppMonth_(e.m)).join('\n') + '\n';
   }
   return s;
 }
@@ -2379,7 +2565,7 @@ function ppPrintHtml_(esc) {
         + '<h2>' + esc(pp.toLbl) + '</h2>' + list(pp.toward);
   const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
   if (log.length) s += '<h2>The trail</h2><ul>' + log.map(e =>
-    '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + esc(e.t)
+    '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + esc(e.t) + (ppPages_.has(String(e.id)) ? ' \u00B6' : '')
     + '<span class="y">' + esc(ppMonth_(e.m)) + '</span></li>').join('') + '</ul>';
   return s;
 }
