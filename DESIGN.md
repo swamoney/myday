@@ -142,6 +142,20 @@ slipped, sections went missing silently — see §8.
 A shared function that is slightly awkward to call is always better than two
 functions that agree today.
 
+### 2.8 Page geometry is shared across rooms
+
+Every room uses the same page frame: body `padding:26px 18px 70px`, content
+capped at `920px`, at every screen size. The header's italic line is
+`rgba(255,255,255,0.7)` in every room.
+
+**Never add a per-room media query that changes the page padding.** My Wealth
+carried `16px 12px 60px` below 520px for weeks — its cards sat visibly wider
+and higher than every other room on a phone, and nothing flagged it until the
+rooms were compared side by side. Per-room font-size tweaks inside a media
+query are fine; the page frame is not the room's to change.
+
+---
+
 ## 3. How work gets done
 
 **Mock first, always.** Static HTML with labelled options at real phone width,
@@ -247,6 +261,36 @@ for centuries. Silent, never wrong, never dated.
 
 **Exception:** the long note keeps its placeholder, because a blank writing surface
 gives no clue what to write.
+
+### 4.6 Before I spend (the decision matrix in My Wealth)
+
+A standalone section, deliberately not wired to the daily log — the daily
+summaries were working and earned the right not to be touched.
+
+**Always open, below the holdings.** It began life behind a header button and
+the button was removed: a pause tool you must summon is a pause tool you stop
+summoning. The page now reads top to bottom as the money kept, then the money
+asking to leave.
+
+**The lifecycle.** An item enters through one honest question (categories live
+in `DC_CATS` only — §8) and takes one of three fates: parked for review
+(30 days by default — the wait is the mechanism), planned with a date worth
+waiting for, or let go. Bought closes the loop. The let-go record is the
+point: a green number that grows for thirty years.
+
+**Delete lives in the status dropdown** as “Delete — no record kept”,
+this feature's version of §4.4's Remove: for mistakes only, one confirm,
+nothing kept. The temptation it must survive is deleting let-go items that
+were later bought anyway — the archive is only as honest as what stays in it.
+
+**The archive folds by year** (§4.4): current year open, each past year one
+bar with its count and let-go total, rows one tap away, nothing pruned (§5).
+
+**The look.** The dark chamber shares the crown's gradient so the two dark
+cards bracket the page. Typing fields are warm-white paper slips with dark
+writing — on a dark card a dark field is invisible — and every field label
+is a gold pill, the band's own colour carried down through the form and into
+the edit popup.
 
 ---
 
