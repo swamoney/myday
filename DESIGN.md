@@ -46,6 +46,18 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The mark** (Aug 2026): a prism — one ink beam enters, seven colours
+leave. The theme as physics: living well is what splits one life into all
+its colours. Master is `icon.svg` (512 grid, cream tile, ink #16264d, the
+seven room hues); everything fits inside r=205 of centre so Android's
+circular mask never clips it. Renders: `icon-180.png` (iOS home screen,
+repo root) and 192/512 PNGs embedded base64 inside `hub.webmanifest` — the
+manifest stays self-contained, zero icon-file dependencies. The hub favicon
+is the same SVG inline. Regenerate all three from icon.svg; never edit a
+PNG. Noted honestly: the prism-and-spectrum echoes a famous 1973 album
+cover; ours is Newton's 1666 diagram — outline triangle, cream ground,
+seven named hues — which predates and outlives any album.
+
 Retired Aug 2026: `wisdom.html` and `hub.html` (Wisdom became a native My
 Library section; the old hub became `index.html`). The `wisdom` TABLE was
 dropped Aug 16 2026 after a four-check verification: equal counts, no missing
