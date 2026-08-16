@@ -426,6 +426,17 @@ any row — Now, Lineups, or trail — opens its page; the chip wears the
 pillar's NAME (p.num) and the item's status; the ✎ routes to the item or
 entry popup by kind; deleting an item deletes its page and says so.
 
+**Free movement** (Aug 2026): the item popup carries Where chips (Now /
+Lineups / The trail ✓, wearing renamed headings, current place selected);
+Save moves the item, id and story intact. Choosing the trail routes through
+the month-ask — nothing enters the record undated — and the old Complete
+button retired into that chip. The entry popup carries the same chips as the
+road BACK: a trail entry can return to the living lists, its month retiring,
+its id and page remaining. An open page's chip follows every crossing.
+Reordering: ▲▼ per row, visible only in the roadmap's Edit mode (the
+rename-pencil pattern), with the wealth room's at-the-edge toasts. The trail
+itself never reorders — its order is time's.
+
 **The passbook's colour grammar**: Now/Lineups headings are full-fill
 seal-gold pills (#f4c430 / #4a3410, 7.14) — gold marks the living lists;
 every row's text wears the pillar's sweep at 30% (worst 7.47 across all

@@ -688,6 +688,16 @@
   .pp-pen { display:none; font-size:0.6563rem; color:#8B97AC; margin-left:2px; background:none;
             border:none; cursor:pointer; padding:0 2px; }
   body.rm-editing .pp-pen { display:inline-block; }
+  .pp-arr { display:none; gap:2px; margin-left:6px; }
+  body.rm-editing .pp-arr { display:flex; }
+  .pp-ab { width:24px; height:24px; border:1px solid #dfe5ee; background:#fff; border-radius:6px;
+           color:#8B97AC; cursor:pointer; font-size:0.6563rem; line-height:1; padding:0; }
+  .pp-ab:hover { color:var(--pp-ink,#28324B); border-color:var(--pp-sol,#8189a0); }
+  .pp-chips { display:flex; gap:7px; flex-wrap:wrap; margin:4px 0 2px; }
+  .pp-chip { font-family:var(--mono); font-size:0.625rem; font-weight:600; letter-spacing:0.08em;
+             text-transform:uppercase; border:1px solid #dfe5ee; background:#fff; color:#5A6478;
+             border-radius:999px; padding:6px 12px; cursor:pointer; }
+  .pp-chip.sel { border-color:#8189a0; color:#0A1325; background:#f1f4f9; }
   .pp-top { display:flex; justify-content:flex-end; margin-bottom:12px; }
   .pp-aj { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em;
            text-transform:uppercase; color:var(--aj-ink,#28324B); background:none;
@@ -1151,11 +1161,11 @@
     <div class="modal-title" id="ppItemTitle">Edit item</div>
     <div class="modal-sub">short enough to hold in the head</div>
     <div class="fld"><label>The item</label><input id="fPpItem" placeholder="e.g. Sunday call, without fail"></div>
+    <div class="fld"><label>Where</label><div class="pp-chips" id="ppItemChips"></div></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="ppItemDel" type="button">Delete</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" id="ppItemCancel" type="button">Cancel</button>
-      <button class="pp-complete hidden" id="ppItemDone" type="button">Complete &#10003;</button>
       <button class="btn-primary" id="ppItemSave" type="button">Save</button>
     </div>
   </div>
@@ -1172,6 +1182,7 @@
         <option value="toward">Lineups</option>
         <option value="trail">The trail</option>
       </select></div>
+    <div class="fld hidden" id="ppLogMoveWrap"><label>Where</label><div class="pp-chips" id="ppLogChips"></div></div>
     <div class="fld" id="ppLogMonthWrap"><label>When</label><input id="fPpMonth" type="month">
       <button class="pp-until" id="ppLogUntilBtn" type="button">+ until&hellip;</button>
       <div class="pp-untilf hidden" id="ppLogUntilWrap"><label>Until</label><input id="fPpMonth2" type="month"></div>
@@ -2338,6 +2349,8 @@ function renderPp() {
     + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button>'
     + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + escHtml(o.t)
     + (ppPages_.has(String(o.id)) ? '<span class="pp-mark">\u00B6</span>' : '') + '</span></button>'
+    + '<span class="pp-arr"><button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':-1" aria-label="Move up">\u25B2</button>'
+    + '<button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':1" aria-label="Move down">\u25BC</button></span>'
     + '</div>').join('');
   const hd = (sec, lbl, since) => '<span class="pp-hd">'
     + '<span class="pp-lbl">' + escHtml(lbl) + '</span>'
@@ -2607,13 +2620,32 @@ el('ppSecSave').addEventListener('click', () => {
   renderPp(); scheduleRoadmapSave();
 });
 el('ppSecCancel').addEventListener('click', () => { el('ppSecModal').classList.add('hidden'); ppSecEditing_ = null; });
+let ppItemWhere_ = null, ppLogWhere_ = null;
+function ppChips_(boxId, sel) {
+  const pp = rmData.pp;
+  const opts = [['now', pp.nowLbl], ['toward', pp.toLbl], ['trail', 'The trail \u2713']];
+  el(boxId).innerHTML = opts.map(o =>
+    '<button class="pp-chip' + (o[0] === sel ? ' sel' : '') + '" type="button" data-ppchip="'
+    + o[0] + '">' + escHtml(o[1]) + '</button>').join('');
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-ppchip]');
+  if (!c) return;
+  const box = c.closest('.pp-chips');
+  if (!box) return;
+  const v = c.dataset.ppchip;
+  if (box.id === 'ppItemChips') ppItemWhere_ = v;
+  if (box.id === 'ppLogChips') ppLogWhere_ = v;
+  box.querySelectorAll('.pp-chip').forEach(x => x.classList.toggle('sel', x.dataset.ppchip === v));
+});
 function ppOpenItem(sec, idx) {
   ppItemEditing_ = { sec: sec, idx: idx };
   const pp = rmData.pp;
   el('ppItemTitle').textContent = 'Edit \u201C' + (sec === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
   el('fPpItem').value = (ppList_(sec)[idx] && ppList_(sec)[idx].t) || '';
+  ppItemWhere_ = sec;
+  ppChips_('ppItemChips', sec);
   el('ppItemDel').classList.remove('hidden');
-  el('ppItemDone').classList.remove('hidden');
   el('ppItemModal').classList.remove('hidden');
   setTimeout(() => el('fPpItem').focus(), 30);
 }
@@ -2621,17 +2653,26 @@ el('ppItemSave').addEventListener('click', () => {
   if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
   const t = el('fPpItem').value.trim();
   if (!t) { toast('Write the item first'); return; }
-  const o = ppList_(ppItemEditing_.sec)[ppItemEditing_.idx];
-  if (o) { o.t = t; if (ppPageEntry_ === o.id) el('ppPageT').textContent = t; }
-  ppTouchSince_(ppItemEditing_.sec);
-  el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
-  renderPp(); scheduleRoadmapSave();
-});
-el('ppItemDone').addEventListener('click', () => {
-  if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
   const at = ppItemEditing_;
+  const o = ppList_(at.sec)[at.idx];
+  if (!o) { el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null; return; }
+  o.t = t;
+  if (ppPageEntry_ === o.id) el('ppPageT').textContent = t;
   el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
-  ppComplete_(at.sec, at.idx);
+  if (ppItemWhere_ === 'trail') {
+    // The trail asks its month, as completion always has; the id rides along.
+    ppComplete_(at.sec, at.idx);
+    renderPp(); scheduleRoadmapSave();
+    return;
+  }
+  if (ppItemWhere_ && ppItemWhere_ !== at.sec) {
+    ppList_(at.sec).splice(at.idx, 1);
+    ppList_(ppItemWhere_).push(o);
+    ppTouchSince_(ppItemWhere_);
+    if (ppPageEntry_ === o.id) ppOpenPage(o.id);   // an open page's chip follows
+  }
+  ppTouchSince_(at.sec);
+  renderPp(); scheduleRoadmapSave();
 });
 el('ppItemDel').addEventListener('click', async () => {
   if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
@@ -2667,6 +2708,9 @@ function ppOpenLog(id) {
   el('ppLogWhereWrap').classList.toggle('hidden', !!e);
   el('ppLogMonthWrap').classList.toggle('hidden', !e);
   el('ppLogDel').classList.toggle('hidden', !e);
+  ppLogWhere_ = 'trail';
+  el('ppLogMoveWrap').classList.toggle('hidden', !e);
+  if (e) ppChips_('ppLogChips', 'trail');
   el('ppLogModal').classList.remove('hidden');
   setTimeout(() => el('fPpText').focus(), 30);
 }
@@ -2678,6 +2722,18 @@ el('ppLogSave').addEventListener('click', () => {
   const m2v = el('ppLogUntilWrap').classList.contains('hidden') ? '' : el('fPpMonth2').value;
   if (m2v && m2v <= mv) { toast('Until should be after the start month'); return; }
   if (ppLogEditing_) {
+    const eMv = pp.log.find(x => x.id === ppLogEditing_);
+    if (eMv && ppLogWhere_ && ppLogWhere_ !== 'trail') {
+      // Back to the living lists: the month retires, the id and story remain.
+      pp.log = pp.log.filter(x => x.id !== eMv.id);
+      ppList_(ppLogWhere_).push({ id: eMv.id, t: t });
+      ppTouchSince_(ppLogWhere_);
+      el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
+      if (ppPageEntry_ === eMv.id) ppOpenPage(eMv.id);
+      renderPp(); renderPpLedger(); scheduleRoadmapSave();
+      toast('Returned to the living lists');
+      return;
+    }
     // Legacy migrated notes keep their quiet dot; the kind is never edited.
     const e = pp.log.find(x => x.id === ppLogEditing_);
     if (e) { e.t = t; e.m = mv; if (m2v) e.m2 = m2v; else delete e.m2; }
@@ -2720,6 +2776,15 @@ el('fPpWhere').addEventListener('change', () => {
 });
 el('ppJourney').addEventListener('click', () => ppOpenLog(null));
 el('ppStanding').addEventListener('click', e => {
+  const mv2 = e.target.closest('[data-ppmv]');
+  if (mv2) {
+    const q = mv2.dataset.ppmv.split(':'), s = q[0], i = Number(q[1]), j = i + Number(q[2]);
+    const list = ppList_(s);
+    if (j < 0 || j >= list.length) { toast(j < 0 ? 'Already first' : 'Already last'); return; }
+    const tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+    renderPp(); scheduleRoadmapSave();
+    return;
+  }
   const dn = e.target.closest('[data-ppdone]');
   if (dn) { const p = dn.dataset.ppdone.split(':'); ppComplete_(p[0], Number(p[1])); return; }
   const it = e.target.closest('[data-ppitem]');
