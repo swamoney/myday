@@ -744,10 +744,6 @@
   .pp-complete { background:#0F6E56; color:#fff; border:none; border-radius:9px; padding:10px 14px;
                  font-family:inherit; font-size:0.8125rem; font-weight:600; cursor:pointer; }
   .pp-since { margin-left:auto; font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; }
-  .pp-it { display:flex; gap:8px; font-size:0.875rem; line-height:1.5; margin-top:5px; color:#28324B; }
-  .pp-it::before { content:'\2022'; color:var(--pp-sol,#8189a0); }
-  .pp-it.pp-emptyline { color:#aab4c8; font-style:italic; }
-  .pp-it.pp-emptyline::before { content:''; }
   .pp-row { display:flex; gap:10px; width:100%; text-align:left; background:none; border:none;
             font-family:inherit; padding:8px 2px; border-bottom:1px solid #eef1f6;
             align-items:baseline; cursor:pointer; }
@@ -2284,20 +2280,22 @@ function renderPp() {
   box.style.setProperty('--pp-tint', ppBlend_(hue.lt, 0.26));
   box.style.setProperty('--pp-sol', hue.solid);
   box.style.setProperty('--pp-ink', hue.ink);
-  const items = (a, sec) => a.length
-    ? a.map((t, i2) => '<div class="pp-itrow">'
-        + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button>'
-        + '<button class="pp-ittxt" type="button" data-ppedit="' + sec + ':' + i2 + '">' + escHtml(t) + '</button>'
-        + '</div>').join('')
-    : '<div class="pp-it pp-emptyline">\u2014</div>';
+  const items = (a, sec) => a.map((t, i2) => '<div class="pp-itrow">'
+    + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button>'
+    + '<button class="pp-ittxt" type="button" data-ppedit="' + sec + ':' + i2 + '">' + escHtml(t) + '</button>'
+    + '</div>').join('');
   const hd = (sec, lbl, since) => '<span class="pp-hd">'
     + '<span class="pp-lbl">' + escHtml(lbl) + '</span>'
     + '<button class="pp-pen" type="button" data-pprename="' + sec + '" aria-label="Rename heading">\u270E</button>'
     + (since ? '<span class="pp-since">since ' + ppMonth_(since) + '</span>' : '')
     + '</span>';
-  box.innerHTML =
-    '<div class="pp-sec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>'
-    + '<div class="pp-sec pp-to">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>';
+  // Empty lists vanish entirely - no heading, no dash. The one door still
+  // offers both places, so nothing is unreachable while it is invisible.
+  const parts = [];
+  if (pp.now.length) parts.push('<div class="pp-sec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>');
+  if (pp.toward.length) parts.push('<div class="pp-sec' + (parts.length ? ' pp-to' : '') + '">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>');
+  box.classList.toggle('hidden', !parts.length);
+  box.innerHTML = parts.join('');
   const aj = el('ppJourney');
   if (aj) aj.style.background = hue.solid;   // solid carries white (RAINBOW note)
   renderPpLedger();
