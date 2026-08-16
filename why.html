@@ -85,8 +85,8 @@
   .pchips-main + .pchips-cap { margin:0 38px 16px; }
   @media (max-width:640px) { .pchips-main { margin:2px 20px 4px 9px; }
     .pchips-main + .pchips-cap { margin:0 20px 14px; } }
-  .pchips-rm { margin:10px 16px 0 5px; }
-  .pchips-jp { margin:0 0 10px -11px; }
+  .pchips-rm { margin:10px 16px 0; justify-content:center; }
+  .pchips-jp { margin:0 0 10px; justify-content:center; }
   .pchip.here i { outline:2.5px solid #16264d; outline-offset:3px; transform:scale(1.08); }
   .spine-hold { position:relative; }
   @media (max-width:640px) { .pchip { width:42px; height:42px; } .pchip i { width:20px; height:20px; } }
@@ -2479,8 +2479,10 @@ async function ppOpenPage(id) {
   phd.style.setProperty('--pgsw', hueA_(hue.solid, 0.30));
   const p = pillars.find(x => String(x.id) === String(rmId));
   const pp2 = rmData.pp;
+  const nm2 = (p && (p.num || p.label)) || 'My Why';
   const place = f.kind === 'log' ? 'The trail' : (f.kind === 'now' ? pp2.nowLbl : pp2.toLbl);
-  el('ppPageWhy').textContent = ((p && p.num) ? p.num : 'My Why') + ' \u00B7 ' + place;
+  el('ppPageWhy').textContent = nm2 + ' \u00B7 ' + place;
+  el('ppPageBack').textContent = '\u2190 ' + nm2 + (f.kind === 'log' ? ' \u00B7 the trail' : '');
   el('ppPageT').textContent = e.t;
   el('ppPageM').textContent = f.kind === 'log' ? ppWhen_(e)
     : (f.kind === 'now' ? 'standing since ' + ppMonth_(pp2.since) : 'lined up');
@@ -2568,7 +2570,7 @@ function ppStoryMeta_() {
   const pp2 = rmData.pp;
   const when = f.kind === 'log' ? ppWhen_(f.e)
     : (f.kind === 'now' ? 'standing since ' + ppMonth_(pp2.since) : 'lined up');
-  return { e: f.e, when: when, label: (p && p.num) || 'My Why' };
+  return { e: f.e, when: when, label: (p && (p.num || p.label)) || 'My Why' };
 }
 async function ppCopyStory_() {
   const meta = ppStoryMeta_(); if (!meta) return;
