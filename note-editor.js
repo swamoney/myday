@@ -603,7 +603,7 @@
   // that data sits outside every backup ever taken — silently.
   var EXPORT_TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',
                        'why_pillars','why_mantras','why_circle','why_priority',
-                       'bucket_items','why_places','wisdom','note_versions',
+                       'bucket_items','why_places','note_versions',
                        'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions',
                        'why_journeys'];
   function _dl(name, text, type) {

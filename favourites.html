@@ -319,7 +319,7 @@
 <body>
 
 <script src="config.js?v=20260802b"></script>
-<script src="note-editor.js?v=20260816a"></script>
+<script src="note-editor.js?v=20260816b"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -572,8 +572,10 @@ const SECTIONS = {
   'marathi':  { lbl:'\u092e\u0930\u093e\u0920\u0940', kind:'notes', srcReq:false, eyebrow:'\u092e\u0930\u093e\u0920\u0940' },
   'movies':   { lbl:'Movies / Live Shows', kind:'notes', srcReq:false, eyebrow:'Watch note' },
   'music':    { lbl:'Music', kind:'music' },
-  // Reads from the wisdom table, not bookmarks — the data never moved, so this
-  // section can be removed again without unpicking a migration.
+  // Migrated: wisdom rows were copied into bookmarks (section='wisdom') in
+  // Aug 2026; every query on this page reads and writes bookmarks only. The
+  // old wisdom table remains in Supabase as the untouched originals until the
+  // migration is verified row-for-row (see sql/verify_wisdom_migration.sql).
   // An ordinary notes section that also carries a passage. Same table, same
   // editor, same reader as Books and Podcasts — nothing of its own to maintain.
   'wisdom':   { lbl:'Wisdom Library', kind:'notes', srcReq:false, eyebrow:'', essence:true }

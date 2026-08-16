@@ -47,9 +47,16 @@ calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
 Retired Aug 2026: `wisdom.html` and `hub.html` (Wisdom became a native My
-Library section; the old hub became `index.html`). The `wisdom` TABLE lives on
-in Supabase, in backups, and in restore until the migration to `bookmarks` is
-proven complete — files are UI, tables are memory.
+Library section; the old hub became `index.html`). The `wisdom` TABLE was
+dropped Aug 16 2026 after a four-check verification: equal counts, no missing
+titles, byte-identical passages, and live copies newer and larger than the
+originals (growth, not loss). A fresh full backup was taken FIRST — the
+originals live verbatim in that zip forever. Standard set for any future
+table retirement: verify content (not just counts — equal totals can hide a
+loss plus a duplicate), compare timestamps to learn which side is truth,
+back up while the exporter still knows the table, and only then drop — the
+same-day rule (§6) run in reverse. Files are UI, tables are memory, and
+backups are memory's memory.
 
 **Stack:** pure HTML, CSS and JavaScript. Supabase for data, Vercel for hosting.
 No build step, no framework, no package manager.
