@@ -426,6 +426,16 @@ any row — Now, Lineups, or trail — opens its page; the chip wears the
 pillar's NAME (p.num) and the item's status; the ✎ routes to the item or
 entry popup by kind; deleting an item deletes its page and says so.
 
+**The spine rides everywhere** (W1, Aug 2026): the rainbow dot-row lives
+directly under the section chips on the main page (one fixed home, every
+section — a landmark that moves is half a landmark), under the bar inside
+every pillar page, and above the card on every journey page. One builder
+(whyDots_) renders all three from the live pillars in order; the Why you are
+standing on wears a ring (.pchip.here). Jumps are guarded: rmDirty asks
+before leaving an edited roadmap, an open story writer asks before leaving a
+page. Tapping your own dot from a journey page just closes the page — a
+free back-shortcut.
+
 **Free movement** (Aug 2026): the item popup carries Where chips (Now /
 Lineups / The trail ✓, wearing renamed headings, current place selected);
 Save moves the item, id and story intact. Choosing the trail routes through

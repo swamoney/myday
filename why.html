@@ -81,6 +81,13 @@
   .pchip:active i { transform:scale(1.05); }
   .pchips-cap { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.15em;
                 text-transform:uppercase; color:#aab4c8; margin-bottom:20px; }
+  .pchips-main { margin:2px 38px 4px 27px; }
+  .pchips-main + .pchips-cap { margin:0 38px 16px; }
+  @media (max-width:640px) { .pchips-main { margin:2px 20px 4px 9px; }
+    .pchips-main + .pchips-cap { margin:0 20px 14px; } }
+  .pchips-rm { margin:10px 16px 0 5px; }
+  .pchips-jp { margin:0 0 10px -11px; }
+  .pchip.here i { outline:2.5px solid #16264d; outline-offset:3px; transform:scale(1.08); }
   .spine-hold { position:relative; }
   @media (max-width:640px) { .pchip { width:42px; height:42px; } .pchip i { width:20px; height:20px; } }
   .spine-line { position:absolute; left:31px; top:30px; bottom:30px; width:2px; background:linear-gradient(#f4c430, #e0c98a 55%, rgba(224,201,138,0.18)); }
@@ -956,9 +963,9 @@
       <span data-sec="bucket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20.4h4.6v-4.6h4.6v-4.6h4.6V6.6H21"/></svg><i class="seg-l">My Bucket List</i></span>
       <span data-sec="places"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="m15.2 8.8-2.1 5.3-5.3 2.1 2.1-5.3z" fill="currentColor" stroke="none"/></svg><i class="seg-l">My Explore List</i></span>
 </div>
+    <div class="pchips pchips-main" id="pchips"></div>
+    <div class="pchips-cap" id="pchipsCap"></div>
     <div class="spine-body hidden" id="secPillars">
-      <div class="pchips" id="pchips"></div>
-      <div class="pchips-cap" id="pchipsCap"></div>
       <div class="spine-hold">
         <div class="spine-line"></div>
         <div id="spine"></div>
@@ -1134,7 +1141,9 @@
 </div>
 
 <div class="pp-page" id="ppPage">
-  <div class="pp-pgwrap"><div class="pp-pgcard">
+  <div class="pp-pgwrap">
+    <div class="pchips pchips-jp" id="jpDots"></div>
+    <div class="pp-pgcard">
     <div class="pp-pghead" id="ppPageHead">
       <div class="pp-pgtop">
         <button class="pp-pgback" id="ppPageBack" type="button">&larr; Back to the trail</button>
@@ -1348,6 +1357,7 @@
     <button class="eb" id="rmEdit" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="rmEditLabel">Edit</span></button>
   </div>
   <div class="rm-scroll">
+    <div class="pchips pchips-rm" id="rmDots"></div>
     <div class="rm-inner" id="rmInner">
       <div class="rm-sticky">
       <div class="rm-hero">
@@ -2225,6 +2235,33 @@ function rmParse(raw) {
   try { return norm(JSON.parse(raw)); }
   catch (e) { return norm({ essay: String(raw) }); }
 }
+function whyDots_(activeId, attr) {
+  return pillars.map((p, i) => {
+    const c = hueFor(i, pillars.length);
+    const nm = (p.label || p.code || 'This why');
+    return '<button class="pchip' + (String(p.id) === String(activeId) ? ' here' : '') + '" type="button" '
+      + attr + '="' + p.id + '" title="' + escHtml(nm) + '" aria-label="' + escHtml(nm) + '">'
+      + '<i style="background:radial-gradient(circle at 36% 32%, ' + c.lt + ', ' + c.mid + ' 62%, ' + c.deep + ');'
+      + 'box-shadow:0 3px 8px ' + c.deep + '5e;"></i></button>';
+  }).join('');
+}
+el('rmDots').addEventListener('click', e => {
+  const d = e.target.closest('[data-rmjump]'); if (!d) return;
+  const to = d.dataset.rmjump;
+  if (String(to) === String(rmId)) return;
+  if (rmDirty && !confirm('Leave without saving?\u000A\u000AUnsaved roadmap changes will be lost.')) return;
+  openRoadmap(to);
+});
+el('jpDots').addEventListener('click', e => {
+  const d = e.target.closest('[data-jpjump]'); if (!d) return;
+  const to = d.dataset.jpjump;
+  if (ppEditor_ && !confirm('Leave the story without saving?')) return;
+  el('ppPage').classList.remove('on'); ppPageEntry_ = null;
+  if (String(to) !== String(rmId)) {
+    if (rmDirty && !confirm('Leave without saving?\u000A\u000AUnsaved roadmap changes will be lost.')) return;
+    openRoadmap(to);
+  }
+});
 function openRoadmap(id) {
   const p = pillars.find(x => String(x.id) === String(id)); if (!p) return;
   rmId = id;
@@ -2233,6 +2270,7 @@ function openRoadmap(id) {
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   el('rmTitle').innerHTML = 'My Why' + (p.label ? ' &middot; ' + escHtml(p.label) : '');
   el('rmSeal').textContent = p.code || '';
+  el('rmDots').innerHTML = whyDots_(id, 'data-rmjump');
   {
     const st = STATE[p.state || ''] || STATE[''];
     const sEl = el('rmStands');
@@ -2446,6 +2484,7 @@ async function ppOpenPage(id) {
   el('ppPageT').textContent = e.t;
   el('ppPageM').textContent = f.kind === 'log' ? ppWhen_(e)
     : (f.kind === 'now' ? 'standing since ' + ppMonth_(pp2.since) : 'lined up');
+  el('jpDots').innerHTML = whyDots_(rmId, 'data-jpjump');
   el('ppPage').classList.add('on');
   el('ppPageBody').innerHTML = '<div class="pg-p" style="color:#8B97AC">\u2026</div>';
   let body = '';
