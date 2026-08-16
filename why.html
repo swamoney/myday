@@ -149,7 +149,12 @@
   .rm-hero { display:grid; grid-template-columns:76px 1fr; gap:22px; align-items:start; padding-bottom:4px; }
   .rm-seal { width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:1.4375rem; font-weight:600; color:#4a3410; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); }   /* overridden per pillar in openRoadmap */
   .rm-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#a5702f; margin-bottom:6px; }
-  .rm-num { font-family:var(--serif); font-size:2.75rem; font-weight:600; line-height:1; letter-spacing:-0.02em; }
+  .rm-num { font-family:var(--serif); font-size:2.75rem; font-weight:700; line-height:1.28;
+            letter-spacing:-0.02em; display:inline; padding:0 10px 2px; margin-left:-10px;
+            background:linear-gradient(transparent 56%, var(--rm-sw,transparent) 56%,
+              var(--rm-sw,transparent) 96%, transparent 96%);
+            box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+  .rm-sig { width:88px; height:6px; border-radius:3px; background:var(--rm-sol,#95a4bb); margin:11px 0 2px; }
   /* Same wordless treatment as the pillar card: the meaning as a sentence,
      the standing as a tinted pill. No labels. */
   .rm-stands { font-family:var(--serif); font-style:italic; font-size:1.1875rem; font-weight:500; color:#28324B; line-height:1.35; margin-top:11px; }
@@ -707,8 +712,12 @@
            justify-content:center; padding:0; }
   .pp-ic:hover { background:rgba(255,255,255,0.6); }
   .pp-ic svg { width:15px; height:15px; }
-  .pp-pgt { font-family:var(--serif); font-size:1.5rem; font-weight:600; margin-top:5px; line-height:1.25;
-            color:var(--pgi,#0A1325); }
+  .pp-pgtw { margin-top:7px; }
+  .pp-pgt { font-family:var(--serif); font-size:1.5rem; font-weight:700; line-height:1.45;
+            letter-spacing:-0.01em; color:var(--pgi,#0A1325); display:inline; padding:0 8px 3px;
+            margin-left:-8px; background:linear-gradient(transparent 56%, var(--pgsw,transparent) 56%,
+              var(--pgsw,transparent) 96%, transparent 96%);
+            box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   .pp-pgm { font-family:var(--mono); font-size:0.6563rem; color:#5A6478; margin-top:7px; }
   .pp-pgbody { padding:24px 22px 40px; }
   .pp-rd { font-family:var(--serif); font-size:1rem; line-height:1.75; color:#1d2536; }
@@ -1121,7 +1130,7 @@
         </div>
       </div>
       <div class="pp-pgwhy" id="ppPageWhy"></div>
-      <div class="pp-pgt" id="ppPageT"></div>
+      <div class="pp-pgtw"><span class="pp-pgt" id="ppPageT"></span></div>
       <div class="pp-pgm" id="ppPageM"></div>
     </div>
     <div class="pp-pgbody" id="ppPageBody"></div>
@@ -1325,7 +1334,8 @@
         <div class="rm-seal" id="rmSeal"></div>
         <div class="rm-hero-b">
           <div class="rm-eyebrow">Long-term roadmap</div>
-          <div class="rm-num" id="rmNum"></div>
+          <div><span class="rm-num" id="rmNum"></span></div>
+          <div class="rm-sig" id="rmSig"></div>
           <div class="rm-stands" id="rmStands"></div>
           <div class="rm-statusrow"><span class="rm-pill" id="rmStatus"><span class="pdot"></span><span id="rmStatusTxt"></span></span></div>
         </div>
@@ -1596,6 +1606,10 @@ const RAINBOW = [
   { lt:'#BCB8E8', mid:'#9A95D4', deep:'#6A64AE', ink:'#1E1B47', solid:'#6a64ae' },   // indigo
   { lt:'#D6B0E2', mid:'#BC8ECC', deep:'#8C61A0', ink:'#361A40', solid:'#8c61a0' }    // violet
 ];
+function hueA_(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+}
 function hueFor(i, total) {
   if (total <= 1) return RAINBOW[2];                     // a lone why keeps the gold
   return RAINBOW[Math.round(i * (RAINBOW.length - 1) / (total - 1))];
@@ -2207,6 +2221,9 @@ function openRoadmap(id) {
     seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
     const rmxT = el('rmxArchT');
     if (rmxT) rmxT.style.setProperty('--arch-acc', hue.solid);   // matches the add button
+    // P24 signature: the name marked in its own colour, underscored in the same.
+    el('rmNum').style.setProperty('--rm-sw', hueA_(hue.solid, 0.30));
+    el('rmSig').style.setProperty('--rm-sol', hue.solid);
   }
   el('rmNum').textContent = p.num || '';
   el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
@@ -2360,6 +2377,7 @@ async function ppOpenPage(id) {
   phd.style.setProperty('--pgt', ppBlend_(hue.lt, 0.26));
   phd.style.setProperty('--pgs', hue.solid);
   phd.style.setProperty('--pgi', hue.ink);
+  phd.style.setProperty('--pgsw', hueA_(hue.solid, 0.30));
   const p = pillars.find(x => String(x.id) === String(rmId));
   el('ppPageWhy').textContent = ((p && p.label) ? p.label : 'My Why') + ' \u00B7 The trail';
   el('ppPageT').textContent = e.t;

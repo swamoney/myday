@@ -405,6 +405,18 @@ it joins the story where it concluded. ppFrom_'s log normaliser must carry
 m2 through explicitly — the norm() trap repeats at every level: any field
 not named in a rebuild map is silently deleted on the next reload.
 
+**The signature** (P24, Aug 2026): a marked name in the pillar's own colour
+is the mark of My Why. The pillar page's name (rm-num, weight 700) wears a
+highlighter sweep — the pillar's solid at 30% behind the lower half of the
+letters — with an 88x6 rule in the same solid beneath: highlight says the
+name is alive, the rule anchors it like a signature line. The journey page's
+story title wears the same sweep on its tinted header. The sweep is pure
+decoration behind ink text (never colour-as-text): worst measured pairs
+across all seven hues are 12.04 (name on page) and 6.45 (title on tint),
+gated in the build before writing. Sweeps use box-decoration-break:clone so
+wrapped lines each carry their mark; hues wire per pillar via --rm-sw /
+--rm-sol / --pgsw from hueA_(solid, 0.30).
+
 **Each page carries its own three output paths** (copy / download .md /
 print, as header icons beside the ✎) so a story can be handed over
 without handing over the app. **Writing happens on the page itself, never
