@@ -344,6 +344,24 @@ rows wear a quiet ¶ in the trail and in print, md, and export; the room
 zip echoes each story via xRich_ and files it standalone as .md through
 NoteEditor.toMarkdown.
 
+**The trail runs flat** (Aug 2026): newest first, no year folding — at 4–5
+entries a year, furniture would outweigh content. The folding can return in
+an afternoon if a year ever grows heavy; entries carry full dates either
+way. Dates wear mono #5A6478 at weight 600 (5.95:1) — subtle but present.
+Empty Now/Lineups are omitted on screen AND in print, md, and the room
+export: paper never claims a heading the screen doesn't show (an agreed
+exception to §4.5's honest-empty dashes — in the passbook, absence IS the
+honest state, and the one door keeps both places reachable).
+
+**Optional date ranges** (R2): an entry may carry an end month, `m2`, beside
+its start `m`. The "+ until…" link in the completion popup and the Add
+Journey / edit popup reveals the field; backwards ranges are refused at
+save. Singles keep full month names; ranges compress to one line ("Mar 2025
+– Aug 2026", ppShort_). A ranged entry sorts by its END (ppKey_ = m2||m):
+it joins the story where it concluded. ppFrom_'s log normaliser must carry
+m2 through explicitly — the norm() trap repeats at every level: any field
+not named in a rebuild map is silently deleted on the next reload.
+
 **Each page carries its own three output paths** (copy / download .md /
 print, as header icons beside the ✎) so a story can be handed over
 without handing over the app. The why-name eyebrow is a **chip: white on the

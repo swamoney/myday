@@ -751,7 +751,10 @@
   .pp-tick { color:#0F6E56; font-weight:600; font-size:0.875rem; min-width:16px; }
   .pp-dotk { color:#8B97AC; min-width:16px; text-align:center; }
   .pp-w { font-size:0.875rem; line-height:1.45; flex:1; color:#28324B; }
-  .pp-d { font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; white-space:nowrap; }
+  .pp-d { font-family:var(--mono); font-size:0.625rem; font-weight:600; color:#5A6478; white-space:nowrap; }
+  .pp-until { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.08em; color:#5A6478;
+              background:none; border:none; cursor:pointer; padding:0; margin-top:8px; display:inline-block; }
+  .pp-untilf { margin-top:9px; }
   .pr-warn { background:#fdf3f2; border:1px solid #edd3d0; border-radius:10px; padding:11px 13px;
              font-size:0.7188rem; line-height:1.55; color:#7a3b34; margin-bottom:4px; }
   .pr-warn b { color:#5f2a24; }
@@ -1096,7 +1099,10 @@
   <div class="modal">
     <div class="modal-title">Into the trail &#10003;</div>
     <div class="modal-sub">it lands with the month it truly happened</div>
-    <div class="fld"><label>When did this happen?</label><input id="fPdMonth" type="month"></div>
+    <div class="fld"><label>When did this happen?</label><input id="fPdMonth" type="month">
+      <button class="pp-until" id="ppDoneUntilBtn" type="button">+ until&hellip;</button>
+      <div class="pp-untilf hidden" id="ppDoneUntilWrap"><label>Until</label><input id="fPdMonth2" type="month"></div>
+    </div>
     <div class="modal-actions">
       <span style="flex:1"></span>
       <button class="btn-ghost" id="ppDoneCancel" type="button">Cancel</button>
@@ -1154,7 +1160,10 @@
         <option value="toward">Lineups</option>
         <option value="trail">The trail</option>
       </select></div>
-    <div class="fld" id="ppLogMonthWrap"><label>When</label><input id="fPpMonth" type="month"></div>
+    <div class="fld" id="ppLogMonthWrap"><label>When</label><input id="fPpMonth" type="month">
+      <button class="pp-until" id="ppLogUntilBtn" type="button">+ until&hellip;</button>
+      <div class="pp-untilf hidden" id="ppLogUntilWrap"><label>Until</label><input id="fPpMonth2" type="month"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="ppLogDel" type="button">Delete</button>
       <span style="flex:1"></span>
@@ -1713,12 +1722,12 @@ async function exportWhy() {
       try { rm = p.roadmap ? (typeof p.roadmap === 'string' ? JSON.parse(p.roadmap) : p.roadmap) : null; } catch (e) {}
       if (rm) {
         const pp = ppFrom_(rm.pp, rm.targets || []);
-        const li = a => '<ul>' + (a.length ? a.map(t => '<li>' + xEsc_(t) + '</li>').join('') : '<li>\u2014</li>') + '</ul>';
-        body += '<h4>' + xEsc_(pp.nowLbl) + '</h4>' + li(pp.now);
-        body += '<h4>' + xEsc_(pp.toLbl) + '</h4>' + li(pp.toward);
-        const lg = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+        const li = a => '<ul>' + a.map(t => '<li>' + xEsc_(t) + '</li>').join('') + '</ul>';
+        if (pp.now.length) body += '<h4>' + xEsc_(pp.nowLbl) + '</h4>' + li(pp.now);
+        if (pp.toward.length) body += '<h4>' + xEsc_(pp.toLbl) + '</h4>' + li(pp.toward);
+        const lg = (pp.log || []).slice().sort((a, b) => ppKey_(b).localeCompare(ppKey_(a)));
         if (lg.length) body += '<h4>The trail</h4><ul>' + lg.map(e => {
-          let s2 = '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + xEsc_(e.t) + ' \u2014 ' + xEsc_(ppMonth_(e.m));
+          let s2 = '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + xEsc_(e.t) + ' \u2014 ' + xEsc_(ppWhen_(e));
           const jb = xJourneys[String(e.id)];
           if (jb) s2 += '<div>' + xRich_(jb) + '</div>';
           return s2 + '</li>';
@@ -1727,7 +1736,7 @@ async function exportWhy() {
           const jb = xJourneys[String(e.id)];
           if (!jb) return;
           zip.file('why-journeys/' + xSafe_(p.label || p.code) + ' - ' + xSafe_(e.t) + '.md',
-            '# ' + e.t + '\n\n' + ppMonth_(e.m) + ' \u00B7 ' + (p.label || '') + '\n\n'
+            '# ' + e.t + '\n\n' + ppWhen_(e) + ' \u00B7 ' + (p.label || '') + '\n\n'
             + NoteEditor.toMarkdown(jb) + '\n');
         });
         if (rm.essay) body += '<h4>Long-term roadmap</h4><div>' + xRich_(rm.essay) + '</div>';
@@ -2246,9 +2255,11 @@ function ppFrom_(pp, targets) {
              now: Array.isArray(pp.now) ? pp.now : [],
              toward: Array.isArray(pp.toward) ? pp.toward : [],
              since: pp.since || ppMonthNow_(),
-             log: (Array.isArray(pp.log) ? pp.log : []).map(e => ({
-               id: e.id || ppId_(), m: e.m || ppMonthNow_(),
-               t: e.t || '', k: e.k === 'done' ? 'done' : 'note' })) };
+             log: (Array.isArray(pp.log) ? pp.log : []).map(e => {
+               const o2 = { id: e.id || ppId_(), m: e.m || ppMonthNow_(),
+                 t: e.t || '', k: e.k === 'done' ? 'done' : 'note' };
+               if (e.m2) o2.m2 = e.m2;   // optional end month rides along
+               return o2; }) };
   }
   // One-time read of the old quadrants into the passbook.
   const out = { nowLbl: 'Now', toLbl: 'Lineups', now: [], toward: [], since: ppMonthNow_(), log: [] };
@@ -2271,7 +2282,6 @@ function ppFrom_(pp, targets) {
   });
   return out;
 }
-let ppOpenYears_ = {};
 function renderPp() {
   const box = el('ppStanding'); if (!box) return;
   const pp = rmData.pp || (rmData.pp = ppFrom_(null, rmData.targets));
@@ -2300,10 +2310,22 @@ function renderPp() {
   if (aj) aj.style.background = hue.solid;   // solid carries white (RAINBOW note)
   renderPpLedger();
 }
+function ppShort_(m) {
+  const p = String(m || '').split('-');
+  if (p.length < 2) return String(m || '');
+  const d = new Date(Number(p[0]), Number(p[1]) - 1, 1);
+  return isNaN(d) ? String(m) : d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' });
+}
+// Singles keep their full month; ranges compress to one line (R2).
+function ppWhen_(e) {
+  return e.m2 ? ppShort_(e.m) + ' \u2013 ' + ppShort_(e.m2) : ppMonth_(e.m);
+}
+// A ranged entry joins the story where it concluded.
+function ppKey_(e) { return String(e.m2 || e.m); }
 function renderPpLedger() {
   const wrap = el('ppLedger'); if (!wrap) return;
   const pp = rmData.pp; const cnt = el('rmxArchCount');
-  const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+  const log = (pp.log || []).slice().sort((a, b) => ppKey_(b).localeCompare(ppKey_(a)));
   const done = log.filter(e => e.k === 'done').length;
   if (cnt) cnt.textContent = log.length
     ? (log.length + (log.length === 1 ? ' ENTRY' : ' ENTRIES') + (done ? ' \u00B7 ' + done + ' \u2713' : '')) : '';
@@ -2312,20 +2334,10 @@ function renderPpLedger() {
     + (e.k === 'done' ? '<span class="pp-tick">\u2713</span>' : '<span class="pp-dotk">\u00B7</span>')
     + '<span class="pp-w">' + escHtml(e.t)
     + (ppPages_.has(String(e.id)) ? '<span class="pp-mark">\u00B6</span>' : '') + '</span>'
-    + '<span class="pp-d">' + ppMonth_(e.m) + '</span></button>';
-  const thisYear = String(new Date().getFullYear());
-  const years = {};
-  log.forEach(e => { const y = String(e.m).slice(0, 4); (years[y] = years[y] || []).push(e); });
-  wrap.innerHTML = Object.keys(years).sort().reverse().map(y => {
-    if (y === thisYear) return years[y].map(row).join('');
-    const isOpen = !!ppOpenYears_[y];
-    const dn = years[y].filter(e => e.k === 'done').length;
-    return '<div class="pr-yr' + (isOpen ? ' open' : '') + '">'
-      + '<button class="pr-yrhd" type="button" data-ppyr="' + y + '">'
-      + '<span class="cv">\u203A</span><span class="y">' + y + '</span>'
-      + '<span class="n">' + years[y].length + (dn ? ' \u00B7 ' + dn + ' \u2713' : '') + '</span><span class="r"></span></button>'
-      + '<div class="pr-yrbody">' + years[y].map(row).join('') + '</div></div>';
-  }).join('');
+    + '<span class="pp-d">' + ppWhen_(e) + '</span></button>';
+  // Flat, newest first: 4-5 entries a year need no furniture. If a year ever
+  // grows heavy, the folding can return - the data carries full dates either way.
+  wrap.innerHTML = log.map(row).join('');
 }
 let ppSecEditing_ = null, ppLogEditing_ = null, ppItemEditing_ = null;
 /* ===== Journey pages =====
@@ -2357,7 +2369,7 @@ async function ppOpenPage(id) {
   const p = pillars.find(x => String(x.id) === String(rmId));
   el('ppPageWhy').textContent = ((p && p.label) ? p.label : 'My Why') + ' \u00B7 The trail';
   el('ppPageT').textContent = e.t;
-  el('ppPageM').textContent = ppMonth_(e.m);
+  el('ppPageM').textContent = ppWhen_(e);
   el('ppPage').classList.add('on');
   el('ppPageBody').innerHTML = '<div class="pg-p" style="color:#8B97AC">\u2026</div>';
   let body = '';
@@ -2438,14 +2450,14 @@ function ppStoryMeta_() {
 }
 async function ppCopyStory_() {
   const meta = ppStoryMeta_(); if (!meta) return;
-  const txt = meta.e.t + '\n' + ppMonth_(meta.e.m) + ' \u00B7 ' + meta.label + '\n\n'
+  const txt = meta.e.t + '\n' + ppWhen_(meta.e) + ' \u00B7 ' + meta.label + '\n\n'
     + NoteEditor.toPlain(ppPageBody_ || '');
   try { await navigator.clipboard.writeText(txt.trim() + '\n'); toast('Copied'); }
   catch (e) { console.error(e); toast('Could not copy'); }
 }
 function ppDownloadStory_() {
   const meta = ppStoryMeta_(); if (!meta) return;
-  const md = '# ' + meta.e.t + '\n\n' + ppMonth_(meta.e.m) + ' \u00B7 ' + meta.label + '\n\n'
+  const md = '# ' + meta.e.t + '\n\n' + ppWhen_(meta.e) + ' \u00B7 ' + meta.label + '\n\n'
     + NoteEditor.toMarkdown(ppPageBody_ || '') + '\n';
   const blob = new Blob([md], { type: 'text/markdown' });
   const a = document.createElement('a');
@@ -2463,7 +2475,7 @@ function ppPrintStory_() {
     + '.m{font-family:monospace;font-size:0.7rem;color:#777;margin-bottom:22px}'
     + NoteEditor.contentCSS('body') + '</style></head><body>'
     + '<h1>' + escHtml(meta.e.t) + '</h1>'
-    + '<div class="m">' + escHtml(ppMonth_(meta.e.m)) + ' \u00B7 ' + escHtml(meta.label) + '</div>'
+    + '<div class="m">' + escHtml(ppWhen_(meta.e)) + ' \u00B7 ' + escHtml(meta.label) + '</div>'
     + NoteEditor.toHtml(ppPageBody_ || '')
     + '</body></html>');
 }
@@ -2472,9 +2484,14 @@ el('ppPageDl').addEventListener('click', ppDownloadStory_);
 el('ppPagePrint').addEventListener('click', ppPrintStory_);
 el('ppDoneCancel').addEventListener('click', () => { el('ppDoneModal').classList.add('hidden'); ppDone_ = null; });
 el('ppDoneSave').addEventListener('click', () => {
+  const m = el('fPdMonth').value || ppMonthNow_();
+  const m2 = el('ppDoneUntilWrap').classList.contains('hidden') ? '' : el('fPdMonth2').value;
+  if (m2 && m2 <= m) { toast('Until should be after the start month'); return; }
   el('ppDoneModal').classList.add('hidden');
-  ppCompleteDo_(el('fPdMonth').value);
+  ppCompleteDo_(m, m2);
 });
+el('ppDoneUntilBtn').addEventListener('click', () => el('ppDoneUntilWrap').classList.toggle('hidden'));
+el('ppLogUntilBtn').addEventListener('click', () => el('ppLogUntilWrap').classList.toggle('hidden'));
 function ppList_(sec) { return sec === 'now' ? rmData.pp.now : rmData.pp.toward; }
 function ppTouchSince_(sec) { if (sec === 'now') rmData.pp.since = ppMonthNow_(); }
 // Completing an item is the only bridge from the standing lists to the trail.
@@ -2484,18 +2501,22 @@ function ppComplete_(sec, idx) {
   const t = ppList_(sec)[idx]; if (t == null) return;
   ppDone_ = { sec: sec, idx: idx };
   el('fPdMonth').value = ppMonthNow_();
+  el('fPdMonth2').value = '';
+  el('ppDoneUntilWrap').classList.add('hidden');
   el('ppDoneModal').classList.remove('hidden');
 }
-function ppCompleteDo_(m) {
+function ppCompleteDo_(m, m2) {
   if (!ppDone_) return;
   const list = ppList_(ppDone_.sec);
   const t = list[ppDone_.idx]; if (t == null) { ppDone_ = null; return; }
   list.splice(ppDone_.idx, 1);
-  rmData.pp.log.push({ id: ppId_(), m: m || ppMonthNow_(), t: t, k: 'done' });
+  const e2 = { id: ppId_(), m: m || ppMonthNow_(), t: t, k: 'done' };
+  if (m2) e2.m2 = m2;
+  rmData.pp.log.push(e2);
   ppTouchSince_(ppDone_.sec);
   ppDone_ = null;
   renderPp(); scheduleRoadmapSave();
-  toast('Into the trail \u2713 ' + ppMonth_(m));
+  toast('Into the trail \u2713 ' + ppWhen_(e2));
 }
 function ppOpenSec(which) {
   ppSecEditing_ = which;
@@ -2555,6 +2576,8 @@ function ppOpenLog(id) {
   el('ppLogTitle').textContent = e ? 'Edit entry' : 'Add Journey';
   el('fPpText').value = e ? e.t : '';
   el('fPpMonth').value = e ? e.m : ppMonthNow_();
+  el('fPpMonth2').value = (e && e.m2) || '';
+  el('ppLogUntilWrap').classList.toggle('hidden', !(e && e.m2));
   // The one door: adding asks where; editing a trail entry never moves it.
   const ws = el('fPpWhere');
   ws.options[0].textContent = pp.nowLbl;
@@ -2570,18 +2593,23 @@ el('ppLogSave').addEventListener('click', () => {
   const t = el('fPpText').value.trim();
   if (!t) { toast('Write it first'); return; }
   const pp = rmData.pp;
+  const mv = el('fPpMonth').value || ppMonthNow_();
+  const m2v = el('ppLogUntilWrap').classList.contains('hidden') ? '' : el('fPpMonth2').value;
+  if (m2v && m2v <= mv) { toast('Until should be after the start month'); return; }
   if (ppLogEditing_) {
     // Legacy migrated notes keep their quiet dot; the kind is never edited.
     const e = pp.log.find(x => x.id === ppLogEditing_);
-    if (e) { e.t = t; e.m = el('fPpMonth').value || ppMonthNow_(); }
-    if (e && ppPageEntry_ === e.id) { el('ppPageT').textContent = e.t; el('ppPageM').textContent = ppMonth_(e.m); }
+    if (e) { e.t = t; e.m = mv; if (m2v) e.m2 = m2v; else delete e.m2; }
+    if (e && ppPageEntry_ === e.id) { el('ppPageT').textContent = e.t; el('ppPageM').textContent = ppWhen_(e); }
     el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
     renderPpLedger(); scheduleRoadmapSave();
     return;
   }
   const where = el('fPpWhere').value;
   if (where === 'trail') {
-    pp.log.push({ id: ppId_(), m: el('fPpMonth').value || ppMonthNow_(), t: t, k: 'done' });
+    const e2 = { id: ppId_(), m: mv, t: t, k: 'done' };
+    if (m2v) e2.m2 = m2v;
+    pp.log.push(e2);
     el('ppLogModal').classList.add('hidden');
     renderPpLedger(); scheduleRoadmapSave();
   } else {
@@ -2619,36 +2647,38 @@ el('ppStanding').addEventListener('click', e => {
   if (rn) ppOpenSec(rn.dataset.pprename);
 });
 el('ppLedger').addEventListener('click', e => {
-  const y = e.target.closest('[data-ppyr]');
-  if (y) { const k = y.dataset.ppyr, box = y.closest('.pr-yr');
-    const now = !box.classList.contains('open');
-    ppOpenYears_[k] = now; box.classList.toggle('open', now); return; }
   const ed = e.target.closest('[data-pplog]');
   if (ed) ppOpenPage(ed.dataset.pplog);
 });
 function ppMd_() {
   const pp = rmData.pp; if (!pp) return '';
   let s = '';
-  s += '\n## ' + pp.nowLbl + ' (since ' + ppMonth_(pp.since) + ')\n\n';
-  s += pp.now.length ? pp.now.map(t => '- ' + t).join('\n') + '\n' : '_\u2014_\n';
-  s += '\n## ' + pp.toLbl + '\n\n';
-  s += pp.toward.length ? pp.toward.map(t => '- ' + t).join('\n') + '\n' : '_\u2014_\n';
-  const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+  // Paper never claims a heading the screen doesn't show: empties are omitted.
+  if (pp.now.length) {
+    s += '\n## ' + pp.nowLbl + ' (since ' + ppMonth_(pp.since) + ')\n\n';
+    s += pp.now.map(t => '- ' + t).join('\n') + '\n';
+  }
+  if (pp.toward.length) {
+    s += '\n## ' + pp.toLbl + '\n\n';
+    s += pp.toward.map(t => '- ' + t).join('\n') + '\n';
+  }
+  const log = (pp.log || []).slice().sort((a, b) => ppKey_(b).localeCompare(ppKey_(a)));
   if (log.length) {
     s += '\n## The trail\n\n';
-    s += log.map(e => '- ' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + e.t + (ppPages_.has(String(e.id)) ? ' \u00B6' : '') + ' \u2014 ' + ppMonth_(e.m)).join('\n') + '\n';
+    s += log.map(e => '- ' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + e.t + (ppPages_.has(String(e.id)) ? ' \u00B6' : '') + ' \u2014 ' + ppWhen_(e)).join('\n') + '\n';
   }
   return s;
 }
 function ppPrintHtml_(esc) {
   const pp = rmData.pp; if (!pp) return '';
-  const list = a => '<ul>' + (a.length ? a.map(t => '<li>' + esc(t) + '</li>').join('') : '<li>\u2014</li>') + '</ul>';
-  let s = '<h2>' + esc(pp.nowLbl) + ' \u00B7 since ' + esc(ppMonth_(pp.since)) + '</h2>' + list(pp.now)
-        + '<h2>' + esc(pp.toLbl) + '</h2>' + list(pp.toward);
-  const log = (pp.log || []).slice().sort((a, b) => String(b.m).localeCompare(String(a.m)));
+  const list = a => '<ul>' + a.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+  let s = '';
+  if (pp.now.length) s += '<h2>' + esc(pp.nowLbl) + ' \u00B7 since ' + esc(ppMonth_(pp.since)) + '</h2>' + list(pp.now);
+  if (pp.toward.length) s += '<h2>' + esc(pp.toLbl) + '</h2>' + list(pp.toward);
+  const log = (pp.log || []).slice().sort((a, b) => ppKey_(b).localeCompare(ppKey_(a)));
   if (log.length) s += '<h2>The trail</h2><ul>' + log.map(e =>
     '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + esc(e.t) + (ppPages_.has(String(e.id)) ? ' \u00B6' : '')
-    + '<span class="y">' + esc(ppMonth_(e.m)) + '</span></li>').join('') + '</ul>';
+    + '<span class="y">' + esc(ppWhen_(e)) + '</span></li>').join('') + '</ul>';
   return s;
 }
 function renderRoadmapRead() {
