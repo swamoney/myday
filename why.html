@@ -682,8 +682,9 @@
                  border-radius:0 10px 10px 0; padding:12px 14px 13px; margin-bottom:16px; }
   .pp-sec.pp-to { margin-top:11px; padding-top:10px; border-top:1px dashed var(--pp-sol,#8189a0); }
   .pp-hd { display:flex; align-items:baseline; gap:6px; }
-  .pp-lbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
-            text-transform:uppercase; color:var(--pp-ink,#28324B); }
+  .pp-lbl { display:inline-block; font-family:var(--mono); font-size:0.5625rem; font-weight:600;
+            letter-spacing:0.14em; text-transform:uppercase; color:#4a3410; background:#f4c430;
+            border-radius:6px; padding:3px 9px 4px; }
   .pp-pen { display:none; font-size:0.6563rem; color:#8B97AC; margin-left:2px; background:none;
             border:none; cursor:pointer; padding:0 2px; }
   body.rm-editing .pp-pen { display:inline-block; }
@@ -743,7 +744,11 @@
              justify-content:center; color:transparent; font-size:0.6875rem; font-weight:700; padding:0; }
   .pp-circ:hover { color:var(--pp-sol,#8189a0); }
   .pp-ittxt { flex:1; text-align:left; background:none; border:none; font-family:inherit;
-              font-size:0.875rem; line-height:1.5; color:#28324B; cursor:pointer; padding:0; }
+              font-size:0.875rem; cursor:pointer; padding:0; }
+  .pp-itxt { font-size:0.8438rem; line-height:1.7; color:#28324B; display:inline; padding:0 6px 1px;
+             margin-left:-6px; background:linear-gradient(transparent 56%, var(--pp-sw,transparent) 56%,
+               var(--pp-sw,transparent) 96%, transparent 96%);
+             box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   .pp-complete { background:#0F6E56; color:#fff; border:none; border-radius:9px; padding:10px 14px;
                  font-family:inherit; font-size:0.8125rem; font-weight:600; cursor:pointer; }
   .pp-since { margin-left:auto; font-family:var(--mono); font-size:0.59375rem; color:#8B97AC; }
@@ -753,7 +758,11 @@
   .pp-row:hover { background:#f8fafd; }
   .pp-tick { color:#0F6E56; font-weight:600; font-size:0.875rem; min-width:16px; }
   .pp-dotk { color:#8B97AC; min-width:16px; text-align:center; }
-  .pp-w { font-size:0.875rem; line-height:1.45; flex:1; color:#28324B; }
+  .pp-w { flex:1; }
+  .pp-wt { font-size:0.875rem; line-height:1.6; color:#28324B; display:inline; padding:0 6px 1px;
+           margin-left:-6px; background:linear-gradient(transparent 56%, var(--pp-sw,transparent) 56%,
+             var(--pp-sw,transparent) 96%, transparent 96%);
+           box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   .pp-d { font-family:var(--mono); font-size:0.625rem; font-weight:600; color:#5A6478; white-space:nowrap; }
   .pp-until { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.08em; color:#5A6478;
               background:none; border:none; cursor:pointer; padding:0; margin-top:8px; display:inline-block; }
@@ -1730,7 +1739,12 @@ async function exportWhy() {
       try { rm = p.roadmap ? (typeof p.roadmap === 'string' ? JSON.parse(p.roadmap) : p.roadmap) : null; } catch (e) {}
       if (rm) {
         const pp = ppFrom_(rm.pp, rm.targets || []);
-        const li = a => '<ul>' + a.map(t => '<li>' + xEsc_(t) + '</li>').join('') + '</ul>';
+        const li = a => '<ul>' + a.map(o => {
+          let s3 = '<li>' + xEsc_(o.t);
+          const jb2 = xJourneys[String(o.id)];
+          if (jb2) s3 += '<div>' + xRich_(jb2) + '</div>';
+          return s3 + '</li>';
+        }).join('') + '</ul>';
         if (pp.now.length) body += '<h4>' + xEsc_(pp.nowLbl) + '</h4>' + li(pp.now);
         if (pp.toward.length) body += '<h4>' + xEsc_(pp.toLbl) + '</h4>' + li(pp.toward);
         const lg = (pp.log || []).slice().sort((a, b) => ppKey_(b).localeCompare(ppKey_(a)));
@@ -1740,6 +1754,12 @@ async function exportWhy() {
           if (jb) s2 += '<div>' + xRich_(jb) + '</div>';
           return s2 + '</li>';
         }).join('') + '</ul>';
+        [].concat(pp.now, pp.toward).forEach(o => {
+          const jb2 = xJourneys[String(o.id)];
+          if (!jb2) return;
+          zip.file('why-journeys/' + xSafe_(p.label || p.code) + ' - ' + xSafe_(o.t) + '.md',
+            '# ' + o.t + '\n\n' + (p.label || '') + '\n\n' + NoteEditor.toMarkdown(jb2) + '\n');
+        });
         lg.forEach(e => {
           const jb = xJourneys[String(e.id)];
           if (!jb) return;
@@ -2198,6 +2218,7 @@ function openRoadmap(id) {
   const p = pillars.find(x => String(x.id) === String(id)); if (!p) return;
   rmId = id;
   rmData = rmParse(p.roadmap);
+  if (rmData.pp && rmData.pp._migrated) { delete rmData.pp._migrated; scheduleRoadmapSave(); }
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   el('rmTitle').innerHTML = 'My Why' + (p.label ? ' &middot; ' + escHtml(p.label) : '');
   el('rmSeal').textContent = p.code || '';
@@ -2262,15 +2283,24 @@ function ppBlend_(hex, a) {
 }
 function ppFrom_(pp, targets) {
   if (pp && typeof pp === 'object') {
-    return { nowLbl: pp.nowLbl || 'Now', toLbl: pp.toLbl || 'Lineups',
-             now: Array.isArray(pp.now) ? pp.now : [],
-             toward: Array.isArray(pp.toward) ? pp.toward : [],
+    // Items carry identities from birth so their pages can follow them through life.
+    let migrated = false;
+    const itemize = a => (Array.isArray(a) ? a : []).map(x => {
+      if (x && typeof x === 'object') return { id: x.id || ppId_(), t: x.t || '' };
+      migrated = true;
+      return { id: ppId_(), t: String(x == null ? '' : x) };
+    });
+    const out2 = { nowLbl: pp.nowLbl || 'Now', toLbl: pp.toLbl || 'Lineups',
+             now: itemize(pp.now),
+             toward: itemize(pp.toward),
              since: pp.since || ppMonthNow_(),
              log: (Array.isArray(pp.log) ? pp.log : []).map(e => {
                const o2 = { id: e.id || ppId_(), m: e.m || ppMonthNow_(),
                  t: e.t || '', k: e.k === 'done' ? 'done' : 'note' };
                if (e.m2) o2.m2 = e.m2;   // optional end month rides along
                return o2; }) };
+    if (migrated) out2._migrated = true;   // legacy strings: save once so ids persist
+    return out2;
   }
   // One-time read of the old quadrants into the passbook.
   const out = { nowLbl: 'Now', toLbl: 'Lineups', now: [], toward: [], since: ppMonthNow_(), log: [] };
@@ -2280,9 +2310,9 @@ function ppFrom_(pp, targets) {
     const m = (t.on || '').slice(0, 7) || ppMonthNow_();
     const tail = t.outcome ? ' \u2014 ' + t.outcome : '';
     if (st === 'open') {
-      if (t.q === 'q1') out.now.push(title);
+      if (t.q === 'q1') out.now.push({ id: ppId_(), t: title });
       else if (t.q === 'q4') out.log.push({ id: ppId_(), m: ppMonthNow_(), t: 'Parked: ' + title, k: 'note' });
-      else out.toward.push(title);
+      else out.toward.push({ id: ppId_(), t: title });
     } else if (st === 'done') {
       out.log.push({ id: ppId_(), m: m, t: title + tail, k: 'done' });
     } else if (st === 'delegated') {
@@ -2301,9 +2331,13 @@ function renderPp() {
   box.style.setProperty('--pp-tint', ppBlend_(hue.lt, 0.26));
   box.style.setProperty('--pp-sol', hue.solid);
   box.style.setProperty('--pp-ink', hue.ink);
-  const items = (a, sec) => a.map((t, i2) => '<div class="pp-itrow">'
+  box.style.setProperty('--pp-sw', hueA_(hue.solid, 0.30));
+  const lg2 = el('ppLedger');
+  if (lg2) lg2.style.setProperty('--pp-sw', hueA_(hue.solid, 0.30));
+  const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow">'
     + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button>'
-    + '<button class="pp-ittxt" type="button" data-ppedit="' + sec + ':' + i2 + '">' + escHtml(t) + '</button>'
+    + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + escHtml(o.t)
+    + (ppPages_.has(String(o.id)) ? '<span class="pp-mark">\u00B6</span>' : '') + '</span></button>'
     + '</div>').join('');
   const hd = (sec, lbl, since) => '<span class="pp-hd">'
     + '<span class="pp-lbl">' + escHtml(lbl) + '</span>'
@@ -2343,8 +2377,8 @@ function renderPpLedger() {
   if (!log.length) { wrap.innerHTML = '<div class="pr-empty">Nothing yet \u2014 the first entry starts the trail.</div>'; return; }
   const row = e => '<button class="pp-row" type="button" data-pplog="' + e.id + '">'
     + (e.k === 'done' ? '<span class="pp-tick">\u2713</span>' : '<span class="pp-dotk">\u00B7</span>')
-    + '<span class="pp-w">' + escHtml(e.t)
-    + (ppPages_.has(String(e.id)) ? '<span class="pp-mark">\u00B6</span>' : '') + '</span>'
+    + '<span class="pp-w"><span class="pp-wt">' + escHtml(e.t)
+    + (ppPages_.has(String(e.id)) ? '<span class="pp-mark">\u00B6</span>' : '') + '</span></span>'
     + '<span class="pp-d">' + ppWhen_(e) + '</span></button>';
   // Flat, newest first: 4-5 entries a year need no furniture. If a year ever
   // grows heavy, the folding can return - the data carries full dates either way.
@@ -2368,9 +2402,20 @@ function ppPageHue_() {
   const i = pillars.findIndex(x => String(x.id) === String(rmId));
   return hueFor(i < 0 ? 0 : i, pillars.length);
 }
+function ppFindEntry_(id) {
+  const pp = rmData.pp || {};
+  const e = (pp.log || []).find(x => x.id === id);
+  if (e) return { kind: 'log', e: e };
+  let i = (pp.now || []).findIndex(x => x.id === id);
+  if (i >= 0) return { kind: 'now', e: pp.now[i], sec: 'now', idx: i };
+  i = (pp.toward || []).findIndex(x => x.id === id);
+  if (i >= 0) return { kind: 'toward', e: pp.toward[i], sec: 'toward', idx: i };
+  return null;
+}
 async function ppOpenPage(id) {
-  const e = (rmData.pp.log || []).find(x => x.id === id);
-  if (!e) return;
+  const f = ppFindEntry_(id);
+  if (!f) return;
+  const e = f.e;
   ppPageEntry_ = id;
   const hue = ppPageHue_();
   const phd = el('ppPage');   // vars on the root: header and caret both inherit
@@ -2379,9 +2424,12 @@ async function ppOpenPage(id) {
   phd.style.setProperty('--pgi', hue.ink);
   phd.style.setProperty('--pgsw', hueA_(hue.solid, 0.30));
   const p = pillars.find(x => String(x.id) === String(rmId));
-  el('ppPageWhy').textContent = ((p && p.label) ? p.label : 'My Why') + ' \u00B7 The trail';
+  const pp2 = rmData.pp;
+  const place = f.kind === 'log' ? 'The trail' : (f.kind === 'now' ? pp2.nowLbl : pp2.toLbl);
+  el('ppPageWhy').textContent = ((p && p.num) ? p.num : 'My Why') + ' \u00B7 ' + place;
   el('ppPageT').textContent = e.t;
-  el('ppPageM').textContent = ppWhen_(e);
+  el('ppPageM').textContent = f.kind === 'log' ? ppWhen_(e)
+    : (f.kind === 'now' ? 'standing since ' + ppMonth_(pp2.since) : 'lined up');
   el('ppPage').classList.add('on');
   el('ppPageBody').innerHTML = '<div class="pg-p" style="color:#8B97AC">\u2026</div>';
   let body = '';
@@ -2447,7 +2495,11 @@ el('ppPageBack').addEventListener('click', () => {
   el('ppPage').classList.remove('on'); ppPageEntry_ = null;
 });
 el('ppPagePen').addEventListener('click', () => {
-  if (ppPageEntry_) ppOpenLog(ppPageEntry_);
+  if (!ppPageEntry_) return;
+  const f = ppFindEntry_(ppPageEntry_);
+  if (!f) return;
+  if (f.kind === 'log') ppOpenLog(ppPageEntry_);
+  else ppOpenItem(f.sec, f.idx);
 });
 // The page's own output paths: a story you can hand over without the app.
 function ppSafe_(s) {
@@ -2455,21 +2507,24 @@ function ppSafe_(s) {
 }
 function ppStoryMeta_() {
   if (!ppPageEntry_) return null;
-  const e = (rmData.pp.log || []).find(x => x.id === ppPageEntry_);
-  if (!e) return null;
+  const f = ppFindEntry_(ppPageEntry_);
+  if (!f) return null;
   const p = pillars.find(x => String(x.id) === String(rmId));
-  return { e: e, label: (p && p.label) || 'My Why' };
+  const pp2 = rmData.pp;
+  const when = f.kind === 'log' ? ppWhen_(f.e)
+    : (f.kind === 'now' ? 'standing since ' + ppMonth_(pp2.since) : 'lined up');
+  return { e: f.e, when: when, label: (p && p.num) || 'My Why' };
 }
 async function ppCopyStory_() {
   const meta = ppStoryMeta_(); if (!meta) return;
-  const txt = meta.e.t + '\n' + ppWhen_(meta.e) + ' \u00B7 ' + meta.label + '\n\n'
+  const txt = meta.e.t + '\n' + meta.when + ' \u00B7 ' + meta.label + '\n\n'
     + NoteEditor.toPlain(ppPageBody_ || '');
   try { await navigator.clipboard.writeText(txt.trim() + '\n'); toast('Copied'); }
   catch (e) { console.error(e); toast('Could not copy'); }
 }
 function ppDownloadStory_() {
   const meta = ppStoryMeta_(); if (!meta) return;
-  const md = '# ' + meta.e.t + '\n\n' + ppWhen_(meta.e) + ' \u00B7 ' + meta.label + '\n\n'
+  const md = '# ' + meta.e.t + '\n\n' + meta.when + ' \u00B7 ' + meta.label + '\n\n'
     + NoteEditor.toMarkdown(ppPageBody_ || '') + '\n';
   const blob = new Blob([md], { type: 'text/markdown' });
   const a = document.createElement('a');
@@ -2487,7 +2542,7 @@ function ppPrintStory_() {
     + '.m{font-family:monospace;font-size:0.7rem;color:#777;margin-bottom:22px}'
     + NoteEditor.contentCSS('body') + '</style></head><body>'
     + '<h1>' + escHtml(meta.e.t) + '</h1>'
-    + '<div class="m">' + escHtml(ppWhen_(meta.e)) + ' \u00B7 ' + escHtml(meta.label) + '</div>'
+    + '<div class="m">' + escHtml(meta.when) + ' \u00B7 ' + escHtml(meta.label) + '</div>'
     + NoteEditor.toHtml(ppPageBody_ || '')
     + '</body></html>');
 }
@@ -2520,14 +2575,16 @@ function ppComplete_(sec, idx) {
 function ppCompleteDo_(m, m2) {
   if (!ppDone_) return;
   const list = ppList_(ppDone_.sec);
-  const t = list[ppDone_.idx]; if (t == null) { ppDone_ = null; return; }
+  const o = list[ppDone_.idx]; if (o == null) { ppDone_ = null; return; }
   list.splice(ppDone_.idx, 1);
-  const e2 = { id: ppId_(), m: m || ppMonthNow_(), t: t, k: 'done' };
+  // The item keeps its id across the crossing - its story page follows it.
+  const e2 = { id: o.id || ppId_(), m: m || ppMonthNow_(), t: o.t, k: 'done' };
   if (m2) e2.m2 = m2;
   rmData.pp.log.push(e2);
   ppTouchSince_(ppDone_.sec);
   ppDone_ = null;
   renderPp(); scheduleRoadmapSave();
+  if (ppPageEntry_ === e2.id) ppOpenPage(e2.id);   // an open page crosses with it
   toast('Into the trail \u2713 ' + ppWhen_(e2));
 }
 function ppOpenSec(which) {
@@ -2551,7 +2608,7 @@ function ppOpenItem(sec, idx) {
   ppItemEditing_ = { sec: sec, idx: idx };
   const pp = rmData.pp;
   el('ppItemTitle').textContent = 'Edit \u201C' + (sec === 'now' ? pp.nowLbl : pp.toLbl) + '\u201D';
-  el('fPpItem').value = ppList_(sec)[idx] || '';
+  el('fPpItem').value = (ppList_(sec)[idx] && ppList_(sec)[idx].t) || '';
   el('ppItemDel').classList.remove('hidden');
   el('ppItemDone').classList.remove('hidden');
   el('ppItemModal').classList.remove('hidden');
@@ -2561,7 +2618,8 @@ el('ppItemSave').addEventListener('click', () => {
   if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
   const t = el('fPpItem').value.trim();
   if (!t) { toast('Write the item first'); return; }
-  ppList_(ppItemEditing_.sec)[ppItemEditing_.idx] = t;
+  const o = ppList_(ppItemEditing_.sec)[ppItemEditing_.idx];
+  if (o) { o.t = t; if (ppPageEntry_ === o.id) el('ppPageT').textContent = t; }
   ppTouchSince_(ppItemEditing_.sec);
   el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
   renderPp(); scheduleRoadmapSave();
@@ -2572,10 +2630,18 @@ el('ppItemDone').addEventListener('click', () => {
   el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
   ppComplete_(at.sec, at.idx);
 });
-el('ppItemDel').addEventListener('click', () => {
+el('ppItemDel').addEventListener('click', async () => {
   if (!ppItemEditing_ || ppItemEditing_.idx < 0) return;
-  if (!confirm('Delete this item?\u000A\u000ANo record will be kept.')) return;
+  if (!confirm('Delete this item?\u000A\u000ANothing will be kept \u2014 its story page goes with it.')) return;
+  const o = ppList_(ppItemEditing_.sec)[ppItemEditing_.idx];
   ppList_(ppItemEditing_.sec).splice(ppItemEditing_.idx, 1);
+  if (o) {
+    try { await supa.from('why_journeys').delete().eq('user_id', userId).eq('entry_id', String(o.id)); }
+    catch (e) { console.error(e); }
+    ppPages_.delete(String(o.id));
+    if (ppPageEntry_ === o.id) { el('ppPage').classList.remove('on'); ppPageEntry_ = null; }
+    renderPpLedger();
+  }
   ppTouchSince_(ppItemEditing_.sec);
   el('ppItemModal').classList.add('hidden'); ppItemEditing_ = null;
   renderPp(); scheduleRoadmapSave();
@@ -2625,7 +2691,7 @@ el('ppLogSave').addEventListener('click', () => {
     el('ppLogModal').classList.add('hidden');
     renderPpLedger(); scheduleRoadmapSave();
   } else {
-    ppList_(where).push(t);
+    ppList_(where).push({ id: ppId_(), t: t });
     ppTouchSince_(where);
     el('ppLogModal').classList.add('hidden');
     renderPp(); scheduleRoadmapSave();
@@ -2653,8 +2719,8 @@ el('ppJourney').addEventListener('click', () => ppOpenLog(null));
 el('ppStanding').addEventListener('click', e => {
   const dn = e.target.closest('[data-ppdone]');
   if (dn) { const p = dn.dataset.ppdone.split(':'); ppComplete_(p[0], Number(p[1])); return; }
-  const ed = e.target.closest('[data-ppedit]');
-  if (ed) { const p = ed.dataset.ppedit.split(':'); ppOpenItem(p[0], Number(p[1])); return; }
+  const it = e.target.closest('[data-ppitem]');
+  if (it) { ppOpenPage(it.dataset.ppitem); return; }
   const rn = e.target.closest('[data-pprename]');
   if (rn) ppOpenSec(rn.dataset.pprename);
 });
@@ -2668,11 +2734,11 @@ function ppMd_() {
   // Paper never claims a heading the screen doesn't show: empties are omitted.
   if (pp.now.length) {
     s += '\n## ' + pp.nowLbl + ' (since ' + ppMonth_(pp.since) + ')\n\n';
-    s += pp.now.map(t => '- ' + t).join('\n') + '\n';
+    s += pp.now.map(o => '- ' + o.t + (ppPages_.has(String(o.id)) ? ' \u00B6' : '')).join('\n') + '\n';
   }
   if (pp.toward.length) {
     s += '\n## ' + pp.toLbl + '\n\n';
-    s += pp.toward.map(t => '- ' + t).join('\n') + '\n';
+    s += pp.toward.map(o => '- ' + o.t + (ppPages_.has(String(o.id)) ? ' \u00B6' : '')).join('\n') + '\n';
   }
   const log = (pp.log || []).slice().sort((a, b) => ppKey_(b).localeCompare(ppKey_(a)));
   if (log.length) {
@@ -2683,7 +2749,7 @@ function ppMd_() {
 }
 function ppPrintHtml_(esc) {
   const pp = rmData.pp; if (!pp) return '';
-  const list = a => '<ul>' + a.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+  const list = a => '<ul>' + a.map(o => '<li>' + esc(o.t) + (ppPages_.has(String(o.id)) ? ' \u00B6' : '') + '</li>').join('') + '</ul>';
   let s = '';
   if (pp.now.length) s += '<h2>' + esc(pp.nowLbl) + ' \u00B7 since ' + esc(ppMonth_(pp.since)) + '</h2>' + list(pp.now);
   if (pp.toward.length) s += '<h2>' + esc(pp.toLbl) + '</h2>' + list(pp.toward);

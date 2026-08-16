@@ -417,6 +417,23 @@ gated in the build before writing. Sweeps use box-decoration-break:clone so
 wrapped lines each carry their mark; hues wire per pillar via --rm-sw /
 --rm-sol / --pgsw from hueA_(solid, 0.30).
 
+**Items have identities from birth** (Aug 2026): pp.now / pp.toward hold
+{id, t} objects, never bare strings — the normaliser converts legacy strings
+on load and flags one save so ids persist (_migrated, deleted before save).
+Completion carries the id across into the trail, so **a story page follows
+its item through life**: written as a Now, still attached as a ✓. Tapping
+any row — Now, Lineups, or trail — opens its page; the chip wears the
+pillar's NAME (p.num) and the item's status; the ✎ routes to the item or
+entry popup by kind; deleting an item deletes its page and says so.
+
+**The passbook's colour grammar**: Now/Lineups headings are full-fill
+seal-gold pills (#f4c430 / #4a3410, 7.14) — gold marks the living lists;
+every row's text wears the pillar's sweep at 30% (worst 7.47 across all
+hues and grounds) — the pillar's hue marks every line of this Why; and the
+heavyweight swept names (pillar + story titles) rank above both. Row sweeps
+live on inner spans (.pp-itxt / .pp-wt) inside the flex shells so the mark
+hugs the words, not the row.
+
 **Each page carries its own three output paths** (copy / download .md /
 print, as header icons beside the ✎) so a story can be handed over
 without handing over the app. **Writing happens on the page itself, never
