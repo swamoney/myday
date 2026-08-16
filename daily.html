@@ -427,7 +427,6 @@
   .future-locked .datenav {
     opacity: 0.45; pointer-events: none; user-select: none;
   }
-  .future-locked .datenav { pointer-events: auto; opacity: 0.85; }
   .future-locked .future-banner { opacity: 1 !important; pointer-events: auto !important; }
 
   /* Soft-delete restore badge — small "↺ restore" button next to fields where a
@@ -526,31 +525,6 @@
   .tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--paper); border: 1px solid var(--rule); border-radius: 999px; padding: 4px; margin-bottom: 16px; }
   .tab { background: transparent; border: 0; padding: 10px 8px; font-size:0.8125rem; font-weight: 500; color: var(--ink-soft); border-radius: 999px; cursor: pointer; transition: all 0.18s; letter-spacing: 0.02em; }
   .tab.active { background: var(--ink); color: var(--paper); }
-
-  /* Phase 11: Compact single-row date nav.
-     ‹ [ Sat, 3 May 2026 📅 • ] [Today?] ›
-     The date itself is the picker trigger. Save state is a 7px colored dot
-     inside the trigger (saving = pulsing amber, saved = solid moss, error =
-     red). The "Today" chip only renders when the user has navigated away
-     from today; on today it's hidden. Saves ~70px of vertical chrome. */
-  .datenav.datenav-compact {
-    background: var(--paper); border: 1px solid var(--rule);
-    border-radius: 14px;
-    padding: 6px 6px;
-    margin-bottom: 14px;
-    box-shadow: var(--shadow);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .datenav.datenav-compact .arrow {
-    background: transparent; border: 1px solid var(--rule); border-radius: 10px;
-    width: 36px; height: 36px; min-width: 36px;
-    display: grid; place-items: center;
-    cursor: pointer; color: var(--ink-soft); font-size:1.125rem;
-    transition: all 0.15s;
-  }
-  .datenav.datenav-compact .arrow:active {
-    background: var(--paper-soft); transform: scale(0.96);
-  }
   .date-trigger {
     flex: 1; min-width: 0;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -562,15 +536,6 @@
   }
   .date-trigger:hover { border-color: var(--rule); }
   .date-trigger:active { background: var(--paper); }
-  .date-text {
-    font-family: var(--sans); font-size:0.8125rem; font-weight: 600;
-    color: var(--ink);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .date-icon {
-    width: 14px; height: 14px;
-    color: var(--muted); flex-shrink: 0;
-  }
   .save-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: transparent; flex-shrink: 0;
@@ -1274,8 +1239,6 @@
   /* Top-of-page today-progress ring is also hidden in focus mode (context
      shifted to the specific section). */
   body.hub-view.hub-focused #todayProgress { display: none; }
-  /* The reflection card at bottom of Today is also hidden in focus mode. */
-  body.hub-view.hub-focused .reflection-card { display: none; }
   /* View mode toggle stays visible so user can escape to Classic */
 
   /* E3.3: Fade transition when swapping sections. Sections fade in when
@@ -1297,59 +1260,6 @@
   /* Hub buttons also fade in when we return from focus */
   body.hub-view:not(.hub-focused) .hub-grid {
     animation: hubFocusFadeIn 150ms ease-out;
-  }
-  /* [A] Today progress ring + collapsible sections */
-  .today-progress {
-    display: flex; align-items: center; gap: 12px;
-    background: var(--paper); border: 1px solid var(--rule);
-    border-radius: 14px; padding: 12px 14px;
-    margin-bottom: 14px; box-shadow: var(--shadow);
-  }
-  .today-progress-ring {
-    position: relative; width: 56px; height: 56px;
-    background: transparent; border: none; padding: 0;
-    flex-shrink: 0;
-  }
-  .today-progress-ring svg {
-    width: 100%; height: 100%; display: block;
-    transform: rotate(-90deg); /* start at 12 o'clock */
-  }
-  .today-progress-ring svg .track {
-    stroke: var(--rule); stroke-width: 5;
-  }
-  .today-progress-ring svg .seg {
-    fill: none; stroke: var(--rule); stroke-width: 5;
-    stroke-linecap: butt;
-    transition: stroke 0.25s ease;
-  }
-  .today-progress-ring svg .seg.filled {
-    stroke: var(--moss);
-  }
-  /* Clickable segments — give a subtle hover hint so users discover they can tap.
-     Slight stroke-width bump on hover, plus a pointer cursor (set inline in JS). */
-  .today-progress-ring svg .seg-clickable:hover {
-    stroke-width: 6;
-  }
-  .today-progress-label {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: var(--mono); font-size:0.8125rem; font-weight: 700;
-    color: var(--ink);
-    font-variant-numeric: tabular-nums;
-  }
-  .today-progress-meta {
-    flex: 1; min-width: 0;
-    display: flex; flex-direction: column; gap: 2px;
-  }
-  .today-progress-meta .line1 {
-    font-family: var(--serif); font-style: italic; font-weight: 500;
-    font-size:0.9375rem; color: var(--ink);
-    letter-spacing: -0.005em;
-  }
-  .today-progress-meta .line2 {
-    font-family: var(--mono); font-size:0.625rem;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    color: var(--muted);
   }
 
   /* Per-section colour identity (Variant B) — subtle tinted backgrounds + matching accent */
@@ -2161,14 +2071,6 @@
     font-family: var(--serif); font-style: italic;
     color: var(--ember); font-size:0.8125rem;
   }
-
-  /* Daily Reflection card at bottom of Today tab */
-  .reflection-card {
-    margin-top: 24px; padding: 0;
-    background: var(--paper); border: 1px solid var(--rule);
-    border-radius: 14px; overflow: hidden;
-    box-shadow: var(--shadow);
-  }
   .reflection-kicker {
     display: flex; align-items: center; justify-content: center; gap: 10px;
     padding: 18px 16px 4px;
@@ -2371,9 +2273,6 @@
     background: var(--accent-soft);
     border: none;
   }
-
-  /* TOGGLES */
-  .toggle-row { display: flex; gap: 8px; }
   .toggle-btn {
     flex: 1; background: var(--paper-soft); border: 1px solid var(--rule); border-radius: 10px;
     padding: 11px 10px; font-size:0.875rem; font-weight: 500; color: var(--ink-soft); cursor: pointer; transition: all 0.15s;
@@ -2642,8 +2541,6 @@
   .slider-readout[data-bucket="ok"]    { --sat-color: #BA7517; }
   .slider-readout[data-bucket="good"]  { --sat-color: #5C8B6A; }
   .slider-readout[data-bucket="great"] { --sat-color: #356B4E; }
-
-  .slider-track-row { position: relative; padding: 0 12px; }
   .slider-row { display: flex; align-items: center; gap: 12px; }
   /* Tick labels under the slider — 5 anchors mapping to 0/0.25/0.5/0.75/1 */
   .slider-ticks {
@@ -2804,47 +2701,10 @@
   .chip:active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-ink); transform: scale(0.96); }
   .chip.bulk { border-style: solid; border-color: var(--ink); color: var(--ink); }
 
-  /* Phase 11+: Preset chips for Other Expenses Note. Solid (not dashed)
-     border so they read as concrete shortcuts. The small "+" prefix
-     telegraphs append behavior — matches the calc-row "+" affordance used
-     on currency fields. Hovers to ember tint, consistent with the Other
-     Expenses field's ember accent. */
-  .other-note-chips {
-    align-items: center;  /* center divider with chips vertically */
-  }
-
   /* Ship 2 (Phase 12+): Itemized Other Expenses block.
      Mirrors the recurring-card pattern but lives inside the s-expenses section
      (no own section background). Uses ember accents matching the section. */
   .s-other-field > label { margin-bottom: 6px; }
-  .other-card {
-    background: rgba(138, 31, 26, 0.04);
-    border: 1px solid rgba(229, 207, 201, 0.7);
-    border-radius: 10px;
-    padding: 12px 12px 14px;
-    margin-top: 2px;
-  }
-  .other-subhead {
-    display: inline-block;
-    background: var(--ember);
-    color: #FFF;
-    font-family: var(--mono);
-    font-size:0.5625rem;
-    font-weight: 700;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    padding: 4px 9px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-  }
-  .other-fld { margin-bottom: 10px; }
-  .other-fld:last-of-type { margin-bottom: 8px; }
-  .other-label {
-    display: block;
-    font-family: var(--mono); font-size:0.5625rem; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: #A07A72; margin-bottom: 4px;
-  }
   .other-name-input {
     background: #FAEFEC;
     border: 1px solid #E5CFC9;
@@ -2862,10 +2722,6 @@
     border-color: #E0CFCC;
     border-left: 3px solid var(--ember);
     padding-left: 9px;
-  }
-  .other-chips {
-    display: flex; flex-wrap: wrap; gap: 5px;
-    margin-top: 0;
   }
   .chip.other-chip {
     border-style: solid;
@@ -2912,16 +2768,6 @@
     width: 100%;
   }
   .other-amt-input:focus { box-shadow: none; }
-  .other-add-btn {
-    width: 100%; margin-top: 4px;
-    background: var(--ember); color: #FFF; border: none;
-    border-radius: 10px; padding: 11px;
-    font-family: var(--sans); font-size:0.8125rem; font-weight: 600;
-    cursor: pointer; transition: all 0.15s;
-  }
-  .other-add-btn:hover { background: #731A15; }
-  .other-add-btn:active { transform: scale(0.985); }
-  .other-add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .other-error {
     margin-top: 8px; padding: 8px 10px;
     background: #FBEAE8; border: 1px solid #E5B0AA; border-radius: 8px;
@@ -2931,12 +2777,6 @@
   /* Running log */
   .other-log { margin-top: 14px; }
   .other-log:empty { display: none; }
-  .other-log-title {
-    font-family: var(--mono); font-size:0.5625rem; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    color: #A07A72; margin-bottom: 6px;
-  }
-  .other-log-rows { display: flex; flex-direction: column; }
   .other-log-row {
     display: grid; grid-template-columns: 1fr auto auto;
     gap: 8px; align-items: center;
@@ -2966,15 +2806,6 @@
     letter-spacing: 0.06em; text-transform: uppercase; color: #A07A72;
   }
   .other-log-totalrow .amt { font-size:0.875rem; color: var(--ember); }
-  .other-log-empty {
-    font-family: var(--serif); font-style: italic;
-    font-size:0.8125rem; color: var(--ink-soft);
-    padding: 8px 2px; text-align: left;
-  }
-  .other-log-empty .other-empty-glyph {
-    color: var(--ember); font-style: normal;
-    margin-left: 4px; opacity: 0.75;
-  }
 
   /* DIRECTION 3 — Other Expenses disclosure pattern.
      The visible top of the field is now a single summary row that mimics
@@ -3405,10 +3236,6 @@
   .other-chip-strip .other-log-del:hover {
     background: #FBEAE8; color: var(--ember);
   }
-  /* renderOtherLog also writes an .other-log-empty row when no items —
-     suppress it inside .other-chip-strip since the empty state is communicated
-     by the summary row. Avoids double messaging. */
-  .other-chip-strip .other-log-empty { display: none; }
   /* Hide the legacy #otherLog block (kept in DOM for stub IDs that may be
      referenced; the chip strip above is the new visible UI). */
   .other-log.hidden { display: none; }
@@ -3496,16 +3323,6 @@
     background: var(--paper-soft);
     color: var(--muted);
     font-style: italic;
-  }
-  /* Small vertical divider between preset chips and the NA chip. Signals
-     "these chips add data; the next one marks as not-applicable." */
-  .chip-divider {
-    display: inline-block;
-    width: 1px;
-    height: 14px;
-    background: var(--rule);
-    margin: 0 2px;
-    align-self: center;
   }
 
 
@@ -3646,12 +3463,6 @@
     display: inline-flex; align-items: center; gap: 8px;
     flex-shrink: 0;
   }
-  .intro-pill-dot {
-    display: none;
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--moss);
-  }
   .intro-collapse-pill svg {
     width: 14px; height: 14px;
     opacity: 0.7;
@@ -3669,9 +3480,6 @@
     border-left: 3px solid var(--moss);
     background: #FFFFFF;
     color: var(--ink-soft);
-  }
-  .intro-slot.is-filled .intro-pill-dot {
-    display: inline-block;
   }
   /* Collapsed state controls textarea visibility — always collapsed by
      default; .intro-collapsed removed while editing, re-added on blur. */
@@ -3733,9 +3541,6 @@
   }
   .intro-in-verdict.is-filled .intro-pill-text {
     font-style: normal; font-family: var(--serif); font-size:0.7812rem; color: #5A2A38;
-  }
-  .intro-in-verdict .intro-pill-dot {
-    background: #A04A60;
   }
   /* Expanded textarea — rose focus ring + filled stripe to match. */
   .intro-in-verdict .intro-textarea:focus {
@@ -4201,36 +4006,6 @@
     color: var(--muted); letter-spacing: 0;
   }
   .outflow-bd-meta strong { color: var(--ink); font-weight: 700; }
-  /* Mini-tape — compact 8px bar showing proportions across all categories.
-     Aligned baseline-right of the amount + meta block. flex: 0 ensures it
-     doesn't stretch beyond its intrinsic 200px width on wide screens. */
-  .outflow-bd-tape {
-    display: flex; height: 8px; border-radius: 999px; overflow: hidden;
-    flex: 0 0 200px; align-self: center;
-    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
-  }
-  .outflow-bd-tape > div { height: 100%; }
-
-  /* Phase 11: tape segments are tappable — fingers find them more easily on
-     touch with a slight scale-up on hover. Padded segments (those bumped
-     up to the 4% min width) carry a faint "+" mark to flag the artificial
-     widening. The "+" sits in the segment's vertical center; pointer-events
-     none so taps still hit the segment. */
-  .bd-tape-seg {
-    cursor: pointer;
-    transition: transform 0.15s ease, opacity 0.15s ease;
-    position: relative;
-  }
-  .bd-tape-seg:hover { transform: scaleY(1.4); }
-  .bd-tape-seg.bd-tape-padded::after {
-    content: '+';
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    color: rgba(255, 255, 255, 0.85);
-    font-size:0.5625rem; font-weight: 700;
-    pointer-events: none;
-    line-height: 1;
-  }
 
   /* Phase 11: row-pulse animation — fires for ~1s when a tape segment is
      tapped. Briefly tints the row amber-cream so the user sees which row
@@ -4247,67 +4022,6 @@
     margin: 0 -6px;
     padding-left: 6px;
     padding-right: 6px;
-  }
-
-  /* Sub-section head — labelled "Daily spend / ₹X" with hairline rule */
-  .outflow-bd-sec-head {
-    display: flex; align-items: baseline; justify-content: space-between;
-    padding: 0 0 8px;
-    margin-top: 6px;
-    font-family: var(--sans);
-  }
-  .outflow-bd-sec-head:first-of-type { margin-top: 0; }
-  .outflow-bd-sec-head + .outflow-bd-rows { margin-top: 0; }
-  /* Tinted section-head pills — match the Today form's subhead color
-     language. Daily spend uses the ember/brick rose ladder; Recurring
-     uses the deeper plum/lavender tones that mirror the recurring tape
-     segments inside the same card. White text for high contrast. */
-  .outflow-bd-sec-head.bd-sec-daily,
-  .outflow-bd-sec-head.bd-sec-recurring {
-    padding: 6px 12px;
-    border-radius: 4px;
-    margin-bottom: 10px;
-  }
-  .outflow-bd-sec-head.bd-sec-daily {
-    background: #8A1F1A; /* ember — matches .subhead.daily */
-  }
-  .outflow-bd-sec-head.bd-sec-recurring {
-    background: #5C2E40; /* plum — matches recurring tape segments */
-  }
-  .outflow-bd-sec-head.bd-sec-daily .outflow-bd-sec-lbl,
-  .outflow-bd-sec-head.bd-sec-recurring .outflow-bd-sec-lbl,
-  .outflow-bd-sec-head.bd-sec-daily .outflow-bd-sec-amt,
-  .outflow-bd-sec-head.bd-sec-recurring .outflow-bd-sec-amt {
-    color: #FFFFFF;
-  }
-  .outflow-bd-sec-head.bd-sec-daily .outflow-bd-sec-pct,
-  .outflow-bd-sec-head.bd-sec-recurring .outflow-bd-sec-pct {
-    color: rgba(255, 255, 255, 0.75); /* muted white for the share % */
-    font-weight: 400;
-  }
-  .outflow-bd-sec-lbl {
-    font-size:0.6875rem; font-weight: 700; letter-spacing: 0.10em;
-    text-transform: uppercase; color: var(--ink-soft);
-  }
-  .outflow-bd-sec-amt {
-    font-size:0.8125rem; font-weight: 700; color: var(--ink);
-    font-variant-numeric: tabular-nums; letter-spacing: -0.005em;
-  }
-  /* Tree separator between Daily and Recurring sections */
-  .outflow-bd-rows {
-    display: flex; flex-direction: column; gap: 9px;
-    padding: 4px 0 14px;
-  }
-  .outflow-bd-rows:last-of-type { padding-bottom: 0; }
-  /* Item 4 (Option B): merged ranked list uses a slightly tighter rhythm
-     since there's no daily/recurring sub-header break inside it.
-     Bars also thinner (4px) for a quieter visual weight matching the mock. */
-  .outflow-bd-rows-merged {
-    gap: 7px;
-    padding: 6px 0 0;
-  }
-  .outflow-bd-rows-merged .outflow-bd-row-bar {
-    height: 4px;
   }
   /* Group sub-tag: small muted suffix next to the label that preserves the
      daily/recurring distinction without forcing two sub-lists.
@@ -4373,33 +4087,6 @@
     display: grid; grid-template-columns: 100px 1fr 78px;
     gap: 10px; align-items: center;
   }
-  .outflow-bd-row-lbl {
-    font-family: var(--sans); font-size:0.8125rem; font-weight: 600;
-    color: var(--ink); letter-spacing: -0.005em;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .outflow-bd-row-bar {
-    height: 8px; background: #F0EDE7; border-radius: 999px; overflow: hidden;
-  }
-  .outflow-bd-row-bar-fill {
-    height: 100%; border-radius: 999px;
-    transition: width 0.4s ease;
-  }
-  .outflow-bd-row-amt {
-    font-family: var(--sans); font-size:0.8125rem; font-weight: 700;
-    color: var(--ink); font-variant-numeric: tabular-nums;
-    text-align: right; letter-spacing: -0.005em;
-  }
-  /* Inline percent companion next to each row amount — share-of-grand-total.
-     Muted weight + color so the absolute number remains the headline. */
-  .outflow-bd-row-pct {
-    font-weight: 400; color: var(--muted);
-  }
-  /* Section header percent — same muted treatment, sits next to total */
-  .outflow-bd-sec-pct {
-    font-weight: 400; color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
   /* Comparison context line under the total. Italic + muted to signal it's
      a derived stat, not a primary number. Hidden gracefully if helpers
      returned null (the JS skips emitting the element). */
@@ -4409,73 +4096,11 @@
     margin-top: 4px; letter-spacing: 0;
   }
 
-  /* Bar fills — daily uses the trends rose ladder (ember → light coral),
-     recurring uses deeper plum-family tones for visual differentiation. */
-  .outflow-bd-row-bar-fill[data-cat="food"]    { background: #8A1F1A; }
-  .outflow-bd-row-bar-fill[data-cat="dmart"]   { background: #A04A45; }
-  .outflow-bd-row-bar-fill[data-cat="uber"]    { background: #BD7570; }
-  .outflow-bd-row-bar-fill[data-cat="aiUsage"] { background: #C98682; }
-  .outflow-bd-row-bar-fill[data-cat="shopping"]  { background: #8B5A4A; }
-  .outflow-bd-row-bar-fill[data-cat="hotelStay"] { background: #6B4A5C; }
-  .outflow-bd-row-bar-fill[data-cat="entertainment"] { background: #9C5D3F; }
-  .outflow-bd-row-bar-fill[data-cat="taxes"]   { background: #4A4036; }
-  .outflow-bd-row-bar-fill[data-cat="other"]   { background: #D9A09B; }
-  .outflow-bd-row-bar-fill[data-cat="recurring"] { background: #7A2E1A; }
-  .outflow-bd-row-bar-fill[data-cat="home"]          { background: #5C2E40; }
-  .outflow-bd-row-bar-fill[data-cat="office"]        { background: #7A3F4A; }
-  .outflow-bd-row-bar-fill[data-cat="subscriptions"] { background: #8A4F58; }
-
   /* Empty state — when no spend data at all */
   .outflow-bd-empty {
     padding: 28px 12px; text-align: center;
     font-family: var(--sans); font-size:0.8125rem; font-weight: 500;
     color: var(--muted); letter-spacing: 0;
-  }
-
-  /* Phase 10: Hotel Stays drilldown — list of individual stays with date,
-     free-text note, and amount. Used in Month sub-view (single-month list)
-     and Year sub-view (year-wide list, newest-first). Layout: 56px date
-     pill (DD / MMM stacked) + flexible note column + right-aligned amount.
-     Empty-note rows render an italic muted "no note" placeholder so the
-     row still visually balances. Each row is tappable → jumps to that day. */
-  .hotel-list { display: flex; flex-direction: column; gap: 0; }
-  .hotel-row {
-    display: grid; grid-template-columns: 56px 1fr auto;
-    gap: 14px; align-items: start;
-    padding: 12px 0;
-    border-bottom: 1px dashed #EBE6DE;
-    cursor: pointer;
-  }
-  .hotel-row:last-child { border-bottom: none; }
-  .hotel-row:active { background: #FBF5F2; }
-  .hotel-date {
-    background: #F5EEEA; border-radius: 7px; padding: 4px 0;
-    text-align: center;
-    font-family: var(--mono);
-    line-height: 1.1;
-  }
-  .hotel-date-day {
-    display: block; font-size:1.125rem; font-weight: 700;
-    color: var(--ember);
-  }
-  .hotel-date-month {
-    display: block; font-size:0.5625rem; font-weight: 700;
-    color: #C9928A; letter-spacing: 0.08em;
-    text-transform: uppercase; margin-top: 1px;
-  }
-  .hotel-name {
-    font-family: var(--sans); font-size:0.875rem; font-weight: 600;
-    color: var(--ink); line-height: 1.3;
-    word-break: break-word;
-    align-self: center;
-  }
-  .hotel-name-empty {
-    color: var(--muted); font-style: italic; font-weight: 400;
-  }
-  .hotel-amt {
-    font-family: var(--sans); font-size:0.875rem; font-weight: 700;
-    color: var(--ink); font-variant-numeric: tabular-nums;
-    white-space: nowrap; align-self: center;
   }
 
   /* Phase 10: Year monthly-bars card — Hotel Stay & Shopping trend across 12
@@ -4527,12 +4152,7 @@
   /* Mobile: drop tape side-by-side, stack amount above tape */
   @media (max-width: 480px) {
     .outflow-bd-summary { flex-direction: column; align-items: stretch; gap: 10px; }
-    .outflow-bd-tape { flex: 0 0 auto; align-self: stretch; }
     .outflow-bd-row { grid-template-columns: 90px 1fr 70px; gap: 8px; }
-    .outflow-bd-row-lbl { font-size:0.75rem; }
-    .outflow-bd-row-amt { font-size:0.75rem; }
-    .hotel-row { grid-template-columns: 48px 1fr auto; gap: 10px; }
-    .hotel-name { font-size:0.8125rem; }
   }
 
   /* Accordion sections (away-from-home + no-sleep) */
@@ -4651,122 +4271,6 @@
   .week-quickjump {
     display: flex; gap: 6px; justify-content: center; margin-bottom: 16px;
   }
-  /* Outer card — paper with subtle moss-tinted shadow for visual lift */
-  .week-grid {
-    background: var(--paper); border: 1px solid var(--rule); border-radius: 14px;
-    padding: 16px 10px 14px; box-shadow: var(--shadow);
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
-    margin-bottom: 14px;
-  }
-  .week-day {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 8px; padding: 10px 2px 12px;
-    border: 1px solid transparent; border-radius: 10px;
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.14s, border-color 0.14s, transform 0.08s;
-    min-width: 0; position: relative;
-  }
-  .week-day:hover {
-    background: var(--paper-soft); border-color: var(--rule);
-  }
-  .week-day:active { transform: scale(0.97); }
-  /* Today's column — strong tinted background + accent border */
-  .week-day.is-today {
-    background: linear-gradient(180deg, #FAF1F1 0%, #FBF6EC 100%);
-    border-color: var(--accent);
-    box-shadow: 0 1px 0 rgba(160,74,96,0.06);
-  }
-  .week-day.is-future {
-    opacity: 0.30; cursor: not-allowed;
-  }
-  .week-day.is-future:hover {
-    background: transparent; border-color: transparent;
-  }
-  /* Day name strip — small uppercase mono */
-  .week-day .wd-name {
-    font-family: var(--mono); font-size:0.5625rem; letter-spacing: 0.10em;
-    text-transform: uppercase; color: var(--muted);
-    font-weight: 600;
-  }
-  .week-day.is-today .wd-name { color: var(--accent); }
-  /* Satisfaction ring around the day number — the focal point.
-     SVG ring sized 38x38; stroke colors tier-coded. */
-  .week-day .wd-ring-wrap {
-    position: relative; width: 38px; height: 38px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .week-day .wd-ring {
-    position: absolute; inset: 0; transform: rotate(-90deg);
-  }
-  .week-day .wd-ring-track {
-    fill: none; stroke: var(--rule); stroke-width: 3;
-  }
-  .week-day .wd-ring-fill {
-    fill: none; stroke: var(--rule); stroke-width: 3;
-    stroke-linecap: round;
-    transition: stroke-dasharray 0.25s ease, stroke 0.25s ease;
-  }
-  .week-day .wd-ring-fill.high { stroke: var(--moss); }
-  .week-day .wd-ring-fill.mid  { stroke: #BA7517; }
-  .week-day .wd-ring-fill.low  { stroke: var(--ember); }
-  .week-day .wd-num {
-    position: relative; z-index: 1;
-    font-family: var(--sans); font-size:1rem; font-weight: 600;
-    color: var(--ink); line-height: 1;
-    letter-spacing: -0.005em;
-    font-variant-numeric: tabular-nums;
-  }
-  .week-day.is-today .wd-num { color: var(--accent); }
-  /* Sat % below the ring — small mono colored by tier */
-  .week-day .wd-sat-pct {
-    font-family: var(--mono); font-size:0.5938rem; font-weight: 700;
-    letter-spacing: 0.02em; line-height: 1;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .week-day .wd-sat-pct.high { color: var(--moss); }
-  .week-day .wd-sat-pct.mid  { color: #BA7517; }
-  .week-day .wd-sat-pct.low  { color: var(--ember); }
-  /* Three horizontal mini-bars below — invest / spend / walk.
-     Track is faint, fill is saturated. Width % of the week's max. */
-  .week-day .wd-bars {
-    display: flex; flex-direction: column; gap: 3px;
-    width: 100%; padding: 0 4px;
-  }
-  .week-day .wd-bar-track {
-    height: 4px; width: 100%;
-    background: var(--rule);
-    border-radius: 999px; overflow: hidden;
-    position: relative;
-  }
-  .week-day .wd-bar-track.empty { background: transparent; }
-  .week-day .wd-bar-fill {
-    position: absolute; top: 0; left: 0; bottom: 0;
-    border-radius: 999px;
-    transition: width 0.25s ease;
-  }
-  .week-day .wd-bar-fill.invest { background: #534AB7; }
-  .week-day .wd-bar-fill.spend  { background: var(--ember); }
-  .week-day .wd-bar-fill.walk   { background: var(--moss); }
-  /* Tiny legend strip at bottom of week-grid */
-  .week-legend {
-    grid-column: 1 / -1;
-    display: flex; justify-content: center; gap: 14px;
-    margin-top: 10px; padding-top: 10px;
-    border-top: 1px dashed var(--rule);
-    font-family: var(--mono); font-size:0.5625rem; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--muted);
-  }
-  .week-legend-item {
-    display: inline-flex; align-items: center; gap: 5px;
-  }
-  .week-legend-swatch {
-    width: 10px; height: 4px; border-radius: 999px;
-  }
-  .week-legend-swatch.invest { background: #534AB7; }
-  .week-legend-swatch.spend  { background: var(--ember); }
-  .week-legend-swatch.walk   { background: var(--moss); }
 
   /* Phase 9: Week cash-flow card — Stadium variant (matches Year/Month).
      Two solid columns side by side with gradient fills. Smaller numbers
@@ -5108,7 +4612,6 @@
   .chart-meta strong { color: var(--ink); font-weight: 700; }
   .chart-svg-wrap { width: 100%; overflow: visible; }
   .chart-svg-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
-  .chart-empty { padding: 30px 10px; text-align: center; color: var(--muted); font-style: italic; font-size:0.8125rem; }
 
   /* Other breakdown card v2 — connected drilldown. Two visually-coupled
      zones in one card: a header strip showing the parent "Other" bar from
@@ -5211,78 +4714,8 @@
     padding-left: 22px; /* aligns under the label text, not the chevron */
     margin-bottom: 14px;
   }
-  .ob-rank-rows {
-    display: flex; flex-direction: column; gap: 12px;
-  }
-  /* Each ranked row: rank number column + body column. Rank uses a fixed
-     18px column so the bars below the names align cleanly across rows. */
-  .ob-rank-row {
-    display: flex; align-items: flex-start; gap: 10px;
-  }
-  .ob-rank-num {
-    font-family: var(--sans); font-size:0.6875rem; font-weight: 700;
-    color: var(--muted);
-    min-width: 18px;
-    padding-top: 2px;
-    font-variant-numeric: tabular-nums;
-  }
-  .ob-rank-body {
-    flex: 1; min-width: 0;
-  }
-  .ob-rank-head {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 4px; gap: 8px;
-  }
-  .ob-rank-name {
-    font-family: var(--sans); font-size:0.875rem; font-weight: 600;
-    color: var(--ink);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    flex: 1; min-width: 0;
-  }
-  .ob-rank-amt {
-    font-family: var(--sans); font-size:0.875rem; font-weight: 600;
-    color: var(--ink); font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
-  }
-  .ob-rank-pct {
-    color: var(--muted); font-weight: 400;
-  }
-  .ob-rank-track {
-    background: #E5DDDB; height: 10px; border-radius: 3px; overflow: hidden;
-  }
-  .ob-rank-fill {
-    height: 100%; border-radius: 3px; transition: width 0.2s ease;
-  }
   .ob-count {
     color: var(--muted); font-weight: 400; font-size:0.75rem;
-  }
-  /* Rollup line — text only, no bar. Separated from the ranked rows by a
-     dashed border. Italic muted styling signals "this is a remainder, not
-     a comparable category". */
-  .ob-rollup-row {
-    display: flex; align-items: center; gap: 10px;
-    padding-top: 10px;
-    margin-top: 2px;
-    border-top: 1px dashed var(--rule);
-  }
-  .ob-rollup-spacer {
-    min-width: 18px;
-  }
-  .ob-rollup-body {
-    flex: 1; min-width: 0;
-    display: flex; justify-content: space-between; align-items: baseline;
-  }
-  .ob-rollup-name {
-    font-family: var(--sans); font-size:0.8125rem; font-weight: 500;
-    color: var(--muted); font-style: italic;
-  }
-  .ob-rollup-amt {
-    font-family: var(--sans); font-size:0.8125rem; font-weight: 500;
-    color: var(--muted); font-style: italic;
-    font-variant-numeric: tabular-nums;
-  }
-  .ob-rollup-pct {
-    font-weight: 400;
   }
 
   /* [I] Heatmap toggle on Month sub-view — switches between the existing
@@ -5501,155 +4934,10 @@
     background: var(--paper-soft);
   }
 
-  /* [F] Patterns card — auto-generated insight cards on the Trends tab.
-     Lives below the two trend charts. Each detected insight renders as a
-     small horizontal card: icon | title + body + sub. */
-  .patterns-card {
-    background: var(--paper); border: 1px solid var(--rule); border-radius: 14px;
-    padding: 14px 14px 10px; margin-bottom: 14px; box-shadow: var(--shadow);
-  }
-  .patterns-head {
-    display: flex; align-items: baseline; justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  .patterns-title {
-    font-family: var(--sans); font-size:1rem; font-weight: 700;
-    color: var(--ink); letter-spacing: 0;
-  }
-  .patterns-meta {
-    font-family: var(--sans); font-size:0.75rem; font-weight: 500;
-    color: var(--muted);
-  }
-  .patterns-empty {
-    padding: 24px 10px; text-align: center; color: var(--muted);
-    font-family: var(--sans); font-size:0.875rem; line-height: 1.5;
-    font-weight: 500;
-  }
-  .pattern-card {
-    display: grid; grid-template-columns: 32px 1fr; gap: 12px;
-    padding: 10px 0; align-items: start;
-    border-bottom: 1px dashed var(--rule);
-  }
-  .pattern-card:last-child { border-bottom: none; padding-bottom: 4px; }
-  .pattern-card:first-of-type { padding-top: 4px; }
-  .pattern-icon {
-    width: 32px; height: 32px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--paper-soft); color: var(--moss);
-    flex-shrink: 0;
-  }
-  .pattern-icon svg { width: 16px; height: 16px; }
-  .pattern-body { min-width: 0; }
-  .pattern-title {
-    font-family: var(--sans); font-size:0.9375rem; font-weight: 700;
-    color: var(--moss); letter-spacing: 0;
-    margin-bottom: 5px;
-  }
-  .pattern-text {
-    font-family: var(--sans); font-size:1rem; font-weight: 500;
-    color: var(--ink); line-height: 1.55; letter-spacing: -0.005em;
-    margin-bottom: 5px;
-  }
-  .pattern-text strong { font-weight: 700; color: var(--ink); }
-  .pattern-sub {
-    font-family: var(--sans); font-size:0.75rem; font-weight: 400;
-    color: var(--muted); letter-spacing: 0;
-  }
-
   /* TRENDS REDESIGN — new card system.
      All four use .trend-card wrapper which inherits .year-card chrome
      (border, radius, shadow). Each card has its own internal layout. */
   .trend-card { /* inherits .year-card */ }
-
-  /* Card 1: Year over year — Mock B chart-first hierarchy.
-     Pattern per section: section label (small, neutral) → chart → axis tick
-     row (border-top) → footer (legend + right-aligned italic caption with
-     the peak insight). Labels are deliberately quiet; the chart is the lead. */
-  .yoy-section { margin-bottom: 22px; }
-  .yoy-section:last-child { margin-bottom: 0; }
-  .yoy-section-lbl {
-    font-family: var(--sans); font-size:0.75rem; font-weight: 600;
-    color: var(--muted); letter-spacing: 0;
-    text-transform: none;
-    display: block;
-    margin-bottom: 10px;
-  }
-  .yoy-bars {
-    display: flex; align-items: flex-end; gap: 6px;
-    height: 90px; padding: 0 2px;
-  }
-  .yoy-bar-col {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; min-width: 0;
-  }
-  .yoy-bar-col.yoy-dim { opacity: 0.45; }
-  .yoy-bar-stack {
-    width: 100%; display: flex; flex-direction: column-reverse;
-    gap: 2px; align-items: stretch; flex: 1;
-    justify-content: flex-end;
-  }
-  .yoy-bar {
-    width: 100%; min-height: 2px;
-    transition: opacity 0.15s;
-  }
-  .yoy-bar:hover { opacity: 0.75; }
-  .yoy-bar.spend { background: #8A1F1A; }
-  .yoy-bar.invest { background: #534AB7; }
-  .yoy-bar.walk { background: #356B4E; border-radius: 2px 2px 0 0; }
-  /* X-axis row — lives in its own div BELOW the chart so it can carry a
-     border-top (visual baseline) without conflicting with the chart layout. */
-  .yoy-axis {
-    display: flex; gap: 6px;
-    padding: 6px 2px 0;
-    border-top: 0.5px solid var(--rule);
-  }
-  .yoy-axis-tick {
-    flex: 1; text-align: center;
-    font-family: var(--sans); font-size:0.6875rem; font-weight: 500;
-    color: var(--muted);
-    font-variant-numeric: tabular-nums;
-  }
-  .yoy-tick-peak { color: var(--ink); font-weight: 700; }
-  .yoy-tick-dim { opacity: 0.7; font-style: italic; }
-  /* Footer below the chart — holds the legend on the left (if any) and the
-     italic peak-insight caption on the right. Flex with space-between so the
-     caption naturally right-aligns. Stacks vertically on narrow viewports. */
-  .yoy-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
-  .yoy-legend {
-    display: flex; gap: 12px; align-items: center;
-    font-family: var(--sans); font-size:0.6875rem;
-    color: var(--ink-soft);
-  }
-  .yoy-legend-item {
-    display: flex; align-items: center; gap: 5px;
-  }
-  .yoy-swatch {
-    width: 9px; height: 9px;
-    display: inline-block;
-  }
-  .yoy-swatch.spend { background: #8A1F1A; }
-  .yoy-swatch.invest { background: #534AB7; }
-  .yoy-swatch.walk { background: #356B4E; }
-  .yoy-ytd-note {
-    font-style: italic; font-size:0.625rem;
-    color: var(--muted);
-    opacity: 0.7;
-  }
-  .yoy-caption {
-    font-family: var(--sans); font-size:0.6875rem; font-style: italic;
-    color: var(--muted);
-    opacity: 0.85;
-    margin-left: auto;
-    text-align: right;
-  }
-  .yoy-sat-wrap {
-    position: relative; height: 70px; padding: 0 2px;
-  }
 
   /* Card 0: The Almanac — every year of MyDay as one row of 12 month-bars.
      One metric at a time (chips switch). Scales to 30 years on one screen. */
@@ -5727,7 +5015,6 @@
   }
   .att-rollup-name { font-weight: 500; }
   .att-rollup-amt { font-weight: 500; font-variant-numeric: tabular-nums; }
-  .att-rollup-pct { font-weight: 400; }
 
   /* Card 3: What changes how you feel — color-coded insight rows */
   .insights-rows {
@@ -5816,15 +5103,6 @@
   .record-row.record-invest    { border-left-color: #534AB7; }
   .record-row.record-travel    { border-left-color: #534AB7; }
   .record-row.record-recurring { border-left-color: #5C2E40; }
-  /* Headline — the fact. Ink color, weight 700, larger size; tabular nums
-     for any numeric content. Line-height tight so the headline reads as
-     one decisive line. */
-  .record-headline {
-    font-family: var(--sans); font-size:0.9375rem; font-weight: 700;
-    color: var(--ink); line-height: 1.3;
-    margin-bottom: 3px;
-    font-variant-numeric: tabular-nums;
-  }
   /* R-A3a (Jul 2026): one loud line — VALUE · moment · age badge.
      Same fonts as the rest of My Day: sans values, italic sans moments,
      mono badges. Category colour rides on the value via .record-accent. */
@@ -5852,77 +5130,9 @@
     font-family: var(--sans); font-size:0.6875rem; font-weight: 500;
     color: var(--muted); line-height: 1.4;
   }
-
-  /* CHART ELEMENTS */
-  .ch-axis { stroke: var(--rule); stroke-width: 1; }
-  .ch-axis-label { font-family: var(--mono); font-size:0.5625rem; fill: var(--muted); letter-spacing: 0.04em; }
-  .ch-grid-line { stroke: var(--rule); stroke-width: 0.5; stroke-dasharray: 2,3; }
   .ch-bar { transition: opacity 0.15s; cursor: pointer; }
   .ch-bar:hover { opacity: 0.75; }
-  .ch-bar-spend { fill: var(--accent); }
-  .ch-bar-spend-food { fill: #8A1F1A; }
-  .ch-bar-spend-dmart { fill: #A04A45; }
-  .ch-bar-spend-uber { fill: #BD7570; }
-  .ch-bar-spend-aiUsage { fill: #C98682; }
-  .ch-bar-spend-shopping { fill: #8B5A4A; }
-  .ch-bar-spend-hotelStay { fill: #6B4A5C; }
-  .ch-bar-spend-entertainment { fill: #9C5D3F; }
-  .ch-bar-spend-taxes { fill: #4A4036; }
-  .ch-bar-spend-other { fill: #D9A09B; }
-  .ch-bar-topup { fill: var(--green-ink); }
-  .ch-bar-invest { fill: #534AB7; }
-  /* Phase 6 trend bar fills */
-  .ch-bar-recurring { fill: #534AB7; }       /* lavender — recurring stack on top of outflow */
-  .ch-bar-invest-reg { fill: #3B3490; }       /* darker lavender — regular investment (more committed) */
-  .ch-bar-invest-topup { fill: #7A6FE0; }     /* lighter lavender — top-up (occasional) */
-  .ch-bar-walk { fill: var(--moss); }
-  /* CC tracking: slate-grey bar color, matches the .subhead.memo-subhead palette.
-     Visually distinct from spend-category bars (which use warm ember tones) so
-     viewers immediately read "this is reference data, not a spend metric". */
-  .ch-bar-cc { fill: #6E7A86; }
-  /* Phase 7+: Net monthly savings (T2) — single line + filled area + dots.
-     Line stroke is dark moss for the positive portion; dots are colored per
-     sign so negative months stand out instantly. Filled area uses moss with
-     low opacity so positive territory is the dominant visual story. */
-  .ch-line-net {
-    stroke: var(--moss); stroke-width: 2;
-    stroke-linecap: round; stroke-linejoin: round;
-  }
-  .ch-area-net {
-    fill: var(--moss); opacity: 0.13;
-    stroke: none;
-  }
-  .ch-dot-net-pos { fill: var(--moss); cursor: pointer; transition: opacity 0.12s; }
-  .ch-dot-net-pos:hover { opacity: 0.7; }
-  .ch-dot-net-neg { fill: var(--accent); cursor: pointer; transition: opacity 0.12s; }
-  .ch-dot-net-neg:hover { opacity: 0.7; }
-  .ch-bar-sat { fill: var(--accent); }
-  .ch-bar-sat-low { fill: var(--warn); }
-  .ch-line { fill: none; stroke: var(--accent); stroke-width: 1.5; }
-  .ch-line-secondary { fill: none; stroke: var(--moss); stroke-width: 1.5; }
-  .ch-dot { fill: var(--accent); }
-  .ch-dot-secondary { fill: var(--moss); }
-  .ch-tooltip-target { cursor: pointer; }
-  .ch-tooltip-target:hover { opacity: 0.8; }
-  .ch-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; padding: 0 4px; }
-  .ch-legend-item { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size:0.625rem; color: var(--ink-soft); letter-spacing: 0.02em; }
-  .ch-legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
   .ch-x-marker { font-family: var(--mono); font-size:0.5625rem; fill: var(--muted); }
-  .ch-y-marker { font-family: var(--mono); font-size:0.5625rem; fill: var(--muted); text-anchor: end; }
-  /* Divergent spend & invest chart: tinted Y-axis labels match each side's color */
-  .ch-y-marker.invest { fill: #534AB7; font-weight: 600; }
-  .ch-y-marker.spend { fill: var(--accent); font-weight: 600; }
-  /* Stronger center baseline in the divergent chart (vs dashed grid lines) */
-  .ch-grid-baseline {
-    stroke: var(--ink-soft); stroke-width: 0.7;
-    stroke-dasharray: none; opacity: 0.5;
-  }
-  /* Meta-row tints — matches the two bar colors so user can quickly scan
-     which number is "in" (lavender) vs "out" (rose) */
-  .ch-meta-in { color: #534AB7; }
-  .ch-meta-in strong { color: #534AB7; }
-  .ch-meta-out { color: var(--accent); }
-  .ch-meta-out strong { color: var(--accent); }
   .ch-tooltip {
     position: fixed; pointer-events: none; background: var(--ink); color: var(--paper);
     padding: 6px 9px; border-radius: 6px; font-family: var(--mono); font-size:0.6875rem;
@@ -5988,28 +5198,6 @@
   }
   .home-banner-actions {
     display: flex; align-items: center; gap: 12px;
-  }
-  /* Icon-only × button for untag action. Subtle lavender-tinted circle so it
-     reads as a tappable target without being loud. Hover deepens. */
-  .home-banner-icon-btn {
-    background: rgba(60, 52, 137, 0.12);
-    border: 0.5px solid rgba(60, 52, 137, 0.28);
-    border-radius: 50%;
-    width: 22px; height: 22px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 0;
-    color: #3C3489;
-    transition: background 0.15s, transform 0.05s;
-  }
-  .home-banner-icon-btn svg { width: 11px; height: 11px; }
-  .home-banner-icon-btn:hover {
-    background: rgba(60, 52, 137, 0.22);
-  }
-  .home-banner-icon-btn:active {
-    transform: scale(0.92);
   }
   /* Item 2 (Option B): Single button replacing the prior two-symbol design.
      Looks like a small inline pill — house-with-check icon + "Home" label.
@@ -6214,151 +5402,7 @@
   }
   .ym-picker-back:hover { color: var(--ink-soft); }
   .totals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
-  .totals-grid:empty { display: none; margin: 0; }   /* empty in Month view -> no ghost gap */
-  .total-card { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 14px; }
-  .total-card .lbl {
-    font-family: var(--sans); font-size:0.8125rem; letter-spacing: 0;
-    color: var(--ink); text-transform: none; margin-bottom: 8px;
-    font-weight: 700; line-height: 1.2;
-  }
-  .total-card .val { font-family: var(--sans); font-size:1.1875rem; font-weight: 700; color: var(--ink); letter-spacing: -0.005em; line-height: 1.15; }
-  .total-card .sub { font-family: var(--sans); font-size:0.6875rem; color: var(--muted); margin-top: 4px; font-weight: 500; letter-spacing: 0.01em; }
-  .total-card .sub .redeemed { color: #4F8A5C; font-weight: 600; }
-  .total-card.accent { background: var(--accent-soft); border-color: var(--accent); }
-  .total-card.accent .val { color: var(--accent-ink); }
-  .total-card.green { background: var(--green-soft); border-color: var(--green-border); }
-  .total-card.green .val { color: var(--green-ink); }
-  .total-card.green .lbl { color: var(--green-ink); }
-  .total-card.red { background: var(--red-soft); border-color: var(--red-border); }
-  .total-card.red .val { color: var(--red-ink); }
-  .total-card.red .lbl { color: var(--red-ink); }
-  .total-card.full { grid-column: 1 / -1; }
-  .total-card.full .lbl { font-size:0.875rem; }
-  .total-card.full .val { font-size:1.5rem; }
-  /* Phase 3: master "Total monthly outflow" card — combines daily logged spend
-     + recurring actuals. Stronger ember accent than the regular red card to
-     signal it's the hero number for the month. */
-  .total-card.outflow {
-    grid-column: 1 / -1;
-    background: #FAF1F1; border-color: #D9B5AC;
-    box-shadow: 0 1px 0 rgba(138,31,26,0.04);
-  }
-  .total-card.outflow .lbl {
-    color: var(--ember); font-size:0.75rem; letter-spacing: 0.10em;
-  }
-  .total-card.outflow .val {
-    color: var(--ember); font-size:1.625rem; font-weight: 700;
-  }
-  .total-card.outflow .sub {
-    color: var(--ink-soft); font-family: var(--mono); font-size:0.6875rem;
-    letter-spacing: 0.01em; margin-top: 6px;
-    font-variant-numeric: tabular-nums;
-  }
-  .total-card.outflow .sub .pending {
-    color: #A4905C; font-style: italic; letter-spacing: 0;
-  }
-  /* Future-month variant: greyed out, no real spend yet */
-  .total-card.outflow.future {
-    background: #F5F2F1; border-color: #DDD8D6; opacity: 0.85;
-  }
-  .total-card.outflow.future .lbl,
-  .total-card.outflow.future .val {
-    color: var(--ink-soft);
-  }
-  .total-card.outflow.future .val { font-size:1.25rem; }
-  /* Loading state for outflow card while recurring actuals fetch */
-  .total-card.outflow.loading .val::after {
-    content: ' ⋯'; color: #A4905C; font-weight: 400;
-  }
-  /* Total Investment master card — same structural treatment as outflow,
-     but in the deep-lavender investment family (matching Top-Up field accent). */
-  .total-card.inflow {
-    grid-column: 1 / -1;
-    background: #ECE6F5; border-color: #C7BCE0;
-    box-shadow: 0 1px 0 rgba(83,74,183,0.04);
-  }
-  .total-card.inflow .lbl {
-    color: #534AB7; font-size:0.75rem; letter-spacing: 0.10em;
-  }
-  .total-card.inflow .val {
-    color: #534AB7; font-size:1.625rem; font-weight: 700;
-  }
-  .total-card.inflow .sub {
-    color: var(--ink-soft); font-family: var(--mono); font-size:0.6875rem;
-    letter-spacing: 0.01em; margin-top: 6px;
-    font-variant-numeric: tabular-nums;
-  }
-  /* Future-month variant — greyed out, no investments yet */
-  .total-card.inflow.future {
-    background: #F5F2F1; border-color: #DDD8D6; opacity: 0.85;
-  }
-  .total-card.inflow.future .lbl,
-  .total-card.inflow.future .val {
-    color: var(--ink-soft);
-  }
-  .total-card.inflow.future .val { font-size:1.25rem; }
-
-  /* Health & Mind master card — same structural treatment as inflow/outflow,
-     but in the moss-green palette to match the Health & Mind input section. */
-  .total-card.health {
-    grid-column: 1 / -1;
-    background: #F4F8F3; border-color: #C9D8C9;
-    box-shadow: 0 1px 0 rgba(53,107,78,0.04);
-  }
-  .total-card.health .lbl {
-    color: var(--moss); font-size:0.75rem; letter-spacing: 0.10em;
-  }
-  .total-card.health .val {
-    color: var(--moss); font-size:1.625rem; font-weight: 700;
-  }
-  .total-card.health .sub {
-    color: var(--ink-soft); font-family: var(--mono); font-size:0.6875rem;
-    letter-spacing: 0.01em; margin-top: 6px;
-    font-variant-numeric: tabular-nums;
-  }
-  .total-card.health .health-headline-sub {
-    font-size:0.75rem; font-weight: 500; color: var(--ink-soft);
-    margin-left: 6px;
-  }
-
-  /* Phase 5: Collapsible master totals cards.
-     The Total Investment, Total Outflow, and Health & Mind cards are tappable.
-     When collapsed, their child cards are hidden via display:none on the cards
-     tagged with data-tg-child="<key>". */
-  .total-card.inflow,
-  .total-card.outflow,
-  .total-card.health {
-    cursor: pointer; user-select: none;
-    transition: background 0.12s, transform 0.08s;
-    position: relative;
-  }
-  .total-card.inflow:hover { background: #E2D9F0; }
-  .total-card.outflow:hover { background: #F4E5E2; }
-  .total-card.health:hover { background: #E8F0E5; }
-  .total-card.inflow:active,
-  .total-card.outflow:active,
-  .total-card.health:active { transform: scale(0.998); }
-  /* Chevron on the right side of the master card label row */
-  .total-card-chevron {
-    position: absolute; top: 14px; right: 14px;
-    width: 14px; height: 14px;
-    transition: transform 0.18s ease;
-    transform: rotate(180deg); /* expanded */
-  }
-  .total-card.inflow .total-card-chevron { color: #534AB7; }
-  .total-card.outflow .total-card-chevron { color: var(--ember); }
-  .total-card.health .total-card-chevron { color: var(--moss); }
-  .total-card.inflow.collapsed .total-card-chevron,
-  .total-card.outflow.collapsed .total-card-chevron,
-  .total-card.health.collapsed .total-card-chevron {
-    transform: rotate(0deg);
-  }
-  /* Hide the sub-line breakdown when collapsed (just headline number visible) */
-  .total-card.inflow.collapsed .sub,
-  .total-card.outflow.collapsed .sub,
-  .total-card.health.collapsed .sub {
-    display: none;
-  }
+  .totals-grid:empty { display: none; margin: 0; }
   /* Children cards: hidden when the parent master is .collapsed.
      The master's collapsed state is read from the totalsGrid wrapper's
      data attributes via the .totals-grid.collapsed-* selector. */
@@ -6371,188 +5415,6 @@
   .totals-grid.tg-health-collapsed [data-tg-child="health"] {
     display: none;
   }
-  /* Don't allow chevron tap on future-state masters (they have no children
-     hidden anyway because there's no data) — but visually still works */
-
-  /* New banner-style subsection rows under each master card. Replaces the
-     chunky 50/50 grid of small cards with a compact horizontal row that
-     mirrors the recurring-section group banners (label + value, left-border
-     accent in the master's color, no big card chrome). Aligned linearly with
-     the master so the eye runs straight down the page. */
-  .total-row {
-    grid-column: 1 / -1;
-    display: grid; grid-template-columns: 1fr auto;
-    gap: 10px; align-items: center;
-    padding: 9px 12px;
-    background: #FFFFFF;
-    border: 1px solid var(--rule);
-    border-left-width: 3px;
-    border-radius: 6px;
-    margin-top: -4px;  /* tighter linear stack under the master */
-  }
-  .total-row + .total-row { margin-top: -6px; }
-  .total-row .lbl {
-    font-family: var(--mono); font-size:0.6875rem; font-weight: 600;
-    letter-spacing: 0.10em; text-transform: uppercase;
-    color: var(--ink); white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
-  }
-  .total-row .val {
-    font-family: var(--mono); font-size:0.75rem; font-weight: 700;
-    color: var(--ink); font-variant-numeric: tabular-nums;
-    text-align: right; white-space: nowrap;
-  }
-  /* Phase 11: inline percentage on totals tree rows. Sits just before the
-     amount, separated by a small gap. Quieter weight + muted color so it
-     whispers proportional context without competing with the amount. */
-  .total-row.with-pct .val {
-    display: inline-flex; align-items: baseline; justify-content: flex-end; gap: 8px;
-  }
-  .total-row .row-pct {
-    font-family: var(--mono); font-size:0.5625rem; font-weight: 600;
-    color: var(--muted); letter-spacing: 0.04em;
-    min-width: 28px; text-align: right; opacity: 0.85;
-  }
-  /* On parent rows (dark wine bg), percentage uses lighter cream-rose tone */
-  .total-row.row-parent .row-pct { color: #C9928A; opacity: 0.95; }
-  /* On child rows (white bg, plum text), use a softer plum so pct doesn't
-     compete with the amount */
-  .total-row.row-child .row-pct { color: #A88891; }
-  .total-row .sub {
-    font-family: var(--mono); font-size:0.625rem; font-weight: 400;
-    color: var(--muted); margin-left: 6px;
-    letter-spacing: 0;
-  }
-  /* Color variants — left-border accent matches the master card */
-  .total-row.row-investment {
-    border-left-color: #534AB7;
-    background: #F8F4FC;
-    border-top-color: #DCD3EB; border-right-color: #DCD3EB; border-bottom-color: #DCD3EB;
-  }
-  .total-row.row-investment .lbl { color: #3A348A; }
-  /* Phase 11+: Redemption row sits within the Investment group but uses
-     light mint to signal "credited back / opposite direction." Background
-     stays light to keep visual continuity with sibling investment rows. */
-  .total-row.row-investment.row-redemption {
-    border-left-color: #4F8A5C;
-    background: #F2F8F0;
-    border-top-color: #D9E5D5; border-right-color: #D9E5D5; border-bottom-color: #D9E5D5;
-  }
-  .total-row.row-investment.row-redemption .lbl { color: #4F8A5C; }
-  .total-row.row-investment.row-redemption .val { color: #4F8A5C; }
-  .total-row.row-outflow {
-    border-left-color: var(--ember);
-    background: #FDF7F6;
-    border-top-color: #E0CFCC; border-right-color: #E0CFCC; border-bottom-color: #E0CFCC;
-  }
-  .total-row.row-outflow .lbl { color: var(--ember); }
-  .total-row.row-health {
-    border-left-color: var(--moss);
-    background: #F4F8F3;
-    border-top-color: #C9D8C9; border-right-color: #C9D8C9; border-bottom-color: #C9D8C9;
-  }
-  .total-row.row-health .lbl { color: #1F4D33; }
-  /* Phase 9: parent/child hierarchy on outflow children — Option 3 brace.
-     The first row under the master (the subtotal) keeps the loud full ember
-     treatment. Subsequent child rows get a quieter look (white bg, plum text,
-     thin rose stripe) and a brace-style ::before connector that ties them
-     visually to the subtotal above. */
-  .total-row.row-parent {
-    /* Parent stays as it was — full color treatment. The class is added
-       just so we can target it explicitly when the connector logic for
-       child rows needs to know who its parent is. */
-  }
-  /* Phase 9 (Option J1): outflow parents (Daily Spend + Recurring) flip to
-     an inverted dark wine-ember treatment — both look identical to read
-     as symmetric "section headers" gating their respective trees of
-     light children below. The shared darkness makes ember the family
-     color of the master card, while the white children below feel quiet
-     and detail-focused. Higher specificity than .total-row.row-outflow
-     so it wins without !important. */
-  .total-row.row-outflow.row-parent {
-    background: #2D0E0C;
-    border-top-color: #2D0E0C;
-    border-right-color: #2D0E0C;
-    border-bottom-color: #2D0E0C;
-    border-left-color: var(--ember);
-    border-left-width: 4px;
-  }
-  .total-row.row-outflow.row-parent .lbl { color: #F5E6E2; }
-  .total-row.row-outflow.row-parent .val { color: #F5E6E2; }
-  /* Sub-text in the label needs lighter cream-rose since it sits on dark bg */
-  .total-row.row-outflow.row-parent .lbl .sub { color: #C9928A; }
-  .total-row.row-child {
-    background: #FFFFFF;
-    border-top-color: #E5C9CC;
-    border-right-color: #E5C9CC;
-    border-bottom-color: #E5C9CC;
-    border-left: 1px solid #E5C9CC;
-    margin-left: 22px;  /* indent so the brace has room */
-    position: relative;
-  }
-  .total-row.row-child .lbl { color: #6E2D40; font-weight: 600; }
-  .total-row.row-child .val { color: #6E2D40; font-weight: 700; }
-  /* Brace structure — vertical stub running up from each child to its parent,
-     plus a horizontal connector reaching into the row's left edge.
-     The vertical line is drawn by a ::before tied to the row's height + above.
-     Top child: stub starts from the top (connects to parent). Middle children:
-     stub spans the row's full vertical extent. Last child: stub stops at the
-     row's vertical center. */
-  .total-row.row-child::before {
-    content: ''; position: absolute;
-    left: -14px;
-    top: -6px; bottom: 50%;  /* default: middle child — full from top to vertical center */
-    width: 2px; background: #E5C9CC;
-    border-radius: 2px;
-  }
-  /* Horizontal connector — a small bar reaching from the vertical stub
-     into the row's left edge. */
-  .total-row.row-child::after {
-    content: ''; position: absolute;
-    left: -14px; top: 50%;
-    width: 12px; height: 2px;
-    background: #E5C9CC;
-    transform: translateY(-1px);
-  }
-  /* Continuation rows (children that have another child below them) need
-     their vertical stub to extend ALL the way down to the next child, not
-     stop at their own vertical center. We can't query "has-sibling-below"
-     in CSS without :has(), so we add a `.row-child-continues` class to all
-     rows except the last. The last child uses the default rule (stops at
-     center). */
-  .total-row.row-child-continues::before {
-    bottom: -6px; /* extend stub down to overlap with the next child */
-  }
-
-  /* For investment children (current behavior): same brace treatment in
-     lavender. Activates when a row has both row-investment + row-child.
-     Phase 9 update: the investment + health trees were reverted to flat
-     non-tree structure — only outflow uses the parent/child hierarchy now.
-     The lavender brace rules below remain in place so future refactors
-     have a working pattern, but they're inactive (no rows currently get
-     both .row-investment and .row-child in the rendered grid). */
-  .total-row.row-investment.row-child {
-    border-color: #DCD3EB;
-    border-left: 1px solid #DCD3EB;
-  }
-  .total-row.row-investment.row-child .lbl { color: #3A348A; }
-  .total-row.row-investment.row-child .val { color: #3A348A; }
-  .total-row.row-investment.row-child::before,
-  .total-row.row-investment.row-child::after {
-    background: #DCD3EB;
-  }
-  /* Recurring children rows — same ember-family palette as outflow because
-     the user opted for unified "all spend" coloring. row-outflow already
-     applies, so no additional rules needed. */
-
-  /* Hide all rows when their master is collapsed */
-  .totals-grid.tg-investment-collapsed [data-tg-child="investment"].total-row { display: none; }
-  .totals-grid.tg-outflow-collapsed [data-tg-child="outflow"].total-row { display: none; }
-  .totals-grid.tg-health-collapsed [data-tg-child="health"].total-row { display: none; }
-  /* Add small breathing room above the next master to break the linear stack */
-  .total-card.inflow + [data-tg-child="investment"]:first-of-type { margin-top: 0; }
-  .total-card.outflow + [data-tg-child="outflow"]:first-of-type { margin-top: 0; }
-  .total-card.health + [data-tg-child="health"]:first-of-type { margin-top: 0; }
 
   .day-list { background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
   /* Item 3: When nested in the accordion body, the accordion provides the
@@ -6706,13 +5568,6 @@
     padding: 13px 14px; font-size:0.9375rem; color: var(--ink); font-family: var(--mono); letter-spacing: 0.05em;
   }
   .auth-input:focus { outline: none; border-color: var(--accent); background: var(--paper); }
-  .auth-strength {
-    font-family: var(--mono); font-size:0.625rem; letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--muted); text-align: left; margin-top: -4px; padding-left: 4px;
-  }
-  .auth-strength[data-level="too-short"], .auth-strength[data-level="weak"] { color: var(--warn); }
-  .auth-strength[data-level="ok"] { color: var(--accent); }
-  .auth-strength[data-level="strong"], .auth-strength[data-level="excellent"] { color: var(--moss); }
   .auth-error {
     font-family: var(--mono); font-size:0.6875rem; color: var(--warn); padding: 6px 10px;
     background: #FCE9E2; border-radius: 6px; letter-spacing: 0.02em;
@@ -6724,16 +5579,6 @@
   }
   .auth-submit:active { transform: scale(0.98); background: var(--accent); }
   .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-  .auth-skip {
-    background: transparent; border: none; color: var(--muted); font-size:0.75rem; padding: 10px;
-    cursor: pointer; letter-spacing: 0.02em;
-  }
-  .auth-skip:hover { color: var(--ink-soft); }
-  .auth-warning {
-    margin-top: 14px; padding: 10px 12px; background: var(--paper-soft); border-left: 3px solid var(--accent);
-    font-family: var(--serif); font-style: italic; font-size:0.75rem; color: var(--ink-soft); border-radius: 4px;
-    text-align: left; line-height: 1.5;
-  }
 
   .hidden { display: none !important; }
   .quiet { color: var(--muted); font-size:0.75rem; font-style: italic; }
@@ -8332,11 +7177,6 @@ function getHomeAddresses() {
   return Array.isArray(arr) ? arr.filter(a => a && typeof a.value === 'string') : [];
 }
 
-function setHomeAddresses(arr) {
-  // Replace the entire list. Used by seed and any bulk mutations.
-  _userPrefs.homeAddresses = Array.isArray(arr) ? arr.slice() : [];
-  _commitPrefsChange();
-}
 
 function isHomeAddress(value) {
   if (!value) return false;
@@ -8561,11 +7401,6 @@ function captureSoftDelete(date, field, prevValue) {
   // Cap at 200 entries — should never reach this in normal use
   if (filtered.length > 200) filtered.splice(0, filtered.length - 200);
   saveSoftDeletes(filtered);
-}
-function findSoftDelete(date, field) {
-  const arr = loadSoftDeletes();
-  return arr.find(item => item.date === date && item.field === field
-    && (Date.now() - item.ts) < RES_CONFIG.SOFT_DELETE_RECOVERY_WINDOW_MS);
 }
 function clearSoftDelete(date, field) {
   const arr = loadSoftDeletes();
@@ -9386,10 +8221,6 @@ function dayCountFromStart(iso) {
   const end = Date.UTC(y2, m2 - 1, d2);
   return Math.floor((end - start) / 86400000) + 1;
 }
-function formatDayCount(n) {
-  if (n < 1) return '—';
-  return n.toLocaleString('en-IN');
-}
 
 function renderDateNav() {
   const dayName = formatDayName(currentDate);
@@ -9531,9 +8362,6 @@ function renderEntry() {
   renderSlotSuggestions(currentDate);
   // Resilience: re-render soft-delete restore badges for this date
   renderSoftDeleteBadges();
-  // [A] Today progress ring — recompute states and update display.
-  const states = computeTodaySectionState();
-  renderTodayProgressRing(states);
   // Section collapse: always reset to collapsed on date change. Status dots
   // refresh from the current entry's filled state.
   if (typeof collapseAllTodaySections === 'function') collapseAllTodaySections();
@@ -9981,7 +8809,7 @@ function scheduleSave() {
         setSaveState('');
         markDirtyFieldsSaved();  // [P] empty save still counts as committed
       }
-      // [A] Recompute today-progress ring after every save.
+      // [A] Refresh section dots and the hub ring after every save.
       updateTodayProgressRing();
     } catch (e) {
       console.error('save failed', e);
@@ -10178,77 +9006,14 @@ function expandTodaySection(cls) {
   }, 50);
 }
 
-// Render the 6-segment ring + center label. Uses six SVG arcs around a
-// circle; each segment is 60° minus a small gap. Segments are colored moss
-// when filled, neutral grey when empty.
-function renderTodayProgressRing(states) {
-  const segGroup = document.getElementById('todayProgressSegments');
-  const label = document.getElementById('todayProgressLabel');
-  const line1 = document.getElementById('todayProgressLine1');
-  const line2 = document.getElementById('todayProgressLine2');
-  if (!segGroup || !label) return;
-  // Geometry: r=24, viewBox 60x60, center 30,30. SVG is rotated -90° so 0° = top.
-  // Each segment: from (i * 60 + gap/2) to ((i+1) * 60 - gap/2). Gap = 4°.
-  const r = 24, cx = 30, cy = 30;
-  const circ = 2 * Math.PI * r;
-  const segLen = circ / 6;
-  const gap = 2; // arc length in user units (small visual gap)
-  const drawnLen = segLen - gap;
-  let svg = '';
-  for (let i = 0; i < 6; i++) {
-    const filled = states[i];
-    // strokeDashoffset positions each segment
-    const offset = -i * segLen;
-    // data-section-cls maps the segment to its target section class so the
-    // click handler can expand that section. TODAY_SECTIONS is the source
-    // of truth for index → class mapping.
-    const cls = TODAY_SECTIONS[i] ? TODAY_SECTIONS[i].cls : '';
-    svg += `<circle class="seg seg-clickable${filled ? ' filled' : ''}" data-section-cls="${cls}" cx="${cx}" cy="${cy}" r="${r}" fill="none"
-      stroke-dasharray="${drawnLen.toFixed(1)} ${(circ - drawnLen).toFixed(1)}"
-      stroke-dashoffset="${offset.toFixed(1)}"/>`;
-  }
-  segGroup.innerHTML = svg;
-  // Wire click on each segment → expand the corresponding section
-  segGroup.querySelectorAll('.seg-clickable').forEach(seg => {
-    seg.style.cursor = 'pointer';
-    seg.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const cls = seg.dataset.sectionCls;
-      if (cls && typeof expandTodaySection === 'function') {
-        expandTodaySection(cls);
-      }
-    });
-  });
-  const filledCount = states.filter(x => x).length;
-  label.textContent = filledCount + '/6';
-  // Encouraging copy that varies with progress
-  if (line1) {
-    if (filledCount === 0) line1.textContent = 'Start logging';
-    else if (filledCount === 6) line1.textContent = 'Day fully logged';
-    else if (filledCount >= 4) line1.textContent = 'Almost there';
-    else line1.textContent = 'Day in progress';
-  }
-  if (line2) {
-    if (filledCount === 6) {
-      line2.textContent = 'All sections logged';
-    } else if (filledCount === 0) {
-      line2.textContent = 'No sections logged yet';
-    } else {
-      const remaining = 6 - filledCount;
-      line2.textContent = remaining + ' section' + (remaining === 1 ? '' : 's') + ' to go';
-    }
-  }
-}
 
 // Decide initial collapsed state per section. Rules:
 //  - Past-day entries: all start collapsed (review mode)
 //  - Today: filled sections start collapsed, empty ones expanded
 //  - Future days: form is locked anyway, doesn't matter
-// Single entry point — recomputes states and updates the ring.
-// Called after every save and after every renderEntry.
+// Single entry point after every save and after every renderEntry.
+// (The classic big ring retired Aug 2026; the hub's shrunk ring took over.)
 function updateTodayProgressRing() {
-  const states = computeTodaySectionState();
-  renderTodayProgressRing(states);
   // Section status dots reflect the same state; refresh after every save
   // so dots transition empty → partial → full as the user types.
   if (typeof refreshSectionStatusDots === 'function') refreshSectionStatusDots();
@@ -10706,9 +9471,9 @@ function setTodayViewMode(mode) {
   if (typeof refreshHubState === 'function') refreshHubState();
 }
 
-// Render the shrunk 6-segment ring in the hub. Reuses the same segment
-// geometry as the classic Today ring (renderTodayProgressRing) but on the
-// smaller SVG element inside the hub.
+// Render the shrunk 6-segment ring in the hub. Reuses the segment geometry
+// of the classic Today ring (retired Aug 2026) on the smaller SVG element
+// inside the hub.
 // E3.5: Segments use each section's own accent color instead of all-moss,
 // so at a glance you see WHICH sections are filled by color.
 function renderHubRing(booleanStates) {
@@ -11427,18 +10192,6 @@ function nicemax(v) {
 }
 function fmtINR(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
 
-function chartTooltipShow(evt, html) {
-  const t = document.getElementById('chTooltip');
-  t.innerHTML = html;
-  t.classList.add('visible');
-  const x = evt.touches ? evt.touches[0].clientX : evt.clientX;
-  const y = evt.touches ? evt.touches[0].clientY : evt.clientY;
-  t.style.left = x + 'px';
-  t.style.top = y + 'px';
-}
-function chartTooltipHide() {
-  document.getElementById('chTooltip').classList.remove('visible');
-}
 
 // Shared chart-card builder. Returns the wrapping HTML around an SVG body.
 function chartCard(title, meta, svg) {
@@ -11464,148 +10217,8 @@ function renderMonthCharts(monthYM, entries) {
   wrap.innerHTML = '';
 }
 
-function renderDailySatisfactionChart(monthYM, sat, daysInMonth) {
-  const W = 380, H = 130, P = CH.pad;
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const barW = innerW / daysInMonth;
-  let bars = '';
-  let count = 0, sum = 0;
-  for (let i = 0; i < daysInMonth; i++) {
-    if (sat[i] === null) continue;
-    count++; sum += sat[i];
-    const v = sat[i]; // 0..1
-    const h = Math.max(2, v * innerH);
-    const x = P.left + i * barW + 1;
-    const yy = P.top + (innerH - h);
-    const cls = v < 0.94 ? 'ch-bar-sat-low' : 'ch-bar-sat';
-    const date = `${monthYM}-${String(i+1).padStart(2,'0')}`;
-    const tip = `${i+1}: ${(v*100).toFixed(0)}%`;
-    bars += `<rect class="ch-bar ${cls}" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${(barW-2).toFixed(1)}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
-  }
-  // Y-axis labels at 0%, 50%, 100%
-  let yLabels = '';
-  [0, 50, 100].forEach(pct => {
-    const yy = P.top + innerH - (pct/100) * innerH;
-    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${pct}%</text>`;
-    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
-  });
-  // X-axis day markers (every 5th day)
-  let xLabels = '';
-  for (let d = 1; d <= daysInMonth; d += 5) {
-    const x = P.left + (d-1) * barW + barW/2;
-    xLabels += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 6).toFixed(1)}" text-anchor="middle">${d}</text>`;
-  }
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
-  const meta = count ? `<strong>${(sum/count*100).toFixed(0)}%</strong> avg over ${count} days` : '';
-  return chartCard('Daily satisfaction', meta, svg);
-}
 
-function renderDailySpendInvestChart(monthYM, spend, invest, daysInMonth) {
-  // Divergent dual-series bar chart:
-  //   - Spend bars descend below a center baseline (rose, money-OUT)
-  //   - Invest bars ascend above the center baseline (lavender, money-IN)
-  // Each side scales to its own max independently. The center baseline is
-  // a horizontal line at the visual middle of the plot area.
-  const W = 380, H = 160;
-  const P = { top: 8, right: 8, bottom: 22, left: 32 };
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const halfH = innerH / 2;
-  const centerY = P.top + halfH;
-  const barW = innerW / daysInMonth;
 
-  const maxSpend = nicemax(Math.max(1, ...spend));
-  const maxInvest = nicemax(Math.max(1, ...invest));
-
-  let bars = '';
-  let totalSpend = 0, daysWithSpend = 0;
-  let totalInvest = 0, daysWithInvest = 0;
-
-  for (let i = 0; i < daysInMonth; i++) {
-    const date = `${monthYM}-${String(i+1).padStart(2,'0')}`;
-    const x = P.left + i * barW + 1;
-    const wBar = (barW - 2).toFixed(1);
-
-    if (invest[i] > 0) {
-      daysWithInvest++; totalInvest += invest[i];
-      const h = Math.max(2, (invest[i]/maxInvest) * halfH);
-      const y = centerY - h;
-      const tip = `${i+1}: in ${fmtINR(invest[i])}`;
-      bars += `<rect class="ch-bar ch-bar-invest" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${wBar}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
-    }
-    if (spend[i] > 0) {
-      daysWithSpend++; totalSpend += spend[i];
-      const h = Math.max(2, (spend[i]/maxSpend) * halfH);
-      const tip = `${i+1}: out ${fmtINR(spend[i])}`;
-      bars += `<rect class="ch-bar ch-bar-spend" x="${x.toFixed(1)}" y="${centerY.toFixed(1)}" width="${wBar}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
-    }
-  }
-
-  // Y-axis labels: invest max above center, spend max below.
-  // Format large values as kilos (eg ₹50k) for readability.
-  const fmtY = v => {
-    if (v >= 100000) return (v/100000).toFixed(0) + 'L';
-    if (v >= 1000) return (v/1000).toFixed(0) + 'k';
-    return Math.round(v);
-  };
-  let yLabels = '';
-  // Top: maxInvest
-  yLabels += `<text class="ch-y-marker invest" x="${P.left - 4}" y="${(P.top + 8).toFixed(1)}">${fmtY(maxInvest)}</text>`;
-  // Center: 0 baseline + bold horizontal line
-  yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(centerY + 3).toFixed(1)}">0</text>`;
-  yLabels += `<line class="ch-grid-line ch-grid-baseline" x1="${P.left}" y1="${centerY.toFixed(1)}" x2="${W - P.right}" y2="${centerY.toFixed(1)}"/>`;
-  // Bottom: maxSpend (label below the bottom of the spend area)
-  yLabels += `<text class="ch-y-marker spend" x="${P.left - 4}" y="${(P.top + innerH - 2).toFixed(1)}">${fmtY(maxSpend)}</text>`;
-
-  let xLabels = '';
-  for (let d = 1; d <= daysInMonth; d += 5) {
-    const x = P.left + (d-1) * barW + barW/2;
-    xLabels += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 4).toFixed(1)}" text-anchor="middle">${d}</text>`;
-  }
-
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
-  // Combined meta: shows both totals in their respective accent colors
-  const metaParts = [];
-  if (daysWithInvest) metaParts.push(`<span class="ch-meta-in">in <strong>${fmtINR(totalInvest)}</strong></span>`);
-  if (daysWithSpend)  metaParts.push(`<span class="ch-meta-out">out <strong>${fmtINR(totalSpend)}</strong></span>`);
-  const meta = metaParts.join(' &middot; ');
-  return chartCard('Daily spend &amp; invest', meta, svg);
-}
-
-function renderDailyWalkChart(monthYM, walk, daysInMonth) {
-  const W = 380, H = 100, P = { ...CH.pad, top: 6, bottom: 18 };
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const max = nicemax(Math.max(1, ...walk));
-  const barW = innerW / daysInMonth;
-  let bars = '';
-  let total = 0, count = 0;
-  for (let i = 0; i < daysInMonth; i++) {
-    if (walk[i] <= 0) continue;
-    count++; total += walk[i];
-    const h = Math.max(2, (walk[i]/max) * innerH);
-    const x = P.left + i * barW + 1;
-    const yy = P.top + (innerH - h);
-    const date = `${monthYM}-${String(i+1).padStart(2,'0')}`;
-    const tip = `${i+1}: ${walk[i]} min`;
-    bars += `<rect class="ch-bar ch-bar-walk" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${(barW-2).toFixed(1)}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
-  }
-  let yLabels = '';
-  [0, max].forEach(v => {
-    const yy = P.top + innerH - (v/max) * innerH;
-    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${Math.round(v)}m</text>`;
-    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
-  });
-  let xLabels = '';
-  for (let d = 1; d <= daysInMonth; d += 5) {
-    const x = P.left + (d-1) * barW + barW/2;
-    xLabels += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 4).toFixed(1)}" text-anchor="middle">${d}</text>`;
-  }
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
-  const meta = count ? `<strong>${total}</strong> min total · ${count} days walked` : '';
-  return chartCard('Daily walk (minutes)', meta, svg);
-}
 
 // =========== TRENDS (multi-year monthly aggregations) ===========
 // Returns array of {ym, sat, satCount, spendByCat:{food,dmart,uber,other}, topUp, walk, readingYes}
@@ -11919,152 +10532,6 @@ function _trendsAggregateByYear(months) {
   return Object.values(yearMap).sort((a, b) => a.year.localeCompare(b.year));
 }
 
-// CARD 1: Year over year — three small charts (spent vs invested bars,
-// avg satisfaction line, walk minutes bars). Annotations highlight peaks.
-// Hides current-year bars at 50% opacity since YTD is incomplete.
-function renderTrendYearOverYear(months) {
-  const years = _trendsAggregateByYear(months);
-  if (years.length === 0) return '';
-  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
-  const fmtCompact = n => {
-    const v = Math.round(n);
-    if (v >= 10000000) return '₹' + (v / 10000000).toFixed(1) + 'Cr';
-    if (v >= 100000) return '₹' + (v / 100000).toFixed(1) + 'L';
-    if (v >= 1000) return '₹' + (v / 1000).toFixed(0) + 'k';
-    return '₹' + v;
-  };
-
-  // Find peak years for annotations
-  let peakSpendYear = null;
-  let peakSatYear = null;
-  let peakWalkYear = null;
-  years.forEach(y => {
-    if (y.spend > 0 && (!peakSpendYear || y.spend > peakSpendYear.spend)) peakSpendYear = y;
-    if (y.satCount >= 30 && (!peakSatYear || (y.satSum / y.satCount) > (peakSatYear.satSum / peakSatYear.satCount))) peakSatYear = y;
-    if (y.walk > 0 && (!peakWalkYear || y.walk > peakWalkYear.walk)) peakWalkYear = y;
-  });
-
-  // Max scales for normalization
-  const maxSpend = Math.max(1, ...years.map(y => y.spend));
-  const maxInvest = Math.max(1, ...years.map(y => y.invest));
-  const maxMoneyBar = Math.max(maxSpend, maxInvest);
-  const maxWalk = Math.max(1, ...years.map(y => y.walk));
-
-  // === Chart 1: Spent vs Invested per year (paired bars) ===
-  // Bars and x-axis labels are emitted as TWO separate strings so the layout
-  // can place labels in a row below the chart (with its own border-top),
-  // matching the dashboard rhythm: chart → axis → caption.
-  let spendInvestBars = '';
-  let spendInvestLabels = '';
-  years.forEach(y => {
-    const spendH = y.spend > 0 ? Math.max(2, (y.spend / maxMoneyBar) * 100) : 0;
-    const investH = y.invest > 0 ? Math.max(2, (y.invest / maxMoneyBar) * 100) : 0;
-    const dim = y.isCurrentYear ? ' yoy-dim' : '';
-    spendInvestBars += `<div class="yoy-bar-col${dim}">
-      <div class="yoy-bar-stack">
-        ${spendH > 0 ? `<div class="yoy-bar spend" style="height:${spendH}%;" title="Spent ${fmt(y.spend)} in ${y.year}"></div>` : ''}
-        ${investH > 0 ? `<div class="yoy-bar invest" style="height:${investH}%;" title="Invested ${fmt(y.invest)} in ${y.year}"></div>` : ''}
-      </div>
-    </div>`;
-    const isPeak = peakSpendYear && peakSpendYear.year === y.year;
-    spendInvestLabels += `<div class="yoy-axis-tick${isPeak ? ' yoy-tick-peak' : ''}${y.isCurrentYear ? ' yoy-tick-dim' : ''}">'${y.year.slice(-2)}${y.isCurrentYear ? '*' : ''}</div>`;
-  });
-  const spendSubtitle = peakSpendYear
-    ? `${peakSpendYear.year} peak &middot; ${fmtCompact(peakSpendYear.spend)} spent`
-    : '';
-
-  // === Chart 2: Avg satisfaction (line of dots) ===
-  let satDots = '';
-  let satConnector = '';
-  if (years.some(y => y.satCount >= 10)) {
-    const satYears = years.filter(y => y.satCount >= 10);
-    const minSat = Math.min(...satYears.map(y => y.satSum / y.satCount));
-    const maxSat = Math.max(...satYears.map(y => y.satSum / y.satCount));
-    const range = Math.max(0.001, maxSat - minSat);
-    // SVG: 100 wide, 50 tall. Use viewBox so it scales.
-    const N = years.length;
-    let polyPoints = '';
-    let dotsHtml = '';
-    years.forEach((y, i) => {
-      if (y.satCount < 10) return;
-      const avgSat = y.satSum / y.satCount;
-      const x = ((i + 0.5) / N) * 100;
-      // Map satisfaction to y inverted: higher = lower y (top of SVG)
-      const yPos = 45 - ((avgSat - minSat) / range) * 35;
-      polyPoints += `${x.toFixed(1)},${yPos.toFixed(1)} `;
-      const isPeak = peakSatYear && peakSatYear.year === y.year;
-      const r = isPeak ? 3 : 2.5;
-      const opacity = y.isCurrentYear ? '0.5' : '1';
-      dotsHtml += `<circle cx="${x.toFixed(1)}" cy="${yPos.toFixed(1)}" r="${r}" fill="#1D9E75" opacity="${opacity}" ${isPeak ? 'stroke="#FFF" stroke-width="1"' : ''}/>`;
-    });
-    satConnector = `<polyline points="${polyPoints.trim()}" fill="none" stroke="#1D9E75" stroke-width="1.5" opacity="0.5"/>`;
-    satDots = `<svg viewBox="0 0 100 50" preserveAspectRatio="none" style="width:100%; height:100%;">${satConnector}${dotsHtml}</svg>`;
-  }
-  const satLabels = years.map(y => {
-    const isPeak = peakSatYear && peakSatYear.year === y.year;
-    return `<div class="yoy-axis-tick${isPeak ? ' yoy-tick-peak' : ''}${y.isCurrentYear ? ' yoy-tick-dim' : ''}">'${y.year.slice(-2)}${y.isCurrentYear ? '*' : ''}</div>`;
-  }).join('');
-  const satSubtitle = peakSatYear
-    ? `${peakSatYear.year} peak &middot; ${((peakSatYear.satSum / peakSatYear.satCount) * 100).toFixed(0)}% avg satisfaction`
-    : 'Not enough satisfaction data yet';
-
-  // === Chart 3: Walk minutes per year ===
-  let walkBars = '';
-  let walkLabels = '';
-  years.forEach(y => {
-    const h = y.walk > 0 ? Math.max(2, (y.walk / maxWalk) * 100) : 0;
-    const dim = y.isCurrentYear ? ' yoy-dim' : '';
-    walkBars += `<div class="yoy-bar-col${dim}">
-      <div class="yoy-bar-stack">
-        ${h > 0 ? `<div class="yoy-bar walk" style="height:${h}%;" title="Walked ${Math.round(y.walk).toLocaleString('en-IN')} min in ${y.year}"></div>` : ''}
-      </div>
-    </div>`;
-    const isPeak = peakWalkYear && peakWalkYear.year === y.year;
-    walkLabels += `<div class="yoy-axis-tick${isPeak ? ' yoy-tick-peak' : ''}${y.isCurrentYear ? ' yoy-tick-dim' : ''}">'${y.year.slice(-2)}${y.isCurrentYear ? '*' : ''}</div>`;
-  });
-  const walkSubtitle = peakWalkYear
-    ? `${peakWalkYear.year} peak &middot; ${Math.round(peakWalkYear.walk).toLocaleString('en-IN')} minutes walked`
-    : '';
-
-  const ytdNote = years.some(y => y.isCurrentYear)
-    ? `<span class="yoy-ytd-note">* YTD</span>` : '';
-
-  return `<div class="year-card trend-card">
-    <div class="year-card-head">
-      <span class="year-card-title">Year over year</span>
-      <span class="year-card-meta">${years[0].year} — ${years[years.length-1].year}</span>
-    </div>
-    <div class="yoy-section">
-      <div class="yoy-section-lbl">Spent vs invested per year</div>
-      <div class="yoy-bars">${spendInvestBars}</div>
-      <div class="yoy-axis">${spendInvestLabels}</div>
-      <div class="yoy-footer">
-        <div class="yoy-legend">
-          <span class="yoy-legend-item"><span class="yoy-swatch spend"></span>Spent</span>
-          <span class="yoy-legend-item"><span class="yoy-swatch invest"></span>Invested</span>
-          ${ytdNote}
-        </div>
-        <div class="yoy-caption">${spendSubtitle}</div>
-      </div>
-    </div>
-    <div class="yoy-section">
-      <div class="yoy-section-lbl">Avg satisfaction per year</div>
-      <div class="yoy-sat-wrap">${satDots}</div>
-      <div class="yoy-axis">${satLabels}</div>
-      <div class="yoy-footer">
-        <div class="yoy-caption">${satSubtitle}</div>
-      </div>
-    </div>
-    <div class="yoy-section">
-      <div class="yoy-section-lbl">Walk minutes per year</div>
-      <div class="yoy-bars">${walkBars}</div>
-      <div class="yoy-axis">${walkLabels}</div>
-      <div class="yoy-footer">
-        <div class="yoy-caption">${walkSubtitle}</div>
-      </div>
-    </div>
-  </div>`;
-}
 
 // CARD 2: All-time spending — where every rupee has gone since the first
 // logged month. Visual pattern matches the existing Other Breakdown card
@@ -12526,263 +10993,8 @@ function buildYearTicks(months, P, W, innerW, H) {
   return ticks;
 }
 
-function renderTrendSatisfaction(months) {
-  const W = 380, H = 160, P = { top: 10, right: 8, bottom: 22, left: 32 };
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const total = months.length;
-  // y-axis: 0..1 (0%..100%). For visual clarity, find the meaningful range
-  const validVals = months.filter(m => m.satCount > 0).map(m => m.satSum / m.satCount);
-  if (!validVals.length) {
-    return chartCard('Satisfaction trend', '', '<div class="chart-empty">No satisfaction data</div>');
-  }
-  const minV = Math.max(0, Math.min(...validVals) - 0.05);
-  const maxV = Math.min(1, Math.max(...validVals) + 0.05);
-  const range = maxV - minV;
-  const barW = innerW / total;
-  // Build path (skip months with no data — stop and restart)
-  let path = '';
-  let dots = '';
-  let pen = null;
-  months.forEach((m, i) => {
-    const x = P.left + (i + 0.5) / total * innerW;
-    if (m.satCount === 0) { pen = null; return; }
-    const v = m.satSum / m.satCount;
-    const yy = P.top + innerH - ((v - minV) / range) * innerH;
-    if (pen === null) path += `M${x.toFixed(1)},${yy.toFixed(1)} `;
-    else path += `L${x.toFixed(1)},${yy.toFixed(1)} `;
-    pen = { x, y: yy };
-    const tip = `${ymTitle(m.ym)}: ${(v*100).toFixed(1)}%`;
-    dots += `<circle class="ch-dot ch-tooltip-target" cx="${x.toFixed(1)}" cy="${yy.toFixed(1)}" r="2.5" data-jump-ym="${m.ym}" data-tip="${escAttr(tip)}"/>`;
-  });
-  // Y-axis labels — pick clean stops
-  const ySteps = 4;
-  let yLabels = '';
-  for (let i = 0; i <= ySteps; i++) {
-    const v = minV + (range * i / ySteps);
-    const yy = P.top + innerH - (i / ySteps) * innerH;
-    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${(v*100).toFixed(0)}%</text>`;
-    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
-  }
-  const xLabels = buildYearTicks(months, P, W, innerW, H);
-  const overall = validVals.reduce((a,b) => a+b, 0) / validVals.length;
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}<path class="ch-line" d="${path}"/>${dots}${xLabels}</svg>`;
-  return chartCard('Satisfaction trend', `Overall avg <strong>${(overall*100).toFixed(1)}%</strong> · ${validVals.length} months`, svg);
-}
 
-// Phase 6: Monthly outflow trend.
-// Stacked bars per month: daily food / dmart / uber / other (rose-family) +
-// recurring actuals on top (lavender-tinted). The recurring layer only appears
-// for months that have actuals data (post-Phase 2 launch). Pre-Phase 2 months
-// show daily-only — historical bills were embedded in the 'other' field then.
-// Phase 7 — T1: Monthly cash flow (replaces Outflow + Investment trends).
-// Single divergent chart per month: investment bars going UP from the center
-// baseline (Regular bottom, Top-up top), spend+recurring bars going DOWN
-// (Food/DMart/Transport/Other + Recurring stack). Each side scales to its
-// own max independently. Same metaphor as the daily spend & invest chart so
-// readers don't need to relearn anything.
-function renderTrendCashFlow(months) {
-  const W = 380, H = 200;
-  const P = { top: 10, right: 8, bottom: 22, left: 38 };
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const halfH = innerH / 2;
-  const centerY = P.top + halfH;
-  const total = months.length;
-  const barW = innerW / total;
 
-  // Compute max per side for independent scaling
-  const investTotals = months.map(m => (m.regularInvestment || 0) + (m.topUp || 0) - (m.investmentRedemption || 0));
-  const outflowTotals = months.map(m => m.food + m.dmart + m.uber + (m.aiUsage || 0) + (m.shopping || 0) + (m.hotelStay || 0) + m.other + (m.recurring || 0));
-  const maxInvest = nicemax(Math.max(1, ...investTotals));
-  const maxOutflow = nicemax(Math.max(1, ...outflowTotals));
-
-  // Sums for meta
-  const totalInvest = investTotals.reduce((a, b) => a + b, 0);
-  const totalOutflow = outflowTotals.reduce((a, b) => a + b, 0);
-  const recurringTotal = months.reduce((s, m) => s + (m.recurring || 0), 0);
-
-  let bars = '';
-  // Stack categories on the spend side (bottom-up: food → dmart → uber → aiUsage → shopping → hotelStay → other → recurring)
-  const outCats = [
-    { key: 'food', cls: 'ch-bar-spend-food', label: 'Food' },
-    { key: 'dmart', cls: 'ch-bar-spend-dmart', label: 'Groceries' },
-    { key: 'uber', cls: 'ch-bar-spend-uber', label: 'Transport' },
-    { key: 'aiUsage', cls: 'ch-bar-spend-aiUsage', label: 'AI Usage' },
-    { key: 'shopping', cls: 'ch-bar-spend-shopping', label: 'Shopping' },
-    { key: 'hotelStay', cls: 'ch-bar-spend-hotelStay', label: 'Hotel stay' },
-    { key: 'entertainment', cls: 'ch-bar-spend-entertainment', label: 'Entertainment' },
-    { key: 'taxes', cls: 'ch-bar-spend-taxes', label: 'Taxes' },
-    { key: 'other', cls: 'ch-bar-spend-other', label: 'Other expenses' },
-  ];
-  // Investment side: regular (bottom) → top-up (above)
-  const inCats = [
-    { key: 'regularInvestment', cls: 'ch-bar-invest-reg', label: 'Regular' },
-    { key: 'topUp', cls: 'ch-bar-invest-topup', label: 'Top-Up' },
-  ];
-
-  months.forEach((m, i) => {
-    const x = P.left + i * barW + 1;
-    const w = Math.max(1, barW - 1.5);
-
-    // Investment side — going UP from centerY
-    let yCursorUp = centerY;
-    for (const c of inCats) {
-      const v = m[c.key] || 0;
-      if (v <= 0) continue;
-      const h = (v / maxInvest) * halfH;
-      yCursorUp -= h;
-      const tip = ymTitle(m.ym) + ' ' + c.label + ': ' + fmtINR(v);
-      bars += `<rect class="ch-bar ${c.cls} ch-tooltip-target" x="${x.toFixed(1)}" y="${yCursorUp.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" data-jump-ym="${m.ym}" data-tip="${escAttr(tip)}"/>`;
-    }
-
-    // Outflow side — going DOWN from centerY
-    let yCursorDown = centerY;
-    for (const c of outCats) {
-      const v = m[c.key];
-      if (v <= 0) continue;
-      const h = (v / maxOutflow) * halfH;
-      const tip = ymTitle(m.ym) + ' ' + c.label + ': ' + fmtINR(v);
-      bars += `<rect class="ch-bar ${c.cls} ch-tooltip-target" x="${x.toFixed(1)}" y="${yCursorDown.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" data-jump-ym="${m.ym}" data-tip="${escAttr(tip)}"/>`;
-      yCursorDown += h;
-    }
-    // Recurring stack on top (i.e. furthest from baseline) on the down side
-    const rec = m.recurring || 0;
-    if (rec > 0) {
-      const h = (rec / maxOutflow) * halfH;
-      const tip = ymTitle(m.ym) + ' Recurring: ' + fmtINR(rec);
-      bars += `<rect class="ch-bar ch-bar-recurring ch-tooltip-target" x="${x.toFixed(1)}" y="${yCursorDown.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" data-jump-ym="${m.ym}" data-tip="${escAttr(tip)}"/>`;
-    }
-  });
-
-  // Y-axis labels: max-invest at top (lavender), 0 at center, max-outflow at bottom (rose)
-  const fmtY = v => {
-    if (v >= 100000) return '₹' + (v/100000).toFixed(1) + 'L';
-    if (v >= 1000) return '₹' + Math.round(v/1000) + 'k';
-    return '₹' + Math.round(v);
-  };
-  let yLabels = '';
-  yLabels += `<text class="ch-y-marker invest" x="${P.left - 4}" y="${(P.top + 8).toFixed(1)}">${fmtY(maxInvest)}</text>`;
-  yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(centerY + 3).toFixed(1)}">0</text>`;
-  yLabels += `<line class="ch-grid-line ch-grid-baseline" x1="${P.left}" y1="${centerY.toFixed(1)}" x2="${W - P.right}" y2="${centerY.toFixed(1)}"/>`;
-  yLabels += `<text class="ch-y-marker spend" x="${P.left - 4}" y="${(P.top + innerH - 2).toFixed(1)}">${fmtY(maxOutflow)}</text>`;
-
-  const xLabels = buildYearTicks(months, P, W, innerW, H);
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
-  // Combined meta: shows both totals in their accent colors
-  const meta = `<span class="ch-meta-in">in <strong>${fmtINR(totalInvest)}</strong></span> &middot; <span class="ch-meta-out">out <strong>${fmtINR(totalOutflow)}</strong></span>`;
-  const legend = `<div class="ch-legend">
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#3B3490"></span>Regular inv.</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#7A6FE0"></span>Top-up inv.</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#8A1F1A"></span>Food</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#A04A45"></span>Groceries</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#BD7570"></span>Transport</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#C98682"></span>AI Usage</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#8B5A4A"></span>Shopping</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#6B4A5C"></span>Hotel stay</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#9C5D3F"></span>Entertainment</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#4A4036"></span>Taxes</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#D9A09B"></span>Other expenses</div>
-    ${recurringTotal > 0 ? '<div class="ch-legend-item"><span class="ch-legend-swatch" style="background:#534AB7"></span>Recurring</div>' : ''}
-  </div>`;
-  return chartCard('Monthly cash flow', meta, svg + legend);
-}
-
-// Phase 7 — T3: Walk + satisfaction trend (replaces standalone Walk chart).
-// Twin-axis chart: walk minutes per month as moss bars (left axis),
-// avg satisfaction % as lavender line (right axis). Brings the previously-
-// orphaned satisfaction-trend data into view.
-// Phase 7 — W1: Walk volume × consistency × trailing-12-month-average goal.
-// Three signals in one chart:
-//   1. Bar height — total walk minutes that month
-//   2. Bar opacity — strong moss if ≥ trailing 12-month avg, faded if below
-//   3. Dot above each bar — radius scales with number of days walked
-// The goal line is a trailing 12-month moving average — auto-adapts so the
-// "above/below" coloring tracks your current trajectory rather than a static
-// number that gets stale.
-// Phase 7+: T2 — Net monthly savings line chart.
-// Single signal per month: investment minus outflow (including recurring).
-// Positive months → moss-tinted dot above zero baseline. Negative months →
-// rose dot below baseline. Filled area below the line emphasizes accumulated
-// trend. The simplest possible answer to "am I building wealth?".
-function renderTrendNetSavings(months) {
-  const W = 380, H = 170;
-  const P = { top: 14, right: 8, bottom: 22, left: 38 };
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const total = months.length;
-  if (total === 0) {
-    return chartCard('Net monthly savings', '', '<div class="chart-empty">No data</div>');
-  }
-
-  // Compute net per month: (regular + topUp) - (food + dmart + uber + aiUsage + shopping + hotelStay + other + recurring)
-  const nets = months.map(m => {
-    const inflow = (m.regularInvestment || 0) + (m.topUp || 0) - (m.investmentRedemption || 0);
-    const outflow = m.food + m.dmart + m.uber + (m.aiUsage || 0) + (m.shopping || 0) + (m.hotelStay || 0) + m.other + (m.recurring || 0);
-    return inflow - outflow;
-  });
-  const maxAbs = Math.max(1, ...nets.map(n => Math.abs(n)));
-  const niceMaxAbs = nicemax(maxAbs);
-  // Center baseline (zero) sits at midline of plot area.
-  const halfH = innerH / 2;
-  const centerY = P.top + halfH;
-  const barW = innerW / total;
-
-  // Build the line path + dots
-  let pathD = '';
-  let areaD = '';
-  let dots = '';
-  let positiveCount = 0, negativeCount = 0, sumNet = 0;
-  nets.forEach((n, i) => {
-    sumNet += n;
-    if (n >= 0) positiveCount++; else negativeCount++;
-    const x = P.left + i * barW + barW / 2;
-    const y = centerY - (n / niceMaxAbs) * halfH;
-    pathD += (i === 0 ? 'M' : 'L') + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
-    // Dot per month — color by sign
-    const cls = n >= 0 ? 'ch-dot-net-pos' : 'ch-dot-net-neg';
-    const r = n >= 0 ? 3 : 3.5; // slightly larger for negative — flag bad months
-    const tip = ymTitle(months[i].ym) + ' net: ' + (n >= 0 ? '+' : '') + fmtINR(n);
-    dots += `<circle class="${cls} ch-tooltip-target" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}" data-jump-ym="${months[i].ym}" data-tip="${escAttr(tip)}"/>`;
-  });
-  // Build the filled-area shape (line + close back to baseline)
-  if (nets.length > 0) {
-    const firstX = P.left + 0 * barW + barW / 2;
-    const lastX = P.left + (nets.length - 1) * barW + barW / 2;
-    areaD = `M ${firstX.toFixed(1)} ${centerY.toFixed(1)} ` + pathD.slice(1) + ` L ${lastX.toFixed(1)} ${centerY.toFixed(1)} Z`;
-  }
-
-  // Y-axis labels: + max at top (moss), 0 at center, − max at bottom (ember)
-  const fmtY = v => {
-    if (v >= 100000) return (v/100000).toFixed(1) + 'L';
-    if (v >= 1000) return Math.round(v/1000) + 'k';
-    return Math.round(v);
-  };
-  let yLabels = '';
-  yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${(P.top + 4).toFixed(1)}" x2="${W - P.right}" y2="${(P.top + 4).toFixed(1)}"/>`;
-  yLabels += `<line class="ch-grid-line ch-grid-baseline" x1="${P.left}" y1="${centerY.toFixed(1)}" x2="${W - P.right}" y2="${centerY.toFixed(1)}"/>`;
-  yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${(P.top + innerH - 4).toFixed(1)}" x2="${W - P.right}" y2="${(P.top + innerH - 4).toFixed(1)}"/>`;
-  yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(P.top + 8).toFixed(1)}" fill="var(--moss)" font-weight="700">+₹${fmtY(niceMaxAbs)}</text>`;
-  yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(centerY + 3).toFixed(1)}">0</text>`;
-  yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(P.top + innerH - 2).toFixed(1)}" fill="var(--accent)" font-weight="700">−₹${fmtY(niceMaxAbs)}</text>`;
-
-  const xLabels = buildYearTicks(months, P, W, innerW, H);
-  // Layer order: grid → fill area → line → dots → x-labels
-  const area = areaD ? `<path class="ch-area-net" d="${areaD}"/>` : '';
-  const line = pathD ? `<path class="ch-line-net" d="${pathD.trim()}" fill="none"/>` : '';
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${area}${line}${dots}${xLabels}</svg>`;
-
-  // Meta: avg net + month-positivity ratio
-  const avgNet = sumNet / total;
-  const sign = avgNet >= 0 ? '+' : '';
-  const avgColor = avgNet >= 0 ? 'var(--moss)' : 'var(--accent)';
-  const meta = `<span style="color:${avgColor}">avg <strong>${sign}${fmtINR(avgNet)}</strong>/mo</span> &middot; <strong>${positiveCount}</strong> of ${total} months positive`;
-  const legend = `<div class="ch-legend">
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:var(--moss); border-radius:50%"></span>Positive (saved more than spent)</div>
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:var(--accent); border-radius:50%"></span>Negative (spent more than saved)</div>
-  </div>`;
-  return chartCard('Net monthly savings', meta, svg + legend);
-}
 
 // =============================================================================
 // [F] PATTERNS CARD — auto-generated correlation insights from existing data.
@@ -12993,59 +11205,6 @@ function patternHomeVsAway() {
   };
 }
 
-function renderTrendPatterns(months) {
-  // Run all pattern detectors. Each returns either a card object or null.
-  // Render only the non-nulls. If nothing qualifies, render a friendly empty state.
-  const detected = [
-    patternWalkVsSatisfaction(),
-    patternReadingVsSatisfaction(),
-    patternBestMonthSatisfaction(months),
-    patternMostWalkedMonth(months),
-    patternReadingStreak(),
-    patternDayOfWeek(),
-    patternHomeVsAway(),
-  ].filter(p => p !== null);
-
-  // Icon library — small inline SVGs keyed by icon name. Stroke uses currentColor.
-  const ICONS = {
-    walk: '<path d="M13 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/><path d="M11 13l-2 8M14 13l3 7M9 11l-3 3M11 13l4-3 3 5"/>',
-    book: '<path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
-    star: '<path d="M12 2 L14.5 9 L22 9 L16 13.5 L18 21 L12 16.5 L6 21 L8 13.5 L2 9 L9.5 9 Z"/>',
-    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="16" y1="3" x2="16" y2="7"/>',
-    home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
-  };
-
-  if (detected.length === 0) {
-    return `<div class="patterns-card empty">
-      <div class="patterns-head">
-        <span class="patterns-title">Patterns</span>
-      </div>
-      <div class="patterns-empty">Not enough data yet to surface reliable patterns. Keep logging — checks back in once thresholds are met (typically 10+ days per group).</div>
-    </div>`;
-  }
-
-  let cards = '';
-  for (const p of detected) {
-    const icon = ICONS[p.icon] || ICONS.star;
-    cards += `<div class="pattern-card">
-      <div class="pattern-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>
-      </div>
-      <div class="pattern-body">
-        <div class="pattern-title">${p.title}</div>
-        <div class="pattern-text">${p.body}</div>
-        <div class="pattern-sub">${p.sub}</div>
-      </div>
-    </div>`;
-  }
-  return `<div class="patterns-card">
-    <div class="patterns-head">
-      <span class="patterns-title">Patterns</span>
-      <span class="patterns-meta">${detected.length} insight${detected.length === 1 ? '' : 's'}</span>
-    </div>
-    ${cards}
-  </div>`;
-}
 
 function formatShortDate(iso) {
   const [y, m, d] = iso.split('-').map(Number);
@@ -13053,39 +11212,6 @@ function formatShortDate(iso) {
   return d + ' ' + NAMES[m - 1] + ' ' + y;
 }
 
-function renderTrendHabits(months) {
-  const W = 380, H = 150, P = { top: 8, right: 8, bottom: 22, left: 32 };
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const total = months.length;
-  // Plot reading as % of days logged (Improve was removed in cleanup).
-  const max = 100;
-  let pathR = '';
-  let dotsR = '';
-  let penR = null;
-  months.forEach((m, i) => {
-    const x = P.left + (i + 0.5) / total * innerW;
-    if (m.daysLogged === 0) { penR = null; return; }
-    const r = (m.readingYes / m.daysLogged) * 100;
-    const yR = P.top + innerH - (r / max) * innerH;
-    pathR += (penR === null ? 'M' : 'L') + x.toFixed(1) + ',' + yR.toFixed(1) + ' ';
-    penR = { x, y: yR };
-    const tipR = `${ymTitle(m.ym)} reading: ${m.readingYes}/${m.daysLogged} days (${r.toFixed(0)}%)`;
-    dotsR += `<circle class="ch-dot ch-tooltip-target" cx="${x.toFixed(1)}" cy="${yR.toFixed(1)}" r="2" data-jump-ym="${m.ym}" data-tip="${escAttr(tipR)}"/>`;
-  });
-  let yLabels = '';
-  [0, 25, 50, 75, 100].forEach(v => {
-    const yy = P.top + innerH - (v/max) * innerH;
-    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy+3).toFixed(1)}">${v}%</text>`;
-    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
-  });
-  const xLabels = buildYearTicks(months, P, W, innerW, H);
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}<path class="ch-line" d="${pathR}"/>${dotsR}${xLabels}</svg>`;
-  const legend = `<div class="ch-legend">
-    <div class="ch-legend-item"><span class="ch-legend-swatch" style="background:var(--accent)"></span>Reading</div>
-  </div>`;
-  return chartCard('Reading consistency', '% of logged days marked Yes', svg + legend);
-}
 
 // =========== SEARCH ACROSS ALL ENTRIES ===========
 // Client-side full-text search. Narrow scope: only free-text fields.
@@ -14126,58 +12252,6 @@ function renderMonthAccordions(monthYM, entries) {
   });
 }
 
-// CC tracking: dedicated bar chart for credit card bill payments in this
-// month. NOT counted in any outflow/spend total — these amounts were
-// already counted via the underlying daily expense categories. This chart
-// answers a different question: "how much CC bill did I pay this month?"
-// Card hides itself when no CC payments are logged for the month.
-function renderMonthCcChart(monthYM, entries) {
-  const wrap = document.getElementById('monthCcChart');
-  if (!wrap) return;
-  const ccEntries = entries
-    .map(({date, entry: e}) => ({ date, amt: evalExpr(e.creditCardBill) }))
-    .filter(r => r.amt !== null && r.amt > 0);
-  if (ccEntries.length === 0) { wrap.innerHTML = ''; return; }
-  const total = ccEntries.reduce((s, r) => s + r.amt, 0);
-  const [Y, M] = monthYM.split('-').map(Number);
-  const daysInMonth = new Date(Y, M, 0).getDate();
-  // Build a per-day array (1-indexed) so the bar chart spans the full month.
-  const byDay = new Array(daysInMonth + 1).fill(0);
-  ccEntries.forEach(r => {
-    const d = Number(r.date.split('-')[2]);
-    if (d >= 1 && d <= daysInMonth) byDay[d] = r.amt;
-  });
-  const W = 700, H = 180, P = { top: 12, right: 12, bottom: 22, left: 50 };
-  const innerW = W - P.left - P.right;
-  const innerH = H - P.top - P.bottom;
-  const max = nicemax(Math.max(1, ...byDay));
-  const barW = innerW / daysInMonth;
-  let bars = '';
-  for (let i = 1; i <= daysInMonth; i++) {
-    if (byDay[i] <= 0) continue;
-    const h = Math.max(2, (byDay[i] / max) * innerH);
-    const x = P.left + (i - 1) * barW + 1;
-    const yy = P.top + (innerH - h);
-    const date = `${monthYM}-${String(i).padStart(2, '0')}`;
-    const tip = `${i}: ₹${Math.round(byDay[i]).toLocaleString('en-IN')}`;
-    bars += `<rect class="ch-bar ch-bar-cc" x="${x.toFixed(1)}" y="${yy.toFixed(1)}" width="${(barW-2).toFixed(1)}" height="${h.toFixed(1)}" rx="1" data-month-day="${date}" data-tip="${escAttr(tip)}"/>`;
-  }
-  let yLabels = '';
-  [0, max].forEach(v => {
-    const yy = P.top + innerH - (v / max) * innerH;
-    const label = v >= 1000 ? '₹' + Math.round(v / 1000) + 'k' : '₹' + v;
-    yLabels += `<text class="ch-y-marker" x="${P.left - 4}" y="${(yy + 3).toFixed(1)}">${label}</text>`;
-    yLabels += `<line class="ch-grid-line" x1="${P.left}" y1="${yy.toFixed(1)}" x2="${W - P.right}" y2="${yy.toFixed(1)}"/>`;
-  });
-  let xLabels = '';
-  for (let d = 1; d <= daysInMonth; d += 5) {
-    const x = P.left + (d - 1) * barW + barW / 2;
-    xLabels += `<text class="ch-x-marker" x="${x.toFixed(1)}" y="${(H - 4).toFixed(1)}" text-anchor="middle">${d}</text>`;
-  }
-  const svg = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${yLabels}${bars}${xLabels}</svg>`;
-  const meta = `<strong>₹${Math.round(total).toLocaleString('en-IN')}</strong> paid · ${ccEntries.length} ${ccEntries.length === 1 ? 'payment' : 'payments'} · <span style="opacity:0.7">not included in spend</span>`;
-  wrap.innerHTML = chartCard('Credit card bill payments', meta, svg);
-}
 
 // Other breakdown card (Month + Year). Renders horizontal bars for the top 3
 // individual Other items by total amount, plus a 4th rolled-up "All other"
@@ -16673,197 +14747,7 @@ function pdfSectionHeader(doc, y, label) {
 // date), with no group sub-headers. Layout primitives (fonts, colors, page
 // breaks) are preserved from the previous design.
 
-function pdfDrawRecurringPage(doc, year, monthIdx, recurringSnapshot) {
-  pdfSetFill(doc, PDF_COLORS.page);
-  doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
 
-  const monthName = MONTH_NAMES_FULL[monthIdx];
-  const fmt = n => 'Rs. ' + Math.round(n).toLocaleString('en-IN');
-  const count = recurringSnapshot.items.length;
-
-  // === Header kicker + title ===
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.4);
-  doc.text(`RECURRING  ·  ${monthName.toUpperCase()} ${year}`, PDF_PAGE.marginX, PDF_PAGE.marginTop);
-  doc.setCharSpace(0);
-
-  doc.setFont('times', 'italic');
-  doc.setFontSize(20);
-  pdfSetText(doc, PDF_COLORS.ink);
-  doc.text('Monthly bills', PDF_PAGE.marginX, PDF_PAGE.marginTop + 9);
-
-  // Subtitle — count + total inline (matches the chosen Option 1 layout).
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  pdfSetText(doc, PDF_COLORS.muted);
-  const subLine = count === 0
-    ? 'No payments logged this month'
-    : `${count} ${count === 1 ? 'payment' : 'payments'} logged · ${fmt(recurringSnapshot.logged)} total`;
-  doc.text(subLine, PDF_PAGE.marginX, PDF_PAGE.marginTop + 14);
-
-  // === PAID stat block ===
-  let y = PDF_PAGE.marginTop + 22;
-  const totalsBoxH = 18;
-  pdfSetFill(doc, [251, 248, 243]); // cream
-  pdfSetDraw(doc, PDF_COLORS.rule);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(PDF_PAGE.marginX, y, PDF_PAGE.contentWidth, totalsBoxH, 1, 1, 'FD');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.5);
-  doc.text('PAID', PDF_PAGE.marginX + 6, y + 5.5);
-  doc.setCharSpace(0);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  pdfSetText(doc, PDF_COLORS.moss);
-  doc.text(fmt(recurringSnapshot.logged), PDF_PAGE.marginX + 6, y + 13.5);
-  y += totalsBoxH + 8;
-
-  // === Empty-month case ===
-  if (count === 0) {
-    doc.setFont('times', 'italic');
-    doc.setFontSize(10);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text('Nothing to list.', PDF_PAGE.marginX, y + 4);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.text(`${monthName} ${year}  ·  recurring`,
-             PDF_PAGE.width / 2, PDF_PAGE.height - 8, { align: 'center' });
-    return;
-  }
-
-  // === Column header row ===
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.5);
-  doc.text('DATE', PDF_PAGE.marginX, y);
-  doc.text('ITEM', PDF_PAGE.marginX + 22, y);
-  doc.text('AMOUNT', PDF_PAGE.width - PDF_PAGE.marginX, y, { align: 'right' });
-  doc.setCharSpace(0);
-  pdfSetDraw(doc, PDF_COLORS.rule);
-  doc.setLineWidth(0.3);
-  doc.line(PDF_PAGE.marginX, y + 2, PDF_PAGE.width - PDF_PAGE.marginX, y + 2);
-  y += 7;
-
-  // === Flat chronological rows ===
-  for (const it of recurringSnapshot.items) {
-    // Page-break safety
-    if (y > PDF_PAGE.height - PDF_PAGE.marginBottom - 14) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      pdfSetText(doc, PDF_COLORS.muted);
-      doc.text(`${monthName} ${year}  ·  recurring (continued)`,
-               PDF_PAGE.width / 2, PDF_PAGE.height - 8, { align: 'center' });
-      doc.addPage();
-      pdfSetFill(doc, PDF_COLORS.page);
-      doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
-      y = PDF_PAGE.marginTop;
-      // Re-draw column header on continuation page
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7);
-      pdfSetText(doc, PDF_COLORS.muted);
-      doc.setCharSpace(0.5);
-      doc.text('DATE', PDF_PAGE.marginX, y);
-      doc.text('ITEM', PDF_PAGE.marginX + 22, y);
-      doc.text('AMOUNT', PDF_PAGE.width - PDF_PAGE.marginX, y, { align: 'right' });
-      doc.setCharSpace(0);
-      pdfSetDraw(doc, PDF_COLORS.rule);
-      doc.setLineWidth(0.3);
-      doc.line(PDF_PAGE.marginX, y + 2, PDF_PAGE.width - PDF_PAGE.marginX, y + 2);
-      y += 7;
-    }
-
-    // Day chip — small cream pill with day-of-month + ordinal
-    const dayLabel = `${it.day}${recDayOrdinal(it.day)}`;
-    pdfSetFill(doc, [244, 240, 232]);
-    doc.roundedRect(PDF_PAGE.marginX, y - 2.5, 16, 5.5, 0.8, 0.8, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    pdfSetText(doc, PDF_COLORS.inkSoft);
-    doc.text(dayLabel, PDF_PAGE.marginX + 8, y + 1, { align: 'center' });
-
-    // Item name
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    pdfSetText(doc, PDF_COLORS.ink);
-    doc.text(pdfTruncate(doc, it.name, 95), PDF_PAGE.marginX + 22, y + 1);
-
-    // Amount (moss)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    pdfSetText(doc, PDF_COLORS.moss);
-    doc.text(fmt(it.amt), PDF_PAGE.width - PDF_PAGE.marginX, y + 1, { align: 'right' });
-
-    // Dotted row sep
-    pdfSetDraw(doc, PDF_COLORS.rule);
-    doc.setLineWidth(0.12);
-    doc.setLineDashPattern([0.4, 0.4], 0);
-    doc.line(PDF_PAGE.marginX, y + 3.5, PDF_PAGE.width - PDF_PAGE.marginX, y + 3.5);
-    doc.setLineDashPattern([], 0);
-    y += 6;
-  }
-
-  // === Footer total bar ===
-  y += 3;
-  if (y > PDF_PAGE.height - PDF_PAGE.marginBottom - 14) {
-    doc.addPage();
-    pdfSetFill(doc, PDF_COLORS.page);
-    doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
-    y = PDF_PAGE.marginTop;
-  }
-  pdfSetDraw(doc, PDF_COLORS.rule);
-  doc.setLineWidth(0.4);
-  doc.line(PDF_PAGE.marginX, y, PDF_PAGE.width - PDF_PAGE.marginX, y);
-  y += 5;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.5);
-  doc.text('TOTAL PAID', PDF_PAGE.marginX, y);
-  doc.setCharSpace(0);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  pdfSetText(doc, PDF_COLORS.moss);
-  doc.text(fmt(recurringSnapshot.logged), PDF_PAGE.width - PDF_PAGE.marginX, y, { align: 'right' });
-
-  // Page-bottom marker
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.text(`${monthName} ${year}  ·  recurring`,
-           PDF_PAGE.width / 2, PDF_PAGE.height - 8, { align: 'center' });
-}
-
-// Helper: build a snapshot of the month's recurring payments for the PDF.
-// Phase 11+: REPOINTED to System 2 (per-day recurring_log). Each payment
-// becomes one snapshot item with { date, day, name, amt }. Items are sorted
-// chronologically by date, with stable secondary sort by name for same-day
-// payments. Returns null if the month has no payments, so the caller can
-// skip generating an empty page.
-function buildRecurringSnapshot(yearMonth) {
-  const items = [];
-  Object.keys(allEntries).forEach(d => {
-    if (!d.startsWith(yearMonth)) return;
-    parseRecurring(allEntries[d]).forEach(p => {
-      const amt = Number(p.amt) || 0;
-      if (amt <= 0) return;
-      const day = parseInt(d.slice(8, 10), 10) || 0;
-      items.push({ date: d, day, name: String(p.name || '').trim() || 'Unnamed', amt });
-    });
-  });
-  // Chronological ascending (Day 1 → Day 31); same-day items alphabetical by name
-  items.sort((a, b) => {
-    if (a.date !== b.date) return a.date < b.date ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
-  if (items.length === 0) return null;
-  const logged = items.reduce((s, it) => s + it.amt, 0);
-  return { items, logged };
-}
 
 // Helper: truncate text to fit within maxMm at the current font setting.
 function pdfTruncate(doc, text, maxMm) {

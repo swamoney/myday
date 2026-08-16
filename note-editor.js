@@ -599,11 +599,6 @@
      One Markdown file of every note in every room (Favourites, Inner Life,
      Roadmaps, Circle). My Wisdom is excluded: it archives third-party HTML
      pages, which belong in their own export, not a notes file. */
-  function _grab(c, table, order) {
-    var q = c.supa.from(table).select('*').eq('user_id', c.userId);
-    if (order) q = q.order(order, { ascending: true });
-    return q.then(function (r) { return (r && r.data) || []; }, function () { return []; });
-  }
   // EVERY table the app writes to. Adding a table without adding it here means
   // that data sits outside every backup ever taken — silently.
   var EXPORT_TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',

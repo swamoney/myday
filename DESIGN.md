@@ -29,6 +29,23 @@ Plus `note-editor.js` (shared by every room), `hub.webmanifest` + `icon-180.png`
 (what makes the hub installable on a phone), the `sql/` folder (every migration,
 the schema's own history), and `DESIGN.md` — this file.
 
+**Dead-code purge, Aug 2026.** A three-part audit (unreferenced functions,
+CSS classes unused outside comments, dangling id refs) removed ~95KB / 10.8%
+of daily.html: six superseded Trends faces, the old chart system, the classic
+Today progress ring (a guarded zombie — its markup left long ago, the
+renderer no-opped on every save), five orphaned helpers, and ~330 CSS rules
+of removed features (hotel list, week grid, outflow-breakdown variants,
+total-card era, and the dead functions' own private styles — CSS cascades:
+removing a function kills the classes only it rendered). Plus slugify
+(favourites), _grab (note-editor), ic-fav/shade-fav (hub). Rules learned:
+comments must not vote in liveness detection (a stale comment kept
+.today-progress "alive"); dynamically-created ids (exp-footer-redemption)
+defeat dangling-id scans — grep for `.id =` before declaring one dead; and a
+class family sharing a prefix is not one feature (outflow-bd-tape was dead,
+outflow-bd-card is load-bearing). When a feature is retired, its functions,
+calls, markup, AND CSS leave the same day — half-removed features become
+zombies that every future audit must re-litigate.
+
 Retired Aug 2026: `wisdom.html` and `hub.html` (Wisdom became a native My
 Library section; the old hub became `index.html`). The `wisdom` TABLE lives on
 in Supabase, in backups, and in restore until the migration to `bookmarks` is
