@@ -725,11 +725,8 @@
               color:#5A6478; background:#fff; border:1px solid #cdd6e4; border-radius:8px;
               padding:6px 12px; cursor:pointer; }
   .pp-pgbtn.primary { background:#0A1325; color:#fff; border-color:#0A1325; }
-  .pp-wbar { margin-bottom:8px; }
-  .pp-write { min-height:42vh; font-family:var(--serif); font-size:1rem; line-height:1.75;
-              color:#1d2536; background:#fff; border:1px solid #dfe5ee; border-radius:12px;
-              padding:16px 18px; outline:none; }
-  .pp-write:focus { border-color:#8B97AC; }
+  .pp-wbar { margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #eceff5; }
+  .pp-write { min-height:120px; outline:none; caret-color:var(--pgs,#5A6478); }
   .pp-pgempty { text-align:center; padding:30px 0 10px; }
   .pp-pgempty button { font-family:var(--mono); font-size:0.6563rem; letter-spacing:0.12em;
         text-transform:uppercase; color:#5A6478; background:none; border:1px dashed #c6cfdd;
@@ -2362,7 +2359,7 @@ async function ppOpenPage(id) {
   if (!e) return;
   ppPageEntry_ = id;
   const hue = ppPageHue_();
-  const phd = el('ppPageHead');
+  const phd = el('ppPage');   // vars on the root: header and caret both inherit
   phd.style.setProperty('--pgt', ppBlend_(hue.lt, 0.26));
   phd.style.setProperty('--pgs', hue.solid);
   phd.style.setProperty('--pgi', hue.ink);
@@ -2399,7 +2396,7 @@ function ppOpenWriter_(body) {
     + '<button class="pp-pgbtn" type="button" id="ppWriteCancel">Cancel</button>'
     + '<button class="pp-pgbtn primary" type="button" id="ppWriteSave">Save story</button></div>'
     + '<div class="pp-wbar" id="ppWriteBar"></div>'
-    + '<div class="pp-write" id="ppWriteBox" contenteditable="true"></div>';
+    + '<div class="pp-rd pp-write" id="ppWriteBox" contenteditable="true"></div>';
   el('ppWriteBox').innerHTML = NoteEditor.toHtml(body || '');
   // The same editor the pillar essays use: one language for all writing.
   ppEditor_ = NoteEditor.mount({ toolbar: el('ppWriteBar'), editor: el('ppWriteBox') });

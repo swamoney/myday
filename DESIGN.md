@@ -364,7 +364,12 @@ not named in a rebuild map is silently deleted on the next reload.
 
 **Each page carries its own three output paths** (copy / download .md /
 print, as header icons beside the ✎) so a story can be handed over
-without handing over the app. The why-name eyebrow is a **chip: white on the
+without handing over the app. **Writing happens on the page itself, never
+in a box** (Aug 2026): Edit keeps the story in place with reading
+typography (the writer wears .pp-rd), the toolbar sits above a hairline,
+and the only cues are the toolbar and a caret in the pillar's solid — the
+pillar-essay feeling. Hue vars (--pgt/--pgs/--pgi) are set on the page ROOT
+so header and caret both inherit. The why-name eyebrow is a **chip: white on the
 pillar's solid** — solid carrying white is what solid exists for. It first
 shipped as solid-coloured text on the tint (≈4.1), the exact
 decoration-as-text trap this very section warns about; the rule catches its
