@@ -330,13 +330,33 @@ circle at a time. **Completing always asks for the month** — things are
 often finished before they are marked, and a trail that silently stamps
 “now” lies a little every time.
 
-**Journey pages** (Aug 2026): every trail entry can open into its own page —
-pillar-hued header (solid to ink), the line as a serif title, its month, and
-a long-form body: plain text, blank line = paragraph, the format that will
-still open in 2056. Tapping a row opens the page; the entry popup moved one
-tap deeper (the ✎ in the page header, which also deletes — the page goes
-with the entry, and the confirm says so). Storied rows wear a quiet ¶ in
-the trail and in print, md, and export.
+**Journey pages** (Aug 2026): every trail entry can open into its own page,
+laid out at the shared room width (§2.8) as a card on the room's blue
+ground. The header is the pillar's **soft tint with ink text** and a thin
+solid rule — the same clothing the pillar pages wear; never a loud
+gradient. The body is rich text written with the app's own **NoteEditor**
+(the pillar-essay editor: one toolbar, one sanitiser, one language for all
+writing), stored as sanitised HTML in why_journeys; legacy plain-text bodies
+render fine because toHtml converts them. Tapping a row opens the page; the
+entry popup moved one tap deeper (the ✎ in the page header, which also
+deletes — the page goes with the entry, and the confirm says so). Storied
+rows wear a quiet ¶ in the trail and in print, md, and export; the room
+zip echoes each story via xRich_ and files it standalone as .md through
+NoteEditor.toMarkdown.
+
+**Each page carries its own three output paths** (copy / download .md /
+print, as header icons beside the ✎) so a story can be handed over
+without handing over the app. The why-name eyebrow is a **chip: white on the
+pillar's solid** — solid carrying white is what solid exists for. It first
+shipped as solid-coloured text on the tint (≈4.1), the exact
+decoration-as-text trap this very section warns about; the rule catches its
+own author too.
+
+**Full-screen layers in why.html have a stacking ladder**: rmw 500, person
+window 520, journey page 560, modal overlays 900. A new layer must take a
+rung on this ladder, not a guessed number — the journey page first shipped
+at 260 and opened invisibly underneath the roadmap window it was tapped
+from; no verification suite catches a layer hidden below the floor.
 
 **Journey storage rule**: bodies live in their own table, `why_journeys`
 (one row per page, unique on user_id + entry_id), and NEVER in the roadmap
