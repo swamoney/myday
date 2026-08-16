@@ -689,10 +689,10 @@
             border:none; cursor:pointer; padding:0 2px; }
   body.rm-editing .pp-pen { display:inline-block; }
   .pp-top { display:flex; justify-content:flex-end; margin-bottom:12px; }
-  .pp-aj { font-family:var(--mono); font-size:0.625rem; font-weight:600; letter-spacing:0.1em;
-           text-transform:uppercase; color:#fff; background:#5f6b85; border:none; border-radius:9px;
-           padding:8px 13px; cursor:pointer; }
-  .pp-aj:hover { filter:brightness(0.92); }
+  .pp-aj { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em;
+           text-transform:uppercase; color:var(--aj-ink,#28324B); background:none;
+           border:1px solid var(--aj-sol,#8189a0); border-radius:8px; padding:5px 10px; cursor:pointer; }
+  .pp-aj:hover { background:rgba(0,0,0,0.03); }
   .pp-mark { font-size:0.6875rem; color:#8B97AC; margin-left:4px; }
   .pp-page { position:fixed; inset:0; background:#fbfcfe; z-index:560; display:none;
              overflow:auto; padding:26px 18px 70px; }
@@ -2352,7 +2352,10 @@ function renderPp() {
   box.classList.toggle('hidden', !parts.length);
   box.innerHTML = parts.join('');
   const aj = el('ppJourney');
-  if (aj) aj.style.background = hue.solid;   // solid carries white (RAINBOW note)
+  if (aj) {   // A1 ghost: hairline in the pillar's solid, text in its ink
+    aj.style.setProperty('--aj-sol', hue.solid);
+    aj.style.setProperty('--aj-ink', hue.ink);
+  }
   renderPpLedger();
 }
 function ppShort_(m) {
