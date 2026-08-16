@@ -13,19 +13,26 @@ Written August 2026.
 A personal life-tracking app for one person, used daily, intended to outlive every
 framework fashionable at the time of writing.
 
-**Five rooms:**
+**The rooms:**
 
 | Room | File | Holds |
 |---|---|---|
 | Hub | `index.html` | the way in |
 | My Day | `daily.html` | the daily log, spending, almanac |
-| My Why | `why.html` | pillars, circle, priority, mantras, bucket list, explore list |
-| My Favourites | `favourites.html` | bookmarks |
-| My Wisdom | `wisdom.html` | quotes and passages worth keeping |
+| My Why | `why.html` | pillars & journey pages, circle, priority, mantras, bucket list, explore list |
+| My Wealth | `wealth.html` | investments, snapshots, the Before-I-spend chamber |
+| My Library | `favourites.html` | seven sections — music, podcasts, books, wisdom & more |
 | My Inner Life | `introspection.html` | private entries |
 | Restore | `restore.html` | reading a backup back in |
 
-Plus `note-editor.js`, shared by every room, and `DESIGN.md` — this file.
+Plus `note-editor.js` (shared by every room), `hub.webmanifest` + `icon-180.png`
+(what makes the hub installable on a phone), the `sql/` folder (every migration,
+the schema's own history), and `DESIGN.md` — this file.
+
+Retired Aug 2026: `wisdom.html` and `hub.html` (Wisdom became a native My
+Library section; the old hub became `index.html`). The `wisdom` TABLE lives on
+in Supabase, in backups, and in restore until the migration to `bookmarks` is
+proven complete — files are UI, tables are memory.
 
 **Stack:** pure HTML, CSS and JavaScript. Supabase for data, Vercel for hosting.
 No build step, no framework, no package manager.
