@@ -1137,7 +1137,7 @@ el('ibCopy') && el('ibCopy').addEventListener('click', exportEntryCopy);
 el('ibMd') && el('ibMd').addEventListener('click', exportEntryMd);
 el('ibPrint') && el('ibPrint').addEventListener('click', exportEntryPrint);
 el('editToggle').addEventListener('click', function(){ var on = document.body.classList.toggle('editing'); el('editWord').textContent = on ? 'Done' : 'Edit'; });
-// Print the view as you see it - full bodies, because a printed diary is the point.
+// Print mirrors the screen: what the cards show, nothing more.
 function printIntro_() {
   const list = viewRows();
   if (!list.length) { toast('Nothing to print here yet'); return; }
@@ -1147,12 +1147,10 @@ function printIntro_() {
     + (list.length === 1 ? ' entry' : ' entries') + '</div>';
   list.forEach(r => {
     const k = KIND[r.kind];
-    const dt = r.created_at ? new Date(r.created_at).toDateString().slice(4) : '';
-    const meta = [(k && k.lbl) || '', r.status || '', dt].filter(Boolean).join(' \u00B7 ');
-    body += '<div class="it"><div class="t">' + escHtml(r.title || 'Untitled') + '</div>'
-      + (meta ? '<div class="m">' + escHtml(meta) + '</div>' : '')
-      + ((r.essence || '').trim() ? '<div class="e">' + escHtml(r.essence.trim()) + '</div>' : '')
-      + ((r.body || '').trim() ? '<div class="b">' + escHtml(r.body.trim()) + '</div>' : '')
+    body += '<div class="it"><div class="m">' + escHtml((k && k.lbl) || '') + '</div>'
+      + '<div class="t">' + escHtml(r.title || 'Untitled') + '</div>'
+      + (r.essence ? '<div class="e">' + escHtml(r.essence) + '</div>' : '')
+      + ((r.tags || []).length ? '<div class="m" style="margin-top:4px">' + escHtml(r.tags.join(' \u00B7 ')) + '</div>' : '')
       + '</div>';
   });
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Introspection</title>'
