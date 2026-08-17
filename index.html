@@ -76,13 +76,17 @@
   @media (max-width:760px){ .shell { padding:0; } }
 
   .hub-head { text-align:center; margin-bottom:30px; position:relative; }
-  /* M2a: the prism stands left of the words, vertically centred against
-     the whole three-line block; the words stay centred as they always were. */
-  .hub-lock { display:flex; justify-content:center; align-items:center; gap:14px; }
+  /* E2: the words own the page centre; the prism hangs beside them as a
+     satellite (absolutely positioned, adds no width). Below 370px the mark
+     tucks above the title so it never pushes the words off the spine. */
+  .hub-lock { position:relative; display:inline-block; }
+  .hub-mark { position:absolute; right:100%; margin-right:14px; top:50%; transform:translateY(-50%); }
   .hub-mark svg { width:58px; height:58px; display:block; }
-  .hub-tx { text-align:center; }
-  @media (max-width:520px) { .hub-lock { gap:10px; }
+  .hub-tx { display:block; text-align:center; }
+  @media (max-width:520px) { .hub-mark { margin-right:10px; }
     .hub-mark svg { width:46px; height:46px; } }
+  @media (max-width:370px) { .hub-lock { display:block; }
+    .hub-mark { position:static; transform:none; margin:0 0 10px; display:flex; justify-content:center; } }
   .hub-greet { font-family:var(--sans); font-size:0.6875rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#5C6884; margin-bottom:10px; }
   .hub-title { font-family:var(--serif); font-size:clamp(2.25rem, 8vw, 3rem); font-weight:600; letter-spacing:-0.02em; line-height:1.02; color:#182233; display:inline-block; }
   /* T3: the P24 signature (88x6) under the biggest name in the app -
@@ -91,11 +95,16 @@
     background:linear-gradient(90deg,#e0554b,#e88a3c,#e6c02e,#3fa168,#3d8fd6,#9a63d1); }
   .hub-sub { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#4A5570; margin-top:6px; }
   /* Sign-out — now at the page end, centered below the footer. */
-  .signout-end { display:flex; flex-direction:column; align-items:center; gap:7px; margin-top:34px; }
-  .signout-btn { width:42px; height:42px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.7); border:1px solid #dce3ee; border-radius:11px; color:#4A5570; cursor:pointer; transition:border-color .15s, color .15s, background .15s; }
-  .signout-btn svg { width:1.1875rem; height:1.1875rem; }
-  .signout-btn:hover { border-color:#a8443e; color:#a8443e; background:#fff; }
-  .signout-label { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.14em; text-transform:uppercase; color:#56607A; }
+  /* B1: the rooms' sign-off pill, with the hub's own two verbs. */
+  .end-wrap { display:flex; flex-direction:column; align-items:center; gap:0; margin:30px 0 4px; }
+  .end-actions { display:inline-flex; border:1px solid #e2e8f2; border-radius:999px; overflow:hidden; background:#fff; }
+  .end-actions button { display:flex; align-items:center; gap:5px; background:none; border:none;
+    font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; font-weight:600; letter-spacing:0.08em;
+    text-transform:uppercase; color:#5A6478; padding:6px 11px; cursor:pointer; border-right:1px solid #eef1f6; }
+  .end-actions button:last-child { border-right:none; }
+  .end-actions button svg { width:12px; height:12px; }
+  .end-actions button:hover { color:#0A1325; background:#f6f8fb; }
+  .end-actions #signOutBtn:hover { color:#a8443e; }
 
   /* Banner grid: Daily spans the full row, the other four sit in a row of four. */
   .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
@@ -103,12 +112,7 @@
      child 2. An odd number of rooms therefore ends on an even child — that one
      stretches across instead of sitting alone. Works for any number, forever. */
   .cards > .card:not(.feat):last-child:nth-child(even) { grid-column:1 / -1; }
-  .backup-end { display:flex; flex-direction:column; align-items:center; gap:6px; margin:26px 0 4px; }
-  .backup-btn { width:40px; height:40px; border-radius:50%; border:1px solid #dce3ee; background:#fff; color:#3a4560; cursor:pointer; display:flex; align-items:center; justify-content:center; }
-  .backup-btn:hover { border-color:#0F2D5C; color:#0F2D5C; }
-  .backup-btn svg { width:1.0625rem; height:1.0625rem; }
-  .backup-label { font-size:0.6875rem; color:#4A5570; }
-  .backup-age { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; letter-spacing:0.05em; color:#56607A; }
+  .backup-age { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; letter-spacing:0.05em; color:#56607A; margin-top:7px; }
   .backup-age.warn { color:#b8860b; font-weight:600; }
   .backup-age:empty { display:none; }
   @media (max-width:560px){ .cards { grid-template-columns:1fr; } }
@@ -282,18 +286,12 @@
     </div>
   </div>
 
-  <div class="backup-end">
-    <button class="backup-btn" id="exportAllBtn" type="button" title="Download a complete backup: every note and entry, all rooms, three files">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-    </button>
-    <span class="backup-label">Backup everything</span>
+  <div class="end-wrap">
+    <div class="end-actions">
+      <button id="exportAllBtn" type="button" title="Download a complete backup: every note and entry, all rooms, three files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span id="backupWord">Backup</span></button>
+      <button id="signOutBtn" title="Sign out" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>Sign out</button>
+    </div>
     <span class="backup-age" id="backupAge"></span>
-  </div>
-  <div class="signout-end">
-    <button class="signout-btn" id="signOutBtn" title="Sign out" aria-label="Sign out">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-    </button>
-    <span class="signout-label">Sign out</span>
   </div>
  </div></div>
 </main>
@@ -602,17 +600,17 @@ boot();
   var b = document.getElementById('exportAllBtn');
   if (!b || !window.NoteEditor) return;
   b.addEventListener('click', async function () {
-    var lbl = document.querySelector('.backup-label');
+    var lbl = document.getElementById('backupWord');
     try {
       var s = await supa.auth.getSession();
       var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
       if (!uid) { alert('Sign in first, then back up.'); return; }
       NoteEditor.versions.connect(function () { return { supa: supa, userId: uid }; });
-      if (lbl) lbl.textContent = 'Preparing 3 files\u2026';
+      if (lbl) lbl.textContent = 'Preparing\u2026';
       NoteEditor.exportLibrary();
       stampBackup(uid);
-      setTimeout(function () { if (lbl) lbl.textContent = 'Backup everything'; }, 4000);
-    } catch (e) { alert('Backup failed to start.'); if (lbl) lbl.textContent = 'Backup everything'; }
+      setTimeout(function () { if (lbl) lbl.textContent = 'Backup'; }, 4000);
+    } catch (e) { alert('Backup failed to start.'); if (lbl) lbl.textContent = 'Backup'; }
   });
 })();
 

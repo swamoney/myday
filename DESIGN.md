@@ -46,10 +46,31 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
-**The mark on the hub** (M2a, Aug 2026): the prism stands left of the
-masthead — tile-free, 58px (46 on small screens) — vertically centred
-against the whole three-line block, while greeting, title, and subtitle
-stay centre-aligned exactly as they always were. Inlined from
+**The hub's second polish** (Aug 2026, from a Claude Design review): the
+review mostly rediscovered what the hub already had (the navy band, gold
+remain pill, month grid, and % lived all predate it), so only true deltas
+were taken, each argued through an A/B mock: the band deepened to near-ink
+(#232f52 to #141d38 — the page's one dark object should anchor like one;
+white 16.6:1); the month grid grew to 13px cells and the % to 1.25rem
+because the year-spent figure must survive an arm's-length glance; room
+cards grew to 200px min-height at 22px radius with larger chips — but the
+title stays beside its chip (the bottom-settled title opens a dead zone
+with one-line descriptions); the creed left its frosted box (a benediction,
+not a widget — rooms are boxes because they are doors); and One Life took
+the P24 signature rule, 88x6 centred, in the full rainbow — the biggest
+name in the app signed the way every Why is signed. Known debt, accepted
+knowingly: the creed's gradient line sits under the large-text contrast
+floor (worst stop 1.51 on the bare page); a repaint in the seven pillar
+solids (all 3.97+) was offered and declined for now.
+
+**The mark on the hub** (M2a→E2, Aug 2026): the prism stands left of the
+masthead — tile-free, 58px (46 small screens) — but as a SATELLITE:
+absolutely positioned off the text block (right:100%), so the words own
+the true page centre. Rahul's eye caught the flaw in plain M2a: centring
+icon+gap+text as one unit pushed One Life 36px off the page spine that the
+band, creed, dots, and pill all hang from. Below 370px the mark tucks
+above the title, centred. Lesson: when a mark joins a centred composition,
+the composition's centre must not move. Inlined from
 icon.svg with the tile rect stripped at build time; regenerate from the
 master, never redraw. The footers (hub and rooms) stay markless by choice.
 
