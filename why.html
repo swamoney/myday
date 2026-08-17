@@ -1614,6 +1614,9 @@ async function loadPillars() {
     pillars = data;
   }
   renderSpine();
+  // A dot on the hub can point here: ?rm=<id> opens that roadmap on arrival.
+  const rmQ = new URLSearchParams(location.search).get('rm');
+  if (rmQ && pillars.some(p => String(p.id) === String(rmQ))) openRoadmap(rmQ);
   if (typeof loadMantras === 'function') loadMantras();
   if (typeof loadCircle === 'function') loadCircle();
   if (typeof loadPlaces === 'function') loadPlaces();

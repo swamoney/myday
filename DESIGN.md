@@ -426,6 +426,15 @@ any row — Now, Lineups, or trail — opens its page; the chip wears the
 pillar's NAME (p.num) and the item's status; the ✎ routes to the item or
 entry popup by kind; deleting an item deletes its page and says so.
 
+**The spine reaches the hub** (H1, Aug 2026): under the footer's soul line,
+index.html fetches the real pillars (ids and names only) and draws the
+rainbow in the user's true order, hues, and count — RAINBOW and hueFor are
+copied verbatim from why.html at build time, never re-invented. Tapping a
+dot opens why.html?rm=<id>; why.html reads the parameter after pillars load
+and opens that roadmap on arrival. The ?rm= deep link now exists for any
+future pointer (bookmarks, other rooms). Under the line that says each
+colour completes your soul sit the actual colours, not a stock rainbow.
+
 **The spine rides everywhere** (W1, Aug 2026): the rainbow dot-row lives
 directly under the section chips on the main page (one fixed home, every
 section — a landmark that moves is half a landmark), under the bar inside
