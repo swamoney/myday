@@ -68,10 +68,14 @@ title stays beside its chip (the bottom-settled title opens a dead zone
 with one-line descriptions); the creed left its frosted box (a benediction,
 not a widget — rooms are boxes because they are doors); and One Life took
 the P24 signature rule, 88x6 centred, in the full rainbow — the biggest
-name in the app signed the way every Why is signed. Known debt, accepted
-knowingly: the creed's gradient line sits under the large-text contrast
-floor (worst stop 1.51 on the bare page); a repaint in the seven pillar
-solids (all 3.97+) was offered and declined for now.
+name in the app signed the way every Why is signed. The creed's contrast debt
+was settled the same day (F3): Rahul's eye caught the footer reading
+wrong; the diagnosis was an inverted hierarchy (the creed at 1.0625rem
+introducing its 1.3125rem elaboration) plus the old gradient's washed-out
+midsection. Now the creed leads at 1.375rem in deep ink (10.9:1) and the
+rainbow line answers at 1rem, rebuilt from the seven pillar solids (worst
+stop 3.97 vs the 3.0 large-text floor) - the sentence about the soul's
+colours written in the soul's actual colours, rhyming with the dots below.
 
 **The mark on the hub** (M2a→E2, Aug 2026): the prism stands left of the
 masthead — tile-free, 58px (46 small screens) — but as a SATELLITE:
