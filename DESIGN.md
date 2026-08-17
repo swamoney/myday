@@ -46,6 +46,13 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The mark on the hub** (L1, Aug 2026): the prism crowns the masthead —
+tile-free, 52px (44 on small screens), centred above the greeting — so the
+beam enters, One Life stands beneath, and the title's rainbow rule reads as
+the rays continuing. The crown is inlined from icon.svg with the tile rect
+stripped at build time; regenerate from the master, never redraw. The
+footers (hub and rooms) stay markless by choice — the crown carries it.
+
 **The mark** (Aug 2026): a prism — one ink beam enters, seven colours
 leave. The theme as physics: living well is what splits one life into all
 its colours. Master is `icon.svg` (512 grid, cream tile, ink #16264d, the
