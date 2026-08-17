@@ -67,6 +67,13 @@
   .end-actions button:disabled { opacity:0.5; cursor:not-allowed; }
   .end-actions #signOutBtn:hover { color:#a8443e; }
   .end-actions #editToggle.active { color:#a5702f; background:#fbf6ec; }
+  .soul-dots { display:flex; gap:9px; justify-content:center; padding:12px 0 2px; flex-wrap:wrap; }
+  .soul-dot { width:16px; height:16px; border-radius:50%; border:none; padding:0; cursor:pointer;
+              box-shadow:0 1px 4px rgba(20,30,60,0.16), inset 0 -2px 3px rgba(0,0,0,0.12),
+                         inset 0 2px 3px rgba(255,255,255,0.5); transition:transform .12s; }
+  .soul-dot:hover { transform:scale(1.22); }
+  .soul-colo { text-align:center; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.16em;
+               text-transform:uppercase; color:#b8c2d2; padding:7px 0 2px; }
   .why-eyebrow { font-family:'Caveat',cursive; font-weight:500; font-size:1.4375rem; letter-spacing:0.01em; color:#f3d585; margin-bottom:12px; }
   .why-title { font-family:var(--serif); font-size:3.125rem; font-weight:600; letter-spacing:-0.02em; line-height:1; }
   .why-line { font-family:var(--serif); font-style:italic; font-size:1rem; margin-top:13px; color:rgba(255,255,255,0.7); max-width:520px; }
@@ -1026,6 +1033,8 @@
     <button id="exportBtn" type="button" title="Export all of My Why" aria-label="Export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span id="exportWord">Export</span></button>
     <button id="signOutBtn" title="Sign out" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>Sign out</button>
   </div></div>
+  <div class="soul-dots" id="soulDots"></div>
+  <div class="soul-colo">one life, live it well</div>
 </main>
 
 
@@ -1596,6 +1605,22 @@ async function loadPillars() {
   // A dot on the hub can point here: ?rm=<id> opens that roadmap on arrival.
   const rmQ = new URLSearchParams(location.search).get('rm');
   if (rmQ && pillars.some(p => String(p.id) === String(rmQ))) openRoadmap(rmQ);
+  const sd = el('soulDots');
+  if (sd) {
+    sd.innerHTML = pillars.map((p, i) => {
+      const c = hueFor(i, pillars.length);
+      const nm = p.label || p.num || p.code || 'This why';
+      return '<button class="soul-dot" type="button" data-sdrm="' + p.id + '" title="' + escHtml(nm)
+        + '" aria-label="' + escHtml(nm) + ' \u2014 roadmap"'
+        + ' style="background:radial-gradient(circle at 35% 32%, ' + c.lt + ', ' + c.mid + ' 62%, ' + c.deep + ')"></button>';
+    }).join('');
+    if (!sd._wired) { sd._wired = true;
+      sd.addEventListener('click', e => {
+        const d = e.target.closest('[data-sdrm]');
+        if (d) openRoadmap(d.dataset.sdrm);
+      });
+    }
+  }
   if (typeof loadMantras === 'function') loadMantras();
   if (typeof loadCircle === 'function') loadCircle();
   if (typeof loadPlaces === 'function') loadPlaces();

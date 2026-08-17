@@ -426,6 +426,15 @@ any row — Now, Lineups, or trail — opens its page; the chip wears the
 pillar's NAME (p.num) and the item's status; the ✎ routes to the item or
 entry popup by kind; deleting an item deletes its page and says so.
 
+**How a room signs off** (X3, Aug 2026): every room except My Day ends the
+same way — a compact hairline pill of that room's own verbs (icon + word at
+caption size; rooms without a verb simply have no segment for it), then the
+soul dots (16px, live pillars via the shared fetch pattern, each a ?rm= door
+to its roadmap; My Why renders them from its local pillars and opens the
+roadmap directly), then the colophon line. The hub keeps its own ending —
+it already closes with the soul line and full-size dots, and a signature
+repeated too often becomes wallpaper. Sign out always leans red on hover.
+
 **The spine reaches the hub** (H1, Aug 2026): under the footer's soul line,
 index.html fetches the real pillars (ids and names only) and draws the
 rainbow in the user's true order, hues, and count — RAINBOW and hueFor are

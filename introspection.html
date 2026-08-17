@@ -169,14 +169,26 @@
   @media (max-width:560px){ .sticky { width:100%; transform:none !important; } }
 
   /* END ACTIONS */
-  .end-actions { display:flex; justify-content:center; gap:34px; margin:30px 0 6px; }
-  .end-actions .cell { display:flex; flex-direction:column; align-items:center; gap:7px; }
-  .ib { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.72); border:1px solid #dce3ee; color:#7a8498; cursor:pointer; transition:all .15s; }
-  .ib svg { width:19px; height:19px; }
-  .ib.exp:hover { border-color:#3d7a5c; color:#3d7a5c; background:#fff; }
-  .ib.out:hover { border-color:#a8443e; color:#a8443e; background:#fff; }
-  .ib:disabled { opacity:0.5; cursor:not-allowed; }
-  .end-cap { font-family:var(--mono); font-size:0.5938rem; letter-spacing:0.14em; text-transform:uppercase; color:#9aa4ba; }
+  /* ---- the room's ending: compact pill + the soul dots + the line (X3) ---- */
+  .end-wrap { display:flex; justify-content:center; margin-top:22px; }
+  .end-actions { display:inline-flex; border:1px solid #e2e8f2; border-radius:999px; overflow:hidden;
+                 background:#fff; }
+  .end-actions button { display:flex; align-items:center; gap:5px; background:none; border:none;
+                        font-family:var(--mono); font-size:0.5625rem; font-weight:600;
+                        letter-spacing:0.08em; text-transform:uppercase; color:#5A6478;
+                        padding:6px 11px; cursor:pointer; border-right:1px solid #eef1f6; }
+  .end-actions button:last-child { border-right:none; }
+  .end-actions button svg { width:12px; height:12px; }
+  .end-actions button:hover { color:#0A1325; background:#f6f8fb; }
+  .end-actions button:disabled { opacity:0.5; cursor:not-allowed; }
+  .end-actions #signOutBtn:hover { color:#a8443e; }
+  .soul-dots { display:flex; gap:9px; justify-content:center; padding:12px 0 2px; flex-wrap:wrap; }
+  .soul-dot { width:16px; height:16px; border-radius:50%; border:none; padding:0; cursor:pointer;
+              box-shadow:0 1px 4px rgba(20,30,60,0.16), inset 0 -2px 3px rgba(0,0,0,0.12),
+                         inset 0 2px 3px rgba(255,255,255,0.5); transition:transform .12s; }
+  .soul-dot:hover { transform:scale(1.22); }
+  .soul-colo { text-align:center; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.16em;
+               text-transform:uppercase; color:#b8c2d2; padding:7px 0 2px; }
 
   /* READER */
   /* Reader takes the section's own colour, so opening an entry keeps you in
@@ -337,24 +349,13 @@
         <div class="board" id="board"></div>
       </div>
 
-      <div class="end-actions">
-        <div class="cell">
-          <button class="ib edit" id="editToggle" type="button" title="Edit" aria-label="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
-          <span class="end-cap" id="editCap">Edit</span>
-        </div>
-        <div class="cell">
-          <button class="ib exp" id="exportBtn" type="button" title="Export everything" aria-label="Export">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-          </button>
-          <span class="end-cap" id="exportCap">Export</span>
-        </div>
-        <div class="cell">
-          <button class="ib out" id="signOutBtn" type="button" title="Sign out" aria-label="Sign out">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-          </button>
-          <span class="end-cap">Sign out</span>
-        </div>
-      </div>
+  <div class="end-wrap"><div class="end-actions">
+    <button id="editToggle" type="button" title="Edit" aria-label="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="editWord">Edit</span></button>
+    <button id="exportBtn" type="button" title="Export" aria-label="Export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span id="exportWord">Export</span></button>
+    <button id="signOutBtn" type="button" title="Sign out" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>Sign out</button>
+  </div></div>
+  <div class="soul-dots" id="soulDots"></div>
+  <div class="soul-colo">one life, live it well</div>
 
     </div>
   </div>
@@ -554,7 +555,7 @@ function isWriting(kind) { return false; } // status removed: entries are simple
 // ===== AUTH =====
 async function boot() {
   const { data: { session } } = await supa.auth.getSession();
-  if (session && session.user) { userId = session.user.id; showApp(); await loadAll(); }
+  if (session && session.user) { userId = session.user.id; showApp(); renderSoulDots(); await loadAll(); }
   else { el('authOverlay').classList.remove('hidden'); }
 }
 function showApp() { el('authOverlay').classList.add('hidden'); el('app').classList.remove('hidden'); }
@@ -1095,7 +1096,7 @@ async function deleteNote(id) {
 async function exportAll() {
   if (!rows.length && !notes.length) { toast('Nothing to export yet'); return; }
   if (typeof JSZip === 'undefined') { toast('Export library not loaded'); return; }
-  const cap = el('exportCap'); const btn = el('exportBtn');
+  const cap = el('exportWord'); const btn = el('exportBtn');
   const old = cap ? cap.textContent : ''; if (cap) cap.textContent = 'Exporting\u2026'; if (btn) btn.disabled = true;
   try {
     const zip = new JSZip();
@@ -1134,7 +1135,44 @@ el('signOutBtn').addEventListener('click', handleSignOut);
 el('ibCopy') && el('ibCopy').addEventListener('click', exportEntryCopy);
 el('ibMd') && el('ibMd').addEventListener('click', exportEntryMd);
 el('ibPrint') && el('ibPrint').addEventListener('click', exportEntryPrint);
-el('editToggle').addEventListener('click', function(){ var on = document.body.classList.toggle('editing'); el('editCap').textContent = on ? 'Done' : 'Edit'; });
+el('editToggle').addEventListener('click', function(){ var on = document.body.classList.toggle('editing'); el('editWord').textContent = on ? 'Done' : 'Edit'; });
+const SOUL_RAINBOW = [
+  { lt:'#F9A79F', mid:'#F2867C', deep:'#C9564A', ink:'#5E1810', solid:'#c05247' },   // red
+  { lt:'#F8C894', mid:'#F0A85F', deep:'#C87B25', ink:'#5C3205', solid:'#a3641e' },   // orange
+  { lt:'#FFE79A', mid:'#F7D368', deep:'#D3AC2C', ink:'#544006', solid:'#8b711d' },   // yellow
+  { lt:'#A6D6B2', mid:'#7FBE92', deep:'#4E9060', ink:'#153A21', solid:'#468156' },   // green
+  { lt:'#A8C6EA', mid:'#7FA8DA', deep:'#4C7BB5', ink:'#10294A', solid:'#4876ad' },   // blue
+  { lt:'#BCB8E8', mid:'#9A95D4', deep:'#6A64AE', ink:'#1E1B47', solid:'#6a64ae' },   // indigo
+  { lt:'#D6B0E2', mid:'#BC8ECC', deep:'#8C61A0', ink:'#361A40', solid:'#8c61a0' }    // violet
+];
+function soulHue_(i, total) {
+  if (total <= 1) return SOUL_RAINBOW[2];                     // a lone why keeps the gold
+  return SOUL_RAINBOW[Math.round(i * (SOUL_RAINBOW.length - 1) / (total - 1))];
+}
+function sdEsc_(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+async function renderSoulDots() {
+  const box = el('soulDots');
+  if (!box || !userId || box._wired) return;
+  try {
+    const { data } = await supa.from('why_pillars').select('id,label,num,code,sort_order')
+      .eq('user_id', userId).order('sort_order', { ascending: true });
+    const ps = data || [];
+    if (!ps.length) return;
+    box.innerHTML = ps.map((p, i) => {
+      const c = soulHue_(i, ps.length);
+      const nm = p.label || p.num || p.code || 'This why';
+      return '<button class="soul-dot" type="button" data-rm="' + p.id + '" title="' + sdEsc_(nm)
+        + '" aria-label="' + sdEsc_(nm) + ' \u2014 roadmap"'
+        + ' style="background:radial-gradient(circle at 35% 32%, ' + c.lt + ', ' + c.mid + ' 62%, ' + c.deep + ')"></button>';
+    }).join('');
+    box._wired = true;
+    box.addEventListener('click', e => {
+      const d = e.target.closest('[data-rm]');
+      if (d) location.href = 'why.html?rm=' + encodeURIComponent(d.dataset.rm);
+    });
+  } catch (e2) { console.error(e2); }
+}
+
 el('newBtn').addEventListener('click', () => openModal(null));
 el('exportBtn').addEventListener('click', exportAll);
 el('fKind').addEventListener('change', syncModalForKind);
