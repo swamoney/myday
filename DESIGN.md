@@ -46,6 +46,16 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The year-progress block rebalanced** (O2, Aug 2026): Rahul spotted that
+after the second polish the 63% stack (13px grid + 1.25rem number + caption,
+~90px) outgrew the date column (~80px) beside it. Fix: geometry, not
+retreat — the grid and the number now stand side by side (.feat-sym is a
+row; pct + caption in .feat-sym-col), dropping the block to ~47px, inside
+the row's rhythm, with both arm's-length legibility wins untouched. A 6x2
+grid was rejected as calendar-false; shrinking the % was rejected as
+giving back a won argument. Lesson: two individually-right growths can
+still be jointly wrong — measure the stack, not just the parts.
+
 **The hub's second polish** (Aug 2026, from a Claude Design review): the
 review mostly rediscovered what the hub already had (the navy band, gold
 remain pill, month grid, and % lived all predate it), so only true deltas
