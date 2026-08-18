@@ -554,9 +554,15 @@
   .bk-stars-ro b { font-size:0.75rem; line-height:1; color:#d8d2c0; font-weight:400; }
   .bk-stars-ro b.on { color:#e0a81c; }
   .bk-stars-ro.empty { opacity:0.55; }
-  /* the rating lives on the done page only - its own line beneath the stamp */
+  /* the rating lives on the done page only - its own line beneath the stamp.
+     Read mode shows the given stars quietly; judging happens in edit mode. */
   .bk-ratebox { margin-top:12px; border:1px solid #e3d9b8; background:#fffdf6; border-radius:14px;
                 padding:14px 18px; display:flex; flex-direction:column; gap:7px; width:fit-content; }
+  body:not(.p-editing) .bk-ratebox .rlbl { display:none; }
+  body:not(.p-editing) .bk-ratebox .rcap.hint { display:none; }
+  body:not(.p-editing) .bk-ratebox { border-color:transparent; background:transparent; padding:0; margin-top:8px; }
+  body:not(.p-editing) .bk-ratebox .rstars b { cursor:default; pointer-events:none; font-size:1.125rem; }
+  body:not(.p-editing) .bk-ratebox.unrated { display:none; }
   .bk-ratebox.hidden { display:none; }
   .bk-ratebox .rlbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
                       text-transform:uppercase; color:#8a6d1a; }
@@ -4826,6 +4832,8 @@ function bkRatePaint_() {
   const r = Number(b.rating) || 0;
   el('bkRateStars').querySelectorAll('b').forEach((s, i) => s.classList.toggle('on', i < r));
   el('bkRateCap').textContent = r ? BK_RATE_CAP[r] : 'tap a star';
+  el('bkRateCap').classList.toggle('hint', !r);
+  el('bkRateBox').classList.toggle('unrated', !r);   // an unrated verdict has nothing to say in read mode
 }
 el('bkRateStars').querySelectorAll('b').forEach((s, i) =>
   s.addEventListener('click', async () => {
@@ -4999,6 +5007,7 @@ async function bkSaveTitle_() {
 function setBkEditing(on) {
   el('bkName').contentEditable = on ? 'true' : 'false';
   document.body.classList.toggle('p-editing', !!on);
+  const rb = el('bkRateBox'); if (rb && !rb.classList.contains('hidden')) bkRatePaint_();
   const b2 = el('bkEdit'); if (b2) b2.classList.toggle('hot', !!on);
   const l = el('bkEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
   if (!on) {
