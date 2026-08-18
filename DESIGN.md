@@ -46,6 +46,24 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**D1: decisions turn petrol** (Aug 2026): the rust accent family retired
+for petrol #23677a with deep-sea #144552 as its evening shade - chosen
+from four fresh-coat mocks (petrol / indigo ink / wine / graphite) judged
+against the sibling chips in the actual row. The sweep repainted the
+section chip family (--t-faint #f0f6f8, --t-bg #dcebf0, --t-acc #23677a),
+On-the-desk shelf (petrol) and The-trail shelf (deep-sea - the pair
+belongs together where rust/bronze were two unrelated warms), the New
+decision and seal buttons, card left rules (desk petrol, trail deep-sea),
+the two-tone progress gradient, number circles, the P24 name sweep, the
+story shelf, checklist-manager chrome, and the answered-card border.
+Kept deliberately: the GOLD ratebox family (#8a6d1a label, gold stars,
+amber history line) because satisfaction is the app-wide gold voice, and
+the locked plum/green chips. Contrast audit five pairings all clear
+(desk 6.38, trail 10.49). Note: a too-broad hex sweep-check flagged the
+gold label as 'surviving rust' - reading the actual context showed it was
+the ratebox's own gold, a reminder that colour audits check FAMILIES, not
+raw hex survival.
+
 **P1: the parchment gives way** (Aug 2026): Rahul liked everything about
 the warm redesign except the parchment itself - 'yellowish'. Four palettes
 mocked live (app ivory-blue, terracotta blush, sage stone, cool slate
