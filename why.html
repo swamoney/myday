@@ -675,6 +675,9 @@
   .dc-hist { font-size:0.6875rem; color:#8a6d1a; background:#fdf8e8; border-radius:7px; padding:6px 10px;
              margin-top:8px; display:none; }
   .dc-hist.on { display:block; }
+  .dc-sub { font-size:0.6875rem; color:#9aa5b8; margin-top:4px; font-style:italic; }
+  .dc-pill.hap { background:#e4efe7; color:#2f6a4a; }
+  .dc-pill.wait { background:#eef1f6; color:#8189a0; }
 
   /* ===== My Bucket List — the passport, with Places as its second room (U2) ===== */
   .bk-subseg { display:flex; gap:6px; justify-content:center; margin:2px 0 12px; }
@@ -1503,8 +1506,10 @@
       <button data-m="thoughtful" type="button">Weighed with care<br><span style="font-weight:400;font-size:0.6875rem">I sat with it &mdash; walked the points, let it settle</span></button>
       <button data-m="quick" type="button">Went with my gut<br><span style="font-weight:400;font-size:0.6875rem">I knew fast &mdash; the heart moved first</span></button>
     </div></div>
-    <div class="fld"><label>When did it happen?</label><input type="date" id="dcMWhen">
+    <div class="fld"><label>Finalized on</label><input type="date" id="dcMWhen">
       <div class="dc-hist" id="dcMHist"></div></div>
+    <div class="fld"><label>Happened on</label><input type="date" id="dcMHap">
+      <div class="dc-sub">optional &mdash; leave blank if it hasn&rsquo;t come true yet</div></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcMSave" type="button">Seal it &rarr; the trail</button>
       <button class="btn-ghost" id="dcMCancel" type="button">Not yet</button>
@@ -1517,9 +1522,10 @@
     <div class="modal-title">Edit this decision</div>
     <div class="fld"><label>The decision</label><input id="dcEName" maxlength="180"></div>
     <div class="fld"><label>Target date</label><input type="date" id="dcETarget"></div>
-    <div class="fld"><label>Opened on</label><input type="date" id="dcEOpened"></div>
     <div id="dcESealedWrap">
-      <div class="fld"><label>When did it happen?</label><input type="date" id="dcEWhen"></div>
+      <div class="fld"><label>Finalized on</label><input type="date" id="dcEWhen"></div>
+      <div class="fld"><label>Happened on</label><input type="date" id="dcEHap">
+        <div class="dc-sub">optional &mdash; the day it came true</div></div>
       <div class="fld"><label>How was it decided?</label><div class="dc-mchoice" id="dcEMade">
         <button data-m="thoughtful" type="button">Weighed with care</button>
         <button data-m="quick" type="button">Went with my gut</button>
@@ -2226,7 +2232,8 @@ async function exportWhy() {
       const sealed = d.status === 'trail';
       body += '<h3>' + xEsc_(d.title) + '</h3><p class="meta">'
         + (sealed ? ((d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-            + (d.decided_on ? ' \u00B7 sealed ' + xEsc_(dcFmt_(d.decided_on)) : '')
+            + (d.decided_on ? ' \u00B7 finalized ' + xEsc_(dcFmt_(d.decided_on)) : '')
+            + (d.happened_on ? ' \u00B7 happened ' + xEsc_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
             + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
           : ('On the desk' + (d.target_on ? ' \u00B7 target ' + xEsc_(dcFmt_(d.target_on)) : '')
             + ' \u00B7 ' + dcAnswered_(d) + ' of ' + qa.length + ' answered')) + '</p>';
@@ -2412,7 +2419,8 @@ function printSection() {
         const qa = Array.isArray(d.answers) ? d.answers : [];
         body += '<h3>' + e(d.title) + '</h3><p class="meta">'
           + (d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-          + (d.decided_on ? ' \u00B7 sealed ' + e(dcFmt_(d.decided_on)) : '')
+          + (d.decided_on ? ' \u00B7 finalized ' + e(dcFmt_(d.decided_on)) : '')
+          + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
           + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '</p>';
         const answered = qa.filter(x => x && String(x.a || '').trim());
         if (answered.length) body += '<ul>' + answered.map(x =>
@@ -5273,7 +5281,9 @@ function renderDecisions() {
     '<div class="dc-card trail" data-dc="' + d.id + '"><div class="t">' + escHtml(d.title) + '</div>'
     + '<div class="m"><span class="dc-made ' + (d.made === 'quick' ? 'quick' : 'thought') + '">'
     + (d.made === 'quick' ? 'WENT WITH MY GUT' : 'WEIGHED WITH CARE') + '</span>'
-    + (d.decided_on ? '<span>SEALED \u00B7 ' + dcFmt_(d.decided_on) + '</span>' : '')
+    + (d.decided_on ? '<span>FINALIZED \u00B7 ' + dcFmt_(d.decided_on) + '</span>' : '')
+    + (d.happened_on ? '<span style="color:#2f6a4a">HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
+                     : '<span>NOT YET LIVED</span>')
     + dcStarsRO_(d) + '</div></div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
   document.querySelectorAll('[data-dc]').forEach(c =>
@@ -5288,8 +5298,13 @@ function openDecision(id) {
   el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS';
   el('dcName').textContent = d.title;
   let meta = d.target_on ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
-  if (sealed) meta += '<span class="dc-pill">' + (d.made === 'quick' ? 'WENT WITH MY GUT' : 'WEIGHED WITH CARE')
-    + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
+  if (sealed) {
+    meta += '<span class="dc-pill">' + (d.made === 'quick' ? 'WENT WITH MY GUT' : 'WEIGHED WITH CARE') + '</span>';
+    if (d.decided_on) meta += '<span class="dc-pill">FINALIZED \u00B7 ' + dcFmt_(d.decided_on) + '</span>';
+    meta += d.happened_on
+      ? '<span class="dc-pill hap">HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
+      : '<span class="dc-pill wait">NOT YET LIVED</span>';
+  }
   el('dcMeta').innerHTML = meta;
   el('dcQA').innerHTML = qa.map((x, i) =>
     '<div class="dc-qa' + (String(x.a || '').trim() ? ' answered' : '') + '">'
@@ -5382,7 +5397,8 @@ function dcMd_(d) {
   let md = '# ' + d.title + '\n\n';
   md += sealed
     ? ((d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-       + (d.decided_on ? ' \u00B7 sealed ' + dcText_(dcFmt_(d.decided_on)) : '')
+       + (d.decided_on ? ' \u00B7 finalized ' + dcText_(dcFmt_(d.decided_on)) : '')
+       + (d.happened_on ? ' \u00B7 happened ' + dcText_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
        + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '\n\n')
     : ('On the desk' + (d.target_on ? ' \u00B7 target ' + dcText_(dcFmt_(d.target_on)) : '') + '\n\n');
   qa.forEach((x, i) => {
@@ -5412,7 +5428,8 @@ el('dcPrintBtn').addEventListener('click', () => {
   const e = escHtml;
   let body = '<div class="eyebrow">My Decisions</div><h1>' + e(d.title) + '</h1><p class="meta">'
     + (sealed ? ((d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-        + (d.decided_on ? ' \u00B7 sealed ' + e(dcFmt_(d.decided_on)) : '')
+        + (d.decided_on ? ' \u00B7 finalized ' + e(dcFmt_(d.decided_on)) : '')
+        + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
         + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
       : ('On the desk' + (d.target_on ? ' \u00B7 target ' + e(dcFmt_(d.target_on)) : ''))) + '</p><ul>';
   qa.forEach(x => {
@@ -5476,6 +5493,7 @@ el('dcDecideBtn').addEventListener('click', () => {
   dcMadePick = null;
   el('dcMade').querySelectorAll('button').forEach(b => b.classList.remove('on'));
   el('dcMWhen').value = new Date().toISOString().slice(0, 10);
+  el('dcMHap').value = '';
   dcHistCheck_();
   el('dcDecideModal').classList.remove('hidden');
 });
@@ -5489,11 +5507,12 @@ el('dcMSave').addEventListener('click', async () => {
   if (!dcMadePick) { toast('Gut, or weighed with care?'); return; }
   const d = dcRow_(); if (!d) return;
   const when = el('dcMWhen').value || new Date().toISOString().slice(0, 10);
+  const hap = el('dcMHap').value || null;
   const { error } = await supa.from('why_decisions')
-    .update({ status: 'trail', made: dcMadePick, decided_on: when, answers: d.answers })
+    .update({ status: 'trail', made: dcMadePick, decided_on: when, happened_on: hap, answers: d.answers })
     .eq('id', d.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not seal it'); return; }
-  d.status = 'trail'; d.made = dcMadePick; d.decided_on = when;
+  d.status = 'trail'; d.made = dcMadePick; d.decided_on = when; d.happened_on = hap;
   el('dcDecideModal').classList.add('hidden');
   dcClose_();
   toast('Sealed \u2014 it walks to the trail, answers frozen');
@@ -5545,11 +5564,11 @@ el('dcDetailsBtn').addEventListener('click', () => {
   const d = dcRow_(); if (!d) return;
   el('dcEName').value = d.title || '';
   el('dcETarget').value = d.target_on || '';
-  el('dcEOpened').value = (d.created_at || '').slice(0, 10);
   const sealed = d.status === 'trail';
   el('dcESealedWrap').style.display = sealed ? '' : 'none';
   if (sealed) {
     el('dcEWhen').value = d.decided_on || '';
+    el('dcEHap').value = d.happened_on || '';
     dcEMadePick = d.made || 'thoughtful';
     el('dcEMade').querySelectorAll('button').forEach(b =>
       b.classList.toggle('on', b.dataset.m === dcEMadePick));
@@ -5569,16 +5588,14 @@ el('dcESave').addEventListener('click', async () => {
   if (!t) { toast('The decision needs its name'); el('dcEName').focus(); return; }
   const sealed = d.status === 'trail';
   const upd = { title: t, target_on: el('dcETarget').value || null };
-  const opened = el('dcEOpened').value;
-  if (opened) upd.created_at = opened + 'T00:00:00Z';
   if (sealed) {
     upd.decided_on = el('dcEWhen').value || d.decided_on;
+    upd.happened_on = el('dcEHap').value || null;
     upd.made = dcEMadePick || d.made;
   }
   const { error } = await supa.from('why_decisions').update(upd).eq('id', d.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
   Object.assign(d, upd);
-  dcRows.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
   el('dcEditModal').classList.add('hidden');
   openDecision(d.id);   // the page repaints with its corrected frame
   toast('Saved');

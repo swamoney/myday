@@ -46,6 +46,24 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**Two dates per decision** (D2, Aug 2026): what began as a wording
+question ('When was it decided?') turned out to be a model question -
+Rahul meant TWO moments: the day the call was made and the day the
+decided thing came true. Built from a working mock: 'Finalized on'
+(decided_on, required at sealing, defaults today, amber history line for
+the past) and 'Happened on' (new nullable happened_on column via
+migrate_decision_happened.sql) - optional at sealing because some
+decisions are still waiting to be lived, fillable later through Edit
+details. Trail cards and the page's meta row wear the pair: rust for the
+call, green for the lived, and a grey NOT YET LIVED pill while the world
+catches up - which also quietly explains why satisfaction stars may still
+be empty: you rate a decision after it has happened, not before. All four
+output paths carry both dates ('finalized X, happened Y' or 'not yet
+lived'); 'Opened on' was removed entirely the same day (field, prefill,
+save, and the re-sort that existed only for it). Lesson: when a label
+feels wrong, ask whether the MODEL is wrong - the bad name was hiding a
+missing column.
+
 **Decision pages: read first, pen in the footer** (Aug 2026): the Edit
 button moved into the footer pill as its first verb (Edit - Copy -
 Download .md - Print/PDF) and became a MODE, not a modal-opener. Every
