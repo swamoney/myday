@@ -46,6 +46,27 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The bucket refined by use** (Aug 2026, second pass, mocked working
+first): three revisions from Rahul actually using the first build. The add
+buttons moved back to the right corner in both rooms - his call, and the
+right one: that is where the door lived before the merge, so returning
+muscle memory reaches for it (my centring lost to a better argument).
+Add-a-dream became a popup in the app's own modal grammar - the dream,
+status chips, dreamed-on (prefilled today), optional planned-for, with
+Done revealing the lived-on date - and Save inserts then opens the dream's
+own page via openDream(newId); the inline dashed card retired with its
+handler the same day. The split is deliberate: the popup asks for facts,
+the page asks for meaning (the note stays on the page). Stars were half-
+built (stamps had them, the page did not - my miss) and the interaction
+was wrong: now the stamp's small stars are read-only (hollow and faded
+when unrated) so a stamp tap does exactly one thing, and rating lives
+ONLY in the golden box on the done dream's page, on its own line beneath
+the DONE mark, with a whispered caption per rating (1 'well, it happened'
+to 5 'worth every day of the dreaming'), same-star-clears, and the grid
+repainting on return so stamp and page always agree. Living dreams carry
+no rating box. Print, export, backup, and the rating migration are
+unchanged from the first pass.
+
 **The bucket's doors and stars** (Aug 2026): three small builds in one
 pass, mocked working first. The Add-a-place button had no stretching CSS
 bug - the flaw was placement (justify-content:flex-end stranded the lone
