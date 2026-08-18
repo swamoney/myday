@@ -46,6 +46,20 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**P1: the parchment gives way** (Aug 2026): Rahul liked everything about
+the warm redesign except the parchment itself - 'yellowish'. Four palettes
+mocked live (app ivory-blue, terracotta blush, sage stone, cool slate
+mist); P1 chosen. The sweep replaced every parchment-derived value in the
+decisions room - page gradient, panel gradient, cards, hairlines, warm
+text tones - with the app's own ivory-blue family, while every SEMANTIC
+warm accent stayed: rust rules, rust number circles, the P24 sweep, the
+plum and green chips, the gold ratebox. Result: the room matches the
+app's climate and the chips pop harder against neutral. Twelve-pair
+contrast audit all clear (worst 4.81). Same commit, bucket request: the
+Dreams & Doings chip's active state changed from gold to the teal of its
+own Add-a-dream door (#2F6F6A, 5.83) - each room's chip now matches each
+room's door, completing the identification logic Places started.
+
 **My Decisions warmed, chips merged** (Aug 2026, from a screenshot):
 Rahul's screenshot showed verdict and finalized-date wearing the same pale
 rust side by side - two chips saying halves of one fact - and named the
