@@ -543,6 +543,23 @@
     text-transform:uppercase; border:none; border-radius:999px; padding:5px 12px; background:#eef1f6;
     color:#5A6478; cursor:pointer; }
   .bk-subseg button.on { background:#f4c430; color:#4a3410; }
+  .bk-addrow { display:flex; justify-content:center; margin-bottom:13px; }
+  .pl-addbtn.bk-teal { background:#2F6F6A; border-color:#2F6F6A; }   /* the twin: dreams wear teal, places wear ocean */
+  .bk-newcard { border:1.5px dashed #7fb0ab; border-radius:11px; background:#f2f8f7; padding:12px 10px;
+                display:flex; flex-direction:column; gap:8px; align-items:center; justify-content:center; min-height:84px; }
+  .bk-newcard input { border:none; background:transparent; font-family:var(--serif); font-size:0.8125rem;
+                      text-align:center; width:100%; outline:none; color:#2a2f3d; }
+  .bk-newcard .acts { display:flex; gap:6px; }
+  .bk-newcard .acts button { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.1em;
+                             text-transform:uppercase; border:none; border-radius:7px; padding:4px 10px; cursor:pointer; }
+  .bk-newcard .sv { background:#2F6F6A; color:#fff; }
+  .bk-newcard .cx { background:#eef1f6; color:#5A6478; }
+  .bk-stars { display:inline-flex; gap:2px; margin-top:6px; background:#fff; border:1px solid #e3d9b8;
+              border-radius:8px; padding:4px 8px; box-shadow:0 1px 4px rgba(120,100,40,0.12); }
+  .bk-stars b { cursor:pointer; font-size:0.8125rem; line-height:1; color:#d8d2c0; font-weight:400; transition:transform .1s; }
+  .bk-stars b.on { color:#e0a81c; }
+  body:not(.editing) .bk-stars b { cursor:default; }
+  .bk-stars b:hover { transform:scale(1.25); }
   #bkRoomDreams.hidden, #bkRoomPlaces.hidden { display:none; }
   /* ===== the passport itself ===== */
   .bk-book { background:transparent; border:none; border-radius:0; padding:22px 38px 30px; box-shadow:none; }
@@ -809,7 +826,7 @@
     .pr-axrow { gap:0; }
   }
   /* ===== My Explore List — one flat list, cities filter it ===== */
-  .pl-tb { display:flex; justify-content:flex-end; margin-bottom:13px; }
+  .pl-tb { display:flex; justify-content:center; margin-bottom:13px; }   /* the room's one door, centred in its doorway */
   .pl-addbtn { display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:0.7188rem;
                font-weight:600; padding:7px 12px; border-radius:9px; cursor:pointer; color:#fff;
                background:#2c5f96; border:1px solid #2c5f96; transition:filter .14s; }
@@ -1018,6 +1035,12 @@
         <button type="button" id="bkTabPlaces">Places</button>
       </div>
       <div id="bkRoomDreams">
+        <div class="bk-addrow">
+          <button class="pl-addbtn bk-teal" id="dreamAddBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            <span>Add a dream</span>
+          </button>
+        </div>
         <div class="bk-book">
           <div class="bk-hd"><span class="bk-count" id="bkCount"></span></div>
           <div id="stamps"></div>
@@ -1876,7 +1899,7 @@ async function exportWhy() {
     const rank = { wip: 0, not_yet: 1, done: 2 };
     const bOrder = buckets.slice().sort((a, b) => rank[a.status || 'not_yet'] - rank[b.status || 'not_yet']);
     bOrder.forEach(b => {
-      const st = b.status === 'done' ? ('\u2713 Done \u00B7 ' + bkFmt(b.lived_on))
+      const st = b.status === 'done' ? ('\u2713 Done \u00B7 ' + bkFmt(b.lived_on) + (bkStarsText_(b) ? ' \u00B7 ' + bkStarsText_(b) : ''))
                : (b.status === 'wip' ? 'Work in progress' : 'Not yet');
       body += '<h3>' + xEsc_(b.title) + '</h3><p class="meta">' + st
             + ' \u00B7 Written ' + xEsc_(bkFmt(b.dreamed_on || b.created_at))
@@ -2051,7 +2074,8 @@ function printSection() {
       const rows = buckets.filter(b => (b.status || 'not_yet') === st); if (!rows.length) return;
       body += '<h2>' + e(S[st]) + '</h2><ul>' + rows.map(b => '<li><strong>' + e(b.title || '') + '</strong>'
         + (b.planned_on ? ' <span class="meta">planned for ' + e(bkFmt(b.planned_on)) + '</span>' : '')
-        + (b.lived_on ? ' <span class="meta">done ' + e(bkFmt(b.lived_on)) + '</span>' : '') + '</li>').join('') + '</ul>';
+        + (b.lived_on ? ' <span class="meta">done ' + e(bkFmt(b.lived_on)) + '</span>' : '')
+        + (bkStarsText_(b) ? ' <span class="meta">' + bkStarsText_(b) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
     body += '<h1 style="margin-top:26px">My Explore List</h1>';
     const byCity = {};
@@ -4752,6 +4776,17 @@ function bkElapsed(b) {
   return { pct: Math.max(0, Math.min(100, Math.round(((now - start) / span) * 100))), over: false };
 }
 // One stamp, two sizes: the page hero and the card in the book.
+function bkStars_(b) {
+  const r = Number(b.rating) || 0;
+  let s = '<span class="bk-stars" role="radiogroup" aria-label="How was it, one to five">';
+  for (let i = 1; i <= 5; i++)
+    s += '<b class="' + (i <= r ? 'on' : '') + '" data-bkstar="' + i + '" data-bkid="' + b.id + '" role="radio" aria-checked="' + (i === r) + '">\u2605</b>';
+  return s + '</span>';
+}
+function bkStarsText_(b) {
+  const r = Number(b.rating) || 0;
+  return r ? ('\u2605'.repeat(r) + '\u2606'.repeat(5 - r)) : '';
+}
 function bkMark(b, big) {
   const st = b.status || 'not_yet';
   const txt = st === 'done' ? ('DONE \u00B7 ' + bkFmt(b.lived_on))
@@ -4768,6 +4803,7 @@ function bkCard(b) {
   if (wip) inner += '<div class="bk-hd2"><span class="st">' + escHtml(b.title) + '</span></div><div class="bk-bd">';
   else inner += '<div class="st">' + escHtml(b.title) + '</div>';
   inner += bkMark(b, false);
+  if (done) inner += bkStars_(b);
   if (!done) {
     if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">'
       + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
@@ -4791,10 +4827,20 @@ function renderStamps() {
     if (ra !== rc) return ra - rc;
     return 0;
   });
-  wrap.innerHTML = '<div class="stamps">' + rows.map(bkCard).join('') +
-    '<div class="stamp add" id="stampAdd"><div class="st">+ New dream</div></div></div>';
+  wrap.innerHTML = '<div class="stamps">' + rows.map(bkCard).join('') + '</div>';
   wrap.querySelectorAll('[data-bk]').forEach(s =>
-    s.addEventListener('click', (e) => { if (e.target.closest('.stx')) return; openDream(s.dataset.bk); }));
+    s.addEventListener('click', (e) => { if (e.target.closest('.stx') || e.target.closest('.bk-stars')) return; openDream(s.dataset.bk); }));
+  wrap.querySelectorAll('[data-bkstar]').forEach(star =>
+    star.addEventListener('click', async () => {
+      const id = star.dataset.bkid, n = Number(star.dataset.bkstar);
+      const b = buckets.find(r => String(r.id) === String(id));
+      if (!b || b.status !== 'done') return;
+      const next = (Number(b.rating) === n) ? null : n;   // tap the same star to clear
+      const { error } = await supa.from('bucket_items').update({ rating: next }).eq('id', b.id).eq('user_id', userId);
+      if (error) { console.error(error); toast('Could not save the rating'); return; }
+      b.rating = next; renderStamps();
+      toast(next ? ('Rated ' + next + ' of 5') : 'Rating cleared');
+    }));
   wrap.querySelectorAll('[data-stx]').forEach(x =>
     x.addEventListener('click', async () => {
       const b = buckets.find(r => String(r.id) === String(x.dataset.stx));
@@ -4804,27 +4850,35 @@ function renderStamps() {
       if (error) { console.error(error); toast('Could not delete'); return; }
       await loadBuckets(); toast('Dream removed');
     }));
-  el('stampAdd').addEventListener('click', bkAddInput);
 }
 function bkAddInput() {
-  const tile = el('stampAdd'); if (!tile || tile.querySelector('input')) return;
-  tile.innerHTML = '<input placeholder="The dream\u2026" maxlength="140">';
-  const inp = tile.querySelector('input'); inp.focus();
-  let done = false;
+  const grid = el('stamps') && el('stamps').querySelector('.stamps'); if (!grid) return;
+  const existing = grid.querySelector('.bk-newcard');
+  if (existing) { existing.querySelector('input').focus(); return; }
+  const card = document.createElement('div');
+  card.className = 'bk-newcard';
+  card.innerHTML = '<input placeholder="The dream\u2026" maxlength="140">'
+    + '<div class="acts"><button class="sv" type="button">Save</button><button class="cx" type="button">Cancel</button></div>';
+  grid.prepend(card);
+  const inp = card.querySelector('input'); inp.focus();
+  let settled = false;
   const commit = async () => {
-    if (done) return; done = true;
+    if (settled) return;
     const t = inp.value.trim();
-    if (!t) { renderStamps(); return; }
+    if (!t) { settled = true; card.remove(); return; }
+    settled = true;
     const { error } = await supa.from('bucket_items').insert({ user_id: userId, title: t });
-    if (error) { console.error(error); toast('Could not save'); renderStamps(); return; }
+    if (error) { console.error(error); toast('Could not save'); settled = false; return; }
     await loadBuckets(); toast('Dream added');
   };
+  card.querySelector('.sv').addEventListener('click', commit);
+  card.querySelector('.cx').addEventListener('click', () => { settled = true; card.remove(); });
   inp.addEventListener('keydown', e => {
     if (e.key === 'Enter') commit();
-    if (e.key === 'Escape') { done = true; renderStamps(); }
+    if (e.key === 'Escape') { settled = true; card.remove(); }
   });
-  inp.addEventListener('blur', commit);
 }
+el('dreamAddBtn').addEventListener('click', bkAddInput);
 function bkRow() { return buckets.find(x => String(x.id) === String(bkId)); }
 function openDream(id) {
   const b = buckets.find(x => String(x.id) === String(id)); if (!b) return;

@@ -46,6 +46,24 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The bucket's doors and stars** (Aug 2026): three small builds in one
+pass, mocked working first. The Add-a-place button had no stretching CSS
+bug - the flaw was placement (justify-content:flex-end stranded the lone
+button at the room's far edge after the U2 merge), so it is now centred
+under the gold chips. Dreams got the twin: an Add-a-dream button (same
+pl-addbtn geometry, teal #2F6F6A vs ocean) that opens a dashed new-dream
+card at the head of the grid with Save/Cancel + Enter/Esc; the old
+'+ New dream' grid tile retired with its handler the same day - one door
+per room, same handle, each room's own hue. Done stamps (and only done -
+living dreams never wear stars) carry a lacquered 1-to-5 star box under
+the DONE mark; tap to rate, tap the same star to clear (rating -> null).
+Data: bucket_items gained a nullable rating column via
+migrate_bucket_rating.sql (plain ASCII, idempotent, range-checked 1-5);
+select(*) carries it into backups automatically and the audit's
+column-completeness check proves it. All four output paths updated
+together: screen stars, section print, and the .md export both append
+filled/hollow stars after the Done date.
+
 **Explore moves into the Bucket List** (U2, Aug 2026): My Explore List is
 no longer a top-level section of My Why - it is the second room of My
 Bucket List, behind a gold inner chip pair (Dreams & Doings | Places).
