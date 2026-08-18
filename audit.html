@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MyDay &middot; Backup audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --serif:'Fraunces',Georgia,serif; --sans:'IBM Plex Sans',system-ui,sans-serif;
+          --mono:'IBM Plex Mono',monospace; --ink:#0A1325; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:var(--sans); color:var(--ink); background:#e9eef6;
+         background-image:linear-gradient(165deg,#fbfcfe,#e9eef6); padding:30px 16px 70px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  h1 { font-family:var(--serif); font-size:1.5rem; }
+  .sub { font-size:0.8125rem; color:#5A6478; margin:4px 0 22px; line-height:1.55; }
+  .step { background:#fbfcfe; border:1px solid #e2e8f2; border-radius:14px; padding:18px; margin-bottom:14px; }
+  .step h2 { font-family:var(--mono); font-size:0.6875rem; font-weight:600; letter-spacing:0.14em;
+             text-transform:uppercase; color:#5A6478; margin-bottom:10px; }
+  button.go { font-family:var(--mono); font-size:0.6875rem; font-weight:600; letter-spacing:0.1em;
+              text-transform:uppercase; background:#22315e; color:#fff; border:none; border-radius:9px;
+              padding:10px 16px; cursor:pointer; }
+  button.go:disabled { opacity:0.45; cursor:not-allowed; }
+  input[type=file] { font-size:0.75rem; }
+  .status { font-family:var(--mono); font-size:0.6875rem; color:#5A6478; margin-top:9px; white-space:pre-wrap; }
+  table { border-collapse:collapse; width:100%; margin-top:12px; font-size:0.75rem; }
+  th { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase;
+       color:#8189a0; text-align:left; padding:6px 8px; border-bottom:1px solid #e2e8f2; }
+  td { padding:6px 8px; border-bottom:1px solid #eef1f6; font-variant-numeric:tabular-nums; }
+  td.t { font-family:var(--mono); font-size:0.6875rem; }
+  .ok  { color:#2e6b46; font-weight:600; }
+  .bad { color:#a8443e; font-weight:600; }
+  .warn { color:#8a6d1a; font-weight:600; }
+  .banner { border-radius:12px; padding:14px 16px; font-weight:600; margin-top:14px; font-size:0.875rem; }
+  .banner.pass { background:#e3f0e6; color:#1d4d31; border:1px solid #bcd9c4; }
+  .banner.fail { background:#f6e2e0; color:#7c2d26; border:1px solid #e4bcb7; }
+  .banner.mix  { background:#f7efdb; color:#5c4a12; border:1px solid #e2d3a8; }
+  .fine { font-size:0.6875rem; color:#5A6478; margin-top:8px; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Backup audit</h1>
+  <div class="sub">Read-only. Step 1 counts every table in the live database. Step 2 reads a
+    <b>myday-&hellip;.json</b> backup you choose and compares: row counts, the newest row's presence,
+    and column completeness, table by table. Nothing is written anywhere.</div>
+
+  <div class="step">
+    <h2>Step 1 &middot; census the live database</h2>
+    <button class="go" id="censusBtn">Count all 17 tables</button>
+    <div class="status" id="censusStatus">Waiting. You must be signed in to MyDay on this site.</div>
+  </div>
+
+  <div class="step">
+    <h2>Step 2 &middot; choose the backup json to verify</h2>
+    <input type="file" id="filePick" accept=".json,application/json" disabled>
+    <div class="status" id="fileStatus">Run the census first.</div>
+  </div>
+
+  <div class="step" id="reportStep" style="display:none">
+    <h2>The verdict</h2>
+    <div id="banner"></div>
+    <table id="report"></table>
+    <div class="fine" id="fineNotes"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+const supa = window.supabase.createClient(window.MYDAY_SUPABASE_URL, window.MYDAY_SUPABASE_ANON_KEY);
+const el = id => document.getElementById(id);
+
+// The manifest must mirror note-editor.js EXPORT_TABLES and its sort map.
+const TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',
+  'why_pillars','why_mantras','why_circle','why_priority',
+  'bucket_items','why_places','note_versions',
+  'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions','why_journeys'];
+const SORT = { entries:'entry_date', user_prefs:null, note_versions:'saved_at',
+               wealth_snapshots:'on_date', wealth_meta:null, why_journeys:'updated_at' };
+const sortCol = t => SORT.hasOwnProperty(t) ? SORT[t] : 'created_at';
+
+let census = null, userId = null;
+
+el('censusBtn').addEventListener('click', async () => {
+  el('censusBtn').disabled = true;
+  el('censusStatus').textContent = 'Checking session\u2026';
+  try {
+    const s = await supa.auth.getSession();
+    userId = s?.data?.session?.user?.id || null;
+    if (!userId) { el('censusStatus').textContent = 'Not signed in. Open MyDay, sign in, come back, retry.'; el('censusBtn').disabled = false; return; }
+    census = {};
+    for (const t of TABLES) {
+      el('censusStatus').textContent = 'Counting ' + t + '\u2026';
+      const q = await supa.from(t).select('*', { count: 'exact', head: true }).eq('user_id', userId);
+      if (q.error) { census[t] = { count: null, err: q.error.message }; continue; }
+      const entry = { count: q.count, newest: null };
+      const col = sortCol(t);
+      if (col) {
+        const n = await supa.from(t).select('*').eq('user_id', userId)
+          .order(col, { ascending: false }).limit(1);
+        if (!n.error && n.data && n.data[0]) entry.newest = n.data[0];
+      } else {
+        const n = await supa.from(t).select('*').eq('user_id', userId).limit(1);
+        if (!n.error && n.data && n.data[0]) entry.newest = n.data[0];
+      }
+      census[t] = entry;
+    }
+    const total = TABLES.reduce((a, t) => a + (census[t].count || 0), 0);
+    el('censusStatus').textContent = 'Census complete: ' + total + ' rows across ' + TABLES.length
+      + ' tables.\nNow choose the backup file below \u2014 ideally one you download RIGHT NOW.';
+    el('filePick').disabled = false;
+    el('fileStatus').textContent = 'Ready.';
+  } catch (e) {
+    el('censusStatus').textContent = 'Census failed: ' + (e.message || e);
+    el('censusBtn').disabled = false;
+  }
+});
+
+el('filePick').addEventListener('change', async () => {
+  const f = el('filePick').files[0];
+  if (!f) return;
+  el('fileStatus').textContent = 'Reading ' + f.name + '\u2026';
+  let pack;
+  try { pack = JSON.parse(await f.text()); }
+  catch (e) { el('fileStatus').textContent = 'That file is not valid JSON: ' + e.message; return; }
+  el('fileStatus').textContent = 'Comparing\u2026';
+
+  const rows = [];
+  let fails = 0, warns = 0;
+  const packTables = (pack && pack.tables) || {};
+
+  for (const t of TABLES) {
+    const db = census[t] || {};
+    const inPack = Object.prototype.hasOwnProperty.call(packTables, t);
+    const fileRows = inPack ? (packTables[t] || []) : null;
+    let verdict, cls, detail = '';
+
+    if (db.err) { verdict = 'DB ERROR'; cls = 'warn'; detail = db.err; warns++; }
+    else if (!inPack) { verdict = 'MISSING FROM BACKUP'; cls = 'bad'; fails++; }
+    else if (fileRows.length !== db.count) {
+      verdict = 'COUNT MISMATCH'; cls = 'bad'; fails++;
+      detail = 'db ' + db.count + ' vs file ' + fileRows.length;
+    } else {
+      verdict = 'MATCH'; cls = 'ok';
+      if (db.newest) {
+        const nid = db.newest.id;
+        if (nid !== undefined) {
+          const found = fileRows.find(r => String(r.id) === String(nid));
+          if (!found) { verdict = 'NEWEST ROW ABSENT'; cls = 'bad'; fails++; }
+          else {
+            const dbCols = Object.keys(db.newest).sort();
+            const fCols = Object.keys(found).sort();
+            const missing = dbCols.filter(c => !fCols.includes(c));
+            if (missing.length) { verdict = 'COLUMNS MISSING'; cls = 'bad'; fails++; detail = missing.join(', '); }
+            else detail = dbCols.length + ' columns verified on newest row';
+          }
+        }
+      }
+    }
+    rows.push({ t, dbCount: db.err ? '\u2014' : db.count, fileCount: inPack ? fileRows.length : '\u2014', verdict, cls, detail });
+  }
+
+  const extras = Object.keys(packTables).filter(t => !TABLES.includes(t));
+  const notes = [];
+  if (pack.exported) notes.push('Backup taken: ' + pack.exported + '.');
+  if (pack.export_warnings && pack.export_warnings.length) { notes.push('<span class="warn">The backup itself recorded warnings: ' + pack.export_warnings.join('; ') + '</span>'); warns++; }
+  if (extras.length) notes.push('Tables in the file this audit does not know (update the audit manifest if the app grew): ' + extras.join(', ') + '.');
+  const e = packTables.entries || [];
+  if (e.length) {
+    const ds = e.map(r => r.entry_date).filter(Boolean).sort();
+    const cols = e.length ? Object.keys(e[e.length - 1]).length : 0;
+    notes.push('Daily log in file: ' + e.length + ' days, ' + ds[0] + ' \u2192 ' + ds[ds.length - 1] + ', newest entry carries ' + cols + ' columns.');
+  }
+
+  el('report').innerHTML = '<tr><th>table</th><th>db rows</th><th>file rows</th><th>verdict</th><th>detail</th></tr>'
+    + rows.map(r => '<tr><td class="t">' + r.t + '</td><td>' + r.dbCount + '</td><td>' + r.fileCount
+      + '</td><td class="' + r.cls + '">' + r.verdict + '</td><td>' + r.detail + '</td></tr>').join('');
+  const b = el('banner');
+  if (fails) { b.className = 'banner fail'; b.textContent = 'FAIL \u2014 ' + fails + ' table(s) not fully protected. Do not trust this backup; tell Claude the verdicts.'; }
+  else if (warns) { b.className = 'banner mix'; b.textContent = 'MATCH WITH WARNINGS \u2014 counts agree, but read the notes below.'; }
+  else { b.className = 'banner pass'; b.textContent = 'PASS \u2014 every table matched: counts, newest rows, and columns. This backup is trustworthy as of the census moment.'; }
+  el('fineNotes').innerHTML = notes.join('<br>');
+  el('reportStep').style.display = '';
+  el('fileStatus').textContent = 'Done.';
+});
+</script>
+</body>
+</html>
