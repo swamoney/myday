@@ -46,6 +46,22 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**Decision pages: read first, pen in the footer** (Aug 2026): the Edit
+button moved into the footer pill as its first verb (Edit - Copy -
+Download .md - Print/PDF) and became a MODE, not a modal-opener. Every
+page opens reading: answers readonly, story rendered without toolbar
+(shelf hidden too when the story is empty), stars quiet (unrated box
+hidden entirely), and decide/delete/catch-up banner all absent. Edit (to
+Done) brings out everything: editable answers on desk pages, the
+NoteEditor with toolbar, the golden ratebox, the seal button, deletion,
+catch-up, and an 'Edit details' pill that opens the frame modal (name,
+dates, verdict). Leaving edit mode flushes the story save and records the
+version. Seal-date label reworded to Rahul's 'When did it happen?' in
+both the seal dialog and the details modal. 'Opened on' was trimmed from
+the new-decision popup (daily door stays minimal) but KEPT in Edit
+details - the compromise: everyday capture is two fields, historical
+backfill remains one Edit away.
+
 **Decision pages gain Edit** (Aug 2026): a quiet Edit pill beside the
 back button opens a frame-editing modal - name, target date, opened-on
 (rewrites created_at, then re-sorts the shelves), and on sealed decisions

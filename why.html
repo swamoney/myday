@@ -573,7 +573,6 @@
                 background-image:linear-gradient(165deg,#fbfcfe,#e9eef6); overflow:auto; padding:26px 16px 60px; }
   .dc-overlay.hidden { display:none; }
   .dc-pgwrap { max-width:600px; margin:0 auto; }
-  .dc-topbar { display:flex; justify-content:space-between; align-items:center; }
   .dc-back { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; text-transform:uppercase;
              background:none; border:1px solid #dce3ee; border-radius:999px; padding:7px 14px; color:#5A6478;
              cursor:pointer; margin-bottom:16px; }
@@ -651,6 +650,20 @@
                     letter-spacing:0.1em; text-transform:uppercase; color:#5A6478; padding:2px 0; }
   .dc-foot button:hover { color:#182233; }
   .dc-foot svg { width:13px; height:13px; }
+  /* Read mode is for reading: the pen only comes out when Edit is on. */
+  .dc-details { display:none; margin-bottom:12px; }
+  #dcWin.dc-editing .dc-details { display:inline-block; }
+  #dcWin:not(.dc-editing) #dcStoryBar { display:none; }
+  #dcWin:not(.dc-editing) .dc-story:empty { display:none; }
+  #dcWin.story-empty-read .dc-storyshelf { display:none; }
+  #dcWin:not(.dc-editing) .dc-delrow { display:none; }
+  #dcWin:not(.dc-editing) #dcDecideRow { display:none !important; }
+  #dcWin:not(.dc-editing) .dc-banner { display:none; }
+  #dcWin:not(.dc-editing) .dc-ratebox .rlbl { display:none; }
+  #dcWin:not(.dc-editing) .dc-ratebox .rcap.hint { display:none; }
+  #dcWin:not(.dc-editing) .dc-ratebox { border-color:transparent; background:transparent; padding:0; margin-top:8px; }
+  #dcWin:not(.dc-editing) .dc-ratebox .rstars b { cursor:default; pointer-events:none; font-size:1.125rem; }
+  #dcWin:not(.dc-editing) .dc-ratebox.unrated { display:none; }
   .dc-delrow { margin-top:18px; }
   .dc-delbtn { background:none; border:1px solid #e0cdbd; color:#8a5a32; border-radius:9px; padding:8px 14px;
                font-size:0.75rem; cursor:pointer; }
@@ -1440,13 +1453,11 @@
 
 <div class="dc-overlay hidden" id="dcWin">
   <div class="dc-pgwrap">
-    <div class="dc-topbar">
-      <button class="dc-back" id="dcBack" type="button">&larr; My Decisions</button>
-      <button class="dc-back" id="dcEditBtn" type="button">Edit</button>
-    </div>
+    <button class="dc-back" id="dcBack" type="button">&larr; My Decisions</button>
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div class="dc-name" id="dcName"></div>
     <div class="dc-meta" id="dcMeta"></div>
+    <button class="dc-back dc-details" id="dcDetailsBtn" type="button">Edit details &mdash; name, dates, verdict</button>
     <div class="dc-banner hidden" id="dcCatch">
       <span class="b-t" id="dcCatchTxt"></span>
       <button id="dcCatchYes" type="button">Bring them in</button>
@@ -1464,6 +1475,7 @@
     <div class="dc-story" id="dcStory" contenteditable="true"></div>
     <div class="dc-delrow"><button class="dc-delbtn" id="dcDelBtn" type="button">Remove this decision</button></div>
     <div class="dc-foot"><span class="cap">
+      <button id="dcEditToggle" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg><span id="dcEditWord">Edit</span></button>
       <button id="dcCopyBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button>
       <button id="dcMdBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Download .md</button>
       <button id="dcPrintBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 17h10v4H7z"/></svg>Print / PDF</button>
@@ -1477,7 +1489,6 @@
     <div class="modal-sub">walk the checklist before the leap</div>
     <div class="fld"><label>The decision</label><input id="dcFName" placeholder="e.g. Move to Bangalore for the new role?" maxlength="180"></div>
     <div class="fld"><label>Target date</label><input type="date" id="dcFTarget"></div>
-    <div class="fld"><label>Opened on (for old decisions &mdash; blank means today)</label><input type="date" id="dcFOpened"></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcFSave" type="button">Open it</button>
       <button class="btn-ghost" id="dcFCancel" type="button">Cancel</button>
@@ -1492,7 +1503,7 @@
       <button data-m="thoughtful" type="button">Weighed with care<br><span style="font-weight:400;font-size:0.6875rem">I sat with it &mdash; walked the points, let it settle</span></button>
       <button data-m="quick" type="button">Went with my gut<br><span style="font-weight:400;font-size:0.6875rem">I knew fast &mdash; the heart moved first</span></button>
     </div></div>
-    <div class="fld"><label>When was it decided?</label><input type="date" id="dcMWhen">
+    <div class="fld"><label>When did it happen?</label><input type="date" id="dcMWhen">
       <div class="dc-hist" id="dcMHist"></div></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcMSave" type="button">Seal it &rarr; the trail</button>
@@ -1508,7 +1519,7 @@
     <div class="fld"><label>Target date</label><input type="date" id="dcETarget"></div>
     <div class="fld"><label>Opened on</label><input type="date" id="dcEOpened"></div>
     <div id="dcESealedWrap">
-      <div class="fld"><label>When was it decided?</label><input type="date" id="dcEWhen"></div>
+      <div class="fld"><label>When did it happen?</label><input type="date" id="dcEWhen"></div>
       <div class="fld"><label>How was it decided?</label><div class="dc-mchoice" id="dcEMade">
         <button data-m="thoughtful" type="button">Weighed with care</button>
         <button data-m="quick" type="button">Went with my gut</button>
@@ -5318,6 +5329,7 @@ function openDecision(id) {
   el('dcDelBtn').textContent = sealed ? 'Remove from the trail' : 'Remove this decision';
   el('dcStory').innerHTML = NoteEditor.toHtml(d.note_html || '');
   dcNoteBase = NoteEditor.sanitize(el('dcStory').innerHTML);
+  setDcEditing(false);   // every page opens reading; the pen waits in the footer
   el('dcWin').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -5335,17 +5347,29 @@ const dcStoryNk = NoteEditor.mount({
     }, 700);
   }
 });
+function dcStoryFlush_() {
+  const d = dcRow_(); if (!d) return;
+  const html = NoteEditor.sanitize(el('dcStory').innerHTML);
+  if (html === dcNoteBase) return;
+  NoteEditor.versions.record('decision-note', d.id, dcNoteBase);
+  supa.from('why_decisions').update({ note_html: html }).eq('id', d.id).eq('user_id', userId)
+    .then(({ error }) => { if (error) console.error(error); else d.note_html = html; });
+  dcNoteBase = html;
+}
+function setDcEditing(on) {
+  el('dcWin').classList.toggle('dc-editing', !!on);
+  el('dcEditWord').textContent = on ? 'Done' : 'Edit';
+  const d = dcRow_(); const sealed = d && d.status === 'trail';
+  el('dcQA').querySelectorAll('textarea').forEach(ta => { ta.readOnly = sealed || !on; });
+  el('dcStory').contentEditable = on ? 'true' : 'false';
+  el('dcWin').classList.toggle('story-empty-read', !on && !dcText_(d && d.note_html));
+  if (d && sealed) dcRatePaint_();
+  if (!on) dcStoryFlush_();   // leaving edit saves the story and records the version
+}
+el('dcEditToggle').addEventListener('click', () =>
+  setDcEditing(!el('dcWin').classList.contains('dc-editing')));
 function dcClose_() {
-  const d = dcRow_();
-  if (d) {
-    const html = NoteEditor.sanitize(el('dcStory').innerHTML);
-    if (html !== dcNoteBase) {
-      NoteEditor.versions.record('decision-note', d.id, dcNoteBase);
-      supa.from('why_decisions').update({ note_html: html }).eq('id', d.id).eq('user_id', userId)
-        .then(({ error }) => { if (error) console.error(error); else d.note_html = html; });
-      dcNoteBase = html;
-    }
-  }
+  if (dcRow_()) dcStoryFlush_();
   el('dcWin').classList.add('hidden'); document.body.style.overflow = ''; renderDecisions();
 }
 function dcText_(html) {
@@ -5405,10 +5429,13 @@ function dcRatePaint_() {
   const r = Number(d.satisfaction) || 0;
   el('dcRateStars').querySelectorAll('b').forEach((s, i) => s.classList.toggle('on', i < r));
   el('dcRateCap').textContent = r ? DC_RATE_CAP[r] : 'tap a star when the years have spoken';
+  el('dcRateCap').classList.toggle('hint', !r);
+  el('dcRateBox').classList.toggle('unrated', !r);
 }
 el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
   s.addEventListener('click', async () => {
     const d = dcRow_(); if (!d || d.status !== 'trail') return;
+    if (!el('dcWin').classList.contains('dc-editing')) return;
     const next = (Number(d.satisfaction) === i + 1) ? null : i + 1;
     const { error } = await supa.from('why_decisions').update({ satisfaction: next })
       .eq('id', d.id).eq('user_id', userId);
@@ -5417,7 +5444,7 @@ el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
     toast(next ? ('Satisfaction: ' + next + ' of 5') : 'Rating cleared');
   }));
 el('dcAddBtn').addEventListener('click', () => {
-  el('dcFName').value = ''; el('dcFTarget').value = ''; el('dcFOpened').value = '';
+  el('dcFName').value = ''; el('dcFTarget').value = '';
   el('dcNewModal').classList.remove('hidden');
   el('dcFName').focus();
 });
@@ -5427,8 +5454,6 @@ el('dcFSave').addEventListener('click', async () => {
   if (!t) { toast('Name the decision first'); el('dcFName').focus(); return; }
   const rec = { user_id: userId, title: t, target_on: el('dcFTarget').value || null,
                 status: 'open', answers: dcPoints.map(q => ({ q: q, a: '' })) };
-  const opened = el('dcFOpened').value;
-  if (opened) rec.created_at = opened + 'T00:00:00Z';   // an old decision keeps its true beginning
   const { data, error } = await supa.from('why_decisions').insert(rec).select('*').single();
   if (error) { console.error(error); toast('Could not save'); return; }
   el('dcNewModal').classList.add('hidden');
@@ -5516,7 +5541,7 @@ el('dcQNew').addEventListener('keydown', e => { if (e.key === 'Enter') el('dcQAd
 // verdict wording on a sealed one. The answers and the story have their own
 // doors; this modal touches only the frame around them.
 let dcEMadePick = null;
-el('dcEditBtn').addEventListener('click', () => {
+el('dcDetailsBtn').addEventListener('click', () => {
   const d = dcRow_(); if (!d) return;
   el('dcEName').value = d.title || '';
   el('dcETarget').value = d.target_on || '';
