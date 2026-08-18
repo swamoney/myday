@@ -46,6 +46,28 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**My Decisions completes** (Aug 2026): historical entry, honest words,
+and the story. The seal dialog gained 'When was it decided?' - a calendar
+defaulting to today but free to travel back, with an amber 'Writing
+history: sealed N days ago' line when it does - and the new-decision popup
+gained an optional 'Opened on' that writes created_at, so an old decision
+carries its true beginning and sorts into its true place. Verdict wording
+is W1 (chosen over Deliberate/Instinct and Slept on it/In the moment):
+'Weighed with care - I sat with it, walked the points, let it settle' vs
+'Went with my gut - I knew fast, the heart moved first' - both halves
+dignified, because gut calls are often the best ones; data values stay
+thoughtful/quick, display strings updated at all five sites (card, page
+pill, print, export, delete confirm). The story: a NoteEditor mounted
+below the checklist on every decision page, desk and trail alike (answers
+freeze at sealing; the story stays alive for later reflection). Decided
+against a box: long-form writing gets OPEN PROSE - shelf label, hairline,
+breathing room - not a border. Debounced autosave, sanitised, version
+history via note_versions source 'decision-note' recorded on page close;
+note_html column via migrate_decision_note.sql, carried by select(*).
+Each decision page also gained a footer pill - Copy, Download .md,
+Print/PDF - built from one shared dcMd_ builder so all three verbs tell
+the same story; section print and .md export carry the story too.
+
 **My Decisions, hardened** (Aug 2026, from first use): Rahul found the
 missing delete verb and asked how the checklist could grow without ever
 mismapping answers. The mapping fear was already structurally impossible
