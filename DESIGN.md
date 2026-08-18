@@ -46,6 +46,19 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**One divider, deeper chip, places step in** (Aug 2026): 'On the desk'
+retired - Rahul's call, agreed on sight: the add button and living cards
+ARE the desk, so the label narrated what the layout already said; The
+trail is now the room's one divider (its CSS left with it; the Edit-the-
+checklist button kept its row; print/export keep the 'On the desk'
+heading because paper has no interactive cues). The section chip deepened
+to K1 (--t-bg #cfe2e8, --t-acc #1d5666, 6.1:1) - darkest tinted chip in
+the row while still speaking its siblings' tinted language. And the
+places wing gained the 14px inset the dreams book always had (padding on
+bkRoomPlaces; the door's own padding retired the same moment to avoid a
+double inset) so prow cards no longer touch the section's line - the
+third appearance of the same lesson: content never touches the walls.
+
 **B2 ground + the true name** (Aug 2026): the boxed panel's fill became
 the bucket's ground one breath deeper (165deg #f4f7fb to #e2e8f2, border
 #dfe5ee) - same family as the page so the room shares the app's climate,
