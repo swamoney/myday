@@ -69,7 +69,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
 <script>
-const supa = window.supabase.createClient(window.MYDAY_SUPABASE_URL, window.MYDAY_SUPABASE_ANON_KEY);
+if (typeof window.MYDAY_CONFIG === 'undefined') {
+  document.body.innerHTML = '<div style="padding:30px;font-family:system-ui;color:#8A1F1A;text-align:center;"><h2>Configuration error</h2><p>config.js is missing or didn\'t load.</p><p style="font-size:0.8125rem;color:#666;">audit.html must sit in the same repo as config.js.</p></div>';
+  throw new Error('config.js missing');
+}
+const supa = window.supabase.createClient(
+  window.MYDAY_CONFIG.SUPABASE_URL,
+  window.MYDAY_CONFIG.SUPABASE_ANON_KEY,
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
+);
 const el = id => document.getElementById(id);
 
 // The manifest must mirror note-editor.js EXPORT_TABLES and its sort map.
