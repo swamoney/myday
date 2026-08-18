@@ -46,6 +46,23 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**My Decisions, hardened** (Aug 2026, from first use): Rahul found the
+missing delete verb and asked how the checklist could grow without ever
+mismapping answers. The mapping fear was already structurally impossible
+(answers live as frozen {q,a} pairs, never by position) but the tooling
+around it was unsafe, so: the replace-all textarea retired for a ROW
+MANAGER (rename inline, reorder arrows, remove with confirm, append) whose
+every operation shapes future decisions only; open desk decisions get a
+CATCH-UP banner counting master points they lack (computed by question
+TEXT, never index) and 'Bring them in' APPENDS them as glowing NEW cards -
+append is the only operation permitted to touch an open decision, with a
+local rollback if the save fails; the trail is never offered catch-up.
+Deletion lives on the decision's PAGE only (never the cards): one light
+confirm on the desk, and on the trail a stern confirm that names exactly
+what is being erased - the sealed answers, the verdict, the stars. Rule
+distilled: history may be deleted deliberately, but never edited
+accidentally.
+
 **My Decisions** (N3, Aug 2026): a new My Why section - the checklist
 before the leap - chosen by name (N3 over Crossroads/Compass/Calls/Forks/
 Weighing Room/Turning Points) and by shape from a working mock that went

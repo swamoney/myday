@@ -605,6 +605,37 @@
   .dc-ratebox .rstars b.on { color:#e0a81c; }
   .dc-ratebox .rstars b:hover { transform:scale(1.2); }
   .dc-ratebox .rcap { font-size:0.6875rem; color:#8a94a8; font-style:italic; font-family:var(--serif); min-height:1em; }
+  .dc-qrow { display:flex; align-items:center; gap:8px; border:1px solid #ecd9cc; background:#fbf6f2;
+             border-radius:10px; padding:8px 10px; margin-bottom:7px; }
+  .dc-qrow .num { font-family:var(--mono); font-size:0.5625rem; color:#b08a6c; width:16px; flex-shrink:0; }
+  .dc-qrow input { flex:1; border:none; background:transparent; font-family:var(--serif); font-size:0.8125rem;
+                   color:#4a2c18; outline:none; min-width:0; }
+  .dc-qrow input:focus { border-bottom:1px dashed #c9a94a; }
+  .dc-qrow .mv, .dc-qrow .rm { background:none; border:1px solid #e0cdbd; border-radius:7px; width:24px;
+                               height:24px; cursor:pointer; color:#8a5a32; font-size:0.75rem; line-height:1;
+                               flex-shrink:0; }
+  .dc-qrow .rm:hover { border-color:#a8443e; color:#a8443e; }
+  .dc-qadd { display:flex; gap:8px; margin-top:10px; }
+  .dc-qadd input { flex:1; background:#fff; border:1px dashed #d0b8a4; border-radius:9px; padding:9px 12px;
+                   font-size:0.8125rem; font-family:var(--serif); outline:none; }
+  .dc-qadd button { background:#8a4a22; color:#fff; border:none; border-radius:9px; padding:0 16px;
+                    font-weight:600; font-size:0.8125rem; cursor:pointer; }
+  .dc-banner { display:flex; align-items:center; gap:10px; background:#f3ecfb; border:1px solid #d9c9ef;
+               border-radius:11px; padding:10px 13px; margin-bottom:12px; }
+  .dc-banner.hidden { display:none; }
+  .dc-banner .b-t { font-size:0.75rem; color:#4a3572; line-height:1.4; flex:1; }
+  .dc-banner button { background:#5b4a86; color:#fff; border:none; border-radius:8px; padding:7px 12px;
+                      font-size:0.6875rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .dc-banner .later { background:none; color:#7a6a9e; border:1px solid #d9c9ef; }
+  .dc-qa.fresh { border-color:#b9a5d8; background:#fdfcff; animation:dcglow 1.6s ease 1; }
+  @keyframes dcglow { 0% { box-shadow:0 0 0 4px rgba(122,96,180,0.25); } 100% { box-shadow:none; } }
+  .dc-qa.fresh .q::after { content:"NEW"; font-family:var(--mono); font-size:0.4688rem; font-weight:600;
+                           letter-spacing:0.12em; background:#5b4a86; color:#fff; border-radius:4px;
+                           padding:2px 6px; margin-left:8px; }
+  .dc-delrow { margin-top:18px; }
+  .dc-delbtn { background:none; border:1px solid #e0cdbd; color:#8a5a32; border-radius:9px; padding:8px 14px;
+               font-size:0.75rem; cursor:pointer; }
+  .dc-delbtn:hover { border-color:#a8443e; color:#a8443e; }
   .dc-mchoice { display:flex; gap:8px; }
   .dc-mchoice button { flex:1; border:1px solid #dce3ee; background:#f4f7fb; border-radius:10px;
                        padding:12px 8px; cursor:pointer; font-size:0.75rem; font-weight:600; color:#4A5570; }
@@ -1391,6 +1422,11 @@
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div class="dc-name" id="dcName"></div>
     <div class="dc-meta" id="dcMeta"></div>
+    <div class="dc-banner hidden" id="dcCatch">
+      <span class="b-t" id="dcCatchTxt"></span>
+      <button id="dcCatchYes" type="button">Bring them in</button>
+      <button class="later" id="dcCatchNo" type="button">Later</button>
+    </div>
     <div id="dcQA"></div>
     <div class="dc-decrow" id="dcDecideRow"><button class="dc-decide" id="dcDecideBtn" type="button">I have decided</button></div>
     <div class="dc-ratebox hidden" id="dcRateBox">
@@ -1398,6 +1434,7 @@
       <span class="rstars" id="dcRateStars"><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b></span>
       <span class="rcap" id="dcRateCap"></span>
     </div>
+    <div class="dc-delrow"><button class="dc-delbtn" id="dcDelBtn" type="button">Remove this decision</button></div>
   </div>
 </div>
 
@@ -1431,8 +1468,9 @@
 <div class="modal-overlay hidden" id="dcPtsModal">
   <div class="modal">
     <div class="modal-title">Your checklist</div>
-    <div class="modal-sub">one point per line &mdash; every NEW decision walks these; sealed ones keep theirs</div>
-    <div class="fld"><textarea id="dcPtsText" style="width:100%;background:#f4f7fb;border:1px solid #dce3ee;border-radius:9px;padding:11px 12px;font-size:0.8125rem;font-family:var(--sans);line-height:1.6;min-height:220px;resize:vertical"></textarea></div>
+    <div class="modal-sub">shapes future decisions &mdash; ones already open or sealed keep their own copy</div>
+    <div id="dcQList"></div>
+    <div class="dc-qadd"><input id="dcQNew" placeholder="A new point for future decisions&hellip;" maxlength="200"><button id="dcQAddBtn" type="button">Add</button></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcPtsSave" type="button">Save the checklist</button>
       <button class="btn-ghost" id="dcPtsCancel" type="button">Cancel</button>
@@ -5214,6 +5252,12 @@ function openDecision(id) {
   el('dcDecideRow').style.display = sealed ? 'none' : '';
   el('dcRateBox').classList.toggle('hidden', !sealed);
   if (sealed) dcRatePaint_();
+  const miss = sealed ? [] : dcMissing_(d);
+  el('dcCatch').classList.toggle('hidden', !miss.length);
+  if (miss.length) el('dcCatchTxt').textContent = miss.length
+    + (miss.length === 1 ? ' new point has' : ' new points have')
+    + ' joined your checklist since this decision opened.';
+  el('dcDelBtn').textContent = sealed ? 'Remove from the trail' : 'Remove this decision';
   el('dcWin').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -5278,13 +5322,53 @@ el('dcMSave').addEventListener('click', async () => {
   dcClose_();
   toast('Sealed \u2014 it walks to the trail, answers frozen');
 });
+// The manager edits a working copy as rows - rename, reorder, remove, add -
+// and only Save persists. Every operation shapes FUTURE decisions; open and
+// sealed decisions keep their frozen pairs (catch-up is offered separately).
+let dcWPts = [];
+function dcPtsRender_() {
+  el('dcQList').innerHTML = dcWPts.map((q, i) =>
+    '<div class="dc-qrow"><span class="num">' + (i + 1) + '</span>'
+    + '<input value="' + escHtml(q) + '" data-qi="' + i + '" maxlength="200">'
+    + '<button class="mv" type="button" data-qup="' + i + '" title="Move up">&uarr;</button>'
+    + '<button class="mv" type="button" data-qdn="' + i + '" title="Move down">&darr;</button>'
+    + '<button class="rm" type="button" data-qrm="' + i + '" title="Remove (future decisions only)">&times;</button></div>'
+  ).join('');
+  el('dcQList').querySelectorAll('input').forEach(inp =>
+    inp.addEventListener('change', () => {
+      const v = inp.value.trim();
+      if (v) dcWPts[Number(inp.dataset.qi)] = v; else dcPtsRender_();
+    }));
+  el('dcQList').querySelectorAll('[data-qup]').forEach(b =>
+    b.addEventListener('click', () => {
+      const i = Number(b.dataset.qup); if (!i) return;
+      dcWPts.splice(i - 1, 0, dcWPts.splice(i, 1)[0]); dcPtsRender_();
+    }));
+  el('dcQList').querySelectorAll('[data-qdn]').forEach(b =>
+    b.addEventListener('click', () => {
+      const i = Number(b.dataset.qdn); if (i >= dcWPts.length - 1) return;
+      dcWPts.splice(i + 1, 0, dcWPts.splice(i, 1)[0]); dcPtsRender_();
+    }));
+  el('dcQList').querySelectorAll('[data-qrm]').forEach(b =>
+    b.addEventListener('click', () => {
+      const i = Number(b.dataset.qrm);
+      if (!confirm('Remove "' + dcWPts[i] + '" from the checklist? Decisions that already carry it keep their copy.')) return;
+      dcWPts.splice(i, 1); dcPtsRender_();
+    }));
+}
+el('dcQAddBtn').addEventListener('click', () => {
+  const v = el('dcQNew').value.trim(); if (!v) return;
+  dcWPts.push(v); el('dcQNew').value = ''; dcPtsRender_();
+});
+el('dcQNew').addEventListener('keydown', e => { if (e.key === 'Enter') el('dcQAddBtn').click(); });
 el('dcPtsBtn').addEventListener('click', () => {
-  el('dcPtsText').value = dcPoints.join('\n');
+  dcWPts = dcPoints.slice();
+  dcPtsRender_();
   el('dcPtsModal').classList.remove('hidden');
 });
 el('dcPtsCancel').addEventListener('click', () => el('dcPtsModal').classList.add('hidden'));
 el('dcPtsSave').addEventListener('click', async () => {
-  const pts = el('dcPtsText').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const pts = dcWPts.map(s => s.trim()).filter(Boolean);
   if (!pts.length) { toast('The checklist needs at least one point'); return; }
   const del = await supa.from('why_decision_points').delete().eq('user_id', userId);
   if (del.error) { console.error(del.error); toast('Could not save the checklist'); return; }
@@ -5293,7 +5377,44 @@ el('dcPtsSave').addEventListener('click', async () => {
   if (ins.error) { console.error(ins.error); toast('Could not save the checklist'); return; }
   dcPoints = pts;
   el('dcPtsModal').classList.add('hidden');
-  toast('Checklist saved \u2014 new decisions will walk these ' + pts.length + ' points');
+  toast('Checklist saved \u2014 future decisions will walk these ' + pts.length + ' points');
+});
+// Catch-up: newness is computed by question TEXT, never by position, and
+// bringing points in is append-only - old answers cannot move or remap.
+function dcMissing_(d) {
+  const have = (Array.isArray(d.answers) ? d.answers : []).map(x => x.q);
+  return dcPoints.filter(q => have.indexOf(q) === -1);
+}
+el('dcCatchNo').addEventListener('click', () => el('dcCatch').classList.add('hidden'));
+el('dcCatchYes').addEventListener('click', async () => {
+  const d = dcRow_(); if (!d || d.status === 'trail') return;
+  const m = dcMissing_(d); if (!m.length) { el('dcCatch').classList.add('hidden'); return; }
+  const from = d.answers.length;
+  m.forEach(q => d.answers.push({ q: q, a: '' }));
+  const { error } = await supa.from('why_decisions').update({ answers: d.answers })
+    .eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not update'); d.answers.splice(from); return; }
+  openDecision(d.id);
+  el('dcQA').querySelectorAll('.dc-qa').forEach((c, i) => { if (i >= from) c.classList.add('fresh'); });
+  toast(m.length + (m.length === 1 ? ' point' : ' points') + ' appended \u2014 every old answer untouched');
+});
+// Deletion lives on the page, never the cards. The desk forgets lightly;
+// the trail is the historical record and says so before letting go.
+el('dcDelBtn').addEventListener('click', async () => {
+  const d = dcRow_(); if (!d) return;
+  const sealed = d.status === 'trail';
+  const msg = sealed
+    ? ('This is the historical record. Removing "' + d.title + '" erases the sealed answers, the verdict ('
+       + (d.made === 'quick' ? 'Decided quickly' : 'Thought through') + ')'
+       + (Number(d.satisfaction) ? ' and the ' + d.satisfaction + '-star rating' : '')
+       + ' \u2014 forever. Remove it?')
+    : ('Remove "' + d.title + '" from the desk? Its answers go with it.');
+  if (!confirm(msg)) return;
+  const { error } = await supa.from('why_decisions').delete().eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not remove it'); return; }
+  dcRows = dcRows.filter(x => String(x.id) !== String(d.id));
+  dcClose_();
+  toast(sealed ? 'Removed from the trail' : 'Removed \u2014 the desk forgets, the trail never knew');
 });
 
 el('fDreamStat').addEventListener('click', e => {
