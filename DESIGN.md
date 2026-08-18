@@ -46,6 +46,30 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**My Decisions warmed, chips merged** (Aug 2026, from a screenshot):
+Rahul's screenshot showed verdict and finalized-date wearing the same pale
+rust side by side - two chips saying halves of one fact - and named the
+room dull. One pass, mocked working first, shipped: the merged verdict
+chip (check-mark + 'FINALIZED WITH CARE / FINALIZED WITH MY GUT' + date,
+solid plum #5b4a86 white, 7.59), the sparkle happened chip (U+2726 +
+'IT HAPPENED' + date, solid green #2f6a4a white, 6.4), a warm-grey NOT
+YET LIVED, and chips STACKED one per row - a ledger read top to bottom
+(desk pages show NOT YET FINALIZED in the same slot). Wording is Rahul's:
+'Finalized with...' makes both verdict halves answer the same question,
+where weighed/went answered different ones; swapped at all sites incl.
+seal dialog, edit modal, print, md, export, delete confirm; dc-made badge
+retired with the old card layout. The page moved onto the bucket page's
+bones: sticky top bar, 1000px column (was 600), parchment gradient
+replacing the grey-blue, the name at 2rem/700 wearing the P24 signature
+sweep in rust, questions in a TWO-COLUMN grid (the width's whole point;
+folds to one at 640px) with rust circle number badges, story at a 72ch
+measure, warm gold ratebox, warm footer pill. The section warmed to
+ivory-cream gradient, desk cards with a 4px rust rule and two-tone
+progress, trail cards parchment-gold wearing the chip stack on the card.
+Contrast: first mock measurement caught the rust eyebrow at 4.1 and card
+meta at 3.5 - darkened to #8a5a1c (5.66) and #75604a (5.86) before build;
+final audit of 14 pairings all clear the floor.
+
 **Two dates per decision** (D2, Aug 2026): what began as a wording
 question ('When was it decided?') turned out to be a model question -
 Rahul meant TWO moments: the day the call was made and the day the

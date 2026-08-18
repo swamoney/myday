@@ -539,87 +539,78 @@
   #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) { .pscroll { padding-top:20px; } .pin { padding:0 16px 30px; } .pname { font-size:1.625rem; } .pav { width:52px; height:52px; font-size:1.25rem; } }
   /* ===== My Decisions — the checklist before the leap (N3, Aug 2026) ===== */
+  /* Warm redesign (Aug 2026): parchment, rust rules, and the locked chips. */
+  #secDecisions { background:linear-gradient(170deg,#fdfaf5,#f8f1e8); border:1px solid #ecdfd0;
+                  border-radius:16px; padding:18px 12px; }
   .dc-shelf { display:inline-block; font-family:var(--mono); font-size:0.5938rem; font-weight:600;
-              letter-spacing:0.14em; text-transform:uppercase; border-radius:6px; padding:3px 9px;
-              margin:6px 14px 10px; }
+              letter-spacing:0.14em; text-transform:uppercase; border-radius:6px; padding:4px 10px;
+              margin:2px 14px 10px; }
   .dc-shelf.desk { background:#8a4a22; color:#fff; }
   .dc-shelf.trail { background:#8a6d1a; color:#fff; margin-top:20px; }
   .dc-addrow { display:flex; justify-content:flex-end; margin-bottom:12px; padding:0 14px; }
   .pl-addbtn.dc-rust { background:#8a4a22; border-color:#8a4a22; }
   .dc-list { padding:0 14px; }
-  .dc-card { border:1px solid #ecd9cc; background:#fbf6f2; border-radius:12px; padding:13px 14px;
-             margin-bottom:10px; cursor:pointer; transition:transform .12s; }
-  .dc-card:hover { transform:translateY(-2px); }
-  .dc-card .t { font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#4a2c18; }
+  .dc-card { border:1px solid #eadbc8; border-left:4px solid #8a4a22; background:#fffdf9;
+             border-radius:12px; padding:14px 16px; margin-bottom:10px; cursor:pointer;
+             transition:transform .12s, box-shadow .12s; box-shadow:0 2px 8px rgba(110,70,30,0.05); }
+  .dc-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(110,70,30,0.10); }
+  .dc-card .t { font-family:var(--serif); font-size:1.0313rem; font-weight:600; color:#3d2412; }
   .dc-card .m { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.1em; text-transform:uppercase;
-                color:#8189a0; margin-top:4px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .dc-card .prog { height:4px; border-radius:2px; background:#f0e4da; margin-top:8px; overflow:hidden; }
-  .dc-card .prog i { display:block; height:100%; background:#8a4a22; }
-  .dc-card.trail { border-color:#e8e0c8; background:#fdfbf4; }
-  .dc-made { display:inline-block; font-family:var(--mono); font-size:0.4688rem; font-weight:600;
-             letter-spacing:0.12em; border-radius:5px; padding:2px 7px; }
-  .dc-made.thought { background:#e3ecf6; color:#33567e; }
-  .dc-made.quick { background:#f6e7dd; color:#8a4b1f; }
+                color:#75604a; margin-top:5px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .dc-card .prog { height:5px; border-radius:3px; background:#efe3d2; margin-top:9px; overflow:hidden; }
+  .dc-card .prog i { display:block; height:100%; background:linear-gradient(90deg,#b46a35,#8a4a22); }
+  .dc-card.trail { border-left-color:#b8962a; background:#fffcf2; }
+  .dc-mini { display:flex; flex-direction:column; gap:4px; align-items:flex-start; margin-top:8px; }
   .dc-stars-ro { display:inline-flex; gap:2px; }
-  .dc-stars-ro b { font-size:0.75rem; line-height:1; color:#d8d2c0; font-weight:400; }
+  .dc-stars-ro b { font-size:0.75rem; line-height:1; color:#d8cdb4; font-weight:400; }
   .dc-stars-ro b.on { color:#e0a81c; }
-  .dc-empty { font-size:0.75rem; color:#9aa5b8; padding:2px 14px 8px; font-style:italic; font-family:var(--serif); }
+  .dc-empty { font-size:0.75rem; color:#7a6248; padding:2px 14px 8px; font-style:italic; font-family:var(--serif); }
   .dc-ptsbtn { display:none; margin:0 14px 10px; font-family:var(--mono); font-size:0.5313rem; font-weight:600;
                letter-spacing:0.1em; text-transform:uppercase; background:none; border:1px dashed #c9b5a5;
                border-radius:999px; padding:5px 12px; color:#8a4a22; cursor:pointer; }
   body.editing .dc-ptsbtn { display:inline-block; }
-  /* the decision page */
-  .dc-overlay { position:fixed; inset:0; z-index:880; background:#e9eef6;
-                background-image:linear-gradient(165deg,#fbfcfe,#e9eef6); overflow:auto; padding:26px 16px 60px; }
+  /* the page: full width on parchment, the bucket page's own bones */
+  .dc-overlay { position:fixed; inset:0; z-index:880; background:#f7f1e8;
+                background-image:linear-gradient(165deg,#fdfaf4,#f3ece0); overflow:auto; }
   .dc-overlay.hidden { display:none; }
-  .dc-pgwrap { max-width:600px; margin:0 auto; }
+  .dc-pgbar { position:sticky; top:0; z-index:5; display:flex; align-items:center; gap:12px;
+              padding:12px 18px; background:rgba(253,250,244,0.92); backdrop-filter:blur(6px);
+              border-bottom:1px solid #eadfce; }
+  .dc-pgbar .bt { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.16em;
+                  text-transform:uppercase; color:#75604a; }
+  .dc-pgwrap { max-width:1000px; margin:0 auto; padding:26px 20px 70px; }
   .dc-back { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; text-transform:uppercase;
-             background:none; border:1px solid #dce3ee; border-radius:999px; padding:7px 14px; color:#5A6478;
-             cursor:pointer; margin-bottom:16px; }
+             background:none; border:1px solid #dcccb6; border-radius:999px; padding:7px 14px; color:#7a5c3e;
+             cursor:pointer; }
+  .dc-details { display:none; margin:0 0 12px; }
+  #dcWin.dc-editing .dc-details { display:inline-block; }
   .dc-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.18em;
-                text-transform:uppercase; color:#8189a0; }
-  .dc-name { font-family:var(--serif); font-size:1.625rem; font-weight:600; color:#182233; margin:6px 0 8px; }
-  .dc-meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+                text-transform:uppercase; color:#8a5a1c; }
+  .dc-name { font-family:var(--serif); font-size:2rem; font-weight:700; color:#2c1a0c; margin:8px 0 2px;
+             line-height:1.15; display:inline-block; }
+  .dc-name::after { content:""; display:block; width:88px; height:6px; border-radius:3px;
+                    background:#8a4a22; opacity:0.35; margin-top:8px; }
+  .dc-meta { display:flex; flex-direction:column; gap:6px; align-items:flex-start; margin:14px 0 18px; }
   .dc-pill { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
-             text-transform:uppercase; border-radius:6px; padding:4px 9px; background:#f3e0d4; color:#8a4a22; }
+             text-transform:uppercase; border-radius:6px; padding:4px 10px; background:#efe9dd; color:#6e5a3e; }
+  .dc-pill .sym { margin-right:5px; }
   .dc-pill.gold { background:#f4c430; color:#4a3410; }
-  .dc-qa { border:1px solid #ecd9cc; background:#fff; border-radius:12px; padding:12px 14px; margin-bottom:9px; }
-  .dc-qa .q { display:flex; gap:8px; align-items:baseline; font-family:var(--serif); font-size:0.875rem;
-              font-weight:600; color:#4a2c18; }
-  .dc-qa .q i { font-style:normal; font-family:var(--mono); font-size:0.5625rem; color:#b08a6c; }
-  .dc-qa textarea { width:100%; border:none; border-top:1px dashed #f0e2d6; margin-top:8px; padding-top:8px;
-                    background:transparent; font-family:var(--sans); font-size:0.8125rem; line-height:1.5;
-                    color:#2a2f3d; resize:vertical; min-height:36px; outline:none; }
-  .dc-qa.answered { border-color:#d8bfa9; }
-  .dc-decrow { display:flex; gap:8px; margin:16px 0 8px; }
-  .dc-decide { background:#8a4a22; border:1px solid #8a4a22; color:#fff; border-radius:9px;
-               padding:10px 16px; font-weight:600; font-size:0.8125rem; cursor:pointer; }
-  .dc-ratebox { margin-top:14px; border:1px solid #e3d9b8; background:#fffdf6; border-radius:14px;
-                padding:14px 18px; display:flex; flex-direction:column; gap:7px; width:fit-content; }
-  .dc-ratebox.hidden { display:none; }
-  .dc-ratebox .rlbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
-                      text-transform:uppercase; color:#8a6d1a; }
-  .dc-ratebox .rstars { display:flex; gap:6px; }
-  .dc-ratebox .rstars b { font-size:1.5rem; line-height:1; color:#d8d2c0; cursor:pointer; font-weight:400;
-                          transition:transform .1s; }
-  .dc-ratebox .rstars b.on { color:#e0a81c; }
-  .dc-ratebox .rstars b:hover { transform:scale(1.2); }
-  .dc-ratebox .rcap { font-size:0.6875rem; color:#8a94a8; font-style:italic; font-family:var(--serif); min-height:1em; }
-  .dc-qrow { display:flex; align-items:center; gap:8px; border:1px solid #ecd9cc; background:#fbf6f2;
-             border-radius:10px; padding:8px 10px; margin-bottom:7px; }
-  .dc-qrow .num { font-family:var(--mono); font-size:0.5625rem; color:#b08a6c; width:16px; flex-shrink:0; }
-  .dc-qrow input { flex:1; border:none; background:transparent; font-family:var(--serif); font-size:0.8125rem;
-                   color:#4a2c18; outline:none; min-width:0; }
-  .dc-qrow input:focus { border-bottom:1px dashed #c9a94a; }
-  .dc-qrow .mv, .dc-qrow .rm { background:none; border:1px solid #e0cdbd; border-radius:7px; width:24px;
-                               height:24px; cursor:pointer; color:#8a5a32; font-size:0.75rem; line-height:1;
-                               flex-shrink:0; }
-  .dc-qrow .rm:hover { border-color:#a8443e; color:#a8443e; }
-  .dc-qadd { display:flex; gap:8px; margin-top:10px; }
-  .dc-qadd input { flex:1; background:#fff; border:1px dashed #d0b8a4; border-radius:9px; padding:9px 12px;
-                   font-size:0.8125rem; font-family:var(--serif); outline:none; }
-  .dc-qadd button { background:#8a4a22; color:#fff; border:none; border-radius:9px; padding:0 16px;
-                    font-weight:600; font-size:0.8125rem; cursor:pointer; }
+  .dc-pill.verdict { background:#5b4a86; color:#fff; }
+  .dc-pill.hap { background:#2f6a4a; color:#fff; }
+  .dc-pill.wait { background:#efe9dd; color:#75604a; }
+  #dcQA { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px) { #dcQA { grid-template-columns:1fr; } }
+  .dc-qa { border:1px solid #eadbc8; background:#fffdf9; border-radius:13px; padding:13px 15px;
+           box-shadow:0 2px 8px rgba(110,70,30,0.04); }
+  .dc-qa .q { display:flex; gap:10px; align-items:baseline; font-family:var(--serif); font-size:0.875rem;
+              font-weight:600; color:#3d2412; }
+  .dc-qa .q i { font-style:normal; font-family:var(--mono); font-size:0.5625rem; font-weight:600; color:#fff;
+                background:#8a4a22; border-radius:50%; width:18px; height:18px; flex-shrink:0;
+                display:inline-flex; align-items:center; justify-content:center; }
+  .dc-qa textarea { width:100%; border:none; border-top:1px dashed #eeddc6; margin-top:8px; padding-top:8px;
+                    background:transparent; font-family:var(--sans); font-size:0.8125rem; line-height:1.55;
+                    color:#33270f; resize:vertical; min-height:36px; outline:none; }
+  .dc-qa.answered { border-color:#d3ac80; }
   .dc-banner { display:flex; align-items:center; gap:10px; background:#f3ecfb; border:1px solid #d9c9ef;
                border-radius:11px; padding:10px 13px; margin-bottom:12px; }
   .dc-banner.hidden { display:none; }
@@ -632,27 +623,22 @@
   .dc-qa.fresh .q::after { content:"NEW"; font-family:var(--mono); font-size:0.4688rem; font-weight:600;
                            letter-spacing:0.12em; background:#5b4a86; color:#fff; border-radius:4px;
                            padding:2px 6px; margin-left:8px; }
-  /* The story: long-form writing gets open prose, not a box - a shelf label,
-     a hairline, and room to breathe. The toolbar rides above, always ready. */
-  .dc-storyshelf { font-family:var(--mono); font-size:0.5938rem; font-weight:600; letter-spacing:0.14em;
-                   text-transform:uppercase; background:#8a4a22; color:#fff; display:inline-block;
-                   border-radius:6px; padding:3px 9px; margin:20px 0 4px; }
-  #dcStoryBar { display:flex; margin:8px 0 2px; }
-  .dc-story { min-height:90px; padding:6px 2px 10px; font-size:0.875rem; line-height:1.65; color:#2a2f3d;
-              outline:none; border-top:1px solid #f0e2d6; }
-  .dc-story:empty::before { content:"The story around this decision \2014 the phone calls, the doubts, what tipped it\2026";
-                            color:#b6bfce; font-style:italic; }
-  .dc-foot { display:flex; justify-content:center; margin-top:26px; }
-  .dc-foot .cap { display:inline-flex; align-items:center; gap:14px; border:1px solid #dce3ee;
-                  border-radius:999px; padding:8px 18px; background:#fbfcfe; }
-  .dc-foot button { display:inline-flex; align-items:center; gap:6px; background:none; border:none;
-                    cursor:pointer; font-family:var(--mono); font-size:0.5938rem; font-weight:600;
-                    letter-spacing:0.1em; text-transform:uppercase; color:#5A6478; padding:2px 0; }
-  .dc-foot button:hover { color:#182233; }
-  .dc-foot svg { width:13px; height:13px; }
+  .dc-qrow { display:flex; align-items:center; gap:8px; border:1px solid #eadbc8; background:#fffdf9;
+             border-radius:10px; padding:8px 10px; margin-bottom:7px; }
+  .dc-qrow .num { font-family:var(--mono); font-size:0.5625rem; color:#b08a6c; width:16px; flex-shrink:0; }
+  .dc-qrow input { flex:1; border:none; background:transparent; font-family:var(--serif); font-size:0.8125rem;
+                   color:#3d2412; outline:none; min-width:0; }
+  .dc-qrow input:focus { border-bottom:1px dashed #c9a94a; }
+  .dc-qrow .mv, .dc-qrow .rm { background:none; border:1px solid #e0cdbd; border-radius:7px; width:24px;
+                               height:24px; cursor:pointer; color:#8a5a32; font-size:0.75rem; line-height:1;
+                               flex-shrink:0; }
+  .dc-qrow .rm:hover { border-color:#a8443e; color:#a8443e; }
+  .dc-qadd { display:flex; gap:8px; margin-top:10px; }
+  .dc-qadd input { flex:1; background:#fff; border:1px dashed #d0b8a4; border-radius:9px; padding:9px 12px;
+                   font-size:0.8125rem; font-family:var(--serif); outline:none; }
+  .dc-qadd button { background:#8a4a22; color:#fff; border:none; border-radius:9px; padding:0 16px;
+                    font-weight:600; font-size:0.8125rem; cursor:pointer; }
   /* Read mode is for reading: the pen only comes out when Edit is on. */
-  .dc-details { display:none; margin-bottom:12px; }
-  #dcWin.dc-editing .dc-details { display:inline-block; }
   #dcWin:not(.dc-editing) #dcStoryBar { display:none; }
   #dcWin:not(.dc-editing) .dc-story:empty { display:none; }
   #dcWin.story-empty-read .dc-storyshelf { display:none; }
@@ -664,20 +650,48 @@
   #dcWin:not(.dc-editing) .dc-ratebox { border-color:transparent; background:transparent; padding:0; margin-top:8px; }
   #dcWin:not(.dc-editing) .dc-ratebox .rstars b { cursor:default; pointer-events:none; font-size:1.125rem; }
   #dcWin:not(.dc-editing) .dc-ratebox.unrated { display:none; }
-  .dc-delrow { margin-top:18px; }
-  .dc-delbtn { background:none; border:1px solid #e0cdbd; color:#8a5a32; border-radius:9px; padding:8px 14px;
-               font-size:0.75rem; cursor:pointer; }
-  .dc-delbtn:hover { border-color:#a8443e; color:#a8443e; }
-  .dc-mchoice { display:flex; gap:8px; }
-  .dc-mchoice button { flex:1; border:1px solid #dce3ee; background:#f4f7fb; border-radius:10px;
-                       padding:12px 8px; cursor:pointer; font-size:0.75rem; font-weight:600; color:#4A5570; }
-  .dc-mchoice button.on { background:#8a4a22; border-color:#8a4a22; color:#fff; }
+  .dc-decrow { display:flex; gap:8px; margin:16px 0 8px; }
+  .dc-decide { background:#8a4a22; border:1px solid #8a4a22; color:#fff; border-radius:9px;
+               padding:10px 16px; font-weight:600; font-size:0.8125rem; cursor:pointer; }
+  .dc-ratebox { margin-top:18px; border:1px solid #e0cf9c; background:#fffbea; border-radius:14px;
+                padding:14px 18px; display:flex; flex-direction:column; gap:7px; width:fit-content; }
+  .dc-ratebox.hidden { display:none; }
+  .dc-ratebox .rlbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
+                      text-transform:uppercase; color:#8a6d1a; }
+  .dc-ratebox .rstars { display:flex; gap:6px; }
+  .dc-ratebox .rstars b { font-size:1.5rem; line-height:1; color:#dccfa8; cursor:pointer; font-weight:400;
+                          transition:transform .1s; }
+  .dc-ratebox .rstars b.on { color:#e0a81c; }
+  .dc-ratebox .rstars b:hover { transform:scale(1.2); }
+  .dc-ratebox .rcap { font-size:0.6875rem; color:#75604a; font-style:italic; font-family:var(--serif); min-height:1em; }
   .dc-hist { font-size:0.6875rem; color:#8a6d1a; background:#fdf8e8; border-radius:7px; padding:6px 10px;
              margin-top:8px; display:none; }
   .dc-hist.on { display:block; }
   .dc-sub { font-size:0.6875rem; color:#9aa5b8; margin-top:4px; font-style:italic; }
-  .dc-pill.hap { background:#e4efe7; color:#2f6a4a; }
-  .dc-pill.wait { background:#eef1f6; color:#8189a0; }
+  .dc-mchoice { display:flex; gap:8px; }
+  .dc-mchoice button { flex:1; border:1px solid #dce3ee; background:#f4f7fb; border-radius:10px;
+                       padding:12px 8px; cursor:pointer; font-size:0.75rem; font-weight:600; color:#4A5570; }
+  .dc-mchoice button.on { background:#8a4a22; border-color:#8a4a22; color:#fff; }
+  .dc-storyshelf { font-family:var(--mono); font-size:0.5938rem; font-weight:600; letter-spacing:0.14em;
+                   text-transform:uppercase; background:#8a4a22; color:#fff; display:inline-block;
+                   border-radius:6px; padding:4px 10px; margin:24px 0 4px; }
+  #dcStoryBar { display:flex; margin:8px 0 2px; }
+  .dc-story { min-height:90px; padding:8px 2px 10px; font-size:0.9063rem; line-height:1.7; color:#33270f;
+              outline:none; border-top:1px solid #eeddc6; max-width:72ch; }
+  .dc-story:empty::before { content:"The story around this decision \2014 the phone calls, the doubts, what tipped it\2026";
+                            color:#bcab8e; font-style:italic; }
+  .dc-delrow { margin-top:18px; }
+  .dc-delbtn { background:none; border:1px solid #e0cdbd; color:#8a5a32; border-radius:9px; padding:8px 14px;
+               font-size:0.75rem; cursor:pointer; }
+  .dc-delbtn:hover { border-color:#a8443e; color:#a8443e; }
+  .dc-foot { display:flex; justify-content:center; margin-top:30px; }
+  .dc-foot .cap { display:inline-flex; align-items:center; gap:14px; border:1px solid #dcccb6;
+                  border-radius:999px; padding:8px 18px; background:#fffdf8; }
+  .dc-foot button { display:inline-flex; align-items:center; gap:6px; background:none; border:none;
+                    cursor:pointer; font-family:var(--mono); font-size:0.5938rem; font-weight:600;
+                    letter-spacing:0.1em; text-transform:uppercase; color:#7a5c3e; padding:2px 0; }
+  .dc-foot button:hover { color:#2c1a0c; }
+  .dc-foot svg { width:13px; height:13px; }
 
   /* ===== My Bucket List — the passport, with Places as its second room (U2) ===== */
   .bk-subseg { display:flex; gap:6px; justify-content:center; margin:2px 0 12px; }
@@ -1455,8 +1469,11 @@
 </div>
 
 <div class="dc-overlay hidden" id="dcWin">
+  <div class="dc-pgbar">
+    <button class="dc-back" id="dcBack" type="button">&larr; Back</button>
+    <span class="bt">My Decisions</span>
+  </div>
   <div class="dc-pgwrap">
-    <button class="dc-back" id="dcBack" type="button">&larr; My Decisions</button>
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div class="dc-name" id="dcName"></div>
     <div class="dc-meta" id="dcMeta"></div>
@@ -1503,8 +1520,8 @@
   <div class="modal">
     <div class="modal-title">How was it decided?</div>
     <div class="fld"><div class="dc-mchoice" id="dcMade">
-      <button data-m="thoughtful" type="button">Weighed with care<br><span style="font-weight:400;font-size:0.6875rem">I sat with it &mdash; walked the points, let it settle</span></button>
-      <button data-m="quick" type="button">Went with my gut<br><span style="font-weight:400;font-size:0.6875rem">I knew fast &mdash; the heart moved first</span></button>
+      <button data-m="thoughtful" type="button">Finalized with care<br><span style="font-weight:400;font-size:0.6875rem">I sat with it &mdash; walked the points, let it settle</span></button>
+      <button data-m="quick" type="button">Finalized with my gut<br><span style="font-weight:400;font-size:0.6875rem">I knew fast &mdash; the heart moved first</span></button>
     </div></div>
     <div class="fld"><label>Finalized on</label><input type="date" id="dcMWhen">
       <div class="dc-hist" id="dcMHist"></div></div>
@@ -1527,8 +1544,8 @@
       <div class="fld"><label>Happened on</label><input type="date" id="dcEHap">
         <div class="dc-sub">optional &mdash; the day it came true</div></div>
       <div class="fld"><label>How was it decided?</label><div class="dc-mchoice" id="dcEMade">
-        <button data-m="thoughtful" type="button">Weighed with care</button>
-        <button data-m="quick" type="button">Went with my gut</button>
+        <button data-m="thoughtful" type="button">Finalized with care</button>
+        <button data-m="quick" type="button">Finalized with my gut</button>
       </div></div>
     </div>
     <div class="modal-actions">
@@ -2231,8 +2248,8 @@ async function exportWhy() {
       const qa = Array.isArray(d.answers) ? d.answers : [];
       const sealed = d.status === 'trail';
       body += '<h3>' + xEsc_(d.title) + '</h3><p class="meta">'
-        + (sealed ? ((d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-            + (d.decided_on ? ' \u00B7 finalized ' + xEsc_(dcFmt_(d.decided_on)) : '')
+        + (sealed ? ((d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+            + (d.decided_on ? ' \u00B7 ' + xEsc_(dcFmt_(d.decided_on)) : '')
             + (d.happened_on ? ' \u00B7 happened ' + xEsc_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
             + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
           : ('On the desk' + (d.target_on ? ' \u00B7 target ' + xEsc_(dcFmt_(d.target_on)) : '')
@@ -2418,8 +2435,8 @@ function printSection() {
       trail.forEach(d => {
         const qa = Array.isArray(d.answers) ? d.answers : [];
         body += '<h3>' + e(d.title) + '</h3><p class="meta">'
-          + (d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-          + (d.decided_on ? ' \u00B7 finalized ' + e(dcFmt_(d.decided_on)) : '')
+          + (d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+          + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
           + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
           + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '</p>';
         const answered = qa.filter(x => x && String(x.a || '').trim());
@@ -5254,6 +5271,7 @@ function dcAnswered_(d) {
   const a = Array.isArray(d.answers) ? d.answers : [];
   return a.filter(x => x && String(x.a || '').trim()).length;
 }
+function dcVerdict_(d) { return d.made === 'quick' ? 'FINALIZED WITH MY GUT' : 'FINALIZED WITH CARE'; }
 function dcStarsRO_(d) {
   const r = Number(d.satisfaction) || 0;
   let s = '<span class="dc-stars-ro" aria-label="' + (r ? ('Satisfaction ' + r + ' of 5') : 'Not yet rated') + '">';
@@ -5279,12 +5297,13 @@ function renderDecisions() {
   }).join('') || '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
   el('dcTrailList').innerHTML = trail.map(d =>
     '<div class="dc-card trail" data-dc="' + d.id + '"><div class="t">' + escHtml(d.title) + '</div>'
-    + '<div class="m"><span class="dc-made ' + (d.made === 'quick' ? 'quick' : 'thought') + '">'
-    + (d.made === 'quick' ? 'WENT WITH MY GUT' : 'WEIGHED WITH CARE') + '</span>'
-    + (d.decided_on ? '<span>FINALIZED \u00B7 ' + dcFmt_(d.decided_on) + '</span>' : '')
-    + (d.happened_on ? '<span style="color:#2f6a4a">HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
-                     : '<span>NOT YET LIVED</span>')
-    + dcStarsRO_(d) + '</div></div>'
+    + '<div class="m">' + dcStarsRO_(d) + '</div>'
+    + '<div class="dc-mini">'
+    + '<span class="dc-pill verdict"><span class="sym">\u2713</span>' + dcVerdict_(d)
+    + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>'
+    + (d.happened_on ? '<span class="dc-pill hap"><span class="sym">\u2726</span>IT HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
+                     : '<span class="dc-pill wait">NOT YET LIVED</span>')
+    + '</div></div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
   document.querySelectorAll('[data-dc]').forEach(c =>
     c.addEventListener('click', () => openDecision(c.dataset.dc)));
@@ -5299,11 +5318,13 @@ function openDecision(id) {
   el('dcName').textContent = d.title;
   let meta = d.target_on ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
   if (sealed) {
-    meta += '<span class="dc-pill">' + (d.made === 'quick' ? 'WENT WITH MY GUT' : 'WEIGHED WITH CARE') + '</span>';
-    if (d.decided_on) meta += '<span class="dc-pill">FINALIZED \u00B7 ' + dcFmt_(d.decided_on) + '</span>';
+    meta += '<span class="dc-pill verdict"><span class="sym">\u2713</span>' + dcVerdict_(d)
+      + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
     meta += d.happened_on
-      ? '<span class="dc-pill hap">HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
+      ? '<span class="dc-pill hap"><span class="sym">\u2726</span>IT HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
       : '<span class="dc-pill wait">NOT YET LIVED</span>';
+  } else {
+    meta += '<span class="dc-pill wait">NOT YET FINALIZED</span>';
   }
   el('dcMeta').innerHTML = meta;
   el('dcQA').innerHTML = qa.map((x, i) =>
@@ -5396,8 +5417,8 @@ function dcMd_(d) {
   const sealed = d.status === 'trail';
   let md = '# ' + d.title + '\n\n';
   md += sealed
-    ? ((d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-       + (d.decided_on ? ' \u00B7 finalized ' + dcText_(dcFmt_(d.decided_on)) : '')
+    ? ((d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+       + (d.decided_on ? ' \u00B7 ' + dcText_(dcFmt_(d.decided_on)) : '')
        + (d.happened_on ? ' \u00B7 happened ' + dcText_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
        + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '\n\n')
     : ('On the desk' + (d.target_on ? ' \u00B7 target ' + dcText_(dcFmt_(d.target_on)) : '') + '\n\n');
@@ -5427,8 +5448,8 @@ el('dcPrintBtn').addEventListener('click', () => {
   const sealed = d.status === 'trail';
   const e = escHtml;
   let body = '<div class="eyebrow">My Decisions</div><h1>' + e(d.title) + '</h1><p class="meta">'
-    + (sealed ? ((d.made === 'quick' ? 'Went with my gut' : 'Weighed with care')
-        + (d.decided_on ? ' \u00B7 finalized ' + e(dcFmt_(d.decided_on)) : '')
+    + (sealed ? ((d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+        + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
         + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
         + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
       : ('On the desk' + (d.target_on ? ' \u00B7 target ' + e(dcFmt_(d.target_on)) : ''))) + '</p><ul>';
@@ -5504,7 +5525,7 @@ el('dcMade').addEventListener('click', e => {
 });
 el('dcMCancel').addEventListener('click', () => el('dcDecideModal').classList.add('hidden'));
 el('dcMSave').addEventListener('click', async () => {
-  if (!dcMadePick) { toast('Gut, or weighed with care?'); return; }
+  if (!dcMadePick) { toast('With care, or with your gut?'); return; }
   const d = dcRow_(); if (!d) return;
   const when = el('dcMWhen').value || new Date().toISOString().slice(0, 10);
   const hap = el('dcMHap').value || null;
@@ -5644,7 +5665,7 @@ el('dcDelBtn').addEventListener('click', async () => {
   const sealed = d.status === 'trail';
   const msg = sealed
     ? ('This is the historical record. Removing "' + d.title + '" erases the sealed answers, the verdict ('
-       + (d.made === 'quick' ? 'Went with my gut' : 'Weighed with care') + ')'
+       + (d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care') + ')'
        + (Number(d.satisfaction) ? ' and the ' + d.satisfaction + '-star rating' : '')
        + ' \u2014 forever. Remove it?')
     : ('Remove "' + d.title + '" from the desk? Its answers go with it.');
