@@ -46,6 +46,16 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**B2 ground + the true name** (Aug 2026): the boxed panel's fill became
+the bucket's ground one breath deeper (165deg #f4f7fb to #e2e8f2, border
+#dfe5ee) - same family as the page so the room shares the app's climate,
+deep enough that the walls stay visible. And the section found its final
+name: My Big Decisions (M5, over My Decision Checklist/Book/Desk/Trail) -
+renamed at all six user-facing sites (chip, page bar, section print h1,
+single-decision print eyebrow, export h2, print title) while code
+comments keep the historical N3 name. The name says what the checklist
+only implies: this room was never for small choices.
+
 **Decisions unboxed, then re-boxed** (Aug 2026): asking for 'the
 bucket's background' uncovered that the bucket has no panel at all, so
 the box was retired for consistency - and Rahul reversed it on sight:
