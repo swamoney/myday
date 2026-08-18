@@ -47,6 +47,14 @@
     and column completeness, table by table. Nothing is written anywhere.</div>
 
   <div class="step">
+    <h2>Step 0 &middot; security probe &mdash; knock as a stranger</h2>
+    <button class="go" id="probeBtn">Probe all 17 tables without signing in</button>
+    <div class="status" id="probeStatus">This asks Supabase for each table using ONLY the public key
+&mdash; exactly what any visitor to the repo could do. Every table must refuse.</div>
+    <div id="probeOut"></div>
+  </div>
+
+  <div class="step">
     <h2>Step 1 &middot; census the live database</h2>
     <button class="go" id="censusBtn">Count all 17 tables</button>
     <div class="status" id="censusStatus">Waiting. You must be signed in to MyDay on this site.</div>
@@ -90,6 +98,45 @@ const SORT = { entries:'entry_date', user_prefs:null, note_versions:'saved_at',
 const sortCol = t => SORT.hasOwnProperty(t) ? SORT[t] : 'created_at';
 
 let census = null, userId = null;
+
+// ---- Step 0: the stranger's knock ----
+// Raw REST with the anon key only - no session, no cookies, no stored token.
+// RLS with user-scoped policies must return nothing for every table.
+el('probeBtn').addEventListener('click', async () => {
+  el('probeBtn').disabled = true;
+  const base = window.MYDAY_CONFIG.SUPABASE_URL.replace(/\/$/, '');
+  const key = window.MYDAY_CONFIG.SUPABASE_ANON_KEY;
+  const out = [];
+  let exposed = 0;
+  for (const t of TABLES) {
+    el('probeStatus').textContent = 'Knocking on ' + t + '\u2026';
+    let verdict, cls, detail = '';
+    try {
+      const r = await fetch(base + '/rest/v1/' + t + '?select=*&limit=1', {
+        headers: { apikey: key, Authorization: 'Bearer ' + key, Accept: 'application/json' }
+      });
+      if (!r.ok) { verdict = 'PROTECTED'; cls = 'ok'; detail = 'refused (' + r.status + ')'; }
+      else {
+        const data = await r.json();
+        if (Array.isArray(data) && data.length === 0) {
+          verdict = 'PROTECTED'; cls = 'ok'; detail = 'answered, but showed nothing';
+          if (census && census[t] && census[t].count > 0) detail = census[t].count + ' rows exist, stranger sees none';
+        } else { verdict = 'EXPOSED'; cls = 'bad'; exposed++; detail = 'returned data to a stranger!'; }
+      }
+    } catch (e) { verdict = 'PROTECTED'; cls = 'ok'; detail = 'request blocked (' + (e.message || 'network') + ')'; }
+    out.push({ t, verdict, cls, detail });
+  }
+  el('probeOut').innerHTML =
+    '<table><tr><th>table</th><th>verdict</th><th>detail</th></tr>'
+    + out.map(r => '<tr><td class="t">' + r.t + '</td><td class="' + r.cls + '">' + r.verdict
+      + '</td><td>' + r.detail + '</td></tr>').join('') + '</table>'
+    + (exposed
+      ? '<div class="banner fail">EXPOSED \u2014 ' + exposed + ' table(s) answered a stranger. Turn RLS on for them in Supabase (Table editor \u2192 the table \u2192 RLS) before anything else.</div>'
+      : '<div class="banner pass">PROTECTED \u2014 all 17 tables refused the stranger. The public key is safe to be public.</div>')
+    + '<div class="fine">A table with zero rows proves little either way \u2014 for the strongest proof, run the census (Step 1) first, then probe again: protected tables will read \u201CN rows exist, stranger sees none\u201D.</div>';
+  el('probeStatus').textContent = 'Probe complete.';
+  el('probeBtn').disabled = false;
+});
 
 el('censusBtn').addEventListener('click', async () => {
   el('censusBtn').disabled = true;
