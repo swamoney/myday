@@ -46,14 +46,15 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
-**Decisions unboxed** (Aug 2026): asking for 'the bucket's background'
-uncovered that the bucket has NO panel at all - .sec-panel is unstyled
-and .bk-book is transparent; the boxed gradient on Decisions was the only
-box in My Why, the odd one out. The rule retired whole (same-day), and
-the 14px side insets that existed only to stand off the box's walls
-relaxed to the page rhythm. Decisions now sits on open ground like every
-sibling; the white petrol-ruled cards carry the structure. Rule distilled:
-in My Why, sections do not wear boxes - the page is the room.
+**Decisions unboxed, then re-boxed** (Aug 2026): asking for 'the
+bucket's background' uncovered that the bucket has no panel at all, so
+the box was retired for consistency - and Rahul reversed it on sight:
+the boxed panel returned exactly as it was (ivory-blue gradient, hairline
+border, 14px wall insets), restored with its insets in one pass so
+nothing half-returned. Decisions is now deliberately the one boxed
+section in My Why: seeing both on the page beat the consistency argument.
+Note kept for honesty: consistency is a reason, not a verdict - the eye
+outranks it.
 
 **D1: decisions turn petrol** (Aug 2026): the rust accent family retired
 for petrol #23677a with deep-sea #144552 as its evening shade - chosen
