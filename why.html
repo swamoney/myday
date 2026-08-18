@@ -242,7 +242,6 @@
   .why-seg > span[data-sec="mantra"]  { --t-faint:#f8f8f1; --t-bg:#eceedd; --t-acc:#63682f; }   /* olive — earthy, away from the bronze */
   .why-seg > span[data-sec="circle"]  { --t-faint:#fdf4f6; --t-bg:#f7e2e7; --t-acc:#98455a; }   /* rose — the people */
   .why-seg > span[data-sec="bucket"]  { --t-faint:#f6fbfa; --t-bg:#e2eeec; --t-acc:#2F6F6A; }   /* B2 deep teal */
-  .why-seg > span[data-sec="places"]  { --t-faint:#f2f6fd; --t-bg:#dfe9f8; --t-acc:#2c5f96; }   /* ocean blue — maps and distance */
   .why-seg > span[data-sec="priority"] { --t-faint:#f6f4fa; --t-bg:#e9e4f2; --t-acc:#5b4a86; }   /* priority — amethyst */
   #secMantra, #secCircle, #secPlaces, #secPriority { padding:0 38px 30px; }
   @media (max-width:640px) { #secMantra, #secCircle, #secPlaces, #secPriority { padding:0 20px 26px; } }
@@ -538,7 +537,14 @@
   .fr { display:flex; gap:8px; flex-wrap:wrap; }
   #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) { .pscroll { padding-top:20px; } .pin { padding:0 16px 30px; } .pname { font-size:1.625rem; } .pav { width:52px; height:52px; font-size:1.25rem; } }
-  /* ===== My Bucket List — the passport ===== */
+  /* ===== My Bucket List — the passport, with Places as its second room (U2) ===== */
+  .bk-subseg { display:flex; gap:6px; justify-content:center; margin:2px 0 12px; }
+  .bk-subseg button { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.1em;
+    text-transform:uppercase; border:none; border-radius:999px; padding:5px 12px; background:#eef1f6;
+    color:#5A6478; cursor:pointer; }
+  .bk-subseg button.on { background:#f4c430; color:#4a3410; }
+  #bkRoomDreams.hidden, #bkRoomPlaces.hidden { display:none; }
+  /* ===== the passport itself ===== */
   .bk-book { background:transparent; border:none; border-radius:0; padding:22px 38px 30px; box-shadow:none; }
   @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } }
   .bk-hd { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
@@ -969,7 +975,6 @@
       <span data-sec="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6"/><path d="M18.5 20c0-2.6-1-4.2-2.5-5"/></svg><i class="seg-l">My Circle</i></span>
       <span data-sec="mantra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/><path d="M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/></svg><i class="seg-l">My Mantra</i></span>
       <span data-sec="bucket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20.4h4.6v-4.6h4.6v-4.6h4.6V6.6H21"/></svg><i class="seg-l">My Bucket List</i></span>
-      <span data-sec="places"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="m15.2 8.8-2.1 5.3-5.3 2.1 2.1-5.3z" fill="currentColor" stroke="none"/></svg><i class="seg-l">My Explore List</i></span>
 </div>
     <div class="pchips pchips-main" id="pchips"></div>
     <div class="pchips-cap" id="pchipsCap"></div>
@@ -1007,7 +1012,18 @@
       </div>
       <div class="pr-balance" id="priBalance"></div>
     </div>
-    <div class="sec-panel hidden" id="secPlaces">
+    <div class="sec-panel hidden" id="secBucket">
+      <div class="bk-subseg" role="tablist">
+        <button type="button" id="bkTabDreams" class="on">Dreams &amp; Doings</button>
+        <button type="button" id="bkTabPlaces">Places</button>
+      </div>
+      <div id="bkRoomDreams">
+        <div class="bk-book">
+          <div class="bk-hd"><span class="bk-count" id="bkCount"></span></div>
+          <div id="stamps"></div>
+        </div>
+      </div>
+      <div id="bkRoomPlaces" class="hidden">
       <div class="pl-tb">
         <button class="pl-addbtn" id="placeAddBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -1017,11 +1033,6 @@
       <div class="pl-chips" id="plChips"></div>
       <div class="pl-count" id="plCount"></div>
       <div class="pl-list" id="placeList"></div>
-    </div>
-    <div class="sec-panel hidden" id="secBucket">
-      <div class="bk-book">
-        <div class="bk-hd"><span class="bk-count" id="bkCount"></span></div>
-        <div id="stamps"></div>
       </div>
     </div>
   </div>
@@ -2042,6 +2053,15 @@ function printSection() {
         + (b.planned_on ? ' <span class="meta">planned for ' + e(bkFmt(b.planned_on)) + '</span>' : '')
         + (b.lived_on ? ' <span class="meta">done ' + e(bkFmt(b.lived_on)) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
+    body += '<h1 style="margin-top:26px">My Explore List</h1>';
+    const byCity = {};
+    places.forEach(p => { const c = (p.city || 'Elsewhere').trim() || 'Elsewhere'; (byCity[c] = byCity[c] || []).push(p); });
+    Object.keys(byCity).sort().forEach(city => {
+      body += '<h2>' + e(city) + '</h2><ul>' + byCity[city].map(p =>
+        '<li><strong>' + e(p.name || '') + '</strong> \u2014 ' + e((PL_KINDS[p.kind] || PL_KINDS.eat).lbl)
+        + ' \u00B7 ' + e(PL_STATUS[p.status || 'not_yet'])
+        + (p.note ? '<br><span class="meta">' + e(p.note) + '</span>' : '') + '</li>').join('') + '</ul>';
+    });
     prOpen_('My Bucket List', body); return;
   }
   if (activeSec === 'circle') {
@@ -2054,18 +2074,6 @@ function printSection() {
           + (p.note ? ' \u2014 ' + e(p.note) : '') + '</li>').join('') + '</ul>';
     });
     prOpen_('My Circle', body); return;
-  }
-  if (activeSec === 'places') {
-    let body = '<div class="eyebrow">My Why</div><h1>My Explore List</h1>';
-    const byCity = {};
-    places.forEach(p => { const c = (p.city || 'Elsewhere').trim() || 'Elsewhere'; (byCity[c] = byCity[c] || []).push(p); });
-    Object.keys(byCity).sort().forEach(city => {
-      body += '<h2>' + e(city) + '</h2><ul>' + byCity[city].map(p =>
-        '<li><strong>' + e(p.name || '') + '</strong> \u2014 ' + e((PL_KINDS[p.kind] || PL_KINDS.eat).lbl)
-        + ' \u00B7 ' + e(PL_STATUS[p.status || 'not_yet'])
-        + (p.note ? '<br><span class="meta">' + e(p.note) + '</span>' : '') + '</li>').join('') + '</ul>';
-    });
-    prOpen_('My Explore List', body); return;
   }
 }
 el('printSecBtn').addEventListener('click', printSection);
@@ -2972,7 +2980,7 @@ function showSection(sec) {
   activeSec = sec;
   // Arriving at a partial list with no memory of why is worse than one more tap.
   if (sec !== 'circle') circleTag = '';
-  ['pillars','mantra','circle','bucket','places','priority'].forEach(s => {
+  ['pillars','mantra','circle','bucket','priority'].forEach(s => {
     const p = el('sec' + s.charAt(0).toUpperCase() + s.slice(1));
     if (p) p.classList.toggle('hidden', s !== sec);
   });
@@ -2982,6 +2990,16 @@ function showSection(sec) {
 }
 el('whySeg').querySelectorAll(':scope > span').forEach(s =>
   s.addEventListener('click', () => showSection(s.dataset.sec)));
+
+// The bucket's two rooms (U2): the passport, and the places behind it.
+function showBkRoom(r) {
+  el('bkRoomDreams').classList.toggle('hidden', r !== 'dreams');
+  el('bkRoomPlaces').classList.toggle('hidden', r !== 'places');
+  el('bkTabDreams').classList.toggle('on', r === 'dreams');
+  el('bkTabPlaces').classList.toggle('on', r === 'places');
+}
+el('bkTabDreams').addEventListener('click', () => showBkRoom('dreams'));
+el('bkTabPlaces').addEventListener('click', () => showBkRoom('places'));
 
 // ----- Mantra -----
 async function loadMantras() {

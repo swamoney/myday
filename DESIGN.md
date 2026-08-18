@@ -46,6 +46,54 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**Explore moves into the Bucket List** (U2, Aug 2026): My Explore List is
+no longer a top-level section of My Why - it is the second room of My
+Bucket List, behind a gold inner chip pair (Dreams & Doings | Places).
+Decided from a WORKING mock built from the app's own harvested CSS and
+builders (bkCard, renderPlaces, plHue - which turned out to read the city
+list, so scoping it per instance was mandatory), so the choice was made by
+feel, not by picture. The merge is UI-only: bucket_items and why_places
+stay separate tables - backup, restore, and the audit unchanged. Both
+existing UIs survive byte-for-byte inside their rooms (city chips, hue
+system, add flows). Print of the bucket section now appends the geography
+chapter (grouped by city) after the dreams, because paper has no tabs; the
+orphaned places print branch retired the same day. U1 (one long page) lost
+to scroll depth; U3 (places as stamps) lost because it demolishes a
+working room for a prettier sentence.
+
+**The backup audit** (Aug 2026): a full audit of Backup everything, in two
+halves. Static: the app touches exactly 17 tables (grep of every .from()),
+EXPORT_TABLES lists the same 17, restore.html restores all 17; _fetchAll
+pages at 1000 with a per-table sort map (entries by entry_date,
+note_versions by saved_at, wealth_snapshots by on_date, why_journeys by
+updated_at, user_prefs/wealth_meta unsorted single-page), retries unsorted
+on sort errors, and surfaces failures via alert + export_warnings in the
+json; zero localStorage writes exist, so no data lives outside Supabase;
+the three files are json (verbatim vault), md (readable book), README.
+Live: audit.html is a read-only harness deployed beside the app - it
+counts all 17 tables in the live db, then compares a chosen backup json:
+per-table row counts, newest-row presence by id, and column completeness
+on that newest row, with a PASS / FAIL verdict, daily-log date-range
+summary, and drift detection for unknown tables. Its manifest and sort map
+are asserted (in the build) to mirror note-editor.js exactly - if
+EXPORT_TABLES ever grows, audit.html must grow in the same commit.
+Step 0, the security probe (added same week): the harness also knocks on
+all 17 tables as a stranger - raw REST with only the public anon key, no
+session, deliberately bypassing the signed-in client - and verdicts each
+table PROTECTED or EXPOSED. Empty tables prove little, so the probe
+cross-references the census when available ("N rows exist, stranger sees
+none" is the strongest proof). Privacy stance, recorded: the anon key is
+safe to publish only because RLS scopes every table to user_id; audit.html
+holds no secrets and uploads nothing (the backup json is read locally);
+backup files themselves are the whole life in plaintext and must never be
+committed to the repo. Standing sequence: census, probe, backup, verify.
+Lesson from the harness's own first run: it shipped against invented
+config globals instead of the app's real MYDAY_CONFIG and died on load -
+the audit tool failed its own first audit. Even diagnostic pages recon the
+bootstrap they join; assumptions are verified against source, never typed
+from memory. Standing rule: audit after every backup that matters, and
+after any schema change.
+
 **The year-progress block rebalanced** (O2, Aug 2026): Rahul spotted that
 after the second polish the 63% stack (13px grid + 1.25rem number + caption,
 ~90px) outgrew the date column (~80px) beside it. Fix: geometry, not
