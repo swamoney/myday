@@ -48,7 +48,7 @@
 
   <div class="step">
     <h2>Step 0 &middot; security probe &mdash; knock as a stranger</h2>
-    <button class="go" id="probeBtn">Probe all 17 tables without signing in</button>
+    <button class="go" id="probeBtn">Probe all 19 tables without signing in</button>
     <div class="status" id="probeStatus">This asks Supabase for each table using ONLY the public key
 &mdash; exactly what any visitor to the repo could do. Every table must refuse.</div>
     <div id="probeOut"></div>
@@ -56,7 +56,7 @@
 
   <div class="step">
     <h2>Step 1 &middot; census the live database</h2>
-    <button class="go" id="censusBtn">Count all 17 tables</button>
+    <button class="go" id="censusBtn">Count all 19 tables</button>
     <div class="status" id="censusStatus">Waiting. You must be signed in to MyDay on this site.</div>
   </div>
 
@@ -92,7 +92,8 @@ const el = id => document.getElementById(id);
 const TABLES = ['entries','user_prefs','bookmarks','iw_entries','wip_notes',
   'why_pillars','why_mantras','why_circle','why_priority',
   'bucket_items','why_places','note_versions',
-  'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions','why_journeys'];
+  'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions','why_journeys',
+  'why_decisions','why_decision_points'];
 const SORT = { entries:'entry_date', user_prefs:null, note_versions:'saved_at',
                wealth_snapshots:'on_date', wealth_meta:null, why_journeys:'updated_at' };
 const sortCol = t => SORT.hasOwnProperty(t) ? SORT[t] : 'created_at';
@@ -132,7 +133,7 @@ el('probeBtn').addEventListener('click', async () => {
       + '</td><td>' + r.detail + '</td></tr>').join('') + '</table>'
     + (exposed
       ? '<div class="banner fail">EXPOSED \u2014 ' + exposed + ' table(s) answered a stranger. Turn RLS on for them in Supabase (Table editor \u2192 the table \u2192 RLS) before anything else.</div>'
-      : '<div class="banner pass">PROTECTED \u2014 all 17 tables refused the stranger. The public key is safe to be public.</div>')
+      : '<div class="banner pass">PROTECTED \u2014 all 19 tables refused the stranger. The public key is safe to be public.</div>')
     + '<div class="fine">A table with zero rows proves little either way \u2014 for the strongest proof, run the census (Step 1) first, then probe again: protected tables will read \u201CN rows exist, stranger sees none\u201D.</div>';
   el('probeStatus').textContent = 'Probe complete.';
   el('probeBtn').disabled = false;
@@ -163,8 +164,7 @@ el('censusBtn').addEventListener('click', async () => {
       census[t] = entry;
     }
     const total = TABLES.reduce((a, t) => a + (census[t].count || 0), 0);
-    el('censusStatus').textContent = 'Census complete: ' + total + ' rows across ' + TABLES.length
-      + ' tables.\nNow choose the backup file below \u2014 ideally one you download RIGHT NOW.';
+    el('censusStatus').textContent = 'Census complete: ' + total + ' rows across ' + TABLES.length + ' tables.\nNow choose the backup file below \u2014 ideally one you download RIGHT NOW.';
     el('filePick').disabled = false;
     el('fileStatus').textContent = 'Ready.';
   } catch (e) {

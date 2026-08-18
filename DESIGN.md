@@ -46,6 +46,31 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**My Decisions** (N3, Aug 2026): a new My Why section - the checklist
+before the leap - chosen by name (N3 over Crossroads/Compass/Calls/Forks/
+Weighing Room/Turning Points) and by shape from a working mock that went
+through one revision: no inner chips, one flowing page with On the desk
+first and The trail beneath. Rust hue family (#8a4a22) - distinct from
+priority's amethyst and every other chip - with a weighing-scales icon.
+The model: the master checklist (why_decision_points, default 11 points
+shipped, edited one-per-line via a dashed control visible only in the
+room's edit mode) shapes NEW decisions only; each decision freezes its own
+{q, a} pairs at creation, so editing the checklist never rewrites history.
+A decision opens via a small popup (title + target date) onto its own
+overlay page: numbered question cards with debounced-autosave answers and
+a progress bar on the desk card. 'I have decided' asks the journaling
+question - Thought through or Decided quickly - then seals: status trail,
+decided_on stamped, answers frozen, textareas readonly ('(unanswered at
+the time)' where blank). Satisfaction (1-5, same-star-clears, its own
+caption ladder from 'wrong turn' to 'one of the best calls') is rated only
+on the sealed decision's page - the bucket's lesson applied from birth.
+Infrastructure grew in the same commit per the standing rule: two new
+tables with RLS + range checks (migrate_why_decisions.sql, 19-row check),
+EXPORT_TABLES 17 to 19, audit.html manifest + labels to 19, restore.html
++2 rows, note-editor version bumped to 20260818a on all four pages, print
+and .md export both carry desk + trail with answered Q&A. Run the audit
+after the first backup: the column check proves the new tables arrived.
+
 **The bucket refined by use** (Aug 2026, second pass, mocked working
 first): three revisions from Rahul actually using the first build. The add
 buttons moved back to the right corner in both rooms - his call, and the

@@ -243,6 +243,7 @@
   .why-seg > span[data-sec="circle"]  { --t-faint:#fdf4f6; --t-bg:#f7e2e7; --t-acc:#98455a; }   /* rose — the people */
   .why-seg > span[data-sec="bucket"]  { --t-faint:#f6fbfa; --t-bg:#e2eeec; --t-acc:#2F6F6A; }   /* B2 deep teal */
   .why-seg > span[data-sec="priority"] { --t-faint:#f6f4fa; --t-bg:#e9e4f2; --t-acc:#5b4a86; }   /* priority — amethyst */
+  .why-seg > span[data-sec="decisions"] { --t-faint:#fbf4f0; --t-bg:#f3e0d4; --t-acc:#8a4a22; }   /* decisions — rust, the weighing iron */
   #secMantra, #secCircle, #secPlaces, #secPriority { padding:0 38px 30px; }
   @media (max-width:640px) { #secMantra, #secCircle, #secPlaces, #secPriority { padding:0 20px 26px; } }
   .sec-panel.hidden, #secPillars.hidden { display:none; }
@@ -537,6 +538,78 @@
   .fr { display:flex; gap:8px; flex-wrap:wrap; }
   #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) { .pscroll { padding-top:20px; } .pin { padding:0 16px 30px; } .pname { font-size:1.625rem; } .pav { width:52px; height:52px; font-size:1.25rem; } }
+  /* ===== My Decisions — the checklist before the leap (N3, Aug 2026) ===== */
+  .dc-shelf { display:inline-block; font-family:var(--mono); font-size:0.5938rem; font-weight:600;
+              letter-spacing:0.14em; text-transform:uppercase; border-radius:6px; padding:3px 9px;
+              margin:6px 14px 10px; }
+  .dc-shelf.desk { background:#8a4a22; color:#fff; }
+  .dc-shelf.trail { background:#8a6d1a; color:#fff; margin-top:20px; }
+  .dc-addrow { display:flex; justify-content:flex-end; margin-bottom:12px; padding:0 14px; }
+  .pl-addbtn.dc-rust { background:#8a4a22; border-color:#8a4a22; }
+  .dc-list { padding:0 14px; }
+  .dc-card { border:1px solid #ecd9cc; background:#fbf6f2; border-radius:12px; padding:13px 14px;
+             margin-bottom:10px; cursor:pointer; transition:transform .12s; }
+  .dc-card:hover { transform:translateY(-2px); }
+  .dc-card .t { font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#4a2c18; }
+  .dc-card .m { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.1em; text-transform:uppercase;
+                color:#8189a0; margin-top:4px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .dc-card .prog { height:4px; border-radius:2px; background:#f0e4da; margin-top:8px; overflow:hidden; }
+  .dc-card .prog i { display:block; height:100%; background:#8a4a22; }
+  .dc-card.trail { border-color:#e8e0c8; background:#fdfbf4; }
+  .dc-made { display:inline-block; font-family:var(--mono); font-size:0.4688rem; font-weight:600;
+             letter-spacing:0.12em; border-radius:5px; padding:2px 7px; }
+  .dc-made.thought { background:#e3ecf6; color:#33567e; }
+  .dc-made.quick { background:#f6e7dd; color:#8a4b1f; }
+  .dc-stars-ro { display:inline-flex; gap:2px; }
+  .dc-stars-ro b { font-size:0.75rem; line-height:1; color:#d8d2c0; font-weight:400; }
+  .dc-stars-ro b.on { color:#e0a81c; }
+  .dc-empty { font-size:0.75rem; color:#9aa5b8; padding:2px 14px 8px; font-style:italic; font-family:var(--serif); }
+  .dc-ptsbtn { display:none; margin:0 14px 10px; font-family:var(--mono); font-size:0.5313rem; font-weight:600;
+               letter-spacing:0.1em; text-transform:uppercase; background:none; border:1px dashed #c9b5a5;
+               border-radius:999px; padding:5px 12px; color:#8a4a22; cursor:pointer; }
+  body.editing .dc-ptsbtn { display:inline-block; }
+  /* the decision page */
+  .dc-overlay { position:fixed; inset:0; z-index:880; background:#e9eef6;
+                background-image:linear-gradient(165deg,#fbfcfe,#e9eef6); overflow:auto; padding:26px 16px 60px; }
+  .dc-overlay.hidden { display:none; }
+  .dc-pgwrap { max-width:600px; margin:0 auto; }
+  .dc-back { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; text-transform:uppercase;
+             background:none; border:1px solid #dce3ee; border-radius:999px; padding:7px 14px; color:#5A6478;
+             cursor:pointer; margin-bottom:16px; }
+  .dc-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.18em;
+                text-transform:uppercase; color:#8189a0; }
+  .dc-name { font-family:var(--serif); font-size:1.625rem; font-weight:600; color:#182233; margin:6px 0 8px; }
+  .dc-meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .dc-pill { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
+             text-transform:uppercase; border-radius:6px; padding:4px 9px; background:#f3e0d4; color:#8a4a22; }
+  .dc-pill.gold { background:#f4c430; color:#4a3410; }
+  .dc-qa { border:1px solid #ecd9cc; background:#fff; border-radius:12px; padding:12px 14px; margin-bottom:9px; }
+  .dc-qa .q { display:flex; gap:8px; align-items:baseline; font-family:var(--serif); font-size:0.875rem;
+              font-weight:600; color:#4a2c18; }
+  .dc-qa .q i { font-style:normal; font-family:var(--mono); font-size:0.5625rem; color:#b08a6c; }
+  .dc-qa textarea { width:100%; border:none; border-top:1px dashed #f0e2d6; margin-top:8px; padding-top:8px;
+                    background:transparent; font-family:var(--sans); font-size:0.8125rem; line-height:1.5;
+                    color:#2a2f3d; resize:vertical; min-height:36px; outline:none; }
+  .dc-qa.answered { border-color:#d8bfa9; }
+  .dc-decrow { display:flex; gap:8px; margin:16px 0 8px; }
+  .dc-decide { background:#8a4a22; border:1px solid #8a4a22; color:#fff; border-radius:9px;
+               padding:10px 16px; font-weight:600; font-size:0.8125rem; cursor:pointer; }
+  .dc-ratebox { margin-top:14px; border:1px solid #e3d9b8; background:#fffdf6; border-radius:14px;
+                padding:14px 18px; display:flex; flex-direction:column; gap:7px; width:fit-content; }
+  .dc-ratebox.hidden { display:none; }
+  .dc-ratebox .rlbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
+                      text-transform:uppercase; color:#8a6d1a; }
+  .dc-ratebox .rstars { display:flex; gap:6px; }
+  .dc-ratebox .rstars b { font-size:1.5rem; line-height:1; color:#d8d2c0; cursor:pointer; font-weight:400;
+                          transition:transform .1s; }
+  .dc-ratebox .rstars b.on { color:#e0a81c; }
+  .dc-ratebox .rstars b:hover { transform:scale(1.2); }
+  .dc-ratebox .rcap { font-size:0.6875rem; color:#8a94a8; font-style:italic; font-family:var(--serif); min-height:1em; }
+  .dc-mchoice { display:flex; gap:8px; }
+  .dc-mchoice button { flex:1; border:1px solid #dce3ee; background:#f4f7fb; border-radius:10px;
+                       padding:12px 8px; cursor:pointer; font-size:0.75rem; font-weight:600; color:#4A5570; }
+  .dc-mchoice button.on { background:#8a4a22; border-color:#8a4a22; color:#fff; }
+
   /* ===== My Bucket List — the passport, with Places as its second room (U2) ===== */
   .bk-subseg { display:flex; gap:6px; justify-content:center; margin:2px 0 12px; }
   .bk-subseg button { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.1em;
@@ -971,7 +1044,7 @@
 <body>
 
 <script src="config.js?v=20260802b"></script>
-<script src="note-editor.js?v=20260816b"></script>
+<script src="note-editor.js?v=20260818a"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -1005,6 +1078,7 @@
       <span data-sec="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6"/><path d="M18.5 20c0-2.6-1-4.2-2.5-5"/></svg><i class="seg-l">My Circle</i></span>
       <span data-sec="mantra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/><path d="M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/></svg><i class="seg-l">My Mantra</i></span>
       <span data-sec="bucket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20.4h4.6v-4.6h4.6v-4.6h4.6V6.6H21"/></svg><i class="seg-l">My Bucket List</i></span>
+      <span data-sec="decisions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7l7-2 7 2"/><path d="M3.5 12.5 5 7l1.5 5.5a2.6 2.6 0 0 1-3 0z"/><path d="M17.5 12.5 19 7l1.5 5.5a2.6 2.6 0 0 1-3 0z"/></svg><i class="seg-l">My Decisions</i></span>
 </div>
     <div class="pchips pchips-main" id="pchips"></div>
     <div class="pchips-cap" id="pchipsCap"></div>
@@ -1070,6 +1144,19 @@
       <div class="pl-count" id="plCount"></div>
       <div class="pl-list" id="placeList"></div>
       </div>
+    </div>
+    <div class="sec-panel hidden" id="secDecisions">
+      <div><span class="dc-shelf desk">On the desk</span>
+        <button class="dc-ptsbtn" id="dcPtsBtn" type="button">Edit the checklist</button></div>
+      <div class="dc-addrow">
+        <button class="pl-addbtn dc-rust" id="dcAddBtn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          <span>New decision</span>
+        </button>
+      </div>
+      <div class="dc-list" id="dcDeskList"></div>
+      <div><span class="dc-shelf trail">The trail</span></div>
+      <div class="dc-list" id="dcTrailList"></div>
     </div>
   </div>
   <div class="foot-note">one life, live it well</div>
@@ -1294,6 +1381,61 @@
       <span style="flex:1"></span>
       <button class="btn-ghost" id="priCloseCancel" type="button">Cancel</button>
       <button class="btn-primary" id="priCloseSave" type="button">Close the task</button>
+    </div>
+  </div>
+</div>
+
+<div class="dc-overlay hidden" id="dcWin">
+  <div class="dc-pgwrap">
+    <button class="dc-back" id="dcBack" type="button">&larr; My Decisions</button>
+    <div class="dc-eyebrow" id="dcEyebrow"></div>
+    <div class="dc-name" id="dcName"></div>
+    <div class="dc-meta" id="dcMeta"></div>
+    <div id="dcQA"></div>
+    <div class="dc-decrow" id="dcDecideRow"><button class="dc-decide" id="dcDecideBtn" type="button">I have decided</button></div>
+    <div class="dc-ratebox hidden" id="dcRateBox">
+      <span class="rlbl">Looking back, how did it turn out?</span>
+      <span class="rstars" id="dcRateStars"><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b></span>
+      <span class="rcap" id="dcRateCap"></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="dcNewModal">
+  <div class="modal">
+    <div class="modal-title">A new decision</div>
+    <div class="modal-sub">walk the checklist before the leap</div>
+    <div class="fld"><label>The decision</label><input id="dcFName" placeholder="e.g. Move to Bangalore for the new role?" maxlength="180"></div>
+    <div class="fld"><label>Target date</label><input type="date" id="dcFTarget"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="dcFSave" type="button">Open it</button>
+      <button class="btn-ghost" id="dcFCancel" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="dcDecideModal">
+  <div class="modal">
+    <div class="modal-title">How was it decided?</div>
+    <div class="fld"><div class="dc-mchoice" id="dcMade">
+      <button data-m="thoughtful" type="button">Thought through<br><span style="font-weight:400;font-size:0.6875rem">slept on it, walked the points</span></button>
+      <button data-m="quick" type="button">Decided quickly<br><span style="font-weight:400;font-size:0.6875rem">gut call, little deliberation</span></button>
+    </div></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="dcMSave" type="button">Seal it &rarr; the trail</button>
+      <button class="btn-ghost" id="dcMCancel" type="button">Not yet</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="dcPtsModal">
+  <div class="modal">
+    <div class="modal-title">Your checklist</div>
+    <div class="modal-sub">one point per line &mdash; every NEW decision walks these; sealed ones keep theirs</div>
+    <div class="fld"><textarea id="dcPtsText" style="width:100%;background:#f4f7fb;border:1px solid #dce3ee;border-radius:9px;padding:11px 12px;font-size:0.8125rem;font-family:var(--sans);line-height:1.6;min-height:220px;resize:vertical"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="dcPtsSave" type="button">Save the checklist</button>
+      <button class="btn-ghost" id="dcPtsCancel" type="button">Cancel</button>
     </div>
   </div>
 </div>
@@ -1700,6 +1842,7 @@ async function loadPillars() {
   if (typeof loadMantras === 'function') loadMantras();
   if (typeof loadCircle === 'function') loadCircle();
   if (typeof loadPlaces === 'function') loadPlaces();
+  if (typeof loadDecisions === 'function') loadDecisions();
   if (typeof loadPriority === 'function') loadPriority();
   if (typeof loadBuckets === 'function') loadBuckets();
 }
@@ -1972,6 +2115,21 @@ async function exportWhy() {
       body += '</ul>';
     }
 
+    body += '<h2>My Decisions</h2>';
+    dcRows.forEach(d => {
+      const qa = Array.isArray(d.answers) ? d.answers : [];
+      const sealed = d.status === 'trail';
+      body += '<h3>' + xEsc_(d.title) + '</h3><p class="meta">'
+        + (sealed ? ((d.made === 'quick' ? 'Decided quickly' : 'Thought through')
+            + (d.decided_on ? ' \u00B7 sealed ' + xEsc_(dcFmt_(d.decided_on)) : '')
+            + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
+          : ('On the desk' + (d.target_on ? ' \u00B7 target ' + xEsc_(dcFmt_(d.target_on)) : '')
+            + ' \u00B7 ' + dcAnswered_(d) + ' of ' + qa.length + ' answered')) + '</p>';
+      const answered = qa.filter(x => x && String(x.a || '').trim());
+      if (answered.length) body += '<ul>' + answered.map(x =>
+        '<li><strong>' + xEsc_(x.q) + '</strong> \u2014 ' + xEsc_(x.a) + '</li>').join('') + '</ul>';
+    });
+
     body += '<h2>My Explore List</h2>';
     const byCity = {};
     places.forEach(p => { const c = (p.city || 'Elsewhere').trim() || 'Elsewhere'; (byCity[c] = byCity[c] || []).push(p); });
@@ -2129,6 +2287,34 @@ function printSection() {
         + (p.note ? '<br><span class="meta">' + e(p.note) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
     prOpen_('My Bucket List', body); return;
+  }
+  if (activeSec === 'decisions') {
+    let body = '<div class="eyebrow">My Why</div><h1>My Decisions</h1>';
+    const desk = dcRows.filter(d => d.status !== 'trail');
+    const trail = dcRows.filter(d => d.status === 'trail');
+    if (desk.length) {
+      body += '<h2>On the desk</h2><ul>' + desk.map(d => {
+        const qa = Array.isArray(d.answers) ? d.answers : [];
+        return '<li><strong>' + e(d.title) + '</strong>'
+          + (d.target_on ? ' <span class="meta">target ' + e(dcFmt_(d.target_on)) + '</span>' : '')
+          + ' <span class="meta">' + dcAnswered_(d) + ' of ' + qa.length + ' answered</span></li>';
+      }).join('') + '</ul>';
+    }
+    if (trail.length) {
+      body += '<h2>The trail</h2>';
+      trail.forEach(d => {
+        const qa = Array.isArray(d.answers) ? d.answers : [];
+        body += '<h3>' + e(d.title) + '</h3><p class="meta">'
+          + (d.made === 'quick' ? 'Decided quickly' : 'Thought through')
+          + (d.decided_on ? ' \u00B7 sealed ' + e(dcFmt_(d.decided_on)) : '')
+          + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '</p>';
+        const answered = qa.filter(x => x && String(x.a || '').trim());
+        if (answered.length) body += '<ul>' + answered.map(x =>
+          '<li><strong>' + e(x.q) + '</strong><br><span class="meta">' + e(x.a) + '</span></li>').join('') + '</ul>';
+      });
+    }
+    if (!desk.length && !trail.length) body += '<p class="meta">Nothing here yet.</p>';
+    prOpen_('My Decisions', body); return;
   }
   if (activeSec === 'circle') {
     let body = '<div class="eyebrow">My Why</div><h1>My Circle</h1>';
@@ -3046,7 +3232,7 @@ function showSection(sec) {
   activeSec = sec;
   // Arriving at a partial list with no memory of why is worse than one more tap.
   if (sec !== 'circle') circleTag = '';
-  ['pillars','mantra','circle','bucket','priority'].forEach(s => {
+  ['pillars','mantra','circle','bucket','priority','decisions'].forEach(s => {
     const p = el('sec' + s.charAt(0).toUpperCase() + s.slice(1));
     if (p) p.classList.toggle('hidden', s !== sec);
   });
@@ -4918,6 +5104,198 @@ function openDreamModal_() {
 }
 function closeDreamModal_() { el('dreamModal').classList.add('hidden'); }
 el('dreamAddBtn').addEventListener('click', openDreamModal_);
+
+// ----- My Decisions (N3, Aug 2026): the checklist before the leap -----
+// Each decision freezes its own {q, a} pairs at creation; the master
+// checklist (why_decision_points) shapes only what comes after.
+let dcRows = [], dcPoints = [], dcId = null;
+const DC_DEFAULT_POINTS = [
+  'What am I really deciding - in one sentence?',
+  'What happens if I do nothing for a year?',
+  'What would I advise my best friend to do here?',
+  'What is the worst realistic outcome, and can I live with it?',
+  'What is the best realistic outcome, and how likely is it?',
+  'Who else does this decision touch, and have I asked them?',
+  'What does this cost in money, time, and energy?',
+  'Which of my Whys does this serve - and which does it starve?',
+  'Am I running toward something, or away from something?',
+  'Will this matter in five years?',
+  'What would I need to see to change my mind?'
+];
+const DC_RATE_CAP = { 1:'wrong turn, and I know it', 2:'rougher than hoped', 3:'it worked out okay',
+                      4:'a good call', 5:'one of the best calls I have made' };
+async function loadDecisions() {
+  const [d, p] = await Promise.all([
+    supa.from('why_decisions').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+    supa.from('why_decision_points').select('*').eq('user_id', userId).order('sort_order', { ascending: true })
+  ]);
+  if (d.error) { console.error(d.error); return; }
+  dcRows = d.data || [];
+  dcPoints = (p.data || []).map(r => r.text);
+  if (!dcPoints.length) dcPoints = DC_DEFAULT_POINTS.slice();
+  renderDecisions();
+}
+function dcAnswered_(d) {
+  const a = Array.isArray(d.answers) ? d.answers : [];
+  return a.filter(x => x && String(x.a || '').trim()).length;
+}
+function dcStarsRO_(d) {
+  const r = Number(d.satisfaction) || 0;
+  let s = '<span class="dc-stars-ro" aria-label="' + (r ? ('Satisfaction ' + r + ' of 5') : 'Not yet rated') + '">';
+  for (let i = 1; i <= 5; i++) s += '<b class="' + (i <= r ? 'on' : '') + '">\u2605</b>';
+  return s + '</span>';
+}
+function dcFmt_(d) {
+  if (!d) return '';
+  const x = new Date(d + 'T00:00:00');
+  if (isNaN(x)) return escHtml(d);
+  return String(x.getDate()).padStart(2, '0') + ' ' + BK_MON[x.getMonth()] + ' ' + x.getFullYear();
+}
+function renderDecisions() {
+  const desk = dcRows.filter(d => d.status !== 'trail');
+  const trail = dcRows.filter(d => d.status === 'trail');
+  el('dcDeskList').innerHTML = desk.map(d => {
+    const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
+    const pct = total ? Math.round(n / total * 100) : 0;
+    return '<div class="dc-card" data-dc="' + d.id + '"><div class="t">' + escHtml(d.title) + '</div>'
+      + '<div class="m">' + (d.target_on ? '<span>TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '')
+      + '<span>' + n + ' OF ' + total + ' ANSWERED</span></div>'
+      + '<div class="prog"><i style="width:' + pct + '%"></i></div></div>';
+  }).join('') || '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
+  el('dcTrailList').innerHTML = trail.map(d =>
+    '<div class="dc-card trail" data-dc="' + d.id + '"><div class="t">' + escHtml(d.title) + '</div>'
+    + '<div class="m"><span class="dc-made ' + (d.made === 'quick' ? 'quick' : 'thought') + '">'
+    + (d.made === 'quick' ? 'DECIDED QUICKLY' : 'THOUGHT THROUGH') + '</span>'
+    + (d.decided_on ? '<span>SEALED \u00B7 ' + dcFmt_(d.decided_on) + '</span>' : '')
+    + dcStarsRO_(d) + '</div></div>'
+  ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
+  document.querySelectorAll('[data-dc]').forEach(c =>
+    c.addEventListener('click', () => openDecision(c.dataset.dc)));
+}
+function dcRow_() { return dcRows.find(x => String(x.id) === String(dcId)); }
+function openDecision(id) {
+  const d = dcRows.find(x => String(x.id) === String(id)); if (!d) return;
+  dcId = id;
+  const sealed = d.status === 'trail';
+  const qa = Array.isArray(d.answers) ? d.answers : [];
+  el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS';
+  el('dcName').textContent = d.title;
+  let meta = d.target_on ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
+  if (sealed) meta += '<span class="dc-pill">' + (d.made === 'quick' ? 'DECIDED QUICKLY' : 'THOUGHT THROUGH')
+    + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
+  el('dcMeta').innerHTML = meta;
+  el('dcQA').innerHTML = qa.map((x, i) =>
+    '<div class="dc-qa' + (String(x.a || '').trim() ? ' answered' : '') + '">'
+    + '<div class="q"><i>' + (i + 1) + '</i>' + escHtml(x.q || '') + '</div>'
+    + '<textarea data-dcq="' + i + '" placeholder="' + (sealed ? '(unanswered at the time)' : 'your answer\u2026') + '"'
+    + (sealed ? ' readonly' : '') + '>' + escHtml(x.a || '') + '</textarea></div>'
+  ).join('');
+  if (!sealed) {
+    let dcT = null;
+    el('dcQA').querySelectorAll('textarea').forEach(ta => {
+      ta.addEventListener('input', () => {
+        const row = dcRow_(); if (!row) return;
+        row.answers[Number(ta.dataset.dcq)].a = ta.value;
+        clearTimeout(dcT);
+        dcT = setTimeout(() => {
+          supa.from('why_decisions').update({ answers: row.answers })
+            .eq('id', row.id).eq('user_id', userId)
+            .then(({ error }) => { if (error) { console.error(error); toast('Could not save'); } });
+        }, 700);
+      });
+      ta.addEventListener('blur', () => {
+        const row = dcRow_(); if (!row) return;
+        supa.from('why_decisions').update({ answers: row.answers })
+          .eq('id', row.id).eq('user_id', userId)
+          .then(({ error }) => { if (error) console.error(error); else renderDecisions(); });
+      });
+    });
+  }
+  el('dcDecideRow').style.display = sealed ? 'none' : '';
+  el('dcRateBox').classList.toggle('hidden', !sealed);
+  if (sealed) dcRatePaint_();
+  el('dcWin').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function dcClose_() { el('dcWin').classList.add('hidden'); document.body.style.overflow = ''; renderDecisions(); }
+el('dcBack').addEventListener('click', dcClose_);
+function dcRatePaint_() {
+  const d = dcRow_(); if (!d) return;
+  const r = Number(d.satisfaction) || 0;
+  el('dcRateStars').querySelectorAll('b').forEach((s, i) => s.classList.toggle('on', i < r));
+  el('dcRateCap').textContent = r ? DC_RATE_CAP[r] : 'tap a star when the years have spoken';
+}
+el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
+  s.addEventListener('click', async () => {
+    const d = dcRow_(); if (!d || d.status !== 'trail') return;
+    const next = (Number(d.satisfaction) === i + 1) ? null : i + 1;
+    const { error } = await supa.from('why_decisions').update({ satisfaction: next })
+      .eq('id', d.id).eq('user_id', userId);
+    if (error) { console.error(error); toast('Could not save the rating'); return; }
+    d.satisfaction = next; dcRatePaint_();
+    toast(next ? ('Satisfaction: ' + next + ' of 5') : 'Rating cleared');
+  }));
+el('dcAddBtn').addEventListener('click', () => {
+  el('dcFName').value = ''; el('dcFTarget').value = '';
+  el('dcNewModal').classList.remove('hidden');
+  el('dcFName').focus();
+});
+el('dcFCancel').addEventListener('click', () => el('dcNewModal').classList.add('hidden'));
+el('dcFSave').addEventListener('click', async () => {
+  const t = el('dcFName').value.trim();
+  if (!t) { toast('Name the decision first'); el('dcFName').focus(); return; }
+  const rec = { user_id: userId, title: t, target_on: el('dcFTarget').value || null,
+                status: 'open', answers: dcPoints.map(q => ({ q: q, a: '' })) };
+  const { data, error } = await supa.from('why_decisions').insert(rec).select('*').single();
+  if (error) { console.error(error); toast('Could not save'); return; }
+  el('dcNewModal').classList.add('hidden');
+  dcRows.unshift(data); renderDecisions();
+  openDecision(data.id);
+  toast('On the desk \u2014 walk the points when ready');
+});
+let dcMadePick = null;
+el('dcDecideBtn').addEventListener('click', () => {
+  dcMadePick = null;
+  el('dcMade').querySelectorAll('button').forEach(b => b.classList.remove('on'));
+  el('dcDecideModal').classList.remove('hidden');
+});
+el('dcMade').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  dcMadePick = b.dataset.m;
+  el('dcMade').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+});
+el('dcMCancel').addEventListener('click', () => el('dcDecideModal').classList.add('hidden'));
+el('dcMSave').addEventListener('click', async () => {
+  if (!dcMadePick) { toast('Quickly, or thought through?'); return; }
+  const d = dcRow_(); if (!d) return;
+  const today = new Date().toISOString().slice(0, 10);
+  const { error } = await supa.from('why_decisions')
+    .update({ status: 'trail', made: dcMadePick, decided_on: today, answers: d.answers })
+    .eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not seal it'); return; }
+  d.status = 'trail'; d.made = dcMadePick; d.decided_on = today;
+  el('dcDecideModal').classList.add('hidden');
+  dcClose_();
+  toast('Sealed \u2014 it walks to the trail, answers frozen');
+});
+el('dcPtsBtn').addEventListener('click', () => {
+  el('dcPtsText').value = dcPoints.join('\n');
+  el('dcPtsModal').classList.remove('hidden');
+});
+el('dcPtsCancel').addEventListener('click', () => el('dcPtsModal').classList.add('hidden'));
+el('dcPtsSave').addEventListener('click', async () => {
+  const pts = el('dcPtsText').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!pts.length) { toast('The checklist needs at least one point'); return; }
+  const del = await supa.from('why_decision_points').delete().eq('user_id', userId);
+  if (del.error) { console.error(del.error); toast('Could not save the checklist'); return; }
+  const ins = await supa.from('why_decision_points')
+    .insert(pts.map((t, i) => ({ user_id: userId, text: t, sort_order: i })));
+  if (ins.error) { console.error(ins.error); toast('Could not save the checklist'); return; }
+  dcPoints = pts;
+  el('dcPtsModal').classList.add('hidden');
+  toast('Checklist saved \u2014 new decisions will walk these ' + pts.length + ' points');
+});
+
 el('fDreamStat').addEventListener('click', e => {
   const s = e.target.closest('[data-st]'); if (!s) return;
   dreamStat = s.dataset.st; dreamStatPaint_();

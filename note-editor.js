@@ -605,7 +605,7 @@
                        'why_pillars','why_mantras','why_circle','why_priority',
                        'bucket_items','why_places','note_versions',
                        'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions',
-                       'why_journeys'];
+                       'why_journeys','why_decisions','why_decision_points'];
   function _dl(name, text, type) {
     var blob = new Blob([text], { type: type });
     var url = URL.createObjectURL(blob);
