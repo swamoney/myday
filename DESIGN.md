@@ -46,6 +46,15 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**Decision pages gain Edit** (Aug 2026): a quiet Edit pill beside the
+back button opens a frame-editing modal - name, target date, opened-on
+(rewrites created_at, then re-sorts the shelves), and on sealed decisions
+also the decided-on date and the W1 verdict choice. The modal touches only
+the FRAME: answers and the story keep their own doors (textareas on the
+desk, the NoteEditor below, the frozen-pairs rule on the trail), so
+correcting a typo in a title can never disturb what was written at the
+time. The page repaints from openDecision after save.
+
 **My Decisions completes** (Aug 2026): historical entry, honest words,
 and the story. The seal dialog gained 'When was it decided?' - a calendar
 defaulting to today but free to travel back, with an amber 'Writing

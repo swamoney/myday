@@ -573,6 +573,7 @@
                 background-image:linear-gradient(165deg,#fbfcfe,#e9eef6); overflow:auto; padding:26px 16px 60px; }
   .dc-overlay.hidden { display:none; }
   .dc-pgwrap { max-width:600px; margin:0 auto; }
+  .dc-topbar { display:flex; justify-content:space-between; align-items:center; }
   .dc-back { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; text-transform:uppercase;
              background:none; border:1px solid #dce3ee; border-radius:999px; padding:7px 14px; color:#5A6478;
              cursor:pointer; margin-bottom:16px; }
@@ -1439,7 +1440,10 @@
 
 <div class="dc-overlay hidden" id="dcWin">
   <div class="dc-pgwrap">
-    <button class="dc-back" id="dcBack" type="button">&larr; My Decisions</button>
+    <div class="dc-topbar">
+      <button class="dc-back" id="dcBack" type="button">&larr; My Decisions</button>
+      <button class="dc-back" id="dcEditBtn" type="button">Edit</button>
+    </div>
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div class="dc-name" id="dcName"></div>
     <div class="dc-meta" id="dcMeta"></div>
@@ -1493,6 +1497,26 @@
     <div class="modal-actions">
       <button class="btn-primary" id="dcMSave" type="button">Seal it &rarr; the trail</button>
       <button class="btn-ghost" id="dcMCancel" type="button">Not yet</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="dcEditModal">
+  <div class="modal">
+    <div class="modal-title">Edit this decision</div>
+    <div class="fld"><label>The decision</label><input id="dcEName" maxlength="180"></div>
+    <div class="fld"><label>Target date</label><input type="date" id="dcETarget"></div>
+    <div class="fld"><label>Opened on</label><input type="date" id="dcEOpened"></div>
+    <div id="dcESealedWrap">
+      <div class="fld"><label>When was it decided?</label><input type="date" id="dcEWhen"></div>
+      <div class="fld"><label>How was it decided?</label><div class="dc-mchoice" id="dcEMade">
+        <button data-m="thoughtful" type="button">Weighed with care</button>
+        <button data-m="quick" type="button">Went with my gut</button>
+      </div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="dcESave" type="button">Save</button>
+      <button class="btn-ghost" id="dcECancel" type="button">Cancel</button>
     </div>
   </div>
 </div>
@@ -5488,6 +5512,52 @@ el('dcQAddBtn').addEventListener('click', () => {
   dcWPts.push(v); el('dcQNew').value = ''; dcPtsRender_();
 });
 el('dcQNew').addEventListener('keydown', e => { if (e.key === 'Enter') el('dcQAddBtn').click(); });
+// Edit: the facts of a decision can be corrected - name, dates, even the
+// verdict wording on a sealed one. The answers and the story have their own
+// doors; this modal touches only the frame around them.
+let dcEMadePick = null;
+el('dcEditBtn').addEventListener('click', () => {
+  const d = dcRow_(); if (!d) return;
+  el('dcEName').value = d.title || '';
+  el('dcETarget').value = d.target_on || '';
+  el('dcEOpened').value = (d.created_at || '').slice(0, 10);
+  const sealed = d.status === 'trail';
+  el('dcESealedWrap').style.display = sealed ? '' : 'none';
+  if (sealed) {
+    el('dcEWhen').value = d.decided_on || '';
+    dcEMadePick = d.made || 'thoughtful';
+    el('dcEMade').querySelectorAll('button').forEach(b =>
+      b.classList.toggle('on', b.dataset.m === dcEMadePick));
+  }
+  el('dcEditModal').classList.remove('hidden');
+  el('dcEName').focus();
+});
+el('dcEMade').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  dcEMadePick = b.dataset.m;
+  el('dcEMade').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+});
+el('dcECancel').addEventListener('click', () => el('dcEditModal').classList.add('hidden'));
+el('dcESave').addEventListener('click', async () => {
+  const d = dcRow_(); if (!d) return;
+  const t = el('dcEName').value.trim();
+  if (!t) { toast('The decision needs its name'); el('dcEName').focus(); return; }
+  const sealed = d.status === 'trail';
+  const upd = { title: t, target_on: el('dcETarget').value || null };
+  const opened = el('dcEOpened').value;
+  if (opened) upd.created_at = opened + 'T00:00:00Z';
+  if (sealed) {
+    upd.decided_on = el('dcEWhen').value || d.decided_on;
+    upd.made = dcEMadePick || d.made;
+  }
+  const { error } = await supa.from('why_decisions').update(upd).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  Object.assign(d, upd);
+  dcRows.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  el('dcEditModal').classList.add('hidden');
+  openDecision(d.id);   // the page repaints with its corrected frame
+  toast('Saved');
+});
 el('dcPtsBtn').addEventListener('click', () => {
   dcWPts = dcPoints.slice();
   dcPtsRender_();
