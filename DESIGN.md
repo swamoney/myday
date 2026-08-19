@@ -46,6 +46,21 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The hero opens, the page locks** (Aug 2026): two asks in one pass.
+First, the person's circle/band, rhythm, tag, and note became editable
+from the page itself - an 'Edit details' door in the hero (dashed sage
+pill, visible only in edit mode) opens the existing circle modal with
+that person loaded; no second edit surface was built, the one form kept
+its single home. Saving the modal now also repaints the open page's hero
+(capture editingPerson BEFORE closeCircleModal nulls it, flush in-page
+edits with savePerson_(true), then openPerson re-reads). Second, read
+mode became truly read-only: the intent matrix taps, moment date-opens,
+moment text inputs (pointer-events:none), the three Add buttons, the talk
+delete crosses, and the tap-hint all sleep until Edit - joining the
+already-gated essay, moment crosses, and rating box. The rule: a page in
+read mode can change nothing; every mutating organ wakes together behind
+one Edit button.
+
 **The veil lifts** (Aug 2026): the person page's PERSON_SOFT table -
 which muted Priority's quadrant colours for the old tinted grid cells -
 retired whole. The softening was tuned to keep full accents from fighting

@@ -533,6 +533,17 @@
   /* The Add button is always available, so the row controls are too. */
   #personWin .mo-x { display:block; }
   body:not(.p-editing) .mo-x { display:none; }
+  /* Read mode is read-only (Aug 2026): every mutating control sleeps until Edit. */
+  .p-heroedit { display:none; font-family:var(--mono); font-size:0.5313rem; font-weight:600;
+                letter-spacing:0.1em; text-transform:uppercase; background:none;
+                border:1px dashed #b8c4bd; border-radius:999px; padding:4px 10px;
+                color:var(--pc-deep); cursor:pointer; }
+  body.p-editing .p-heroedit { display:inline-block; }
+  body:not(.p-editing) #pIntAdd, body:not(.p-editing) #pMomAdd,
+  body:not(.p-editing) #pTalkAdd, body:not(.p-editing) [data-talkdel] { display:none; }
+  body:not(.p-editing) .pr-hint { display:none; }
+  body:not(.p-editing) .mo-t { pointer-events:none; }
+  body:not(.p-editing) .mo-y.ro { cursor:default; }
   .mo.add { border-bottom:none; color:#8189a0; font-style:italic; cursor:pointer; padding:12px 2px; }
   .pfoot { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:28px; padding-top:18px; border-top:1px solid #eef1f6; }
   /* Small, unboxed, and out of the way — they are the least-used controls here. */
@@ -1856,7 +1867,7 @@
           <div class="peyebrow">My Circle</div>
           <div class="pnamerow"><span class="pname" id="pName"></span><span class="ptag" id="pTag"></span></div>
           <div class="p-sig"></div>
-          <div class="pmeta"><span class="bd" id="pBand"></span><span class="p-rhythm" id="pRhythm"></span><span class="pnote" id="pNote"></span></div>
+          <div class="pmeta"><span class="bd" id="pBand"></span><span class="p-rhythm" id="pRhythm"></span><span class="pnote" id="pNote"></span><button class="p-heroedit" id="pHeroEdit" type="button">Edit details</button></div>
         </div>
         <div class="p-lastcol"><span class="p-lslab">Last spoke</span>
           <span class="p-lsbig" id="pLastBig">&mdash;</span>
@@ -3779,7 +3790,14 @@ async function savePerson() {
       const { error } = await supa.from('why_circle').insert(rec);
       if (error) throw error;
     }
+    const wasEditing = editingPerson;   // closeCircleModal nulls it
     closeCircleModal(); await loadCircle(); toast('Saved');
+    // If that person's page is open behind the modal, its hero repaints too.
+    if (pId && wasEditing && String(pId) === String(wasEditing)
+        && el('personWin').classList.contains('show')) {
+      savePerson_(true);      // flush any in-page edits before the re-read
+      openPerson(pId);
+    }
   } catch (e) { toast('Could not save'); }
 }
 async function deletePerson() {
@@ -4137,6 +4155,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('person
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('bkWin').classList.contains('show')) closeDream(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('mtWin').classList.contains('show')) closeMantra(); });
 el('pEssay').addEventListener('blur', () => savePerson_());
+el('pHeroEdit').addEventListener('click', () => { if (pId) openCircleModal(pId); });
 el('pEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('p-editing');
   setPersonEditing(on);
@@ -4238,6 +4257,7 @@ el('pIntCloseSave').addEventListener('click', () => {
   renderIntents(); schedulePersonSave();
 });
 el('pIntMatrix').addEventListener('click', e => {
+  if (!document.body.classList.contains('p-editing')) return;   // read mode is read-only
   const c = e.target.closest('[data-intclose]');
   if (c) {
     closingInt = c.dataset.intclose;
@@ -4262,6 +4282,7 @@ el('pIntArchive').addEventListener('click', e => {
   if (ed) openIntModal(ed.dataset.intedit);
 });
 el('pMoments').addEventListener('click', e => {
+  if (!document.body.classList.contains('p-editing')) return;   // read mode is read-only
   const op = e.target.closest('[data-mopen]');
   if (op) {
     const row = op.closest('.mo');
