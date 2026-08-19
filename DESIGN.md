@@ -46,7 +46,16 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
-**Directories go alphabetical** (Aug 2026): My Community (51-150) and
+**Directories go alphabetical** (Aug 2026, fixed same day): first ship
+defined the comparator but nothing called it on load - sortCircle_() ran
+only inside the arrow-mover, which the alphabetical bands no longer have,
+so the list still rendered in DB order. Rahul caught it in one look. Fix:
+loadCircle now calls sortCircle_() after fetch. Verified by simulation:
+mixed-case names across three bands produce A-close,B-close (hand order)
+then amit,Zara / Arjun,Meera (alphabetical, case-insensitive). Lesson for
+the constitution: wiring a comparator is two changes - define it AND call
+it on every path that paints; the mover was the only caller because the
+mover used to be the only re-orderer. My Community (51-150) and
 The Wider World (150+) now sort by name inside their bands; Close,
 Confidants, and Active Circle keep the hand-set order. The reasoning,
 argued and agreed: hand-ordering ~250 acquaintances with one-step arrows
