@@ -46,6 +46,16 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The alphabet takes four of five bands** (Aug 2026): a day after the
+big bands went alphabetical, Rahul extended it to My Confidants and My
+Active Circle - his reasoning: tags already carry any grouping he needs,
+so hand-order earns nothing there either. Only Close (five people) keeps
+the hand: at that size position is a statement. One-line change because
+the arrows and comparator both read ALPHA_BANDS - retiring a band's
+arrows and re-sorting it are the same switch. Simulation re-proven across
+all bands. The durable shape: order by meaning where order IS meaning;
+order by alphabet where finding is the job; group by tags everywhere.
+
 **Directories go alphabetical** (Aug 2026, fixed same day): first ship
 defined the comparator but nothing called it on load - sortCircle_() ran
 only inside the arrow-mover, which the alphabetical bands no longer have,
