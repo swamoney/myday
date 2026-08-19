@@ -46,6 +46,18 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**Person pages join the common ground** (Aug 2026): Rahul unified the
+app's page backgrounds - the Circle person page's deliberate stone-cream
+ground (the old comment read 'a person is not a ledger entry') gave way
+to the ivory-blue every other overlay page already stands on (#fbfcfe bg,
+white cards, #e2e8f2 borders). Preserved on purpose: the room's sage
+voice (deep/wash/ink accents) and Newsreader hand, so the page keeps its
+personality while sharing the app's climate. The swap surfaced a
+pre-existing contrast debt: --pc-faint measured 3.44 on the new white
+(and was already 3.1 on the old cream) - both muted tokens darkened
+(mut #63645c 5.6, faint #75766f 4.7) so the unification settled an old
+debt instead of inheriting it. One theme, one floor.
+
 **One divider, deeper chip, places step in** (Aug 2026): 'On the desk'
 retired - Rahul's call, agreed on sight: the add button and living cards
 ARE the desk, so the label narrated what the layout already said; The
