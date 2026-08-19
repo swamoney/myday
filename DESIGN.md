@@ -46,6 +46,16 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The veil lifts** (Aug 2026): the person page's PERSON_SOFT table -
+which muted Priority's quadrant colours for the old tinted grid cells -
+retired whole. The softening was tuned to keep full accents from fighting
+pastel washes; on the S2 white ledger rows with H3 solid pills it read as
+faded, not gentle. Now PERSON_Q's exact Priority accents colour
+everything: pill, rail, tick-circle, code, and the closed-archive chips
+(which also drew from the soft table and followed in the same pass).
+Measured as pill fills: Q1 6.51, Q2 6.79, Q3 4.57 (the closest call),
+Q4 5.35. One quadrant, one colour, both rooms.
+
 **The label leaves, the pills return** (Aug 2026): Rahul removed 'What
 is next' over my counsel to keep it (I argued it anchors one of four
 parallel sections; he judged the four Q-pills beneath make the zone

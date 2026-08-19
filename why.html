@@ -3859,7 +3859,7 @@ function renderIntents() {
   const mx = el('pIntMatrix'); if (!mx) return;
   const list = pData.intents || [];
   mx.innerHTML = PRI_GRID.map(key => {
-    const q = Object.assign({}, PERSON_Q[key], PERSON_SOFT[key]);
+    const q = PERSON_Q[key];   // Priority's exact colours - one quadrant, one colour, everywhere
     const rows = list.filter(t => (t.q || 'q2') === key && t.status === 'open');
     const items = rows.map(t => '<div class="pr-tkrow">'
       + '<button class="pr-tkbox" type="button" data-intclose="' + t.id + '" aria-label="Close this">'
@@ -3893,7 +3893,7 @@ function renderIntArchive() {
     const isOpen = pIntYears[y] !== undefined ? pIntYears[y] : (y === thisYear);
     const rows = years[y].map(t => {
       const o = PRI_OUT[t.status] || PRI_OUT.done, q = PERSON_Q[t.q || 'q2'],
-            ci = (PERSON_SOFT[t.q || 'q2'] || {}).acc || PRI_CHIP[t.q || 'q2'];
+            ci = (PERSON_Q[t.q || 'q2'] || {}).acc || PRI_CHIP[t.q || 'q2'];
       const who = t.status === 'delegated' && t.who ? ' \u00B7 ' + escHtml(t.who) : '';
       return '<div class="pr-ou" data-intedit="' + t.id + '">'
         + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
@@ -4473,12 +4473,6 @@ const RHYTHMS = [
   { key:'year',   lbl:'Once a year',        days:365 }
 ];
 function rhythmOf(k) { return RHYTHMS.find(r => r.key === (k || '')) || RHYTHMS[0]; }
-const PERSON_SOFT = {
-  q1: { acc:'#8a5a5e', w2:'#fcf5f6' },
-  q2: { acc:'#3f6b52', w2:'#f5f9f6' },
-  q3: { acc:'#846d45', w2:'#fcf9f3' },
-  q4: { acc:'#6b7180', w2:'#f8f8fa' }
-};
 const PERSON_Q = {
   q1: { code:'Q1', sub:'Current priority',      acc:'#9c3f4a', w2:'#fdf3f4' },
   q2: { code:'Q2', sub:'Next in line',          acc:'#2E6640', w2:'#f2f8f4' },
