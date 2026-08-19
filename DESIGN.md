@@ -46,6 +46,19 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The label leaves, the pills return** (Aug 2026): Rahul removed 'What
+is next' over my counsel to keep it (I argued it anchors one of four
+parallel sections; he judged the four Q-pills beneath make the zone
+self-evident - and with H3 landing at the same moment, he is right: four
+solid colour pills ARE a heading). The label's toggle button and chevron
+retired with it; the count and Add button keep the header row; the other
+three section pills stay; print keeps 'What is next' since paper lacks
+the pills' context at a glance. H3: quadrant names became solid pills in
+each quadrant's accent with white text (6.5-6.8:1) - restoring the old
+grid's own .pr-qv voice inside the stacked rows, and completing the pill
+grammar: sage for zones, quadrant colours for quadrants, at decreasing
+size down the page.
+
 **What-is-next unstacks** (S2, Aug 2026): the person page's 2x2
 intentions grid became a single column of slim ledger rows - white cards
 with a 4px rail in each quadrant's accent, Q-code + label + count on one
