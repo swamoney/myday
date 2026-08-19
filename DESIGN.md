@@ -46,6 +46,21 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**What-is-next unstacks** (S2, Aug 2026): the person page's 2x2
+intentions grid became a single column of slim ledger rows - white cards
+with a 4px rail in each quadrant's accent, Q-code + label + count on one
+header line, Q1 to Q4 in reading order. The SOONER/LATER and ACTIVE axes
+retired with the grid (each box's own words already say what the axes
+said); the tinted quadrant washes retired with the cells. Interactions
+untouched: tap the circle to close, tap the words to edit; the archive
+below unchanged. Scoping mattered: .pr-q and the axis classes are SHARED
+with My Priority's matrix, so the stack got its own person-only classes
+(p-stack/p-qr) and Priority keeps its 2x2 with URGENT/NOT URGENT axes.
+Verification note: my first check greped for SOONER to prove Priority
+intact - but Priority's axes say URGENT, so the probe cried failure at
+its own wrong assumption. Probes must assert what the OTHER thing
+actually contains, not what the changed thing used to.
+
 **One heading grammar** (Aug 2026): the roadmap's hero treatment -
 highlighter sweep in the room's wash, solid 88x6 signature bar, then the
 facts - extended to the Circle person page and the Big Decisions page,

@@ -827,6 +827,18 @@
   .pr-tk { flex:1; min-width:0; background:none; border:none; padding:5px 2px 5px 0; cursor:pointer;
            text-align:left; font-family:inherit; }
   .pr-tkt { font-size:0.7812rem; color:#28324B; line-height:1.35; overflow-wrap:anywhere; }
+  /* Person page (S2, Aug 2026): the 2x2 unstacks into slim ledger rows,
+     Q1 to Q4 in reading order; each box's own words replace the axes.
+     Priority's matrix elsewhere keeps the grid - these classes are person-only. */
+  .p-stack { display:flex; flex-direction:column; gap:9px; }
+  .p-qr { border:1px solid #e2e8f2; border-left:4px solid #5f6b85; border-radius:12px; background:#fff;
+          padding:11px 14px 13px; box-shadow:0 2px 8px rgba(30,47,82,0.04); }
+  .p-qr .p-qh { display:flex; align-items:baseline; gap:9px; }
+  .p-qr .p-qc { font-family:var(--mono); font-size:0.5938rem; font-weight:700; }
+  .p-qr .p-qs { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
+                text-transform:uppercase; color:#5f6a80; }
+  .p-qr .p-qn { margin-left:auto; font-family:var(--mono); font-size:0.5938rem; color:#8189a0; }
+  .p-qr .pr-tks { margin-top:8px; }
   .pr-hint { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.13em;
              color:#aab4c8; margin-top:12px; }
   .pr-qempty { font-size:0.7188rem; color:#aab4c8; font-style:italic; padding:6px 2px; }
@@ -1860,11 +1872,7 @@
           <span class="p-cn" id="pNextSum"></span>
           <button class="p-cb solid" id="pIntAdd" type="button">Add</button></div>
         <div class="p-sbody">
-        <div class="pr-axtop"><span>SOONER</span><span>LATER</span></div>
-        <div class="pr-axrow">
-          <div class="pr-axleft"><span>ACTIVE</span><span>NOT ACTIVE</span></div>
-          <div class="pr-mx" id="pIntMatrix"></div>
-        </div>
+        <div class="p-stack" id="pIntMatrix"></div>
         <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
           <!-- Closing an intention does not move it elsewhere; it belongs here. -->
           <div class="p-sub" id="pLedgerSec">
@@ -3862,11 +3870,10 @@ function renderIntents() {
       + '<button class="pr-tk" type="button" data-intedit="' + t.id + '">'
       + '<span class="pr-tkt">' + escHtml(t.t || '') + '</span></button></div>').join('')
       || '<div class="pr-qempty">nothing here</div>';
-    const style = 'background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border:1.5px solid ' + q.acc + '4d;';
-    return '<div class="pr-q" style="' + style + '">'
-      + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + '</div>'
-      + '<div class="pr-qv" style="background:' + q.acc + '">' + q.sub + '</div>'
-      + '<div class="pr-qn" style="color:' + q.acc + '">' + rows.length + '</div>'
+    return '<div class="p-qr" style="border-left-color:' + q.acc + '">'
+      + '<div class="p-qh"><span class="p-qc" style="color:' + q.acc + '">' + q.code + '</span>'
+      + '<span class="p-qs">' + q.sub + '</span>'
+      + '<span class="p-qn">' + rows.length + '</span></div>'
       + '<div class="pr-tks">' + items + '</div></div>';
   }).join('');
   renderIntArchive();
