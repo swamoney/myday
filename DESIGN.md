@@ -46,6 +46,19 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**One heading grammar** (Aug 2026): the roadmap's hero treatment -
+highlighter sweep in the room's wash, solid 88x6 signature bar, then the
+facts - extended to the Circle person page and the Big Decisions page,
+mocked before-and-after first. Person: the Newsreader name swept in the
+sage wash (--pc-wash) with the deep-sage bar signing beneath the name
+row. Decision: the Fraunces title swept in the K1 petrol tint (#cfe2e8),
+and the old faded ::after underline retired for a real .dc-sig element in
+solid petrol - the roadmap's exact bar, signed with conviction. Both
+names became inline spans so the sweep hugs the text's own width and
+wraps line-by-line like a real marker stroke. The app's three most
+important page types - a why, a person, a decision - now open the same
+way, each in its room's voice.
+
 **Person pages join the common ground** (Aug 2026): Rahul unified the
 app's page backgrounds - the Circle person page's deliberate stone-cream
 ground (the old comment read 'a person is not a ledger entry') gave way
