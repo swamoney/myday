@@ -46,6 +46,19 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**Directories go alphabetical** (Aug 2026): My Community (51-150) and
+The Wider World (150+) now sort by name inside their bands; Close,
+Confidants, and Active Circle keep the hand-set order. The reasoning,
+argued and agreed: hand-ordering ~250 acquaintances with one-step arrows
+is busywork without meaning - the big bands are directories, not
+rankings, and directories want the alphabet; in the inner bands position
+IS meaning, so the hand stays. localeCompare with sensitivity:base
+handles Devanagari and Latin names together; created_at breaks ties. The
+reorder arrows retired from alphabetical rows in the same pass - a
+control that lies (move someone, the alphabet snaps them back) is worse
+than no control. sort_order values in those bands sit ignored, kept
+harmless for if a band ever returns to hand order.
+
 **The hero opens, the page locks** (Aug 2026): two asks in one pass.
 First, the person's circle/band, rhythm, tag, and note became editable
 from the page itself - an 'Edit details' door in the hero (dashed sage

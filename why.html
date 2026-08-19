@@ -3562,7 +3562,10 @@ async function loadCircle() {
   circle = data || [];
   renderCircle();
 }
-// Band first, then the manual order, then date for anyone not yet numbered.
+// Band first. Inside a band: the three inner bands keep the hand-set order
+// (position is meaning there); the two big bands go alphabetical - they are
+// directories, not rankings (Aug 2026).
+const ALPHA_BANDS = new Set(['network', 'wider']);
 function sortCircle_() {
   const idx = {};
   BANDS.forEach((b, i) => { idx[b.key] = i; });
@@ -3570,6 +3573,9 @@ function sortCircle_() {
     const ba = idx[a.band] == null ? 99 : idx[a.band];
     const bb = idx[b.band] == null ? 99 : idx[b.band];
     if (ba !== bb) return ba - bb;
+    if (ALPHA_BANDS.has(a.band))
+      return String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' })
+        || new Date(a.created_at) - new Date(b.created_at);
     const ao = a.sort_order == null ? Number.MAX_SAFE_INTEGER : a.sort_order;
     const bo = b.sort_order == null ? Number.MAX_SAFE_INTEGER : b.sort_order;
     if (ao !== bo) return ao - bo;
@@ -3702,12 +3708,13 @@ function renderCircle() {
           '</span>' +
           (p.note ? '<span class="c-note">' + escHtml(p.note) + '</span>' : '') +
         '</span>' +
+        (ALPHA_BANDS.has(b.key) ? '' :
         '<span class="c-move">' +
           '<button data-cmove="' + p.id + '" data-dir="-1" type="button" aria-label="Move up"' + (pi === 0 ? ' disabled' : '') + '>' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"/></svg></button>' +
           '<button data-cmove="' + p.id + '" data-dir="1" type="button" aria-label="Move down"' + (pi === people.length - 1 ? ' disabled' : '') + '>' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>' +
-        '</span>' +
+        '</span>') +
         '<button class="c-edit" data-cedit="' + p.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
         '<span class="c-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>' +
       '</div>'
