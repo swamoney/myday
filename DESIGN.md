@@ -46,6 +46,20 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The pulse and the ring** (L1+N1, Aug 2026): two status marks chosen
+against the thirty-year test - drawn, not emoji (emoji render differently
+per device and age like slang). WIP rows open with the on-air pulse: a
+10px teal dot breathing a soft ring every 2s, stilled under
+prefers-reduced-motion (and inherently on paper). Desk decisions open
+with the unticked ring: 13px hollow petrol circle - deliberately the
+visual question that the trail's existing check-mark chip answers; the
+desk promises, the trail fulfils. Both marks are aria-hidden (decorative;
+status is already stated in text beside them). Print and export
+deliberately carry the WORD not the symbol - same fact, medium-
+appropriate encoding; a pulse cannot pulse on paper and a printed word
+outlives any glyph. Placement verified single-site each: the pulse only
+on wip rows, the ring only on desk cards, never in the trail.
+
 **WIP becomes a ledger row; the room renamed My Checklist** (Aug 2026):
 the Dreams & Doings work-in-progress card - solid teal banner, -2deg
 lean, 1.44rem serif line, rotated mark - was spending four devices on one
