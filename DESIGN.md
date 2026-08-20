@@ -46,6 +46,21 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The rows learn to fold** (M1, Aug 2026): the Decision Pending box
+plus the gold chip broke phone-width rows (and the bucket's new rows with
+them) - the title was being crushed between chips. M1 chosen from three
+folds mocked in 360px frames: the chip cluster of every row (checklist
+desk and trail, all bucket statuses) now rides in a .rowdeck span that is
+display:contents on desktop - zero layout change above 640px - and
+becomes its own full-width second line under 640px, indented per symbol
+(47px past the donut, 28px past the trail disc, 24px past the bucket
+marks) so chips sit under the text, not under the mark. Principle: the
+title is the row's soul; it is never squeezed or truncated - name first,
+facts below, the way a thumb scrolls. M3's abbreviations were declined
+because 'Pending' without 'Decision' spends the clarity the red box was
+added for. The bucket's delete cross and progress edge stay outside the
+deck (absolute-positioned organs do not fold).
+
 **The pending debt, and the wing on the line** (Aug 2026): every desk
 row now carries a solid-crimson Decision Pending box (#a8323f, white,
 6.58) - P2 chosen over the rose whisper deliberately: the bucket's NOT

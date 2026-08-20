@@ -572,6 +572,16 @@
              gap:13px; border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer;
              transition:transform .12s, box-shadow .12s; box-shadow:0 2px 8px rgba(30,40,60,0.05); }
   .dc-card .dc-dnut { flex-shrink:0; width:34px; height:34px; }
+  .rowdeck { display:contents; }   /* M1: desktop unchanged; the deck exists only when folded */
+  @media (max-width:640px) {
+    .dc-card, .stamp { flex-wrap:wrap; }
+    .dc-card .rowdeck, .stamp .rowdeck { display:flex; flex-basis:100%; flex-wrap:wrap;
+        gap:6px; align-items:center; }
+    .dc-card .rowdeck { padding-left:47px; }         /* under the title, past the donut */
+    .dc-card.trail .rowdeck { padding-left:28px; }   /* past the small disc */
+    .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
+    .stamp .rowdeck:empty { display:none; }
+  }
   .dc-tickd { width:15px; height:15px; border-radius:50%; background:#144552; flex-shrink:0;
               display:inline-flex; align-items:center; justify-content:center; }
   .dc-tickd svg { width:9px; height:9px; }
@@ -5237,14 +5247,17 @@ function bkCard(b) {
     : (wip ? '<span class="bk-live" aria-hidden="true"></span>'
            : '<span class="bk-ring" aria-hidden="true"></span>');
   let inner = sym + '<span class="st">' + escHtml(b.title) + '</span>';
-  if (done) inner += bkStars_(b);
+  // The chip cluster rides in a deck: invisible on desktop, its own line on phones.
+  let deck = '';
+  if (done) deck += bkStars_(b);
   // A waiting dream with a plan lets the gold date speak alone - the ring
   // already says 'not begun'. The dream's own page still states NOT YET.
-  if (!(st === 'not_yet' && b.planned_on)) inner += bkMark(b, false);
-  if (!done) {
-    if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">'
+  if (!(st === 'not_yet' && b.planned_on)) deck += bkMark(b, false);
+  if (!done && b.planned_on) deck += '<div class="plan' + (e && e.over ? ' over' : '') + '">'
       + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
       + '<span class="pv">' + bkFmt(b.planned_on) + '</span></div>';
+  inner += '<span class="rowdeck">' + deck + '</span>';
+  if (!done) {
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
     if (e) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
   }
@@ -5364,15 +5377,15 @@ function renderDecisions() {
     const pct = total ? Math.round(n / total * 100) : 0;
     return '<div class="dc-card" data-dc="' + d.id + '">' + dcDonut_(n, total)
       + '<span class="t">' + escHtml(d.title) + '</span>'
-      + '<span class="dc-pending">Decision Pending</span>'
-      + (d.target_on ? '<span class="dc-target">BY ' + dcFmt_(d.target_on) + '</span>' : '') + '</div>';
+      + '<span class="rowdeck"><span class="dc-pending">Decision Pending</span>'
+      + (d.target_on ? '<span class="dc-target">BY ' + dcFmt_(d.target_on) + '</span>' : '') + '</span></div>';
   }).join('') || '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
   el('dcTrailList').innerHTML = trail.map(d =>
     '<div class="dc-card trail" data-dc="' + d.id + '">' + dcTickDonut_()
     + '<span class="t">' + escHtml(d.title) + '</span>'
-    + dcStarsRO_(d)
+    + '<span class="rowdeck">' + dcStarsRO_(d)
     + '<span class="dc-pill verdict"><span class="sym">\u2713</span>'
-    + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></div>'
+    + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span></div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
   document.querySelectorAll('[data-dc]').forEach(c =>
     c.addEventListener('click', () => openDecision(c.dataset.dc)));
