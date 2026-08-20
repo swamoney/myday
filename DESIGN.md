@@ -46,6 +46,20 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**WIP becomes a ledger row; the room renamed My Checklist** (Aug 2026):
+the Dreams & Doings work-in-progress card - solid teal banner, -2deg
+lean, 1.44rem serif line, rotated mark - was spending four devices on one
+sentence ('this one is alive'). W1 replaces it with the app's own active-
+thing grammar: full-width white row, 4px teal rail, title left, solid
+teal IN THE MAKING pill, gold plan chip (overdue red kept), progress edge
+kept. The banner element retired from builder AND css in one pass (zero
+bk-hd2 orphans). The lean now belongs only to DONE stamps, where rotation
+celebrates; on a working item it just looked tilted. Principle: active
+items everywhere live in ledger rows - desk decisions, person next-steps,
+dreams in the making. Separately the section renamed again: My Big
+Decisions -> My Checklist (Rahul's call, closing the loop to his original
+checklist instinct), all six user-facing sites in one rep.
+
 **The alphabet takes four of five bands** (Aug 2026): a day after the
 big bands went alphabetical, Rahul extended it to My Confidants and My
 Active Circle - his reasoning: tags already carry any grouping he needs,
