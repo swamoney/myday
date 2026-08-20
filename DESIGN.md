@@ -46,6 +46,21 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The third verdict** (Aug 2026): Cancelled joined the seal - 'the
+question no longer needs an answer; walking away is also a decision'.
+Rewired at every site the W1 rule names: seal dialog (with the date
+relabelled Decision finalized on, per Rahul), edit modal, the verdict
+helpers (dcVerdict_/dcVerdictLong_/dcCanx_ - six wording sites now flow
+through one helper, so a fourth verdict someday is a one-function
+change), index trail row, page meta, print, export, delete confirm.
+Cancelled wears slate - Q4's set-aside colour, a verdict not an alarm -
+with an X disc where the tick sits and the same optional stars (some
+walk-aways deserve five). The Happened field sleeps when Cancelled is
+picked: nothing happens to a cancelled question. And the section chip
+traded the old weighing scales for CHIP-A's bare tick - Rahul chose the
+mark of resolution over my clipboard counsel; the door now promises what
+the room delivers: questions ended.
+
 **One gold grammar for every deadline** (G1, Aug 2026): the bucket
 index's two-deck PLANNED FOR chip flattened to the checklist's own BY
 form - 'BY DEC 2026' gold, 'PASSED - MAR 2026' dark red when overdue

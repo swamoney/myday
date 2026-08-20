@@ -582,6 +582,9 @@
     .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
     .stamp .rowdeck:empty { display:none; }
   }
+  .dc-tickd.canx { background:#5f6b85; }
+  .dc-card.trail.canx { border-left-color:#5f6b85; background:linear-gradient(160deg,#ffffff,#f6f7fa); }
+  .dc-pill.canx { background:#5f6b85; color:#fff; }
   .dc-tickd { width:15px; height:15px; border-radius:50%; background:#144552; flex-shrink:0;
               display:inline-flex; align-items:center; justify-content:center; }
   .dc-tickd svg { width:9px; height:9px; }
@@ -1213,7 +1216,7 @@
       <span data-sec="circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 5.2a3 3 0 0 1 0 5.6"/><path d="M18.5 20c0-2.6-1-4.2-2.5-5"/></svg><i class="seg-l">My Circle</i></span>
       <span data-sec="mantra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 11H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/><path d="M19 11h-4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6c0 2.7-1.3 4.3-4 5"/></svg><i class="seg-l">My Mantra</i></span>
       <span data-sec="bucket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20.4h4.6v-4.6h4.6v-4.6h4.6V6.6H21"/></svg><i class="seg-l">My Bucket List</i></span>
-      <span data-sec="decisions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7l7-2 7 2"/><path d="M3.5 12.5 5 7l1.5 5.5a2.6 2.6 0 0 1-3 0z"/><path d="M17.5 12.5 19 7l1.5 5.5a2.6 2.6 0 0 1-3 0z"/></svg><i class="seg-l">My Checklist</i></span>
+      <span data-sec="decisions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><i class="seg-l">My Checklist</i></span>
 </div>
     <div class="pchips pchips-main" id="pchips"></div>
     <div class="pchips-cap" id="pchipsCap"></div>
@@ -1574,10 +1577,11 @@
     <div class="fld"><div class="dc-mchoice" id="dcMade">
       <button data-m="thoughtful" type="button">Finalized with care<br><span style="font-weight:400;font-size:0.6875rem">I sat with it &mdash; walked the points, let it settle</span></button>
       <button data-m="quick" type="button">Finalized with my gut<br><span style="font-weight:400;font-size:0.6875rem">I knew fast &mdash; the heart moved first</span></button>
+      <button data-m="cancelled" type="button">Cancelled<br><span style="font-weight:400;font-size:0.6875rem">the question no longer needs an answer &mdash; walking away is also a decision</span></button>
     </div></div>
-    <div class="fld"><label>Finalized on</label><input type="date" id="dcMWhen">
+    <div class="fld"><label>Decision finalized on</label><input type="date" id="dcMWhen">
       <div class="dc-hist" id="dcMHist"></div></div>
-    <div class="fld"><label>Happened on</label><input type="date" id="dcMHap">
+    <div class="fld" id="dcMHapFld"><label>Happened on</label><input type="date" id="dcMHap">
       <div class="dc-sub">optional &mdash; leave blank if it hasn&rsquo;t come true yet</div></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcMSave" type="button">Seal it &rarr; the trail</button>
@@ -1592,12 +1596,13 @@
     <div class="fld"><label>The decision</label><input id="dcEName" maxlength="180"></div>
     <div class="fld"><label>Target date</label><input type="date" id="dcETarget"></div>
     <div id="dcESealedWrap">
-      <div class="fld"><label>Finalized on</label><input type="date" id="dcEWhen"></div>
+      <div class="fld"><label>Decision finalized on</label><input type="date" id="dcEWhen"></div>
       <div class="fld"><label>Happened on</label><input type="date" id="dcEHap">
         <div class="dc-sub">optional &mdash; the day it came true</div></div>
       <div class="fld"><label>How was it decided?</label><div class="dc-mchoice" id="dcEMade">
         <button data-m="thoughtful" type="button">Finalized with care</button>
         <button data-m="quick" type="button">Finalized with my gut</button>
+        <button data-m="cancelled" type="button">Cancelled</button>
       </div></div>
     </div>
     <div class="modal-actions">
@@ -2296,7 +2301,7 @@ async function exportWhy() {
       const qa = Array.isArray(d.answers) ? d.answers : [];
       const sealed = d.status === 'trail';
       body += '<h3>' + xEsc_(d.title) + '</h3><p class="meta">'
-        + (sealed ? ((d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+        + (sealed ? (dcVerdictLong_(d)
             + (d.decided_on ? ' \u00B7 ' + xEsc_(dcFmt_(d.decided_on)) : '')
             + (d.happened_on ? ' \u00B7 happened ' + xEsc_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
             + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
@@ -2483,7 +2488,7 @@ function printSection() {
       trail.forEach(d => {
         const qa = Array.isArray(d.answers) ? d.answers : [];
         body += '<h3>' + e(d.title) + '</h3><p class="meta">'
-          + (d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+          + dcVerdictLong_(d)
           + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
           + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
           + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '</p>';
@@ -5336,7 +5341,15 @@ function dcAnswered_(d) {
   const a = Array.isArray(d.answers) ? d.answers : [];
   return a.filter(x => x && String(x.a || '').trim()).length;
 }
-function dcVerdict_(d) { return d.made === 'quick' ? 'FINALIZED WITH MY GUT' : 'FINALIZED WITH CARE'; }
+function dcVerdict_(d) {
+  return d.made === 'cancelled' ? 'CANCELLED'
+       : d.made === 'quick' ? 'FINALIZED WITH MY GUT' : 'FINALIZED WITH CARE';
+}
+function dcVerdictLong_(d) {
+  return d.made === 'cancelled' ? 'Cancelled'
+       : d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care';
+}
+function dcCanx_(d) { return d.made === 'cancelled'; }
 function dcDonut_(n, total) {
   // circumference of r15 is 94.25; the arc is the progress, the number is the count
   const pct = total ? n / total : 0;
@@ -5345,6 +5358,11 @@ function dcDonut_(n, total) {
     + '<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#e8ecf3" stroke-width="5"/>'
     + (pct ? '<circle cx="18" cy="18" r="15" fill="none" stroke="#23677a" stroke-width="5" stroke-dasharray="' + dash + ' 94.25" stroke-linecap="round" transform="rotate(-90 18 18)"/>' : '')
     + '<text x="18" y="21" text-anchor="middle" font-family="monospace" font-size="9" fill="#1d5666" font-weight="700">' + n + '</text></svg></span>';
+}
+function dcXDisc_() {
+  // Cancelled wears slate - Q4's own set-aside colour; a verdict, not an alarm.
+  return '<span class="dc-tickd canx" aria-hidden="true">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span>';
 }
 function dcTickDonut_() {
   // T3: the bucket's own 15px ticked disc - a sealed decision and a lived
@@ -5376,10 +5394,12 @@ function renderDecisions() {
       + (d.target_on ? '<span class="dc-target">BY ' + dcFmt_(d.target_on) + '</span>' : '') + '</span></div>';
   }).join('') || '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
   el('dcTrailList').innerHTML = trail.map(d =>
-    '<div class="dc-card trail" data-dc="' + d.id + '">' + dcTickDonut_()
+    '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + '" data-dc="' + d.id + '">'
+    + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
     + '<span class="t">' + escHtml(d.title) + '</span>'
     + '<span class="rowdeck">' + dcStarsRO_(d)
-    + '<span class="dc-pill verdict"><span class="sym">\u2713</span>'
+    + '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
+    + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
     + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span></div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
   document.querySelectorAll('[data-dc]').forEach(c =>
@@ -5395,9 +5415,10 @@ function openDecision(id) {
   el('dcName').textContent = d.title;
   let meta = d.target_on ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
   if (sealed) {
-    meta += '<span class="dc-pill verdict"><span class="sym">\u2713</span>' + dcVerdict_(d)
+    meta += '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
+      + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>' + dcVerdict_(d)
       + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
-    meta += d.happened_on
+    if (!dcCanx_(d)) meta += d.happened_on
       ? '<span class="dc-pill hap"><span class="sym">\u2726</span>IT HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
       : '<span class="dc-pill wait">NOT YET LIVED</span>';
   } else {
@@ -5494,7 +5515,7 @@ function dcMd_(d) {
   const sealed = d.status === 'trail';
   let md = '# ' + d.title + '\n\n';
   md += sealed
-    ? ((d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+    ? (dcVerdictLong_(d)
        + (d.decided_on ? ' \u00B7 ' + dcText_(dcFmt_(d.decided_on)) : '')
        + (d.happened_on ? ' \u00B7 happened ' + dcText_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
        + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '\n\n')
@@ -5525,7 +5546,7 @@ el('dcPrintBtn').addEventListener('click', () => {
   const sealed = d.status === 'trail';
   const e = escHtml;
   let body = '<div class="eyebrow">My Checklist</div><h1>' + e(d.title) + '</h1><p class="meta">'
-    + (sealed ? ((d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care')
+    + (sealed ? (dcVerdictLong_(d)
         + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
         + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
         + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
@@ -5599,6 +5620,9 @@ el('dcMade').addEventListener('click', e => {
   const b = e.target.closest('[data-m]'); if (!b) return;
   dcMadePick = b.dataset.m;
   el('dcMade').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  // nothing happens to a cancelled question - the field sleeps
+  const hap = el('dcMHapFld');
+  if (hap) { hap.classList.toggle('hidden', dcMadePick === 'cancelled'); if (dcMadePick === 'cancelled') el('dcMHap').value = ''; }
 });
 el('dcMCancel').addEventListener('click', () => el('dcDecideModal').classList.add('hidden'));
 el('dcMSave').addEventListener('click', async () => {
@@ -5742,7 +5766,7 @@ el('dcDelBtn').addEventListener('click', async () => {
   const sealed = d.status === 'trail';
   const msg = sealed
     ? ('This is the historical record. Removing "' + d.title + '" erases the sealed answers, the verdict ('
-       + (d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care') + ')'
+       + dcVerdictLong_(d) + ')'
        + (Number(d.satisfaction) ? ' and the ' + d.satisfaction + '-star rating' : '')
        + ' \u2014 forever. Remove it?')
     : ('Remove "' + d.title + '" from the desk? Its answers go with it.');
