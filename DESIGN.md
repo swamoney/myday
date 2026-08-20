@@ -46,6 +46,13 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**C13 after all** (Aug 2026): a day with C3's bare docket and Rahul
+reversed to the hybrid - the donut rows put C1's rails back on (petrol
+desk rail, deep-sea trail rail over the faint wash), keeping the stars.
+Two-line change because the C3 build had kept everything else of C13's
+anatomy. The rail earns its place: it is what tells desk from trail
+before the eye reads a single word.
+
 **The donut docket, and the door crosses the room** (Aug 2026): the
 checklist index took C3-with-stars after a C13-hybrid mock round - desk
 rows open with a progress donut (r15 arc; the number is the answered
