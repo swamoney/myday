@@ -46,6 +46,23 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The donut docket, and the door crosses the room** (Aug 2026): the
+checklist index took C3-with-stars after a C13-hybrid mock round - desk
+rows open with a progress donut (r15 arc; the number is the answered
+count, the arc is the progress, an empty ring at zero) followed by the
+question and a gold BY chip; trail rows open with an ink tick-donut, the
+question, the gold satisfaction stars Rahul asked for, and the plum
+check-date chip. The donut absorbed three organs (ring, count line,
+progress bar) and their CSS retired with them, including the dc-notyet
+ring the donut replaced. Index simplification: HAPPENED/NOT-YET-LIVED
+pills now live on the page only - the index lists, the page records. The
+bucket door moved to the right side above the add buttons in a doorrow
+(flex-end, 38px padding, 20px at 640px) - and the Make-a-dream button's
+stale 14px inset from the boxed era was set to the 38px line the rows
+stand on, with its own mobile step. Process note: the div census caught
+an unclosed trail card before ship - the count assertions and the census
+are earning their keep weekly.
+
 **The door on the line; NOT YET in rose** (Aug 2026): Rahul's eye
 caught the door chip floating off the 38px line that the chip row and
 every dream row stand on - aligned with margin-left 38px, stepping to

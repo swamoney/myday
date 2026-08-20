@@ -568,17 +568,18 @@
   .dc-addrow { display:flex; justify-content:flex-end; margin-bottom:12px; padding:0 14px; }
   .pl-addbtn.dc-rust { background:#23677a; border-color:#23677a; }
   .dc-list { padding:0 14px; }
-  .dc-card { border:1px solid #e2e8f2; border-left:4px solid #23677a; background:#ffffff;
-             border-radius:12px; padding:14px 16px; margin-bottom:10px; cursor:pointer;
+  .dc-card { border:1px solid #e2e8f2; background:#ffffff; display:flex; align-items:center;
+             gap:13px; border-radius:12px; padding:12px 14px; margin-bottom:10px; cursor:pointer;
              transition:transform .12s, box-shadow .12s; box-shadow:0 2px 8px rgba(30,40,60,0.05); }
+  .dc-card .dc-dnut { flex-shrink:0; width:34px; height:34px; }
+  .dc-card .dc-dnut svg { width:34px; height:34px; display:block; }
+  .dc-target { font-family:var(--mono); font-size:0.5938rem; font-weight:700; background:#f4c430;
+               color:#1d2d4d; border-radius:7px; padding:5px 10px; flex-shrink:0; }
   .dc-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(30,40,60,0.10); }
-  .dc-card .t { font-family:var(--serif); font-size:1.0313rem; font-weight:600; color:#232f45; }
-  .dc-card .m { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.1em; text-transform:uppercase;
-                color:#5f6a80; margin-top:5px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .dc-card .prog { height:5px; border-radius:3px; background:#e8ecf3; margin-top:9px; overflow:hidden; }
-  .dc-card .prog i { display:block; height:100%; background:linear-gradient(90deg,#23677a,#144552); }
-  .dc-card.trail { border-left-color:#144552; background:#ffffff; }
-  .dc-mini { display:flex; flex-direction:column; gap:4px; align-items:flex-start; margin-top:8px; }
+  .dc-card .t { font-family:var(--serif); font-size:1rem; font-weight:600; color:#232f45; flex:1; min-width:0; overflow-wrap:anywhere; }
+    /* C3 (Aug 2026): the donut carries ring, count, and progress in one organ. */
+  .dc-card.trail { background:#ffffff; }
+  
   .dc-stars-ro { display:inline-flex; gap:2px; }
   .dc-stars-ro b { font-size:0.75rem; line-height:1; color:#d3d8e2; font-weight:400; }
   .dc-stars-ro b.on { color:#e0a81c; }
@@ -715,10 +716,11 @@
   /* ===== My Bucket List — the passport, with Places as its second room (U2) ===== */
   /* The door (Aug 2026): one chip, top-left, always naming the OTHER room and
      wearing that room's colour - ocean to the explore list, teal back home. */
+  .bk-doorrow { display:flex; justify-content:flex-end; padding:2px 38px 0; margin-bottom:10px; }
   .bk-door { display:inline-flex; align-items:center; gap:7px; font-family:var(--mono);
              font-size:0.5938rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
              color:#fff; border:none; border-radius:999px; padding:7px 14px; cursor:pointer;
-             margin:2px 0 12px 38px; background:#2c5f96; }   /* on the 38px line every row stands on */
+             background:#2c5f96; }   /* right side, above the add button, on the rows' line */
   .bk-door svg { width:12px; height:12px; }
   .bk-door.home { background:#2F6F6A; }
   .bk-addrow { display:flex; justify-content:flex-end; margin-bottom:13px; padding:0 38px; }   /* the button stands on the rows' line */
@@ -752,7 +754,7 @@
   #bkRoomDreams.hidden, #bkRoomPlaces.hidden { display:none; }
   /* ===== the passport itself ===== */
   .bk-book { background:transparent; border:none; border-radius:0; padding:22px 38px 30px; box-shadow:none; }
-  @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } .bk-door { margin-left:20px; } .bk-addrow { padding:0 20px; } }
+  @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } .bk-doorrow { padding:2px 20px 0; } .bk-addrow { padding:0 20px; } }
   .bk-hd { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
   .bk-count { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.14em; color:#8a94a8; }
   .stamps { display:flex; flex-direction:column; gap:9px; }   /* R2: the book is a ledger now */
@@ -789,9 +791,7 @@
                     border:2px solid #1F6F68; opacity:0; animation:bkpulse 2s ease-out infinite; }
   @keyframes bkpulse { 0% { transform:scale(0.6); opacity:0.7; } 100% { transform:scale(1.25); opacity:0; } }
   @media (prefers-reduced-motion:reduce) { .bk-live::after { animation:none; opacity:0.35; transform:none; } }
-  .dc-notyet { display:inline-block; width:13px; height:13px; border-radius:50%;
-               border:2.5px solid #23677a; background:#fff; flex-shrink:0; vertical-align:-1px;
-               margin-right:9px; }
+
   .stamp:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(120,90,20,0.14); }
   .stamp .st { font-family:var(--serif); font-weight:600; font-size:1rem; color:#182233; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; flex:1; min-width:0; }
   .stamp.inked { border-left-color:#22334f; background:linear-gradient(160deg,#ffffff,#f4f6fa); }
@@ -1239,10 +1239,10 @@
       <div class="pr-balance" id="priBalance"></div>
     </div>
     <div class="sec-panel hidden" id="secBucket">
-      <button type="button" class="bk-door" id="bkDoor" aria-label="Switch room">
+      <div class="bk-doorrow"><button type="button" class="bk-door" id="bkDoor" aria-label="Switch room">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M3 12h18"/></svg>
         <span id="bkDoorLabel">My Explore List</span>
-      </button>
+      </button></div>
       <div id="bkRoomDreams">
         <div class="bk-addrow">
           <button class="pl-addbtn bk-teal" id="dreamAddBtn" type="button">
@@ -5322,6 +5322,20 @@ function dcAnswered_(d) {
   return a.filter(x => x && String(x.a || '').trim()).length;
 }
 function dcVerdict_(d) { return d.made === 'quick' ? 'FINALIZED WITH MY GUT' : 'FINALIZED WITH CARE'; }
+function dcDonut_(n, total) {
+  // circumference of r15 is 94.25; the arc is the progress, the number is the count
+  const pct = total ? n / total : 0;
+  const dash = (pct * 94.25).toFixed(1);
+  return '<span class="dc-dnut" aria-label="' + n + ' of ' + total + ' answered">'
+    + '<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#e8ecf3" stroke-width="5"/>'
+    + (pct ? '<circle cx="18" cy="18" r="15" fill="none" stroke="#23677a" stroke-width="5" stroke-dasharray="' + dash + ' 94.25" stroke-linecap="round" transform="rotate(-90 18 18)"/>' : '')
+    + '<text x="18" y="21" text-anchor="middle" font-family="monospace" font-size="9" fill="#1d5666" font-weight="700">' + n + '</text></svg></span>';
+}
+function dcTickDonut_() {
+  return '<span class="dc-dnut" aria-hidden="true">'
+    + '<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#144552" stroke-width="5"/>'
+    + '<text x="18" y="22" text-anchor="middle" font-size="11" fill="#144552">\u2713</text></svg></span>';
+}
 function dcStarsRO_(d) {
   const r = Number(d.satisfaction) || 0;
   let s = '<span class="dc-stars-ro" aria-label="' + (r ? ('Satisfaction ' + r + ' of 5') : 'Not yet rated') + '">';
@@ -5340,20 +5354,16 @@ function renderDecisions() {
   el('dcDeskList').innerHTML = desk.map(d => {
     const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
     const pct = total ? Math.round(n / total * 100) : 0;
-    return '<div class="dc-card" data-dc="' + d.id + '"><div class="t"><span class="dc-notyet" aria-hidden="true"></span>' + escHtml(d.title) + '</div>'
-      + '<div class="m">' + (d.target_on ? '<span>TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '')
-      + '<span>' + n + ' OF ' + total + ' ANSWERED</span></div>'
-      + '<div class="prog"><i style="width:' + pct + '%"></i></div></div>';
+    return '<div class="dc-card" data-dc="' + d.id + '">' + dcDonut_(n, total)
+      + '<span class="t">' + escHtml(d.title) + '</span>'
+      + (d.target_on ? '<span class="dc-target">BY ' + dcFmt_(d.target_on) + '</span>' : '') + '</div>';
   }).join('') || '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
   el('dcTrailList').innerHTML = trail.map(d =>
-    '<div class="dc-card trail" data-dc="' + d.id + '"><div class="t">' + escHtml(d.title) + '</div>'
-    + '<div class="m">' + dcStarsRO_(d) + '</div>'
-    + '<div class="dc-mini">'
-    + '<span class="dc-pill verdict"><span class="sym">\u2713</span>' + dcVerdict_(d)
-    + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>'
-    + (d.happened_on ? '<span class="dc-pill hap"><span class="sym">\u2726</span>IT HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
-                     : '<span class="dc-pill wait">NOT YET LIVED</span>')
-    + '</div></div>'
+    '<div class="dc-card trail" data-dc="' + d.id + '">' + dcTickDonut_()
+    + '<span class="t">' + escHtml(d.title) + '</span>'
+    + dcStarsRO_(d)
+    + '<span class="dc-pill verdict"><span class="sym">\u2713</span>'
+    + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
   document.querySelectorAll('[data-dc]').forEach(c =>
     c.addEventListener('click', () => openDecision(c.dataset.dc)));
