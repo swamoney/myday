@@ -753,12 +753,12 @@
   @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } }
   .bk-hd { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
   .bk-count { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.14em; color:#8a94a8; }
-  .stamps { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr)); gap:11px; }
-  @media (max-width:560px) { .stamps { grid-template-columns:repeat(2,minmax(0,1fr)); } }   /* always 2 tracks, so span-2 = full width */
+  .stamps { display:flex; flex-direction:column; gap:9px; }   /* R2: the book is a ledger now */
+  @media (max-width:560px) { }   /* always 2 tracks, so span-2 = full width */
   /* Two lines: the label whispers, the date carries the weight. */
   .stamp .plan { display:inline-flex; flex-direction:column; align-items:center; gap:1px;
                  font-family:var(--mono); background:#f4c430; color:#1d2d4d;
-                 padding:6px 13px; border-radius:8px; margin-top:5px; line-height:1.1;
+                 padding:6px 13px; border-radius:8px; margin-top:0; line-height:1.1;
                  box-shadow:0 2px 6px rgba(196,150,20,0.35); }
   .stamp .plan .pk { font-size:0.4062rem; font-weight:600; letter-spacing:0.16em; opacity:0.72; }
   .stamp .plan .pv { font-size:0.75rem; font-weight:700; letter-spacing:0.01em; }
@@ -766,22 +766,19 @@
   .stamp .edge { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(120,140,170,0.13); }
   .stamp .edge i { display:block; height:100%; background:#3d7a5c; }   /* E1 — moss */
   .stamp .edge.over i { background:#8A1F1A; }
-  .stamp { position:relative; border:1px solid #efd7da; border-radius:11px; padding:12px 10px 16px; min-height:84px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; background:#fdf7f8; cursor:pointer; overflow:hidden; transition:transform .12s, box-shadow .15s; box-shadow:0 3px 10px rgba(60,40,45,0.05); }
-  /* W1 (Aug 2026): a dream in the making is 'on the desk' - it lives in the
-     app's ledger row: full width, teal rail, one solid pill; no lean, no banner.
-     The rotation stays on DONE stamps, where it celebrates. */
-  .stamp.wip { grid-column:1 / -1; flex-direction:row; align-items:center; justify-content:flex-start;
-               gap:11px; text-align:left; min-height:0; margin:4px 0 6px;
-               background:#ffffff; border:1px solid #e2e8f2; border-left:4px solid #1F6F68;
-               border-radius:12px; padding:12px 14px; box-shadow:0 2px 8px rgba(30,47,82,0.05); }
-  .stamp.wip .bk-bd { display:contents; }
-  .stamp.wip .st { font-family:var(--serif); font-size:1rem; font-weight:600; color:#182233;
-                   flex:1; min-width:0; }
-  .stamp.wip .bk-mark { transform:none; font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
-                        background:#1F6F68; border:none; color:#fff; border-radius:6px;
-                        padding:5px 10px; flex-shrink:0; }
-  .stamp.wip .plan { margin-top:0; flex-shrink:0; }
-  .stamp.wip .edge { border-radius:0 0 11px 11px; }
+  .stamp { position:relative; border:1px solid #e2e8f2; border-left:4px solid #c9cfda;
+           border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:11px;
+           text-align:left; background:#ffffff; cursor:pointer; overflow:hidden;
+           transition:transform .12s, box-shadow .15s; box-shadow:0 2px 8px rgba(30,47,82,0.05); }
+  /* R2 (Aug 2026): the whole book is rows - ring (not yet), pulse (in the
+     making), ticked disc (lived). One grammar; the passport grid retires. */
+  .stamp.wip { border-left-color:#1F6F68; }
+  .stamp .edge { border-radius:0 0 11px 11px; }
+  .bk-ring { width:13px; height:13px; border-radius:50%; border:2.5px solid #8a94a8;
+             background:#fff; flex-shrink:0; }
+  .bk-tickd { width:15px; height:15px; border-radius:50%; background:#22334f; flex-shrink:0;
+              display:inline-flex; align-items:center; justify-content:center; }
+  .bk-tickd svg { width:9px; height:9px; }
   /* L1+N1 (Aug 2026): two marks chosen for 2056 - the on-air pulse and the
      unticked ring; conventions older than the web, never needing relearning. */
   .bk-live { width:10px; height:10px; border-radius:50%; background:#1F6F68; position:relative;
@@ -794,10 +791,8 @@
                border:2.5px solid #23677a; background:#fff; flex-shrink:0; vertical-align:-1px;
                margin-right:9px; }
   .stamp:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(120,90,20,0.14); }
-  .stamp .st { font-family:var(--serif); font-weight:600; font-size:0.8125rem; color:#7c8698; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; }
-  .stamp.inked { border:2px solid #22334f; background:#f4f6fa; padding-bottom:12px; box-shadow:0 5px 14px rgba(25,45,80,0.15);
-                 transform:rotate(-2deg); margin:6px 4px 9px; }
-  .stamp.inked:hover { transform:rotate(-2deg) translateY(-2px); }
+  .stamp .st { font-family:var(--serif); font-weight:600; font-size:1rem; color:#182233; line-height:1.3; overflow-wrap:anywhere; position:relative; z-index:2; flex:1; min-width:0; }
+  .stamp.inked { border-left-color:#22334f; background:linear-gradient(160deg,#ffffff,#f4f6fa); }
   .stamp.inked .st { color:#22334f; }
   .stamp.add { border:1px solid #dde3ec; background:transparent; box-shadow:none; display:none; }
   body.editing .stamp.add { display:flex; }
@@ -1098,13 +1093,12 @@
   .mcard { cursor:pointer; }
   .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px 10px; flex-wrap:wrap; }
   /* V3 stamps — one design, three states, used on the page and in the book */
-  .bk-mark { display:inline-block; font-family:var(--mono); font-weight:600; letter-spacing:0.12em; border:2px solid; border-radius:7px; white-space:nowrap; }
-  .bk-mark.not_yet { background:#fbeeef; border-color:#9c3f4a; color:#9c3f4a; transform:rotate(-3deg); }
-  .bk-mark.wip     { background:#eaf4f2; border-color:#1F6F68; color:#175a54; transform:rotate(-3deg);
-                     white-space:normal; line-height:1.2; text-align:center; }
-  .bk-mark.done    { background:#22334f; border-color:#22334f; color:#fff; }
+  .bk-mark { display:inline-block; font-family:var(--mono); font-weight:600; letter-spacing:0.12em; border-radius:6px; white-space:nowrap; }
+  .bk-mark.not_yet { background:#fff; border:1.5px solid #c9cfda; color:#5f6a80; }
+  .bk-mark.wip     { background:#1F6F68; color:#fff; }
+  .bk-mark.done    { background:#22334f; color:#fff; }
   .bk-stampro .bk-mark { font-size:0.5625rem; padding:6px 13px; }
-  .stamp .bk-mark { font-size:0.4688rem; padding:4px 9px; margin-top:7px; position:relative; z-index:2; }
+  .stamp .bk-mark { font-size:0.5313rem; padding:5px 10px; margin-top:0; position:relative; z-index:2; flex-shrink:0; }
   body.p-editing .bk-stampro { display:none; }
   .bk-ro-dates { display:inline-flex; align-items:center; gap:8px; flex-wrap:wrap; flex-basis:100%; margin-top:3px; }
   body.p-editing .bk-ro-dates { display:none; }            /* the real inputs take over in Edit */
@@ -5226,12 +5220,14 @@ function bkCard(b) {
   const st = b.status || 'not_yet';
   const done = st === 'done', wip = st === 'wip';
   const e = done ? null : bkElapsed(b);
-  // W1: work in progress is a ledger row - name, teal pill, plan chip, one line.
-  let inner = '';
-  if (wip) inner += '<div class="bk-bd"><span class="bk-live" aria-hidden="true"></span><span class="st">' + escHtml(b.title) + '</span>';
-  else inner += '<div class="st">' + escHtml(b.title) + '</div>';
-  inner += bkMark(b, false);
+  // R2: every dream is a row - symbol, name, stars if lived, pill, plan.
+  const sym = done
+    ? '<span class="bk-tickd" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
+    : (wip ? '<span class="bk-live" aria-hidden="true"></span>'
+           : '<span class="bk-ring" aria-hidden="true"></span>');
+  let inner = sym + '<span class="st">' + escHtml(b.title) + '</span>';
   if (done) inner += bkStars_(b);
+  inner += bkMark(b, false);
   if (!done) {
     if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">'
       + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
@@ -5239,8 +5235,7 @@ function bkCard(b) {
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
     if (e) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
   }
-  if (wip) inner += '</div>';
-  // every dream gets the same tile — colour and stamp carry the status
+  // every dream gets the same row — rail, symbol, and pill carry the status
   return '<div class="stamp' + (done ? ' inked' : '') + (wip ? ' wip' : '') + '" data-bk="' + b.id + '">' + inner + '</div>';
 }
 function renderStamps() {

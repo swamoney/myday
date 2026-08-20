@@ -46,6 +46,22 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The passport becomes a ledger** (R2, Aug 2026): the whole Dreams &
+Doings book converted to rows - the mock stated the trade honestly (the
+stamp grid's charm vs a working list's clarity) and Rahul chose the list.
+One base .stamp row (white, slate rail) with two variants: wip recolours
+the rail teal, done (R2) recolours it ink over a faint ink wash - the
+whisper of the old inked stamp's pride. The symbol triad completes:
+hollow ring (not yet) -> pulse (in the making) -> ticked disc (lived),
+the same promise-language as the checklist desk. Pills follow: outlined
+slate / solid teal / solid ink. Rotation retired from the book entirely;
+the grid, tile paddings, and per-status tile backgrounds retired with it;
+stars, plan chip (overdue red), progress edge, and delete cross all
+survive inline. Builder collapsed to one path - symbol, name, stars,
+pill, plan - no more wip-only wrapper. Two rep() misses on stale anchors
+were caught by count assertions before any write; the file was never
+half-changed.
+
 **The pulse and the ring** (L1+N1, Aug 2026): two status marks chosen
 against the thirty-year test - drawn, not emoji (emoji render differently
 per device and age like slang). WIP rows open with the on-air pulse: a
