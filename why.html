@@ -713,12 +713,14 @@
   .dc-foot svg { width:13px; height:13px; }
 
   /* ===== My Bucket List — the passport, with Places as its second room (U2) ===== */
-  .bk-subseg { display:flex; gap:6px; justify-content:center; margin:2px 0 12px; }
-  .bk-subseg button { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.1em;
-    text-transform:uppercase; border:none; border-radius:999px; padding:5px 12px; background:#eef1f6;
-    color:#5A6478; cursor:pointer; }
-  .bk-subseg button.on { background:#2F6F6A; color:#fff; }             /* dreams wear their door's teal */
-  .bk-subseg #bkTabPlaces.on { background:#2c5f96; color:#fff; }       /* places answer in ocean */
+  /* The door (Aug 2026): one chip, top-left, always naming the OTHER room and
+     wearing that room's colour - ocean to the explore list, teal back home. */
+  .bk-door { display:inline-flex; align-items:center; gap:7px; font-family:var(--mono);
+             font-size:0.5938rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+             color:#fff; border:none; border-radius:999px; padding:7px 14px; cursor:pointer;
+             margin:2px 0 12px; background:#2c5f96; }
+  .bk-door svg { width:12px; height:12px; }
+  .bk-door.home { background:#2F6F6A; }
   .bk-addrow { display:flex; justify-content:flex-end; margin-bottom:13px; padding:0 14px; }
   .pl-addbtn.bk-teal { background:#2F6F6A; border-color:#2F6F6A; }   /* the twin: dreams wear teal, places wear ocean */
   .dm-stat { display:flex; gap:6px; flex-wrap:wrap; }
@@ -1237,10 +1239,10 @@
       <div class="pr-balance" id="priBalance"></div>
     </div>
     <div class="sec-panel hidden" id="secBucket">
-      <div class="bk-subseg" role="tablist">
-        <button type="button" id="bkTabDreams" class="on">Dreams &amp; Doings</button>
-        <button type="button" id="bkTabPlaces">Places</button>
-      </div>
+      <button type="button" class="bk-door" id="bkDoor" aria-label="Switch room">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M3 12h18"/></svg>
+        <span id="bkDoorLabel">My Explore List</span>
+      </button>
       <div id="bkRoomDreams">
         <div class="bk-addrow">
           <button class="pl-addbtn bk-teal" id="dreamAddBtn" type="button">
@@ -3409,14 +3411,16 @@ el('whySeg').querySelectorAll(':scope > span').forEach(s =>
   s.addEventListener('click', () => showSection(s.dataset.sec)));
 
 // The bucket's two rooms (U2): the passport, and the places behind it.
+let bkRoom = 'dreams';   // the bucket is the default room
 function showBkRoom(r) {
+  bkRoom = r;
   el('bkRoomDreams').classList.toggle('hidden', r !== 'dreams');
   el('bkRoomPlaces').classList.toggle('hidden', r !== 'places');
-  el('bkTabDreams').classList.toggle('on', r === 'dreams');
-  el('bkTabPlaces').classList.toggle('on', r === 'places');
+  // the door names the OTHER room and wears its colour
+  el('bkDoorLabel').textContent = r === 'dreams' ? 'My Explore List' : 'My Bucket List';
+  el('bkDoor').classList.toggle('home', r === 'places');
 }
-el('bkTabDreams').addEventListener('click', () => showBkRoom('dreams'));
-el('bkTabPlaces').addEventListener('click', () => showBkRoom('places'));
+el('bkDoor').addEventListener('click', () => showBkRoom(bkRoom === 'dreams' ? 'places' : 'dreams'));
 
 // ----- Mantra -----
 async function loadMantras() {
@@ -5227,7 +5231,9 @@ function bkCard(b) {
            : '<span class="bk-ring" aria-hidden="true"></span>');
   let inner = sym + '<span class="st">' + escHtml(b.title) + '</span>';
   if (done) inner += bkStars_(b);
-  inner += bkMark(b, false);
+  // A waiting dream with a plan lets the gold date speak alone - the ring
+  // already says 'not begun'. The dream's own page still states NOT YET.
+  if (!(st === 'not_yet' && b.planned_on)) inner += bkMark(b, false);
   if (!done) {
     if (b.planned_on) inner += '<div class="plan' + (e && e.over ? ' over' : '') + '">'
       + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'

@@ -46,6 +46,20 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The door, the default, and the quiet pill** (Aug 2026): the bucket's
+two tab-chips became one door chip, top-left - it always names the OTHER
+room and wears that room's colour (ocean 'My Explore List' from the
+bucket; teal 'My Bucket List' from among the places), keeping the
+chip-wears-the-door rule with a twist: it wears the DESTINATION's door.
+Dreams & Doings is the default room and its chip retired entirely - a
+room needs no name when you are standing in it. Places was renamed My
+Explore List at the door (the count line inside still says PLACES - it
+counts things, not the room). And a waiting dream with a planned_on date
+drops its NOT YET pill in the index: the hollow ring says 'not begun',
+the gold chip says 'but it is coming' - two pills saying one thing was
+noise. The dream's own page still states NOT YET in full; print and
+export unchanged (words carry status on paper).
+
 **The passport becomes a ledger** (R2, Aug 2026): the whole Dreams &
 Doings book converted to rows - the mock stated the trade honestly (the
 stamp grid's charm vs a working list's clarity) and Rahul chose the list.
