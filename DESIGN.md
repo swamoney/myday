@@ -46,6 +46,18 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The door on the line; NOT YET in rose** (Aug 2026): Rahul's eye
+caught the door chip floating off the 38px line that the chip row and
+every dream row stand on - aligned with margin-left 38px, stepping to
+20px in the 640px media block where the book's own padding steps (the
+stack-measurement lesson: an alignment fix that ignores the breakpoints
+is only half an alignment). The NOT YET pill took F1: the rose wash
+#fbeeef with deep rose ink #8a3540 (6.97), no border - deliberately the
+old stamp tiles' rose ground, a memory of the passport kept in the
+ledger. F4 solid was declined on principle: solids are how DONE and IN
+THE MAKING speak; the waiting state should be the quietest voice in the
+book. Ring stays slate: symbol says begun-or-not, pill says waiting.
+
 **The door, the default, and the quiet pill** (Aug 2026): the bucket's
 two tab-chips became one door chip, top-left - it always names the OTHER
 room and wears that room's colour (ocean 'My Explore List' from the
