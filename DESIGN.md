@@ -46,6 +46,19 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The trail's empty throne** (Aug 2026): Rahul's screenshot caught the
+build drifting from the C13 mock - the mock's trail was chip-led with no
+circle, but the build had carried C3's 34px tick-ring over, an unflagged
+deviation. The re-mock named the flaw: the big ring earns 34px on the
+desk where the arc shows progress; on the trail nothing fills, so the
+circle was an empty throne. T3 chosen: the trail now wears the bucket's
+exact 15px ticked disc - a sealed decision and a lived dream carry one
+mark - and the row's weight moves to the stars and the date. Lesson
+recorded at full strength: a deviation from a chosen mock must be said
+out loud in the ship note, even when the builder thinks it an
+improvement; the mock is the contract, and silent amendments to a
+contract are how trust erodes.
+
 **C13 after all** (Aug 2026): a day with C3's bare docket and Rahul
 reversed to the hybrid - the donut rows put C1's rails back on (petrol
 desk rail, deep-sea trail rail over the faint wash), keeping the stars.
