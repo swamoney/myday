@@ -578,6 +578,10 @@
   .dc-card .dc-dnut svg { width:34px; height:34px; display:block; }
   .dc-target { font-family:var(--mono); font-size:0.5938rem; font-weight:700; background:#f4c430;
                color:#1d2d4d; border-radius:7px; padding:5px 10px; flex-shrink:0; }
+  /* P2 (Aug 2026): a dream can wait sweetly; a pending decision is a debt. */
+  .dc-pending { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
+                text-transform:uppercase; background:#a8323f; color:#fff; border-radius:6px;
+                padding:4px 10px; flex-shrink:0; }
   .dc-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(30,40,60,0.10); }
   .dc-card .t { font-family:var(--serif); font-size:1rem; font-weight:600; color:#232f45; flex:1; min-width:0; overflow-wrap:anywhere; }
     /* C3 (Aug 2026): the donut carries ring, count, and progress in one organ. */
@@ -757,7 +761,7 @@
   #bkRoomDreams.hidden, #bkRoomPlaces.hidden { display:none; }
   /* ===== the passport itself ===== */
   .bk-book { background:transparent; border:none; border-radius:0; padding:22px 38px 30px; box-shadow:none; }
-  @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } .bk-doorrow { padding:2px 20px 0; } .bk-addrow { padding:0 20px; } }
+  @media (max-width:640px) { .bk-book { padding:18px 20px 26px; } .bk-doorrow { padding:2px 20px 0; } .bk-addrow { padding:0 20px; } #bkRoomPlaces { padding:0 20px !important; } }
   .bk-hd { display:flex; align-items:baseline; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
   .bk-count { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.14em; color:#8a94a8; }
   .stamps { display:flex; flex-direction:column; gap:9px; }   /* R2: the book is a ledger now */
@@ -1258,7 +1262,7 @@
           <div id="stamps"></div>
         </div>
       </div>
-      <div id="bkRoomPlaces" class="hidden" style="padding:0 14px">
+      <div id="bkRoomPlaces" class="hidden" style="padding:0 38px">
       <div class="pl-tb">
         <button class="pl-addbtn" id="placeAddBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -5360,6 +5364,7 @@ function renderDecisions() {
     const pct = total ? Math.round(n / total * 100) : 0;
     return '<div class="dc-card" data-dc="' + d.id + '">' + dcDonut_(n, total)
       + '<span class="t">' + escHtml(d.title) + '</span>'
+      + '<span class="dc-pending">Decision Pending</span>'
       + (d.target_on ? '<span class="dc-target">BY ' + dcFmt_(d.target_on) + '</span>' : '') + '</div>';
   }).join('') || '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
   el('dcTrailList').innerHTML = trail.map(d =>

@@ -46,6 +46,16 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The pending debt, and the wing on the line** (Aug 2026): every desk
+row now carries a solid-crimson Decision Pending box (#a8323f, white,
+6.58) - P2 chosen over the rose whisper deliberately: the bucket's NOT
+YET stays soft because a dream can wait sweetly, but a pending decision
+is a debt, and it is the one waiting state allowed to interrupt. The
+explore wing's rows, chips, count, and add button stepped from the boxed
+era's 14px onto the 38px line the bucket rows stand on, with the 20px
+mobile step (inline style beat by the media rule via !important - noted
+as a wart to clean if the inline pad ever moves to a class).
+
 **The trail's empty throne** (Aug 2026): Rahul's screenshot caught the
 build drifting from the C13 mock - the mock's trail was chip-led with no
 circle, but the build had carried C3's 34px tick-ring over, an unflagged
