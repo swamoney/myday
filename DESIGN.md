@@ -46,6 +46,17 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**One gold grammar for every deadline** (G1, Aug 2026): the bucket
+index's two-deck PLANNED FOR chip flattened to the checklist's own BY
+form - 'BY DEC 2026' gold, 'PASSED - MAR 2026' dark red when overdue
+(9.16) - so a dream's plan and a decision's target are now the same chip
+learned once, and the shortest wording serves the phone fold. The stacked
+pk/pv anatomy retired from the index chip and its CSS; the dream PAGE's
+bkDatesRO keeps its labelled stacked chip on purpose (pages state things
+in full - same rule as NOT YET). Probe note, third of its kind: a grep
+for 'PLANNED FOR' cried failure at the page's own legitimate words -
+probes must scope to the organ they test, not the phrase they fear.
+
 **The rows learn to fold** (M1, Aug 2026): the Decision Pending box
 plus the gold chip broke phone-width rows (and the bucket's new rows with
 them) - the title was being crushed between chips. M1 chosen from three

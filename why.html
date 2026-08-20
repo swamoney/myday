@@ -777,13 +777,9 @@
   .stamps { display:flex; flex-direction:column; gap:9px; }   /* R2: the book is a ledger now */
   @media (max-width:560px) { }   /* always 2 tracks, so span-2 = full width */
   /* Two lines: the label whispers, the date carries the weight. */
-  .stamp .plan { display:inline-flex; flex-direction:column; align-items:center; gap:1px;
-                 font-family:var(--mono); background:#f4c430; color:#1d2d4d;
-                 padding:6px 13px; border-radius:8px; margin-top:0; line-height:1.1;
-                 box-shadow:0 2px 6px rgba(196,150,20,0.35); }
-  .stamp .plan .pk { font-size:0.4062rem; font-weight:600; letter-spacing:0.16em; opacity:0.72; }
-  .stamp .plan .pv { font-size:0.75rem; font-weight:700; letter-spacing:0.01em; }
-  .stamp .plan.over { background:#8A1F1A; color:#fff; box-shadow:0 2px 6px rgba(138,31,26,0.35); }
+  .stamp .plan { font-family:var(--mono); font-size:0.5938rem; font-weight:700; background:#f4c430;
+                 color:#1d2d4d; border-radius:7px; padding:5px 10px; flex-shrink:0; }
+  .stamp .plan.over { background:#8A1F1A; color:#fff; }   /* G1: one gold grammar for every deadline */
   .stamp .edge { position:absolute; left:0; right:0; bottom:0; height:5px; background:rgba(120,140,170,0.13); }
   .stamp .edge i { display:block; height:100%; background:#3d7a5c; }   /* E1 — moss */
   .stamp .edge.over i { background:#8A1F1A; }
@@ -5253,9 +5249,8 @@ function bkCard(b) {
   // A waiting dream with a plan lets the gold date speak alone - the ring
   // already says 'not begun'. The dream's own page still states NOT YET.
   if (!(st === 'not_yet' && b.planned_on)) deck += bkMark(b, false);
-  if (!done && b.planned_on) deck += '<div class="plan' + (e && e.over ? ' over' : '') + '">'
-      + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
-      + '<span class="pv">' + bkFmt(b.planned_on) + '</span></div>';
+  if (!done && b.planned_on) deck += '<span class="plan' + (e && e.over ? ' over' : '') + '">'
+      + (e && e.over ? 'PASSED \u00B7 ' : 'BY ') + bkFmt(b.planned_on) + '</span>';
   inner += '<span class="rowdeck">' + deck + '</span>';
   if (!done) {
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
