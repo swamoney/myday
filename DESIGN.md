@@ -64,6 +64,20 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**S1 - keys name contents, never positions** (Aug 2026): Rahul flagged
+the p6-wearing-P5 mismatch as future confusion and asked for solutions
+first, decision second. Three were laid out (S1 semantic keys + one
+migration; S2 renumber keys each shuffle; S3 live with it documented);
+he chose S1 after a plain-words boxes-and-stickers mock. Stored keys
+became food/home/transport/lifestyle/hotel (official and misc already
+true); migrate_budget_keys.sql rewrites saved rows idempotently, deletes
+dead p5 shopping rows, and carries before/after check queries; the
+engine, dealing lines, and modal ids (mbm_<key>) renamed to match;
+stickers (P1..P5 labels) untouched. The key-vs-label law is now
+structural, not disciplinary: no sticker can contradict an inside name,
+because contents are not positions. Supersedes rev 3's 'keys never
+move' rule - keys moved exactly once, to names that never need to.
+
 **Envelopes rev 3** (Aug 2026): the two toggles joined one row -
 envelopes first, heatmap second - inside the heatmap's own controls
 block (.mtoggle-row flex line; the metric row keeps its own line below),

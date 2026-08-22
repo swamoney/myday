@@ -6760,11 +6760,11 @@
     <div class="mb-mt">Budgets for <span id="mbmYm"></span></div>
     <div class="mb-ms">set once; they carry into next month via the copy button until you change them</div>
     <button type="button" class="mb-copy" id="mbCopyPrev">Copy last month’s budgets →</button>
-    <div class="mb-fld"><label>P1 · Food + grocery</label><input type="number" id="mbm_p1" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P2 · Home</label><input type="number" id="mbm_p2" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P3 · Transport</label><input type="number" id="mbm_p3" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P4 · Books, Entertainment, Shopping, etc.</label><input type="number" id="mbm_p4" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P5 · Hotel Stay</label><input type="number" id="mbm_p6" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P1 · Food + grocery</label><input type="number" id="mbm_food" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P2 · Home</label><input type="number" id="mbm_home" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P3 · Transport</label><input type="number" id="mbm_transport" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P4 · Books, Entertainment, Shopping, etc.</label><input type="number" id="mbm_lifestyle" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P5 · Hotel Stay</label><input type="number" id="mbm_hotel" inputmode="decimal"></div>
     <div class="mb-fld"><label>Official · Swamoney</label><input type="number" id="mbm_official" inputmode="decimal"></div>
     <div class="mb-fld"><label>Miscellaneous</label><input type="number" id="mbm_misc" inputmode="decimal"></div>
     <div class="mb-btns"><button type="button" class="mb-cancel" id="mbCancel">Cancel</button>
@@ -13116,14 +13116,16 @@ function renderHeatmap() {
 //                        + otherLog(AI Usage, Software, Printing & Stationery)
 //   misc <- taxes + hotelStay + every remaining otherLog item
 //   excluded entirely: gstPayment, creditCardBill, all investment fields.
+// S1 (Aug 2026): keys name CONTENTS, never positions - the sticker on the
+// front (lbl) may change any day; the inside name (key) is true forever.
 const BUDGET_SECTIONS = [
-  { key:'p1',       lbl:'P1 \u00B7 Food + grocery' },
-  { key:'p2',       lbl:'P2 \u00B7 Home' },
-  { key:'p3',       lbl:'P3 \u00B7 Transport' },
-  { key:'p4',       lbl:'P4 \u00B7 Books, Entertainment, Shopping, etc.' },
-  { key:'p6',       lbl:'P5 \u00B7 Hotel Stay' },
-  { key:'official', lbl:'Official \u00B7 Swamoney' },
-  { key:'misc',     lbl:'Miscellaneous' }
+  { key:'food',      lbl:'P1 \u00B7 Food + grocery' },
+  { key:'home',      lbl:'P2 \u00B7 Home' },
+  { key:'transport', lbl:'P3 \u00B7 Transport' },
+  { key:'lifestyle', lbl:'P4 \u00B7 Books, Entertainment, Shopping, etc.' },
+  { key:'hotel',     lbl:'P5 \u00B7 Hotel Stay' },
+  { key:'official',  lbl:'Official \u00B7 Swamoney' },
+  { key:'misc',      lbl:'Miscellaneous' }
 ];
 const P4_OTHER = ['books & magazines', 'salon'];
 const OFFICIAL_OTHER = ['ai usage', 'software', 'printing & stationery'];
@@ -13155,22 +13157,22 @@ function monthEnvelopes_(entries) {
   };
   entries.forEach(({ entry: e }) => {
     const n = f => evalExpr(e[f]) || 0;
-    put('p1', 'Food', 'day field', n('food'));
-    put('p1', 'Dmart', 'day field', n('dmart'));
-    put('p3', 'Uber', 'day field', n('uber'));
-    put('p3', 'Travel', 'day field', n('travel'));
-    put('p4', 'Entertainment', 'day field', n('entertainment'));
-    put('p4', 'Shopping', 'day field', n('shopping'));
+    put('food', 'Food', 'day field', n('food'));
+    put('food', 'Dmart', 'day field', n('dmart'));
+    put('transport', 'Uber', 'day field', n('uber'));
+    put('transport', 'Travel', 'day field', n('travel'));
+    put('lifestyle', 'Entertainment', 'day field', n('entertainment'));
+    put('lifestyle', 'Shopping', 'day field', n('shopping'));
     put('misc', 'Taxes & Bills', 'day field', n('taxes'));
-    put('p6', 'Hotel Stay', 'day field', n('hotelStay'));
+    put('hotel', 'Hotel Stay', 'day field', n('hotelStay'));
     // gstPayment, creditCardBill, investments: excluded by contract.
     // Other log: named items deal by name.
     (parseOtherItems(e) || []).forEach(it => {
       const amt = Number(it.amt) || 0; if (!amt) return;
       const nm = String(it.name || '').trim(); const low = nm.toLowerCase();
       if (OFFICIAL_OTHER.some(x => low === x || low.includes(x))) put('official', nm, 'other log', amt);
-      else if (P2_OTHER.some(x => low === x || low.includes(x))) put('p2', nm, 'other log', amt);
-      else if (P4_OTHER.some(x => low === x || low.includes(x))) put('p4', nm, 'other log', amt);
+      else if (P2_OTHER.some(x => low === x || low.includes(x))) put('home', nm, 'other log', amt);
+      else if (P4_OTHER.some(x => low === x || low.includes(x))) put('lifestyle', nm, 'other log', amt);
       else put('misc', nm || 'Other', 'other log', amt);
     });
     // Recurring log: groups deal, with the ChatGPT name exception.
@@ -13181,7 +13183,7 @@ function monthEnvelopes_(entries) {
       if (nm.toLowerCase().includes('chatgpt')) { put('official', 'Recurring \u00B7 ChatGPT', 'recurring', amt); return; }
       const g = recurringGroupForName(nm);
       if (g === 'office') put('official', 'Recurring \u00B7 office', 'recurring', amt);
-      else put('p2', 'Recurring \u00B7 ' + g, 'recurring', amt);
+      else put('home', 'Recurring \u00B7 ' + g, 'recurring', amt);
     });
   });
   return { spent, detail };
