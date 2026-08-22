@@ -64,6 +64,20 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**The trapped modal** (Aug 2026): Set budgets seemed to need many
+clicks and 'opened very late' - the diagnosis was geometry, not timing.
+The N1 DOOR build wrapped the summary organs into #monthRoomSummary,
+and the Set-budgets modal markup was sitting among them; in the budget
+room the summary wrapper is display:none, and a fixed overlay inside a
+hidden ancestor renders nothing. Every click DID open the modal - it
+was open, invisibly, and appeared only when the user wandered back
+through the door to the summary room ('opens after clicking somewhere
+else'). Fixed by moving the modal outside the summary wrapper, beside
+the budget wrap, still above the scripts (the boot-order law). Position
+proof: summary-close < budget wrap < modal < first script. Rule
+learned: overlays live at the section's top level, never inside a
+sibling room - a door that hides a room hides everything it swallowed.
+
 **The hub subtitle's three bugs** (Aug 2026): the Today card under
 Investments & Expenses was sometimes wrong and sometimes said 'no
 entries yet' over a full day. computeHubPreview had three independent
