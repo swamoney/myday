@@ -642,7 +642,7 @@
   }
 
   .section.s-expenses .input, .section.s-expenses .textarea { background: #FAEFEC; }
-  /* Expense fields (Food, Dmart, Uber, Other) — Phase 9 Option 5 styling
+  /* Expense fields (Food, Dmart, Daily Transport, Other) — Phase 9 Option 5 styling
      lives further down (soft cream bg + persistent ember stripe). The old
      saturated red `#F5DDD5` bg was retired because it didn't distinguish
      empty from filled; the stripe pattern does. */
@@ -833,7 +833,7 @@
      loud red bg the previous design used. */
   .section.s-expenses #f_food,
   .section.s-expenses #f_dmart,
-  .section.s-expenses #f_uber,
+  .section.s-expenses #f_dailyTransport,
   .section.s-expenses #f_shopping,
   .section.s-expenses #f_hotelStay,
   .section.s-expenses #f_travel,
@@ -846,7 +846,7 @@
   }
   .section.s-expenses #f_food:focus,
   .section.s-expenses #f_dmart:focus,
-  .section.s-expenses #f_uber:focus,
+  .section.s-expenses #f_dailyTransport:focus,
   .section.s-expenses #f_shopping:focus,
   .section.s-expenses #f_hotelStay:focus,
   .section.s-expenses #f_travel:focus,
@@ -858,7 +858,7 @@
   }
   .section.s-expenses #f_food:not(:placeholder-shown),
   .section.s-expenses #f_dmart:not(:placeholder-shown),
-  .section.s-expenses #f_uber:not(:placeholder-shown),
+  .section.s-expenses #f_dailyTransport:not(:placeholder-shown),
   .section.s-expenses #f_shopping:not(:placeholder-shown),
   .section.s-expenses #f_hotelStay:not(:placeholder-shown),
   .section.s-expenses #f_travel:not(:placeholder-shown),
@@ -6048,15 +6048,15 @@
         </div>
       </div>
       <div class="field">
-        <label>Uber / Petrol / Metro / Parking</label>
+        <label>Daily Transport (Cab / Petrol / Metro / Parking)</label>
         <div class="calc-row">
-          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_uber" placeholder="0"></div>
-          <button class="plus-btn" data-calc-plus="f_uber">+</button>
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_dailyTransport" placeholder="0"></div>
+          <button class="plus-btn" data-calc-plus="f_dailyTransport">+</button>
         </div>
-        <div class="calc-total hidden" id="f_uber_calc"></div>
+        <div class="calc-total hidden" id="f_dailyTransport_calc"></div>
         <div class="field-note">
           <span class="field-note-arrow" aria-hidden="true">↳</span>
-          <input class="input field-note-input" type="text" id="f_uberNote" placeholder="add a note (optional) — e.g., Pune to Mumbai · Uber">
+          <input class="input field-note-input" type="text" id="f_dailyTransportNote" placeholder="add a note (optional) — e.g., Pune to Mumbai · cab">
         </div>
       </div>
       <!-- ==================================================================
@@ -7031,10 +7031,10 @@ const supa = window.supabase.createClient(
 // CC tracking: creditCardBill is a tracking-only field — saved/displayed
 // like a money input but NEVER summed into any outflow/spend total. Its own
 // dedicated charts in Month and Year views.
-const FIELDS = ['regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','uber','uberNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','gstPayment','gstPaymentNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
-const CALC_FIELDS = ['regularInvestment','topUp','investmentRedemption','food','dmart','uber','shopping','hotelStay','travel','entertainment','taxes','creditCardBill','gstPayment'];
+const FIELDS = ['regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','gstPayment','gstPaymentNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
+const CALC_FIELDS = ['regularInvestment','topUp','investmentRedemption','food','dmart','dailyTransport','shopping','hotelStay','travel','entertainment','taxes','creditCardBill','gstPayment'];
 const TOGGLE_FIELDS = ['reading'];
-const TEXT_FIELDS = ['foodNote','dmartNote','uberNote','shoppingNote','hotelStayNote','travelNote','entertainmentNote','taxesNote','creditCardBillNote','gstPaymentNote','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
+const TEXT_FIELDS = ['foodNote','dmartNote','dailyTransportNote','shoppingNote','hotelStayNote','travelNote','entertainmentNote','taxesNote','creditCardBillNote','gstPaymentNote','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -7044,7 +7044,7 @@ const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','
 const FIELD_TO_COL = {
   regularInvestment:'regular_investment',
   topUp:'top_up',
-  investmentRedemption:'investment_redemption', food:'food', foodNote:'food_note', dmart:'dmart', dmartNote:'groceries_note', uber:'uber', uberNote:'transport_note', shopping:'shopping', shoppingNote:'shopping_note', hotelStay:'hotel_stay', hotelStayNote:'hotel_stay_note', travel:'travel', travelNote:'travel_note', entertainment:'entertainment', entertainmentNote:'entertainment_note', taxes:'taxes', taxesNote:'taxes_note', creditCardBill:'credit_card_bill', creditCardBillNote:'credit_card_bill_note', gstPayment:'gst_payment', gstPaymentNote:'gst_payment_note',
+  investmentRedemption:'investment_redemption', food:'food', foodNote:'food_note', dmart:'dmart', dmartNote:'groceries_note', dailyTransport:'daily_transport', dailyTransportNote:'transport_note', shopping:'shopping', shoppingNote:'shopping_note', hotelStay:'hotel_stay', hotelStayNote:'hotel_stay_note', travel:'travel', travelNote:'travel_note', entertainment:'entertainment', entertainmentNote:'entertainment_note', taxes:'taxes', taxesNote:'taxes_note', creditCardBill:'credit_card_bill', creditCardBillNote:'credit_card_bill_note', gstPayment:'gst_payment', gstPaymentNote:'gst_payment_note',
   walk:'walk', heart:'heart', reading:'reading', readingTakeaway:'reading_takeaway', satisfaction:'overall_satisfaction', introspection:'introspection',
   slot1:'slot1', slot2:'slot2', slot3:'slot3', slot4:'slot4', slot5:'slot5', slot6:'slot6',
   breakfast:'breakfast', lunch:'lunch', dinner:'dinner', nightStay:'night_stay', stayedWith:'stayed_with',
@@ -8945,7 +8945,7 @@ function toast(msg) {
 // the field IDs (without 'f_' prefix) that count toward "section has content".
 const TODAY_SECTIONS = [
   { cls: 's-expenses', label: 'Investments & Expenses',
-    fields: ['regularInvestment','topUp','food','dmart','uber','aiUsage','shopping','hotelStay','hotelStayNote','travel','travelNote','other','otherNote'] },
+    fields: ['regularInvestment','topUp','food','dmart','dailyTransport','aiUsage','shopping','hotelStay','hotelStayNote','travel','travelNote','other','otherNote'] },
   { cls: 's-health', label: 'Health & Mind',
     fields: ['walk','heart','reading'] },
   { cls: 's-time', label: 'The Hours',
@@ -9696,7 +9696,7 @@ function computeHubPreview(cls) {
   };
   if (cls === 's-expenses') {
     // Sum of daily spend fields + recurring log
-    const spendKeys = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','other'];
+    const spendKeys = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','other'];
     let total = 0;
     spendKeys.forEach(k => { total += num(e[k]); });
     // Recurring log: array of {name, amount}
@@ -9896,7 +9896,7 @@ function collapseExpenseDisclosure() {
 
 // Compute Spent + Invested from the current form values and paint the footer.
 // Mirrors the canonical monthly aggregation:
-//   Spent  = food+dmart+uber+shopping+hotelStay+travel+entertainment+taxes+other
+//   Spent  = food+dmart+dailyTransport+shopping+hotelStay+travel+entertainment+taxes+other
 //            (creditCardBill and gstPayment both excluded — tracking-only)
 //   Invested = regularInvestment + topUp   (redemption shown separately)
 // Reads live input values via evalExpr so "30+50" style entries sum correctly.
@@ -9913,7 +9913,7 @@ function updateExpenseFooter() {
     return 0;
   };
 
-  const spendFields = ['food','dmart','uber','shopping','hotelStay','travel','entertainment','taxes'];
+  const spendFields = ['food','dmart','dailyTransport','shopping','hotelStay','travel','entertainment','taxes'];
   let spent = 0;
   spendFields.forEach(f => { spent += liveVal(f); });
   // Itemized "Other" expenses — summed directly from otherLog so the footer
@@ -9966,7 +9966,7 @@ const EXP_SUMMARY_SPEC = [
   { key: 'topUp',                label: 'Top-Up Investment',  group: 'invest' },
   { key: 'food',        label: 'Food',           note: 'foodNote',           group: 'spend' },
   { key: 'dmart',       label: 'Groceries',      note: 'dmartNote',          group: 'spend' },
-  { key: 'uber',        label: 'Transport',      note: 'uberNote',           group: 'spend' },
+  { key: 'dailyTransport',        label: 'Transport',      note: 'dailyTransportNote',           group: 'spend' },
   { key: 'shopping',    label: 'Shopping',       note: 'shoppingNote',       group: 'spend' },
   { key: 'entertainment', label: 'Entertainment', note: 'entertainmentNote', group: 'spend' },
   { key: 'hotelStay',   label: 'Hotel Stay',     note: 'hotelStayNote',      group: 'spend' },
@@ -10334,7 +10334,7 @@ function renderMonthCharts(monthYM, entries) {
 
 
 // =========== TRENDS (multi-year monthly aggregations) ===========
-// Returns array of {ym, sat, satCount, spendByCat:{food,dmart,uber,other}, topUp, walk, readingYes}
+// Returns array of {ym, sat, satCount, spendByCat:{food,dmart,dailyTransport,other}, topUp, walk, readingYes}
 function aggregateMonthly() {
   const months = {};
   // Same rule the Year card uses, so the two can never disagree: home is a
@@ -10351,7 +10351,7 @@ function aggregateMonthly() {
     if (!months[ym]) {
       months[ym] = {
         ym, satSum: 0, satCount: 0,
-        food: 0, dmart: 0, uber: 0, aiUsage: 0, shopping: 0, hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0,
+        food: 0, dmart: 0, dailyTransport: 0, aiUsage: 0, shopping: 0, hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0,
         regularInvestment: 0, topUp: 0, investmentRedemption: 0,
         recurring: 0,
         walk: 0, walkDays: 0,
@@ -10366,7 +10366,7 @@ function aggregateMonthly() {
       m.satSum += s; m.satCount++;
     }
     // Phase 6: include regularInvestment in aggregation (was missing)
-    ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other','topUp','regularInvestment','investmentRedemption'].forEach(f => {
+    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other','topUp','regularInvestment','investmentRedemption'].forEach(f => {
       const n = evalExpr(e[f]);
       if (n !== null) m[f] += n;
     });
@@ -10408,7 +10408,7 @@ function _almMonthValue(m, metric) {
     return inv > 0 ? inv : null;
   }
   if (metric === 'spend') {
-    const sp = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
+    const sp = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
       .reduce((s, f) => s + (Number(m[f]) || 0), 0) + (Number(m.recurring) || 0);
     return sp > 0 ? sp : null;
   }
@@ -10594,7 +10594,7 @@ function _trendsAggregateByYear(months) {
     Y.daysLogged += m.daysLogged;
     // Spend: sum of daily categories + recurring (matches the Outflow Breakdown
     // definition of "total outflow" so all numbers reconcile across views).
-    Y.spend += (m.food || 0) + (m.dmart || 0) + (m.uber || 0) + (m.aiUsage || 0)
+    Y.spend += (m.food || 0) + (m.dmart || 0) + (m.dailyTransport || 0) + (m.aiUsage || 0)
             + (m.shopping || 0) + (m.hotelStay || 0) + (m.entertainment || 0)
             + (m.taxes || 0) + (m.other || 0) + (m.recurring || 0);
     // Net invest = regular + topup - redemption (same definition as Year cash flow)
@@ -10656,11 +10656,11 @@ function renderTrendAllTimeSpend(months) {
 
   // Aggregate all-time category totals
   const cats = {
-    food: 0, dmart: 0, uber: 0, aiUsage: 0, shopping: 0,
+    food: 0, dmart: 0, dailyTransport: 0, aiUsage: 0, shopping: 0,
     hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0, recurring: 0
   };
   months.forEach(m => {
-    ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other','recurring'].forEach(k => {
+    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other','recurring'].forEach(k => {
       cats[k] += m[k] || 0;
     });
   });
@@ -10671,7 +10671,7 @@ function renderTrendAllTimeSpend(months) {
   const meta = {
     food:          { label: 'Food',          color: '#993C1D' },
     dmart:         { label: 'Groceries',     color: '#A66E5D' },
-    uber:          { label: 'Transport',     color: '#C9928A' },
+    dailyTransport:          { label: 'Transport',     color: '#C9928A' },
     aiUsage:       { label: 'AI Usage',      color: '#C98682' },
     shopping:      { label: 'Shopping',      color: '#8B5A4A' },
     hotelStay:     { label: 'Hotel stay',    color: '#6B4A5C' },
@@ -10895,7 +10895,7 @@ function _recordHighestSpendMonth(months) {
   let best = null;
   months.forEach(m => {
     if (m.daysLogged < 15) return; // require a fairly complete month
-    const total = (m.food || 0) + (m.dmart || 0) + (m.uber || 0) + (m.aiUsage || 0)
+    const total = (m.food || 0) + (m.dmart || 0) + (m.dailyTransport || 0) + (m.aiUsage || 0)
                 + (m.shopping || 0) + (m.hotelStay || 0) + (m.entertainment || 0)
                 + (m.taxes || 0) + (m.other || 0) + (m.recurring || 0);
     if (total > 0 && (!best || total > best.total)) {
@@ -11348,7 +11348,7 @@ const SEARCH_FIELDS = [
   ['taxesNote', 'Taxes note'],
   ['foodNote', 'Food note'],
   ['dmartNote', 'Groceries note'],
-  ['uberNote', 'Transport note'],
+  ['dailyTransportNote', 'Transport note'],
   ['creditCardBillNote', 'Credit card bill note'],
   ['gstPaymentNote', 'GST payment note'],
   ['readingTakeaway', 'Reading takeaway'],
@@ -11595,7 +11595,7 @@ function renderWeek() {
   const walkVals = days.map(d => Number(d.entry?.walk) || 0);
   const spendVals = days.map(d => {
     if (!d.entry) return 0;
-    return ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].reduce((s,f) => s + (evalExpr(d.entry[f]) || 0), 0);
+    return ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].reduce((s,f) => s + (evalExpr(d.entry[f]) || 0), 0);
   });
   const investVals = days.map(d => {
     if (!d.entry) return 0;
@@ -11890,7 +11890,7 @@ function renderWeek() {
 // each cell tinted by the chosen metric. Clicking a cell jumps to that day.
 // Phase 9: Render the Month tab's cash-flow snapshot — a side-by-side column
 // graph comparing total invested (regular + top-up) vs total spent (daily
-// food/dmart/uber/other + recurring actuals logged this month). The taller
+// food/dmart/dailyTransport/other + recurring actuals logged this month). The taller
 // column reaches 100% of the bar frame; the shorter is scaled proportionally
 // so the visual ratio is immediately readable. Net surplus/deficit summary
 // at the bottom matches the Week tab's cash-flow card pattern.
@@ -11917,7 +11917,7 @@ function renderMonthStats(monthYM, entries, dayCount) {
 
   // Compute per-day arrays so we can aggregate
   const walkVals = entries.map(({ entry: e }) => Number(e.walk) || 0);
-  const spendFields = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
+  const spendFields = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
   const spendVals = entries.map(({ entry: e }) =>
     spendFields.reduce((s, f) => s + (evalExpr(e[f]) || 0), 0)
   );
@@ -12024,7 +12024,7 @@ function renderMonthStats(monthYM, entries, dayCount) {
 // on load.
 function _outflowTotalForMonth(yearMonth) {
   let daily = 0;
-  const fields = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
+  const fields = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
   Object.keys(allEntries).forEach(d => {
     if (!d.startsWith(yearMonth)) return;
     const e = allEntries[d];
@@ -12065,7 +12065,7 @@ function _trailing6MonthAvg(cursorYM) {
 function _priorYearTotal(yearStr) {
   const prevYear = String(Number(yearStr) - 1);
   let daily = 0;
-  const fields = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
+  const fields = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
   let hasAny = false;
   Object.keys(allEntries).forEach(d => {
     if (!d.startsWith(prevYear + '-')) return;
@@ -12097,7 +12097,7 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
   const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
 
   const dailyTotal =
-    (totals.food || 0) + (totals.dmart || 0) + (totals.uber || 0) +
+    (totals.food || 0) + (totals.dmart || 0) + (totals.dailyTransport || 0) +
     (totals.aiUsage || 0) + (totals.shopping || 0) + (totals.hotelStay || 0) +
     (totals.travel || 0) +
     (totals.entertainment || 0) + (totals.taxes || 0) +
@@ -12129,7 +12129,7 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
   const dailyCats = [
     { key: 'food',          label: 'Food',          val: totals.food          || 0 },
     { key: 'dmart',         label: 'Groceries',     val: totals.dmart         || 0 },
-    { key: 'uber',          label: 'Transport',     val: totals.uber          || 0 },
+    { key: 'dailyTransport',          label: 'Transport',     val: totals.dailyTransport          || 0 },
     { key: 'shopping',      label: 'Shopping',      val: totals.shopping      || 0 },
     { key: 'hotelStay',     label: 'Hotel stay',    val: totals.hotelStay     || 0 },
     { key: 'travel',        label: 'Travel booking', val: totals.travel       || 0 },
@@ -12402,7 +12402,7 @@ function _renderOtherBreakdownHtml(scopeLabel, entries, opts) {
   // function stays self-contained — same logic as the Outflow Breakdown
   // card uses, kept in sync.
   let dailyTotal = 0;
-  const spendFields = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
+  const spendFields = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
   let recurringTotal = 0;
   entries.forEach(({ entry: e }) => {
     spendFields.forEach(f => {
@@ -12548,7 +12548,7 @@ function _renderRecurringGroupBreakdownHtml(label, group, entries, opts) {
   // (same denominator as Other Breakdown's share — total spend including
   // all daily categories + all recurring groups).
   let dailyTotal = 0;
-  const spendFields = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
+  const spendFields = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
   let recurringTotal = 0;
   entries.forEach(({ entry: e }) => {
     spendFields.forEach(f => {
@@ -12908,7 +12908,7 @@ function renderMonthSpendCalendar() {
     let val = 0, rec = 0;
     if (e) {
       rec = recurringSum(e);
-      val = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
+      val = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']
         .reduce((s, fld) => s + (evalExpr(e[fld]) || 0), 0) + rec;
     }
     days.push({ iso, d, val, rec, hasEntry: !!e, isFuture: iso > today, isToday: iso === today });
@@ -13022,7 +13022,7 @@ function renderHeatmap() {
         const w = Number(e.walk) || 0;
         val = w > 0 ? w : null;
       } else if (heatmapMetric === 'spend') {
-        const sp = ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].reduce((s,f) => s + (evalExpr(e[f]) || 0), 0) + recurringSum(e);
+        const sp = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].reduce((s,f) => s + (evalExpr(e[f]) || 0), 0) + recurringSum(e);
         val = sp > 0 ? sp : null;
       }
     }
@@ -13143,7 +13143,7 @@ function renderHeatmap() {
 // The mapping contract (Rahul, Aug 2026):
 //   p1 Food+grocery <- food + dmart
 //   p2 Home <- recurring home + recurring subscriptions (ChatGPT excepted)
-//   p3 Transport <- uber + travel
+//   p3 Transport <- dailyTransport + travel
 //   p4 Books/salon/movies/ironing <- entertainment + otherLog(Books & Magazines, Salon, Ironing)
 //   p5 Shopping <- shopping
 //   official Office <- recurring office + recurring 'chatgpt' (name exception)
@@ -13209,7 +13209,7 @@ function monthEnvelopes_(entries) {
     const n = f => evalExpr(e[f]) || 0;
     put('food', 'Food', 'day field', n('food'));
     put('food', 'Dmart', 'day field', n('dmart'));
-    put('transport', 'Uber', 'day field', n('uber'));
+    put('transport', 'Daily Transport', 'day field', n('dailyTransport'));
     put('hotel', 'Travel', 'day field', n('travel'));
     put('lifestyle', 'Entertainment', 'day field', n('entertainment'));
     put('lifestyle', 'Shopping', 'day field', n('shopping'));
@@ -13358,7 +13358,7 @@ function renderMonth() {
   const datesInMonth = Object.keys(allEntries).filter(d => d.startsWith(monthCursor)).sort();
   const entries = datesInMonth.map(d => ({ date: d, entry: allEntries[d] }));
 
-  const totals = { regularInvestment:0, topUp:0, investmentRedemption:0, food:0, dmart:0, uber:0, aiUsage:0, shopping:0, hotelStay:0, travel:0, entertainment:0, taxes:0, other:0, creditCardBill:0, creditCardBillCount:0, walkSum:0, walkCount:0, heartSum:0, heartCount:0, satSum:0, satCount:0, readingYes:0, introspectionYes:0 };
+  const totals = { regularInvestment:0, topUp:0, investmentRedemption:0, food:0, dmart:0, dailyTransport:0, aiUsage:0, shopping:0, hotelStay:0, travel:0, entertainment:0, taxes:0, other:0, creditCardBill:0, creditCardBillCount:0, walkSum:0, walkCount:0, heartSum:0, heartCount:0, satSum:0, satCount:0, readingYes:0, introspectionYes:0 };
   // CC tracking: per-day CC payments, NOT summed into any outflow total.
   // Stored on totals for the dedicated chart card below.
   const ccDaily = {}; // {dateIso: amount}
@@ -13366,7 +13366,7 @@ function renderMonth() {
     // Ship 3b: explicit field list — includes virtual derived fields
     // (aiUsage, other) since they're no longer in CALC_FIELDS but ARE
     // populated on the entry by deriveOtherFields().
-    ['regularInvestment','topUp','investmentRedemption','food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(f => {
+    ['regularInvestment','topUp','investmentRedemption','food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(f => {
       const n = evalExpr(e[f]);
       if (n !== null) totals[f] += n;
     });
@@ -13390,7 +13390,7 @@ function renderMonth() {
   });
 
   const fmt = n => Math.round(n).toLocaleString('en-IN');
-  const totalSpend = totals.food + totals.dmart + totals.uber + totals.aiUsage + totals.shopping + totals.hotelStay + totals.travel + totals.entertainment + totals.taxes + totals.other;
+  const totalSpend = totals.food + totals.dmart + totals.dailyTransport + totals.aiUsage + totals.shopping + totals.hotelStay + totals.travel + totals.entertainment + totals.taxes + totals.other;
   // Phase 9: total invested across the month = regular + top-up
   const totalInvest = totals.regularInvestment + totals.topUp - (totals.investmentRedemption || 0);
 
@@ -13783,7 +13783,7 @@ function renderYear() {
   // Same shape as the Month sub-view's `totals` object so we can reuse
   // the renderOutflowBreakdown function with year-scoped data.
   const yearTotals = {
-    food: 0, dmart: 0, uber: 0, aiUsage: 0,
+    food: 0, dmart: 0, dailyTransport: 0, aiUsage: 0,
     shopping: 0, hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0,
   };
   // Phase 11+: per-component aggregates for redemption sub-strip (sum across the year)
@@ -13799,7 +13799,7 @@ function renderYear() {
     if (tu !== null) yearTotalTopUp += tu;
     if (ird !== null) yearTotalRedemption += ird;
     // Phase 9: include aiUsage, shopping, hotelStay in year-level daily-spend total
-    ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(field => {
+    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(field => {
       const n = evalExpr(e[field]);
       if (n !== null) {
         totalSpendDaily += n;
@@ -13823,8 +13823,8 @@ function renderYear() {
     const ym = d.slice(0, 7);
     if (!monthlySpend[ym]) monthlySpend[ym] = { daily: 0, recurring: 0, days: 0 };
     const e = allEntries[d];
-    // Phase 9: include all 7 daily expense categories (food/dmart/uber/aiUsage/shopping/hotelStay/other)
-    ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(field => {
+    // Phase 9: include all 7 daily expense categories (food/dmart/dailyTransport/aiUsage/shopping/hotelStay/other)
+    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(field => {
       const n = evalExpr(e[field]);
       if (n !== null) monthlySpend[ym].daily += n;
     });
@@ -14183,7 +14183,7 @@ function _yearShortDate(iso) {
 }
 const CSV_HEADERS = [
   'Date','Regular Investment','Top-Up Investment','Investment Redemption','Food Expence [Dineout /Swiggy/Zomato]','Food Note','Dmart / Instamart / Zepto / Blinkit','Groceries Note',
-  'Uber / Petrol /Metro / Parking','Transport Note','Shopping','Shopping Note','Hotel Stay','Hotel Stay Note','Travel Booking','Travel Note','Entertainment','Entertainment Note','Taxes','Taxes Note','Walk','Google Heart Points',
+  'Daily Transport (Cab / Petrol / Metro / Parking)','Transport Note','Shopping','Shopping Note','Hotel Stay','Hotel Stay Note','Travel Booking','Travel Note','Entertainment','Entertainment Note','Taxes','Taxes Note','Walk','Google Heart Points',
   'Reading /Podcasts/ /Audible','Reading Takeaway',
   '12 AM - 3 AM','3 AM - 8 AM','8 AM - 12 PM','12 PM - 4 PM','4 PM - 8 PM','8 PM - 12 PM',
   'Food Journal: Breakfast','Food Journal: Lunch','Food Journal: Dinner','Night Stay Information','Stayed With',
@@ -14202,7 +14202,7 @@ const CSV_HEADERS = [
 // Final two columns: Overall Satisfaction + Introspection — moved to the
 // end so reflective/qualitative fields read as the closing summary of each
 // day's row.
-const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','uber','uberNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection'];
+const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection'];
 
 // Ship 4: headers for the second CSV (one row per Other item).
 const CSV_OTHER_ITEMS_HEADERS = ['Date','Item Name','Amount'];
@@ -14613,7 +14613,7 @@ function computeMonthStats(entries) {
     if (!e.entry) continue;
     stats.daysLogged++;
     const r = e.entry;
-    ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(f => {
+    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(f => {
       const n = evalExpr(r[f]);
       if (n !== null) stats.totalSpend += n;
     });
@@ -14661,11 +14661,11 @@ function computePdfYearSummary(yearStr, byMonth) {
     if (tu !== null) totalInvest += tu;
     if (ird !== null) totalInvest -= ird;
     // Phase 11+: sum ALL 9 expense categories (previous version only summed
-    // food/dmart/uber/other — 5 categories missing, which caused the Year
+    // food/dmart/dailyTransport/other — 5 categories missing, which caused the Year
     // Summary totals to be silently lower than the in-app Month tab and the
     // new per-month Outflow Breakdown page). Single loop, single source of
     // truth, matches every other site in the codebase.
-    for (const k of ['food','dmart','uber','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']) {
+    for (const k of ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other']) {
       const n = evalExpr(e[k]);
       if (n !== null) { totalSpendDaily += n; monthlySpend[m].daily += n; }
     }
@@ -15095,7 +15095,7 @@ function pdfTruncate(doc, text, maxMm) {
 // where cats is sorted descending by val and zero-value rows are filtered out.
 function pdfComputeOutflow(entries) {
   const totals = {
-    food: 0, dmart: 0, uber: 0, shopping: 0,
+    food: 0, dmart: 0, dailyTransport: 0, shopping: 0,
     hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0,
     aiUsage: 0, // tracked separately, folded into 'other' for display (matches app)
   };
@@ -15108,7 +15108,7 @@ function pdfComputeOutflow(entries) {
     // The app's renderOutflowBreakdown folds aiUsage into Other (line 10625:
     // otherTotalIncludingAi = totals.other + totals.aiUsage); the PDF mirrors
     // that here so the totals match between app and PDF.
-    for (const k of ['food','dmart','uber','shopping','hotelStay','travel','entertainment','taxes','other','aiUsage']) {
+    for (const k of ['food','dmart','dailyTransport','shopping','hotelStay','travel','entertainment','taxes','other','aiUsage']) {
       const n = evalExpr(e[k]);
       if (n !== null) totals[k] += n;
     }
@@ -15127,7 +15127,7 @@ function pdfComputeOutflow(entries) {
   const cats = [
     { key: 'food',           label: 'Food',                  val: totals.food },
     { key: 'dmart',          label: 'Groceries',             val: totals.dmart },
-    { key: 'uber',           label: 'Transport',             val: totals.uber },
+    { key: 'dailyTransport',           label: 'Transport',             val: totals.dailyTransport },
     { key: 'shopping',       label: 'Shopping',              val: totals.shopping },
     { key: 'hotelStay',      label: 'Hotel stay',            val: totals.hotelStay },
     { key: 'travel',         label: 'Travel booking',        val: totals.travel },
@@ -15147,7 +15147,7 @@ function pdfComputeOutflow(entries) {
 const PDF_OUTFLOW_COLORS = {
   food:          [187, 110, 100],
   dmart:         [201, 138, 130],
-  uber:          [217, 160, 155],
+  dailyTransport:          [217, 160, 155],
   aiUsage:       [233, 184, 178],
   shopping:      [194, 121, 110],
   hotelStay:     [180, 100,  90],
@@ -15666,7 +15666,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     const redeem = evx('investmentRedemption');
 
     const spRows = [];
-    [['food','Food'],['dmart','Groceries'],['uber','Transport'],['shopping','Shopping'],
+    [['food','Food'],['dmart','Groceries'],['dailyTransport','Transport'],['shopping','Shopping'],
      ['entertainment','Entertainment'],['hotelStay','Hotel Stay'],['travel','Travel Booking'],
      ['taxes','Taxes']].forEach(([k,l]) => { const v = evx(k); if (v > 0) spRows.push({ label:l, amt:v }); });
     ((typeof parseOtherItems === 'function') ? parseOtherItems(entry) : []).forEach(it => {

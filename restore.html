@@ -201,7 +201,14 @@ el('restoreBtn').addEventListener('click', async () => {
     const rows = pack.tables[t.name] || [];
     if (!rows.length) { log(t.label + ': nothing to restore'); continue; }
     // Every row becomes YOURS: the backup may carry an old account's id.
-    const mine = rows.map(r => Object.assign({}, r, { user_id: userId }));
+    let mine = rows.map(r => Object.assign({}, r, { user_id: userId }));
+    // OPT-2 alias (Aug 2026): older backup ZIPs carry the entries column under
+    // its pre-rename name 'uber'; the live column is daily_transport. This one
+    // translation line keeps every backup ever downloaded restorable, forever.
+    if (t.name === 'entries') mine = mine.map(r => {
+      if ('uber' in r) { r = Object.assign({}, r); r.daily_transport = r.daily_transport != null ? r.daily_transport : r.uber; delete r.uber; }
+      return r;
+    });
     let ok = 0, bad = 0;
     for (let i = 0; i < mine.length; i += 100) {
       const chunk = mine.slice(i, i + 100);

@@ -64,6 +64,26 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**OPT-2 - the last brand leaves storage** (Aug 2026): Rahul asked to
+rename Uber to Daily Transport; the check-first pass found the name at
+three depths - screen (form label 'Uber / Petrol / Metro / Parking'),
+code (62 lowercase sites incl 7 note-fields, plus 5 capital-label
+sites), and the entries table's own column 'uber' (whose note column
+was already transport_note - the amount column was the last brand in
+the database). OPT-2 chosen over label-only OPT-1 by Rahul's 2050 test,
+and rightly: by S1's own law inside names must name contents, and
+'uber' names a vendor. Shipped as one commit: guarded migration
+(migrate_daily_transport.sql renames the column, idempotent, with
+before/after counts), full code sweep to dailyTransport (FIELD_TO_COL
+value hand-set to snake_case daily_transport - the sweep would have
+camelCased a DATABASE name; mapping values are column names, not JS
+fields), labels to 'Daily Transport (Cab / Petrol / Metro / Parking)'
+incl the CSV/PDF export header, and the forever-alias in restore.html:
+entries rows arriving with an 'uber' key file into daily_transport, so
+every backup ZIP ever downloaded stays restorable. audit and
+note-editor confirmed column-generic (select *), untouched. Sequence:
+SQL first, then upload daily.html + restore.html together.
+
 **O1 + Taxes + the travel remap** (Aug 2026): the verdict pair became
 one railed line under the filled accounts row - 'Left to spend X / Y
 per day - N to go', moss rail, green and deep-amber numerals, reading
