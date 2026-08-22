@@ -64,6 +64,31 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**BIS-X - Before I Spend comes home** (Aug 2026): the purchase-decision
+organ moved from My Wealth to the Budget room, below the Month Budget
+card - the envelopes say what remains, this card asks should it leave.
+Wording BIS-X won by Rahul's phrase 'the deciding argument is your own
+data': every money_decisions row speaks the category language (Need /
+Comfort / Meaningful / Desire with their four written verdicts,
+verbatim), so history stayed readable on day one; the new-checklist
+variant would have orphaned it. New power: the verdict gains the
+envelope's side - a second line reading the month's left-to-spend from
+the budget card (mbLast). DEVIATION FROM MOCK, flagged: the mock showed
+per-envelope maths (P4 has X left); shipped is month-total left,
+because the app cannot know which envelope a purchase would hit without
+asking - a per-envelope selector is a possible follow-up. Month
+behaviour per the three-cursor mock: Parked and Planned pinned every
+month; Let go and Bought ride decided_on with a 'Resisted this month'
+moss line. Build pattern: skeleton built once (dataset.built) so typed
+inputs survive renderMonth's frequent re-renders, lists re-render into
+their own host, all wiring delegated on the wrap (the trapped-modal
+era's lesson applied in advance). Wealth excision: markup, edit modal,
+CSS, 14k-char JS block, print/export call sites, and the fetch - the
+export object's closing brace was swallowed by the cut and repaired
+(excisions that cross an object literal must re-close it). One organ,
+one home; money_decisions itself unchanged and already in
+backup/audit/restore.
+
 **The trapped modal** (Aug 2026): Set budgets seemed to need many
 clicks and 'opened very late' - the diagnosis was geometry, not timing.
 The N1 DOOR build wrapped the summary organs into #monthRoomSummary,

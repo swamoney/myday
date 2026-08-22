@@ -5637,6 +5637,52 @@
                     border-radius:0 9px 9px 0; padding:8px 10px 9px; }
   .mbt-tile.fills { background:var(--ember-soft); border-radius:0 9px 9px 0; padding:8px 10px 9px; }
   .mbt-rule { border-top:1px dashed var(--rule); margin:14px 0 4px; }
+  /* Before I Spend (BIS-X) - native card below Month Budget */
+  .bis-card { margin-top:12px; }
+  .bis-fld { margin-bottom:10px; }
+  .bis-fld label { display:block; font-family:var(--sans); font-size:0.6563rem; font-weight:600;
+                   color:var(--muted); margin-bottom:4px; }
+  .bis-fld input { width:100%; font-family:var(--sans); font-size:0.875rem; padding:9px 11px;
+                   border:1px solid var(--rule); border-radius:9px; background:#fff; color:var(--ink); }
+  .bis-ql { font-family:var(--sans); font-size:0.6563rem; font-weight:600; color:var(--muted);
+            margin-bottom:5px; }
+  .bis-qs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .bis-q { font-family:var(--sans); font-size:0.6875rem; font-weight:600; border-radius:999px;
+           padding:6px 12px; border:1.5px solid var(--rule); background:#fff; cursor:pointer;
+           color:var(--ink); text-align:left; }
+  .bis-q small { display:block; font-size:0.5625rem; font-weight:500; opacity:0.8; }
+  .bis-verdict { border-left:2px solid var(--moss); padding:2px 0 2px 10px; margin-bottom:11px;
+                 font-family:var(--sans); font-size:0.75rem; line-height:1.5; color:var(--ink); }
+  .bis-verdict.hidden { display:none; }
+  .bis-env { color:var(--muted); }
+  .bis-env b { color:var(--ember); font-variant-numeric:tabular-nums; }
+  .bis-env b.ok { color:var(--green-ink); }
+  .bis-outs { display:flex; gap:8px; flex-wrap:wrap; }
+  .bis-outs button { font-family:inherit; font-size:0.75rem; font-weight:600; border-radius:9px;
+                     padding:8px 13px; cursor:pointer; border:1px solid var(--rule); background:#fff;
+                     color:var(--ink); }
+  .bis-outs .plan { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .bis-outs .park { color:#8A5711; border-color:#d9bd8e; }
+  .bis-outs .letgo { color:var(--muted); }
+  .bis-lists { margin-top:12px; border-top:1px dashed var(--rule); padding-top:2px; }
+  .bis-lh { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.14em;
+            text-transform:uppercase; color:#68789a; margin:9px 0 2px; display:flex; gap:7px;
+            align-items:baseline; }
+  .bis-pin { font-family:var(--sans); font-size:0.5rem; font-weight:700; letter-spacing:0.08em;
+             color:#8a97b3; text-transform:uppercase; }
+  .bis-li { display:flex; align-items:center; gap:8px; padding:7px 0;
+            border-bottom:1px dashed var(--rule); font-family:var(--sans); font-size:0.8125rem; }
+  .bis-li:last-child { border-bottom:none; }
+  .bis-n { font-weight:600; flex:1; color:var(--ink); }
+  .bis-cat { font-size:0.5938rem; font-weight:700; border-radius:6px; padding:2px 7px; }
+  .bis-c { font-size:0.6875rem; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .bis-act { font-family:inherit; font-size:0.625rem; font-weight:600; border:1px solid var(--rule);
+             background:#fff; border-radius:7px; padding:3px 8px; cursor:pointer; color:var(--accent); }
+  .bis-act.letgo { color:var(--muted); }
+  .bis-empty { font-size:0.6875rem; color:#8a97b3; font-style:italic; padding:5px 0; }
+  .bis-saved { border-left:2px solid var(--moss); padding-left:9px; font-size:0.6875rem;
+               color:var(--muted); margin-top:8px; }
+  .bis-saved b { color:var(--green-ink); font-variant-numeric:tabular-nums; }
   .mb-row { padding:10px 0 12px; border-bottom:1px dashed var(--rule); cursor:pointer; }
   .mb-row:last-of-type { border-bottom:none; }
   .mb-h { display:flex; align-items:baseline; gap:8px; }
@@ -6821,6 +6867,7 @@
       <div id="dayListWrap"></div>
       </div>
       <div id="monthBudgetWrap" class="hidden"></div>
+<div id="bisWrap" class="hidden"></div>
 <div id="mbModal" class="mb-overlay hidden">
   <div class="mb-modal">
     <div class="mb-mt">Budgets for <span id="mbmYm"></span></div>
@@ -13184,6 +13231,8 @@ function paintMonthRoom_() {
   door.classList.toggle('to-summary', inBudget);
   sum.classList.toggle('hidden', inBudget);
   bud.classList.toggle('hidden', !inBudget);
+  const bis = document.getElementById('bisWrap');
+  if (bis) bis.classList.toggle('hidden', !inBudget);
 }
 
 function budgetsForYm_(ym) {
@@ -13257,6 +13306,7 @@ function renderMonthBudget(monthYM, entries) {
   const hasBudget = Object.keys(bud).length > 0;
   let tb = 0, ts = 0;
   BUDGET_SECTIONS.forEach(s => { tb += bud[s.key] || 0; ts += env.spent[s.key] || 0; });
+  mbLast = { tb, ts, left: tb - ts, hasBudget };
   // S-A (Aug 2026): the room speaks My Day's native language - the Month
   // Summary's own card and stat-tile anatomy (paper, dashed rules, 2px rails,
   // sans tabular numerals), colour only where My Day already uses it.
@@ -13356,6 +13406,155 @@ async function saveBudgets_() {
   renderMonth();
 }
 
+
+// =========== BEFORE I SPEND (BIS-X, rehomed from My Wealth, Aug 2026) ===========
+// Wealth's exact category matrix, verbatim - every saved money_decisions row
+// speaks this language, so history stays readable. New under the verdict:
+// the envelope's side of the story (month-level left, from the budget card).
+const DC_CATS = {
+  need:       { lbl:'Need',       q:'Must I?',        fill:'#E6F1FB', ink:'#0C447C', bd:'#378ADD',
+                verdict:'A need \u2014 plan it rather than postpone it.' },
+  lifestyle:  { lbl:'Comfort',    q:'Eases my days?', fill:'#E1F5EE', ink:'#04342C', bd:'#1D9E75',
+                verdict:'Comfort. Worth it only if it survives a wait \u2014 park it?' },
+  meaningful: { lbl:'Meaningful', q:'Feeds my Why?',  fill:'#EEEDFE', ink:'#26215C', bd:'#7F77DD',
+                verdict:'Feeds your Why \u2014 plan it with a date to look forward to.' },
+  want:       { lbl:'Desire',     q:'Just want it',   fill:'#FAEEDA', ink:'#412402', bd:'#BA7517',
+                verdict:'A desire. It earns 30 days \u2014 park it and see if it still calls.' }
+};
+let bisRows = [], bisSel = null, mbLast = null;
+async function loadDecisions() {
+  if (!supa) return;
+  const { data, error } = await supa.from('money_decisions').select('*')
+    .order('created_at', { ascending: true }).limit(5000);
+  if (error) { console.error('decisions load', error); return; }
+  bisRows = data || [];
+}
+function bisPlus30_() { const d2 = new Date(); d2.setDate(d2.getDate() + 30); return d2.toISOString().slice(0, 10); }
+function bisVerdict_() {
+  const box = document.getElementById('bisVerdict');
+  if (!box) return;
+  if (!bisSel) { box.innerHTML = ''; box.classList.add('hidden'); return; }
+  const c = DC_CATS[bisSel];
+  const cost = evalExpr(document.getElementById('bisCost').value) || 0;
+  let env = '';
+  if (mbLast && mbLast.hasBudget && cost > 0) {
+    const left = mbLast.left;
+    env = left >= cost
+      ? '<span class="bis-env">The envelope\u2019s side: the month has <b class="ok">' + _inr(left)
+        + ' left</b> \u2014 this fits.</span>'
+      : '<span class="bis-env">The envelope\u2019s side: the month has ' + _inr(Math.max(0, left))
+        + ' left \u2014 this would go <b>' + _inr(cost - Math.max(0, left)) + ' over</b>; a planned date next month keeps both truths.</span>';
+  }
+  box.innerHTML = c.verdict + (env ? '<br>' + env : '');
+  box.classList.remove('hidden');
+}
+async function bisSave_(status) {
+  const name = document.getElementById('bisName').value.trim();
+  if (!name) { toast('Give it a name'); return; }
+  if (!bisSel) { toast('Pick the question that is true'); return; }
+  const rec = {
+    user_id: userId, name,
+    cost: evalExpr(document.getElementById('bisCost').value) || 0,
+    category: bisSel, status,
+    review_on: status === 'reviewing' ? bisPlus30_() : null,
+    decided_on: (status === 'letgo' || status === 'bought') ? isoToday() : null
+  };
+  const { error } = await supa.from('money_decisions').insert(rec);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  document.getElementById('bisName').value = ''; document.getElementById('bisCost').value = '';
+  bisSel = null; bisPaintQs_(); bisVerdict_();
+  await loadDecisions(); bisRenderLists_(monthCursor);
+  toast(status === 'reviewing' ? 'Parked \u2014 review in 30 days' : status === 'planned' ? 'Planned' : 'Let go \u2014 well resisted');
+}
+async function bisMove_(id, status) {
+  const patch = { status };
+  if (status === 'letgo' || status === 'bought') patch.decided_on = isoToday();
+  const { error } = await supa.from('money_decisions').update(patch).eq('id', id);
+  if (error) { console.error(error); toast('Could not update'); return; }
+  await loadDecisions(); bisRenderLists_(monthCursor);
+}
+function bisPaintQs_() {
+  const qs = document.getElementById('bisQs');
+  if (!qs) return;
+  qs.innerHTML = Object.keys(DC_CATS).map(k => {
+    const c = DC_CATS[k];
+    const on = bisSel === k;
+    return '<button type="button" class="bis-q" data-bisq="' + k + '" style="'
+      + (on ? 'background:' + c.fill + ';color:' + c.ink + ';border-color:' + c.bd + ';font-weight:600;' : '')
+      + '">' + c.lbl + '<small>' + c.q + '</small></button>';
+  }).join('');
+}
+function bisRow_(x, acts) {
+  const c = DC_CATS[x.category];
+  return '<div class="bis-li"><span class="bis-n">' + escHtml(x.name) + '</span>'
+    + (c ? '<span class="bis-cat" style="background:' + c.fill + ';color:' + c.ink + '">' + c.lbl + '</span>' : '')
+    + '<span class="bis-c">' + _inr(Number(x.cost) || 0) + '</span>'
+    + acts.map(a => '<button type="button" class="bis-act' + (a[1] === 'letgo' ? ' letgo' : '') + '" data-bisact="'
+        + a[1] + '" data-bisid="' + x.id + '">' + a[0] + '</button>').join('')
+    + '</div>';
+}
+function bisRenderLists_(monthYM) {
+  const host = document.getElementById('bisLists');
+  if (!host) return;
+  const parked = bisRows.filter(x => x.status === 'reviewing')
+    .sort((a, b) => String(a.review_on || '9999').localeCompare(String(b.review_on || '9999')));
+  const planned = bisRows.filter(x => x.status === 'planned');
+  const inMonth = x => String(x.decided_on || '').slice(0, 7) === monthYM;
+  const letgo = bisRows.filter(x => x.status === 'letgo' && inMonth(x));
+  const bought = bisRows.filter(x => x.status === 'bought' && inMonth(x));
+  const resisted = letgo.reduce((s, x) => s + (Number(x.cost) || 0), 0);
+  let h = '';
+  h += '<div class="bis-lh">Parked <span class="bis-pin">\u2605 every month</span></div>';
+  h += parked.length ? parked.map(x => bisRow_(x, [['Plan', 'planned'], ['Let go', 'letgo']])).join('')
+                     : '<div class="bis-empty">nothing waiting</div>';
+  h += '<div class="bis-lh">Planned <span class="bis-pin">\u2605 every month</span></div>';
+  h += planned.length ? planned.map(x => bisRow_(x, [['Bought', 'bought'], ['Let go', 'letgo']])).join('')
+                      : '<div class="bis-empty">nothing planned</div>';
+  h += '<div class="bis-lh">Let go <span class="bis-pin">this month</span></div>';
+  h += letgo.length ? letgo.map(x => bisRow_(x, [])).join('')
+                    : '<div class="bis-empty">nothing let go yet this month</div>';
+  if (resisted > 0) h += '<div class="bis-saved">Resisted this month: <b>' + _inr(resisted) + '</b> that never left.</div>';
+  if (bought.length) {
+    h += '<div class="bis-lh">Bought <span class="bis-pin">this month</span></div>';
+    h += bought.map(x => bisRow_(x, [])).join('');
+  }
+  host.innerHTML = h;
+}
+function renderBis(monthYM) {
+  const wrap = document.getElementById('bisWrap');
+  if (!wrap) return;
+  if (mbRoom !== 'budget') return;   // room hidden; inputs preserved, nothing to do
+  if (!wrap.dataset.built) {
+    wrap.dataset.built = '1';
+    wrap.innerHTML = '<div class="mb-card sa bis-card">'
+      + '<div class="mbt-head"><span class="mbt-title">Before I Spend</span>'
+      + '<span class="mbt-meta">review \u00B7 decide \u00B7 plan</span></div>'
+      + '<div class="bis-fld"><label>What is it?</label><input id="bisName" placeholder="e.g. New laptop"></div>'
+      + '<div class="bis-fld"><label>Approx cost (\u20B9)</label><input id="bisCost" type="text" inputmode="decimal" placeholder="0"></div>'
+      + '<div class="bis-ql">Which is true?</div><div class="bis-qs" id="bisQs"></div>'
+      + '<div class="bis-verdict hidden" id="bisVerdict"></div>'
+      + '<div class="bis-outs">'
+      + '<button type="button" class="plan" id="bisPlan">Plan it</button>'
+      + '<button type="button" class="park" id="bisPark">Park for review</button>'
+      + '<button type="button" class="letgo" id="bisLetgo">Let it go</button></div>'
+      + '<div class="bis-lists" id="bisLists"></div></div>';
+    bisPaintQs_();
+    // delegated wiring survives list re-renders (the trapped-modal era taught us)
+    wrap.addEventListener('click', e => {
+      const q = e.target.closest('[data-bisq]');
+      if (q) { bisSel = bisSel === q.dataset.bisq ? null : q.dataset.bisq; bisPaintQs_(); bisVerdict_(); return; }
+      const a = e.target.closest('[data-bisact]');
+      if (a) { bisMove_(a.dataset.bisid, a.dataset.bisact); return; }
+      if (e.target.id === 'bisPlan') bisSave_('planned');
+      if (e.target.id === 'bisPark') bisSave_('reviewing');
+      if (e.target.id === 'bisLetgo') bisSave_('letgo');
+    });
+    wrap.addEventListener('input', e => { if (e.target.id === 'bisCost') bisVerdict_(); });
+  }
+  bisRenderLists_(monthYM);
+  bisVerdict_();
+}
+
 function renderMonth() {
   if (!monthCursor) monthCursor = ymOfIso(currentDate);
   document.getElementById('monthTitle').textContent = ymTitle(monthCursor);
@@ -13407,6 +13606,7 @@ function renderMonth() {
   // uses only entry-level data so no recurring fetch needed.
   renderMonthStats(monthCursor, entries, entries.length);
   renderMonthBudget(monthCursor, entries);
+  renderBis(monthCursor);
   // [I] Render heatmap if enabled
   renderHeatmap();
   // Phase 9: render cash-flow snapshot. Pulls recurring totals from cache;
@@ -16188,6 +16388,7 @@ async function loadAndStart() {
   // are swallowed inside loadUserPrefs and fall back to localStorage mirror.
   await loadUserPrefs();
   await loadBudgets();   // envelopes: budgets in memory before any Month render
+  await loadDecisions(); // Before I Spend: the parked, the planned, the resisted
   // Home addresses one-time seed: if registry is empty and the user has
   // historical Ganga Legend entries, seed those variants as home addresses.
   // No-op on subsequent loads (gangaLegendSeeded flag stored inside prefs).
