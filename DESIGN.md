@@ -64,6 +64,20 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**Envelopes rev 3** (Aug 2026): the two toggles joined one row -
+envelopes first, heatmap second - inside the heatmap's own controls
+block (.mtoggle-row flex line; the metric row keeps its own line below),
+with the card rendering under the buttons. Re-dealing: Ironing moved
+from P4 to P2; the P5 Shopping envelope was cancelled and the shopping
+field now deals into P4, whose label became Rahul's own words 'P4 -
+Books, Entertainment, Shopping, etc.'; Hotel Stay inherited the P5 name.
+Storage note recorded deliberately: the hotel envelope KEEPS its stored
+key 'p6' while wearing the 'P5' label - the key is storage, the label is
+presentation, and re-keying would have orphaned any saved p6 budget row.
+Old p5 (shopping) budget rows simply stop rendering; harmless. A future
+section shuffle must follow the same rule: labels move freely, keys
+never move once budgets exist under them.
+
 **Envelopes rev 2** (Aug 2026): four changes on Rahul's first live use.
 (1) BUG: recurring rupees scored zero everywhere - the engine read
 r.amount but recurring items are {name, amt}; daily.html even owns a
