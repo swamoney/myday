@@ -5680,6 +5680,17 @@
              background:#fff; border-radius:7px; padding:3px 8px; cursor:pointer; color:var(--accent); }
   .bis-act.letgo { color:var(--muted); }
   .bis-empty { font-size:0.6875rem; color:#8a97b3; font-style:italic; padding:5px 0; }
+  .bis-n { cursor:pointer; text-decoration:underline dotted #8a97b3; text-underline-offset:3px; }
+  .bis-due { font-family:var(--sans); font-size:0.5625rem; font-weight:700; color:#8A5711;
+             background:#F6EBD8; border-radius:6px; padding:2px 7px; letter-spacing:0.04em; }
+  .bis-delta { font-family:var(--sans); font-size:0.625rem; font-weight:600; }
+  .bis-delta.under { color:var(--green-ink); }
+  .bis-delta.over { color:var(--ember); }
+  .bis-del { font-family:inherit; font-size:0.75rem; font-weight:600; border-radius:9px;
+             padding:8px 13px; cursor:pointer; border:1px solid #e4c3c0; background:#fff;
+             color:var(--ember); margin-right:auto; }
+  #bisEditModal select { width:100%; font-family:var(--sans); font-size:0.875rem; padding:8px 11px;
+             border:1px solid var(--rule); border-radius:9px; background:#fff; color:var(--ink); }
   .bis-saved { border-left:2px solid var(--moss); padding-left:9px; font-size:0.6875rem;
                color:var(--muted); margin-top:8px; }
   .bis-saved b { color:var(--green-ink); font-variant-numeric:tabular-nums; }
@@ -6868,6 +6879,28 @@
       </div>
       <div id="monthBudgetWrap" class="hidden"></div>
 <div id="bisWrap" class="hidden"></div>
+<div id="bisEditModal" class="mb-overlay hidden">
+  <div class="mb-modal">
+    <div class="mb-mt" id="beTitle">Edit</div>
+    <div class="mb-ms">change anything — even the answer you gave</div>
+    <div class="mb-fld"><label>What is it?</label><input type="text" id="beName"></div>
+    <div class="mb-fld"><label>Approx cost (₹)</label><input type="text" inputmode="decimal" id="beCost"></div>
+    <div class="mb-fld"><label>Which is true?</label><select id="beCat">
+      <option value="need">Need · Must I?</option>
+      <option value="lifestyle">Comfort · Eases my days?</option>
+      <option value="meaningful">Meaningful · Feeds my Why?</option>
+      <option value="want">Desire · Just want it</option></select></div>
+    <div class="mb-fld"><label>Status</label><select id="beStatus">
+      <option value="reviewing">Parked</option>
+      <option value="planned">Planned</option>
+      <option value="letgo">Let go</option>
+      <option value="bought">Bought</option></select></div>
+    <div class="mb-fld hidden" id="bePaidFld"><label>Paid (₹)</label><input type="text" inputmode="decimal" id="bePaid"></div>
+    <div class="mb-btns"><button type="button" class="bis-del" id="beDelete">Delete</button>
+      <button type="button" class="mb-cancel" id="beCancel">Cancel</button>
+      <button type="button" class="mb-save" id="beSave">Save</button></div>
+  </div>
+</div>
 <div id="mbModal" class="mb-overlay hidden">
   <div class="mb-modal">
     <div class="mb-mt">Budgets for <span id="mbmYm"></span></div>
@@ -13429,6 +13462,12 @@ async function loadDecisions() {
   if (error) { console.error('decisions load', error); return; }
   bisRows = data || [];
 }
+function fmtShortDate(iso) {
+  const p = String(iso || '').split('-');
+  if (p.length !== 3) return iso || '';
+  const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return Number(p[2]) + ' ' + (M[Number(p[1]) - 1] || '');
+}
 function bisPlus30_() { const d2 = new Date(); d2.setDate(d2.getDate() + 30); return d2.toISOString().slice(0, 10); }
 function bisVerdict_() {
   const box = document.getElementById('bisVerdict');
@@ -13469,9 +13508,62 @@ async function bisSave_(status) {
 async function bisMove_(id, status) {
   const patch = { status };
   if (status === 'letgo' || status === 'bought') patch.decided_on = isoToday();
+  if (status === 'bought') {
+    // E-B: the honest close - ask what it finally cost, prefilled with the plan
+    const row = bisRows.find(x => String(x.id) === String(id));
+    const planned = row ? (Number(row.cost) || 0) : 0;
+    const ans = prompt('What did it finally cost? (planned ' + _inr(planned) + ')', planned || '');
+    if (ans === null) return;   // cancelled - no move
+    const paid = evalExpr(ans);
+    patch.paid = paid === null ? planned : paid;
+  }
   const { error } = await supa.from('money_decisions').update(patch).eq('id', id);
   if (error) { console.error(error); toast('Could not update'); return; }
   await loadDecisions(); bisRenderLists_(monthCursor);
+}
+// ---- E-A: the edit door - everything about an item can change ----
+let bisEditId = null;
+function bisOpenEdit_(id) {
+  const x = bisRows.find(r => String(r.id) === String(id));
+  if (!x) return;
+  bisEditId = x.id;
+  document.getElementById('beTitle').textContent = 'Edit \u00B7 ' + x.name;
+  document.getElementById('beName').value = x.name || '';
+  document.getElementById('beCost').value = x.cost != null ? x.cost : '';
+  document.getElementById('beCat').value = x.category || 'need';
+  document.getElementById('beStatus').value = x.status || 'reviewing';
+  document.getElementById('bePaid').value = x.paid != null ? x.paid : '';
+  document.getElementById('bePaidFld').classList.toggle('hidden', x.status !== 'bought');
+  document.getElementById('bisEditModal').classList.remove('hidden');
+}
+async function bisEditSave_() {
+  const name = document.getElementById('beName').value.trim();
+  if (!name) { toast('Give it a name'); return; }
+  const status = document.getElementById('beStatus').value;
+  const prev = bisRows.find(r => String(r.id) === String(bisEditId)) || {};
+  const patch = {
+    name,
+    cost: evalExpr(document.getElementById('beCost').value) || 0,
+    category: document.getElementById('beCat').value,
+    status,
+    review_on: status === 'reviewing' ? (prev.review_on || bisPlus30_()) : prev.review_on,
+    decided_on: (status === 'letgo' || status === 'bought')
+      ? (prev.decided_on || isoToday()) : null,
+    paid: status === 'bought' ? (evalExpr(document.getElementById('bePaid').value)) : null
+  };
+  const { error } = await supa.from('money_decisions').update(patch).eq('id', bisEditId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  document.getElementById('bisEditModal').classList.add('hidden'); bisEditId = null;
+  await loadDecisions(); bisRenderLists_(monthCursor);
+  toast('Saved');
+}
+async function bisEditDelete_() {
+  if (!confirm('Delete this item for good?')) return;
+  const { error } = await supa.from('money_decisions').delete().eq('id', bisEditId);
+  if (error) { console.error(error); toast('Could not delete'); return; }
+  document.getElementById('bisEditModal').classList.add('hidden'); bisEditId = null;
+  await loadDecisions(); bisRenderLists_(monthCursor);
+  toast('Deleted');
 }
 function bisPaintQs_() {
   const qs = document.getElementById('bisQs');
@@ -13486,9 +13578,24 @@ function bisPaintQs_() {
 }
 function bisRow_(x, acts) {
   const c = DC_CATS[x.category];
-  return '<div class="bis-li"><span class="bis-n">' + escHtml(x.name) + '</span>'
+  let mid = '';
+  if (x.status === 'reviewing') {
+    // E-C: the 30-day promise surfaces - past-due wears the badge, else the quiet date
+    const due = x.review_on && x.review_on <= isoToday();
+    mid = due ? '<span class="bis-due">REVIEW DUE</span>'
+        : (x.review_on ? '<span class="bis-c">review ' + fmtShortDate(x.review_on) + '</span>' : '');
+  }
+  let costHtml = '<span class="bis-c">' + _inr(Number(x.cost) || 0) + '</span>';
+  if (x.status === 'bought' && x.paid != null) {
+    // E-B: the row keeps both truths - paid, and the delta vs plan
+    const paid = Number(x.paid) || 0, plan = Number(x.cost) || 0, dv = plan - paid;
+    costHtml = '<span class="bis-c">paid ' + _inr(paid) + '</span>'
+      + (dv !== 0 ? '<span class="bis-delta ' + (dv > 0 ? 'under' : 'over') + '">'
+          + _inr(Math.abs(dv)) + (dv > 0 ? ' under plan' : ' over plan') + '</span>' : '');
+  }
+  return '<div class="bis-li"><span class="bis-n" data-bisedit="' + x.id + '">' + escHtml(x.name) + '</span>'
     + (c ? '<span class="bis-cat" style="background:' + c.fill + ';color:' + c.ink + '">' + c.lbl + '</span>' : '')
-    + '<span class="bis-c">' + _inr(Number(x.cost) || 0) + '</span>'
+    + mid + costHtml
     + acts.map(a => '<button type="button" class="bis-act' + (a[1] === 'letgo' ? ' letgo' : '') + '" data-bisact="'
         + a[1] + '" data-bisid="' + x.id + '">' + a[0] + '</button>').join('')
     + '</div>';
@@ -13496,8 +13603,13 @@ function bisRow_(x, acts) {
 function bisRenderLists_(monthYM) {
   const host = document.getElementById('bisLists');
   if (!host) return;
+  const today_ = isoToday();
   const parked = bisRows.filter(x => x.status === 'reviewing')
-    .sort((a, b) => String(a.review_on || '9999').localeCompare(String(b.review_on || '9999')));
+    .sort((a, b) => {
+      const ad = (a.review_on || '9999') <= today_ ? 0 : 1;   // due first
+      const bd = (b.review_on || '9999') <= today_ ? 0 : 1;
+      return ad - bd || String(a.review_on || '9999').localeCompare(String(b.review_on || '9999'));
+    });
   const planned = bisRows.filter(x => x.status === 'planned');
   const inMonth = x => String(x.decided_on || '').slice(0, 7) === monthYM;
   const letgo = bisRows.filter(x => x.status === 'letgo' && inMonth(x));
@@ -13545,6 +13657,8 @@ function renderBis(monthYM) {
       if (q) { bisSel = bisSel === q.dataset.bisq ? null : q.dataset.bisq; bisPaintQs_(); bisVerdict_(); return; }
       const a = e.target.closest('[data-bisact]');
       if (a) { bisMove_(a.dataset.bisid, a.dataset.bisact); return; }
+      const ed = e.target.closest('[data-bisedit]');
+      if (ed) { bisOpenEdit_(ed.dataset.bisedit); return; }
       if (e.target.id === 'bisPlan') bisSave_('planned');
       if (e.target.id === 'bisPark') bisSave_('reviewing');
       if (e.target.id === 'bisLetgo') bisSave_('letgo');
@@ -17613,6 +17727,12 @@ async function init() {
     if (mbRoom === 'budget') renderMonth();
   });
   // Envelopes: modal wiring + budget load (after supa session below)
+  document.getElementById('beCancel').addEventListener('click', () =>
+    { document.getElementById('bisEditModal').classList.add('hidden'); bisEditId = null; });
+  document.getElementById('beSave').addEventListener('click', bisEditSave_);
+  document.getElementById('beDelete').addEventListener('click', bisEditDelete_);
+  document.getElementById('beStatus').addEventListener('change', e =>
+    document.getElementById('bePaidFld').classList.toggle('hidden', e.target.value !== 'bought'));
   document.getElementById('mbCancel').addEventListener('click', () =>
     document.getElementById('mbModal').classList.add('hidden'));
   document.getElementById('mbSave').addEventListener('click', saveBudgets_);

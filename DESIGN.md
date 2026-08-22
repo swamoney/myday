@@ -64,6 +64,23 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**BIS-E - edit, the honest close, and the kept promise** (Aug 2026):
+three pieces. E-A: every row's name is a dotted-underline edit door
+opening a native modal (name, cost, category, status, delete) - even
+the answer you gave can change; status edits preserve existing dates
+(review_on survives, decided_on backfills only when absent). E-B: the
+Bought action asks 'what did it finally cost?' prefilled with the plan;
+paid lives in its own new column (migrate_bis_paid.sql, add column if
+not exists) while cost keeps the plan, so bought rows show 'paid X'
+plus an under/over-plan delta in green/ember forever; old bought rows
+without paid show cost, no delta, no breakage. E-C (Claude's piece):
+the 30-day promise surfaces - past-due parked items wear an amber
+REVIEW DUE badge and sort to the top (due-first, then by date, proven
+by simulation); not-yet-due show their quiet review date. Build note:
+a mid-script assertion death left three pieces unwritten while a later
+script landed wiring that referenced them - node --check cannot catch
+markup-less wiring; the id-existence check in the battery now does.
+
 **BIS-X - Before I Spend comes home** (Aug 2026): the purchase-decision
 organ moved from My Wealth to the Budget room, below the Month Budget
 card - the envelopes say what remains, this card asks should it leave.
