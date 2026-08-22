@@ -64,6 +64,19 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**F2 + L2 - voices and the reading order** (Aug 2026): the two account
+tiles gained fills in their own voices - Total budget on accent-soft
+(the plan, 14.6) with an accent rail, Total spent on ember-soft (the
+event, 6.84) - both from My Day's existing tokens; the verdict pair
+stays bare so the two kinds of fact read differently. The lineup became
+Rahul's reading order - Official, Home, Food, Transport, P4, Hotel,
+Misc - with stickers renumbered to match (L2 over L1: P-numbers read as
+positions in this app, and a P2 above a P1 would itch monthly). S1 paid
+its first dividend exactly as designed: the reorder + renumber touched
+only the labels array and modal markup - keys and saved budgets never
+moved, no migration. The modal reordered and relabelled in the same
+commit (labels move with their card, always).
+
 **S-A - the room comes home** (Aug 2026): Rahul rejected the built K5-R
 hero - 'odd compared to overall My Day, not in that theme, more crowded,
 more coloured' - and he was right about the root cause: the hero was

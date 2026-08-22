@@ -5629,6 +5629,11 @@
   .mbt-tile.day .mbt-v { color:#8A5711; }   /* rail keeps My Day's amber; text deepened to 5.81 */
   .mbt-tile.spent { border-left-color:var(--ember); }
   .mbt-tile.spent .mbt-v { color:var(--ember); }
+  /* F2: each account in its own voice - budget is the plan (accent),
+     spent is the event (ember); softs are My Day's own tokens. */
+  .mbt-tile.fillb { background:var(--accent-soft); border-left-color:var(--accent);
+                    border-radius:0 9px 9px 0; padding:8px 10px 9px; }
+  .mbt-tile.fills { background:var(--ember-soft); border-radius:0 9px 9px 0; padding:8px 10px 9px; }
   .mbt-rule { border-top:1px dashed var(--rule); margin:14px 0 4px; }
   .mb-row { padding:10px 0 12px; border-bottom:1px dashed var(--rule); cursor:pointer; }
   .mb-row:last-of-type { border-bottom:none; }
@@ -6784,12 +6789,12 @@
     <div class="mb-mt">Budgets for <span id="mbmYm"></span></div>
     <div class="mb-ms">set once; they carry into next month via the copy button until you change them</div>
     <button type="button" class="mb-copy" id="mbCopyPrev">Copy last month’s budgets →</button>
-    <div class="mb-fld"><label>P1 · Food + grocery</label><input type="number" id="mbm_food" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P2 · Home</label><input type="number" id="mbm_home" inputmode="decimal"></div>
+    <div class="mb-fld"><label>Official · Swamoney</label><input type="number" id="mbm_official" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P1 · Home</label><input type="number" id="mbm_home" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P2 · Food + grocery</label><input type="number" id="mbm_food" inputmode="decimal"></div>
     <div class="mb-fld"><label>P3 · Transport</label><input type="number" id="mbm_transport" inputmode="decimal"></div>
     <div class="mb-fld"><label>P4 · Books, Entertainment, Shopping, etc.</label><input type="number" id="mbm_lifestyle" inputmode="decimal"></div>
     <div class="mb-fld"><label>P5 · Hotel Stay</label><input type="number" id="mbm_hotel" inputmode="decimal"></div>
-    <div class="mb-fld"><label>Official · Swamoney</label><input type="number" id="mbm_official" inputmode="decimal"></div>
     <div class="mb-fld"><label>Miscellaneous</label><input type="number" id="mbm_misc" inputmode="decimal"></div>
     <div class="mb-btns"><button type="button" class="mb-cancel" id="mbCancel">Cancel</button>
       <button type="button" class="mb-save" id="mbSave">Save budgets</button></div>
@@ -13144,13 +13149,16 @@ function renderHeatmap() {
 //   excluded entirely: gstPayment, creditCardBill, all investment fields.
 // S1 (Aug 2026): keys name CONTENTS, never positions - the sticker on the
 // front (lbl) may change any day; the inside name (key) is true forever.
+// L2 (Aug 2026): Rahul's reading order - Official leads, then the personal
+// series renumbered to match. Keys never moved (S1's dividend: stickers are
+// free, storage is forever).
 const BUDGET_SECTIONS = [
-  { key:'food',      lbl:'P1 \u00B7 Food + grocery' },
-  { key:'home',      lbl:'P2 \u00B7 Home' },
+  { key:'official',  lbl:'Official \u00B7 Swamoney' },
+  { key:'home',      lbl:'P1 \u00B7 Home' },
+  { key:'food',      lbl:'P2 \u00B7 Food + grocery' },
   { key:'transport', lbl:'P3 \u00B7 Transport' },
   { key:'lifestyle', lbl:'P4 \u00B7 Books, Entertainment, Shopping, etc.' },
   { key:'hotel',     lbl:'P5 \u00B7 Hotel Stay' },
-  { key:'official',  lbl:'Official \u00B7 Swamoney' },
   { key:'misc',      lbl:'Miscellaneous' }
 ];
 const P4_OTHER = ['books & magazines', 'salon'];
@@ -13257,9 +13265,9 @@ function renderMonthBudget(monthYM, entries) {
       tiles += '<div class="mbt-tile day"><span class="mbt-l">Per day \u00B7 ' + daysToGo + ' to go</span><span class="mbt-v">'
         + _inr(perDay) + '</span></div>';
     }
-    tiles += '<div class="mbt-tile"><span class="mbt-l">Total budget</span><span class="mbt-v">' + _inr(tb) + '</span></div>';
+    tiles += '<div class="mbt-tile fillb"><span class="mbt-l">Total budget</span><span class="mbt-v">' + _inr(tb) + '</span></div>';
   }
-  tiles += '<div class="mbt-tile spent"><span class="mbt-l">Total spent</span><span class="mbt-v">' + _inr(ts) + '</span></div>';
+  tiles += '<div class="mbt-tile spent fills"><span class="mbt-l">Total spent</span><span class="mbt-v">' + _inr(ts) + '</span></div>';
   let html = '<div class="mb-card sa' + (left < 0 && hasBudget ? ' isover' : '') + '">'
     + '<div class="mbt-head"><span class="mbt-title">Month Budget</span>'
     + '<span class="mbt-meta">' + ymTitle(monthYM)
