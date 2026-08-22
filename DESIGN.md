@@ -64,6 +64,22 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**The hub subtitle's three bugs** (Aug 2026): the Today card under
+Investments & Expenses was sometimes wrong and sometimes said 'no
+entries yet' over a full day. computeHubPreview had three independent
+faults: (1) money fields hold typed expressions ('120+80') and the
+function read them with Number(), which NaNs an expression to zero - a
+day logged entirely in expressions summed to nothing and the preview
+hid itself; fixed with evalExpr, the app's one money reader. (2)
+recurring items were read as r.amount when the writer stores {name,
+amt} - the SAME writer-not-comments bug fixed in the envelope engine
+lives wherever recurringLog is read by hand; fixed with parseRecurring.
+(3) entertainment and taxes were missing from the spend list, so those
+rupees never reached the 'out' total. Six-figure simulation proves the
+repaired sum. Standing rule extended: entry money is read ONLY through
+evalExpr, recurringLog ONLY through parseRecurring - any hand-rolled
+reader of either is a bug waiting for its day.
+
 **Spa, the word-boundary guard, and P0** (Aug 2026): new Other
 Expenses chip Spa beside Salon, dealt to P4 by name. Adding a 3-letter
 name exposed a matcher flaw proven by simulation: plain includes()

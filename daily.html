@@ -9696,19 +9696,21 @@ function computeHubPreview(cls) {
     return String(v).trim().length > 0;
   };
   if (cls === 's-expenses') {
-    // Sum of daily spend fields + recurring log
-    const spendKeys = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','other'];
+    // Money fields may hold typed expressions ('120+80') - Number() would NaN
+    // them to zero and hide real entries. evalExpr is the app's one reader.
+    const money = v => { const n = evalExpr(v); return n === null ? 0 : n; };
+    // Sum of daily spend fields + recurring log (entertainment and taxes
+    // belong to the day's outflow too - they were missing from this list)
+    const spendKeys = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
     let total = 0;
-    spendKeys.forEach(k => { total += num(e[k]); });
-    // Recurring log: array of {name, amount}
+    spendKeys.forEach(k => { total += money(e[k]); });
+    // Recurring log: items are {name, amt} - parseRecurring is the canonical
+    // reader (same writer-not-comments lesson as the envelope engine)
     let recTotal = 0;
-    try {
-      const rec = JSON.parse(e.recurringLog || '[]');
-      if (Array.isArray(rec)) rec.forEach(r => { recTotal += num(r.amount); });
-    } catch { /* malformed — ignore */ }
+    parseRecurring(e).forEach(r => { recTotal += num(r.amt); });
     total += recTotal;
-    // Investments too
-    const invest = num(e.regularInvestment) + num(e.topUp);
+    // Investments too (expressions welcome here as well)
+    const invest = money(e.regularInvestment) + money(e.topUp);
     if (total === 0 && invest === 0) return '';
     if (invest > 0 && total > 0) return fmtINR(invest) + ' in · ' + fmtINR(total) + ' out';
     if (invest > 0) return fmtINR(invest) + ' invested';
