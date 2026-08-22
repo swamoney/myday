@@ -64,6 +64,16 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**The brand leaves the book** (Aug 2026): Swamoney removed from every
+file on Rahul's order - the envelope label became 'Official - Office'
+(card and modal), the engine's mapping comment followed, and the mocks
+were swept. Two sites keep the word deliberately, on
+Rahul's ruling: the backup-ZIP recovery README (note-editor.js) and this
+file's deployment line point at github.com/swamoney/myday because that
+IS the repo - the name there is infrastructure, not branding, and
+recovery instructions must state true addresses. Rule: user-facing
+labels carry no brand; addresses stay true.
+
 **F2 + L2 - voices and the reading order** (Aug 2026): the two account
 tiles gained fills in their own voices - Total budget on accent-soft
 (the plan, 14.6) with an accent rail, Total spent on ember-soft (the
@@ -1371,7 +1381,7 @@ copied into a query editor.
 **Files:** working copies in `/home/claude/myday/`, deliverables copied to
 `/mnt/user-data/outputs/` and presented.
 
-**Deployment:** push to `swamoney/myday`, bump `?v=` on changed assets. Without the
+**Deployment:** push to `swamoney/myday` (the GitHub repo; the name is infrastructure, not branding), bump `?v=` on changed assets. Without the
 bump the browser serves stale CSS and the change appears not to have happened.
 
 **A section in My Library is defined in four places** and they must agree: the
