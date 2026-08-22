@@ -46,6 +46,30 @@ outflow-bd-card is load-bearing). When a feature is retired, its functions,
 calls, markup, AND CSS leave the same day — half-removed features become
 zombies that every future audit must re-litigate.
 
+**The month's envelopes** (POS-2, Aug 2026): My Day's Month view gained
+a budget ledger seated between the stat tiles and the heatmap - POS-2
+after three mock rounds and a full-scroll rehearsal. Seven envelopes
+under one mapping contract, recorded verbatim in the engine's comment:
+p1 food+dmart; p2 recurring home+subscriptions; p3 uber+travel; p4
+entertainment + otherLog Books & Magazines/Salon/Ironing; p5 shopping;
+official = recurring office + recurring named 'chatgpt' (a name
+exception layered on top of recurringGroupForName, which stays untouched
+for every other organ) + otherLog AI Usage/Software/Printing &
+Stationery; misc = taxes + hotelStay + remaining otherLog. Excluded by
+contract: GST both directions, credit card (tracking-only), investments.
+Bars warn amber at 75 percent, red past the line; rows tap open to show
+every source with its origin tag - the trust mechanism. Budgets live in
+day_budgets (ym, section, amount, unique per user-month-section), set in
+a modal with copy-last-month; loaded at boot beside user prefs. The
+table joined backup, audit, and restore in the same commit; cache
+version bumped on the four pages that load note-editor.js.
+
+**Restore manifest lesson**: audit's table list is strings, restore's is
+objects - a blind phrase-rep on restore corrupted an object literal and
+node caught it. Rule: before repping a shared name across sister files,
+read each file's shape at the site; manifest entries are added in the
+file's own grammar, never by string adjacency.
+
 **The third verdict** (Aug 2026): Cancelled joined the seal - 'the
 question no longer needs an answer; walking away is also a decision'.
 Rewired at every site the W1 rule names: seal dialog (with the date

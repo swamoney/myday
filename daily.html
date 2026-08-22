@@ -5593,6 +5593,59 @@
     .totals-grid { grid-template-columns: 1fr; }
     .masthead h1 { font-size:1.5rem; }
   }
+
+  /* ===== The month's envelopes (POS-2, Aug 2026) ===== */
+  .mb-card { background:#fff; border:1px solid var(--line,#e2e8f2); border-radius:14px;
+             padding:13px; margin-bottom:14px; }
+  .mb-bt { font-family:var(--mono); font-size:0.5938rem; font-weight:600; letter-spacing:0.14em;
+           text-transform:uppercase; background:#22334f; color:#fff; display:inline-block;
+           border-radius:6px; padding:4px 10px; margin-bottom:4px; }
+  .mb-set { float:right; font-family:var(--mono); font-size:0.5313rem; font-weight:600;
+            letter-spacing:0.1em; text-transform:uppercase; border:1px dashed #b7c1d4;
+            background:none; border-radius:999px; padding:5px 11px; color:#3a4f6e; cursor:pointer; }
+  .mb-sum { font-family:var(--mono); font-size:0.5625rem; color:#5f6a80; margin:2px 0 10px; }
+  .mb-sum b { color:#232f45; }
+  .mb-nob { font-family:var(--mono); font-size:0.625rem; color:#a06a2c; background:#fdf8f0;
+            border:1px dashed #e2cfa8; border-radius:8px; padding:7px 10px; margin:4px 0 10px; }
+  .mb-row { padding:8px 0 10px; border-bottom:1px solid #eef1f6; cursor:pointer; }
+  .mb-row:last-of-type { border-bottom:none; }
+  .mb-h { display:flex; align-items:baseline; gap:8px; }
+  .mb-n { font-size:0.75rem; font-weight:600; color:#232f45; flex:1; }
+  .mb-s { font-family:var(--mono); font-size:0.5938rem; color:#5f6a80; }
+  .mb-l { font-family:var(--mono); font-size:0.5938rem; font-weight:700; color:#2E6640; }
+  .mb-l.over { color:#a8323f; }
+  .mb-bar { height:4px; border-radius:2px; background:#e8ecf3; margin-top:6px; overflow:hidden; }
+  .mb-bar i { display:block; height:100%; background:linear-gradient(90deg,#3d7a5c,#2E6640); }
+  .mb-bar i.warn { background:linear-gradient(90deg,#c99a2e,#a06a2c); }
+  .mb-bar i.over { background:linear-gradient(90deg,#c05560,#a8323f); }
+  .mb-det { display:none; margin-top:8px; padding:8px 10px; background:#fbfcfe;
+            border:1px solid #eef1f6; border-radius:8px; }
+  .mb-row.open .mb-det { display:block; }
+  .mb-dl { display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.5938rem;
+           color:#5f6a80; padding:2px 0; gap:10px; }
+  .mb-dl b { color:#232f45; }
+  .mb-src { font-size:0.5rem; letter-spacing:0.06em; text-transform:uppercase; color:#9aa4ba; }
+  .mb-x { font-size:0.6563rem; color:#8189a0; margin-top:9px; }
+  .mb-overlay { position:fixed; inset:0; background:rgba(20,28,45,0.45); z-index:600;
+                display:flex; align-items:center; justify-content:center; padding:16px; }
+  .mb-overlay.hidden { display:none; }
+  .mb-modal { background:#fff; border:1px solid #e2e8f2; border-radius:16px; padding:18px 16px;
+              max-width:420px; width:100%; box-shadow:0 8px 28px rgba(30,47,82,0.2);
+              max-height:90vh; overflow:auto; }
+  .mb-mt { font-family:var(--serif,Georgia); font-size:1.125rem; font-weight:600; margin-bottom:2px; }
+  .mb-ms { font-size:0.75rem; color:#5A6478; margin-bottom:12px; }
+  .mb-copy { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.1em;
+             text-transform:uppercase; border:1px dashed #b7c1d4; background:none; border-radius:999px;
+             padding:5px 11px; color:#3a4f6e; cursor:pointer; margin-bottom:10px; }
+  .mb-fld { display:flex; align-items:center; gap:9px; margin-bottom:8px; }
+  .mb-fld label { flex:1; font-size:0.75rem; font-weight:600; color:#232f45; }
+  .mb-fld input { font-family:var(--mono); font-size:0.8125rem; width:110px; text-align:right;
+                  border:1px solid #dfe5ee; border-radius:8px; padding:7px 10px; }
+  .mb-btns { display:flex; justify-content:flex-end; gap:8px; margin-top:12px; }
+  .mb-cancel { font-family:inherit; font-size:0.75rem; border:1px solid #dfe5ee; background:#fff;
+               border-radius:9px; padding:8px 14px; cursor:pointer; color:#3a4f6e; }
+  .mb-save { font-family:inherit; font-size:0.75rem; font-weight:600; border:none; background:#22334f;
+             color:#fff; border-radius:9px; padding:8px 14px; cursor:pointer; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -6692,6 +6745,9 @@
       <!-- Phase 9: Month stats card (Away / Long walks / No-sleep nights) — same
            layout/data/design as Year stats but scoped to the current month. -->
       <div id="monthStatsWrap"></div>
+      <!-- POS-2 (Aug 2026): the month's envelopes - budget headline right
+           after the stat tiles; everything below untouched. -->
+      <div id="monthBudgetWrap"></div>
       <!-- Day-wise spending calendar — the month's shape, one cell per day,
            amount printed in the cell so it reads without hover. Tapping a
            day opens that date's expenses. -->
@@ -13024,6 +13080,165 @@ function renderHeatmap() {
   });
 }
 
+
+// =========== THE MONTH'S ENVELOPES (POS-2, Aug 2026) ===========
+// Budgets live in day_budgets (ym, section, amount), one row per envelope.
+// The mapping contract (Rahul, Aug 2026):
+//   p1 Food+grocery <- food + dmart
+//   p2 Home <- recurring home + recurring subscriptions (ChatGPT excepted)
+//   p3 Transport <- uber + travel
+//   p4 Books/salon/movies/ironing <- entertainment + otherLog(Books & Magazines, Salon, Ironing)
+//   p5 Shopping <- shopping
+//   official Swamoney <- recurring office + recurring 'chatgpt' (name exception)
+//                        + otherLog(AI Usage, Software, Printing & Stationery)
+//   misc <- taxes + hotelStay + every remaining otherLog item
+//   excluded entirely: gstPayment, creditCardBill, all investment fields.
+const BUDGET_SECTIONS = [
+  { key:'p1',       lbl:'P1 \u00B7 Food + grocery' },
+  { key:'p2',       lbl:'P2 \u00B7 Home' },
+  { key:'p3',       lbl:'P3 \u00B7 Transport' },
+  { key:'p4',       lbl:'P4 \u00B7 Books, salon, movies, ironing' },
+  { key:'p5',       lbl:'P5 \u00B7 Shopping' },
+  { key:'official', lbl:'Official \u00B7 Swamoney' },
+  { key:'misc',     lbl:'Miscellaneous' }
+];
+const P4_OTHER = ['books & magazines', 'salon', 'ironing'];
+const OFFICIAL_OTHER = ['ai usage', 'software', 'printing & stationery'];
+let budgetRows = [];   // raw day_budgets rows for the signed-in user
+
+function budgetsForYm_(ym) {
+  const out = {};
+  budgetRows.forEach(r => { if (r.ym === ym) out[r.section] = Number(r.amount) || 0; });
+  return out;
+}
+async function loadBudgets() {
+  if (!supa) return;
+  const { data, error } = await supa.from('day_budgets').select('*');
+  if (error) { console.error('budgets load', error); return; }
+  budgetRows = data || [];
+}
+// Every rupee of a month's entries, dealt into the seven envelopes.
+// Returns { spent:{sec:n}, detail:{sec:[{n,amt,src}]} }
+function monthEnvelopes_(entries) {
+  const spent = {}; const detail = {};
+  BUDGET_SECTIONS.forEach(s => { spent[s.key] = 0; detail[s.key] = {}; });
+  const put = (sec, label, src, amt) => {
+    if (!amt) return;
+    spent[sec] += amt;
+    const k = label + '\u0001' + src;
+    detail[sec][k] = (detail[sec][k] || 0) + amt;
+  };
+  entries.forEach(({ entry: e }) => {
+    const n = f => evalExpr(e[f]) || 0;
+    put('p1', 'Food', 'day field', n('food'));
+    put('p1', 'Dmart', 'day field', n('dmart'));
+    put('p3', 'Uber', 'day field', n('uber'));
+    put('p3', 'Travel', 'day field', n('travel'));
+    put('p4', 'Entertainment', 'day field', n('entertainment'));
+    put('p5', 'Shopping', 'day field', n('shopping'));
+    put('misc', 'Taxes & Bills', 'day field', n('taxes'));
+    put('misc', 'Hotel Stay', 'day field', n('hotelStay'));
+    // gstPayment, creditCardBill, investments: excluded by contract.
+    // Other log: named items deal by name.
+    (parseOtherItems(e) || []).forEach(it => {
+      const amt = Number(it.amt) || 0; if (!amt) return;
+      const nm = String(it.name || '').trim(); const low = nm.toLowerCase();
+      if (OFFICIAL_OTHER.some(x => low === x || low.includes(x))) put('official', nm, 'other log', amt);
+      else if (P4_OTHER.some(x => low === x || low.includes(x))) put('p4', nm, 'other log', amt);
+      else put('misc', nm || 'Other', 'other log', amt);
+    });
+    // Recurring log: groups deal, with the ChatGPT name exception.
+    let rec = [];
+    try { rec = JSON.parse(e.recurringLog || '[]'); } catch { rec = []; }
+    (Array.isArray(rec) ? rec : []).forEach(r => {
+      const amt = Number(r.amount) || 0; if (!amt) return;
+      const nm = String(r.name || '').trim();
+      if (nm.toLowerCase().includes('chatgpt')) { put('official', 'Recurring \u00B7 ChatGPT', 'recurring', amt); return; }
+      const g = recurringGroupForName(nm);
+      if (g === 'office') put('official', 'Recurring \u00B7 office', 'recurring', amt);
+      else put('p2', 'Recurring \u00B7 ' + g, 'recurring', amt);
+    });
+  });
+  return { spent, detail };
+}
+function _inr(n) { return '\u20B9' + Math.round(n).toLocaleString('en-IN'); }
+function renderMonthBudget(monthYM, entries) {
+  const wrap = document.getElementById('monthBudgetWrap');
+  if (!wrap) return;
+  if (!entries.length) { wrap.innerHTML = ''; return; }
+  const env = monthEnvelopes_(entries);
+  const bud = budgetsForYm_(monthYM);
+  const hasBudget = Object.keys(bud).length > 0;
+  let tb = 0, ts = 0;
+  BUDGET_SECTIONS.forEach(s => { tb += bud[s.key] || 0; ts += env.spent[s.key] || 0; });
+  let html = '<div class="mb-card"><span class="mb-bt">The month\u2019s envelopes</span>'
+    + '<button type="button" class="mb-set" id="mbSetBtn">Set budgets</button>';
+  html += hasBudget
+    ? '<div class="mb-sum">BUDGET <b>' + _inr(tb) + '</b> \u00B7 SPENT <b>' + _inr(ts) + '</b> \u00B7 LEFT <b>' + _inr(tb - ts) + '</b></div>'
+    : '<div class="mb-nob">No budgets set for this month yet \u2014 spending is still tracked below; add amounts to see what remains.</div>';
+  BUDGET_SECTIONS.forEach(s => {
+    const sp = env.spent[s.key] || 0;
+    const b = bud[s.key] || 0;
+    const left = b - sp;
+    const pct = b ? Math.min(100, Math.round(sp / b * 100)) : 0;
+    const barCls = b ? (sp > b ? ' over' : (pct >= 75 ? ' warn' : '')) : '';
+    html += '<div class="mb-row" data-mbrow="' + s.key + '"><div class="mb-h">'
+      + '<span class="mb-n">' + s.lbl + '</span>'
+      + '<span class="mb-s">' + (b ? (_inr(sp) + ' of ' + _inr(b)) : (_inr(sp) + ' spent')) + '</span>'
+      + (b ? '<span class="mb-l' + (left < 0 ? ' over' : '') + '">'
+             + (left < 0 ? _inr(-left) + ' over' : _inr(left) + ' left') + '</span>' : '')
+      + '</div>'
+      + (b ? '<div class="mb-bar"><i class="' + barCls.trim() + '" style="width:' + pct + '%"></i></div>' : '');
+    const keys = Object.keys(env.detail[s.key]);
+    if (keys.length) {
+      html += '<div class="mb-det">';
+      keys.sort((a, b2) => env.detail[s.key][b2] - env.detail[s.key][a]).forEach(k => {
+        const [label, src] = k.split('\u0001');
+        html += '<div class="mb-dl"><span>' + escHtml(label)
+          + ' <span class="mb-src">' + escHtml(src) + '</span></span><b>'
+          + _inr(env.detail[s.key][k]) + '</b></div>';
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  html += '<div class="mb-x">Excluded by contract: GST (both directions), credit card bill (tracking-only), investments.</div></div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-mbrow]').forEach(r =>
+    r.addEventListener('click', () => r.classList.toggle('open')));
+  const set = document.getElementById('mbSetBtn');
+  if (set) set.addEventListener('click', ev => { ev.stopPropagation(); openBudgetModal(monthYM); });
+}
+function openBudgetModal(ym) {
+  const bud = budgetsForYm_(ym);
+  document.getElementById('mbmYm').textContent = ymTitle(ym);
+  document.getElementById('mbModal').dataset.ym = ym;
+  BUDGET_SECTIONS.forEach(s => {
+    document.getElementById('mbm_' + s.key).value = bud[s.key] != null ? bud[s.key] : '';
+  });
+  document.getElementById('mbModal').classList.remove('hidden');
+}
+function prevYm_(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  const d2 = new Date(y, m - 2, 1);
+  return d2.getFullYear() + '-' + String(d2.getMonth() + 1).padStart(2, '0');
+}
+async function saveBudgets_() {
+  const ym = document.getElementById('mbModal').dataset.ym;
+  const rows = [];
+  BUDGET_SECTIONS.forEach(s => {
+    const v = Number(document.getElementById('mbm_' + s.key).value);
+    if (!isNaN(v) && document.getElementById('mbm_' + s.key).value !== '')
+      rows.push({ ym, section: s.key, amount: v });
+  });
+  const { error } = await supa.from('day_budgets')
+    .upsert(rows, { onConflict: 'user_id,ym,section' });
+  if (error) { console.error('budget save', error); alert('Could not save budgets'); return; }
+  document.getElementById('mbModal').classList.add('hidden');
+  await loadBudgets();
+  renderMonth();
+}
+
 function renderMonth() {
   if (!monthCursor) monthCursor = ymOfIso(currentDate);
   document.getElementById('monthTitle').textContent = ymTitle(monthCursor);
@@ -13074,6 +13289,7 @@ function renderMonth() {
   // Phase 9: Month stats card (Away / Long walks / No-sleep) — synchronous,
   // uses only entry-level data so no recurring fetch needed.
   renderMonthStats(monthCursor, entries, entries.length);
+  renderMonthBudget(monthCursor, entries);
   // [I] Render heatmap if enabled
   renderHeatmap();
   // Phase 9: render cash-flow snapshot. Pulls recurring totals from cache;
@@ -15854,6 +16070,7 @@ async function loadAndStart() {
   // the cache is populated before any banner / Year / Trends render. Errors
   // are swallowed inside loadUserPrefs and fall back to localStorage mirror.
   await loadUserPrefs();
+  await loadBudgets();   // envelopes: budgets in memory before any Month render
   // Home addresses one-time seed: if registry is empty and the user has
   // historical Ganga Legend entries, seed those variants as home addresses.
   // No-op on subsequent loads (gangaLegendSeeded flag stored inside prefs).
@@ -17070,6 +17287,17 @@ async function init() {
   setupSlotStates();
   // Phase 11+: wire Verdict lock for past dates
   setupVerdictLock();
+  // Envelopes: modal wiring + budget load (after supa session below)
+  document.getElementById('mbCancel').addEventListener('click', () =>
+    document.getElementById('mbModal').classList.add('hidden'));
+  document.getElementById('mbSave').addEventListener('click', saveBudgets_);
+  document.getElementById('mbCopyPrev').addEventListener('click', () => {
+    const ym = document.getElementById('mbModal').dataset.ym;
+    const prev = budgetsForYm_(prevYm_(ym));
+    BUDGET_SECTIONS.forEach(s => {
+      if (prev[s.key] != null) document.getElementById('mbm_' + s.key).value = prev[s.key];
+    });
+  });
   // Section collapse: make all Today sections collapsible with a status dot +
   // chevron in each header. All sections start collapsed on every page load.
   // Status dot encodes empty / partial / complete state per-section.
@@ -17430,5 +17658,21 @@ init().catch(err => {
   resetIdle();
 })();
 </script>
+<div id="mbModal" class="mb-overlay hidden">
+  <div class="mb-modal">
+    <div class="mb-mt">Budgets for <span id="mbmYm"></span></div>
+    <div class="mb-ms">set once; they carry into next month via the copy button until you change them</div>
+    <button type="button" class="mb-copy" id="mbCopyPrev">Copy last month’s budgets →</button>
+    <div class="mb-fld"><label>P1 · Food + grocery</label><input type="number" id="mbm_p1" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P2 · Home</label><input type="number" id="mbm_p2" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P3 · Transport</label><input type="number" id="mbm_p3" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P4 · Books, salon, movies, ironing</label><input type="number" id="mbm_p4" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P5 · Shopping</label><input type="number" id="mbm_p5" inputmode="decimal"></div>
+    <div class="mb-fld"><label>Official · Swamoney</label><input type="number" id="mbm_official" inputmode="decimal"></div>
+    <div class="mb-fld"><label>Miscellaneous</label><input type="number" id="mbm_misc" inputmode="decimal"></div>
+    <div class="mb-btns"><button type="button" class="mb-cancel" id="mbCancel">Cancel</button>
+      <button type="button" class="mb-save" id="mbSave">Save budgets</button></div>
+  </div>
+</div>
 </body>
 </html>
