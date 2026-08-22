@@ -64,6 +64,22 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**Two rooms for the month** (N1 DOOR, Aug 2026): the Show-envelopes
+toggle retired for the bucket/explore door grammar - the Month section
+is now two rooms, Month Summary and Month Budget (name N1, chosen over
+My Budget Book / Spending Plan / Money Envelopes / Budget Ledger for
+sibling symmetry with Month Summary), swapped by one door chip top-right
+under the month arrows that names the OTHER room and wears the
+destination's colour (ink #22334f to the budget, ember #B4542A - the
+app's money voice - back to the summary; 12.69 and 4.95). The arrows
+serve both rooms; the heatmap toggle stayed inside the summary room
+where its content lives. Structural lesson that made the door better
+than the toggle: a room that is entered needs no switch - the open/
+closed state machine evaporated (mbOpen deleted, mbRoom remains).
+paintMonthRoom_ runs at the head of every render, before its gates, so
+the door always has words. Law restated for My Day: one place, one
+purpose, a door between.
+
 **S1 - keys name contents, never positions** (Aug 2026): Rahul flagged
 the p6-wearing-P5 mismatch as future confusion and asked for solutions
 first, decision second. Three were laid out (S1 semantic keys + one

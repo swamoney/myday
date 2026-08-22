@@ -4725,7 +4725,13 @@
     display: flex; flex-direction: column; gap: 8px;
     margin-bottom: 12px;
   }
-  .mtoggle-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .mroom-doorrow { display: flex; justify-content: flex-end; margin: 2px 0 10px; }
+  .mroom-door { display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono);
+    font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    border: none; border-radius: 999px; padding: 6px 13px; color: #fff; cursor: pointer;
+    background: #22334f; }
+  .mroom-door.to-summary { background: #B4542A; }
+  .mroom-door::after { content: '\2192'; font-size: 0.6875rem; }
   .heatmap-toggle {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--paper); border: 1px solid var(--rule);
@@ -6720,16 +6726,18 @@
         <input type="month" id="monthQuickInput" class="month-quick-input">
         <button class="month-quick-btn" id="monthQuickToday" type="button">This month</button>
       </div>
+      <!-- N1 DOOR (Aug 2026): the Month section is two rooms - Month Summary
+           and Month Budget - with one door chip that names the OTHER room and
+           wears the destination's colour, exactly the bucket/explore grammar.
+           The month arrows above serve both rooms. -->
+      <div class="mroom-doorrow">
+        <button class="mroom-door" id="mroomDoor" type="button"></button>
+      </div>
+      <div id="monthRoomSummary">
       <!-- [I] Heatmap toggle — switch to a calendar grid colored by metric.
            When enabled, shows the days of the cursor month tinted by walk /
            satisfaction / spend. Hidden by default. -->
       <div class="heatmap-controls">
-        <!-- Rev 3 (Aug 2026): envelopes first, heatmap second, one row. -->
-        <div class="mtoggle-row">
-        <button class="heatmap-toggle" id="mbToggle" type="button" aria-pressed="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M8 3v3M16 3v3"/></svg>
-          <span>Show envelopes</span>
-        </button>
         <button class="heatmap-toggle" id="heatmapToggle" type="button" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <rect x="3" y="3" width="7" height="7" rx="1"/>
@@ -6739,14 +6747,12 @@
           </svg>
           <span>Show heatmap</span>
         </button>
-        </div>
         <div class="heatmap-metric-row hidden" id="heatmapMetricRow">
           <button class="heatmap-metric active" type="button" data-heatmap-metric="satisfaction">Satisfaction</button>
           <button class="heatmap-metric" type="button" data-heatmap-metric="walk">Walk</button>
           <button class="heatmap-metric" type="button" data-heatmap-metric="spend">Spend</button>
         </div>
       </div>
-      <div id="monthBudgetWrap" class="hidden"></div>
       <div id="heatmapWrap" class="hidden"></div>
       <!-- Phase 9: Month cash-flow snapshot — invest vs spend column comparison.
            Sits at the top of the Month sub-view as the visual anchor. -->
@@ -6803,6 +6809,8 @@
 
       <!-- System 1 #recSection HTML removed in Ship 1. -->
       <div id="dayListWrap"></div>
+      </div>
+      <div id="monthBudgetWrap" class="hidden"></div>
     </div>
 
     <!-- WEEK SUB-VIEW -->
@@ -13131,7 +13139,19 @@ const P4_OTHER = ['books & magazines', 'salon'];
 const OFFICIAL_OTHER = ['ai usage', 'software', 'printing & stationery'];
 const P2_OTHER = ['home cleaning', 'ironing'];
 let budgetRows = [];   // raw day_budgets rows for the signed-in user
-let mbOpen = false;    // rev 2: the card opens only when asked, like the heatmap
+let mbRoom = 'summary';   // N1 DOOR: 'summary' | 'budget' - two rooms, one door
+function paintMonthRoom_() {
+  const door = document.getElementById('mroomDoor');
+  const sum = document.getElementById('monthRoomSummary');
+  const bud = document.getElementById('monthBudgetWrap');
+  if (!door || !sum || !bud) return;
+  const inBudget = mbRoom === 'budget';
+  // The door names the OTHER room and wears the destination's colour.
+  door.textContent = inBudget ? 'Month Summary' : 'Month Budget';
+  door.classList.toggle('to-summary', inBudget);
+  sum.classList.toggle('hidden', inBudget);
+  bud.classList.toggle('hidden', !inBudget);
+}
 
 function budgetsForYm_(ym) {
   const out = {};
@@ -13192,14 +13212,15 @@ function _inr(n) { return '\u20B9' + Math.round(n).toLocaleString('en-IN'); }
 function renderMonthBudget(monthYM, entries) {
   const wrap = document.getElementById('monthBudgetWrap');
   if (!wrap) return;
-  if (!mbOpen) { wrap.innerHTML = ''; return; }
+  paintMonthRoom_();
+  if (mbRoom !== 'budget') { wrap.innerHTML = ''; return; }
   if (!entries.length) { wrap.innerHTML = ''; return; }
   const env = monthEnvelopes_(entries);
   const bud = budgetsForYm_(monthYM);
   const hasBudget = Object.keys(bud).length > 0;
   let tb = 0, ts = 0;
   BUDGET_SECTIONS.forEach(s => { tb += bud[s.key] || 0; ts += env.spent[s.key] || 0; });
-  let html = '<div class="mb-card"><span class="mb-bt">The month\u2019s envelopes</span>'
+  let html = '<div class="mb-card"><span class="mb-bt">Month Budget</span>'
     + '<button type="button" class="mb-set" id="mbSetBtn">Set budgets</button>';
   html += hasBudget
     ? '<div class="mb-sum">BUDGET <b>' + _inr(tb) + '</b> \u00B7 SPENT <b>' + _inr(ts) + '</b> \u00B7 LEFT <b>' + _inr(tb - ts) + '</b></div>'
@@ -17315,14 +17336,12 @@ async function init() {
   setupSlotStates();
   // Phase 11+: wire Verdict lock for past dates
   setupVerdictLock();
-  // Envelopes: card is closed until asked for, like the heatmap
-  const mbT = document.getElementById('mbToggle');
-  if (mbT) mbT.addEventListener('click', () => {
-    mbOpen = !mbOpen;
-    mbT.setAttribute('aria-pressed', mbOpen ? 'true' : 'false');
-    mbT.querySelector('span').textContent = mbOpen ? 'Hide envelopes' : 'Show envelopes';
-    document.getElementById('monthBudgetWrap').classList.toggle('hidden', !mbOpen);
-    if (mbOpen) renderMonth();
+  // N1 DOOR: one chip swaps the month's two rooms
+  const mrd = document.getElementById('mroomDoor');
+  if (mrd) mrd.addEventListener('click', () => {
+    mbRoom = mbRoom === 'budget' ? 'summary' : 'budget';
+    paintMonthRoom_();
+    if (mbRoom === 'budget') renderMonth();
   });
   // Envelopes: modal wiring + budget load (after supa session below)
   document.getElementById('mbCancel').addEventListener('click', () =>
