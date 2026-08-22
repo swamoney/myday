@@ -5681,8 +5681,9 @@
   .bis-act.letgo { color:var(--muted); }
   .bis-empty { font-size:0.6875rem; color:#8a97b3; font-style:italic; padding:5px 0; }
   .bis-note { font-family:var(--sans); font-size:0.6563rem; color:var(--muted); font-style:italic;
-              padding:0 0 7px 2px; margin-top:-3px; border-bottom:1px dashed var(--rule); }
-  .bis-li + .bis-note { }
+              overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+              flex:1 1 0; min-width:0; text-align:right; }
+  .bis-li .bis-n { flex:0 1 auto; min-width:34%; }
   .bis-n { cursor:pointer; text-decoration:underline dotted #8a97b3; text-underline-offset:3px; }
   .bis-due { font-family:var(--sans); font-size:0.5625rem; font-weight:700; color:#8A5711;
              background:#F6EBD8; border-radius:6px; padding:2px 7px; letter-spacing:0.04em; }
@@ -13605,10 +13606,10 @@ function bisRow_(x, acts) {
   return '<div class="bis-li"><span class="bis-n" data-bisedit="' + x.id + '">' + escHtml(x.name) + '</span>'
     + (c ? '<span class="bis-cat" style="background:' + c.fill + ';color:' + c.ink + '">' + c.lbl + '</span>' : '')
     + mid + costHtml
+    + (x.notes ? '<span class="bis-note">' + escHtml(x.notes) + '</span>' : '')
     + acts.map(a => '<button type="button" class="bis-act' + (a[1] === 'letgo' ? ' letgo' : '') + '" data-bisact="'
         + a[1] + '" data-bisid="' + x.id + '">' + a[0] + '</button>').join('')
-    + '</div>'
-    + (x.notes ? '<div class="bis-note">' + escHtml(x.notes) + '</div>' : '');
+    + '</div>';
 }
 function bisRenderLists_(monthYM) {
   const host = document.getElementById('bisLists');
