@@ -5680,6 +5680,9 @@
              background:#fff; border-radius:7px; padding:3px 8px; cursor:pointer; color:var(--accent); }
   .bis-act.letgo { color:var(--muted); }
   .bis-empty { font-size:0.6875rem; color:#8a97b3; font-style:italic; padding:5px 0; }
+  .bis-note { font-family:var(--sans); font-size:0.6563rem; color:var(--muted); font-style:italic;
+              padding:0 0 7px 2px; margin-top:-3px; border-bottom:1px dashed var(--rule); }
+  .bis-li + .bis-note { }
   .bis-n { cursor:pointer; text-decoration:underline dotted #8a97b3; text-underline-offset:3px; }
   .bis-due { font-family:var(--sans); font-size:0.5625rem; font-weight:700; color:#8A5711;
              background:#F6EBD8; border-radius:6px; padding:2px 7px; letter-spacing:0.04em; }
@@ -6896,6 +6899,7 @@
       <option value="letgo">Let go</option>
       <option value="bought">Bought</option></select></div>
     <div class="mb-fld hidden" id="bePaidFld"><label>Paid (₹)</label><input type="text" inputmode="decimal" id="bePaid"></div>
+    <div class="mb-fld"><label>Note (optional)</label><input type="text" id="beNote" placeholder="one line, if it helps"></div>
     <div class="mb-btns"><button type="button" class="bis-del" id="beDelete">Delete</button>
       <button type="button" class="mb-cancel" id="beCancel">Cancel</button>
       <button type="button" class="mb-save" id="beSave">Save</button></div>
@@ -13516,6 +13520,9 @@ async function bisMove_(id, status) {
     if (ans === null) return;   // cancelled - no move
     const paid = evalExpr(ans);
     patch.paid = paid === null ? planned : paid;
+    // optional one-line note - blank means none (notes column already exists)
+    const nt = prompt('A one-line note? (optional)', row && row.notes ? row.notes : '');
+    if (nt !== null) patch.notes = nt.trim() || null;
   }
   const { error } = await supa.from('money_decisions').update(patch).eq('id', id);
   if (error) { console.error(error); toast('Could not update'); return; }
@@ -13533,6 +13540,7 @@ function bisOpenEdit_(id) {
   document.getElementById('beCat').value = x.category || 'need';
   document.getElementById('beStatus').value = x.status || 'reviewing';
   document.getElementById('bePaid').value = x.paid != null ? x.paid : '';
+  document.getElementById('beNote').value = x.notes || '';
   document.getElementById('bePaidFld').classList.toggle('hidden', x.status !== 'bought');
   document.getElementById('bisEditModal').classList.remove('hidden');
 }
@@ -13549,7 +13557,8 @@ async function bisEditSave_() {
     review_on: status === 'reviewing' ? (prev.review_on || bisPlus30_()) : prev.review_on,
     decided_on: (status === 'letgo' || status === 'bought')
       ? (prev.decided_on || isoToday()) : null,
-    paid: status === 'bought' ? (evalExpr(document.getElementById('bePaid').value)) : null
+    paid: status === 'bought' ? (evalExpr(document.getElementById('bePaid').value)) : null,
+    notes: document.getElementById('beNote').value.trim() || null
   };
   const { error } = await supa.from('money_decisions').update(patch).eq('id', bisEditId);
   if (error) { console.error(error); toast('Could not save'); return; }
@@ -13598,7 +13607,8 @@ function bisRow_(x, acts) {
     + mid + costHtml
     + acts.map(a => '<button type="button" class="bis-act' + (a[1] === 'letgo' ? ' letgo' : '') + '" data-bisact="'
         + a[1] + '" data-bisid="' + x.id + '">' + a[0] + '</button>').join('')
-    + '</div>';
+    + '</div>'
+    + (x.notes ? '<div class="bis-note">' + escHtml(x.notes) + '</div>' : '');
 }
 function bisRenderLists_(monthYM) {
   const host = document.getElementById('bisLists');
