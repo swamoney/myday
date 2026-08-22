@@ -64,6 +64,23 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**O1 + Taxes + the travel remap** (Aug 2026): the verdict pair became
+one railed line under the filled accounts row - 'Left to spend X / Y
+per day - N to go', moss rail, green and deep-amber numerals, reading
+as the tiles' younger sibling (chosen over centered and soft-strip
+variants: left-aligned like everything in My Day, no third fill). Over:
+ember rail, 'X over / hold the line'; past months drop the per-day
+half and the slash. Sections: Taxes became its own envelope above
+Miscellaneous (new key 'taxes', no migration - new keys are free),
+taking the Taxes & Bills day field out of misc; Travel moved from
+transport to the hotel envelope, whose sticker became 'P5 - Hotel +
+Travel' (key 'hotel' unmoved - contents grew, the name still holds);
+P3's sticker became 'Daily Transport' now that only Uber feeds it.
+Modal gained the Taxes field above Misc and both relabels in the same
+commit. Probe note: a first-occurrence order check compared the CSS
+rule's position, not the renderer's - order probes must scope to the
+function that paints, not the whole file.
+
 **The brand leaves the book** (Aug 2026): Swamoney removed from every
 file on Rahul's order - the envelope label became 'Official - Office'
 (card and modal), the engine's mapping comment followed, and the mocks

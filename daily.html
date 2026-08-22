@@ -5621,12 +5621,14 @@
   .mbt-l { font-family:var(--sans); font-size:0.6563rem; font-weight:600; color:var(--muted); }
   .mbt-v { font-family:var(--sans); font-size:1.1875rem; font-weight:700; color:var(--ink);
            font-variant-numeric:tabular-nums; letter-spacing:-0.005em; line-height:1.15; }
-  .mbt-tile.left { border-left-color:var(--moss); }
-  .mbt-tile.left .mbt-v { color:var(--green-ink); }
-  .mb-card.sa.isover .mbt-tile.left { border-left-color:var(--ember); }
-  .mb-card.sa.isover .mbt-tile.left .mbt-v { color:var(--ember); }
-  .mbt-tile.day { border-left-color:#BA7517; }
-  .mbt-tile.day .mbt-v { color:#8A5711; }   /* rail keeps My Day's amber; text deepened to 5.81 */
+  .mbt-line { display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; padding-left:10px;
+              border-left:2px solid var(--moss); font-size:1.0625rem; }
+  .mbt-line.isover { border-left-color:var(--ember); }
+  .mbt-ll { font-size:0.6563rem; font-weight:600; color:var(--muted); }
+  .mbt-ls { color:#68789a; font-weight:400; padding:0 2px; }
+  .mbt-lg { color:var(--green-ink); font-weight:700; font-variant-numeric:tabular-nums; }
+  .mbt-la { color:#8A5711; font-weight:700; font-variant-numeric:tabular-nums; }
+  .mbt-lo { color:var(--ember); font-weight:700; font-variant-numeric:tabular-nums; }
   .mbt-tile.spent { border-left-color:var(--ember); }
   .mbt-tile.spent .mbt-v { color:var(--ember); }
   /* F2: each account in its own voice - budget is the plan (accent),
@@ -6792,9 +6794,10 @@
     <div class="mb-fld"><label>Official · Office</label><input type="number" id="mbm_official" inputmode="decimal"></div>
     <div class="mb-fld"><label>P1 · Home</label><input type="number" id="mbm_home" inputmode="decimal"></div>
     <div class="mb-fld"><label>P2 · Food + grocery</label><input type="number" id="mbm_food" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P3 · Transport</label><input type="number" id="mbm_transport" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P3 · Daily Transport</label><input type="number" id="mbm_transport" inputmode="decimal"></div>
     <div class="mb-fld"><label>P4 · Books, Entertainment, Shopping, etc.</label><input type="number" id="mbm_lifestyle" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P5 · Hotel Stay</label><input type="number" id="mbm_hotel" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P5 · Hotel + Travel</label><input type="number" id="mbm_hotel" inputmode="decimal"></div>
+    <div class="mb-fld"><label>Taxes</label><input type="number" id="mbm_taxes" inputmode="decimal"></div>
     <div class="mb-fld"><label>Miscellaneous</label><input type="number" id="mbm_misc" inputmode="decimal"></div>
     <div class="mb-btns"><button type="button" class="mb-cancel" id="mbCancel">Cancel</button>
       <button type="button" class="mb-save" id="mbSave">Save budgets</button></div>
@@ -13156,9 +13159,10 @@ const BUDGET_SECTIONS = [
   { key:'official',  lbl:'Official \u00B7 Office' },
   { key:'home',      lbl:'P1 \u00B7 Home' },
   { key:'food',      lbl:'P2 \u00B7 Food + grocery' },
-  { key:'transport', lbl:'P3 \u00B7 Transport' },
+  { key:'transport', lbl:'P3 \u00B7 Daily Transport' },
   { key:'lifestyle', lbl:'P4 \u00B7 Books, Entertainment, Shopping, etc.' },
-  { key:'hotel',     lbl:'P5 \u00B7 Hotel Stay' },
+  { key:'hotel',     lbl:'P5 \u00B7 Hotel + Travel' },
+  { key:'taxes',     lbl:'Taxes' },
   { key:'misc',      lbl:'Miscellaneous' }
 ];
 const P4_OTHER = ['books & magazines', 'salon'];
@@ -13206,10 +13210,10 @@ function monthEnvelopes_(entries) {
     put('food', 'Food', 'day field', n('food'));
     put('food', 'Dmart', 'day field', n('dmart'));
     put('transport', 'Uber', 'day field', n('uber'));
-    put('transport', 'Travel', 'day field', n('travel'));
+    put('hotel', 'Travel', 'day field', n('travel'));
     put('lifestyle', 'Entertainment', 'day field', n('entertainment'));
     put('lifestyle', 'Shopping', 'day field', n('shopping'));
-    put('misc', 'Taxes & Bills', 'day field', n('taxes'));
+    put('taxes', 'Taxes & Bills', 'day field', n('taxes'));
     put('hotel', 'Hotel Stay', 'day field', n('hotelStay'));
     // gstPayment, creditCardBill, investments: excluded by contract.
     // Other log: named items deal by name.
@@ -13255,25 +13259,32 @@ function renderMonthBudget(monthYM, entries) {
   const dim = (() => { const [y, m] = monthYM.split('-').map(Number); return new Date(y, m, 0).getDate(); })();
   const daysToGo = isCur ? (dim - Number(todayIso.slice(8, 10)) + 1) : 0;
   const perDay = daysToGo > 0 && left > 0 ? left / daysToGo : 0;
+  // O1 (Aug 2026): accounts row first (filled pair), then one railed line -
+  // 'Left to spend X / Y per day - N to go' - the tiles' younger sibling.
   let tiles = '';
-  if (hasBudget) {
-    tiles += '<div class="mbt-tile left"><span class="mbt-l">Left to spend</span><span class="mbt-v">'
-      + (left < 0 ? _inr(-left) + ' over' : _inr(left)) + '</span></div>';
-    if (left < 0) {
-      tiles += '<div class="mbt-tile day"><span class="mbt-l">Per day</span><span class="mbt-v">hold the line</span></div>';
-    } else if (daysToGo > 0) {
-      tiles += '<div class="mbt-tile day"><span class="mbt-l">Per day \u00B7 ' + daysToGo + ' to go</span><span class="mbt-v">'
-        + _inr(perDay) + '</span></div>';
-    }
-    tiles += '<div class="mbt-tile fillb"><span class="mbt-l">Total budget</span><span class="mbt-v">' + _inr(tb) + '</span></div>';
-  }
+  if (hasBudget) tiles += '<div class="mbt-tile fillb"><span class="mbt-l">Total budget</span><span class="mbt-v">' + _inr(tb) + '</span></div>';
   tiles += '<div class="mbt-tile spent fills"><span class="mbt-l">Total spent</span><span class="mbt-v">' + _inr(ts) + '</span></div>';
+  let verdict = '';
+  if (hasBudget) {
+    if (left < 0) {
+      verdict = '<div class="mbt-line isover"><span class="mbt-ll">Left to spend</span> '
+        + '<span class="mbt-lo">' + _inr(-left) + ' over</span> <span class="mbt-ls">/</span> '
+        + '<span class="mbt-ll">hold the line</span></div>';
+    } else {
+      verdict = '<div class="mbt-line"><span class="mbt-ll">Left to spend</span> '
+        + '<span class="mbt-lg">' + _inr(left) + '</span>'
+        + (daysToGo > 0 ? ' <span class="mbt-ls">/</span> <span class="mbt-la">' + _inr(perDay) + '</span>'
+           + ' <span class="mbt-ll">per day \u00B7 ' + daysToGo + ' to go</span>' : '')
+        + '</div>';
+    }
+  }
   let html = '<div class="mb-card sa' + (left < 0 && hasBudget ? ' isover' : '') + '">'
     + '<div class="mbt-head"><span class="mbt-title">Month Budget</span>'
     + '<span class="mbt-meta">' + ymTitle(monthYM)
     + ' \u00B7 <button type="button" class="mbt-set" id="mbSetBtn">Set budgets</button></span></div>'
     + (hasBudget ? '' : '<div class="mbt-inv">No budgets set for this month \u2014 spending is tracked below; add amounts to see what remains.</div>')
     + '<div class="mbt-tiles">' + tiles + '</div>'
+    + (verdict ? '<div class="mbt-rule"></div>' + verdict : '')
     + '<div class="mbt-rule"></div>';
   BUDGET_SECTIONS.forEach(s => {
     const sp = env.spent[s.key] || 0;
