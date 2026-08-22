@@ -64,6 +64,21 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**N-A, the mobile fold, and handles not inventories** (Aug 2026):
+BIS notes moved inline - right-aligned in the row's leftover space
+after the amounts, ellipsis when long (full text behind the edit
+door); the below-row div and its negative margin retired, making the
+touching-line bug structurally impossible. On phones the note was
+invisible: no leftover space, flex share shrank to zero width - fixed
+by the M1 lesson (mobile folds, never squeezes): under 640px the row
+wraps and the note takes its own full-width line. Envelope stickers
+became handles (L-A): 'P2 - Food', 'P4 - Lifestyle' - the deciding
+argument was staleness, not width: an inventory-label rots (Spa joined
+P4 and the sticker didn't know) while a handle never needs re-editing;
+the tap-open detail recites live contents on demand. Rule: a good
+envelope name is a handle, not an inventory. Keys and budgets unmoved;
+modal followed in the same commit.
+
 **BIS-E - edit, the honest close, and the kept promise** (Aug 2026):
 three pieces. E-A: every row's name is a dotted-underline edit door
 opening a native modal (name, cost, category, status, delete) - even
