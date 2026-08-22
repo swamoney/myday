@@ -64,6 +64,14 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**Boot-order lesson** (same day): the envelope modal was first inserted
+before </body> - which in daily.html sits AFTER the script blocks, and
+init() runs synchronously at parse, so getElementById('mbCancel')
+returned null and the whole page failed to start. Fixed by seating the
+modal markup beside its card in the month view, far above any script.
+Rule: markup that init() wires must exist above the scripts; '</body>'
+is not a safe anchor in a page whose scripts live at the body's end.
+
 **Restore manifest lesson**: audit's table list is strings, restore's is
 objects - a blind phrase-rep on restore corrupted an object literal and
 node caught it. Rule: before repping a shared name across sister files,
