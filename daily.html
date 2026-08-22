@@ -6153,6 +6153,7 @@
             <button type="button" class="chip chip-preset other-chip" data-other-name="Printing &amp; Stationery"><span class="chip-plus" aria-hidden="true">+</span>Printing &amp; Stationery</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Books &amp; Magazines"><span class="chip-plus" aria-hidden="true">+</span>Books &amp; Magazines</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Salon"><span class="chip-plus" aria-hidden="true">+</span>Salon</button>
+            <button type="button" class="chip chip-preset other-chip" data-other-name="Spa"><span class="chip-plus" aria-hidden="true">+</span>Spa</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Ironing"><span class="chip-plus" aria-hidden="true">+</span>Ironing</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Home Cleaning"><span class="chip-plus" aria-hidden="true">+</span>Home Cleaning</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Vehicle service"><span class="chip-plus" aria-hidden="true">+</span>Vehicle service</button>
@@ -6791,7 +6792,7 @@
     <div class="mb-mt">Budgets for <span id="mbmYm"></span></div>
     <div class="mb-ms">set once; they carry into next month via the copy button until you change them</div>
     <button type="button" class="mb-copy" id="mbCopyPrev">Copy last month’s budgets →</button>
-    <div class="mb-fld"><label>Official · Office</label><input type="number" id="mbm_official" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P0 · Office</label><input type="number" id="mbm_official" inputmode="decimal"></div>
     <div class="mb-fld"><label>P1 · Home</label><input type="number" id="mbm_home" inputmode="decimal"></div>
     <div class="mb-fld"><label>P2 · Food + grocery</label><input type="number" id="mbm_food" inputmode="decimal"></div>
     <div class="mb-fld"><label>P3 · Daily Transport</label><input type="number" id="mbm_transport" inputmode="decimal"></div>
@@ -13156,7 +13157,7 @@ function renderHeatmap() {
 // series renumbered to match. Keys never moved (S1's dividend: stickers are
 // free, storage is forever).
 const BUDGET_SECTIONS = [
-  { key:'official',  lbl:'Official \u00B7 Office' },
+  { key:'official',  lbl:'P0 \u00B7 Office' },
   { key:'home',      lbl:'P1 \u00B7 Home' },
   { key:'food',      lbl:'P2 \u00B7 Food + grocery' },
   { key:'transport', lbl:'P3 \u00B7 Daily Transport' },
@@ -13165,7 +13166,7 @@ const BUDGET_SECTIONS = [
   { key:'taxes',     lbl:'Taxes' },
   { key:'misc',      lbl:'Miscellaneous' }
 ];
-const P4_OTHER = ['books & magazines', 'salon'];
+const P4_OTHER = ['books & magazines', 'salon', 'spa'];
 const OFFICIAL_OTHER = ['ai usage', 'software', 'printing & stationery'];
 const P2_OTHER = ['home cleaning', 'ironing'];
 let budgetRows = [];   // raw day_budgets rows for the signed-in user
@@ -13220,9 +13221,13 @@ function monthEnvelopes_(entries) {
     (parseOtherItems(e) || []).forEach(it => {
       const amt = Number(it.amt) || 0; if (!amt) return;
       const nm = String(it.name || '').trim(); const low = nm.toLowerCase();
-      if (OFFICIAL_OTHER.some(x => low === x || low.includes(x))) put('official', nm, 'other log', amt);
-      else if (P2_OTHER.some(x => low === x || low.includes(x))) put('home', nm, 'other log', amt);
-      else if (P4_OTHER.some(x => low === x || low.includes(x))) put('lifestyle', nm, 'other log', amt);
+      // Short names (<=3 chars) match as whole words - 'spa' and 'spa day'
+      // belong to P4, but 'spare parts' must never be swallowed.
+      const hit = (x) => x.length > 3 ? low.includes(x)
+        : (low === x || new RegExp('\\b' + x + '\\b').test(low));
+      if (OFFICIAL_OTHER.some(hit)) put('official', nm, 'other log', amt);
+      else if (P2_OTHER.some(hit)) put('home', nm, 'other log', amt);
+      else if (P4_OTHER.some(hit)) put('lifestyle', nm, 'other log', amt);
       else put('misc', nm || 'Other', 'other log', amt);
     });
     // Recurring log: groups deal, with the ChatGPT name exception.

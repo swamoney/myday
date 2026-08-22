@@ -64,6 +64,17 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**Spa, the word-boundary guard, and P0** (Aug 2026): new Other
+Expenses chip Spa beside Salon, dealt to P4 by name. Adding a 3-letter
+name exposed a matcher flaw proven by simulation: plain includes()
+would file 'spare parts' into P4. The matcher now splits by length -
+names over 3 chars match by inclusion as before; short names match as
+whole words (exact or \b-bounded), so 'spa', 'spa day', and 'day spa'
+reach P4 while 'spare parts' and 'spatula' never do (six-case node
+simulation in the transcript). And the Official envelope took the
+sticker P0 - Office, completing the P-series on Rahul's theme call;
+the key 'official' never moved, per law.
+
 **OPT-2 - the last brand leaves storage** (Aug 2026): Rahul asked to
 rename Uber to Daily Transport; the check-first pass found the name at
 three depths - screen (form label 'Uber / Petrol / Metro / Parking'),
