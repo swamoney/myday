@@ -6122,6 +6122,7 @@
             <button type="button" class="chip chip-preset other-chip" data-other-name="Books &amp; Magazines"><span class="chip-plus" aria-hidden="true">+</span>Books &amp; Magazines</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Salon"><span class="chip-plus" aria-hidden="true">+</span>Salon</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Ironing"><span class="chip-plus" aria-hidden="true">+</span>Ironing</button>
+            <button type="button" class="chip chip-preset other-chip" data-other-name="Home Cleaning"><span class="chip-plus" aria-hidden="true">+</span>Home Cleaning</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Vehicle service"><span class="chip-plus" aria-hidden="true">+</span>Vehicle service</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Medicine"><span class="chip-plus" aria-hidden="true">+</span>Medicine</button>
           </div>
@@ -6718,6 +6719,15 @@
         <input type="month" id="monthQuickInput" class="month-quick-input">
         <button class="month-quick-btn" id="monthQuickToday" type="button">This month</button>
       </div>
+      <!-- Envelopes (Aug 2026, rev 2): moved to the section's start as a
+           click-to-open card, same manner as the heatmap toggle below. -->
+      <div class="heatmap-controls">
+        <button class="heatmap-toggle" id="mbToggle" type="button" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M8 3v3M16 3v3"/></svg>
+          <span>Show envelopes</span>
+        </button>
+      </div>
+      <div id="monthBudgetWrap" class="hidden"></div>
       <!-- [I] Heatmap toggle — switch to a calendar grid colored by metric.
            When enabled, shows the days of the cursor month tinted by walk /
            satisfaction / spend. Hidden by default. -->
@@ -6745,9 +6755,6 @@
       <!-- Phase 9: Month stats card (Away / Long walks / No-sleep nights) — same
            layout/data/design as Year stats but scoped to the current month. -->
       <div id="monthStatsWrap"></div>
-      <!-- POS-2 (Aug 2026): the month's envelopes - budget headline right
-           after the stat tiles; everything below untouched. -->
-      <div id="monthBudgetWrap"></div>
 <div id="mbModal" class="mb-overlay hidden">
   <div class="mb-modal">
     <div class="mb-mt">Budgets for <span id="mbmYm"></span></div>
@@ -6758,6 +6765,7 @@
     <div class="mb-fld"><label>P3 · Transport</label><input type="number" id="mbm_p3" inputmode="decimal"></div>
     <div class="mb-fld"><label>P4 · Books, salon, movies, ironing</label><input type="number" id="mbm_p4" inputmode="decimal"></div>
     <div class="mb-fld"><label>P5 · Shopping</label><input type="number" id="mbm_p5" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P6 · Hotel Stay</label><input type="number" id="mbm_p6" inputmode="decimal"></div>
     <div class="mb-fld"><label>Official · Swamoney</label><input type="number" id="mbm_official" inputmode="decimal"></div>
     <div class="mb-fld"><label>Miscellaneous</label><input type="number" id="mbm_misc" inputmode="decimal"></div>
     <div class="mb-btns"><button type="button" class="mb-cancel" id="mbCancel">Cancel</button>
@@ -13115,12 +13123,15 @@ const BUDGET_SECTIONS = [
   { key:'p3',       lbl:'P3 \u00B7 Transport' },
   { key:'p4',       lbl:'P4 \u00B7 Books, salon, movies, ironing' },
   { key:'p5',       lbl:'P5 \u00B7 Shopping' },
+  { key:'p6',       lbl:'P6 \u00B7 Hotel Stay' },
   { key:'official', lbl:'Official \u00B7 Swamoney' },
   { key:'misc',     lbl:'Miscellaneous' }
 ];
 const P4_OTHER = ['books & magazines', 'salon', 'ironing'];
 const OFFICIAL_OTHER = ['ai usage', 'software', 'printing & stationery'];
+const P2_OTHER = ['home cleaning'];
 let budgetRows = [];   // raw day_budgets rows for the signed-in user
+let mbOpen = false;    // rev 2: the card opens only when asked, like the heatmap
 
 function budgetsForYm_(ym) {
   const out = {};
@@ -13153,21 +13164,21 @@ function monthEnvelopes_(entries) {
     put('p4', 'Entertainment', 'day field', n('entertainment'));
     put('p5', 'Shopping', 'day field', n('shopping'));
     put('misc', 'Taxes & Bills', 'day field', n('taxes'));
-    put('misc', 'Hotel Stay', 'day field', n('hotelStay'));
+    put('p6', 'Hotel Stay', 'day field', n('hotelStay'));
     // gstPayment, creditCardBill, investments: excluded by contract.
     // Other log: named items deal by name.
     (parseOtherItems(e) || []).forEach(it => {
       const amt = Number(it.amt) || 0; if (!amt) return;
       const nm = String(it.name || '').trim(); const low = nm.toLowerCase();
       if (OFFICIAL_OTHER.some(x => low === x || low.includes(x))) put('official', nm, 'other log', amt);
+      else if (P2_OTHER.some(x => low === x || low.includes(x))) put('p2', nm, 'other log', amt);
       else if (P4_OTHER.some(x => low === x || low.includes(x))) put('p4', nm, 'other log', amt);
       else put('misc', nm || 'Other', 'other log', amt);
     });
     // Recurring log: groups deal, with the ChatGPT name exception.
-    let rec = [];
-    try { rec = JSON.parse(e.recurringLog || '[]'); } catch { rec = []; }
-    (Array.isArray(rec) ? rec : []).forEach(r => {
-      const amt = Number(r.amount) || 0; if (!amt) return;
+    // parseRecurring is the canonical reader; items are {name, amt}.
+    parseRecurring(e).forEach(r => {
+      const amt = Number(r.amt) || 0; if (!amt) return;
       const nm = String(r.name || '').trim();
       if (nm.toLowerCase().includes('chatgpt')) { put('official', 'Recurring \u00B7 ChatGPT', 'recurring', amt); return; }
       const g = recurringGroupForName(nm);
@@ -13181,6 +13192,7 @@ function _inr(n) { return '\u20B9' + Math.round(n).toLocaleString('en-IN'); }
 function renderMonthBudget(monthYM, entries) {
   const wrap = document.getElementById('monthBudgetWrap');
   if (!wrap) return;
+  if (!mbOpen) { wrap.innerHTML = ''; return; }
   if (!entries.length) { wrap.innerHTML = ''; return; }
   const env = monthEnvelopes_(entries);
   const bud = budgetsForYm_(monthYM);
@@ -17303,6 +17315,15 @@ async function init() {
   setupSlotStates();
   // Phase 11+: wire Verdict lock for past dates
   setupVerdictLock();
+  // Envelopes: card is closed until asked for, like the heatmap
+  const mbT = document.getElementById('mbToggle');
+  if (mbT) mbT.addEventListener('click', () => {
+    mbOpen = !mbOpen;
+    mbT.setAttribute('aria-pressed', mbOpen ? 'true' : 'false');
+    mbT.querySelector('span').textContent = mbOpen ? 'Hide envelopes' : 'Show envelopes';
+    document.getElementById('monthBudgetWrap').classList.toggle('hidden', !mbOpen);
+    if (mbOpen) renderMonth();
+  });
   // Envelopes: modal wiring + budget load (after supa session below)
   document.getElementById('mbCancel').addEventListener('click', () =>
     document.getElementById('mbModal').classList.add('hidden'));

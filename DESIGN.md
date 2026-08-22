@@ -64,6 +64,21 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**Envelopes rev 2** (Aug 2026): four changes on Rahul's first live use.
+(1) BUG: recurring rupees scored zero everywhere - the engine read
+r.amount but recurring items are {name, amt}; daily.html even owns a
+canonical parseRecurring reader. Fixed by using it. Lesson, kin to the
+manifest one: two comments in the same file described two shapes; the
+WRITER (setRecurring) is the only truth - read the writer, not the
+comments. (2) The card moved from POS-2-always-on to the section's very
+start as a Show/Hide envelopes toggle in the heatmap's exact manner
+(same .heatmap-toggle clothes, aria-pressed, closed by default,
+renders nothing while closed). (3) Hotel Stay left misc for its own
+envelope - Rahul asked for 'a separate P5' but P5 was already Shopping
+by his own earlier ruling, so it shipped as P6 - Hotel Stay; flagged
+aloud for renaming if he wants the numbers shuffled. (4) New Other
+Expenses chip Home Cleaning, dealt to P2 Home by name (P2_OTHER list).
+
 **Boot-order lesson** (same day): the envelope modal was first inserted
 before </body> - which in daily.html sits AFTER the script blocks, and
 init() runs synchronously at parse, so getElementById('mbCancel')
