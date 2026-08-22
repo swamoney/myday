@@ -64,6 +64,25 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**S-A - the room comes home** (Aug 2026): Rahul rejected the built K5-R
+hero - 'odd compared to overall My Day, not in that theme, more crowded,
+more coloured' - and he was right about the root cause: the hero was
+designed in why.html's language (serif, dark gradients, mono chips)
+while My Day speaks paper cards on the dotted ground, dashed rules,
+2px-rail stat tiles, and SANS tabular numerals. Lesson recorded at
+constitution level: A ROOM IS DESIGNED IN ITS HOUSE'S LANGUAGE - read
+the host page's tokens before drawing, not another page's habits.
+S-A rebuilt the card as literally the Month Summary's grammar: native
+card head (title + month + underlined Set-budgets link), four stat
+tiles in the six-tile grid's exact anatomy (Left/moss, Per-day/amber
+rail with deepened #8A5711 text since My Day's #BA7517 fails as text at
+3.56, Budget/plain ink, Spent/ember), dashed divider, envelope rows in
+sans with dashed separators and 4px moss/amber/ember bars, details on
+paper-soft. Over: Left tile turns ember, per-day says 'hold the line'.
+The mb-card base style folded into the coat (one card, one truth).
+K5-R's journey (V1, D1, K5, the two refinements) remains recorded below
+as the path that taught the lesson.
+
 **K5-R - the split-card hero** (Aug 2026): the Month Budget room's card
 grew a proper headline after Rahul called the flat ledger 'off'. Chosen
 through four mock rounds: V1 hero-led ledger (over envelope-wall and
