@@ -5604,16 +5604,27 @@
   /* ===== The month's envelopes (POS-2, Aug 2026) ===== */
   .mb-card { background:#fff; border:1px solid var(--line,#e2e8f2); border-radius:14px;
              padding:13px; margin-bottom:14px; }
-  .mb-bt { font-family:var(--mono); font-size:0.5938rem; font-weight:600; letter-spacing:0.14em;
-           text-transform:uppercase; background:#22334f; color:#fff; display:inline-block;
-           border-radius:6px; padding:4px 10px; margin-bottom:4px; }
-  .mb-set { float:right; font-family:var(--mono); font-size:0.5313rem; font-weight:600;
-            letter-spacing:0.1em; text-transform:uppercase; border:1px dashed #b7c1d4;
-            background:none; border-radius:999px; padding:5px 11px; color:#3a4f6e; cursor:pointer; }
-  .mb-sum { font-family:var(--mono); font-size:0.5625rem; color:#5f6a80; margin:2px 0 10px; }
-  .mb-sum b { color:#232f45; }
-  .mb-nob { font-family:var(--mono); font-size:0.625rem; color:#a06a2c; background:#fdf8f0;
-            border:1px dashed #e2cfa8; border-radius:8px; padding:7px 10px; margin:4px 0 10px; }
+  .mb-card.k5r { padding:0; overflow:hidden; }
+  .mb-card.k5r .mb-row, .mb-card.k5r .mb-x { margin-left:13px; margin-right:13px; }
+  .mbh-head { background:linear-gradient(150deg,#22334f,#3a4f6e); color:#fff; padding:14px 15px; }
+  .mbh-toprow { display:flex; align-items:flex-start; gap:10px; }
+  .mbh-cells { display:flex; gap:14px; flex:1; min-width:0; }
+  .mbh-cell { flex:1; min-width:0; }
+  .mbh-head .mbh-cell + .mbh-cell { border-left:1px solid rgba(255,255,255,0.2); padding-left:14px; }
+  .mbh-k { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.16em;
+           text-transform:uppercase; opacity:0.75; }
+  .mbh-body .mbh-k { color:#8189a0; opacity:1; }
+  .mbh-v { font-family:var(--mono); font-weight:700; line-height:1.2; letter-spacing:0.01em;
+           font-size:0.9375rem; }
+  .mbh-v.big { font-size:1.375rem; }
+  .mbh-v.green { color:#8fd4a8; } .mbh-v.rose { color:#f0a8b0; } .mbh-v.gold { color:#f4c430; }
+  .mbh-inv { font-family:var(--mono); font-size:0.625rem; opacity:0.85; margin-top:4px; }
+  .mbh-set { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.1em;
+             text-transform:uppercase; border:1px dashed rgba(255,255,255,0.45); background:none;
+             border-radius:999px; padding:5px 10px; color:#fff; opacity:0.9; cursor:pointer;
+             flex-shrink:0; }
+  .mbh-body { padding:12px 15px; border-bottom:1px solid #eef1f6; margin-bottom:4px; }
+  .mbh-body .mbh-v { color:#232f45; }
   .mb-row { padding:8px 0 10px; border-bottom:1px solid #eef1f6; cursor:pointer; }
   .mb-row:last-of-type { border-bottom:none; }
   .mb-h { display:flex; align-items:baseline; gap:8px; }
@@ -13220,11 +13231,42 @@ function renderMonthBudget(monthYM, entries) {
   const hasBudget = Object.keys(bud).length > 0;
   let tb = 0, ts = 0;
   BUDGET_SECTIONS.forEach(s => { tb += bud[s.key] || 0; ts += env.spent[s.key] || 0; });
-  let html = '<div class="mb-card"><span class="mb-bt">Month Budget</span>'
-    + '<button type="button" class="mb-set" id="mbSetBtn">Set budgets</button>';
-  html += hasBudget
-    ? '<div class="mb-sum">BUDGET <b>' + _inr(tb) + '</b> \u00B7 SPENT <b>' + _inr(ts) + '</b> \u00B7 LEFT <b>' + _inr(tb - ts) + '</b></div>'
-    : '<div class="mb-nob">No budgets set for this month yet \u2014 spending is still tracked below; add amounts to see what remains.</div>';
+  // K5-R hero (Aug 2026): ink verdict head + ivory account body, no composed
+  // bar (the envelope rows below carry all the health colour), clean mono
+  // numerals - the same face every rupee in My Day wears.
+  const left = tb - ts;
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const isCur = monthYM === todayIso.slice(0, 7);
+  const dim = (() => { const [y, m] = monthYM.split('-').map(Number); return new Date(y, m, 0).getDate(); })();
+  const daysToGo = isCur ? (dim - Number(todayIso.slice(8, 10)) + 1) : 0;
+  const perDay = daysToGo > 0 && left > 0 ? left / daysToGo : 0;
+  let head;
+  if (!hasBudget) {
+    head = '<div class="mbh-cells"><div class="mbh-cell">'
+      + '<div class="mbh-k">No budgets set for this month</div>'
+      + '<div class="mbh-inv">spending is tracked below \u2014 add amounts to see what remains</div>'
+      + '</div></div>';
+  } else {
+    head = '<div class="mbh-cells">'
+      + '<div class="mbh-cell"><div class="mbh-k">Left to spend</div>'
+      + '<div class="mbh-v big ' + (left < 0 ? 'rose' : 'green') + '">'
+      + (left < 0 ? _inr(-left) + ' over' : _inr(left)) + '</div></div>';
+    if (left < 0) {
+      head += '<div class="mbh-cell"><div class="mbh-k">Per day</div>'
+        + '<div class="mbh-v big gold">HOLD THE LINE</div></div>';
+    } else if (daysToGo > 0) {
+      head += '<div class="mbh-cell"><div class="mbh-k">Per day \u00B7 ' + daysToGo + ' to go</div>'
+        + '<div class="mbh-v big gold">' + _inr(perDay) + '</div></div>';
+    }
+    head += '</div>';
+  }
+  let html = '<div class="mb-card k5r">'
+    + '<div class="mbh-head"><div class="mbh-toprow">' + head
+    + '<button type="button" class="mbh-set" id="mbSetBtn">Set budgets</button></div></div>'
+    + '<div class="mbh-body"><div class="mbh-cells">'
+    + (hasBudget ? '<div class="mbh-cell"><div class="mbh-k">Total budget</div><div class="mbh-v">' + _inr(tb) + '</div></div>' : '')
+    + '<div class="mbh-cell"><div class="mbh-k">Total spent</div><div class="mbh-v">' + _inr(ts) + '</div></div>'
+    + '</div></div>';
   BUDGET_SECTIONS.forEach(s => {
     const sp = env.spent[s.key] || 0;
     const b = bud[s.key] || 0;

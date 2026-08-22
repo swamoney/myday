@@ -64,6 +64,29 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**K5-R - the split-card hero** (Aug 2026): the Month Budget room's card
+grew a proper headline after Rahul called the flat ledger 'off'. Chosen
+through four mock rounds: V1 hero-led ledger (over envelope-wall and
+ring), then V1-D split verdict (LEFT TO SPEND beside PER DAY - the
+number you can carry into a shop tonight; gold because a daily allowance
+is a small deadline), then D1 two decks (verdict big, Total budget /
+Total spent as a proper second deck - hierarchy follows usefulness:
+verdict, guidance, accounts), then coat K5 (ink verdict head flowing
+into ivory account body - material says what size says, and the card
+ends in white against the white rows), then Rahul's two refinements:
+the tricolour composed bar deleted entirely (the envelope rows below
+carry all the health colour) and serif numerals replaced with clean
+Plex Mono - the face every rupee in My Day already wears; borrowed
+grandeur retired for the app's honest money voice. Set budgets moved
+into the ink head (the hero owns the numbers, so it owns the door to
+change them); the card's title badge retired (the room's door already
+names the room). Per-day shows only for the current month (left /
+days-remaining incl today); over budget the left cell goes rose and
+per-day reads HOLD THE LINE; the no-budget state is the invitation
+inside the same ink head. Mock arithmetic drifted across generations
+and the audit caught the hero disagreeing with its own rows - the build
+computes hero and rows from one totals pass so agreement is structural.
+
 **Two rooms for the month** (N1 DOOR, Aug 2026): the Show-envelopes
 toggle retired for the bucket/explore door grammar - the Month section
 is now two rooms, Month Summary and Month Budget (name N1, chosen over
