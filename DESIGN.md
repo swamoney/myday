@@ -64,6 +64,19 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**IX-A - the fold reordered by frequency, then frozen** (Aug 2026):
+inside the more-fold the two golden doors now stand first, together -
+Other Expenses, Recurring Payments - then Lifestyle, Hotel + Travel,
+Taxes, and Tracking-only last; ordered by actual visit frequency (the
+doors are the most-visited rooms below the fold; Hotel sees three
+months a year). Six blocks extracted by balanced scans and re-spliced;
+no field moved between groups, no data touched. Tracking-only joined
+the organ bands (paper-soft fill) - its rule-grey underline that never
+turns moss/ember remains the honest tell that no envelope watches it.
+STANDING DECISION: the spine is now FROZEN - muscle memory compounds
+over 30 years and outweighs future micro-optimisation; reorders from
+here need a reason stronger than taste.
+
 **OE-R + PL - Other gets the door; the ledgers go plain** (Aug 2026):
 Other Expenses now wears the recurring architecture end to end: inner
 duplicate label retired, the white summary pill became the golden door
