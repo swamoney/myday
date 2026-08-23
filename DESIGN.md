@@ -64,6 +64,23 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**TH - the form wears the card's clothes** (Aug 2026): the maroon-and-
+cream era of Investments & Expenses retired; the section now speaks the
+Month Budget card's exact language via one appended, scoped CSS block
+(cascade-final, legacy rules undisturbed elsewhere). Mapping: subhead
+pills became the card's header anatomy - transparent, 2px left rail,
+mono uppercase micro-label in var(--muted) (the card's own micro-ink;
+the first draft's #68789a measured 4.23 and FAILED the 4.5 floor -
+measured, caught, corrected); envelope rails follow headroom state
+(hd-ok moss / hd-ov ember, painted by paintFormHeadroom on the parent
+subhead); headroom values in green-ink 10.15 / ember 8.76. Investment
+inputs wear accent-soft with an accent rail (the Total-budget 'plan'
+voice), Redemption wears moss-soft (money coming home); section inputs
+whitened onto --rule borders; more-toggle calmed to paper-soft +
+accent; preset chips re-inked to rule/muted; pending strip's amber
+kept. One language, defined once, worn twice - form and budget read as
+one book, and any future theme change moves both together.
+
 **CHIP + PEND - the garden grows, the organ remembers** (Aug 2026):
 CHIP: both chip gardens (Other, Recurring) end in a dashed '+ chip...'
 that opens an inline add row; user chips store as two string arrays in

@@ -5783,6 +5783,49 @@
                border-radius:9px; padding:8px 14px; cursor:pointer; color:#3a4f6e; }
   .mb-save { font-family:inherit; font-size:0.75rem; font-weight:600; border:none; background:#22334f;
              color:#fff; border-radius:9px; padding:8px 14px; cursor:pointer; }
+
+  /* ==== TH (Aug 2026): Investments & Expenses speaks the Month Budget card's
+     language - 2px rails, mono micro-labels, paper/ink, accent & moss voices.
+     Scoped overrides; the legacy maroon rules remain as base for nothing else
+     in this section once these win the cascade. ==== */
+  .subhead {
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    background: none; color: var(--muted);   /* the card's own micro-label ink, 8.66:1 */
+    font-family: var(--mono); font-size: 0.5938rem; font-weight: 600;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 2px 0 2px 10px; border-left: 2px solid var(--rule);
+    border-radius: 0; margin: 16px 0 9px;
+  }
+  .subhead.invest { background: none; border-left-color: var(--accent); }
+  .subhead.daily, .subhead.disc, .subhead.rec, .subhead.recu { background: none; }
+  .subhead.daily.hd-ok { border-left-color: var(--moss); }
+  .subhead.daily.hd-ov { border-left-color: var(--ember); }
+  .sh-hd { font-family: var(--sans); font-weight: 700; font-size: 0.6875rem;
+           margin-left: auto; font-variant-numeric: tabular-nums; }
+  .sh-hd.ok { color: var(--green-ink); }
+  .sh-hd.ov { color: var(--ember); }
+  .sh-tags { font-family: var(--mono); font-size: 0.5rem; font-weight: 600;
+             letter-spacing: 0.06em; color: var(--muted); margin-left: auto;
+             border: 1px solid var(--rule); border-radius: 5px; padding: 1px 6px; }
+  .s-expenses .input, .section.s-expenses .textarea { background: #fff; border-color: var(--rule); }
+  #f_regularInvestment, #f_topUp {
+    background: var(--accent-soft); border-color: var(--accent-soft);
+    border-left: 2px solid var(--accent);
+  }
+  #f_investmentRedemption {
+    background: var(--moss-soft); border-color: var(--moss-soft);
+    border-left: 2px solid var(--moss);
+  }
+  .s-expenses .field label { font-size: 0.6875rem; font-weight: 600; color: var(--muted); }
+  .exp-more-toggle {
+    background: var(--paper-soft); border-color: var(--rule); color: var(--accent);
+  }
+  .exp-more-toggle .exp-more-label { color: var(--accent); }
+  .s-expenses .chip-preset, .other-chip, .rec-chip.chip-preset {
+    background: #fff; border-color: var(--rule); color: var(--muted);
+  }
+  .other-chip { background: #fff; border-color: var(--rule); color: var(--muted); }
+  .rec-pend { border-left-color: #BA7517; background: #F8F1E4; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -13535,10 +13578,20 @@ function paintFormHeadroom() {
     const el = document.getElementById(ids[key]);
     if (!el) return;
     const b = bud[key];
-    if (!hasBudget || b === undefined || b === null) { el.textContent = ''; el.className = 'sh-hd'; return; }
+    if (!hasBudget || b === undefined || b === null) {
+      el.textContent = ''; el.className = 'sh-hd';
+      const h0 = el.closest('.subhead'); if (h0) h0.classList.remove('hd-ok', 'hd-ov');
+      return;
+    }
     const left = (Number(b) || 0) - (env.spent[key] || 0);
-    if (left >= 0) { el.textContent = _inr(left) + ' left'; el.className = 'sh-hd ok'; }
-    else { el.textContent = _inr(-left) + ' over'; el.className = 'sh-hd ov'; }
+    const head = el.closest('.subhead');
+    if (left >= 0) {
+      el.textContent = _inr(left) + ' left'; el.className = 'sh-hd ok';
+      if (head) { head.classList.add('hd-ok'); head.classList.remove('hd-ov'); }
+    } else {
+      el.textContent = _inr(-left) + ' over'; el.className = 'sh-hd ov';
+      if (head) { head.classList.add('hd-ov'); head.classList.remove('hd-ok'); }
+    }
   });
 }
 function renderMonthBudget(monthYM, entries) {
