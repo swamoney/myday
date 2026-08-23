@@ -64,6 +64,23 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**U + LG - underlined headings, the flat ledger** (Aug 2026): the
+section headings grew to 0.75rem mono and the left rail retired for
+Rahul's better idea - a 2px UNDERLINE carrying identity and state in
+one stroke: accent under Investments (label inked accent), moss under
+an envelope with money left, ember when over (hd-ok/hd-ov painted by
+paintFormHeadroom as before), rule-grey for plain organs; headroom
+values grew to match their headings. LG: the recurring log's grouped
+staircase (date headers, indents, 'migrated' annotation) retired for a
+flat ledger - date - name - flip-tag - amount - delete, one line per
+bill, newest first, ellipsis names, month-named total row on a firm
+2px top rule ('August - 5 payments - 52,408'); today rides the date
+cell; tap-to-flip and delete unchanged (same data attributes, same
+delegated/rewired listeners); orphaned todayMonthPrefix retired with
+its only consumer. Splice note: the grouped block was replaced
+positionally between stable anchors after a whitespace-mismatched rep
+- long blocks splice by anchors, short ones rep exactly.
+
 **TH - the form wears the card's clothes** (Aug 2026): the maroon-and-
 cream era of Investments & Expenses retired; the section now speaks the
 Month Budget card's exact language via one appended, scoped CSS block

@@ -5790,17 +5790,18 @@
      in this section once these win the cascade. ==== */
   .subhead {
     display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
-    background: none; color: var(--muted);   /* the card's own micro-label ink, 8.66:1 */
-    font-family: var(--mono); font-size: 0.5938rem; font-weight: 600;
-    letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 2px 0 2px 10px; border-left: 2px solid var(--rule);
-    border-radius: 0; margin: 16px 0 9px;
+    background: none; color: var(--muted);   /* micro-label ink, 8.66:1 */
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 2px 0 6px 0; border-left: none;
+    border-bottom: 2px solid var(--rule);   /* U: the underline carries identity + state */
+    border-radius: 0; margin: 16px 0 10px;
   }
-  .subhead.invest { background: none; border-left-color: var(--accent); }
+  .subhead.invest { background: none; border-bottom-color: var(--accent); color: var(--accent); }
   .subhead.daily, .subhead.disc, .subhead.rec, .subhead.recu { background: none; }
-  .subhead.daily.hd-ok { border-left-color: var(--moss); }
-  .subhead.daily.hd-ov { border-left-color: var(--ember); }
-  .sh-hd { font-family: var(--sans); font-weight: 700; font-size: 0.6875rem;
+  .subhead.daily.hd-ok { border-bottom-color: var(--moss); }
+  .subhead.daily.hd-ov { border-bottom-color: var(--ember); }
+  .sh-hd { font-family: var(--sans); font-weight: 700; font-size: 0.75rem;
            margin-left: auto; font-variant-numeric: tabular-nums; }
   .sh-hd.ok { color: var(--green-ink); }
   .sh-hd.ov { color: var(--ember); }
@@ -5826,6 +5827,16 @@
   }
   .other-chip { background: #fff; border-color: var(--rule); color: var(--muted); }
   .rec-pend { border-left-color: #BA7517; background: #F8F1E4; }
+  /* LG: the flat ledger */
+  .rec-log-row.lg { display: flex; align-items: baseline; gap: 8px; padding: 6px 0;
+                    border-bottom: 1px dashed var(--rule); }
+  .rec-log-row.lg:last-child { border-bottom: none; }
+  .rec-log-row.lg .lg-d { font-family: var(--mono); font-size: 0.5938rem; color: var(--muted);
+                          flex: 0 0 auto; min-width: 44px; font-variant-numeric: tabular-nums; }
+  .rec-log-row.lg .rec-log-name { flex: 1; min-width: 0; overflow: hidden;
+                                  text-overflow: ellipsis; white-space: nowrap; }
+  .rec-log-row.lg .rec-log-amt { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .rec-log-totalrow { border-top: 2px solid var(--rule); font-weight: 700; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="config.js"></script>
@@ -17210,53 +17221,28 @@ function renderRecurringLog() {
   //   May 1 · migrated     ← annotation appears on day-1 of past months with 3+ payments,
   //     ...                  marking the historical-import stack date.
   const todayIso = isoToday();
-  const todayMonthPrefix = todayIso.slice(0, 7);
-  const groups = []; // [{date, items[]}, ...] preserving sort order
-  let curDate = null;
-  let curGroup = null;
-  for (const it of items) {
-    if (it.date !== curDate) {
-      curDate = it.date;
-      curGroup = { date: it.date, items: [] };
-      groups.push(curGroup);
-    }
-    curGroup.items.push(it);
-  }
-
+  // LG (Aug 2026): the grouped staircase retired - one bill, one line.
+  // date - name - group tag (tap flips) - amount - delete; newest first.
   let total = 0;
   const byGroup = { home: 0, office: 0 };
-  const groupHtml = groups.map(g => {
-    // Header annotation
-    let annotation = '';
-    if (g.date === todayIso) {
-      annotation = ' · today';
-    } else if (g.date.endsWith('-01') && g.date.slice(0, 7) < todayMonthPrefix && g.items.length >= 3) {
-      annotation = ' · migrated';
-    }
-    const headerSafe = recShortDate(g.date) + annotation;
-    const rowsHtml = g.items.map(it => {
-      total += it.amt;
-      const grp = resolveRecurringGroup(it);
-      byGroup[grp] += it.amt;
-      // RG: the tag is the edit - with two groups, tap flips home <-> office.
-      const tag = '<button type="button" class="rec-gt ' + grp + '" data-recflip-date="' + g.date
-        + '" data-recflip-idx="' + (it.idx !== undefined ? it.idx : '') + '" title="Tap to switch group">'
-        + (grp === 'office' ? 'OFFICE' : 'HOME') + '</button>';
-      const safeName = it.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-      return `<div class="rec-log-row">
-        <span class="rec-log-name">${safeName}</span>
-        ${tag}
-        <span class="rec-log-amt">${recFmt(it.amt)}</span>
-        <button type="button" class="rec-log-del" data-rec-del-date="${it.date}" data-rec-del-idx="${it.idx}" aria-label="Remove ${safeName}">×</button>
-      </div>`;
-    }).join('');
-    const isToday = g.date === todayIso;
-    return `<div class="rec-log-group${isToday ? ' is-today' : ''}">
-      <div class="rec-log-datehead">${headerSafe}</div>
-      <div class="rec-log-grouprows">${rowsHtml}</div>
+  const flatHtml = items.map(it => {
+    total += it.amt;
+    const grp = resolveRecurringGroup(it);
+    byGroup[grp] += it.amt;
+    const tag = '<button type="button" class="rec-gt ' + grp + '" data-recflip-date="' + it.date
+      + '" data-recflip-idx="' + (it.idx !== undefined ? it.idx : '') + '" title="Tap to switch group">'
+      + (grp === 'office' ? 'OFFICE' : 'HOME') + '</button>';
+    const safeName = it.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const dcell = recShortDate(it.date) + (it.date === todayIso ? ' \u00b7 today' : '');
+    return `<div class="rec-log-row lg">
+      <span class="lg-d">${dcell}</span>
+      <span class="rec-log-name">${safeName}</span>
+      ${tag}
+      <span class="rec-log-amt">${recFmt(it.amt)}</span>
+      <button type="button" class="rec-log-del" data-rec-del-date="${it.date}" data-rec-del-idx="${it.idx}" aria-label="Remove ${safeName}">\u00d7</button>
     </div>`;
   }).join('');
-  rowsEl.innerHTML = groupHtml;
+  rowsEl.innerHTML = flatHtml;
   // Phase 11+: Total line + Home/Office/Subscriptions sub-lines. The
   // bifurcation uses the same `recurringGroupForName(name)` helper that
   // drives the Outflow Breakdown pages — single source of truth. Each
@@ -17268,8 +17254,9 @@ function renderRecurringLog() {
   ].filter(g => g.amt > 0).map(g =>
     `<div class="rec-log-subline"><span>${g.label}</span><span class="amt">${recFmt(g.amt)}</span></div>`
   ).join('');
+  const [ , mNum ] = monthPrefix.split('-').map(Number);
   totalEl.innerHTML =
-    `<div class="rec-log-totalrow"><span>${items.length} payment${items.length === 1 ? '' : 's'}</span><span class="amt">${recFmt(total)}</span></div>` +
+    `<div class="rec-log-totalrow"><span>${MONTH_NAMES[mNum - 1]} \u00b7 ${items.length} payment${items.length === 1 ? '' : 's'}</span><span class="amt">${recFmt(total)}</span></div>` +
     subLines;
 
   // Wire remove buttons
