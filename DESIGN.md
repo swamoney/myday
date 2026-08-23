@@ -90,7 +90,11 @@ ember pill, measured); Other and Recurring organs stay whole wearing
 deal-tags; Tracking-only badge for CC+GST; fold label rewritten.
 Headroom painter reads monthEnvelopes_+budgetsForYm_ for the BROWSED
 month; hooks: boot, every upsertEntry, date change; absent budget =
-empty chip, never zeros. Build lessons: a phantom count in a staged
+empty chip, never zeros. Post-ship fix: the headroom painter passed bare entry objects where
+monthEnvelopes_ destructures {date, entry} wrappers - e became
+undefined and e['food'] threw at boot ('Failed to start'). Callers
+must match a function's parameter SHAPE, not just its name; the
+painter now passes the wrappers untouched. Build lessons: a phantom count in a staged
 edit traced to a wrong-guessed class name ('subhead rec' vs the true
 'subhead recu rec-merged-head') - anchors are read from the file, never
 assumed; and mid-script assertion deaths between staged writes are why

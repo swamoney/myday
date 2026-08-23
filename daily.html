@@ -13427,10 +13427,11 @@ function paintFormHeadroom() {
   Object.keys(allEntries).forEach(dt => {
     if (dt.startsWith(ym)) entries.push({ date: dt, entry: allEntries[dt] });
   });
-  const flat = entries.map(x => x.entry);
+  // monthEnvelopes_ expects the month's {date, entry} wrappers - pass them
+  // as-is (the bare-entry version threw e['food'] on undefined at boot).
   const bud = budgetsForYm_(ym);
   const hasBudget = Object.keys(bud).length > 0;
-  const env = flat.length ? monthEnvelopes_(flat) : { spent: {} };
+  const env = entries.length ? monthEnvelopes_(entries) : { spent: {} };
   Object.keys(ids).forEach(key => {
     const el = document.getElementById(ids[key]);
     if (!el) return;
