@@ -2781,6 +2781,11 @@
             color:#3D4866; border-radius:999px; padding:5px 11px; cursor:pointer; }
   .oe-env.on { background:var(--accent); border-color:var(--accent); color:#fff; }
   .oe-env.on.auto { border-style:dashed; }
+  .rec-gt { font-family:var(--mono, monospace); font-size:0.5313rem; font-weight:600;
+            letter-spacing:0.06em; border:1px solid transparent; border-radius:6px;
+            padding:2px 8px; cursor:pointer; }
+  .rec-gt.home { background:#E9EEF6; color:#20355c; }
+  .rec-gt.office { background:#F1E7E0; color:#5e2f14; }
   .other-error {
     margin-top: 8px; padding: 8px 10px;
     background: #FBEAE8; border: 1px solid #E5B0AA; border-radius: 8px;
@@ -6332,7 +6337,6 @@
           <div class="oe-envs" id="reGrps" role="group" aria-label="Which group?">
             <button type="button" class="oe-env" data-regrp="office">OFFICE · P0</button>
             <button type="button" class="oe-env" data-regrp="home">HOME · P1</button>
-            <button type="button" class="oe-env" data-regrp="subscriptions">SUBSCRIPTIONS · P1</button>
           </div>
           <button type="button" class="rec-add-btn" id="recLogBtn">Log payment</button>
           <div class="rec-error hidden" id="recError"></div>
@@ -7771,26 +7775,26 @@ function recurringGroupForName(name) {
   // media subscriptions). Workspace = Google Workspace for business; Gmail
   // here is the paid business Gmail tier. Personal Gmail isn't paid so won't
   // appear in recurring data.
-  if (n.includes('office') || n.includes('workspace') || n.includes('gmail')) return 'office';
+  if (n.includes('office') || n.includes('workspace') || n.includes('gmail') || n.includes('chatgpt')) return 'office';
   // Subscription keywords. Audible joined the list (it's a service subscription
   // like Netflix/Spotify). Mobile was removed — Mobile Bill is a household
   // utility, not a media subscription, and was tagged 'home' in the original
   // System 1 data. Aligning with that mental model: phone bills are Home.
-  if (n.includes('netflix') || n.includes('chatgpt') ||
-      n.includes('audible') || n.includes('prime') ||
-      n.includes('spotify') || n.includes('subscription')) return 'subscriptions';
-  return 'home'; // rent, light bill, gas, mobile bill, and anything unrecognized
+  // RG (Aug 2026): subscriptions retired - netflix, audible, prime, spotify
+  // and friends simply live at home now; chatgpt moved into the office words.
+  return 'home'; // rent, bills, media, and anything unrecognized
 }
 // RE-1 (Aug 2026): a payment's own mark rules; the keyword rules are defaults.
 function resolveRecurringGroup(item) {
-  if (item && (item.grp === 'office' || item.grp === 'home' || item.grp === 'subscriptions')) return item.grp;
+  if (item && item.grp === 'office') return 'office';
+  if (item && (item.grp === 'home' || item.grp === 'subscriptions')) return 'home'; // old subs marks alias home
   return recurringGroupForName(item && item.name);
 }
 
 function getRecurringTotalsForMonth(yearMonth) {
   let logged = 0;
   let loggedCount = 0;
-  const byGroup = { home: 0, office: 0, subscriptions: 0 };
+  const byGroup = { home: 0, office: 0 };
   Object.keys(allEntries).forEach(d => {
     if (!d.startsWith(yearMonth)) return;
     parseRecurring(allEntries[d]).forEach(p => {
@@ -7874,6 +7878,24 @@ function setRecurring(entry, arr) {
 // Add a payment {name, amt} to a given date. Handles the cross-date write:
 // if the date is the currently-viewed date, updates currentEntry + the form;
 // otherwise fetches/creates that date's cached entry and upserts it directly.
+// RG (Aug 2026): tap a ledger tag to flip that payment's group. Writes the
+// mark into the parcel (permanent, backed up); repaints ledger + headroom.
+async function flipRecurringGroup(dateIso, idx) {
+  let entry;
+  if (dateIso === currentDate && currentEntry) entry = currentEntry;
+  else if (allEntries[dateIso]) entry = allEntries[dateIso];
+  else return;
+  const arr = parseRecurring(entry);
+  const item = arr[idx];
+  if (!item) return;
+  const cur = resolveRecurringGroup(item);
+  item.grp = cur === 'office' ? 'home' : 'office';
+  setRecurring(entry, arr);
+  allEntries[dateIso] = entry;
+  try { await upsertEntry(dateIso, entry); } catch (e) { console.error(e); toast('Could not save'); return; }
+  if (typeof renderRecurringLog === 'function') renderRecurringLog();
+  toast(item.name + ' \u2192 ' + (item.grp === 'office' ? 'Office \u00B7 P0' : 'Home \u00B7 P1'));
+}
 async function addRecurringPayment(dateIso, name, amt, grp) {
   name = String(name || '').trim();
   amt = Number(amt) || 0;
@@ -12288,7 +12310,6 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
   const recCats = recT && recT.byGroup ? [
     { key: 'home',          label: 'Home',          val: recT.byGroup.home          || 0 },
     { key: 'office',        label: 'Office',        val: recT.byGroup.office        || 0 },
-    { key: 'subscriptions', label: 'Subscriptions', val: recT.byGroup.subscriptions || 0 },
   ].filter(c => c.val > 0).sort((a, b) => b.val - a.val) : [];
 
   // Item 1 (Option A): plain ranked list — no bars, no colors. Just numbers.
@@ -12384,7 +12405,7 @@ function renderMonthHotelDrilldown(monthYM, entries) {
 // Per-session expand state for Month accordions. Lost on full reload — all
 // four accordions default-closed for a clean Month overview; user expands
 // the ones they want to drill into.
-const _monthAccExpanded = { away: false, sleep: false, daySummary: false, otherBreakdown: false, recurringHome: false, recurringOffice: false, recurringSubs: false };
+const _monthAccExpanded = { away: false, sleep: false, daySummary: false, otherBreakdown: false, recurringHome: false, recurringOffice: false };
 
 // Month-scoped Away/No-sleep accordion renderer. Mirrors the Year view's
 // deeper accordion format (icon + name + count + total + chevron header,
@@ -12783,7 +12804,6 @@ function renderMonthRecurringGroupBreakdowns(monthYM, entries) {
   const groups = [
     { key: 'home',          label: 'Recurring · Home',          stateKey: 'recurringHome' },
     { key: 'office',        label: 'Recurring · Office',        stateKey: 'recurringOffice' },
-    { key: 'subscriptions', label: 'Recurring · Subscriptions', stateKey: 'recurringSubs' },
   ];
   let html = '';
   groups.forEach(g => {
@@ -13406,10 +13426,9 @@ function monthEnvelopes_(entries) {
     parseRecurring(e).forEach(r => {
       const amt = Number(r.amt) || 0; if (!amt) return;
       const nm = String(r.name || '').trim();
-      if (!r.grp && nm.toLowerCase().includes('chatgpt')) { put('official', 'Recurring \u00B7 ChatGPT', 'recurring', amt); return; }
       const g = resolveRecurringGroup(r);
       if (g === 'office') put('official', 'Recurring \u00B7 office', 'recurring', amt);
-      else put('home', 'Recurring \u00B7 ' + g, 'recurring', amt);
+      else put('home', 'Recurring \u00B7 home', 'recurring', amt);
     });
   });
   return { spent, detail };
@@ -14114,7 +14133,7 @@ function _groupConsecutiveTrips(awayEntries) {
 
 // Year accordion expanded state — in-memory only (resets on reload, like
 // the recurring section's monthly groups). Keys: 'away' | 'sleep'.
-const _yearAccExpanded = { away: false, sleep: false, otherBreakdown: false, recurringHome: false, recurringOffice: false, recurringSubs: false };
+const _yearAccExpanded = { away: false, sleep: false, otherBreakdown: false, recurringHome: false, recurringOffice: false };
 
 // Phase 10: build a Year sub-view card with 12 monthly bars for a single
 // expense category (e.g. Hotel Stay or Shopping). Returns HTML string.
@@ -14279,7 +14298,7 @@ function renderYear() {
   // any data, getRecurringTotalsForMonth scans allEntries synchronously — no
   // async fetch, no caching, no "loaded months" tracking. Future months simply
   // contribute 0 because no entries exist for them.
-  const yearRecByGroup = { home: 0, office: 0, subscriptions: 0 };
+  const yearRecByGroup = { home: 0, office: 0 };
   monthsWithData.forEach(ym => {
     const recT = getRecurringTotalsForMonth(ym);
     monthlySpend[ym].recurring = recT.logged || 0;
@@ -14287,7 +14306,6 @@ function renderYear() {
     if (recT.byGroup) {
       yearRecByGroup.home          += recT.byGroup.home          || 0;
       yearRecByGroup.office        += recT.byGroup.office        || 0;
-      yearRecByGroup.subscriptions += recT.byGroup.subscriptions || 0;
     }
   });
   // Phase 11: pre-build the year-scoped recT for the Outflow breakdown card.
@@ -14429,7 +14447,6 @@ function renderYear() {
   const _yearRgGroups = [
     { key: 'home',          label: 'Recurring · Home',          stateKey: 'recurringHome' },
     { key: 'office',        label: 'Recurring · Office',        stateKey: 'recurringOffice' },
-    { key: 'subscriptions', label: 'Recurring · Subscriptions', stateKey: 'recurringSubs' },
   ];
   _yearRgGroups.forEach(g => {
     html += _renderRecurringGroupBreakdownHtml(g.label, g.key, yearEntries, {
@@ -14574,7 +14591,6 @@ function renderYear() {
     { accId: 'year-other-breakdown', stateKey: 'otherBreakdown' },
     { accId: 'year-rg-home',         stateKey: 'recurringHome' },
     { accId: 'year-rg-office',       stateKey: 'recurringOffice' },
-    { accId: 'year-rg-subscriptions',stateKey: 'recurringSubs' },
   ];
   _yearBdToggles.forEach(t => {
     const head = wrap.querySelector(`[data-ob-toggle="${t.accId}"]`);
@@ -15545,7 +15561,7 @@ function pdfComputeOutflow(entries) {
   // Phase 11+: recurring split into 3 sub-categories (Home/Office/Subscriptions)
   // matching the in-app Outflow Breakdown's structure. recurringGroupForName()
   // classifies each payment by keyword (defined earlier in the file).
-  const recByGroup = { home: 0, office: 0, subscriptions: 0 };
+  const recByGroup = { home: 0, office: 0 };
   for (const e of entries) {
     // Iterate all 10 spend fields INCLUDING aiUsage so its value is captured.
     // The app's renderOutflowBreakdown folds aiUsage into Other (line 10625:
@@ -15579,7 +15595,6 @@ function pdfComputeOutflow(entries) {
     { key: 'other',          label: 'Other',                 val: otherWithAi },
     { key: 'recHome',        label: 'Recurring \u00b7 Home',         val: recByGroup.home },
     { key: 'recOffice',      label: 'Recurring \u00b7 Office',       val: recByGroup.office },
-    { key: 'recSubs',        label: 'Recurring \u00b7 Subscriptions', val: recByGroup.subscriptions },
   ].filter(c => c.val > 0).sort((a, b) => b.val - a.val);
   const total = cats.reduce((s, c) => s + c.val, 0);
   return { cats, total };
@@ -15601,7 +15616,6 @@ const PDF_OUTFLOW_COLORS = {
   // shaded by group so they read as related rows even when sort splits them.
   recHome:       [122,  46,  26],  // deepest ember-brown (rent/utilities)
   recOffice:     [146,  68,  46],  // mid ember-brown (office bills)
-  recSubs:       [170,  92,  68],  // lightest ember-brown (subscriptions)
 };
 
 // Draw a full Outflow Breakdown page. "kicker" e.g. "OUTFLOW · MAY 2026",
@@ -15882,7 +15896,6 @@ function pdfDrawOutflowBreakdown(doc, kicker, title, subtitle, cats, total, entr
       const groups = [
         { key: 'home',          label: 'Recurring · Home' },
         { key: 'office',        label: 'Recurring · Office' },
-        { key: 'subscriptions', label: 'Recurring · Subscriptions' },
       ];
       for (const g of groups) {
         const grpAgg = aggregateRecurringByGroup(wrapped, g.key, topN);
@@ -17001,7 +17014,7 @@ function renderRecurringLog() {
     if (!d.startsWith(monthPrefix)) return;
     const payments = parseRecurring(allEntries[d]);
     payments.forEach((p, idx) => {
-      items.push({ date: d, name: p.name, amt: p.amt, idx });
+      items.push({ date: d, name: p.name, amt: p.amt, grp: p.grp, idx });
     });
   });
   // Sort by date descending, then by index descending (most recent additions first)
@@ -17044,7 +17057,7 @@ function renderRecurringLog() {
   }
 
   let total = 0;
-  const byGroup = { home: 0, office: 0, subscriptions: 0 };
+  const byGroup = { home: 0, office: 0 };
   const groupHtml = groups.map(g => {
     // Header annotation
     let annotation = '';
@@ -17056,10 +17069,16 @@ function renderRecurringLog() {
     const headerSafe = recShortDate(g.date) + annotation;
     const rowsHtml = g.items.map(it => {
       total += it.amt;
-      byGroup[resolveRecurringGroup(it)] += it.amt;
+      const grp = resolveRecurringGroup(it);
+      byGroup[grp] += it.amt;
+      // RG: the tag is the edit - with two groups, tap flips home <-> office.
+      const tag = '<button type="button" class="rec-gt ' + grp + '" data-recflip-date="' + g.date
+        + '" data-recflip-idx="' + (it.idx !== undefined ? it.idx : '') + '" title="Tap to switch group">'
+        + (grp === 'office' ? 'OFFICE' : 'HOME') + '</button>';
       const safeName = it.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       return `<div class="rec-log-row">
         <span class="rec-log-name">${safeName}</span>
+        ${tag}
         <span class="rec-log-amt">${recFmt(it.amt)}</span>
         <button type="button" class="rec-log-del" data-rec-del-date="${it.date}" data-rec-del-idx="${it.idx}" aria-label="Remove ${safeName}">×</button>
       </div>`;
@@ -17079,7 +17098,6 @@ function renderRecurringLog() {
   const subLines = [
     { label: 'Home',          amt: byGroup.home },
     { label: 'Office',        amt: byGroup.office },
-    { label: 'Subscriptions', amt: byGroup.subscriptions },
   ].filter(g => g.amt > 0).map(g =>
     `<div class="rec-log-subline"><span>${g.label}</span><span class="amt">${recFmt(g.amt)}</span></div>`
   ).join('');
@@ -17208,6 +17226,15 @@ function setupRecurring() {
     b.addEventListener('click', () => { reSel = b.dataset.regrp; reAuto = false; rePaint_(); });
   });
   rePaint_();
+  // RG: the ledger tag is the edit - one delegated listener on the static host.
+  const recRowsHost = document.getElementById('recLogRows');
+  if (recRowsHost) recRowsHost.addEventListener('click', e => {
+    const t = e.target.closest('[data-recflip-date]');
+    if (!t) return;
+    const idx = Number(t.dataset.recflipIdx);
+    if (!isFinite(idx)) return;
+    flipRecurringGroup(t.dataset.recflipDate, idx);
+  });
 
   // Batch 2 (D): refresh the amount-suggest pill on name OR amount changes.
   // Hides automatically when name is empty or amount has a value.

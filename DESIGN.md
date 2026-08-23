@@ -64,6 +64,25 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**RG - two groups, and the tag is the edit** (Aug 2026): the
+subscriptions group retired on Rahul's order - the keyword rules now
+answer only home or office (chatgpt joined the office words; netflix,
+audible, prime, spotify simply fall home), the engine's separate
+ChatGPT exception retired with it (the rule now says plainly what the
+exception whispered), old 'subscriptions' marks alias home in the
+resolver forever, the RE-1 picker slimmed to two chips, and every
+three-way breakdown (month cards, year cards, PDF, hub sums, accordion
+state keys, orphaned palette row) slimmed to two in the same commit.
+Envelope history unmoved: subscriptions already lived in P1 and
+ChatGPT already reached P0. New editing gesture, enabled BY the
+simplification: every ledger row wears its group as a small tappable
+tag (HOME steel-blue / OFFICE warm-brown, both 9+:1) - one tap flips
+the payment's mark home<->office, persists via the parcel, repaints,
+toasts. With two groups the edit IS the toggle; the ledger items
+builder now carries p.grp through (it was rebuilding {date,name,amt,
+idx} and would have shown keyword defaults over real marks - the
+parser-strips-marks bug's little brother, caught by the same eye).
+
 **THE GREAT REGROUPING - R-B + OE-1 + RE-1 + Books->P0 + H-3**
 (Aug 2026): the largest single build, shipped after a written audit
 with five flags and Rahul's CONFIRM. What shipped: (1) H-3 - new
