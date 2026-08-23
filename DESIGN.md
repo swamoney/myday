@@ -64,6 +64,23 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**CHIP + PEND - the garden grows, the organ remembers** (Aug 2026):
+CHIP: both chip gardens (Other, Recurring) end in a dashed '+ chip...'
+that opens an inline add row; user chips store as two string arrays in
+user_prefs (Supabase-synced, backup-riding, no new table), render after
+the preset residents, behave exactly like presets (name-fill +
+dispatched input event so pre-lights fire), and an 'edit chips' link
+toggles a pruning x on user chips only. All garden interaction is
+DELEGATED on the container because custom chips re-render. PEND: an
+amber-railed strip at the top of the Recurring organ - 'Still to pay:
+X - N bills' with names and ~last-paid amounts (the same lastByName
+memory the suggest pill uses), sorted largest first; moss 'All bills
+paid - X this month' when settled; hidden when history knows nothing.
+Gate: only the CURRENT real month nags - browsing past months shows no
+reminder, because a closed month owes nothing. Reuses
+getRecurringHistory's usuallyPaid (2-of-last-3-months) untouched.
+Simulation: 4 owed bills summing 5,192, largest first.
+
 **RG - two groups, and the tag is the edit** (Aug 2026): the
 subscriptions group retired on Rahul's order - the keyword rules now
 answer only home or office (chatgpt joined the office words; netflix,

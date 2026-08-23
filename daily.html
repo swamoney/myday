@@ -2786,6 +2786,27 @@
             padding:2px 8px; cursor:pointer; }
   .rec-gt.home { background:#E9EEF6; color:#20355c; }
   .rec-gt.office { background:#F1E7E0; color:#5e2f14; }
+  .chip-garden-tools { display:flex; justify-content:flex-end; margin-bottom:2px; }
+  .chip-edit-link { font-family:var(--sans); font-size:0.5938rem; color:#6b5a52; background:none;
+                    border:none; cursor:pointer; text-decoration:underline dotted; padding:2px 4px; }
+  .chip-addc { border:1px dashed #b9a89f !important; background:transparent !important;
+               color:#7a6a60 !important; }
+  .chip-x { color:#b3453a; font-weight:700; margin-left:4px; }
+  .chip-add-row { display:flex; gap:6px; margin-top:7px; }
+  .chip-add-row.hidden { display:none; }
+  .chip-add-row input { flex:1; font-family:var(--sans); font-size:0.75rem; padding:7px 10px;
+                        border:1px solid var(--rule); border-radius:9px; }
+  .rec-pend { border-left:3px solid #BA7517; background:#FBF3E4; border-radius:0 10px 10px 0;
+              padding:8px 11px; margin:9px 0 4px; }
+  .rec-pend.hidden { display:none; }
+  .rp-t { font-family:var(--sans); font-size:0.75rem; font-weight:700; color:#6d4408; }
+  .rp-t b { font-variant-numeric:tabular-nums; }
+  .rp-d { font-family:var(--sans); font-size:0.625rem; color:#8a6a3f; margin-top:2px; line-height:1.5; }
+  .rec-pend.allpaid { border-left-color:var(--moss, #2f6b4f); background:#EAF3ED; }
+  .rec-pend.allpaid .rp-t { color:#25543c; }
+  .chip-add-row button { font-family:var(--sans); font-size:0.6875rem; font-weight:600;
+                         border:1px solid var(--accent); background:var(--accent); color:#fff;
+                         border-radius:9px; padding:7px 12px; cursor:pointer; }
   .other-error {
     margin-top: 8px; padding: 8px 10px;
     background: #FBEAE8; border: 1px solid #E5B0AA; border-radius: 8px;
@@ -5770,6 +5791,7 @@
 <div class="import-overlay hidden" id="importOverlay">
   <div class="spinner"></div>
   <div class="msg-main" id="importMsgMain">Setting up your archive…</div>
+        <div class="rec-pend hidden" id="recPendStrip"></div>
   <div class="msg-sub" id="importMsgSub">First-time import</div>
 </div>
 
@@ -6234,6 +6256,7 @@
         <!-- Expanded entry panel: chips + name + amount + log button.
              Hidden by default; .is-expanded toggle on .field controls visibility. -->
         <div class="other-entry" id="otherEntry">
+          <div class="chip-garden-tools"><button type="button" class="chip-edit-link" data-chipedit="other">edit chips</button></div>
           <div class="other-entry-chips chips" id="otherChips">
             <button type="button" class="chip chip-preset other-chip" data-other-name="AI Usage"><span class="chip-plus" aria-hidden="true">+</span>AI Usage</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Software"><span class="chip-plus" aria-hidden="true">+</span>Software</button>
@@ -6250,6 +6273,10 @@
           <div class="other-entry-row">
             <input class="input other-name-input" type="text" id="otherName" placeholder="What did you buy?" autocomplete="off" aria-label="What did you buy?">
             <div class="currency-wrap other-amt-wrap"><span class="currency-symbol">₹</span><input class="input other-amt-input" type="text" inputmode="decimal" id="otherAmt" placeholder="0"></div>
+          <div class="chip-add-row hidden" id="otherChipAddRow">
+            <input type="text" id="otherChipAddName" placeholder="e.g., Gym Membership">
+            <button type="button" id="otherChipAddBtn">Add</button>
+          </div>
             <button type="button" class="other-log-btn" id="otherLogBtn" aria-label="Log item">&#10003;</button>
           </div>
           <div class="oe-envs" id="oeEnvs" role="group" aria-label="Which envelope?">
@@ -6316,7 +6343,8 @@
           <div class="rec-hint hidden" id="recHint"></div>
           <div class="rec-field">
             <input class="input rec-name-input" type="text" id="recName" placeholder="e.g., Flat Rent" autocomplete="off" aria-label="What did you pay today?">
-            <div class="chips rec-chips" id="recChips">
+            <div class="chip-garden-tools"><button type="button" class="chip-edit-link" data-chipedit="rec">edit chips</button></div>
+          <div class="chips rec-chips" id="recChips">
               <button type="button" class="chip chip-preset rec-chip" data-rec-name="Flat Rent"><span class="chip-plus" aria-hidden="true">+</span>Flat Rent</button>
               <button type="button" class="chip chip-preset rec-chip" data-rec-name="Flat Light Bill"><span class="chip-plus" aria-hidden="true">+</span>Flat Light Bill</button>
               <button type="button" class="chip chip-preset rec-chip" data-rec-name="MNGL Gas"><span class="chip-plus" aria-hidden="true">+</span>MNGL Gas</button>
@@ -6328,6 +6356,10 @@
               <button type="button" class="chip chip-preset rec-chip" data-rec-name="Workspace Com"><span class="chip-plus" aria-hidden="true">+</span>Workspace Com</button>
               <button type="button" class="chip chip-preset rec-chip" data-rec-name="ChatGPT"><span class="chip-plus" aria-hidden="true">+</span>ChatGPT</button>
             </div>
+          <div class="chip-add-row hidden" id="recChipAddRow">
+            <input type="text" id="recChipAddName" placeholder="e.g., Gym Membership">
+            <button type="button" id="recChipAddBtn">Add</button>
+          </div>
           </div>
           <div class="rec-field">
             <label class="rec-label">Amount</label>
@@ -7249,6 +7281,28 @@ const RES_KEYS = {
 //   localStorage continues as offline mirror after migration.
 
 let _userPrefs = { homeAddresses: [] };  // cache, replaced on load
+// CHIP (Aug 2026): user-grown chip gardens. Two string arrays in prefs -
+// customOtherChips / customRecChips - ride user_prefs (Supabase + backups).
+function getCustomChips(kind) {
+  const k = kind === 'rec' ? 'customRecChips' : 'customOtherChips';
+  return Array.isArray(_userPrefs[k]) ? _userPrefs[k] : [];
+}
+function addCustomChip(kind, name) {
+  name = String(name || '').trim();
+  if (!name) return false;
+  const k = kind === 'rec' ? 'customRecChips' : 'customOtherChips';
+  if (!Array.isArray(_userPrefs[k])) _userPrefs[k] = [];
+  if (_userPrefs[k].some(x => x.toLowerCase() === name.toLowerCase())) return false;
+  _userPrefs[k].push(name);
+  _saveUserPrefs();
+  return true;
+}
+function removeCustomChip(kind, name) {
+  const k = kind === 'rec' ? 'customRecChips' : 'customOtherChips';
+  if (!Array.isArray(_userPrefs[k])) return;
+  _userPrefs[k] = _userPrefs[k].filter(x => x.toLowerCase() !== String(name).toLowerCase());
+  _saveUserPrefs();
+}
 let _userPrefsLoaded = false;             // false until first load completes
 let _userPrefsPendingSave = null;         // timer id for debounced save
 let _userPrefsSaveQueued = false;         // true if a save was requested while a save was in flight
@@ -13437,6 +13491,31 @@ function _inr(n) { return '\u20B9' + Math.round(n).toLocaleString('en-IN'); }
 // R-B (Aug 2026): live headroom on the entry form's envelope subheads.
 // Reads the same engine as the Budget room: monthEnvelopes_ + budgetsForYm_.
 // Absent budget -> chip stays empty (no zeros pretending).
+// CHIP: paint the user-grown chips into a garden. Presets stay in markup;
+// customs render after them, before the dashed add-chip. Edit mode shows x.
+function renderCustomChips(kind) {
+  const host = document.getElementById(kind === 'rec' ? 'recChips' : 'otherChips');
+  if (!host) return;
+  host.querySelectorAll('.chip-custom, .chip-addc').forEach(el => el.remove());
+  const editing = host.dataset.editing === '1';
+  const cls = kind === 'rec' ? 'rec-chip' : 'other-chip';
+  const dataAttr = kind === 'rec' ? 'data-rec-name' : 'data-other-name';
+  getCustomChips(kind).forEach(nm => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip chip-preset ' + cls + ' chip-custom';
+    b.setAttribute(dataAttr, nm);
+    b.innerHTML = '<span class="chip-plus" aria-hidden="true">+</span>' + escHtml(nm)
+      + (editing ? '<span class="chip-x" data-chipx="' + escHtml(nm) + '" title="Remove chip">\u00D7</span>' : '');
+    host.appendChild(b);
+  });
+  const add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'chip chip-addc';
+  add.dataset.chipadd = kind;
+  add.textContent = '+ chip\u2026';
+  host.appendChild(add);
+}
 function paintFormHeadroom() {
   const ids = { food:'hd_food', transport:'hd_transport', lifestyle:'hd_lifestyle',
                 hotel:'hd_hotel', taxes:'hd_taxes' };
@@ -16858,6 +16937,41 @@ function recShortDate(iso) {
 // features. Single pass over allEntries returns three derived structures.
 // Inputs: viewedMonthYM (e.g. "2026-05") — the month being displayed.
 // Computed each time renderRecurringLog runs; the data is tiny.
+// PEND (Aug 2026): the organ remembers what the month still owes. A usual
+// bill (paid in 2+ of the last 3 months) that hasn't landed this month shows
+// with its last-paid amount (~estimate); amber while owed, moss when settled,
+// hidden when nothing is known. Only the CURRENT real month nags - browsing
+// the past shows no reminder (a closed month owes nothing).
+function renderRecPending(history, monthPrefix) {
+  const strip = document.getElementById('recPendStrip');
+  if (!strip) return;
+  const nowYM = isoToday().slice(0, 7);
+  if (monthPrefix !== nowYM || !history.usuallyPaid.length) {
+    strip.classList.add('hidden'); strip.innerHTML = ''; return;
+  }
+  const owed = [];
+  history.usuallyPaid.forEach(nl => {
+    if (history.paidThisMonth.has(nl)) return;
+    const last = history.lastByName.get(nl);
+    owed.push({ name: last ? last.name : nl, amt: last ? (Number(last.amt) || 0) : 0 });
+  });
+  if (!owed.length) {
+    let paidTotal = 0;
+    Object.keys(allEntries).forEach(dt => {
+      if (!dt.startsWith(monthPrefix)) return;
+      parseRecurring(allEntries[dt]).forEach(p => { paidTotal += Number(p.amt) || 0; });
+    });
+    strip.className = 'rec-pend allpaid';
+    strip.innerHTML = '<div class="rp-t">All bills paid \u00B7 ' + _inr(paidTotal) + ' this month \u2713</div>';
+    return;
+  }
+  owed.sort((a, b) => b.amt - a.amt);
+  const total = owed.reduce((s, x) => s + x.amt, 0);
+  strip.className = 'rec-pend';
+  strip.innerHTML = '<div class="rp-t">Still to pay: <b>' + _inr(total) + '</b> \u00B7 '
+    + owed.length + (owed.length === 1 ? ' bill' : ' bills') + '</div>'
+    + '<div class="rp-d">' + owed.map(x => escHtml(x.name) + ' ~' + _inr(x.amt)).join(' \u00B7 ') + '</div>';
+}
 function getRecurringHistory(viewedMonthYM) {
   const paidThisMonth = new Set();             // lowercase names paid in viewed month
   const monthlyNames = new Map();              // ym → Set of lowercase names paid that month
@@ -17008,6 +17122,7 @@ function renderRecurringLog() {
   refreshRecChipStates(history.paidThisMonth);
   refreshRecHint(history);
   refreshRecSuggest();
+  renderRecPending(history, monthPrefix);
 
   const items = []; // {date, name, amt, idx}
   Object.keys(allEntries).forEach(d => {
@@ -17226,6 +17341,47 @@ function setupRecurring() {
     b.addEventListener('click', () => { reSel = b.dataset.regrp; reAuto = false; rePaint_(); });
   });
   rePaint_();
+  // CHIP: gardens - delegated so custom chips work after every re-render.
+  [['other', 'otherChips', 'otherChipAddRow', 'otherChipAddName', 'otherChipAddBtn'],
+   ['rec', 'recChips', 'recChipAddRow', 'recChipAddName', 'recChipAddBtn']].forEach(([kind, hostId, rowId, nameId, btnId]) => {
+    const host = document.getElementById(hostId);
+    const row = document.getElementById(rowId);
+    const nameIn = document.getElementById(nameId);
+    const addBtn = document.getElementById(btnId);
+    if (!host || !row || !nameIn || !addBtn) return;
+    host.addEventListener('click', e => {
+      const x = e.target.closest('[data-chipx]');
+      if (x) { e.stopPropagation(); removeCustomChip(kind, x.dataset.chipx); renderCustomChips(kind); return; }
+      if (e.target.closest('.chip-addc')) { row.classList.toggle('hidden'); if (!row.classList.contains('hidden')) nameIn.focus(); return; }
+      const c = e.target.closest('.chip-custom');
+      if (c) {
+        // custom chips behave exactly like presets: fill the name, focus amount
+        const nm = c.getAttribute(kind === 'rec' ? 'data-rec-name' : 'data-other-name');
+        const target = document.getElementById(kind === 'rec' ? 'recName' : 'otherName');
+        if (target) { target.value = nm; target.dispatchEvent(new Event('input')); }
+        const amt = document.getElementById(kind === 'rec' ? 'recAmt' : 'otherAmt');
+        if (amt) { amt.focus(); amt.select(); }
+      }
+    });
+    const doAdd = () => {
+      if (addCustomChip(kind, nameIn.value)) { nameIn.value = ''; row.classList.add('hidden'); renderCustomChips(kind); toast('Chip added'); }
+      else toast('Give it a new name');
+    };
+    addBtn.addEventListener('click', doAdd);
+    nameIn.addEventListener('keydown', e => { if (e.key === 'Enter') doAdd(); });
+  });
+  document.querySelectorAll('[data-chipedit]').forEach(l => {
+    l.addEventListener('click', () => {
+      const kind = l.dataset.chipedit;
+      const host = document.getElementById(kind === 'rec' ? 'recChips' : 'otherChips');
+      if (!host) return;
+      host.dataset.editing = host.dataset.editing === '1' ? '' : '1';
+      l.textContent = host.dataset.editing === '1' ? 'done' : 'edit chips';
+      renderCustomChips(kind);
+    });
+  });
+  renderCustomChips('other');
+  renderCustomChips('rec');
   // RG: the ledger tag is the edit - one delegated listener on the static host.
   const recRowsHost = document.getElementById('recLogRows');
   if (recRowsHost) recRowsHost.addEventListener('click', e => {
