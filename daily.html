@@ -5841,6 +5841,41 @@
   /* organs highlighted: a soft band under the underline */
   .subhead.organ { background: var(--paper-soft); padding: 6px 9px;
                    border-radius: 9px 9px 0 0; }
+  /* ==== RC-A + OP-2 (Aug 2026): the golden door, the white room. ==== */
+  .rec-summary {
+    background: #F8F1E4; border: 1.5px solid #D9BD8E; border-radius: 11px;
+    padding: 10px 12px;
+  }
+  .rec-summary:hover { border-color: #C9A96B; background: #F6EDDA; }
+  .rec-summary.has-items { border-left: 1.5px solid #D9BD8E; padding-left: 12px; }
+  .rec-summary-text { font-family: var(--mono); font-size: 0.8125rem; font-weight: 600;
+                      color: var(--ink); font-variant-numeric: tabular-nums; }
+  .rec-summary-cta { font-family: var(--sans); font-size: 0.6875rem; font-weight: 500;
+                     color: var(--muted); }
+  .rec-door-owe { font-size: 0.6875rem; font-weight: 700; color: #8A5711;
+                  font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .rec-door-owe.settled { color: var(--green-ink); }
+  .rec-door-owe.hidden { display: none; }
+  .rec-summary-chev {
+    width: 22px; height: 22px; border-radius: 50%; background: #8A5711; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 0.6875rem;
+  }
+  .rec-summary-chev.settled { background: var(--moss); }
+  .rec-collapse-field.is-expanded .rec-summary {
+    border-radius: 11px 11px 0 0; border-bottom-color: transparent;
+  }
+  .rec-collapse-field.is-expanded .rec-summary-chev { transform: rotate(180deg); }
+  .rec-collapse-field.is-expanded .recurring-card {
+    border: 1.5px solid #D9BD8E; border-top: none; border-radius: 0 0 11px 11px;
+    background: #fff; padding: 11px 12px 12px; margin-top: 0;
+  }
+  .rec-owedline { font-size: 0.6563rem; color: #8A5711; line-height: 1.5;
+                  padding-bottom: 9px; border-bottom: 1px dashed #D9BD8E; margin-bottom: 10px; }
+  .rec-owedline b { font-variant-numeric: tabular-nums; }
+  .rec-owedline.hidden { display: none; }
+  .s-recurring .input { background: #fff; border-color: var(--rule); }
+  .rec-add-btn { background: var(--accent); border-color: var(--accent); }
+  .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
   /* the ledger's delete shrinks to a whisper */
   .rec-log-row.lg .rec-log-del { font-size: 0.625rem; padding: 1px 4px; color: #8a97b3; }
 </style>
@@ -6384,21 +6419,18 @@
            longer needs the focus-mode reveal rule since it lives inside
            s-expenses now. -->
       <div class="s-recurring s-recurring-merged rec-collapse-field">
-        <div class="subhead recu rec-merged-head organ">
-          Recurring payments
-          <span class="rec-merged-tag" title="These land on the exact date paid — log rent on the 1st even while viewing today">dated · lands on paid date</span>
-        </div>
-        <div class="rec-pend hidden" id="recPendStrip"></div>
+        <div class="subhead recu rec-merged-head organ">Recurring payments</div>
         <!-- Nested collapse (mirrors Other Expenses). Collapsed by default: a
              summary line shows the month's recurring total + bill count. Tap to
              expand the full add-payment panel below. Keeps the "8 more" reveal
              light. Summary text set by renderRecurringSummary(). -->
         <div class="rec-summary" id="recSummary" role="button" tabindex="0" aria-expanded="false">
           <span class="rec-summary-text" id="recSummaryText">no bills yet &middot; tap to add rent, subscriptions…</span>
+          <span class="rec-door-owe hidden" id="recDoorOwe"></span>
           <span class="rec-summary-chev" id="recSummaryChev" aria-hidden="true">&#9662;</span>
         </div>
         <div class="recurring-card">
-          <div class="subhead first rec rec-subhead">What did you pay today?</div>
+          <div class="rec-owedline hidden" id="recOwedLine"></div>
           <div class="rec-hint hidden" id="recHint"></div>
           <div class="rec-field">
             <input class="input rec-name-input" type="text" id="recName" placeholder="e.g., Flat Rent" autocomplete="off" aria-label="What did you pay today?">
@@ -6435,7 +6467,7 @@
 
           <!-- Running log of this month's payments -->
           <div class="rec-log" id="recLog">
-            <div class="rec-log-title" id="recLogTitle">This month's payments</div>
+            <div class="rec-log-title" id="recLogTitle" title="Payments land on the exact date paid — log rent on the 1st even while viewing today">This month's payments</div>
             <div class="rec-log-rows" id="recLogRows"></div>
             <div class="rec-log-total" id="recLogTotal"></div>
           </div>
@@ -17012,12 +17044,18 @@ function recShortDate(iso) {
 // hidden when nothing is known. Only the CURRENT real month nags - browsing
 // the past shows no reminder (a closed month owes nothing).
 function renderRecPending(history, monthPrefix) {
-  const strip = document.getElementById('recPendStrip');
-  if (!strip) return;
+  // RC-A: the door carries the owed number; the room's first line names them.
+  const oweEl = document.getElementById('recDoorOwe');
+  const lineEl = document.getElementById('recOwedLine');
+  const chev = document.getElementById('recSummaryChev');
+  if (!oweEl || !lineEl) return;
   const nowYM = isoToday().slice(0, 7);
-  if (monthPrefix !== nowYM || !history.usuallyPaid.length) {
-    strip.classList.add('hidden'); strip.innerHTML = ''; return;
-  }
+  const hide = () => {
+    oweEl.classList.add('hidden'); oweEl.textContent = '';
+    lineEl.classList.add('hidden'); lineEl.innerHTML = '';
+    if (chev) chev.classList.remove('settled');
+  };
+  if (monthPrefix !== nowYM || !history.usuallyPaid.length) { hide(); return; }
   const owed = [];
   history.usuallyPaid.forEach(nl => {
     if (history.paidThisMonth.has(nl)) return;
@@ -17025,21 +17063,20 @@ function renderRecPending(history, monthPrefix) {
     owed.push({ name: last ? last.name : nl, amt: last ? (Number(last.amt) || 0) : 0 });
   });
   if (!owed.length) {
-    let paidTotal = 0;
-    Object.keys(allEntries).forEach(dt => {
-      if (!dt.startsWith(monthPrefix)) return;
-      parseRecurring(allEntries[dt]).forEach(p => { paidTotal += Number(p.amt) || 0; });
-    });
-    strip.className = 'rec-pend allpaid';
-    strip.innerHTML = '<div class="rp-t">All bills paid \u00B7 ' + _inr(paidTotal) + ' this month \u2713</div>';
+    oweEl.classList.remove('hidden');
+    oweEl.textContent = 'all settled \u2713';
+    oweEl.className = 'rec-door-owe settled';
+    if (chev) chev.classList.add('settled');
+    lineEl.classList.add('hidden'); lineEl.innerHTML = '';
     return;
   }
   owed.sort((a, b) => b.amt - a.amt);
   const total = owed.reduce((s, x) => s + x.amt, 0);
-  strip.className = 'rec-pend';
-  strip.innerHTML = '<div class="rp-t">Still to pay: <b>' + _inr(total) + '</b> \u00B7 '
-    + owed.length + (owed.length === 1 ? ' bill' : ' bills') + '</div>'
-    + '<div class="rp-d">' + owed.map(x => escHtml(x.name) + ' ~' + _inr(x.amt)).join(' \u00B7 ') + '</div>';
+  oweEl.className = 'rec-door-owe';
+  oweEl.textContent = _inr(total) + ' to pay';
+  if (chev) chev.classList.remove('settled');
+  lineEl.classList.remove('hidden');
+  lineEl.innerHTML = 'Waiting: ' + owed.map(x => escHtml(x.name) + ' ~<b>' + _inr(x.amt) + '</b>').join(' \u00b7 ');
 }
 function getRecurringHistory(viewedMonthYM) {
   const paidThisMonth = new Set();             // lowercase names paid in viewed month
@@ -17315,7 +17352,7 @@ function renderRecurringSummary() {
   const billWord = count === 1 ? 'bill' : 'bills';
   textEl.innerHTML =
     recFmt(total) +
-    ' <span class="rec-summary-cta">&middot; ' + count + ' ' + billWord + ' this month &middot; add more</span>';
+    ' <span class="rec-summary-cta">&middot; ' + count + ' paid</span>';
 }
 
 function setupRecurring() {

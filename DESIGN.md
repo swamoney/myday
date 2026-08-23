@@ -64,6 +64,24 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**RC-A + OP-2 - the golden door, the white room** (Aug 2026): the
+recurring organ's three stacked layers (heading + dated-tag, amber
+pending strip, plum summary pill) merged into ONE golden door on a
+clean heading. Door anatomy: paid total ('52,408 - 5 paid') + owed in
+amber ('3,821 to pay') + filled amber chevron circle - the unambiguous
+press-here; on settled months the owe reads 'all settled' in green-ink
+and the circle turns moss. Open, the door's bottom corners square off
+and the WHITE room continues inside the same golden frame (OP-2):
+owed names greet first ('Waiting: Workspace Gmail ~1,227 ...') on a
+dashed gold rule, then chips, ONE entry stack (name - amount - group -
+accent Log button), then the flat ledger closing on its firm total.
+Retired: the pending strip element (renderRecPending now dresses door
++ owed line), the plum summary skin and has-items stripe, the 'What
+did you pay today?' question-subhead, and the heading's dated-tag
+(now the ledger caption's tooltip). Amber-on-gold text is the
+measured 5.42 pair; the door speaks gold/ink/amber, the room
+white/ink/accent, and the two read as one object.
+
 **Clean organ heads, golden fold, and the strip in the wrong room**
 (Aug 2026): Other Expenses and Recurring Payments headings cleaned of
 their deal-tags (bands + underline only); the more-fold went golden
