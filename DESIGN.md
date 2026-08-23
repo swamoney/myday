@@ -64,6 +64,19 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**T-1 + F-1a - Taxes unbands; the footer takes sides** (Aug 2026):
+Taxes' organ band retired (the band marked organs; the doors now mark
+Other/Recurring, and Taxes is a single envelope field - kin to Food,
+not to rooms); plain underlined heading, hd states untouched; Tracking
+keeps its band, its outside-the-envelopes specialness being real.
+Footer: the grey shell and divider retired; the two tiles took sides -
+Spent on the whisper blush #FBF4F2/#EAD6D2 (Redemption's money-out
+ground) with ember label+figure (8.4:1), Invested on its exact green
+twin #F4F9F5/#D5E4D9 (same distance from white, so neither side
+outranks the other) with green-ink (10:1). Direction-of-money grammar
+now complete: blush = out, whisper green = to your future self.
+Redemption sub-note and all live updates untouched - colour only.
+
 **RD-1 - redemption whispers** (Aug 2026): the redemption family moved
 to the whisper blush (#FBF4F2 ground, #EAD6D2 edge, ember rail/symbol)
 across idle, focus, filled, and calc states. The faint-total bug Rahul
