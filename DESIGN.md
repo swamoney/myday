@@ -64,6 +64,23 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**OE-R + PL - Other gets the door; the ledgers go plain** (Aug 2026):
+Other Expenses now wears the recurring architecture end to end: inner
+duplicate label retired, the white summary pill became the golden door
+(MONTH total - N items - amber circle; the old renderer was
+today-scoped, now month-scoped), the room whitened inside the golden
+frame, and the always-visible today-strip + hidden legacy stubs merged
+into ONE in-room flat month ledger (date - name - envelope tag -
+amount - x, date-aware delete). The envelope tag CYCLES on tap:
+P0->P1->P3->P5->MISC (OE_CYCLE), writing the permanent env mark via
+the parcel - the recurring flip's five-stop cousin; each tag wears its
+envelope's soft family. PL: one voice for every ledger cell in BOTH
+organs - 0.6875rem, weight 400, ink, dates same size as names, no bold
+anywhere including the total row (the 2px rule alone closes the book);
+mono survives only for column alignment. Kept per Claude's argued vote:
+Other's ledger stays (tags need rows to live on; Other is where months
+leak; read-model only). Cycle simulated round-trip from lifestyle.
+
 **RC-A + OP-2 - the golden door, the white room** (Aug 2026): the
 recurring organ's three stacked layers (heading + dated-tag, amber
 pending strip, plum summary pill) merged into ONE golden door on a

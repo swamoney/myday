@@ -5872,6 +5872,49 @@
   .s-recurring .input { background: #fff; border-color: var(--rule); }
   .rec-add-btn { background: var(--accent); border-color: var(--accent); }
   .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
+  /* ==== OE-R: Other wears the golden door + white room ==== */
+  .other-summary {
+    background: #F8F1E4; border: 1.5px solid #D9BD8E; border-radius: 11px;
+    padding: 10px 12px;
+  }
+  .other-summary:hover { border-color: #C9A96B; background: #F6EDDA; }
+  .other-summary.has-items { border-left: 1.5px solid #D9BD8E; padding-left: 12px; }
+  .other-summary-text { font-family: var(--mono); font-size: 0.8125rem; font-weight: 600;
+                        color: var(--ink); font-variant-numeric: tabular-nums; }
+  .other-summary-cta { font-family: var(--sans); font-size: 0.6875rem; font-weight: 500;
+                       color: var(--muted); }
+  .other-summary-chev {
+    width: 22px; height: 22px; border-radius: 50%; background: #8A5711; color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 0.6875rem;
+    margin-left: auto;
+  }
+  .s-other-field.is-expanded .other-summary {
+    border-radius: 11px 11px 0 0; border-bottom-color: transparent;
+  }
+  .s-other-field.is-expanded .other-entry {
+    border: 1.5px solid #D9BD8E; border-top: none; border-radius: 0 0 11px 11px;
+    background: #fff; padding: 11px 12px 12px;
+  }
+  .s-other-field .input { background: #fff; border-color: var(--rule); }
+  .other-add-btn, .other-log-btn { background: var(--accent); border-color: var(--accent); }
+  /* the five envelope tags - each envelope's own soft family */
+  .oe-tag { font-family: var(--mono); font-size: 0.5rem; font-weight: 600;
+            letter-spacing: 0.05em; border: 1px solid transparent; border-radius: 5px;
+            padding: 1px 6px; cursor: pointer; flex-shrink: 0; }
+  .oe-tag.oe-official { background: var(--accent-soft); color: var(--accent-ink); }
+  .oe-tag.oe-home { background: #E9EEF6; color: #20355c; }
+  .oe-tag.oe-health { background: var(--moss-soft); color: var(--green-ink); }
+  .oe-tag.oe-lifestyle { background: #F1E7E0; color: #5e2f14; }
+  .oe-tag.oe-misc { background: var(--paper-soft); color: var(--muted); }
+  /* ==== PL: one voice for every ledger cell - both organs ==== */
+  .rec-log-row.lg { font-size: 0.6875rem; font-weight: 400; color: var(--ink); }
+  .rec-log-row.lg .lg-d { font-size: 0.6875rem; color: var(--ink); flex: 0 0 auto; min-width: 48px; }
+  .rec-log-row.lg .rec-log-name { font-weight: 400; }
+  .rec-log-row.lg .rec-log-amt { font-size: 0.6875rem; font-weight: 400; color: var(--ink); }
+  .rec-log-totalrow { border-top: 2px solid var(--rule); font-weight: 400;
+                      font-size: 0.6875rem; color: var(--ink); }
+  .rec-log-totalrow .amt { font-family: var(--mono); font-weight: 400;
+                           font-variant-numeric: tabular-nums; }
   /* the ledger's delete shrinks to a whisper */
   .rec-log-row.lg .rec-log-del { font-size: 0.625rem; padding: 1px 4px; color: #8a97b3; }
 </style>
@@ -6334,7 +6377,6 @@
            still uses addOtherItem/removeOtherItem, otherLog JSON, CSV columns. -->
       <div class="subhead daily organ">Other Expenses</div>
       <div class="field s-other-field">
-        <label>Other Expenses</label>
         <!-- Collapsed summary: looks like a regular ₹ field. Shows either
              "no items · tap to add" (empty) or "₹X,XXX total · add more" (with items).
              Tap to expand. -->
@@ -6377,21 +6419,13 @@
           </div>
           <div class="other-error hidden" id="otherError"></div>
           <div class="other-collapse-link"><button type="button" id="otherCollapseBtn">&#9652; collapse</button></div>
+          <div class="other-log" id="otherLog">
+            <div class="rec-log-title" id="otherLogTitle"></div>
+            <div class="rec-log-rows" id="otherLogRows"></div>
+            <div class="rec-log-total" id="otherLogTotal"></div>
+          </div>
         </div>
 
-        <!-- Logged-items chip strip: ALWAYS visible (regardless of expand state),
-             so the user can see and remove items at a glance.
-             Hidden when there are no items. Reuses the same data via renderOtherLog. -->
-        <div class="other-chip-strip" id="otherLogRows"></div>
-
-        <!-- Hidden legacy nodes — JS reads from these IDs but the elements are
-             effectively never seen now. Kept to maintain the renderOtherLog
-             contract (which uses #otherLogRows above). otherLog, otherLogTitle,
-             otherLogTotal are referenced indirectly; we keep stub nodes to be safe. -->
-        <div class="other-log hidden" id="otherLog" aria-hidden="true">
-          <div id="otherLogTitle"></div>
-          <div id="otherLogTotal"></div>
-        </div>
       </div>
       <div class="subhead daily organ">Taxes<span class="sh-hd" id="hd_taxes"></span></div>
       <div class="field">
@@ -17453,6 +17487,15 @@ function setupRecurring() {
   });
   renderCustomChips('other');
   renderCustomChips('rec');
+  // OE-R: the envelope tag cycles on tap - delegated on the static host.
+  const otherRowsHost = document.getElementById('otherLogRows');
+  if (otherRowsHost) otherRowsHost.addEventListener('click', e => {
+    const t = e.target.closest('[data-oeflip-date]');
+    if (!t) return;
+    const idx = Number(t.dataset.oeflipIdx);
+    if (!isFinite(idx)) return;
+    flipOtherEnv(t.dataset.oeflipDate, idx);
+  });
   // RG: the ledger tag is the edit - one delegated listener on the static host.
   const recRowsHost = document.getElementById('recLogRows');
   if (recRowsHost) recRowsHost.addEventListener('click', e => {
@@ -17524,83 +17567,112 @@ function setupRecurring() {
 // - No Home/Office/Subs sub-lines (Other doesn't have group categories).
 // - No "paid this month" chip states or "usually paid" hints (one-off purchases).
 
+// OE-R (Aug 2026): Other wears the recurring architecture - golden door with
+// the MONTH's total, white room, and a flat plain month ledger whose envelope
+// tag cycles P0->P1->P3->P5->MISC on tap (writes the permanent env mark).
+const OE_CYCLE = ['official', 'home', 'health', 'lifestyle', 'misc'];
+const OE_TAG = { official: 'P0', home: 'P1', health: 'P3', lifestyle: 'P5', misc: 'MISC' };
+function envForOtherItem_(it) {
+  if (it && it.env && OE_TAG[it.env]) return it.env;
+  return otherEnvDefault(it && it.name);
+}
+async function flipOtherEnv(dateIso, idx) {
+  let entry = (dateIso === currentDate && currentEntry) ? currentEntry : allEntries[dateIso];
+  if (!entry) return;
+  const arr = parseOtherItems(entry);
+  const item = arr[idx];
+  if (!item) return;
+  const cur = envForOtherItem_(item);
+  item.env = OE_CYCLE[(OE_CYCLE.indexOf(cur) + 1) % OE_CYCLE.length];
+  setOtherItems(entry, arr);
+  deriveOtherFields(entry);
+  allEntries[dateIso] = entry;
+  try { await upsertEntry(dateIso, entry); } catch (e) { console.error(e); toast('Could not save'); return; }
+  renderOtherLog();
+  if (typeof paintFormHeadroom === 'function') paintFormHeadroom();
+  toast(item.name + ' \u2192 ' + OE_TAG[item.env]);
+}
 function renderOtherLog() {
   const rowsEl = document.getElementById('otherLogRows');
   const totalEl = document.getElementById('otherLogTotal');
   const titleEl = document.getElementById('otherLogTitle');
-  // Direction 3 additions — summary line above the chip strip
   const summaryEl = document.getElementById('otherSummary');
   const summaryTextEl = document.getElementById('otherSummaryText');
   if (!rowsEl) return;
 
-  // Read items strictly from the currently-viewed date.
-  const dateIso = currentDate || isoToday();
-  const entry = (dateIso === currentDate && currentEntry) ? currentEntry : (allEntries[dateIso] || null);
-  const items = entry ? parseOtherItems(entry) : [];
+  const monthPrefix = (currentDate || isoToday()).slice(0, 7);
+  const items = []; // {date, name, amt, env?, idx}
+  Object.keys(allEntries).forEach(dt => {
+    if (!dt.startsWith(monthPrefix)) return;
+    const src = (dt === currentDate && currentEntry) ? currentEntry : allEntries[dt];
+    parseOtherItems(src).forEach((p, idx) => {
+      items.push({ date: dt, name: p.name, amt: p.amt, env: p.env, idx });
+    });
+  });
+  items.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.idx - a.idx));
 
-  if (titleEl) titleEl.textContent = 'Today\u2019s items';
-
-  // Update the summary line — text + has-items state. Always do this first
-  // since the summary should always reflect current truth.
   let total = 0;
-  for (const it of items) total += Number(it.amt) || 0;
+  items.forEach(it => { total += Number(it.amt) || 0; });
+  const [, mNum] = monthPrefix.split('-').map(Number);
+  const itemWord = items.length === 1 ? 'item' : 'items';
+
   if (summaryEl && summaryTextEl) {
     if (items.length === 0) {
       summaryEl.classList.remove('has-items');
       summaryTextEl.innerHTML = 'no items &middot; tap to add';
     } else {
       summaryEl.classList.add('has-items');
-      const itemWord = items.length === 1 ? 'item' : 'items';
       summaryTextEl.innerHTML =
         recFmt(total) +
-        ' <span class="other-summary-cta">&middot; ' + items.length + ' ' + itemWord + ' &middot; add more</span>';
+        ' <span class="other-summary-cta">&middot; ' + items.length + ' ' + itemWord + ' this month &middot; add more</span>';
     }
   }
+  if (titleEl) titleEl.textContent = items.length ? MONTH_NAMES[mNum - 1] + ' items' : '';
 
   if (items.length === 0) {
     rowsEl.innerHTML = '';
     if (totalEl) totalEl.innerHTML = '';
-    // Rec iv: keep the live footer in sync when the last other-item is removed.
     if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
     return;
   }
 
-  rowsEl.innerHTML = items.map((it, idx) => {
+  const todayIso = isoToday();
+  rowsEl.innerHTML = items.map(it => {
+    const env = envForOtherItem_(it);
     const safeName = String(it.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return `<div class="other-log-row">
-      <span class="other-log-name">${safeName}</span>
-      <span class="other-log-amt">${recFmt(it.amt)}</span>
-      <button type="button" class="other-log-del" data-other-del-idx="${idx}" aria-label="Remove ${safeName}">\u00d7</button>
+    const dcell = recShortDate(it.date) + (it.date === todayIso ? ' \u00b7 today' : '');
+    const tag = '<button type="button" class="oe-tag oe-' + env + '" data-oeflip-date="' + it.date
+      + '" data-oeflip-idx="' + it.idx + '" title="Tap to move to the next envelope">' + OE_TAG[env] + '</button>';
+    return `<div class="rec-log-row lg">
+      <span class="lg-d">${dcell}</span>
+      <span class="rec-log-name">${safeName}</span>
+      ${tag}
+      <span class="rec-log-amt">${recFmt(it.amt)}</span>
+      <button type="button" class="rec-log-del" data-other-del-date="${it.date}" data-other-del-idx="${it.idx}" aria-label="Remove ${safeName}">\u00d7</button>
     </div>`;
   }).join('');
 
   if (totalEl) {
     totalEl.innerHTML =
-      `<div class="other-log-totalrow"><span>${items.length} item${items.length === 1 ? '' : 's'}</span><span class="amt">${recFmt(total)}</span></div>`;
+      `<div class="rec-log-totalrow"><span>${MONTH_NAMES[mNum - 1]} \u00b7 ${items.length} ${itemWord}</span><span class="amt">${recFmt(total)}</span></div>`;
   }
 
-  // Wire remove buttons
-  rowsEl.querySelectorAll('.other-log-del').forEach(btn => {
+  rowsEl.querySelectorAll('.rec-log-del').forEach(btn => {
     btn.addEventListener('click', async () => {
+      const dIso = btn.dataset.otherDelDate;
       const idx = parseInt(btn.dataset.otherDelIdx, 10);
       btn.disabled = true;
-      const res = await removeOtherItem(dateIso, idx);
+      const res = await removeOtherItem(dIso, idx);
       if (res.ok) {
         renderOtherLog();
-        // Targeted refresh — same reasoning as the addOtherItem handler:
-        // DON'T renderEntry() here because it collapses all Today sections.
-        // updateTodayProgressRing() refreshes the ring + section status dots
-        // (which is what actually needs updating after a row removal).
         if (typeof updateTodayProgressRing === 'function') updateTodayProgressRing();
       } else {
         btn.disabled = false;
       }
     });
   });
-  // Rec iv: refresh the live Spent total after the other-log re-renders.
   if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
 }
-
 function setupOther() {
   const nameInput = document.getElementById('otherName');
   const amtInput = document.getElementById('otherAmt');
