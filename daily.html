@@ -1485,8 +1485,8 @@
   .rec-log-row:last-child { border-bottom: none; }
   .rec-log-name { flex: 1; color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .rec-log-amt {
-    font-family: var(--mono); font-size:0.8125rem; font-weight: 700;
-    color: var(--ember); flex-shrink: 0;
+    font-family: var(--mono); font-size:0.7188rem; font-weight: 600;
+    color: var(--ink); flex-shrink: 0; font-variant-numeric: tabular-nums;
   }
   .rec-log-del {
     background: transparent; border: none; cursor: pointer;
@@ -5869,10 +5869,6 @@
     border: 1.5px solid #D9BD8E; border-top: none; border-radius: 0 0 11px 11px;
     background: #fff; padding: 11px 12px 12px; margin-top: 0;
   }
-  .rec-owedline { font-size: 0.6563rem; color: #8A5711; line-height: 1.5;
-                  padding-bottom: 9px; border-bottom: 1px dashed #D9BD8E; margin-bottom: 10px; }
-  .rec-owedline b { font-variant-numeric: tabular-nums; }
-  .rec-owedline.hidden { display: none; }
   .s-recurring .input { background: #fff; border-color: var(--rule); }
   .rec-add-btn { background: var(--accent); border-color: var(--accent); }
   .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
@@ -6430,7 +6426,6 @@
           <span class="rec-summary-chev" id="recSummaryChev" aria-hidden="true">&#9662;</span>
         </div>
         <div class="recurring-card">
-          <div class="rec-owedline hidden" id="recOwedLine"></div>
           <div class="rec-hint hidden" id="recHint"></div>
           <div class="rec-field">
             <input class="input rec-name-input" type="text" id="recName" placeholder="e.g., Flat Rent" autocomplete="off" aria-label="What did you pay today?">
@@ -17044,39 +17039,33 @@ function recShortDate(iso) {
 // hidden when nothing is known. Only the CURRENT real month nags - browsing
 // the past shows no reminder (a closed month owes nothing).
 function renderRecPending(history, monthPrefix) {
-  // RC-A: the door carries the owed number; the room's first line names them.
+  // RC-A door only: the owed number + circle state. The room's owed NAMES
+  // live in the 'Usually paid - not yet' hint (one voice, no duplicate).
   const oweEl = document.getElementById('recDoorOwe');
-  const lineEl = document.getElementById('recOwedLine');
   const chev = document.getElementById('recSummaryChev');
-  if (!oweEl || !lineEl) return;
+  if (!oweEl) return;
   const nowYM = isoToday().slice(0, 7);
   const hide = () => {
     oweEl.classList.add('hidden'); oweEl.textContent = '';
-    lineEl.classList.add('hidden'); lineEl.innerHTML = '';
     if (chev) chev.classList.remove('settled');
   };
   if (monthPrefix !== nowYM || !history.usuallyPaid.length) { hide(); return; }
-  const owed = [];
+  let total = 0, count = 0;
   history.usuallyPaid.forEach(nl => {
     if (history.paidThisMonth.has(nl)) return;
     const last = history.lastByName.get(nl);
-    owed.push({ name: last ? last.name : nl, amt: last ? (Number(last.amt) || 0) : 0 });
+    total += last ? (Number(last.amt) || 0) : 0;
+    count++;
   });
-  if (!owed.length) {
-    oweEl.classList.remove('hidden');
-    oweEl.textContent = 'all settled \u2713';
+  if (!count) {
     oweEl.className = 'rec-door-owe settled';
+    oweEl.textContent = 'all settled \u2713';
     if (chev) chev.classList.add('settled');
-    lineEl.classList.add('hidden'); lineEl.innerHTML = '';
     return;
   }
-  owed.sort((a, b) => b.amt - a.amt);
-  const total = owed.reduce((s, x) => s + x.amt, 0);
   oweEl.className = 'rec-door-owe';
   oweEl.textContent = _inr(total) + ' to pay';
   if (chev) chev.classList.remove('settled');
-  lineEl.classList.remove('hidden');
-  lineEl.innerHTML = 'Waiting: ' + owed.map(x => escHtml(x.name) + ' ~<b>' + _inr(x.amt) + '</b>').join(' \u00b7 ');
 }
 function getRecurringHistory(viewedMonthYM) {
   const paidThisMonth = new Set();             // lowercase names paid in viewed month
