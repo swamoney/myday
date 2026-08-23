@@ -64,6 +64,18 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**RD-1 - redemption whispers** (Aug 2026): the redemption family moved
+to the whisper blush (#FBF4F2 ground, #EAD6D2 edge, ember rail/symbol)
+across idle, focus, filled, and calc states. The faint-total bug Rahul
+caught (scoped light-red button outranking .sum-on's navy, keeping the
+pale ground while borrowing WHITE text) fixed at the root: redemption's
+sum state now lives in the red house at the same winning specificity -
+button deepens to #F6E7E4/#D9AFA9 with EMBER figures (7.6:1 measured);
+sum-err alone fills ember with white '!'. Navy FILL untouched
+everywhere else. Rule affirmed: a state class must be restyled at the
+same specificity as the scoped identity it rides on, or it inherits a
+half-costume.
+
 **C-2b FILL + S3 revert** (Aug 2026): the duplicate calc row retired
 everywhere (JS silences legacy #_calc nodes; CSS closes the class with
 display:none !important). The running sum now lives INSIDE each + 
