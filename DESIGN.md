@@ -64,6 +64,30 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**G-A - one ground everywhere** (Aug 2026): the Investments & Expenses
+section's rose ground (#FDF7F6 / #E0CFCC, the maroon era's last
+tenant) retired; the section now falls back to the base .section card
+- paper on rule with the house shadow, the Month Budget card's exact
+ground - and its --section-accent joined var(--accent). Swept with it:
+the cream inputs (#FAEFEC) and the entire lavender investment era
+(#ECE6F5/#C7BCE0/#534AB7 + green #ECF5EA) - which, notably, had been
+silently OUTRANKING the TH accent-soft tints all along
+(.section.s-expenses #id beats a bare #id on specificity); the TH
+voices were rewritten AT the winning specificity with native focus
+states (accent family for Regular/Top-Up, moss family for Redemption).
+Lesson: when overriding scoped legacy rules, match or exceed their
+specificity - appending later only wins ties. Second sweep closed the
+stragglers: Option-5 cream expense fields (white on rule, accent
+record-stripe replacing ember), other-entry creams and peach chips,
+amt-wrap filled state, the more-toggle's collapsed rose (now gold at
+source incl. the 4px rail + count bead), legacy other-summary border,
+and the shadowed dead .subhead.invest pill paint. Out of scope and
+deliberately untouched: s-night's lavender, the future-banner, and
+historical comments. Expense fields' filled-state stripe language
+moved ember->accent: ember now means only 'over budget', never
+'recorded'. Tracking heading
+trimmed to 'Tracking only' in the same turn.
+
 **IX-A - the fold reordered by frequency, then frozen** (Aug 2026):
 inside the more-fold the two golden doors now stand first, together -
 Other Expenses, Recurring Payments - then Lifestyle, Hotel + Travel,
