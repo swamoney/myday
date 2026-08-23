@@ -64,6 +64,38 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**THE GREAT REGROUPING - R-B + OE-1 + RE-1 + Books->P0 + H-3**
+(Aug 2026): the largest single build, shipped after a written audit
+with five flags and Rahul's CONFIRM. What shipped: (1) H-3 - new
+'health' envelope at P3 (key free under S1, no SQL anywhere in the
+set); stickers renumbered P4 Daily Transport, P5 Lifestyle, P6
+Hotel+Travel; modal follows; Medicine chip deals to health. (2)
+Books & Magazines moved to P0 - past months' envelope views shift
+retroactively (flagged and accepted); standing rule: NAME-LISTS MOVE
+HISTORY; MARKS MOVE ONLY THE FUTURE. (3) OE-1 - Other items carry an
+optional env mark in their parcel; picker chips (P0/P1/P3/P5/MISC)
+pre-lit by shared name-lists (dashed ring = auto, solid = chosen);
+engine reads mark first, lists second, misc last. (4) RE-1 - recurring
+payments carry an optional grp mark; three group chips; resolver
+(mark -> keywords -> home) routed through ALL byGroup consumers,
+including the ChatGPT name exception which now yields to an explicit
+mark. CRITICAL AUDIT CATCH: both parsers REBUILT parcels as {name,amt}
+and would have silently dropped every mark on read - the audit's
+existence is justified by this line alone; parsers now carry env/grp
+through. (5) R-B - the form regrouped by pure subhead surgery: ZERO
+field blocks moved (the existing order already matched the envelope
+spine); old INVESTMENTS/Daily/Discretionary badges became envelope
+stickers with live headroom spans (green 8.12:1 / red 7.02:1 on the
+ember pill, measured); Other and Recurring organs stay whole wearing
+deal-tags; Tracking-only badge for CC+GST; fold label rewritten.
+Headroom painter reads monthEnvelopes_+budgetsForYm_ for the BROWSED
+month; hooks: boot, every upsertEntry, date change; absent budget =
+empty chip, never zeros. Build lessons: a phantom count in a staged
+edit traced to a wrong-guessed class name ('subhead rec' vs the true
+'subhead recu rec-merged-head') - anchors are read from the file, never
+assumed; and mid-script assertion deaths between staged writes are why
+every stage re-runs its own battery.
+
 **N-A, the mobile fold, and handles not inventories** (Aug 2026):
 BIS notes moved inline - right-aligned in the row's leftover space
 after the amounts, ellipsis when long (full text behind the edit

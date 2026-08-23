@@ -1900,6 +1900,12 @@
     border-radius: 4px;
     margin: 16px 0 10px;
   }
+  .subhead { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+  .sh-hd { font-family:var(--sans); font-weight:700; font-size:0.6875rem; margin-left:auto; }
+  .sh-hd.ok { color:#9fe3b8; }   /* 8.12:1 on the ember pill - measured */
+  .sh-hd.ov { color:#ffb3a3; }   /* 7.02:1 - measured */
+  .sh-tags { font-family:var(--sans); font-weight:600; font-size:0.5625rem; letter-spacing:0.04em;
+             color:#f0d9d6; margin-left:auto; text-align:right; }
   .subhead.invest { background: #534AB7; }
   .subhead.daily  { background: #8A1F1A; }
   /* Discretionary: amber-brown — distinct hue from Daily ember so the two
@@ -2768,6 +2774,13 @@
     width: 100%;
   }
   .other-amt-input:focus { box-shadow: none; }
+  /* OE-1 / RE-1 pickers: house chips; dashed ring = auto guess, solid = chosen */
+  .oe-envs { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 2px; }
+  .oe-env { font-family:var(--mono, monospace); font-size:0.5938rem; font-weight:600;
+            letter-spacing:0.05em; border:1.5px solid var(--rule); background:#fff;
+            color:#3D4866; border-radius:999px; padding:5px 11px; cursor:pointer; }
+  .oe-env.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .oe-env.on.auto { border-style:dashed; }
   .other-error {
     margin-top: 8px; padding: 8px 10px;
     background: #FBEAE8; border: 1px solid #E5B0AA; border-radius: 8px;
@@ -6088,7 +6101,7 @@
         </div>
         <div class="calc-total hidden" id="f_investmentRedemption_calc"></div>
       </div>
-      <div class="subhead daily">Daily expenses</div>
+      <div class="subhead daily">P2 · Food<span class="sh-hd" id="hd_food"></span></div>
       <div class="field">
         <label>Food Expence <span class="sub">[Dineout / Swiggy / Zomato]</span></label>
         <div class="calc-row">
@@ -6113,6 +6126,7 @@
           <input class="input field-note-input" type="text" id="f_dmartNote" placeholder="add a note (optional) — e.g., monthly grocery run">
         </div>
       </div>
+      <div class="subhead daily">P4 · Daily Transport<span class="sh-hd" id="hd_transport"></span></div>
       <div class="field">
         <label>Daily Transport (Cab / Petrol / Metro / Parking)</label>
         <div class="calc-row">
@@ -6138,11 +6152,11 @@
            just wrapped in a container that toggles visibility. -->
       <button type="button" class="exp-more-toggle" id="expMoreToggle" aria-expanded="false" aria-controls="expMoreFields">
         <span class="exp-more-count" aria-hidden="true">+8</span>
-        <span class="exp-more-label" id="expMoreLabel">more &mdash; shopping, travel, recurring bills &amp; more</span>
+        <span class="exp-more-label" id="expMoreLabel">more &mdash; lifestyle, hotel, taxes, tracking &amp; recurring &amp; more</span>
         <span class="exp-more-chev" aria-hidden="true">&#9662;</span>
       </button>
       <div class="exp-more-fields" id="expMoreFields" hidden>
-      <div class="subhead disc">Discretionary</div>
+      <div class="subhead daily">P5 · Lifestyle<span class="sh-hd" id="hd_lifestyle"></span></div>
       <div class="field">
         <label>Shopping</label>
         <div class="calc-row">
@@ -6167,6 +6181,7 @@
           <input class="input field-note-input" type="text" id="f_entertainmentNote" placeholder="add a note (optional) — e.g., Inception IMAX">
         </div>
       </div>
+      <div class="subhead daily">P6 · Hotel + Travel<span class="sh-hd" id="hd_hotel"></span></div>
       <div class="field">
         <label>Hotel Stay</label>
         <div class="calc-row">
@@ -6200,6 +6215,7 @@
            grid + name + amount + Log button. Logged items show as compact
            chips below the field with × to remove. Data flow unchanged —
            still uses addOtherItem/removeOtherItem, otherLog JSON, CSV columns. -->
+      <div class="subhead daily">Other Expenses<span class="sh-tags">P0 · P1 · P3 · P5 · MISC — by name or your pick</span></div>
       <div class="field s-other-field">
         <label>Other Expenses</label>
         <!-- Collapsed summary: looks like a regular ₹ field. Shows either
@@ -6220,6 +6236,7 @@
             <button type="button" class="chip chip-preset other-chip" data-other-name="Books &amp; Magazines"><span class="chip-plus" aria-hidden="true">+</span>Books &amp; Magazines</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Salon"><span class="chip-plus" aria-hidden="true">+</span>Salon</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Spa"><span class="chip-plus" aria-hidden="true">+</span>Spa</button>
+            <button type="button" class="chip chip-preset other-chip" data-other-name="Medicine"><span class="chip-plus" aria-hidden="true">+</span>Medicine</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Ironing"><span class="chip-plus" aria-hidden="true">+</span>Ironing</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Home Cleaning"><span class="chip-plus" aria-hidden="true">+</span>Home Cleaning</button>
             <button type="button" class="chip chip-preset other-chip" data-other-name="Vehicle service"><span class="chip-plus" aria-hidden="true">+</span>Vehicle service</button>
@@ -6229,6 +6246,13 @@
             <input class="input other-name-input" type="text" id="otherName" placeholder="What did you buy?" autocomplete="off" aria-label="What did you buy?">
             <div class="currency-wrap other-amt-wrap"><span class="currency-symbol">₹</span><input class="input other-amt-input" type="text" inputmode="decimal" id="otherAmt" placeholder="0"></div>
             <button type="button" class="other-log-btn" id="otherLogBtn" aria-label="Log item">&#10003;</button>
+          </div>
+          <div class="oe-envs" id="oeEnvs" role="group" aria-label="Which envelope?">
+            <button type="button" class="oe-env" data-oeenv="official">P0 · OFFICE</button>
+            <button type="button" class="oe-env" data-oeenv="home">P1 · HOME</button>
+            <button type="button" class="oe-env" data-oeenv="health">P3 · HEALTH</button>
+            <button type="button" class="oe-env" data-oeenv="lifestyle">P5 · LIFESTYLE</button>
+            <button type="button" class="oe-env" data-oeenv="misc">MISC</button>
           </div>
           <div class="other-error hidden" id="otherError"></div>
           <div class="other-collapse-link"><button type="button" id="otherCollapseBtn">&#9652; collapse</button></div>
@@ -6248,6 +6272,7 @@
           <div id="otherLogTotal"></div>
         </div>
       </div>
+      <div class="subhead daily">Taxes<span class="sh-hd" id="hd_taxes"></span></div>
       <div class="field">
         <label>Taxes <span class="sub">[income / GST / property / professional]</span></label>
         <div class="calc-row">
@@ -6260,6 +6285,7 @@
           <input class="input field-note-input" type="text" id="f_taxesNote" placeholder="add a note (optional) — e.g., Q3 advance tax">
         </div>
       </div>
+      <div class="subhead disc">Tracking only · outside the envelopes</div>
       <div class="field">
         <label>Credit Card Bill Payment <span class="sub">[tracking only — already counted in daily expenses]</span></label>
         <div class="calc-row">
@@ -6293,7 +6319,7 @@
            s-expenses now. -->
       <div class="s-recurring s-recurring-merged rec-collapse-field">
         <div class="subhead recu rec-merged-head">
-          Recurring payments
+          Recurring payments <span class="sh-tags">office → P0 · home &amp; subs → P1</span>
           <span class="rec-merged-tag" title="These land on the exact date paid — log rent on the 1st even while viewing today">dated · lands on paid date</span>
         </div>
         <!-- Nested collapse (mirrors Other Expenses). Collapsed by default: a
@@ -6326,6 +6352,11 @@
             <label class="rec-label">Amount</label>
             <div class="currency-wrap rec-amt-wrap"><span class="currency-symbol">₹</span><input class="input rec-amt-input" type="text" inputmode="decimal" id="recAmt" placeholder="0"></div>
             <div class="rec-suggest hidden" id="recSuggest"></div>
+          </div>
+          <div class="oe-envs" id="reGrps" role="group" aria-label="Which group?">
+            <button type="button" class="oe-env" data-regrp="office">OFFICE · P0</button>
+            <button type="button" class="oe-env" data-regrp="home">HOME · P1</button>
+            <button type="button" class="oe-env" data-regrp="subscriptions">SUBSCRIPTIONS · P1</button>
           </div>
           <button type="button" class="rec-add-btn" id="recLogBtn">Log payment</button>
           <div class="rec-error hidden" id="recError"></div>
@@ -6919,9 +6950,10 @@
     <div class="mb-fld"><label>P0 · Office</label><input type="number" id="mbm_official" inputmode="decimal"></div>
     <div class="mb-fld"><label>P1 · Home</label><input type="number" id="mbm_home" inputmode="decimal"></div>
     <div class="mb-fld"><label>P2 · Food</label><input type="number" id="mbm_food" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P3 · Daily Transport</label><input type="number" id="mbm_transport" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P4 · Lifestyle</label><input type="number" id="mbm_lifestyle" inputmode="decimal"></div>
-    <div class="mb-fld"><label>P5 · Hotel + Travel</label><input type="number" id="mbm_hotel" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P3 · Health</label><input type="number" id="mbm_health" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P4 · Daily Transport</label><input type="number" id="mbm_transport" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P5 · Lifestyle</label><input type="number" id="mbm_lifestyle" inputmode="decimal"></div>
+    <div class="mb-fld"><label>P6 · Hotel + Travel</label><input type="number" id="mbm_hotel" inputmode="decimal"></div>
     <div class="mb-fld"><label>Miscellaneous</label><input type="number" id="mbm_misc" inputmode="decimal"></div>
     <div class="mb-fld"><label>Taxes</label><input type="number" id="mbm_taxes" inputmode="decimal"></div>
     <div class="mb-btns"><button type="button" class="mb-cancel" id="mbCancel">Cancel</button>
@@ -7747,6 +7779,11 @@ function recurringGroupForName(name) {
       n.includes('spotify') || n.includes('subscription')) return 'subscriptions';
   return 'home'; // rent, light bill, gas, mobile bill, and anything unrecognized
 }
+// RE-1 (Aug 2026): a payment's own mark rules; the keyword rules are defaults.
+function resolveRecurringGroup(item) {
+  if (item && (item.grp === 'office' || item.grp === 'home' || item.grp === 'subscriptions')) return item.grp;
+  return recurringGroupForName(item && item.name);
+}
 
 function getRecurringTotalsForMonth(yearMonth) {
   let logged = 0;
@@ -7759,7 +7796,7 @@ function getRecurringTotalsForMonth(yearMonth) {
       if (amt <= 0) return;
       logged += amt;
       loggedCount++;
-      const g = recurringGroupForName(p.name);
+      const g = resolveRecurringGroup(p);
       byGroup[g] += amt;
     });
   });
@@ -7812,7 +7849,11 @@ function parseRecurring(entry) {
     if (Array.isArray(parsed)) {
       return parsed
         .filter(r => r && typeof r === 'object')
-        .map(r => ({ name: String(r.name || '').trim(), amt: Number(r.amt) || 0 }));
+        .map(r => {
+          const o = { name: String(r.name || '').trim(), amt: Number(r.amt) || 0 };
+          if (r.grp) o.grp = String(r.grp);   // RE-1 mark rides through
+          return o;
+        });
     }
   } catch (e) { /* malformed - treat as empty */ }
   return [];
@@ -7831,7 +7872,7 @@ function setRecurring(entry, arr) {
 // Add a payment {name, amt} to a given date. Handles the cross-date write:
 // if the date is the currently-viewed date, updates currentEntry + the form;
 // otherwise fetches/creates that date's cached entry and upserts it directly.
-async function addRecurringPayment(dateIso, name, amt) {
+async function addRecurringPayment(dateIso, name, amt, grp) {
   name = String(name || '').trim();
   amt = Number(amt) || 0;
   if (!name || amt <= 0) return { ok: false, reason: 'invalid' };
@@ -7847,7 +7888,9 @@ async function addRecurringPayment(dateIso, name, amt) {
   }
 
   const arr = parseRecurring(entry);
-  arr.push({ name, amt });
+  const item = { name, amt };
+  if (grp) item.grp = grp;   // RE-1: the mark lives in the parcel
+  arr.push(item);
   setRecurring(entry, arr);
 
   // Persist + cache.
@@ -7905,7 +7948,11 @@ function parseOtherItems(entry) {
     if (Array.isArray(parsed)) {
       return parsed
         .filter(r => r && typeof r === 'object')
-        .map(r => ({ name: String(r.name || '').trim(), amt: Number(r.amt) || 0 }));
+        .map(r => {
+          const o = { name: String(r.name || '').trim(), amt: Number(r.amt) || 0 };
+          if (r.env) o.env = String(r.env);   // OE-1 mark rides through
+          return o;
+        });
     }
   } catch (e) { /* malformed - treat as empty */ }
   return [];
@@ -7985,7 +8032,7 @@ function aggregateRecurringByGroup(entries, group, N) {
       const amt = Number(p.amt) || 0;
       if (amt <= 0) continue;
       // Filter by group — same keyword logic as Outflow Breakdown sub-cats.
-      if (recurringGroupForName(rawName) !== group) continue;
+      if (resolveRecurringGroup(p) !== group) continue;
       const key = rawName.toLowerCase();
       if (!buckets[key]) buckets[key] = { displayName: rawName, amt: 0, count: 0, casings: {} };
       buckets[key].amt += amt;
@@ -8045,7 +8092,7 @@ function setOtherItems(entry, arr) {
 
 // Add an item {name, amt} to a given date's otherLog. Updates currentEntry +
 // allEntries cache and persists via upsertEntry.
-async function addOtherItem(dateIso, name, amt) {
+async function addOtherItem(dateIso, name, amt, env) {
   name = String(name || '').trim();
   amt = Number(amt) || 0;
   if (!name || amt <= 0) return { ok: false, reason: 'invalid' };
@@ -8061,7 +8108,9 @@ async function addOtherItem(dateIso, name, amt) {
   }
 
   const arr = parseOtherItems(entry);
-  arr.push({ name, amt });
+  const item = { name, amt };
+  if (env) item.env = env;   // OE-1: the mark lives in the parcel
+  arr.push(item);
   setOtherItems(entry, arr);
 
   // Ship 3b: derive the virtual aiUsage / other / otherNote fields from
@@ -8233,6 +8282,7 @@ async function upsertEntry(dateIso, entry) {
   const row = entryToRow(entry, dateIso);
   const { error } = await supa.from('entries').upsert(row, { onConflict: 'user_id,entry_date' });
   if (error) throw error;
+  paintFormHeadroom();   // R-B: headroom includes what was just saved
 }
 
 async function deleteEntryForDate(dateIso) {
@@ -9468,6 +9518,7 @@ async function selectDate(iso) {
   currentEntry = allEntries[iso] ? Object.assign(blankEntry(), allEntries[iso]) : blankEntry();
   renderDateNav();
   renderEntry();
+  paintFormHeadroom();   // R-B: browsing a date shows that month's headroom
   setSaveState('');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -13248,19 +13299,40 @@ function renderHeatmap() {
 // L2 (Aug 2026): Rahul's reading order - Official leads, then the personal
 // series renumbered to match. Keys never moved (S1's dividend: stickers are
 // free, storage is forever).
+// OE-1 shared name-lists: the engine's defaults AND the picker's pre-lights
+// read from one place, so they can never drift apart.
+const OTHER_OFFICIAL_NAMES = ['ai usage', 'software', 'printing & stationery', 'books & magazines'];
+const OTHER_HOME_NAMES = ['home cleaning', 'ironing'];
+const OTHER_LIFESTYLE_NAMES = ['salon', 'spa'];
+const OTHER_HEALTH_NAMES = ['medicine', 'chemist', 'pharmacy', 'doctor', 'lab test'];
+function otherNameHit_(low, x) {
+  return x.length > 3 ? low.includes(x)
+    : (low === x || new RegExp('\\b' + x + '\\b').test(low));
+}
+function otherEnvDefault(name) {
+  const low = String(name || '').trim().toLowerCase();
+  if (!low) return 'misc';
+  if (OTHER_OFFICIAL_NAMES.some(x => otherNameHit_(low, x))) return 'official';
+  if (OTHER_HOME_NAMES.some(x => otherNameHit_(low, x))) return 'home';
+  if (OTHER_HEALTH_NAMES.some(x => otherNameHit_(low, x))) return 'health';
+  if (OTHER_LIFESTYLE_NAMES.some(x => otherNameHit_(low, x))) return 'lifestyle';
+  return 'misc';
+}
 const BUDGET_SECTIONS = [
   { key:'official',  lbl:'P0 \u00B7 Office' },
   { key:'home',      lbl:'P1 \u00B7 Home' },
   { key:'food',      lbl:'P2 \u00B7 Food' },
-  { key:'transport', lbl:'P3 \u00B7 Daily Transport' },
-  { key:'lifestyle', lbl:'P4 \u00B7 Lifestyle' },
-  { key:'hotel',     lbl:'P5 \u00B7 Hotel + Travel' },
+  { key:'health',    lbl:'P3 \u00B7 Health' },
+  { key:'transport', lbl:'P4 \u00B7 Daily Transport' },
+  { key:'lifestyle', lbl:'P5 \u00B7 Lifestyle' },
+  { key:'hotel',     lbl:'P6 \u00B7 Hotel + Travel' },
   { key:'misc',      lbl:'Miscellaneous' },
   { key:'taxes',     lbl:'Taxes' }
 ];
-const P4_OTHER = ['books & magazines', 'salon', 'spa'];
-const OFFICIAL_OTHER = ['ai usage', 'software', 'printing & stationery'];
-const P2_OTHER = ['home cleaning', 'ironing'];
+const P4_OTHER = OTHER_LIFESTYLE_NAMES;
+  const HEALTH_OTHER = OTHER_HEALTH_NAMES;
+const OFFICIAL_OTHER = OTHER_OFFICIAL_NAMES;
+const P2_OTHER = OTHER_HOME_NAMES;
 let budgetRows = [];   // raw day_budgets rows for the signed-in user
 let mbRoom = 'summary';   // N1 DOOR: 'summary' | 'budget' - two rooms, one door
 function paintMonthRoom_() {
@@ -13317,10 +13389,13 @@ function monthEnvelopes_(entries) {
       const nm = String(it.name || '').trim(); const low = nm.toLowerCase();
       // Short names (<=3 chars) match as whole words - 'spa' and 'spa day'
       // belong to P4, but 'spare parts' must never be swallowed.
-      const hit = (x) => x.length > 3 ? low.includes(x)
-        : (low === x || new RegExp('\\b' + x + '\\b').test(low));
-      if (OFFICIAL_OTHER.some(hit)) put('official', nm, 'other log', amt);
+      const hit = (x) => otherNameHit_(low, x);
+      // OE-1: the item's own mark rules; the name-lists are only defaults.
+      const envMark = it.env && spent.hasOwnProperty(it.env) ? it.env : null;
+      if (envMark) put(envMark, nm, 'other log', amt);
+      else if (OFFICIAL_OTHER.some(hit)) put('official', nm, 'other log', amt);
       else if (P2_OTHER.some(hit)) put('home', nm, 'other log', amt);
+      else if (HEALTH_OTHER.some(hit)) put('health', nm, 'other log', amt);
       else if (P4_OTHER.some(hit)) put('lifestyle', nm, 'other log', amt);
       else put('misc', nm || 'Other', 'other log', amt);
     });
@@ -13329,8 +13404,8 @@ function monthEnvelopes_(entries) {
     parseRecurring(e).forEach(r => {
       const amt = Number(r.amt) || 0; if (!amt) return;
       const nm = String(r.name || '').trim();
-      if (nm.toLowerCase().includes('chatgpt')) { put('official', 'Recurring \u00B7 ChatGPT', 'recurring', amt); return; }
-      const g = recurringGroupForName(nm);
+      if (!r.grp && nm.toLowerCase().includes('chatgpt')) { put('official', 'Recurring \u00B7 ChatGPT', 'recurring', amt); return; }
+      const g = resolveRecurringGroup(r);
       if (g === 'office') put('official', 'Recurring \u00B7 office', 'recurring', amt);
       else put('home', 'Recurring \u00B7 ' + g, 'recurring', amt);
     });
@@ -13338,6 +13413,34 @@ function monthEnvelopes_(entries) {
   return { spent, detail };
 }
 function _inr(n) { return '\u20B9' + Math.round(n).toLocaleString('en-IN'); }
+// R-B (Aug 2026): live headroom on the entry form's envelope subheads.
+// Reads the same engine as the Budget room: monthEnvelopes_ + budgetsForYm_.
+// Absent budget -> chip stays empty (no zeros pretending).
+function paintFormHeadroom() {
+  const ids = { food:'hd_food', transport:'hd_transport', lifestyle:'hd_lifestyle',
+                hotel:'hd_hotel', taxes:'hd_taxes' };
+  const anyEl = document.getElementById('hd_food');
+  if (!anyEl) return;
+  const ym = String(currentDate || '').slice(0, 7);
+  if (!ym) return;
+  const entries = [];
+  Object.keys(allEntries).forEach(dt => {
+    if (dt.startsWith(ym)) entries.push({ date: dt, entry: allEntries[dt] });
+  });
+  const flat = entries.map(x => x.entry);
+  const bud = budgetsForYm_(ym);
+  const hasBudget = Object.keys(bud).length > 0;
+  const env = flat.length ? monthEnvelopes_(flat) : { spent: {} };
+  Object.keys(ids).forEach(key => {
+    const el = document.getElementById(ids[key]);
+    if (!el) return;
+    const b = bud[key];
+    if (!hasBudget || b === undefined || b === null) { el.textContent = ''; el.className = 'sh-hd'; return; }
+    const left = (Number(b) || 0) - (env.spent[key] || 0);
+    if (left >= 0) { el.textContent = _inr(left) + ' left'; el.className = 'sh-hd ok'; }
+    else { el.textContent = _inr(-left) + ' over'; el.className = 'sh-hd ov'; }
+  });
+}
 function renderMonthBudget(monthYM, entries) {
   const wrap = document.getElementById('monthBudgetWrap');
   if (!wrap) return;
@@ -15452,7 +15555,7 @@ function pdfComputeOutflow(entries) {
     for (const p of parseRecurring(e)) {
       const amt = Number(p.amt) || 0;
       if (amt <= 0) continue;
-      const g = recurringGroupForName(p.name);
+      const g = resolveRecurringGroup(p);
       recByGroup[g] += amt;
     }
   }
@@ -16519,6 +16622,7 @@ async function loadAndStart() {
   await loadUserPrefs();
   await loadBudgets();   // envelopes: budgets in memory before any Month render
   await loadDecisions(); // Before I Spend: the parked, the planned, the resisted
+  paintFormHeadroom();   // R-B: the envelope subheads breathe their first numbers
   // Home addresses one-time seed: if registry is empty and the user has
   // historical Ganga Legend entries, seed those variants as home addresses.
   // No-op on subsequent loads (gangaLegendSeeded flag stored inside prefs).
@@ -16949,7 +17053,7 @@ function renderRecurringLog() {
     const headerSafe = recShortDate(g.date) + annotation;
     const rowsHtml = g.items.map(it => {
       total += it.amt;
-      byGroup[recurringGroupForName(it.name)] += it.amt;
+      byGroup[resolveRecurringGroup(it)] += it.amt;
       const safeName = it.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       return `<div class="rec-log-row">
         <span class="rec-log-name">${safeName}</span>
@@ -17079,13 +17183,34 @@ function setupRecurring() {
       nameInput.focus();
       hideRecError();
       if (typeof refreshRecSuggest === 'function') refreshRecSuggest();
+      reAuto = true; rePrelight_();
     });
   });
+
+  // RE-1: group picker - keyword rules pre-light (dashed), a tap overrides.
+  let reSel = 'home', reAuto = true;
+  function rePaint_() {
+    document.querySelectorAll('#reGrps .oe-env').forEach(b => {
+      const on = b.dataset.regrp === reSel;
+      b.classList.toggle('on', on);
+      b.classList.toggle('auto', on && reAuto);
+    });
+  }
+  function rePrelight_() {
+    if (!reAuto) return;
+    reSel = recurringGroupForName(nameInput.value);
+    rePaint_();
+  }
+  document.querySelectorAll('#reGrps .oe-env').forEach(b => {
+    b.addEventListener('click', () => { reSel = b.dataset.regrp; reAuto = false; rePaint_(); });
+  });
+  rePaint_();
 
   // Batch 2 (D): refresh the amount-suggest pill on name OR amount changes.
   // Hides automatically when name is empty or amount has a value.
   nameInput.addEventListener('input', () => {
     if (typeof refreshRecSuggest === 'function') refreshRecSuggest();
+    rePrelight_();
   });
   amtInput.addEventListener('input', () => {
     if (typeof refreshRecSuggest === 'function') refreshRecSuggest();
@@ -17108,8 +17233,9 @@ function setupRecurring() {
     if (amt === null || amt <= 0) { showRecError('Enter a valid amount.'); amtInput.focus(); return; }
 
     logBtn.disabled = true;
-    const res = await addRecurringPayment(date, name, amt);
+    const res = await addRecurringPayment(date, name, amt, reSel);
     logBtn.disabled = false;
+    if (res.ok) { reAuto = true; reSel = 'home'; rePaint_(); }
     if (!res.ok) {
       showRecError(res.reason === 'save' ? 'Could not save. Check connection and retry.' : 'Invalid payment.');
       return;
@@ -17268,6 +17394,7 @@ function setupOther() {
   document.querySelectorAll('#otherChips .other-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       nameInput.value = chip.dataset.otherName;
+      oeAuto = true; oePrelight_();
       // Move focus to the amount input so the user can immediately type a number.
       // Different from old flow (which focused nameInput) since the name is
       // already filled by the chip — amount is the next logical step.
@@ -17286,6 +17413,27 @@ function setupOther() {
     errorEl.classList.remove('hidden');
   }
 
+  // OE-1: envelope picker - the name-lists pre-light a default (dashed ring),
+  // a tap overrides (solid). oeAuto tracks whether the user chose by hand.
+  let oeSel = 'misc', oeAuto = true;
+  function oePaint_() {
+    document.querySelectorAll('#oeEnvs .oe-env').forEach(b => {
+      const on = b.dataset.oeenv === oeSel;
+      b.classList.toggle('on', on);
+      b.classList.toggle('auto', on && oeAuto);
+    });
+  }
+  function oePrelight_() {
+    if (!oeAuto) return;   // a hand choice is never overwritten by typing
+    oeSel = otherEnvDefault(nameInput.value);
+    oePaint_();
+  }
+  if (nameInput) nameInput.addEventListener('input', oePrelight_);
+  document.querySelectorAll('#oeEnvs .oe-env').forEach(b => {
+    b.addEventListener('click', () => { oeSel = b.dataset.oeenv; oeAuto = false; oePaint_(); });
+  });
+  oePaint_();
+
   // Log item: saves the name+amount to currentDate's otherLog via addOtherItem.
   logBtn.addEventListener('click', async () => {
     const name = (nameInput.value || '').trim();
@@ -17295,8 +17443,9 @@ function setupOther() {
     if (amt === null || amt <= 0) { showOtherError('Enter a valid amount.'); amtInput.focus(); return; }
 
     logBtn.disabled = true;
-    const res = await addOtherItem(date, name, amt);
+    const res = await addOtherItem(date, name, amt, oeSel);
     logBtn.disabled = false;
+    if (res.ok) { oeAuto = true; oeSel = 'misc'; oePaint_(); }
     if (!res.ok) {
       showOtherError(res.reason === 'save' ? 'Could not save. Check connection and retry.' : 'Invalid item.');
       return;
