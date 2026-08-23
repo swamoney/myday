@@ -64,6 +64,20 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**INV-W + S1 + S2 + S3 - small strokes** (Aug 2026): Regular
+Investment and Top-Up whitened to match every field (thin accent
+record-stripe kept as identity); Redemption moved moss->quiet red
+(--ember-soft ground, ember rail/symbol/plus/calc/focus/filled, ink
+text 12.2:1) - deliberate double duty recorded: ember here means
+direction-of-money (leaving your future self), elsewhere over-budget.
+S1: the section header whispers today's live spend (mono muted,
+written by updateExpenseFooter, hidden at zero). S2: hairline dashed
+seams above every group header (.subhead.first exempt) - the Budget
+card's own rhythm. S3: money inputs read RIGHT in mono tabular
+figures via :placeholder-shown flip (empty = sans left placeholder,
+typed = ledger column); applies to currency-wrap fields, other amount,
+and rec amount; totals machinery untouched - S3 is typography only.
+
 **G-A - one ground everywhere** (Aug 2026): the Investments & Expenses
 section's rose ground (#FDF7F6 / #E0CFCC, the maroon era's last
 tenant) retired; the section now falls back to the base .section card
