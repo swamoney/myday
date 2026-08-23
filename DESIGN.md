@@ -64,6 +64,19 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**C-2b FILL + S3 revert** (Aug 2026): the duplicate calc row retired
+everywhere (JS silences legacy #_calc nodes; CSS closes the class with
+display:none !important). The running sum now lives INSIDE each + 
+button: while a '+' exists in the field the button fills navy
+(white 13.5:1) with the total beneath the glyph in en-IN grouping;
+plain amounts leave the button ordinary (no duplication by
+construction); invalid sums fill ember with '!'. Buttons self-build
+their glyph+total spans on first update (listeners survive innerHTML).
+S3 (right-aligned numerals) REVERTED at Rahul's call after the ledger
+logic was explained - one CSS block removed, exactly as promised;
+numbers sit left as before. State sim: 594->off, 45+45+326+178->on
+'594', 45+ ->err, 1.5+2.5->on '4'.
+
 **INV-W + S1 + S2 + S3 - small strokes** (Aug 2026): Regular
 Investment and Top-Up whitened to match every field (thin accent
 record-stripe kept as identity); Redemption moved moss->quiet red

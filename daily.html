@@ -5871,6 +5871,17 @@
   .s-recurring .input { background: #fff; border-color: var(--rule); }
   .rec-add-btn { background: var(--accent); border-color: var(--accent); }
   .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
+  /* ==== C-2b FILL: the + button carries the running sum ==== */
+  .plus-btn { display: flex; flex-direction: column; align-items: center;
+              justify-content: center; gap: 0; }
+  .plus-btn .plus-total { display: none; font-family: var(--mono); font-size: 0.5313rem;
+                          font-weight: 600; line-height: 1.2;
+                          font-variant-numeric: tabular-nums; }
+  .plus-btn.sum-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .plus-btn.sum-on .plus-glyph { line-height: 1; }
+  .plus-btn.sum-on .plus-total { display: block; color: #fff; }
+  .plus-btn.sum-on.sum-err { background: var(--ember); border-color: var(--ember); }
+  .calc-total { display: none !important; }  /* the separate row era, closed */
   /* ==== S1: the header's whisper ==== */
   .exp-today-whisper { font-family: var(--mono); font-size: 0.625rem; font-weight: 400;
                        color: var(--muted); font-variant-numeric: tabular-nums;
@@ -5878,17 +5889,6 @@
   /* ==== S2: dashed seams between movements ==== */
   .s-expenses .subhead { border-top: 1px dashed var(--rule); padding-top: 12px; }
   .s-expenses .subhead.first { border-top: none; padding-top: 2px; }
-  /* ==== S3: money reads right - ledger-aligned numerals ==== */
-  .s-expenses .currency-wrap .input,
-  .s-expenses .other-amt-input,
-  .s-expenses #recAmt {
-    text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums;
-  }
-  .s-expenses .currency-wrap .input:placeholder-shown,
-  .s-expenses .other-amt-input:placeholder-shown,
-  .s-expenses #recAmt:placeholder-shown {
-    text-align: left; font-family: var(--sans);
-  }
   /* ==== OE-R: Other wears the golden door + white room ==== */
   .other-summary {
     background: #F8F1E4; border: 1.5px solid #D9BD8E; border-radius: 11px;
@@ -8389,26 +8389,33 @@ function evalExpr(v) {
   return sum;
 }
 
+// C-2b FILL (Aug 2026): the duplicate calc row retired. While a '+' lives in
+// the field, its + button fills navy and carries the running total beneath
+// the glyph; plain amounts leave the button ordinary. Invalid sums show '!'.
 function updateCalcDisplay(fieldId) {
   const input = document.getElementById(fieldId);
-  const display = document.getElementById(fieldId + '_calc');
-  // Some calc-supporting fields (e.g. Regular Investment) deliberately have
-  // no calc-total element since they take a single number, not a sum.
-  // In that case we just skip the display update.
-  if (!display) return;
+  const legacy = document.getElementById(fieldId + '_calc');
+  if (legacy) { legacy.classList.add('hidden'); legacy.textContent = ''; }
+  const btn = document.querySelector('.plus-btn[data-calc-plus="' + fieldId + '"]');
+  if (!btn || !input) return;
+  if (!btn.querySelector('.plus-glyph')) {
+    btn.innerHTML = '<span class="plus-glyph">+</span><span class="plus-total"></span>';
+  }
+  const totEl = btn.querySelector('.plus-total');
   const v = (input.value || '').trim();
   if (v === '' || !v.includes('+')) {
-    display.classList.add('hidden');
+    btn.classList.remove('sum-on', 'sum-err');
+    totEl.textContent = '';
     return;
   }
   const total = evalExpr(v);
-  display.classList.remove('hidden');
+  btn.classList.add('sum-on');
   if (total === null) {
-    display.classList.add('error');
-    display.textContent = 'invalid expression';
+    btn.classList.add('sum-err');
+    totEl.textContent = '!';
   } else {
-    display.classList.remove('error');
-    display.textContent = v.replace(/\s+/g,'') + ' = ₹' + total.toLocaleString('en-IN');
+    btn.classList.remove('sum-err');
+    totEl.textContent = total.toLocaleString('en-IN');
   }
 }
 
