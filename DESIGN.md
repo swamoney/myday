@@ -64,6 +64,19 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**Clean organ heads, golden fold, and the strip in the wrong room**
+(Aug 2026): Other Expenses and Recurring Payments headings cleaned of
+their deal-tags (bands + underline only); the more-fold went golden
+(#F8F1E4 fill, #D9BD8E border, #8A5711 text - 5.5:1 measured). And the
+missing pending reminder was found in the wrong room entirely: its
+markup insertion had anchored on find('rec-merged-head'), which
+matched the CSS RULE first, and the following find('</div>') landed
+inside the boot overlay - the strip rendered forever inside the
+spinner, invisible. Freed and seated under the real recurring head
+(anchored on the full markup string). Lesson joining the anchor law:
+a bare class name matches its stylesheet before its markup - anchor on
+markup-shaped strings ('<div class=...'), never on a class name alone.
+
 **U + LG - underlined headings, the flat ledger** (Aug 2026): the
 section headings grew to 0.75rem mono and the left rail retired for
 Rahul's better idea - a 2px UNDERLINE carrying identity and state in
