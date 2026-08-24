@@ -5900,6 +5900,13 @@
   .s-recurring .input { background: #fff; border-color: var(--rule); }
   .rec-add-btn { background: var(--accent); border-color: var(--accent); }
   .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
+  /* ==== NS-B: night stay memory ==== */
+  .ns-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .ns-chips.hidden { display: none; }
+  .ns-away-tag { font-family: var(--mono); font-size: 0.5625rem; font-weight: 600;
+                 color: #8A5711; background: #F8F1E4; border: 1px solid #D9BD8E;
+                 border-radius: 6px; padding: 2px 8px; }
+  .ns-away-tag.hidden { display: none; }
   /* ==== TR: the all-time envelope book ==== */
   .tre-sec { border-left: 2px solid var(--rule); padding: 2px 0 2px 10px;
              margin-bottom: 11px; }
@@ -6942,11 +6949,17 @@
           <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
         </svg>
         <h2>Night Stay</h2>
+        <span class="ns-away-tag hidden" id="nightAwayTag"></span>
         <span class="rule-fill"></span>
         <span class="num">v.</span>
       </div>
       <div class="field">
-        <label>Where you stayed</label>
+        <label>City</label>
+        <input class="input" type="text" id="f_nightCity" placeholder="e.g., Pune" autocomplete="off">
+        <div class="chips ns-chips" id="nightCityChips"></div>
+      </div>
+      <div class="field">
+        <label>Property</label>
         <input class="input" type="text" id="f_nightStay" placeholder="2004/A3, Ganga Legend @ Pune">
         <!-- Home-status banner: lives directly below the input, joined to it
              visually. Two states (moss-green for "Recognized as home" /
@@ -6971,10 +6984,12 @@
           <button class="chip" data-fill="f_nightStay" data-text="2004/A3, Ganga Legend @ Pune">Home (Ganga Legend)</button>
           <button class="chip" id="copyYesterdayStay">↶ Same as yesterday</button>
         </div>
+        <div class="chips ns-chips" id="nightPropChips"></div>
       </div>
       <div class="field">
         <label>Stayed with</label>
-        <input class="input" type="text" id="f_stayedWith" placeholder="alone / partner / family / relatives / friends">
+        <input class="input" type="text" id="f_stayedWith" data-ns-sw="1" placeholder="alone / partner / family / relatives / friends">
+        <div class="chips ns-chips" id="nightSwChips"></div>
         <div class="chips">
           <button class="chip" id="copyYesterdayStayedWith">↶ Same as yesterday</button>
         </div>
@@ -7401,10 +7416,10 @@ const supa = window.supabase.createClient(
 // CC tracking: creditCardBill is a tracking-only field — saved/displayed
 // like a money input but NEVER summed into any outflow/spend total. Its own
 // dedicated charts in Month and Year views.
-const FIELDS = ['regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','gstPayment','gstPaymentNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
+const FIELDS = ['regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','gstPayment','gstPaymentNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith'];
 const CALC_FIELDS = ['regularInvestment','topUp','investmentRedemption','food','dmart','dailyTransport','shopping','hotelStay','travel','entertainment','taxes','creditCardBill','gstPayment'];
 const TOGGLE_FIELDS = ['reading'];
-const TEXT_FIELDS = ['foodNote','dmartNote','dailyTransportNote','shoppingNote','hotelStayNote','travelNote','entertainmentNote','taxesNote','creditCardBillNote','gstPaymentNote','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith'];
+const TEXT_FIELDS = ['foodNote','dmartNote','dailyTransportNote','shoppingNote','hotelStayNote','travelNote','entertainmentNote','taxesNote','creditCardBillNote','gstPaymentNote','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -7417,7 +7432,7 @@ const FIELD_TO_COL = {
   investmentRedemption:'investment_redemption', food:'food', foodNote:'food_note', dmart:'dmart', dmartNote:'groceries_note', dailyTransport:'daily_transport', dailyTransportNote:'transport_note', shopping:'shopping', shoppingNote:'shopping_note', hotelStay:'hotel_stay', hotelStayNote:'hotel_stay_note', travel:'travel', travelNote:'travel_note', entertainment:'entertainment', entertainmentNote:'entertainment_note', taxes:'taxes', taxesNote:'taxes_note', creditCardBill:'credit_card_bill', creditCardBillNote:'credit_card_bill_note', gstPayment:'gst_payment', gstPaymentNote:'gst_payment_note',
   walk:'walk', heart:'heart', reading:'reading', readingTakeaway:'reading_takeaway', satisfaction:'overall_satisfaction', introspection:'introspection',
   slot1:'slot1', slot2:'slot2', slot3:'slot3', slot4:'slot4', slot5:'slot5', slot6:'slot6',
-  breakfast:'breakfast', lunch:'lunch', dinner:'dinner', nightStay:'night_stay', stayedWith:'stayed_with',
+  breakfast:'breakfast', lunch:'lunch', dinner:'dinner', nightCity:'night_city', nightStay:'night_stay', stayedWith:'stayed_with',
   recurringLog:'recurring_log',
   otherLog:'other_log'
 };
@@ -9388,7 +9403,7 @@ const TODAY_SECTIONS = [
   { cls: 's-food', label: 'Food Journal',
     fields: ['breakfast','lunch','dinner'] },
   { cls: 's-night', label: 'Night Stay',
-    fields: ['nightStay','stayedWith'] },
+    fields: ['nightCity','nightStay','stayedWith'] },
   { cls: 's-verdict', label: "The Day's Verdict",
     fields: ['satisfaction'] },
 ];
@@ -9812,6 +9827,7 @@ async function selectDate(iso) {
   currentEntry = allEntries[iso] ? Object.assign(blankEntry(), allEntries[iso]) : blankEntry();
   renderDateNav();
   renderEntry();
+  renderNightMemory();
   paintFormHeadroom();   // R-B: browsing a date shows that month's headroom
   setSaveState('');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -13728,6 +13744,80 @@ function renderCustomChips(kind) {
   add.textContent = '+ chip\u2026';
   host.appendChild(add);
 }
+// NS-B (Aug 2026): Night Stay memory. Chips grown from the user's own
+// history: top cities; properties previously used in the typed city (falls
+// back to most-used properties when city is blank/unknown); usual companions.
+// The amber AWAY tag reads the SAME verdict the counters use (filled property
+// that isn't a tagged home) - one truth, displayed twice; city plays no part.
+function renderNightMemory() {
+  const cityIn = document.getElementById('f_nightCity');
+  const propIn = document.getElementById('f_nightStay');
+  const swIn = document.getElementById('f_stayedWith');
+  const cityHost = document.getElementById('nightCityChips');
+  const propHost = document.getElementById('nightPropChips');
+  const swHost = document.getElementById('nightSwChips');
+  if (!cityHost || !propHost || !swHost) return;
+
+  const freq = (getter) => {
+    const m = new Map();
+    Object.keys(allEntries).forEach(dt => {
+      const v = String(getter(allEntries[dt]) || '').trim();
+      if (!v) return;
+      const k = v.toLowerCase();
+      const cur = m.get(k) || { label: v, n: 0 };
+      cur.n++; cur.label = v;
+      m.set(k, cur);
+    });
+    return [...m.values()].sort((a, b) => b.n - a.n);
+  };
+  const chipRow = (host, items, input) => {
+    host.innerHTML = items.slice(0, 6).map(x =>
+      '<button type="button" class="chip chip-preset ns-chip" data-nsfill="' + escHtml(x.label) + '">'
+      + escHtml(x.label) + '</button>').join('');
+    host.classList.toggle('hidden', items.length === 0);
+    host.querySelectorAll('[data-nsfill]').forEach(b => b.addEventListener('click', () => {
+      input.value = b.dataset.nsfill;
+      input.dispatchEvent(new Event('input'));
+      renderNightMemory();
+    }));
+  };
+
+  chipRow(cityHost, freq(e => e.nightCity), cityIn);
+  const cityNow = String((cityIn && cityIn.value) || '').trim().toLowerCase();
+  let props;
+  if (cityNow) {
+    props = freq(e => (String(e.nightCity || '').trim().toLowerCase() === cityNow) ? e.nightStay : '');
+    if (!props.length) props = freq(e => e.nightStay);
+  } else {
+    props = freq(e => e.nightStay);
+  }
+  chipRow(propHost, props, propIn);
+  chipRow(swHost, freq(e => e.stayedWith), swIn);
+
+  // the away tag - same verdict as the counters, plus the current streak
+  const tag = document.getElementById('nightAwayTag');
+  if (tag) {
+    const propNow = String((propIn && propIn.value) || '').trim();
+    const away = !!propNow && !isHomeAddress(propNow);
+    if (!away) { tag.classList.add('hidden'); tag.textContent = ''; }
+    else {
+      let streak = 1;
+      let dt = new Date(currentDate + 'T00:00:00');
+      for (;;) {
+        dt.setDate(dt.getDate() - 1);
+        const iso = dt.toISOString().slice(0, 10);
+        const prev = allEntries[iso];
+        const pv = prev ? String(prev.nightStay || '').trim() : '';
+        if (pv && !isHomeAddress(pv)) streak++;
+        else break;
+        if (streak > 365) break;
+      }
+      const ord = streak === 1 ? '1st' : streak === 2 ? '2nd' : streak === 3 ? '3rd' : streak + 'th';
+      tag.textContent = 'AWAY \u00b7 ' + ord + ' night';
+      tag.classList.remove('hidden');
+    }
+  }
+}
 function paintFormHeadroom() {
   const ids = { food:'hd_food', transport:'hd_transport', lifestyle:'hd_lifestyle',
                 hotel:'hd_hotel', taxes:'hd_taxes' };
@@ -14962,7 +15052,7 @@ const CSV_HEADERS = [
 // Final two columns: Overall Satisfaction + Introspection — moved to the
 // end so reflective/qualitative fields read as the closing summary of each
 // day's row.
-const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection'];
+const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection'];
 
 // Ship 4: headers for the second CSV (one row per Other item).
 const CSV_OTHER_ITEMS_HEADERS = ['Date','Item Name','Amount'];
@@ -17579,6 +17669,11 @@ function setupRecurring() {
   });
   renderCustomChips('other');
   renderCustomChips('rec');
+  renderNightMemory();
+  ['f_nightCity', 'f_nightStay', 'f_stayedWith'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => renderNightMemory());
+  });
   // OE-R: the envelope tag cycles on tap - delegated on the static host.
   const otherRowsHost = document.getElementById('otherLogRows');
   if (otherRowsHost) otherRowsHost.addEventListener('click', e => {

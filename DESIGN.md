@@ -64,6 +64,23 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**NS-B - Night Stay in three rows, with memory** (Aug 2026): the
+section split into City (NEW night_city column - migrate_night_city.sql,
+plain-ASCII, verification counts) / Property (the DIRECT HEIR of
+night_stay: same column, same values, so every home tag keeps matching
+verbatim and isHomeAddress/away/trips machinery moves ZERO lines - the
+banner simply rides under Property now) / Stayed with. nightCity joined
+all four registries (FIELD_TO_COL, FIELDS, TEXT_FIELDS, day-sections
+spec) + CSV order; backup is select('*') so it rides free; restore
+needs no alias (new column, old ZIPs just lack it). Memory chips grown
+from history, presets none: top cities; properties SCOPED to the typed
+city with most-used fallback; usual companions - tap fills + fires
+input so the home banner answers live. Amber 'AWAY - Nth night' tag on
+the section head reads the SAME verdict as the counters (filled
+property not tagged home) and walks backward for the streak (sim: 3
+prior away nights -> 4th). City deliberately plays no part in the
+home/away verdict - one truth, displayed twice.
+
 **TR - the all-time envelope book** (Aug 2026): Trends' 'All-time
 spending' category card retired for the same closed envelope book,
 spanning every logged year: one line per envelope (family rail, share
