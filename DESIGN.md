@@ -64,6 +64,31 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**PDL-2 B (+B2+B3+B4) - the printed day joins the Budget book**
+(Aug 2026): the day page's Roman-heading skeleton retired for the
+app's own anatomy - every section a rail-block (0.7mm family-colour
+rail drawn to the section's true content height, 6.5pt mono head):
+Invested and Spent carry their totals ON the head line (separate
+total rows retired - one line saved, same truth); recurring folds
+into Spent; CC rides muted 'not in total'. B3: every spent rupee
+carries its envelope inline in 5.5pt muted mono - fields via a static
+P-map (food/dmart P2, transport P4, shopping/entertainment P5,
+hotel/travel P6, taxes TAX), other items via their OE-1 env mark
+('P3 - other', bare 'other' when unmarked), recurring 'P0/P1 -
+recurring'. B2: a four-stat vitals strip (OUTFLOW - INVESTED - WALK -
+DAY%) under the band in year-summary voice - the scan line for a
+printed decade. B4: the amber away chip (same verdict + streak walk
+as the app, NS-B city included) rides the date band, seated left of
+MONTH YEAR by measured width. The band's ground bleeds 3mm past both
+margins while its text stays AT the margin - the numeral flush with
+every rail below (Rahul's alignment catch). One content voice: labels
+and values identical 8.5pt ink 400 everywhere (the screenshot's grey/
+black split retired); colour appears only where it IS meaning (rails,
+heads, away amber). Hide-empties + italic footnotes retained; empty
+sections vanish whole; satisfaction keeps bold; footer verbatim. B5
+(the rotating quote) deliberately held - the only non-data ink;
+machinery stays dormant for any future season.
+
 **PDL - the day page slims inside its own skin** (Aug 2026): the
 original single-column design kept - same sections I-VI, same order,
 same footer - every recovery made from within. Header: the hero stack
