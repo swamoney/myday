@@ -79,6 +79,13 @@ verbatim. Rahul's call: the Other-breakdown cards KEEP one more season
 (their shared .outflow-bd-plain-* CSS therefore also stays - checked
 before retiring: the Other card wears those classes too). Fixture sim:
 home>official>food>taxes, top 59%, P0 rows recurring 17,921 + AI 1,950.
+Post-ship fix: headers rendered UNDEFINED - the renderer read s.sticker
+but BUDGET_SECTIONS' true property is s.lbl; the fixture sim had
+baked in the same wrong name, so it green-lit the bug it should have
+caught. Anchor law extended to DATA: property names are read from the
+file, never assumed - and a simulation must import the REAL structure
+it exercises, not a hand-typed replica (the second sim now builds its
+fixture from the live BUDGET_SECTIONS source).
 
 **T-1 + F-1a - Taxes unbands; the footer takes sides** (Aug 2026):
 Taxes' organ band retired (the band marked organs; the doors now mark
