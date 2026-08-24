@@ -5900,6 +5900,23 @@
   .s-recurring .input { background: #fff; border-color: var(--rule); }
   .rec-add-btn { background: var(--accent); border-color: var(--accent); }
   .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
+  /* ==== MO-2: Outflow speaks envelopes ==== */
+  .ofe-sec { border-left: 2px solid var(--rule); padding: 2px 0 2px 10px;
+             margin-bottom: 9px; }
+  .ofe-head { display: flex; align-items: baseline; gap: 8px; width: 100%;
+              background: none; border: none; padding: 2px 0; cursor: pointer;
+              text-align: left; font-family: var(--sans); color: var(--ink); }
+  .ofe-chev { font-size: 0.5625rem; color: #68789a; flex: 0 0 auto; }
+  .ofe-lbl { font-family: var(--mono); font-size: 0.6563rem; font-weight: 600;
+             letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .ofe-pct { font-family: var(--mono); font-size: 0.5625rem; color: #68789a; }
+  .ofe-amt { margin-left: auto; font-family: var(--mono); font-size: 0.75rem;
+             font-variant-numeric: tabular-nums; color: var(--ink); }
+  .ofe-rows { margin-top: 4px; }
+  .ofe-row { display: flex; gap: 7px; padding: 3px 0; font-size: 0.6563rem;
+             color: var(--muted); }
+  .ofe-row-amt { margin-left: auto; font-family: var(--mono);
+                 font-variant-numeric: tabular-nums; color: var(--ink); }
   /* ==== C-2b FILL: the + button carries the running sum ==== */
   .plus-btn { display: flex; flex-direction: column; align-items: center;
               justify-content: center; gap: 0; }
@@ -12491,10 +12508,20 @@ function _priorYearTotal(yearStr) {
 //   { type: 'month', cursor: 'YYYY-MM' }  → "X% above 6-mo avg of ₹Y"
 //   { type: 'year',  cursor: 'YYYY'    }  → "X% above 2025"
 //   omitted/null                          → no context line (back-compat)
-function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, comparison) {
+// MO-2 (Aug 2026): Outflow speaks envelopes. The old category list retired;
+// the card now renders one line per envelope (closed book, largest first,
+// share % on each), opening on tap to the envelope's items - all read from
+// the SAME engine as the Month Budget card (monthEnvelopes_, span-agnostic),
+// so Outflow and Budget agree to the rupee forever. The Other-breakdown
+// cards below are deliberately KEPT this season (Rahul's call).
+const _outflowEnvOpen = {};
+const OFE_RAIL = { official: 'var(--accent)', home: '#20355c', food: '#8a6d1f',
+                   health: 'var(--moss)', transport: '#3D4866', lifestyle: '#5e2f14',
+                   hotel: '#8A5711', misc: '#68789a', taxes: '#68789a' };
+function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, comparison, entriesWrappers) {
   const wrap = document.getElementById(containerId);
   if (!wrap) return;
-  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const fmt = n => '\u20b9' + Math.round(n).toLocaleString('en-IN');
 
   const dailyTotal =
     (totals.food || 0) + (totals.dmart || 0) + (totals.dailyTransport || 0) +
@@ -12516,65 +12543,45 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
     return;
   }
 
-  // Daily categories — keys match the data attribute used by the bar CSS.
-  // Sort descending by amount; zero-value categories filtered out.
-  // Phase 11: "DMart" renamed to "Groceries" (covers both physical store
-  // and quick-commerce orders, which are mostly groceries either way).
-  // The form input keeps its disambiguating label.
-  // Update (Other breakdown card): AI Usage no longer renders as its own
-  // bar here — its amount is folded into the Other bar. The dedicated
-  // "Other breakdown" card below this one exposes top-3 items (where AI
-  // typically appears as #1) plus a rolled-up rest.
-  const otherTotalIncludingAi = (totals.other || 0) + (totals.aiUsage || 0);
-  const dailyCats = [
-    { key: 'food',          label: 'Food',          val: totals.food          || 0 },
-    { key: 'dmart',         label: 'Groceries',     val: totals.dmart         || 0 },
-    { key: 'dailyTransport',          label: 'Transport',     val: totals.dailyTransport          || 0 },
-    { key: 'shopping',      label: 'Shopping',      val: totals.shopping      || 0 },
-    { key: 'hotelStay',     label: 'Hotel stay',    val: totals.hotelStay     || 0 },
-    { key: 'travel',        label: 'Travel booking', val: totals.travel       || 0 },
-    { key: 'entertainment', label: 'Entertainment', val: totals.entertainment || 0 },
-    { key: 'taxes',         label: 'Taxes',         val: totals.taxes         || 0 },
-    { key: 'other',         label: 'Other',         val: otherTotalIncludingAi },
-  ].filter(c => c.val > 0).sort((a, b) => b.val - a.val);
+  // The envelope engine - the Budget card's own arithmetic, span-agnostic.
+  const env = (entriesWrappers && entriesWrappers.length)
+    ? monthEnvelopes_(entriesWrappers) : { spent: {}, detail: {} };
+  const engineTotal = Object.values(env.spent).reduce((s, v) => s + (v || 0), 0);
+  const denom = engineTotal > 0 ? engineTotal : grandTotal;
 
-  // Recurring categories — read from byGroup, same filter+sort behavior.
-  const recCats = recT && recT.byGroup ? [
-    { key: 'home',          label: 'Home',          val: recT.byGroup.home          || 0 },
-    { key: 'office',        label: 'Office',        val: recT.byGroup.office        || 0 },
-  ].filter(c => c.val > 0).sort((a, b) => b.val - a.val) : [];
+  const secs = BUDGET_SECTIONS
+    .map(s => ({ key: s.key, sticker: s.sticker, spent: env.spent[s.key] || 0 }))
+    .filter(s => s.spent > 0)
+    .sort((a, b) => b.spent - a.spent);
 
-  // Item 1 (Option A): plain ranked list — no bars, no colors. Just numbers.
-  // Daily + recurring merged into one list sorted by amount descending.
-  // Each row shows label + group sub-tag (if recurring) + share % + amount.
-  // The simplest possible visual treatment, closest to a spreadsheet read.
-  const allCats = [
-    ...dailyCats.map(c => ({ ...c, group: 'daily' })),
-    ...recCats.map(c => ({ ...c, group: 'recurring' })),
-  ].sort((a, b) => b.val - a.val);
-
-  // Render rows as a plain table: label | percent | amount.
-  // No bars, no category colors — design is intentionally calm.
-  const rowsHtmlPlain = allCats.map(c => {
-    const sharePct = grandTotal > 0 ? (c.val / grandTotal * 100) : 0;
-    const shareLbl = sharePct >= 0.5 ? Math.round(sharePct) + '%' : '<1%';
-    const rowLbl = c.group === 'recurring'
-      ? `<span class="outflow-bd-row-group">Recurring &middot;</span> ${c.label}`
-      : c.label;
-    return `<div class="outflow-bd-plain-row" data-row-key="${c.key}">
-      <span class="outflow-bd-plain-lbl">${rowLbl}</span>
-      <span class="outflow-bd-plain-pct">${shareLbl}</span>
-      <span class="outflow-bd-plain-amt">${fmt(c.val)}</span>
+  const secHtml = secs.map(s => {
+    const openKey = containerId + '|' + s.key;
+    const open = !!_outflowEnvOpen[openKey];
+    const pctN = s.spent / denom * 100;
+    const pct = pctN >= 0.5 ? Math.round(pctN) + '%' : '<1%';
+    const rows = Object.entries(env.detail[s.key] || {})
+      .map(([k, v]) => ({ label: k.split('\u0001')[0], amt: v }))
+      .filter(r => r.amt > 0)
+      .sort((a, b) => b.amt - a.amt);
+    const rowsHtml = rows.map(r =>
+      `<div class="ofe-row"><span class="ofe-row-lbl">${escHtml(r.label)}</span>` +
+      `<span class="ofe-row-amt">${fmt(r.amt)}</span></div>`).join('');
+    const rail = OFE_RAIL[s.key] || 'var(--rule)';
+    return `<div class="ofe-sec${open ? ' open' : ''}" style="border-left-color:${rail};">
+      <button type="button" class="ofe-head" data-ofe-key="${s.key}">
+        <span class="ofe-chev">${open ? '\u25be' : '\u25b8'}</span>
+        <span class="ofe-lbl">${escHtml(s.sticker)}</span>
+        <span class="ofe-pct">${pct}</span>
+        <span class="ofe-amt">${fmt(s.spent)}</span>
+      </button>
+      <div class="ofe-rows"${open ? '' : ' hidden'}>${rowsHtml}</div>
     </div>`;
   }).join('');
 
-  // Meta line: "₹X daily · ₹Y recurring" (skip recurring half if zero)
   const metaLine = recurringTotal > 0
     ? `<strong>${fmt(dailyTotal)}</strong> daily &middot; <strong>${fmt(recurringTotal)}</strong> recurring`
     : `<strong>${fmt(dailyTotal)}</strong> daily &middot; no recurring logged`;
 
-  // Comparison-context line — built from optional `comparison` arg. Skipped
-  // entirely if comparison data is insufficient (returns null from helpers).
   let comparisonLine = '';
   if (comparison && grandTotal > 0) {
     if (comparison.type === 'month') {
@@ -12597,14 +12604,11 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
     }
   }
 
-  // Single plain-list body; no sub-sections, no bars.
-  const body = `<div class="outflow-bd-plain-list">${rowsHtmlPlain}</div>`;
-
   wrap.innerHTML = `<div class="year-card outflow-bd-card">
     <div class="outflow-bd-top">
       <div class="year-card-head">
-        <span class="year-card-title">Outflow breakdown</span>
-        <span class="year-card-meta">${allCats.length} categor${allCats.length === 1 ? 'y' : 'ies'}</span>
+        <span class="year-card-title">Outflow &middot; by envelope</span>
+        <span class="year-card-meta">${secs.length} envelope${secs.length === 1 ? '' : 's'}</span>
       </div>
       <div class="outflow-bd-summary">
         <div class="outflow-bd-amt-wrap">
@@ -12614,8 +12618,22 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
         </div>
       </div>
     </div>
-    <div class="outflow-bd-body">${body}</div>
+    <div class="outflow-bd-body">${secHtml}</div>
   </div>`;
+
+  wrap.querySelectorAll('.ofe-head').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = containerId + '|' + btn.dataset.ofeKey;
+      _outflowEnvOpen[key] = !_outflowEnvOpen[key];
+      const sec = btn.closest('.ofe-sec');
+      const rows = sec.querySelector('.ofe-rows');
+      const chev = sec.querySelector('.ofe-chev');
+      const open = !!_outflowEnvOpen[key];
+      sec.classList.toggle('open', open);
+      if (rows) rows.hidden = !open;
+      if (chev) chev.textContent = open ? '\u25be' : '\u25b8';
+    });
+  });
 }
 
 // Phase 10: Hotel Stays drilldown — list of every individual hotel-stay
@@ -14142,7 +14160,7 @@ function renderMonth() {
   renderMonthSpendCalendar();
 
   const recTInitial = getRecurringTotalsForMonth(monthCursor);
-  renderOutflowBreakdown('monthOutflowBreakdown', 'this month', totals, recTInitial, { type: 'month', cursor: monthCursor });
+  renderOutflowBreakdown('monthOutflowBreakdown', 'this month', totals, recTInitial, { type: 'month', cursor: monthCursor }, entries);
   // Other breakdown card — top 3 items + rest. Sits directly below the
   // Outflow Breakdown so the user reads "totals → drill into Other".
   renderMonthOtherBreakdown(monthCursor, entries);
@@ -14839,7 +14857,7 @@ function renderYear() {
   // so the same renderer handles both. When async recurring fetches land
   // for any uncached month, renderYear() runs again and this card refreshes
   // with the updated yearRecT automatically.
-  renderOutflowBreakdown('yearOutflowBreakdown', 'this year', yearTotals, yearRecT, { type: 'year', cursor: yearCursor });
+  renderOutflowBreakdown('yearOutflowBreakdown', 'this year', yearTotals, yearRecT, { type: 'year', cursor: yearCursor }, yearEntries);
 
   // Wire accordion toggles
   wrap.querySelectorAll('[data-year-acc-head]').forEach(head => {

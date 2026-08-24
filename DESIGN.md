@@ -64,6 +64,22 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**MO-2 KEEP-OTHER - Outflow speaks envelopes** (Aug 2026): the Month
+and Year Outflow Breakdown's category list retired; the card now
+renders the closed envelope book - one line per envelope in Budget-
+card anatomy (2px family rail, mono sticker, share %, amount), largest
+first, tap-to-open item rows read from monthEnvelopes_ detail (the
+engine is span-agnostic: month gets the month's wrappers, year the
+year's). Outflow therefore agrees with the Month Budget to the rupee
+forever - one arithmetic, two views. Open-state lives in
+_outflowEnvOpen keyed containerId|env so month and year remember their
+own open envelopes across re-renders. Meta line (daily - recurring
+split) and the trailing-6-month / prior-year comparison lines kept
+verbatim. Rahul's call: the Other-breakdown cards KEEP one more season
+(their shared .outflow-bd-plain-* CSS therefore also stays - checked
+before retiring: the Other card wears those classes too). Fixture sim:
+home>official>food>taxes, top 59%, P0 rows recurring 17,921 + AI 1,950.
+
 **T-1 + F-1a - Taxes unbands; the footer takes sides** (Aug 2026):
 Taxes' organ band retired (the band marked organs; the doors now mark
 Other/Recurring, and Taxes is a single envelope field - kin to Food,
