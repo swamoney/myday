@@ -5900,6 +5900,30 @@
   .s-recurring .input { background: #fff; border-color: var(--rule); }
   .rec-add-btn { background: var(--accent); border-color: var(--accent); }
   .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
+  /* ==== TR: the all-time envelope book ==== */
+  .tre-sec { border-left: 2px solid var(--rule); padding: 2px 0 2px 10px;
+             margin-bottom: 11px; }
+  .tre-head { display: flex; align-items: baseline; gap: 8px; width: 100%;
+              background: none; border: none; padding: 2px 0; cursor: pointer;
+              text-align: left; font-family: var(--sans); color: var(--ink); }
+  .tre-chev { font-size: 0.5625rem; color: #68789a; flex: 0 0 auto; }
+  .tre-lbl { font-family: var(--mono); font-size: 0.6563rem; font-weight: 600;
+             letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .tre-pct { font-family: var(--mono); font-size: 0.5625rem; color: #68789a; }
+  .tre-amt { margin-left: auto; font-family: var(--mono); font-size: 0.75rem;
+             font-variant-numeric: tabular-nums; color: var(--ink); }
+  .tre-sub { font-size: 0.5938rem; color: #68789a; margin-top: 3px; }
+  .tre-open { margin-top: 5px; }
+  .tre-yr { display: flex; gap: 7px; align-items: center; padding: 3px 0;
+            font-size: 0.6563rem; color: var(--muted); }
+  .tre-bar { height: 5px; border-radius: 3px; background: var(--accent); opacity: 0.55; }
+  .tre-yr-amt { margin-left: auto; font-family: var(--mono);
+                font-variant-numeric: tabular-nums; color: var(--ink); }
+  .tre-top { font-size: 0.5938rem; color: #68789a; padding: 4px 0 1px; }
+  .tre-tot { display: flex; padding-top: 8px; margin-top: 2px;
+             border-top: 2px solid var(--rule); font-size: 0.6875rem; font-weight: 600; }
+  .tre-tot-amt { margin-left: auto; font-family: var(--mono);
+                 font-variant-numeric: tabular-nums; }
   /* ==== MO-2: Outflow speaks envelopes ==== */
   .ofe-sec { border-left: 2px solid var(--rule); padding: 2px 0 2px 10px;
              margin-bottom: 9px; }
@@ -10934,17 +10958,15 @@ async function renderTrends() {
   wrap.querySelectorAll('.alm-chip').forEach(c => {
     c.addEventListener('click', () => { almanacMetric = c.dataset.alm; renderTrends(); });
   });
-  // All-time spending: fold/unfold the category tail
-  const revealBtn = wrap.querySelector('#attRevealBtn');
-  if (revealBtn) {
-    revealBtn.addEventListener('click', () => {
-      const more = wrap.querySelector('#attMoreRows');
-      if (!more) return;
-      const nowHidden = more.classList.toggle('hidden');
-      const nameEl = revealBtn.querySelector('#attRevealName');
-      if (nameEl) nameEl.textContent = nowHidden ? revealBtn.dataset.more : '\u2212 Show less';
+  // TR: all-time envelope book - toggle an envelope open/closed, re-render
+  // so the open body (year bars + biggest resident) is built fresh.
+  wrap.querySelectorAll('.tre-head').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = 'trend|' + btn.dataset.treKey;
+      _trendEnvOpen[key] = !_trendEnvOpen[key];
+      renderTrends();
     });
-  }
+  });
 
   // Wire any [data-jump-ym] elements (e.g., record cards link to their month)
   wrap.querySelectorAll('[data-jump-ym]').forEach(el => {
@@ -11067,106 +11089,100 @@ function _trendsAggregateByYear(months) {
 // logged month. Visual pattern matches the existing Other Breakdown card
 // (anchor-style top + ranked rows), so this feels like a familiar drilldown
 // scaled to the longest time scope. Lists top 5 categories + "+ N more" rollup.
+// TR (Aug 2026): all-time spending closes the loop - the same envelope book,
+// spanning every logged year. One line per envelope (share %, all-time total,
+// avg/mo, drift vs last year's pace); open -> per-year rows with proportional
+// bars + the envelope's biggest resident. History heals backwards: the engine
+// re-reads every year through TODAY's rules, so P3 Health has an all-time
+// story even though the envelope was born this week. Reads monthEnvelopes_
+// per year + once overall - no new arithmetic, no new storage.
+const _trendEnvOpen = {};
 function renderTrendAllTimeSpend(months) {
   if (months.length === 0) return '';
-  const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  const fmt = n => '\u20b9' + Math.round(n).toLocaleString('en-IN');
 
-  // Aggregate all-time category totals
-  const cats = {
-    food: 0, dmart: 0, dailyTransport: 0, aiUsage: 0, shopping: 0,
-    hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0, recurring: 0
-  };
-  months.forEach(m => {
-    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other','recurring'].forEach(k => {
-      cats[k] += m[k] || 0;
-    });
+  const perYear = {};
+  Object.keys(allEntries).sort().forEach(dt => {
+    const y = dt.slice(0, 4);
+    (perYear[y] = perYear[y] || []).push({ date: dt, entry: allEntries[dt] });
   });
-  const total = Object.values(cats).reduce((s, v) => s + v, 0);
+  const years = Object.keys(perYear).sort();
+  if (!years.length) return '';
+  const allWrappers = years.flatMap(y => perYear[y]);
+  const envAll = monthEnvelopes_(allWrappers);
+  const envYear = {};
+  years.forEach(y => { envYear[y] = monthEnvelopes_(perYear[y]).spent; });
+
+  const total = Object.values(envAll.spent).reduce((s, v) => s + (v || 0), 0);
   if (total === 0) return '';
-
-  // Label mapping + colors (consistent with Outflow Breakdown)
-  const meta = {
-    food:          { label: 'Food',          color: '#993C1D' },
-    dmart:         { label: 'Groceries',     color: '#A66E5D' },
-    dailyTransport:          { label: 'Transport',     color: '#C9928A' },
-    aiUsage:       { label: 'AI Usage',      color: '#C98682' },
-    shopping:      { label: 'Shopping',      color: '#8B5A4A' },
-    hotelStay:     { label: 'Hotel stay',    color: '#6B4A5C' },
-    travel:        { label: 'Travel booking', color: '#534AB7' },
-    entertainment: { label: 'Entertainment', color: '#B85A55' },
-    taxes:         { label: 'Taxes',         color: '#4A4036' },
-    other:         { label: 'Other',         color: '#8A1F1A' },
-    recurring:     { label: 'Recurring',     color: '#5C2E40' },
-  };
-
-  // Sort descending by amount, filter zero
-  const sorted = Object.entries(cats)
-    .map(([k, v]) => ({ key: k, amt: v, ...meta[k] }))
-    .filter(x => x.amt > 0)
-    .sort((a, b) => b.amt - a.amt);
-
-  const TOP_N = 5;
-  const topItems = sorted.slice(0, TOP_N);
-  const rest = sorted.slice(TOP_N);
-  const restAmt = rest.reduce((s, x) => s + x.amt, 0);
-  const maxAmt = topItems[0] ? topItems[0].amt : 1;
-
-  // Date range subtitle
-  const firstYM = months[0].ym;
-  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const firstY = firstYM.slice(0, 4);
-  const firstM = parseInt(firstYM.slice(5, 7), 10) - 1;
   const monthCount = months.length;
-  const avgPerMonth = total / monthCount;
+  const thisYear = years[years.length - 1];
+  const prevYear = years.length > 1 ? years[years.length - 2] : null;
+  const monthsThisYear = months.filter(m => String(m.ym || '').startsWith(thisYear)).length || 1;
 
-  let rows = '';
-  topItems.forEach(item => {
-    const widthPct = Math.max(2, (item.amt / maxAmt) * 100);
-    const sharePct = (item.amt / total) * 100;
-    const shareLbl = sharePct < 0.5 ? '<1%' : Math.round(sharePct) + '%';
-    rows += `<div class="att-row">
-      <div class="att-row-head">
-        <span class="att-row-name">${item.label}</span>
-        <span class="att-row-amt">${fmt(item.amt)} <span class="att-row-pct">&middot; ${shareLbl}</span></span>
-      </div>
-      <div class="att-bar-track"><div class="att-bar-fill" style="width:${widthPct.toFixed(1)}%; background:${item.color};"></div></div>
+  const secs = BUDGET_SECTIONS
+    .map(s => ({ key: s.key, lbl: s.lbl, spent: envAll.spent[s.key] || 0 }))
+    .filter(s => s.spent > 0)
+    .sort((a, b) => b.spent - a.spent);
+
+  const railMap = (typeof OFE_RAIL === 'object') ? OFE_RAIL : {};
+  const secHtml = secs.map(s => {
+    const openKey = 'trend|' + s.key;
+    const open = !!_trendEnvOpen[openKey];
+    const pctN = s.spent / total * 100;
+    const pct = pctN >= 0.5 ? Math.round(pctN) + '%' : '<1%';
+    const avgMo = s.spent / monthCount;
+
+    // drift: this year's monthly pace vs last full year's monthly pace
+    let drift = '';
+    if (prevYear && (envYear[prevYear][s.key] || 0) > 0 && (envYear[thisYear][s.key] || 0) > 0) {
+      const paceNow = envYear[thisYear][s.key] / monthsThisYear;
+      const pacePrev = envYear[prevYear][s.key] / 12;
+      const diff = (paceNow - pacePrev) / pacePrev * 100;
+      if (Math.abs(diff) < 5) drift = 'steady';
+      else drift = (diff > 0 ? '\u25b2 ' : '\u25bc ') + Math.round(Math.abs(diff)) + '% vs ' + prevYear + ' pace';
+    }
+    const subBits = ['avg ' + fmt(avgMo) + '/mo'];
+    if (drift) subBits.push(drift);
+
+    let openHtml = '';
+    if (open) {
+      const yearAmts = years.map(y => ({ y, amt: envYear[y][s.key] || 0 })).filter(x => x.amt > 0);
+      const maxAmt = Math.max(...yearAmts.map(x => x.amt), 1);
+      const yrRows = yearAmts.map(x =>
+        `<div class="tre-yr"><span>${x.y}</span>` +
+        `<div class="tre-bar" style="width:${Math.max(8, Math.round(x.amt / maxAmt * 110))}px;"></div>` +
+        `<span class="tre-yr-amt">${fmt(x.amt)}</span></div>`).join('');
+      const items = Object.entries(envAll.detail[s.key] || {})
+        .map(([k2, v]) => ({ label: k2.split('\u0001')[0], amt: v }))
+        .sort((a, b) => b.amt - a.amt);
+      const topLine = items.length
+        ? `<div class="tre-top">biggest: ${escHtml(items[0].label)} \u00b7 ${fmt(items[0].amt)} all-time</div>` : '';
+      openHtml = `<div class="tre-open">${yrRows}${topLine}</div>`;
+    }
+    const rail = railMap[s.key] || 'var(--rule)';
+    return `<div class="tre-sec${open ? ' open' : ''}" style="border-left-color:${rail};">
+      <button type="button" class="tre-head" data-tre-key="${s.key}">
+        <span class="tre-chev">${open ? '\u25be' : '\u25b8'}</span>
+        <span class="tre-lbl">${escHtml(s.lbl)}</span>
+        <span class="tre-pct">${pct}</span>
+        <span class="tre-amt">${fmt(s.spent)}</span>
+      </button>
+      <div class="tre-sub">${subBits.join(' \u00b7 ')}</div>
+      ${openHtml}
     </div>`;
-  });
-  // Reveal (Jul 2026): the tail is rendered in full but folded behind a
-  // disclosure — same idiom as the Expenses section's "7 more" reveal.
-  let rollup = '';
-  if (rest.length > 0) {
-    let restRows = '';
-    rest.forEach(item => {
-      const widthPct = Math.max(2, (item.amt / maxAmt) * 100);
-      const sharePct = (item.amt / total) * 100;
-      const shareLbl = sharePct < 0.5 ? '<1%' : Math.round(sharePct) + '%';
-      restRows += `<div class="att-row">
-        <div class="att-row-head">
-          <span class="att-row-name">${item.label}</span>
-          <span class="att-row-amt">${fmt(item.amt)} <span class="att-row-pct">&middot; ${shareLbl}</span></span>
-        </div>
-        <div class="att-bar-track"><div class="att-bar-fill" style="width:${widthPct.toFixed(1)}%; background:${item.color};"></div></div>
-      </div>`;
-    });
-    const moreLbl = rest.length === 1 ? '+ Show 1 more category' : `+ Show ${rest.length} more categories`;
-    rollup = `<div class="att-more hidden" id="attMoreRows">${restRows}</div>
-    <button class="att-reveal" id="attRevealBtn" type="button" data-more="${moreLbl}">
-      <span class="att-rollup-name" id="attRevealName">${moreLbl}</span>
-      <span class="att-rollup-amt">${fmt(restAmt)}</span>
-    </button>`;
-  }
+  }).join('');
 
   return `<div class="year-card trend-card">
     <div class="year-card-head">
-      <span class="year-card-title">All-time spending</span>
-      <span class="year-card-meta">since ${monthNames[firstM]} ${firstY}</span>
+      <span class="year-card-title">All-time outflow \u00b7 by envelope</span>
+      <span class="year-card-meta">since ${years[0]}</span>
     </div>
     <div class="att-headline">${fmt(total)}</div>
-    <div class="att-meta">across ${monthCount} month${monthCount === 1 ? '' : 's'} &middot; avg ${fmt(avgPerMonth)}/mo</div>
+    <div class="att-meta">across ${monthCount} month${monthCount === 1 ? '' : 's'} \u00b7 avg ${fmt(total / monthCount)}/mo</div>
     <div class="att-divider"></div>
-    <div class="att-section-lbl">Where every rupee went</div>
-    <div class="att-rows">${rows}${rollup}</div>
+    <div class="tre-secs">${secHtml}</div>
+    <div class="tre-tot"><span>All-time outflow</span><span class="tre-tot-amt">${fmt(total)}</span></div>
   </div>`;
 }
 

@@ -64,6 +64,20 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**TR - the all-time envelope book** (Aug 2026): Trends' 'All-time
+spending' category card retired for the same closed envelope book,
+spanning every logged year: one line per envelope (family rail, share
+%, all-time total) with a sub-line carrying avg/mo and DRIFT - this
+year's monthly pace vs last year's ('steady' under 5%); open -> per-
+year rows with proportional bars + the envelope's biggest all-time
+resident from the detail map. History heals backwards: the engine
+re-reads old years through today's rules, so new envelopes (P3) have
+an all-time story from birth. envYear computed per year + envAll once;
+labels read from s.lbl (data-anchor law applied); rails shared with
+MO-2's OFE_RAIL; the old attRevealBtn wiring retired same-day; open
+toggles re-render Trends (open bodies built fresh). Fixture sim built
+FROM the live BUDGET_SECTIONS source per the new sim law.
+
 **MO-2 KEEP-OTHER - Outflow speaks envelopes** (Aug 2026): the Month
 and Year Outflow Breakdown's category list retired; the card now
 renders the closed envelope book - one line per envelope in Budget-
