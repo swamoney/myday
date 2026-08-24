@@ -64,6 +64,30 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**PDF-ENV + PDF-FIT - the PDF learns envelopes and fits the page**
+(Aug 2026): PDF-ENV retired the category trio (pdfComputeOutflow /
+pdfDrawBreakdownSection / pdfDrawOutflowBreakdown) same-day; monthly
+and yearly outflow pages now print the envelope book via
+pdfDrawEnvelopeOutflow - the SAME monthEnvelopes_ engine as the app
+(wrappers built from bare entries; the engine ignores date), family
+rails as small colour ticks (PDF_ENV_RAIL, rgb of the app's OFE
+colours), each envelope printing share %, total, and top-2 items +
+'+N more' (print has no taps), heavy rule + TOTAL OUTFLOW. PDF-FIT
+rewrote pdfDrawDailyEntry as measure-before-draw: every block
+computes h(width) BEFORE drawing; a y-cursor with hard FLOOR packs two
+columns (money left with Day-outflow rule line, invested, health,
+night; life right with meals, hours, takeaway, verdict+introspection in
+measured serif); whatever cannot fit flows to a clearly-marked
+'continued - page N' full-width page - overlap impossible by
+construction (the old fn had ZERO guards, verified). Recurring rows
+print their (P0)/(P1) group; header gains the NS-B away tag
+(AWAY - CITY - NTH NIGHT, same verdict + streak walk as the app);
+footer voice kept verbatim on every page. The fn returns pagesUsed and
+the caller advances runningPage by it, so page numbers stay honest
+across spills. Geometry sim: fabricated heavy day packs both columns
+to the floor, overflows exactly the one block that cannot fit, floor
+never crossed.
+
 **NS-B - Night Stay in three rows, with memory** (Aug 2026): the
 section split into City (NEW night_city column - migrate_night_city.sql,
 plain-ASCII, verification counts) / Property (the DIRECT HEIR of

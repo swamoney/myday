@@ -15943,740 +15943,422 @@ function pdfTruncate(doc, text, maxMm) {
 // Compute outflow categories from a list of entries. Returns:
 //   { cats: [{key, label, val}], total }
 // where cats is sorted descending by val and zero-value rows are filtered out.
-function pdfComputeOutflow(entries) {
-  const totals = {
-    food: 0, dmart: 0, dailyTransport: 0, shopping: 0,
-    hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0,
-    aiUsage: 0, // tracked separately, folded into 'other' for display (matches app)
-  };
-  // Phase 11+: recurring split into 3 sub-categories (Home/Office/Subscriptions)
-  // matching the in-app Outflow Breakdown's structure. recurringGroupForName()
-  // classifies each payment by keyword (defined earlier in the file).
-  const recByGroup = { home: 0, office: 0 };
-  for (const e of entries) {
-    // Iterate all 10 spend fields INCLUDING aiUsage so its value is captured.
-    // The app's renderOutflowBreakdown folds aiUsage into Other (line 10625:
-    // otherTotalIncludingAi = totals.other + totals.aiUsage); the PDF mirrors
-    // that here so the totals match between app and PDF.
-    for (const k of ['food','dmart','dailyTransport','shopping','hotelStay','travel','entertainment','taxes','other','aiUsage']) {
-      const n = evalExpr(e[k]);
-      if (n !== null) totals[k] += n;
-    }
-    for (const p of parseRecurring(e)) {
-      const amt = Number(p.amt) || 0;
-      if (amt <= 0) continue;
-      const g = resolveRecurringGroup(p);
-      recByGroup[g] += amt;
-    }
-  }
-  // Bug fix (Items 1+2): fold AI Usage into the "other" bucket so it doesn't
-  // get silently dropped from the ranked list. The app does the exact same
-  // folding (otherTotalIncludingAi). Previously the PDF iterator excluded
-  // 'aiUsage' entirely, causing year and month totals to under-count.
-  const otherWithAi = totals.other + totals.aiUsage;
-  const cats = [
-    { key: 'food',           label: 'Food',                  val: totals.food },
-    { key: 'dmart',          label: 'Groceries',             val: totals.dmart },
-    { key: 'dailyTransport',           label: 'Transport',             val: totals.dailyTransport },
-    { key: 'shopping',       label: 'Shopping',              val: totals.shopping },
-    { key: 'hotelStay',      label: 'Hotel stay',            val: totals.hotelStay },
-    { key: 'travel',         label: 'Travel booking',        val: totals.travel },
-    { key: 'entertainment',  label: 'Entertainment',         val: totals.entertainment },
-    { key: 'taxes',          label: 'Taxes',                 val: totals.taxes },
-    { key: 'other',          label: 'Other',                 val: otherWithAi },
-    { key: 'recHome',        label: 'Recurring \u00b7 Home',         val: recByGroup.home },
-    { key: 'recOffice',      label: 'Recurring \u00b7 Office',       val: recByGroup.office },
-  ].filter(c => c.val > 0).sort((a, b) => b.val - a.val);
-  const total = cats.reduce((s, c) => s + c.val, 0);
-  return { cats, total };
-}
+// PDF-ENV (Aug 2026): the category trio (pdfComputeOutflow /
+// pdfDrawBreakdownSection / pdfDrawOutflowBreakdown) retired. Outflow pages -
+// yearly AND monthly - now print the envelope book: the same monthEnvelopes_
+// engine the app's Budget, Outflow, and Trends read, so paper agrees with
+// screen to the rupee. Print edition: each envelope prints share %, total, a
+// small family-colour tick, and its top two items + '+N more'.
+const PDF_ENV_RAIL = { official:[15,45,92], home:[32,53,92], food:[138,109,31],
+  health:[53,107,78], transport:[61,72,102], lifestyle:[94,47,20],
+  hotel:[138,87,17], misc:[104,120,154], taxes:[104,120,154] };
+function pdfDrawEnvelopeOutflow(doc, kicker, title, subtitle, entriesBare) {
+  const money = (n) => 'Rs. ' + Math.round(n).toLocaleString('en-IN');
+  const env = monthEnvelopes_(entriesBare.map(e => ({ entry: e })));
+  const total = Object.values(env.spent).reduce((s, v) => s + (v || 0), 0);
+  if (total <= 0) return;
 
-// Category bar colors (Phase 11+). Ember family for daily categories,
-// deep ember-brown for recurring — matches the in-app breakdown's CSS.
-const PDF_OUTFLOW_COLORS = {
-  food:          [187, 110, 100],
-  dmart:         [201, 138, 130],
-  dailyTransport:          [217, 160, 155],
-  aiUsage:       [233, 184, 178],
-  shopping:      [194, 121, 110],
-  hotelStay:     [180, 100,  90],
-  entertainment: [173,  90,  78],
-  taxes:         [156,  72,  62],
-  other:         [217, 160, 155],
-  // Phase 11+: three recurring sub-categories \u2014 deep ember-brown family,
-  // shaded by group so they read as related rows even when sort splits them.
-  recHome:       [122,  46,  26],  // deepest ember-brown (rent/utilities)
-  recOffice:     [146,  68,  46],  // mid ember-brown (office bills)
-};
-
-// Draw a full Outflow Breakdown page. "kicker" e.g. "OUTFLOW · MAY 2026",
-// "title" e.g. "Where the money went", "subtitle" e.g. "31 days · Rs. 1,34,407".
-// cats + total come from pdfComputeOutflow().
-// Item 1 (Other Breakdown in PDF): if `entries` is provided AND the "other"
-// category has any value, an additional "Breakdown of Other" sub-section is
-// drawn below the ranked list. Top-5 items + roll-up of the rest, mirroring
-// the in-app Other Breakdown card.
-// Helper: draw a "BREAKDOWN OF X" sub-section on the current Outflow page.
-// Renders header strip, anchor row (X total), top-N items + rollup. Updates
-// and returns the new cursor Y. agg comes from aggregateOtherItemsTopN or
-// aggregateRecurringByGroup — both return the same shape. Hoisted into a
-// helper so it can be reused for Other + Home + Office + Subscriptions.
-function pdfDrawBreakdownSection(doc, kicker, sectionLabel, agg, total, startY) {
-  const fmt = n => 'Rs. ' + Math.round(n).toLocaleString('en-IN');
-  let y = startY;
-  if (!agg || agg.totalAmt <= 0 || agg.top.length === 0) return y;
-  // Spacing before the sub-section
-  y += 6;
-  // Page break safety
-  if (y > PDF_PAGE.height - PDF_PAGE.marginBottom - 36) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(kicker + ' (continued)',
-             PDF_PAGE.width / 2, PDF_PAGE.height - 8, { align: 'center' });
-    doc.addPage();
-    pdfSetFill(doc, PDF_COLORS.page);
-    doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
-    y = PDF_PAGE.marginTop;
-  }
-  // Sub-section header
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.5);
-  doc.text('BREAKDOWN OF ' + sectionLabel.toUpperCase(), PDF_PAGE.marginX, y);
-  doc.setCharSpace(0);
-  // Meta line on the right — N items · M unique names
-  const itemWord = agg.totalCount === 1 ? 'item' : 'items';
-  const uniqWord = agg.uniqueNames === 1 ? 'name' : 'names';
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.text(
-    `${agg.totalCount} ${itemWord} · ${agg.uniqueNames} unique ${uniqWord}`,
-    PDF_PAGE.width - PDF_PAGE.marginX, y,
-    { align: 'right' }
-  );
-  pdfSetDraw(doc, PDF_COLORS.rule);
-  doc.setLineWidth(0.3);
-  doc.line(PDF_PAGE.marginX, y + 2, PDF_PAGE.width - PDF_PAGE.marginX, y + 2);
-  y += 8;
-
-  // Anchor row — total for this section (mirrors app anchor strip)
-  const sectionSharePct = total > 0 ? (agg.totalAmt / total) * 100 : 0;
-  const sectionShareLbl = sectionSharePct >= 10 ? sectionSharePct.toFixed(0) + '%' : sectionSharePct.toFixed(1) + '%';
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(sectionLabel, PDF_PAGE.marginX, y + 2);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.text(sectionShareLbl,
-           PDF_PAGE.width - PDF_PAGE.marginX - 30, y + 2, { align: 'right' });
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  pdfSetText(doc, PDF_COLORS.ember);
-  doc.text(fmt(agg.totalAmt),
-           PDF_PAGE.width - PDF_PAGE.marginX, y + 2, { align: 'right' });
-  // Solid separator below anchor row
-  pdfSetDraw(doc, PDF_COLORS.rule);
-  doc.setLineWidth(0.25);
-  doc.line(PDF_PAGE.marginX, y + 5.5, PDF_PAGE.width - PDF_PAGE.marginX, y + 5.5);
-  y += 9;
-
-  // Top-N items
-  const obRowH = 8;
-  for (const it of agg.top) {
-    if (y > PDF_PAGE.height - PDF_PAGE.marginBottom - 14) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
-      pdfSetText(doc, PDF_COLORS.muted);
-      doc.text(kicker + ' (continued)',
-               PDF_PAGE.width / 2, PDF_PAGE.height - 8, { align: 'center' });
-      doc.addPage();
-      pdfSetFill(doc, PDF_COLORS.page);
-      doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
-      y = PDF_PAGE.marginTop;
-    }
-    const itPct = total > 0 ? (it.amt / total) * 100 : 0;
-    const countSuffix = it.count > 1 ? ` (×${it.count})` : '';
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    pdfSetText(doc, PDF_COLORS.ink);
-    const safeName = String(it.name || 'Unnamed').slice(0, 38) + countSuffix;
-    doc.text(safeName, PDF_PAGE.marginX, y + 2);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    const pctLbl = itPct >= 0.5 ? (itPct >= 10 ? itPct.toFixed(0) + '%' : itPct.toFixed(1) + '%') : '<1%';
-    doc.text(pctLbl,
-             PDF_PAGE.width - PDF_PAGE.marginX - 30, y + 2, { align: 'right' });
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    pdfSetText(doc, PDF_COLORS.ink);
-    doc.text(fmt(it.amt),
-             PDF_PAGE.width - PDF_PAGE.marginX, y + 2, { align: 'right' });
-    pdfSetDraw(doc, PDF_COLORS.rule);
-    doc.setLineWidth(0.12);
-    doc.setLineDashPattern([0.4, 0.4], 0);
-    doc.line(PDF_PAGE.marginX, y + 5, PDF_PAGE.width - PDF_PAGE.marginX, y + 5);
-    doc.setLineDashPattern([], 0);
-    y += obRowH;
-  }
-
-  // Rollup row
-  if (agg.rest.amt > 0 && agg.rest.uniqueNames > 0) {
-    const moreLabel = agg.rest.uniqueNames === 1
-      ? '+ 1 more item'
-      : `+ ${agg.rest.uniqueNames} more items`;
-    const restPct = total > 0 ? (agg.rest.amt / total) * 100 : 0;
-    const restPctLbl = restPct >= 0.5 ? (restPct >= 10 ? restPct.toFixed(0) + '%' : restPct.toFixed(1) + '%') : '<1%';
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(moreLabel, PDF_PAGE.marginX, y + 2);
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(restPctLbl,
-             PDF_PAGE.width - PDF_PAGE.marginX - 30, y + 2, { align: 'right' });
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(fmt(agg.rest.amt),
-             PDF_PAGE.width - PDF_PAGE.marginX, y + 2, { align: 'right' });
-    y += obRowH;
-  }
-  return y;
-}
-
-// pdfDrawOutflowBreakdown signature extended: `scope` controls top-N caps:
-//   'month' → show ALL items in Other/Home/Office/Subs (mirrors app Month)
-//   'year'  → top 10 + rollup (mirrors app Year)
-// Backward compatible: if scope is omitted, defaults to 'year' behavior.
-function pdfDrawOutflowBreakdown(doc, kicker, title, subtitle, cats, total, entries, scope) {
   pdfSetFill(doc, PDF_COLORS.page);
   doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
+  let yPos = PDF_PAGE.marginTop + 4;
 
-  const fmt = n => 'Rs. ' + Math.round(n).toLocaleString('en-IN');
-
-  // Header
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.4);
-  doc.text(kicker, PDF_PAGE.marginX, PDF_PAGE.marginTop);
-  doc.setCharSpace(0);
-
-  doc.setFont('times', 'italic');
-  doc.setFontSize(20);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.8);
+  doc.text(kicker, PDF_PAGE.marginX, yPos); doc.setCharSpace(0);
+  yPos += 9;
+  doc.setFont('times', 'normal'); doc.setFontSize(22);
   pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(title, PDF_PAGE.marginX, PDF_PAGE.marginTop + 9);
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
+  doc.text(title, PDF_PAGE.marginX, yPos);
+  yPos += 6.5;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
   pdfSetText(doc, PDF_COLORS.muted);
-  doc.text(subtitle, PDF_PAGE.marginX, PDF_PAGE.marginTop + 14);
+  doc.text(subtitle, PDF_PAGE.marginX, yPos);
+  yPos += 4;
+  pdfHRule(doc, yPos, 0.4);
+  yPos += 9;
 
-  // TOTAL OUTFLOW stat box
-  let y = PDF_PAGE.marginTop + 22;
-  const boxH = 18;
-  pdfSetFill(doc, [251, 248, 243]);
-  pdfSetDraw(doc, PDF_COLORS.rule);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(PDF_PAGE.marginX, y, PDF_PAGE.contentWidth, boxH, 1, 1, 'FD');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.5);
-  doc.text('TOTAL OUTFLOW', PDF_PAGE.marginX + 6, y + 5.5);
-  doc.setCharSpace(0);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  pdfSetText(doc, PDF_COLORS.ember);
-  doc.text(fmt(total), PDF_PAGE.marginX + 6, y + 13.5);
-  y += boxH + 8;
+  const innerR = PDF_PAGE.width - PDF_PAGE.marginX;
+  const secs = BUDGET_SECTIONS
+    .map(s => ({ key: s.key, lbl: s.lbl, spent: env.spent[s.key] || 0 }))
+    .filter(s => s.spent > 0)
+    .sort((a, b) => b.spent - a.spent);
 
-  // Empty case
-  if (cats.length === 0 || total === 0) {
-    doc.setFont('times', 'italic');
-    doc.setFontSize(10);
+  secs.forEach(s => {
+    const rail = PDF_ENV_RAIL[s.key] || [180, 180, 180];
+    pdfSetFill(doc, rail);
+    doc.rect(PDF_PAGE.marginX, yPos - 2.4, 3.2, 1.1, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    pdfSetText(doc, PDF_COLORS.ink); doc.setCharSpace(0.4);
+    doc.text(s.lbl.toUpperCase(), PDF_PAGE.marginX + 5.5, yPos);
+    doc.setCharSpace(0);
+    const pctN = s.spent / total * 100;
+    const pct = pctN >= 0.5 ? Math.round(pctN) + '%' : '<1%';
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
     pdfSetText(doc, PDF_COLORS.muted);
-    doc.text('Nothing logged.', PDF_PAGE.marginX, y + 4);
-    return;
-  }
+    const lblW = doc.getTextWidth(s.lbl.toUpperCase()) * (9 / 7);
+    doc.text(pct, PDF_PAGE.marginX + 5.5 + doc.getTextWidth(s.lbl.toUpperCase()) + 8, yPos);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5);
+    pdfSetText(doc, PDF_COLORS.ink);
+    doc.text(money(s.spent), innerR, yPos, { align: 'right' });
+    yPos += 4.6;
 
-  // Category header row — three columns: CATEGORY | SHARE | AMOUNT.
-  // Item 3: no bar column anymore — the PDF now mirrors the in-app plain
-  // ranked list. Cleaner read; the rank order itself conveys magnitude.
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.5);
-  doc.text('CATEGORY', PDF_PAGE.marginX, y);
-  doc.text('SHARE', PDF_PAGE.width - PDF_PAGE.marginX - 30, y, { align: 'right' });
-  doc.text('AMOUNT', PDF_PAGE.width - PDF_PAGE.marginX, y, { align: 'right' });
-  doc.setCharSpace(0);
-  pdfSetDraw(doc, PDF_COLORS.rule);
-  doc.setLineWidth(0.3);
-  doc.line(PDF_PAGE.marginX, y + 2, PDF_PAGE.width - PDF_PAGE.marginX, y + 2);
-  y += 8;
-
-  // Layout — plain ranked rows. Tighter row height since there's no bar to
-  // accommodate; matches the in-app compact list.
-  const rowH = 8;
-
-  for (const cat of cats) {
-    // Page break safety
-    if (y > PDF_PAGE.height - PDF_PAGE.marginBottom - 14) {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7);
+    const items = Object.entries(env.detail[s.key] || {})
+      .map(([k2, v]) => ({ label: k2.split('\u0001')[0], amt: v }))
+      .filter(r => r.amt > 0)
+      .sort((a, b) => b.amt - a.amt);
+    if (items.length) {
+      const shown = items.slice(0, 2)
+        .map(r => r.label + ' ' + money(r.amt));
+      const more = items.length > 2 ? ('  \u00b7  +' + (items.length - 2) + ' more') : '';
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
       pdfSetText(doc, PDF_COLORS.muted);
-      doc.text(kicker + ' (continued)',
-               PDF_PAGE.width / 2, PDF_PAGE.height - 8, { align: 'center' });
-      doc.addPage();
-      pdfSetFill(doc, PDF_COLORS.page);
-      doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
-      y = PDF_PAGE.marginTop;
+      doc.text(pdfTruncate(doc, shown.join('  \u00b7  ') + more, PDF_PAGE.contentWidth - 8),
+        PDF_PAGE.marginX + 5.5, yPos);
+      yPos += 4.8;
+    } else {
+      yPos += 1.6;
     }
+    yPos += 2.2;
+  });
 
-    const pct = total > 0 ? (cat.val / total) * 100 : 0;
+  yPos += 2;
+  pdfSetDraw(doc, PDF_COLORS.ink); doc.setLineWidth(0.5);
+  doc.line(PDF_PAGE.marginX, yPos, innerR, yPos);
+  yPos += 6.5;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+  pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.4);
+  doc.text('TOTAL OUTFLOW', PDF_PAGE.marginX, yPos); doc.setCharSpace(0);
+  doc.setFontSize(11); pdfSetText(doc, PDF_COLORS.ink);
+  doc.text(money(total), innerR, yPos, { align: 'right' });
 
-    // Category label — left column
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    pdfSetText(doc, PDF_COLORS.ink);
-    doc.text(cat.label, PDF_PAGE.marginX, y + 2);
-
-    // Share % — middle column (right-aligned to a fixed offset)
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(pct >= 10 ? pct.toFixed(0) + '%' : pct.toFixed(1) + '%',
-             PDF_PAGE.width - PDF_PAGE.marginX - 30, y + 2, { align: 'right' });
-
-    // Amount — right column (bold ink, right-aligned to page margin)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    pdfSetText(doc, PDF_COLORS.ink);
-    doc.text(fmt(cat.val),
-             PDF_PAGE.width - PDF_PAGE.marginX, y + 2, { align: 'right' });
-
-    // Dotted row separator between rows
-    pdfSetDraw(doc, PDF_COLORS.rule);
-    doc.setLineWidth(0.12);
-    doc.setLineDashPattern([0.4, 0.4], 0);
-    doc.line(PDF_PAGE.marginX, y + 5, PDF_PAGE.width - PDF_PAGE.marginX, y + 5);
-    doc.setLineDashPattern([], 0);
-    y += rowH;
-  }
-
-  // Item 1: Breakdown of "Other" + Item 2: Breakdown of Home/Office/Subs
-  // Each section drilled via pdfDrawBreakdownSection. topN cap depends on scope:
-  // 'month' → all items (9999), 'year' → top 10. Sections only render when
-  // they have data; empty groups silently absent.
-  if (entries && entries.length > 0 && typeof aggregateOtherItemsTopN === 'function') {
-    const wrapped = entries.map(e => ({ entry: e }));
-    const topN = scope === 'month' ? 9999 : 10;
-    // 1. Breakdown of Other
-    const otherAgg = aggregateOtherItemsTopN(wrapped, topN);
-    y = pdfDrawBreakdownSection(doc, kicker, 'Other', otherAgg, total, y);
-    // 2-4. Breakdown of recurring groups — Home, Office, Subscriptions
-    if (typeof aggregateRecurringByGroup === 'function') {
-      const groups = [
-        { key: 'home',          label: 'Recurring · Home' },
-        { key: 'office',        label: 'Recurring · Office' },
-      ];
-      for (const g of groups) {
-        const grpAgg = aggregateRecurringByGroup(wrapped, g.key, topN);
-        y = pdfDrawBreakdownSection(doc, kicker, g.label, grpAgg, total, y);
-      }
-    }
-  }
-
-  // Page-bottom marker
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
   pdfSetText(doc, PDF_COLORS.muted);
   doc.text(kicker, PDF_PAGE.width / 2, PDF_PAGE.height - 8, { align: 'center' });
 }
 
+
 // =========== DAILY ENTRY PAGE (one day per page) ===========
 function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
-  pdfSetFill(doc, PDF_COLORS.page);
-  doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
-
+  // PDF-FIT (Aug 2026): measure-before-draw. Every block computes its height
+  // for a given width BEFORE anything touches the page; a y-cursor with a
+  // hard floor places blocks into two columns (money left, life right), and
+  // whatever genuinely cannot fit flows to a clearly-marked continuation
+  // page. Overlap is impossible by construction. Returns pages used.
   const [y, m, d] = isoDate.split('-').map(Number);
   const jsDate = new Date(y, m - 1, d);
   const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][jsDate.getDay()];
   const monthName = MONTH_NAMES_FULL[m - 1];
+  const money = (n) => 'Rs. ' + Math.round(n).toLocaleString('en-IN');
+  const evx = (k) => { const v = evalExpr(entry[k]); return (v === null || v === undefined) ? 0 : v; };
 
-  let cursorY = PDF_PAGE.marginTop;
+  const GAP = 8;
+  const COLW = (PDF_PAGE.contentWidth - GAP) / 2;
+  const FLOOR = PDF_PAGE.height - PDF_PAGE.marginBottom - 6;
 
-  // Day-of-journal counter — used below to pick the reflection quote for
-  // this day. Not rendered in the header anymore (Phase 9 redesign removed
-  // the visible "Day N" line), but still drives the quote rotation so each
-  // day in the journal gets a different reflection.
-  const dayCount = dayCountFromStart(isoDate);
-
-  // ===== HEADER (Phase 9 redesign — Option A: big serif numeral hero) =====
-  // The day number is the visual anchor: 56pt serif at left, with the day
-  // name (italic 22pt) and "MONTH YEAR" (mono 9pt) stacked beside it. This
-  // replaces the older two-line "Thursday" + "1 January 2026" treatment
-  // which was redundant. The "Day N / total" right-side counter also
-  // removed (it leaked database-style metadata into the journal voice).
-  // Layout (mm from page top): all heights ratioed to keep the rule line
-  // landing at marginTop + ~25mm so the body content keeps its old start Y.
-
-  // Big numeral — Times normal at 36pt. Baseline anchored at cursorY+15
-  // so the glyph top sits near cursorY+0 and bottom near cursorY+18.
-  doc.setFont('times', 'normal');
-  doc.setFontSize(36);
-  pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(String(d), PDF_PAGE.marginX, cursorY + 15);
-  const numW = doc.getTextWidth(String(d));
-
-  // Day name — Times italic 22pt, sits ~6mm to the right of the numeral
-  doc.setFont('times', 'italic');
-  doc.setFontSize(22);
-  pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(dayName, PDF_PAGE.marginX + numW + 6, cursorY + 9);
-
-  // MONTH YEAR — Helvetica 9pt uppercase letter-spaced, just below day name
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.setCharSpace(0.5);
-  doc.text(`${monthName.toUpperCase()}  ${y}`, PDF_PAGE.marginX + numW + 6, cursorY + 14);
-  doc.setCharSpace(0);
-
-  cursorY += 22;
-
-  // Header rule
-  pdfHRule(doc, cursorY, 0.4);
-  cursorY += 8;
-
-  // ===== Section helper =====
-  function sectionHeading(title) {
-    // No silent skip — we always draw the heading. Layout is sized so this is safe.
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.ember);
-    doc.text(title.toUpperCase(), PDF_PAGE.marginX, cursorY);
-    pdfSetDraw(doc, PDF_COLORS.rule);
-    doc.setLineWidth(0.15);
-    const titleW = doc.getTextWidth(title.toUpperCase());
-    doc.line(PDF_PAGE.marginX + titleW + 4, cursorY - 1, PDF_PAGE.width - PDF_PAGE.marginX, cursorY - 1);
-    cursorY += 6;
-    return true;
-  }
-  function fieldLine(label, value, opts) {
-    opts = opts || {};
-    if (!value && value !== 0) value = '—';
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(label, PDF_PAGE.marginX, cursorY);
-    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
-    doc.setFontSize(9.5);
-    pdfSetText(doc, PDF_COLORS.ink);
-    const valStr = String(value);
-    const labelW = 36; // mm reserved for the label column
-    const valX = PDF_PAGE.marginX + labelW;
-    const valMaxW = PDF_PAGE.contentWidth - labelW;
-    const lines = pdfWrapText(doc, valStr, valMaxW);
-    for (let i = 0; i < lines.length; i++) {
-      doc.text(lines[i], valX, cursorY);
-      if (i < lines.length - 1) cursorY += 4.0;
-    }
-    cursorY += 5;
-  }
-  function multilineField(label, value) {
-    // For empty values, use the compact fieldLine layout (label and "—" on same line)
-    // to save vertical space — an empty multiline shouldn't take more room than a regular field.
-    if (!value || value === '—' || (typeof value === 'string' && value.trim() === '')) {
-      fieldLine(label, '—');
-      return;
-    }
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(label, PDF_PAGE.marginX, cursorY);
-    cursorY += 3.8;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
-    pdfSetText(doc, PDF_COLORS.ink);
-    const lines = pdfWrapText(doc, String(value), PDF_PAGE.contentWidth);
-    for (const line of lines) {
-      if (cursorY > PDF_PAGE.height - PDF_PAGE.marginBottom - 6) break;
-      doc.text(line, PDF_PAGE.marginX, cursorY);
-      cursorY += 4.0;
-    }
-    cursorY += 1.5;
-  }
-  // Phase 11+: Two-column field row. Renders two label/value pairs side-by-side
-  // on a single line \u2014 saves vertical space when two short numeric fields
-  // naturally pair (e.g., Regular Inv + Top-Up Inv, Food + Groceries, Walk +
-  // Heart Pts). Each column has its own label (8pt muted) and value (9.5pt ink),
-  // mirroring fieldLine() typography. Layout: column 1 starts at marginX,
-  // column 2 starts at the midpoint of contentWidth.
-  function fieldLineTwoCol(lLabel, lValue, rLabel, rValue) {
-    if (!lValue && lValue !== 0) lValue = '\u2014';
-    if (!rValue && rValue !== 0) rValue = '\u2014';
-    const colW = PDF_PAGE.contentWidth / 2;
-    const labelW = 26; // slightly tighter than single-col (36) to fit two columns
-    const lLabelX = PDF_PAGE.marginX;
-    const lValueX = PDF_PAGE.marginX + labelW;
-    const rLabelX = PDF_PAGE.marginX + colW;
-    const rValueX = PDF_PAGE.marginX + colW + labelW;
-    // Labels
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(lLabel, lLabelX, cursorY);
-    doc.text(rLabel, rLabelX, cursorY);
-    // Values
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
-    pdfSetText(doc, PDF_COLORS.ink);
-    const lValMax = colW - labelW - 2; // small gutter before next column
-    const rValMax = colW - labelW;
-    doc.text(pdfTruncate(doc, String(lValue), lValMax), lValueX, cursorY);
-    doc.text(pdfTruncate(doc, String(rValue), rValMax), rValueX, cursorY);
-    cursorY += 5;
-  }
-  // Phase 11+: helpers for "hide empties" daily layout.
-  //   isBlank(v)     : true when a money field is missing OR evaluates to 0.
-  //   isBlankText(v) : true when a text field is missing/empty.
-  //   blankNote(n)   : draws a small italic-muted "N <label> blank" footnote.
-  //   fieldLineTwoColSmart: pair renderer that degrades to single column when
-  //                  one half is blank, and renders nothing when both are.
-  function isBlank(v) {
-    if (v === undefined || v === null || v === '') return true;
-    const n = evalExpr(v);
-    if (n === null) return false;
-    return n === 0;
-  }
-  function isBlankText(v) {
-    return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
-  }
-  function blankNote(n, what) {
-    if (!n || n <= 0) return;
-    const label = (what && what.trim()) ? what : (n === 1 ? 'category' : 'categories');
-    doc.setFont('times', 'italic');
-    doc.setFontSize(8);
-    pdfSetText(doc, [180, 175, 170]);
-    doc.text(`${n} ${label} blank`, PDF_PAGE.marginX + 2, cursorY);
-    cursorY += 4;
-  }
-  function fieldLineTwoColSmart(lLabel, lValueRaw, lFmt, rLabel, rValueRaw, rFmt) {
-    const lBlank = isBlank(lValueRaw);
-    const rBlank = isBlank(rValueRaw);
-    if (lBlank && rBlank) return { drew: false };
-    if (lBlank) { fieldLine(rLabel, rFmt(rValueRaw)); return { drew: true }; }
-    if (rBlank) { fieldLine(lLabel, lFmt(lValueRaw)); return { drew: true }; }
-    fieldLineTwoCol(lLabel, lFmt(lValueRaw), rLabel, rFmt(rValueRaw));
-    return { drew: true };
-  }
-
-  const fmt = (raw) => {
-    if (raw === '' || raw === undefined || raw === null) return '—';
-    const n = evalExpr(raw);
-    if (n === null) return String(raw);
-    return 'Rs. ' + Math.round(n).toLocaleString('en-IN');
-  };
-
-  // ===== I. INVESTMENTS & EXPENSES =====
-  // All categories render unconditionally — blank ones show an em-dash.
-  // Notes (Hotel/Travel/Entertainment) keep their conditional render since
-  // they're free-text fields that read as visual noise when blank.
-  // The "OTHER EXPENSES THIS DAY" sub-block below replaces the prior
-  // single "Other" line — itemized list, one row per logged item, same
-  // visual format as "RECURRING THIS DAY". AI Usage line is intentionally
-  // removed: AI items now live inside the otherLog and surface there.
-  sectionHeading('I  Investments & Expenses');
-
-  // Statement format (Option B): bordered box, grouped Invested / Spent /
-  // Recurring / Tracking, only logged items, with "Total spent / Total
-  // invested" rows under a heavy rule. Same total rules as the app ledger
-  // (CC bill tracking-only/excluded; recurring counts as spend).
-  {
-    const EPS = { inv:[47,97,70], spend:[153,60,29], recur:[92,46,64], track:[138,129,114] };
-    const money = (n) => 'Rs. ' + Math.round(n).toLocaleString('en-IN');
-    const evx = (k) => { const v = evalExpr(entry[k]); return (v === null || v === undefined) ? 0 : v; };
-
-    const invRows = [];
-    [['regularInvestment','Regular Investment'],['topUp','Top-Up Investment']].forEach(([k,l]) => {
-      const v = evx(k); if (v > 0) invRows.push({ label:l, amt:v });
-    });
-    const redeem = evx('investmentRedemption');
-
-    const spRows = [];
-    [['food','Food'],['dmart','Groceries'],['dailyTransport','Transport'],['shopping','Shopping'],
-     ['entertainment','Entertainment'],['hotelStay','Hotel Stay'],['travel','Travel Booking'],
-     ['taxes','Taxes']].forEach(([k,l]) => { const v = evx(k); if (v > 0) spRows.push({ label:l, amt:v }); });
-    ((typeof parseOtherItems === 'function') ? parseOtherItems(entry) : []).forEach(it => {
-      const amt = Number(it.amt) || 0; if (amt > 0) spRows.push({ label:(String(it.name||'').trim() || 'Other'), amt });
-    });
-
-    const recRows = [];
-    parseRecurring(entry).forEach(p => { const amt = Number(p.amt) || 0; if (amt > 0) recRows.push({ label:(String(p.name||'').trim() || 'Payment'), amt }); });
-
-    const ccVal2 = evx('creditCardBill');
-    const spendTotal  = spRows.reduce((s,r)=>s+r.amt,0) + recRows.reduce((s,r)=>s+r.amt,0);
-    const investTotal = invRows.reduce((s,r)=>s+r.amt,0);
-    const anyLogged = invRows.length || spRows.length || recRows.length || redeem > 0 || ccVal2 > 0;
-
-    if (!anyLogged) {
-      doc.setFont('helvetica','italic'); doc.setFontSize(9); pdfSetText(doc, PDF_COLORS.muted);
-      doc.text('Nothing logged for this day.', PDF_PAGE.marginX, cursorY);
-      cursorY += 6;
-    } else {
-      const boxPadX = 5, boxPadY = 4.5;
-      const innerL = PDF_PAGE.marginX + boxPadX;
-      const innerR = PDF_PAGE.width - PDF_PAGE.marginX - boxPadX;
-      const boxTop = cursorY;
-      cursorY += boxPadY + 2;
-
-      const groupHead = (label, color) => {
-        cursorY += 1.5;
-        doc.setFont('helvetica','bold'); doc.setFontSize(7); pdfSetText(doc, color); doc.setCharSpace(0.5);
-        doc.text(label.toUpperCase(), innerL, cursorY); doc.setCharSpace(0);
-        cursorY += 4.5;
-      };
-      const row = (label, amt, color, tag) => {
-        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); pdfSetText(doc, PDF_COLORS.ink);
-        doc.text(label, innerL, cursorY);
-        if (tag) {
-          const lw = doc.getTextWidth(label);
-          doc.setFont('helvetica','normal'); doc.setFontSize(6.5); pdfSetText(doc, PDF_COLORS.muted);
-          doc.text('(' + tag + ')', innerL + lw + 2, cursorY);
-        }
-        doc.setFont('helvetica','bold'); doc.setFontSize(9.5); pdfSetText(doc, color);
-        doc.text(money(amt), innerR, cursorY, { align:'right' });
-        pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.12);
-        doc.line(innerL, cursorY + 1.8, innerR, cursorY + 1.8);
-        cursorY += 6;
-      };
-
-      if (invRows.length || redeem > 0) {
-        groupHead('Invested', EPS.inv);
-        invRows.forEach(r => row(r.label, r.amt, EPS.inv));
-        if (redeem > 0) row('Investment Redemption', redeem, EPS.inv, 'credited back');
-      }
-      if (spRows.length) { groupHead('Spent', EPS.spend); spRows.forEach(r => row(r.label, r.amt, EPS.spend)); }
-      if (recRows.length) { groupHead('Recurring', EPS.recur); recRows.forEach(r => row(r.label, r.amt, EPS.spend, 'recurring')); }
-      if (ccVal2 > 0) { groupHead('Tracking only', EPS.track); row('Credit Card Bill', ccVal2, EPS.track, 'not in total'); }
-
-      // Heavy rule + total rows
-      cursorY += 2.5;
-      pdfSetDraw(doc, PDF_COLORS.ink); doc.setLineWidth(0.5);
-      doc.line(innerL, cursorY, innerR, cursorY);
-      cursorY += 6;
-      const totRow = (label, amt, color) => {
-        doc.setFont('helvetica','bold'); doc.setFontSize(8); pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.4);
-        doc.text(label.toUpperCase(), innerL, cursorY); doc.setCharSpace(0);
-        doc.setFont('helvetica','bold'); doc.setFontSize(11); pdfSetText(doc, color);
-        doc.text(money(amt), innerR, cursorY, { align:'right' });
-        cursorY += 6.5;
-      };
-      totRow('Total spent', spendTotal, EPS.spend);
-      totRow('Total invested', investTotal, EPS.inv);
-
-      cursorY += boxPadY - 3;
-      const boxBottom = cursorY;
-      pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.3);
-      if (doc.roundedRect) doc.roundedRect(PDF_PAGE.marginX, boxTop, PDF_PAGE.contentWidth, boxBottom - boxTop, 1.5, 1.5, 'S');
-      else doc.rect(PDF_PAGE.marginX, boxTop, PDF_PAGE.contentWidth, boxBottom - boxTop, 'S');
-    }
-  }
-
-  cursorY += 3;
-
-  // ===== II. HEALTH & MIND =====
-  // Phase 11+: reverted to always-render. No hide-empties, no footnote here.
-  sectionHeading('II  Health & Mind');
-  const walkVal = (entry.walk !== '' && entry.walk !== undefined && entry.walk !== null) ? `${entry.walk} min` : '—';
-  const heartVal = (entry.heart !== '' && entry.heart !== undefined && entry.heart !== null) ? `${entry.heart}` : '—';
-  fieldLine('Walk', walkVal);
-  fieldLine('Heart Pts', heartVal);
-  fieldLine('Reading', entry.reading || '—');
-  if (entry.readingTakeaway && entry.readingTakeaway.trim()) {
-    fieldLine('Takeaway', entry.readingTakeaway.trim());
-  }
-
-  cursorY += 1;
-
-  // ===== III. THE HOURS =====
-  sectionHeading('III  The Hours');
-  const slots = [
-    ['12 AM – 3 AM', entry.slot1],
-    ['3 AM – 8 AM', entry.slot2],
-    ['8 AM – 12 PM', entry.slot3],
-    ['12 PM – 4 PM', entry.slot4],
-    ['4 PM – 8 PM', entry.slot5],
-    ['8 PM – 12 AM', entry.slot6],
-  ];
-  for (const [label, val] of slots) {
-    multilineField(label, val);
-  }
-
-  cursorY += 1;
-
-  // ===== IV. FOOD JOURNAL =====
-  sectionHeading('IV  Food Journal');
-  multilineField('Breakfast', entry.breakfast);
-  multilineField('Lunch', entry.lunch);
-  multilineField('Dinner', entry.dinner);
-
-  cursorY += 1;
-
-  // ===== V. NIGHT STAY =====
-  sectionHeading('V  Night Stay');
-  fieldLine('Stayed at', entry.nightStay || '—');
-  fieldLine('Stayed with', entry.stayedWith || '—');
-
-  cursorY += 2;
-
-  // ===== VI. THE DAY'S VERDICT =====
-  sectionHeading("VI  The Day's Verdict");
-  let satStr = '—';
-  if (entry.satisfaction !== '' && entry.satisfaction !== undefined && entry.satisfaction !== null && !isNaN(Number(entry.satisfaction))) {
-    const s = Number(entry.satisfaction);
-    satStr = (s * 100).toFixed(0) + '%';
-  }
-  fieldLine('Satisfaction', satStr, { bold: true });
-
-  // Introspection — free-text reflection. Filters out legacy "Yes"/"No"
-  // values from pre-textarea entries (they're meaningless as PDF content).
-  if (entry.introspection && entry.introspection !== 'Yes' && entry.introspection !== 'No' && entry.introspection.length > 0) {
-    cursorY += 2;
-    multilineField('Introspection', entry.introspection);
-  }
-
-  // Phase 11+: Priorities + Reflection blocks removed from PDF daily entry.
-  // Adding Entertainment + Taxes pushed the daily details past one page,
-  // and the auxiliary blocks (static priorities framework + rotating quote)
-  // were getting cut off. The form data is the priority — the priorities
-  // framework is static and lives in the app's Today tab; the reflection
-  // quote is also still rendered in-app. Both can be re-added if PDF page
-  // size grows in the future.
-
-  // ===== FOOTER (page number + day-of-year + year) =====
-  const footerLineY = PDF_PAGE.height - 8;
-  // Compute day-of-year and total days in year (leap-year correct)
+  // ---------- footer (every page) ----------
   const startOfYear = new Date(Date.UTC(y, 0, 1));
   const dateUtc = new Date(Date.UTC(y, m - 1, d));
   const dayOfYear = Math.floor((dateUtc - startOfYear) / 86400000) + 1;
   const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
   const totalDays = isLeap ? 366 : 365;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.text(`Day ${dayOfYear} / ${totalDays}`, PDF_PAGE.marginX, footerLineY);
-  doc.text(String(runningPageNum), PDF_PAGE.width / 2, footerLineY, { align: 'center' });
-  doc.text(`My Day · ${y}`, PDF_PAGE.width - PDF_PAGE.marginX, footerLineY, { align: 'right' });
+  const drawFooter = (pageNum) => {
+    const fy = PDF_PAGE.height - 8;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    pdfSetText(doc, PDF_COLORS.muted);
+    doc.text('Day ' + dayOfYear + ' / ' + totalDays, PDF_PAGE.marginX, fy);
+    doc.text(String(pageNum), PDF_PAGE.width / 2, fy, { align: 'center' });
+    doc.text('My Day \u00b7 ' + y, PDF_PAGE.width - PDF_PAGE.marginX, fy, { align: 'right' });
+  };
+
+  // ---------- shared drawing voices ----------
+  const headH = 6.2;
+  const drawHead = (title, x, yy, w) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+    pdfSetText(doc, PDF_COLORS.ember);
+    doc.text(title.toUpperCase(), x, yy);
+    pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.15);
+    const tw = doc.getTextWidth(title.toUpperCase());
+    doc.line(x + tw + 3, yy - 1, x + w, yy - 1);
+  };
+  const lineH = 4.7, subH = 3.9, proseH = 4.1;
+  const setLineFonts = () => { doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); };
+  const drawKV = (label, val, x, yy, w, opts) => {
+    opts = opts || {};
+    setLineFonts(); pdfSetText(doc, PDF_COLORS.ink);
+    doc.text(pdfTruncate(doc, label, w * 0.62), x, yy);
+    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal'); doc.setFontSize(8.5);
+    pdfSetText(doc, opts.muted ? PDF_COLORS.muted : PDF_COLORS.ink);
+    doc.text(pdfTruncate(doc, String(val), w * 0.46), x + w, yy, { align: 'right' });
+  };
+  const drawSub = (txt, x, yy, w) => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    pdfSetText(doc, PDF_COLORS.muted);
+    doc.text(pdfTruncate(doc, txt, w - 3), x + 3, yy);
+  };
+  const wrapProse = (txt, w) => {
+    doc.setFont('times', 'normal'); doc.setFontSize(9);
+    return doc.splitTextToSize(String(txt), w);
+  };
+
+  // ---------- content model ----------
+  const invRows = [];
+  [['regularInvestment','Regular Investment'],['topUp','Top-Up Investment']].forEach(([k, l]) => {
+    const v = evx(k); if (v > 0) invRows.push({ label: l, amt: v });
+  });
+  const redeem = evx('investmentRedemption');
+  const spRows = [];
+  [['food','Food'],['dmart','Groceries'],['dailyTransport','Transport'],['shopping','Shopping'],
+   ['entertainment','Entertainment'],['hotelStay','Hotel Stay'],['travel','Travel Booking'],
+   ['taxes','Taxes']].forEach(([k, l]) => { const v = evx(k); if (v > 0) spRows.push({ label: l, amt: v }); });
+  const otherRows = ((typeof parseOtherItems === 'function') ? parseOtherItems(entry) : [])
+    .map(it => ({ label: (String(it.name || '').trim() || 'Other'), amt: Number(it.amt) || 0 }))
+    .filter(r => r.amt > 0);
+  const recRows = parseRecurring(entry)
+    .map(p => ({ label: (String(p.name || '').trim() || 'Payment'), amt: Number(p.amt) || 0,
+                 grp: resolveRecurringGroup(p) }))
+    .filter(r => r.amt > 0);
+  const ccVal = evx('creditCardBill');
+  const gstVal = evx('gstPayment');
+  const dayOutflow = spRows.reduce((s, r) => s + r.amt, 0)
+    + otherRows.reduce((s, r) => s + r.amt, 0)
+    + recRows.reduce((s, r) => s + r.amt, 0);
+  const investTotal = invRows.reduce((s, r) => s + r.amt, 0);
+
+  const blocks = [];
+  const B = (o) => blocks.push(o);
+
+  // MONEY (left)
+  const moneyRows = [];
+  invRows.forEach(r => moneyRows.push({ kind: 'kv', l: r.label, v: money(r.amt) }));
+  if (redeem > 0) moneyRows.push({ kind: 'kv', l: 'Redemption (credited back)', v: money(redeem) });
+  spRows.forEach(r => moneyRows.push({ kind: 'kv', l: r.label, v: money(r.amt) }));
+  if (otherRows.length) {
+    moneyRows.push({ kind: 'kv', l: 'Other \u00b7 ' + otherRows.length + (otherRows.length === 1 ? ' item' : ' items'),
+                     v: money(otherRows.reduce((s, r) => s + r.amt, 0)) });
+    moneyRows.push({ kind: 'sub', t: otherRows.slice(0, 4).map(r => r.label + ' ' + Math.round(r.amt)).join(' \u00b7 ')
+                     + (otherRows.length > 4 ? ' \u00b7 +' + (otherRows.length - 4) : '') });
+  }
+  if (recRows.length) {
+    moneyRows.push({ kind: 'kv', l: 'Recurring \u00b7 ' + recRows.length + ' paid',
+                     v: money(recRows.reduce((s, r) => s + r.amt, 0)) });
+    moneyRows.push({ kind: 'sub', t: recRows.slice(0, 4)
+      .map(r => r.label + ' ' + Math.round(r.amt) + ' (' + (r.grp === 'office' ? 'P0' : 'P1') + ')').join(' \u00b7 ')
+      + (recRows.length > 4 ? ' \u00b7 +' + (recRows.length - 4) : '') });
+  }
+  if (ccVal > 0) moneyRows.push({ kind: 'kv', l: 'Credit Card Bill (not in total)', v: money(ccVal), muted: true });
+  if (gstVal > 0) moneyRows.push({ kind: 'kv', l: 'GST (not in total)', v: money(gstVal), muted: true });
+  if (moneyRows.length || dayOutflow > 0) {
+    B({ h: (w) => headH + moneyRows.reduce((s, r) => s + (r.kind === 'sub' ? subH : lineH), 0)
+          + (dayOutflow > 0 ? 6.2 : 0) + (investTotal > 0 ? lineH : 0) + 2,
+        draw: (x, yy, w) => {
+          drawHead('Money', x, yy, w); yy += headH;
+          moneyRows.forEach(r => {
+            if (r.kind === 'sub') { drawSub(r.t, x, yy, w); yy += subH; }
+            else { drawKV(r.l, r.v, x, yy, w, { muted: r.muted }); yy += lineH; }
+          });
+          if (dayOutflow > 0) {
+            pdfSetDraw(doc, PDF_COLORS.ink); doc.setLineWidth(0.4);
+            doc.line(x, yy - 2.6, x + w, yy - 2.6);
+            yy += 1.2;
+            drawKV('Day outflow', money(dayOutflow), x, yy, w, { bold: true }); yy += lineH;
+          }
+          if (investTotal > 0) { drawKV('Invested today', money(investTotal), x, yy, w, { bold: true }); }
+        } });
+  }
+
+  // HEALTH (left)
+  const healthRows = [];
+  if (entry.walk !== '' && entry.walk !== undefined && entry.walk !== null) healthRows.push(['Walk', entry.walk + ' min']);
+  if (entry.heart !== '' && entry.heart !== undefined && entry.heart !== null) healthRows.push(['Heart Pts', String(entry.heart)]);
+  if (entry.reading) healthRows.push(['Reading', String(entry.reading)]);
+  if (healthRows.length) {
+    B({ h: () => headH + healthRows.length * lineH + 2,
+        draw: (x, yy, w) => {
+          drawHead('Health & Mind', x, yy, w); yy += headH;
+          healthRows.forEach(([l, v]) => { drawKV(l, v, x, yy, w); yy += lineH; });
+        } });
+  }
+
+  // NIGHT (left)
+  const nightBits = [];
+  if (entry.nightCity && String(entry.nightCity).trim()) nightBits.push(['City', String(entry.nightCity).trim()]);
+  if (entry.nightStay && String(entry.nightStay).trim()) nightBits.push(['Stayed at', String(entry.nightStay).trim()]);
+  if (entry.stayedWith && String(entry.stayedWith).trim()) nightBits.push(['Stayed with', String(entry.stayedWith).trim()]);
+  if (nightBits.length) {
+    B({ h: () => headH + nightBits.length * lineH + 2,
+        draw: (x, yy, w) => {
+          drawHead('Night Stay', x, yy, w); yy += headH;
+          nightBits.forEach(([l, v]) => { drawKV(l, v, x, yy, w); yy += lineH; });
+        } });
+  }
+
+  // MEALS (right)
+  const meals = [['Breakfast', entry.breakfast], ['Lunch', entry.lunch], ['Dinner', entry.dinner]]
+    .filter(([, v]) => v && String(v).trim());
+  if (meals.length) {
+    B({ side: 'R', h: (w) => headH + meals.reduce((s, [, v]) => s + Math.max(1, wrapProse(v, w - 20).length) * subH + 1.2, 0) + 2,
+        draw: (x, yy, w) => {
+          drawHead('Food Journal', x, yy, w); yy += headH;
+          meals.forEach(([l, v]) => {
+            doc.setFont('helvetica', 'bold'); doc.setFontSize(7);
+            pdfSetText(doc, PDF_COLORS.muted);
+            doc.text(l.toUpperCase(), x, yy);
+            const lines = wrapProse(String(v).trim(), w - 20);
+            doc.setFont('times', 'normal'); doc.setFontSize(9);
+            pdfSetText(doc, PDF_COLORS.ink);
+            lines.forEach((ln, ix) => { doc.text(ln, x + 20, yy + ix * subH); });
+            yy += Math.max(1, lines.length) * subH + 1.2;
+          });
+        } });
+  }
+
+  // SLOTS (right)
+  const slotDefs = [['12\u20133 AM', entry.slot1], ['3\u20138 AM', entry.slot2], ['8\u201312', entry.slot3],
+                    ['12\u20134 PM', entry.slot4], ['4\u20138 PM', entry.slot5], ['8\u201312 AM', entry.slot6]]
+    .filter(([, v]) => v && String(v).trim());
+  if (slotDefs.length) {
+    B({ side: 'R', h: (w) => headH + slotDefs.reduce((s, [, v]) => s + Math.max(1, wrapProse(v, w - 16).length) * subH + 0.8, 0) + 2,
+        draw: (x, yy, w) => {
+          drawHead('The Hours', x, yy, w); yy += headH;
+          slotDefs.forEach(([t, v]) => {
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5);
+            pdfSetText(doc, PDF_COLORS.muted);
+            doc.text(t, x, yy);
+            const lines = wrapProse(String(v).trim(), w - 16);
+            doc.setFont('times', 'normal'); doc.setFontSize(9);
+            pdfSetText(doc, PDF_COLORS.ink);
+            lines.forEach((ln, ix) => { doc.text(ln, x + 16, yy + ix * subH); });
+            yy += Math.max(1, lines.length) * subH + 0.8;
+          });
+        } });
+  }
+
+  // READING TAKEAWAY (right)
+  if (entry.readingTakeaway && entry.readingTakeaway.trim()) {
+    const t = entry.readingTakeaway.trim();
+    B({ side: 'R', h: (w) => headH + wrapProse(t, w).length * proseH + 2,
+        draw: (x, yy, w) => {
+          drawHead('Reading Takeaway', x, yy, w); yy += headH;
+          const lines = wrapProse(t, w);
+          doc.setFont('times', 'italic'); doc.setFontSize(9);
+          pdfSetText(doc, PDF_COLORS.ink);
+          lines.forEach((ln, ix) => doc.text(ln, x, yy + ix * proseH));
+        } });
+  }
+
+  // VERDICT + INTROSPECTION (right)
+  let satStr = null;
+  if (entry.satisfaction !== '' && entry.satisfaction !== undefined && entry.satisfaction !== null && !isNaN(Number(entry.satisfaction))) {
+    satStr = (Number(entry.satisfaction) * 100).toFixed(0) + '%';
+  }
+  const intro = (entry.introspection && entry.introspection !== 'Yes' && entry.introspection !== 'No'
+    && String(entry.introspection).trim()) ? String(entry.introspection).trim() : null;
+  if (satStr || intro) {
+    B({ side: 'R', h: (w) => headH + (satStr ? lineH : 0) + (intro ? wrapProse(intro, w).length * proseH + 1.5 : 0) + 2,
+        draw: (x, yy, w) => {
+          drawHead("The Day's Verdict", x, yy, w); yy += headH;
+          if (satStr) { drawKV('Satisfaction', satStr, x, yy, w, { bold: true }); yy += lineH; }
+          if (intro) {
+            const lines = wrapProse(intro, w);
+            doc.setFont('times', 'normal'); doc.setFontSize(9);
+            pdfSetText(doc, PDF_COLORS.ink);
+            lines.forEach((ln, ix) => doc.text(ln, x, yy + ix * proseH));
+          }
+        } });
+  }
+
+  // ---------- page 1: header + two columns ----------
+  pdfSetFill(doc, PDF_COLORS.page);
+  doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
+  let cursorY = PDF_PAGE.marginTop;
+
+  doc.setFont('times', 'normal'); doc.setFontSize(36);
+  pdfSetText(doc, PDF_COLORS.ink);
+  doc.text(String(d), PDF_PAGE.marginX, cursorY + 15);
+  const numW = doc.getTextWidth(String(d));
+  doc.setFont('times', 'italic'); doc.setFontSize(22);
+  doc.text(dayName, PDF_PAGE.marginX + numW + 6, cursorY + 9);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.5);
+  doc.text(monthName.toUpperCase() + '  ' + y, PDF_PAGE.marginX + numW + 6, cursorY + 14);
+  doc.setCharSpace(0);
+
+  // NS-B away tag: same verdict as the app's counters, streak walked backward.
+  const propNow = String(entry.nightStay || '').trim();
+  if (propNow && typeof isHomeAddress === 'function' && !isHomeAddress(propNow)) {
+    let streak = 1;
+    if (typeof allEntries === 'object' && allEntries) {
+      let dt2 = new Date(isoDate + 'T00:00:00');
+      for (;;) {
+        dt2.setDate(dt2.getDate() - 1);
+        const iso2 = dt2.toISOString().slice(0, 10);
+        const prev = allEntries[iso2];
+        const pv = prev ? String(prev.nightStay || '').trim() : '';
+        if (pv && !isHomeAddress(pv)) streak++; else break;
+        if (streak > 365) break;
+      }
+    }
+    const ord = streak === 1 ? '1ST' : streak === 2 ? '2ND' : streak === 3 ? '3RD' : streak + 'TH';
+    const cityUp = String(entry.nightCity || '').trim().toUpperCase();
+    const tagTxt = 'AWAY' + (cityUp ? ' \u00b7 ' + cityUp : '') + ' \u00b7 ' + ord + ' NIGHT';
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
+    pdfSetText(doc, [138, 87, 17]); doc.setCharSpace(0.4);
+    doc.text(tagTxt, PDF_PAGE.width - PDF_PAGE.marginX, cursorY + 6, { align: 'right' });
+    doc.setCharSpace(0);
+  }
+
+  cursorY += 22;
+  pdfHRule(doc, cursorY, 0.4);
+  cursorY += 8;
+
+  const leftBlocks = blocks.filter(b => b.side !== 'R');
+  const rightBlocks = blocks.filter(b => b.side === 'R');
+  const overflow = [];
+  const packColumn = (list, x, startY, w) => {
+    let yy = startY;
+    list.forEach(b => {
+      const need = b.h(w);
+      if (yy + need <= FLOOR) { b.draw(x, yy, w); yy = yy + need + 3.5; }
+      else overflow.push(b);
+    });
+  };
+  packColumn(leftBlocks, PDF_PAGE.marginX, cursorY, COLW);
+  packColumn(rightBlocks, PDF_PAGE.marginX + COLW + GAP, cursorY, COLW);
+  drawFooter(runningPageNum);
+
+  // ---------- continuation pages (rare, honest) ----------
+  let pagesUsed = 1;
+  let queue = overflow.slice();
+  while (queue.length) {
+    doc.addPage();
+    pagesUsed++;
+    pdfSetFill(doc, PDF_COLORS.page);
+    doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
+    let yy = PDF_PAGE.marginTop;
+    doc.setFont('times', 'normal'); doc.setFontSize(16);
+    pdfSetText(doc, PDF_COLORS.ink);
+    doc.text(String(d), PDF_PAGE.marginX, yy + 5);
+    doc.setFont('times', 'italic'); doc.setFontSize(11);
+    doc.text(dayName + ' \u00b7 continued', PDF_PAGE.marginX + doc.getTextWidth(String(d)) + 8, yy + 5);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.4);
+    doc.text((monthName.toUpperCase() + '  ' + y + '  \u00b7  PAGE ' + pagesUsed),
+      PDF_PAGE.width - PDF_PAGE.marginX, yy + 5, { align: 'right' });
+    doc.setCharSpace(0);
+    yy += 10;
+    pdfHRule(doc, yy, 0.3);
+    yy += 7;
+    const still = [];
+    queue.forEach(b => {
+      const need = b.h(PDF_PAGE.contentWidth);
+      if (yy + need <= FLOOR) { b.draw(PDF_PAGE.marginX, yy, PDF_PAGE.contentWidth); yy = yy + need + 4; }
+      else still.push(b);
+    });
+    drawFooter(runningPageNum + pagesUsed - 1);
+    if (still.length === queue.length) break; // safety: nothing fit, stop
+    queue = still;
+  }
+  return pagesUsed;
 }
 
 // =========== ORCHESTRATOR ===========
@@ -16751,20 +16433,16 @@ async function generateAnnualPdf(year) {
   // Aggregates the same 9 daily expense categories + recurring across the
   // whole year, sorted descending. Mirrors the per-month layout. Skipped if
   // the year has zero outflow.
-  const yearOutflow = pdfComputeOutflow(yearEntries.map(it => it.entry));
-  if (yearOutflow.total > 0) {
+  const yearBare = yearEntries.map(it => it.entry);
+  const yearHasOutflow = yearBare.length > 0;
+  if (yearHasOutflow) {
     doc.addPage();
-    const yearSubtitle = `${yearEntries.length} ${yearEntries.length === 1 ? 'day' : 'days'} logged  \u00B7  Rs. ${Math.round(yearOutflow.total).toLocaleString('en-IN')} total`;
-    pdfDrawOutflowBreakdown(
+    pdfDrawEnvelopeOutflow(
       doc,
       `OUTFLOW  \u00B7  ${yearStr}`,
       `Where ${yearStr} went`,
-      yearSubtitle,
-      yearOutflow.cats,
-      yearOutflow.total,
-      yearEntries.map(it => it.entry),
-      'year'
-    );
+      `${yearEntries.length} ${yearEntries.length === 1 ? 'day' : 'days'} logged  \u00B7  by envelope`,
+      yearBare);
     runningPage++;
     await yieldToUi();
   }
@@ -16802,21 +16480,15 @@ async function generateAnnualPdf(year) {
     // categories + recurring payments into a single sorted view with bars,
     // amounts, and share percentages. Skipped if the month has zero outflow.
     const monthYM = yearStr + '-' + String(m + 1).padStart(2, '0');
-    const monthOutflow = pdfComputeOutflow(monthEntries.map(it => it.entry));
-    if (monthOutflow.total > 0) {
+    if (monthEntries.length > 0) {
       doc.addPage();
       const monthName = MONTH_NAMES_FULL[m];
-      const subtitle = `${monthEntries.length} ${monthEntries.length === 1 ? 'day' : 'days'} logged  \u00B7  Rs. ${Math.round(monthOutflow.total).toLocaleString('en-IN')} total`;
-      pdfDrawOutflowBreakdown(
+      pdfDrawEnvelopeOutflow(
         doc,
         `OUTFLOW  \u00B7  ${monthName.toUpperCase()} ${yearStr}`,
         'Where the money went',
-        subtitle,
-        monthOutflow.cats,
-        monthOutflow.total,
-        monthEntries.map(it => it.entry),
-        'month'
-      );
+        `${monthEntries.length} ${monthEntries.length === 1 ? 'day' : 'days'} logged  \u00B7  by envelope`,
+        monthEntries.map(it => it.entry));
       runningPage++;
       await yieldToUi();
     }
@@ -16825,8 +16497,8 @@ async function generateAnnualPdf(year) {
     for (let i = 0; i < monthEntries.length; i++) {
       const item = monthEntries[i];
       doc.addPage();
-      pdfDrawDailyEntry(doc, item.date, item.entry, runningPage);
-      runningPage++;
+      const pagesUsed = pdfDrawDailyEntry(doc, item.date, item.entry, runningPage);
+      runningPage += pagesUsed;
       unitsDone++;
       // Yield every 10 pages so the UI stays responsive
       if ((i & 7) === 0) {
