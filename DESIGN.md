@@ -81,7 +81,10 @@ page ('14 Friday - continued - PAGE 2') where the rail resumes in its
 colour; the fn returns pagesUsed and the caller advances runningPage
 by it, so every next date opens on its own fresh page and page numbers
 stay true. Spill sim: guards fire exactly at the floor, final cursor
-always above it.
+always above it. Post-ship: the slot TIME column (6.8pt muted) was the
+one voice left outside the one-content-voice law - unified to 8.5pt
+ink, identical to its own entry text; the compact 12-3 AM labels still
+clear the 14mm column at the larger size (measured ~11.5mm).
 
 **PDL-2 B (+B2+B3+B4) - the printed day joins the Budget book**
 (Aug 2026): the day page's Roman-heading skeleton retired for the
