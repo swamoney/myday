@@ -64,6 +64,18 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**PDF-FIT REVERTED; PDF-ENV pct fix** (Aug 2026, same day): Rahul saw
+the two-column day page and preferred the original single-column
+statement layout - the ENTIRE original pdfDrawDailyEntry was restored
+verbatim (reconstructed from this session's full-function read; parses
+clean, caller back to one-page-per-day). PDF-FIT entry below stands as
+history; its measure/spill engine is retired. The envelope outflow
+pages (PDF-ENV) are KEPT - with the percentage overlap fixed: the pct
+x-position had been measured at the pct font (7pt) instead of the
+label's own font (bold 9 + 0.4 charSpace), landing the pct on the
+label; the label is now measured in its own voice before the font
+switches. Lesson recorded: measure text at the font that DREW it.
+
 **PDF-ENV + PDF-FIT - the PDF learns envelopes and fits the page**
 (Aug 2026): PDF-ENV retired the category trio (pdfComputeOutflow /
 pdfDrawBreakdownSection / pdfDrawOutflowBreakdown) same-day; monthly
