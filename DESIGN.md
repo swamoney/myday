@@ -84,7 +84,12 @@ stay true. Spill sim: guards fire exactly at the floor, final cursor
 always above it. Post-ship: the slot TIME column (6.8pt muted) was the
 one voice left outside the one-content-voice law - unified to 8.5pt
 ink, identical to its own entry text; the compact 12-3 AM labels still
-clear the 14mm column at the larger size (measured ~11.5mm).
+clear the 14mm column at the larger size (measured ~11.5mm). Second
+pass: raggedness persisted because single- and double-digit hours gave
+labels different widths against a left-aligned fixed column. Cure by
+measurement law: the column is now sized from the WIDEST label at the
+draw font, times right-align to one shared edge, values start at one
+shared x - alignment survives any future font change by construction.
 
 **PDL-2 B (+B2+B3+B4) - the printed day joins the Budget book**
 (Aug 2026): the day page's Roman-heading skeleton retired for the

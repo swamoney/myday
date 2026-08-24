@@ -16355,16 +16355,19 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
       ['4\u20138 PM', entry.slot5], ['8\u201312 AM', entry.slot6],
     ];
     const filled = slots.filter(([, v]) => !isBlankText(v));
-    const TIME_W = 14;
+    // Alignment by MEASUREMENT, not by hope: the column is sized from the
+    // widest label at the draw font, times right-align to one shared edge,
+    // and every value starts at one shared x - single- vs double-digit
+    // hours can no longer make the column ragged, whatever the font.
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    const timeEdge = Math.max(...slots.map(([t]) => doc.getTextWidth(t)));
+    const TIME_W = timeEdge + 3;
     const slotLine = (t, v, last) => {
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
       const lines = pdfWrapText(doc, String(v).trim(), innerR - bx - TIME_W);
       ensure(lines.length * 3.7 + 3.4);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
       pdfSetText(doc, PDF_COLORS.ink);
-      doc.text(t, bx, cursorY);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-      pdfSetText(doc, PDF_COLORS.ink);
+      doc.text(t, bx + timeEdge, cursorY, { align: 'right' });
       for (let ix = 0; ix < lines.length; ix++) {
         doc.text(lines[ix], bx + TIME_W, cursorY);
         if (ix < lines.length - 1) cursorY += 3.7;
