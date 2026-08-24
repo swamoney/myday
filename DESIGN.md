@@ -64,6 +64,25 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**PDL - the day page slims inside its own skin** (Aug 2026): the
+original single-column design kept - same sections I-VI, same order,
+same footer - every recovery made from within. Header: the hero stack
+is one baseline (serif 16pt numeral + italic day name, MONTH YEAR
+right-aligned), NO rule beneath - the first section heading's hairline
+tail is the page's first line (~22mm back). Money: the statement box
+retired (no border/padding/row underlines); open ledger at 8.5pt/4.6mm
+with coloured group heads; amounts normal weight; totals BACK by
+Rahul's call in the exact row voice - no bold, no rule above, a 3mm
+breath marks the close. Field rows 8.8pt/4.4mm; wrapped lines 3.7mm;
+section headings +=5. Hide-empties returns via the fn's own dormant
+helpers (isBlank/isBlankText/blankNote/fieldLineTwoColSmart - built in
+an earlier season, re-employed): blank slots/meals/health fields
+vanish behind small italic footnotes ('3 slots blank'); Walk+Heart and
+Stayed-at+with pair on one line; NS-B City prints when present.
+Satisfaction keeps its bold (a verdict, not a total). Net: ~80mm
+recovered on a loaded day; the overlap that motivated PDF-FIT is
+solved inside the design instead.
+
 **PDF-FIT REVERTED; PDF-ENV pct fix** (Aug 2026, same day): Rahul saw
 the two-column day page and preferred the original single-column
 statement layout - the ENTIRE original pdfDrawDailyEntry was restored

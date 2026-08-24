@@ -16067,33 +16067,26 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   // Layout (mm from page top): all heights ratioed to keep the rule line
   // landing at marginTop + ~25mm so the body content keeps its old start Y.
 
-  // Big numeral — Times normal at 36pt. Baseline anchored at cursorY+15
-  // so the glyph top sits near cursorY+0 and bottom near cursorY+18.
+  // PDL (Aug 2026): the hero stack retired for a single baseline - serif
+  // numeral 16pt + italic day name 12pt, MONTH YEAR right-aligned on the
+  // same line. No rule beneath: the first section heading's own hairline
+  // tail is the page's first drawn line. ~22mm returned to the day.
+  const headBase = cursorY + 6;
   doc.setFont('times', 'normal');
-  doc.setFontSize(36);
+  doc.setFontSize(16);
   pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(String(d), PDF_PAGE.marginX, cursorY + 15);
+  doc.text(String(d), PDF_PAGE.marginX, headBase);
   const numW = doc.getTextWidth(String(d));
-
-  // Day name — Times italic 22pt, sits ~6mm to the right of the numeral
   doc.setFont('times', 'italic');
-  doc.setFontSize(22);
-  pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(dayName, PDF_PAGE.marginX + numW + 6, cursorY + 9);
-
-  // MONTH YEAR — Helvetica 9pt uppercase letter-spaced, just below day name
+  doc.setFontSize(12);
+  doc.text(dayName, PDF_PAGE.marginX + numW + 4, headBase);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
+  doc.setFontSize(7);
   pdfSetText(doc, PDF_COLORS.muted);
   doc.setCharSpace(0.5);
-  doc.text(`${monthName.toUpperCase()}  ${y}`, PDF_PAGE.marginX + numW + 6, cursorY + 14);
+  doc.text(`${monthName.toUpperCase()}  ${y}`, PDF_PAGE.width - PDF_PAGE.marginX, headBase, { align: 'right' });
   doc.setCharSpace(0);
-
-  cursorY += 22;
-
-  // Header rule
-  pdfHRule(doc, cursorY, 0.4);
-  cursorY += 8;
+  cursorY += 12;
 
   // ===== Section helper =====
   function sectionHeading(title) {
@@ -16106,7 +16099,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     doc.setLineWidth(0.15);
     const titleW = doc.getTextWidth(title.toUpperCase());
     doc.line(PDF_PAGE.marginX + titleW + 4, cursorY - 1, PDF_PAGE.width - PDF_PAGE.marginX, cursorY - 1);
-    cursorY += 6;
+    cursorY += 4.5;
     return true;
   }
   function fieldLine(label, value, opts) {
@@ -16117,18 +16110,18 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     pdfSetText(doc, PDF_COLORS.muted);
     doc.text(label, PDF_PAGE.marginX, cursorY);
     doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
-    doc.setFontSize(9.5);
+    doc.setFontSize(8.8);
     pdfSetText(doc, PDF_COLORS.ink);
     const valStr = String(value);
-    const labelW = 36; // mm reserved for the label column
+    const labelW = 26; // PDL: labels are short; text earns the width back
     const valX = PDF_PAGE.marginX + labelW;
     const valMaxW = PDF_PAGE.contentWidth - labelW;
     const lines = pdfWrapText(doc, valStr, valMaxW);
     for (let i = 0; i < lines.length; i++) {
       doc.text(lines[i], valX, cursorY);
-      if (i < lines.length - 1) cursorY += 4.0;
+      if (i < lines.length - 1) cursorY += 3.7;
     }
-    cursorY += 5;
+    cursorY += 4.4;
   }
   function multilineField(label, value) {
     // For empty values, use the compact fieldLine layout (label and "—" on same line)
@@ -16141,17 +16134,17 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     doc.setFontSize(8);
     pdfSetText(doc, PDF_COLORS.muted);
     doc.text(label, PDF_PAGE.marginX, cursorY);
-    cursorY += 3.8;
+    cursorY += 3.4;
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9.5);
+    doc.setFontSize(8.8);
     pdfSetText(doc, PDF_COLORS.ink);
     const lines = pdfWrapText(doc, String(value), PDF_PAGE.contentWidth);
     for (const line of lines) {
       if (cursorY > PDF_PAGE.height - PDF_PAGE.marginBottom - 6) break;
       doc.text(line, PDF_PAGE.marginX, cursorY);
-      cursorY += 4.0;
+      cursorY += 3.7;
     }
-    cursorY += 1.5;
+    cursorY += 1.2;
   }
   // Phase 11+: Two-column field row. Renders two label/value pairs side-by-side
   // on a single line \u2014 saves vertical space when two short numeric fields
@@ -16271,31 +16264,31 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
       doc.text('Nothing logged for this day.', PDF_PAGE.marginX, cursorY);
       cursorY += 6;
     } else {
-      const boxPadX = 5, boxPadY = 4.5;
-      const innerL = PDF_PAGE.marginX + boxPadX;
-      const innerR = PDF_PAGE.width - PDF_PAGE.marginX - boxPadX;
-      const boxTop = cursorY;
-      cursorY += boxPadY + 2;
+      // PDL (Aug 2026): the statement takes off its box. No border, no
+      // padding, no per-row underlines, no total rows - a plain open ledger
+      // where the coloured group heads and figures carry the identity.
+      // (spendTotal/investTotal still computed above: the app remains the
+      // home of totals; the printed day just lists what happened.)
+      const innerL = PDF_PAGE.marginX;
+      const innerR = PDF_PAGE.width - PDF_PAGE.marginX;
 
       const groupHead = (label, color) => {
-        cursorY += 1.5;
+        cursorY += 1.2;
         doc.setFont('helvetica','bold'); doc.setFontSize(7); pdfSetText(doc, color); doc.setCharSpace(0.5);
         doc.text(label.toUpperCase(), innerL, cursorY); doc.setCharSpace(0);
-        cursorY += 4.5;
+        cursorY += 4.2;
       };
       const row = (label, amt, color, tag) => {
-        doc.setFont('helvetica','normal'); doc.setFontSize(9.5); pdfSetText(doc, PDF_COLORS.ink);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); pdfSetText(doc, PDF_COLORS.ink);
         doc.text(label, innerL, cursorY);
         if (tag) {
           const lw = doc.getTextWidth(label);
-          doc.setFont('helvetica','normal'); doc.setFontSize(6.5); pdfSetText(doc, PDF_COLORS.muted);
+          doc.setFont('helvetica','normal'); doc.setFontSize(6); pdfSetText(doc, PDF_COLORS.muted);
           doc.text('(' + tag + ')', innerL + lw + 2, cursorY);
         }
-        doc.setFont('helvetica','bold'); doc.setFontSize(9.5); pdfSetText(doc, color);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); pdfSetText(doc, color);
         doc.text(money(amt), innerR, cursorY, { align:'right' });
-        pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.12);
-        doc.line(innerL, cursorY + 1.8, innerR, cursorY + 1.8);
-        cursorY += 6;
+        cursorY += 4.6;
       };
 
       if (invRows.length || redeem > 0) {
@@ -16307,26 +16300,18 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
       if (recRows.length) { groupHead('Recurring', EPS.recur); recRows.forEach(r => row(r.label, r.amt, EPS.spend, 'recurring')); }
       if (ccVal2 > 0) { groupHead('Tracking only', EPS.track); row('Credit Card Bill', ccVal2, EPS.track, 'not in total'); }
 
-      // Heavy rule + total rows
-      cursorY += 2.5;
-      pdfSetDraw(doc, PDF_COLORS.ink); doc.setLineWidth(0.5);
-      doc.line(innerL, cursorY, innerR, cursorY);
-      cursorY += 6;
+      // Totals: back by Rahul's call - in the ROW voice exactly (8.5 normal,
+      // group colours), no rule above, a 3mm breath marking the close.
+      cursorY += 3;
       const totRow = (label, amt, color) => {
-        doc.setFont('helvetica','bold'); doc.setFontSize(8); pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.4);
-        doc.text(label.toUpperCase(), innerL, cursorY); doc.setCharSpace(0);
-        doc.setFont('helvetica','bold'); doc.setFontSize(11); pdfSetText(doc, color);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); pdfSetText(doc, PDF_COLORS.ink);
+        doc.text(label, innerL, cursorY);
+        doc.setFont('helvetica','normal'); doc.setFontSize(8.5); pdfSetText(doc, color);
         doc.text(money(amt), innerR, cursorY, { align:'right' });
-        cursorY += 6.5;
+        cursorY += 4.6;
       };
       totRow('Total spent', spendTotal, EPS.spend);
       totRow('Total invested', investTotal, EPS.inv);
-
-      cursorY += boxPadY - 3;
-      const boxBottom = cursorY;
-      pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.3);
-      if (doc.roundedRect) doc.roundedRect(PDF_PAGE.marginX, boxTop, PDF_PAGE.contentWidth, boxBottom - boxTop, 1.5, 1.5, 'S');
-      else doc.rect(PDF_PAGE.marginX, boxTop, PDF_PAGE.contentWidth, boxBottom - boxTop, 'S');
     }
   }
 
@@ -16335,13 +16320,19 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   // ===== II. HEALTH & MIND =====
   // Phase 11+: reverted to always-render. No hide-empties, no footnote here.
   sectionHeading('II  Health & Mind');
-  const walkVal = (entry.walk !== '' && entry.walk !== undefined && entry.walk !== null) ? `${entry.walk} min` : '—';
-  const heartVal = (entry.heart !== '' && entry.heart !== undefined && entry.heart !== null) ? `${entry.heart}` : '—';
-  fieldLine('Walk', walkVal);
-  fieldLine('Heart Pts', heartVal);
-  fieldLine('Reading', entry.reading || '—');
-  if (entry.readingTakeaway && entry.readingTakeaway.trim()) {
-    fieldLine('Takeaway', entry.readingTakeaway.trim());
+  // PDL: Walk + Heart pair on one line via the existing smart two-column
+  // helper; blanks vanish; a small italic footnote keeps the record honest.
+  {
+    const pair = fieldLineTwoColSmart('Walk', entry.walk, v => `${v} min`,
+                                      'Heart Pts', entry.heart, v => String(v));
+    let hmBlank = 0;
+    if (!pair.drew) hmBlank += 2;
+    else { if (isBlank(entry.walk)) hmBlank++; if (isBlank(entry.heart)) hmBlank++; }
+    if (!isBlankText(entry.reading)) fieldLine('Reading', entry.reading); else hmBlank++;
+    if (entry.readingTakeaway && entry.readingTakeaway.trim()) {
+      fieldLine('Takeaway', entry.readingTakeaway.trim());
+    }
+    blankNote(hmBlank, hmBlank === 1 ? 'field' : 'fields');
   }
 
   cursorY += 1;
@@ -16356,24 +16347,42 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     ['4 PM – 8 PM', entry.slot5],
     ['8 PM – 12 AM', entry.slot6],
   ];
-  for (const [label, val] of slots) {
-    multilineField(label, val);
+  {
+    let blankSlots = 0;
+    for (const [label, val] of slots) {
+      if (isBlankText(val)) { blankSlots++; continue; }
+      multilineField(label, val);
+    }
+    blankNote(blankSlots, blankSlots === 1 ? 'slot' : 'slots');
   }
 
   cursorY += 1;
 
   // ===== IV. FOOD JOURNAL =====
   sectionHeading('IV  Food Journal');
-  multilineField('Breakfast', entry.breakfast);
-  multilineField('Lunch', entry.lunch);
-  multilineField('Dinner', entry.dinner);
+  {
+    let blankMeals = 0;
+    [['Breakfast', entry.breakfast], ['Lunch', entry.lunch], ['Dinner', entry.dinner]].forEach(([l, v]) => {
+      if (isBlankText(v)) { blankMeals++; return; }
+      multilineField(l, v);
+    });
+    blankNote(blankMeals, blankMeals === 1 ? 'meal' : 'meals');
+  }
 
   cursorY += 1;
 
   // ===== V. NIGHT STAY =====
   sectionHeading('V  Night Stay');
-  fieldLine('Stayed at', entry.nightStay || '—');
-  fieldLine('Stayed with', entry.stayedWith || '—');
+  // NS-B: City joins the printed day; Stayed at + Stayed with pair when
+  // both present; blanks vanish with the honest footnote.
+  {
+    let nsBlank = 0;
+    if (!isBlankText(entry.nightCity)) fieldLine('City', String(entry.nightCity).trim());
+    const pairNs = fieldLineTwoColSmart('Stayed at', entry.nightStay, v => String(v),
+                                        'Stayed with', entry.stayedWith, v => String(v));
+    if (!pairNs.drew) nsBlank += 2;
+    blankNote(nsBlank, 'fields');
+  }
 
   cursorY += 2;
 
