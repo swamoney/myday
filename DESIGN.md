@@ -64,6 +64,25 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**PDL-3 - the book breathes, the hours align, the day may continue**
+(Aug 2026): four refinements on PDL-2 B. Band month seated fully on
+its fill - jsPDF's align:'right' measures UNSPACED text so tracking
+pushed the tail past the tint (the pct bug's drawing-side twin, now a
+paired lesson: measure at the font that draws, and position by the
+width that INCLUDES tracking); position computed by hand from the
+spaced width, tracking eased to 0.35. Rail-blocks gain ~40% air
+(gap 2.5->4mm). The Hours: fixed 14mm mono time column with compact
+labels (12-3 AM form) - alignment by construction - and a fine dotted
+rule (dash 0.5/0.9, 0.12 width) between consecutive slots, none after
+the last. SPILL RULE: ensure(need) guards every row/line/block-start
+against FLOOR; when a day cannot fit, the current rail closes at the
+floor, the page footers honestly, and the day CONTINUES on a marked
+page ('14 Friday - continued - PAGE 2') where the rail resumes in its
+colour; the fn returns pagesUsed and the caller advances runningPage
+by it, so every next date opens on its own fresh page and page numbers
+stay true. Spill sim: guards fire exactly at the floor, final cursor
+always above it.
+
 **PDL-2 B (+B2+B3+B4) - the printed day joins the Budget book**
 (Aug 2026): the day page's Roman-heading skeleton retired for the
 app's own anatomy - every section a rail-block (0.7mm family-colour

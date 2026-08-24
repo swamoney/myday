@@ -16122,11 +16122,16 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   doc.setFont('times', 'italic'); doc.setFontSize(11.5);
   doc.text(dayName, PDF_PAGE.marginX + numW + 3, bandBase);
 
+  // PDL-3: right-align by the LETTER-SPACED width. jsPDF's align:'right'
+  // measures unspaced text, so tracking pushed the tail past the fill -
+  // the pct bug's drawing-side twin. Position computed by hand instead.
+  const myStr = `${monthName.toUpperCase()}  ${y}`;
   doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5);
-  pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.5);
-  doc.text(`${monthName.toUpperCase()}  ${y}`, PDF_PAGE.width - PDF_PAGE.marginX, bandBase, { align: 'right' });
+  pdfSetText(doc, PDF_COLORS.muted);
+  const myW = doc.getTextWidth(myStr) + myStr.length * 0.35;
+  doc.setCharSpace(0.35);
+  doc.text(myStr, PDF_PAGE.width - PDF_PAGE.marginX - myW, bandBase);
   doc.setCharSpace(0);
-  const myW = doc.getTextWidth(`${monthName.toUpperCase()}  ${y}`) + `${monthName.toUpperCase()}  ${y}`.length * 0.5;
 
   const propNow = String(entry.nightStay || '').trim();
   if (propNow && typeof isHomeAddress === 'function' && !isHomeAddress(propNow)) {
@@ -16174,13 +16179,57 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     cursorY += 10;
   }
 
-  // ---- the Budget-book machinery ----
+  // ---- PDL-3 spill rule: measure the remaining page before every draw.
+  // When a day genuinely cannot fit, it CONTINUES on a marked second page
+  // (rail resumes in the same colour); the next date always opens fresh -
+  // the caller advances runningPage by the pages this day used.
+  const FLOOR = PDF_PAGE.height - PDF_PAGE.marginBottom - 4;
+  let pagesUsed = 1;
+  const drawFooter = (pageNum) => {
+    const fy = PDF_PAGE.height - 8;
+    const soy = new Date(Date.UTC(y, 0, 1));
+    const du = new Date(Date.UTC(y, m - 1, d));
+    const doy = Math.floor((du - soy) / 86400000) + 1;
+    const leap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    pdfSetText(doc, PDF_COLORS.muted);
+    doc.text(`Day ${doy} / ${leap ? 366 : 365}`, PDF_PAGE.marginX, fy);
+    doc.text(String(pageNum), PDF_PAGE.width / 2, fy, { align: 'center' });
+    doc.text(`My Day \u00b7 ${y}`, PDF_PAGE.width - PDF_PAGE.marginX, fy, { align: 'right' });
+  };
+  const pageBreak = () => {
+    if (railColor) {
+      pdfSetFill(doc, railColor);
+      doc.rect(PDF_PAGE.marginX, railTop, RAIL_W, FLOOR - railTop - 2, 'F');
+    }
+    drawFooter(runningPageNum + pagesUsed - 1);
+    doc.addPage();
+    pagesUsed++;
+    pdfSetFill(doc, PDF_COLORS.page);
+    doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
+    cursorY = PDF_PAGE.marginTop;
+    doc.setFont('times', 'normal'); doc.setFontSize(10);
+    pdfSetText(doc, PDF_COLORS.ink);
+    doc.text(String(d), PDF_PAGE.marginX, cursorY + 3);
+    doc.setFont('times', 'italic'); doc.setFontSize(9);
+    doc.text(dayName + ' \u00b7 continued', PDF_PAGE.marginX + doc.getTextWidth(String(d)) + 3, cursorY + 3);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(6);
+    pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.3);
+    doc.text(`${monthName.toUpperCase()}  ${y}  \u00b7  PAGE ${pagesUsed}`,
+      PDF_PAGE.width - PDF_PAGE.marginX, cursorY + 3, { align: 'right' });
+    doc.setCharSpace(0);
+    cursorY += 9;
+    if (railColor) railTop = cursorY - 2;
+  };
+  const ensure = (need) => { if (cursorY + need > FLOOR) pageBreak(); };
+
   const RAIL_W = 0.7, INDENT = 4;
   const bx = PDF_PAGE.marginX + INDENT;
   const innerR = PDF_PAGE.width - PDF_PAGE.marginX;
   let railTop = 0, railColor = null;
   const bkStart = (label, colorRGB, totalStr) => {
-    cursorY += 2.5;
+    ensure(16);
+    cursorY += 4;
     railTop = cursorY - 3;
     railColor = colorRGB;
     doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
@@ -16199,6 +16248,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   };
   const row = (label, amt, tag, opts) => {
     opts = opts || {};
+    ensure(6);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
     pdfSetText(doc, opts.muted ? PDF_COLORS.muted : PDF_COLORS.ink);
     doc.text(label, bx, cursorY);
@@ -16216,6 +16266,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   const fieldPair = (lLabel, lVal, rLabel, rVal) => {
     // One content voice: label and value identical (8.5 ink 400); the fixed
     // column separates them. Pairs collapse to one side when the other is blank.
+    ensure(6);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
     pdfSetText(doc, PDF_COLORS.ink);
     const colW = (innerR - bx) / 2;
@@ -16230,11 +16281,12 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   const fieldLine = (label, value, opts) => {
     opts = opts || {};
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    const labelW = 24;
+    const lines = pdfWrapText(doc, String(value), innerR - bx - labelW);
+    ensure(lines.length * 3.7 + 2.5);
     pdfSetText(doc, PDF_COLORS.ink);
     doc.text(label, bx, cursorY);
     doc.setFont('helvetica', opts.bold ? 'bold' : 'normal');
-    const labelW = 24;
-    const lines = pdfWrapText(doc, String(value), innerR - bx - labelW);
     for (let ix = 0; ix < lines.length; ix++) {
       doc.text(lines[ix], bx + labelW, cursorY);
       if (ix < lines.length - 1) cursorY += 3.7;
@@ -16243,6 +16295,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   };
   const blankNote = (n, what) => {
     if (!n || n <= 0) return;
+    ensure(5);
     doc.setFont('times', 'italic'); doc.setFontSize(7);
     pdfSetText(doc, [180, 175, 170]);
     doc.text(`${n} ${what} blank`, bx + 1, cursorY);
@@ -16292,17 +16345,43 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     }
   }
 
-  // ---- The Hours ----
+  // ---- The Hours (PDL-3: fixed mono time column - every entry starts on
+  // the same vertical line by construction - with a fine dotted rule
+  // between consecutive slots, none after the last) ----
   {
     const slots = [
-      ['12 AM \u2013 3 AM', entry.slot1], ['3 AM \u2013 8 AM', entry.slot2],
-      ['8 AM \u2013 12 PM', entry.slot3], ['12 PM \u2013 4 PM', entry.slot4],
-      ['4 PM \u2013 8 PM', entry.slot5], ['8 PM \u2013 12 AM', entry.slot6],
+      ['12\u20133 AM', entry.slot1], ['3\u20138 AM', entry.slot2],
+      ['8\u201312 PM', entry.slot3], ['12\u20134 PM', entry.slot4],
+      ['4\u20138 PM', entry.slot5], ['8\u201312 AM', entry.slot6],
     ];
     const filled = slots.filter(([, v]) => !isBlankText(v));
+    const TIME_W = 14;
+    const slotLine = (t, v, last) => {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+      const lines = pdfWrapText(doc, String(v).trim(), innerR - bx - TIME_W);
+      ensure(lines.length * 3.7 + 3.4);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.8);
+      pdfSetText(doc, PDF_COLORS.muted);
+      doc.text(t, bx, cursorY);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+      pdfSetText(doc, PDF_COLORS.ink);
+      for (let ix = 0; ix < lines.length; ix++) {
+        doc.text(lines[ix], bx + TIME_W, cursorY);
+        if (ix < lines.length - 1) cursorY += 3.7;
+      }
+      cursorY += 1.9;
+      if (!last) {
+        pdfSetDraw(doc, [212, 212, 212]);
+        doc.setLineWidth(0.12);
+        if (doc.setLineDashPattern) doc.setLineDashPattern([0.5, 0.9], 0);
+        doc.line(bx, cursorY, innerR, cursorY);
+        if (doc.setLineDashPattern) doc.setLineDashPattern([], 0);
+      }
+      cursorY += 2.9;
+    };
     if (filled.length) {
       bkStart('The Hours', C_HOURS, '');
-      filled.forEach(([l, v]) => fieldLine(l, String(v).trim()));
+      filled.forEach(([t, v], ix) => slotLine(t, v, ix === filled.length - 1));
       blankNote(slots.length - filled.length, slots.length - filled.length === 1 ? 'slot' : 'slots');
       bkEnd();
     }
@@ -16349,19 +16428,9 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     }
   }
 
-  // ---- footer (verbatim voice) ----
-  const footerLineY = PDF_PAGE.height - 8;
-  const startOfYear = new Date(Date.UTC(y, 0, 1));
-  const dateUtc = new Date(Date.UTC(y, m - 1, d));
-  const dayOfYear = Math.floor((dateUtc - startOfYear) / 86400000) + 1;
-  const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
-  const totalDays = isLeap ? 366 : 365;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  pdfSetText(doc, PDF_COLORS.muted);
-  doc.text(`Day ${dayOfYear} / ${totalDays}`, PDF_PAGE.marginX, footerLineY);
-  doc.text(String(runningPageNum), PDF_PAGE.width / 2, footerLineY, { align: 'center' });
-  doc.text(`My Day \u00b7 ${y}`, PDF_PAGE.width - PDF_PAGE.marginX, footerLineY, { align: 'right' });
+  // ---- footer for the final page of this day; report pages used ----
+  drawFooter(runningPageNum + pagesUsed - 1);
+  return pagesUsed;
 }
 
 // =========== ORCHESTRATOR ===========
@@ -16500,8 +16569,7 @@ async function generateAnnualPdf(year) {
     for (let i = 0; i < monthEntries.length; i++) {
       const item = monthEntries[i];
       doc.addPage();
-      pdfDrawDailyEntry(doc, item.date, item.entry, runningPage);
-      runningPage++;
+      runningPage += pdfDrawDailyEntry(doc, item.date, item.entry, runningPage);
       unitsDone++;
       // Yield every 10 pages so the UI stays responsive
       if ((i & 7) === 0) {
