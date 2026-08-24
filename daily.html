@@ -16114,24 +16114,22 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   pdfSetFill(doc, BAND);
   if (doc.roundedRect) doc.roundedRect(PDF_PAGE.marginX - 3, bandTop, PDF_PAGE.contentWidth + 6, bandH, 1.2, 1.2, 'F');
   else doc.rect(PDF_PAGE.marginX - 3, bandTop, PDF_PAGE.contentWidth + 6, bandH, 'F');
+  // D2 (Aug 2026): the band speaks ONE serif phrase - "Friday, 14 August
+  // 2026" - the numeral a step larger inside it. The mono month retires
+  // from the band; the away chip owns the whole right corner (long city
+  // names can never crowd anything again). Widths measured piecewise at
+  // each piece's own font, per the measurement law.
   const bandBase = bandTop + 6.6;
-  doc.setFont('times', 'normal'); doc.setFontSize(15);
   pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(String(d), PDF_PAGE.marginX, bandBase);
-  const numW = doc.getTextWidth(String(d));
-  doc.setFont('times', 'italic'); doc.setFontSize(11.5);
-  doc.text(dayName, PDF_PAGE.marginX + numW + 3, bandBase);
-
-  // PDL-3: right-align by the LETTER-SPACED width. jsPDF's align:'right'
-  // measures unspaced text, so tracking pushed the tail past the fill -
-  // the pct bug's drawing-side twin. Position computed by hand instead.
-  const myStr = `${monthName.toUpperCase()}  ${y}`;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5);
-  pdfSetText(doc, PDF_COLORS.muted);
-  const myW = doc.getTextWidth(myStr) + myStr.length * 0.35;
-  doc.setCharSpace(0.35);
-  doc.text(myStr, PDF_PAGE.width - PDF_PAGE.marginX - myW, bandBase);
-  doc.setCharSpace(0);
+  let dx = PDF_PAGE.marginX;
+  doc.setFont('times', 'normal'); doc.setFontSize(12);
+  doc.text(dayName + ', ', dx, bandBase);
+  dx += doc.getTextWidth(dayName + ', ');
+  doc.setFontSize(14);
+  doc.text(String(d), dx, bandBase);
+  dx += doc.getTextWidth(String(d));
+  doc.setFontSize(12);
+  doc.text(' ' + monthName + ' ' + y, dx, bandBase);
 
   const propNow = String(entry.nightStay || '').trim();
   if (propNow && typeof isHomeAddress === 'function' && !isHomeAddress(propNow)) {
@@ -16152,7 +16150,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     const tagTxt = 'AWAY' + (cityUp ? ' \u00b7 ' + cityUp : '') + ' \u00b7 ' + ord + ' NIGHT';
     doc.setFont('helvetica', 'bold'); doc.setFontSize(6);
     pdfSetText(doc, [138, 87, 17]);
-    doc.text(tagTxt, PDF_PAGE.width - PDF_PAGE.marginX - myW - 5, bandBase, { align: 'right' });
+    doc.text(tagTxt, PDF_PAGE.width - PDF_PAGE.marginX, bandBase, { align: 'right' });
   }
   cursorY = bandTop + bandH + 6;
 

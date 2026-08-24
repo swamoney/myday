@@ -64,6 +64,14 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**D2 - the band speaks one phrase** (Aug 2026): the day band's three-
+voice cluster retired for a single serif sentence - 'Friday, 14 August
+2026', the numeral one step larger (14pt inside 12pt) - drawn
+piecewise with each piece positioned by its OWN measured width per the
+measurement law. The mono month leaves the band (it survives on
+continuation headers); the amber away chip now owns the entire right
+corner, so long city names can never crowd the date again.
+
 **PDL-3 - the book breathes, the hours align, the day may continue**
 (Aug 2026): four refinements on PDL-2 B. Band month seated fully on
 its fill - jsPDF's align:'right' measures UNSPACED text so tracking
