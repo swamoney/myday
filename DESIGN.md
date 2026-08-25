@@ -64,6 +64,33 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**NT-A - places have kinds, tags have eras** (Aug 2026): the binary
+home/away verdict grew into a fixed three-word vocabulary - MY HOME
+(moss, silent on the day), FAMILY HOME (deep blue #1E5A8A), SISTER'S
+PLACE (plum #6B3FA0) - with amber AWAY reserved for true travel.
+Chosen NT-A (fixed trio) over NT-B (open shelf) after argued
+trade-offs: fixed-small-meaning wins the thirty years (envelopes stay
+seven, gold=room/navy=reveal); NT-A grows into NT-B by one amendment
+if life adds a kind. DATA: tags are {value, kind, from?, to?} in the
+same homeAddresses prefs key - pre-NT-A tags migrate BY INTERPRETATION
+(kind missing = home, era open) with nothing rewritten. Every date is
+judged by the tag ACTIVE ON THAT DATE (placeKindOn), which answers
+'which was home in 2020' forever: old homes are RETIRED (era closed),
+never deleted; same-day from-today tags may vanish as mistakes.
+Meaning changes ask the era question - FROM TODAY (closes old era,
+opens new: the 2030 move-into-family-home case) or ALWAYS WAS
+(corrects in place). FACE: the Property banner = kind pill + change /
+one-tap kind chips when untagged ('or leave as travel' - hotels never
+asked twice) / era chooser; the Today tag and PDF band chip speak the
+kind in its colour with SAME-KIND era-correct streaks; the manage
+sheet lists kind pill + era ('since 2019', '2018-2028') + nights +
+Retire, and adds by kind. Old addHomeAddress/removeHomeAddress retired
+to zero refs; isHomeAddress survives ONLY as the records heuristic's
+any-tag-any-era predicate (family/sister nights are not travel).
+Colours measured: 6.27-6.39:1 on app paper and PDF band. Engine sim
+from real source: legacy reads home; era split exact (yesterday
+family, today home); retire preserves past; predicate spans eras.
+
 **AD-1 - due-today confirmations, learned from the log** (Aug 2026):
 recurring bills that auto-debit (or simply recur) now greet their day
 with a confirmation instead of a typing task. ENGINE (computeDueBills,

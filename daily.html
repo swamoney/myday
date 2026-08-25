@@ -6033,6 +6033,32 @@
                  color: #8A5711; background: #F8F1E4; border: 1px solid #D9BD8E;
                  border-radius: 6px; padding: 2px 8px; }
   .ns-away-tag.hidden { display: none; }
+  /* NT-A: the tag wears the place's kind - family deep blue, sister plum */
+  .ns-away-tag.k-fam { color: #1E5A8A; background: #E7F0F8; border-color: #C3D6E8; }
+  .ns-away-tag.k-sis { color: #6B3FA0; background: #F0EAF8; border-color: #D8C9EC; }
+  /* NT-A: kind pills + chooser chips (banner + manage sheet) */
+  .place-kind-pill { font-family: var(--mono); font-size: 0.5625rem; font-weight: 600;
+                     letter-spacing: 0.06em; border-radius: 6px; padding: 2px 8px;
+                     border: 1px solid; white-space: nowrap; }
+  .place-kind-pill.k-home { color: var(--green-ink); background: #EAF3ED; border-color: #C9DCCF; }
+  .place-kind-pill.k-fam { color: #1E5A8A; background: #E7F0F8; border-color: #C3D6E8; }
+  .place-kind-pill.k-sis { color: #6B3FA0; background: #F0EAF8; border-color: #D8C9EC; }
+  .place-kind-chip { font-family: var(--mono); font-size: 0.5625rem; font-weight: 600;
+                     border-radius: 999px; padding: 3px 9px; border: 1.5px solid var(--rule);
+                     background: #fff; color: var(--muted); cursor: pointer; margin-left: 4px; }
+  .place-kind-chip.k-home { color: var(--green-ink); border-color: #C9DCCF; }
+  .place-kind-chip.k-fam { color: #1E5A8A; border-color: #C3D6E8; }
+  .place-kind-chip.k-sis { color: #6B3FA0; border-color: #D8C9EC; }
+  .place-kind-chip.now { outline: 2px solid var(--rule); }
+  .place-ask { font-size: 0.625rem; color: #8a97b3; margin-right: 2px; }
+  .place-travel-hint { font-size: 0.5938rem; color: #8a97b3; }
+  .home-addr-row.retired { opacity: 0.6; }
+  .home-addr-retired-word { font-family: var(--mono); font-size: 0.5625rem; color: #8a97b3; }
+  .home-addr-row-head .place-kind-pill { flex-shrink: 0; margin-right: 6px; }
+  .home-addr-kind-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+  @media (max-width: 480px) {
+    .place-kind-chip { padding: 3px 7px; font-size: 0.53rem; margin-left: 2px; }
+  }
   /* ==== TR: the all-time envelope book ==== */
   .tre-sec { border-left: 2px solid var(--rule); padding: 2px 0 2px 10px;
              margin-bottom: 11px; }
@@ -7822,30 +7848,85 @@ function getHomeAddresses() {
 }
 
 
-function isHomeAddress(value) {
-  if (!value) return false;
+// ==== NT-A (Aug 2026): places have KINDS, tags have ERAS ====
+// A tag is {value, kind: 'home'|'family'|'sister', from?, to?, tagged_at}.
+// kind missing (pre-NT-A data) reads as 'home'; from/to missing read as
+// open-ended - so every existing tag migrates by interpretation, nothing
+// rewritten. A date is judged by the tag ACTIVE ON THAT DATE, which is how
+// 'home in 2020' stays true after a 2028 move: old homes are RETIRED
+// (era closed), never deleted.
+const PLACE_KINDS = {
+  home:   { lbl: 'MY HOME',        cls: 'k-home' },
+  family: { lbl: 'FAMILY HOME',    cls: 'k-fam'  },
+  sister: { lbl: 'SISTER\u2019S PLACE', cls: 'k-sis'  },
+};
+function placeTagsFor(value) {
   const norm = _normHome(value);
-  if (!norm) return false;
-  return getHomeAddresses().some(a => _normHome(a.value) === norm);
+  if (!norm) return [];
+  return getHomeAddresses().filter(a => _normHome(a.value) === norm);
 }
-
-function addHomeAddress(value) {
+function placeKindOn(value, dateIso) {
+  if (!value || !dateIso) return null;
+  let kind = null;
+  placeTagsFor(value).forEach(a => {
+    const from = a.from || '0000-01-01';
+    const to = a.to || '9999-12-31';
+    if (dateIso >= from && dateIso < to) kind = a.kind || 'home';
+  });
+  return kind;
+}
+function activePlaceTag(value, dateIso) {
+  let hit = null;
+  placeTagsFor(value).forEach(a => {
+    const from = a.from || '0000-01-01';
+    const to = a.to || '9999-12-31';
+    if (dateIso >= from && dateIso < to) hit = a;
+  });
+  return hit;
+}
+// Tag (or re-kind) an address. mode: 'always' edits history too (first
+// taggings and corrections); 'today' closes the old era and opens a new one.
+function tagPlaceKind(value, kind, mode) {
   const trimmed = String(value || '').trim();
-  if (!trimmed) return false;
+  if (!trimmed || !PLACE_KINDS[kind]) return false;
+  const today = isoToday();
   const list = getHomeAddresses();
-  const norm = _normHome(trimmed);
-  if (list.some(a => _normHome(a.value) === norm)) return false;
-  list.push({ value: trimmed, tagged_at: new Date().toISOString() });
+  const act = activePlaceTag(trimmed, today);
+  if (act && (act.kind || 'home') === kind) return false;
+  if (act && mode === 'today') {
+    act.to = today;
+    list.push({ value: trimmed, kind, from: today, tagged_at: new Date().toISOString() });
+  } else if (act) {
+    act.kind = kind;                       // 'always was' - correct in place
+  } else {
+    list.push({ value: trimmed, kind, tagged_at: new Date().toISOString() });
+  }
   _userPrefs.homeAddresses = list;
   _commitPrefsChange();
   return true;
 }
-
-function removeHomeAddress(value) {
-  const norm = _normHome(value);
-  const list = getHomeAddresses().filter(a => _normHome(a.value) !== norm);
+// Retire the active tag: same-day taggings simply vanish (mistake window);
+// older ones close their era today so the past keeps its truth.
+function retirePlaceTag(value) {
+  const today = isoToday();
+  const act = activePlaceTag(value, today);
+  if (!act) return false;
+  let list = getHomeAddresses();
+  if ((act.from || '') === today) {
+    list = list.filter(a => a !== act);
+  } else {
+    act.to = today;
+  }
   _userPrefs.homeAddresses = list;
   _commitPrefsChange();
+  return true;
+}
+// Legacy predicate kept ONLY for the travel-records heuristic
+// (_isAwayFromHome), which has no date in hand: any tag of any kind, any
+// era, means 'one of my places' - family and sister nights are not travel.
+function isHomeAddress(value) {
+  if (!value) return false;
+  return placeTagsFor(value).length > 0;
 }
 
 // Count how many entries in allEntries have a nightStay matching the given
@@ -9184,7 +9265,7 @@ function updateHomeBanner() {
   const countEl = document.getElementById('homeManageCount');
   if (!input || !banner || !manageRow) return;
   const val = (input.value || '').trim();
-  const tagged = isHomeAddress(val);
+  const kindNow = placeKindOn(val, currentDate || isoToday());
   const count = getHomeAddresses().length;
   // Show manage row whenever there are home addresses registered OR the user
   // has something typed in the field. Otherwise hide to keep the form clean.
@@ -9206,7 +9287,8 @@ function updateHomeBanner() {
   }
   banner.classList.remove('hidden');
   input.classList.add('has-banner');
-  if (tagged) {
+  const mode = banner.dataset.mode || '';
+  if (kindNow && mode !== 'choose' && mode !== 'when') {
     banner.classList.add('home');
     banner.classList.remove('not-home');
     // Item 2 (Option B): single house-with-check icon + "Home" label as one
@@ -9216,21 +9298,35 @@ function updateHomeBanner() {
     // (existing setupHomeAddresses handler delegates on [data-home-action]
     // and runs the confirm dialog before removing). One symbol, one button —
     // no separate × control. Visually quieter than the prior two-symbol design.
-    statusEl.innerHTML =
-      '<button class="home-banner-home-btn" type="button" data-home-action="untag" aria-label="Recognized as home. Tap to untag." title="Tap to untag">' +
-        '<svg class="home-banner-home-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-          '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>' +
-          '<polyline points="10 14 12 16 16 12"/>' +
-        '</svg>' +
-        '<span class="home-banner-home-btn-label">Home</span>' +
-      '</button>';
-    // Right side is empty — no second × button. The whole label IS the action.
-    actionsEl.innerHTML = '';
+    const K = PLACE_KINDS[kindNow];
+    statusEl.innerHTML = '<span class="place-kind-pill ' + K.cls + '">\u2713 ' + K.lbl + '</span>';
+    actionsEl.innerHTML = '<button class="home-banner-link" type="button" data-home-action="change">change</button>';
+  } else if (mode === 'choose') {
+    // chooser: pick a kind (current marked), or retire, or cancel
+    banner.classList.add('not-home'); banner.classList.remove('home');
+    statusEl.innerHTML = '<span class="place-ask">this place is\u2026</span>' +
+      Object.keys(PLACE_KINDS).map(k =>
+        '<button class="place-kind-chip ' + PLACE_KINDS[k].cls + (kindNow === k ? ' now' : '') +
+        '" type="button" data-home-kind="' + k + '">' + PLACE_KINDS[k].lbl + '</button>').join('');
+    actionsEl.innerHTML = (kindNow
+      ? '<button class="home-banner-link" type="button" data-home-action="untagx">untag</button> '
+      : '') + '<button class="home-banner-link" type="button" data-home-action="cancel">cancel</button>';
+  } else if (mode === 'when') {
+    // the era question: does the new kind start today, or was it always so?
+    const nk = PLACE_KINDS[banner.dataset.pendingKind] || PLACE_KINDS.home;
+    banner.classList.add('not-home'); banner.classList.remove('home');
+    statusEl.innerHTML = '<span class="place-ask">\u2192 ' + nk.lbl + ' \u00b7 apply\u2026</span>' +
+      '<button class="place-kind-chip" type="button" data-home-when="today">from today</button>' +
+      '<button class="place-kind-chip" type="button" data-home-when="always">always was</button>';
+    actionsEl.innerHTML = '<button class="home-banner-link" type="button" data-home-action="cancel">cancel</button>';
   } else {
     banner.classList.add('not-home');
     banner.classList.remove('home');
-    statusEl.textContent = 'Not a home address';
-    actionsEl.innerHTML = '<button class="home-banner-link primary" type="button" data-home-action="tag">+ tag as home</button>';
+    statusEl.innerHTML = '<span class="place-ask">not tagged \u2014 this place is\u2026</span>' +
+      Object.keys(PLACE_KINDS).map(k =>
+        '<button class="place-kind-chip ' + PLACE_KINDS[k].cls +
+        '" type="button" data-home-kind="' + k + '">' + PLACE_KINDS[k].lbl + '</button>').join('');
+    actionsEl.innerHTML = '<span class="place-travel-hint">or leave as travel</span>';
   }
 }
 
@@ -13966,9 +14062,14 @@ function renderNightMemory() {
   const tag = document.getElementById('nightAwayTag');
   if (tag) {
     const propNow = String((propIn && propIn.value) || '').trim();
-    const away = !!propNow && !isHomeAddress(propNow);
-    if (!away) { tag.classList.add('hidden'); tag.textContent = ''; }
+    // NT-A: the tag speaks the place's KIND on this date. My home stays
+    // silent; family/sister wear their colours; only true travel is AWAY.
+    const kindNow = propNow ? placeKindOn(propNow, currentDate) : 'empty';
+    tag.classList.remove('k-fam', 'k-sis');
+    if (!propNow || kindNow === 'home') { tag.classList.add('hidden'); tag.textContent = ''; }
     else {
+      // streak walks backward while the KIND stays the same (era-correct:
+      // each night judged by the tag active on that night)
       let streak = 1;
       let dt = new Date(currentDate + 'T00:00:00');
       for (;;) {
@@ -13976,12 +14077,17 @@ function renderNightMemory() {
         const iso = dt.toISOString().slice(0, 10);
         const prev = allEntries[iso];
         const pv = prev ? String(prev.nightStay || '').trim() : '';
-        if (pv && !isHomeAddress(pv)) streak++;
+        if (pv && placeKindOn(pv, iso) === (kindNow === 'empty' ? null : kindNow)) streak++;
         else break;
         if (streak > 365) break;
       }
       const ord = streak === 1 ? '1st' : streak === 2 ? '2nd' : streak === 3 ? '3rd' : streak + 'th';
-      tag.textContent = 'AWAY \u00b7 ' + ord + ' night';
+      if (kindNow === null) {
+        tag.textContent = 'AWAY \u00b7 ' + ord + ' night';
+      } else {
+        tag.classList.add(PLACE_KINDS[kindNow].cls);
+        tag.textContent = PLACE_KINDS[kindNow].lbl + ' \u00b7 ' + ord + ' night';
+      }
       tag.classList.remove('hidden');
     }
   }
@@ -16299,8 +16405,11 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   doc.setFontSize(12);
   doc.text(' ' + monthName + ' ' + y, dx, bandBase);
 
+  // NT-A: the chip speaks the place's kind on THIS date (era-correct).
+  // My home stays silent; family deep blue, sister's plum, travel amber.
   const propNow = String(entry.nightStay || '').trim();
-  if (propNow && typeof isHomeAddress === 'function' && !isHomeAddress(propNow)) {
+  const bandKind = (propNow && typeof placeKindOn === 'function') ? placeKindOn(propNow, isoDate) : 'home';
+  if (propNow && bandKind !== 'home') {
     let streak = 1;
     if (typeof allEntries === 'object' && allEntries) {
       let dt2 = new Date(isoDate + 'T00:00:00');
@@ -16309,15 +16418,18 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
         const iso2 = dt2.toISOString().slice(0, 10);
         const prev = allEntries[iso2];
         const pv = prev ? String(prev.nightStay || '').trim() : '';
-        if (pv && !isHomeAddress(pv)) streak++; else break;
+        if (pv && placeKindOn(pv, iso2) === bandKind) streak++; else break;
         if (streak > 365) break;
       }
     }
     const ord = streak === 1 ? '1ST' : streak === 2 ? '2ND' : streak === 3 ? '3RD' : streak + 'TH';
     const cityUp = String(entry.nightCity || '').trim().toUpperCase();
-    const tagTxt = 'AWAY' + (cityUp ? ' \u00b7 ' + cityUp : '') + ' \u00b7 ' + ord + ' NIGHT';
+    const kindWord = bandKind === null ? 'AWAY' : PLACE_KINDS[bandKind].lbl.toUpperCase();
+    const kindRgb = bandKind === null ? [138, 87, 17]
+      : (bandKind === 'family' ? [30, 90, 138] : [107, 63, 160]);
+    const tagTxt = kindWord + (cityUp ? ' \u00b7 ' + cityUp : '') + ' \u00b7 ' + ord + ' NIGHT';
     doc.setFont('helvetica', 'bold'); doc.setFontSize(6);
-    pdfSetText(doc, [138, 87, 17]);
+    pdfSetText(doc, kindRgb);
     doc.text(tagTxt, PDF_PAGE.width - PDF_PAGE.marginX, bandBase, { align: 'right' });
   }
   cursorY = bandTop + bandH + 6;
@@ -18084,24 +18196,59 @@ function setupHomeAddresses() {
   if (banner) {
     banner.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-home-action]');
-      if (!btn) return;
-      const action = btn.dataset.homeAction;
+      const kindBtn = e.target.closest('[data-home-kind]');
+      const whenBtn = e.target.closest('[data-home-when]');
       const val = ((document.getElementById('f_nightStay') || {}).value || '').trim();
       if (!val) return;
-      if (action === 'tag') {
-        addHomeAddress(val);
-        const n = _countNightsForHomeAddress(val);
-        toast('Tagged as home · ' + n + ' night' + (n === 1 ? '' : 's') + ' affected');
+      const refresh = () => { updateHomeBanner(); renderNightMemory(); };
+      if (kindBtn) {
+        const kind = kindBtn.dataset.homeKind;
+        const act = activePlaceTag(val, isoToday());
+        if (act && (act.kind || 'home') !== kind) {
+          // existing tag, different kind -> the era question
+          banner.dataset.mode = 'when';
+          banner.dataset.pendingKind = kind;
+          updateHomeBanner();
+        } else if (!act) {
+          tagPlaceKind(val, kind, 'always');   // first tagging covers history
+          const n = _countNightsForHomeAddress(val);
+          banner.dataset.mode = '';
+          toast('Tagged ' + PLACE_KINDS[kind].lbl + ' \u00b7 ' + n + ' night' + (n === 1 ? '' : 's') + ' affected');
+          refresh();
+        } else {
+          banner.dataset.mode = '';
+          updateHomeBanner();
+        }
+        return;
+      }
+      if (whenBtn) {
+        const kind = banner.dataset.pendingKind;
+        tagPlaceKind(val, kind, whenBtn.dataset.homeWhen === 'today' ? 'today' : 'always');
+        banner.dataset.mode = ''; banner.dataset.pendingKind = '';
+        toast(whenBtn.dataset.homeWhen === 'today'
+          ? 'New era \u00b7 ' + PLACE_KINDS[kind].lbl + ' from today'
+          : 'Corrected \u00b7 ' + PLACE_KINDS[kind].lbl + ' always');
+        refresh();
+        return;
+      }
+      if (!btn) return;
+      const action = btn.dataset.homeAction;
+      if (action === 'change') {
+        banner.dataset.mode = 'choose';
         updateHomeBanner();
-      } else if (action === 'untag') {
+      } else if (action === 'cancel') {
+        banner.dataset.mode = ''; banner.dataset.pendingKind = '';
+        updateHomeBanner();
+      } else if (action === 'untagx') {
         const n = _countNightsForHomeAddress(val);
         const msg = n > 1
-          ? 'Untag "' + val.slice(0, 40) + (val.length > 40 ? '…' : '') + '" as home? This affects ' + n + ' nights.'
-          : 'Untag this address as home?';
+          ? 'Untag "' + val.slice(0, 40) + (val.length > 40 ? '\u2026' : '') + '"? Past nights keep their tag; from today it counts as travel. (' + n + ' nights matched)'
+          : 'Untag this place?';
         if (confirm(msg)) {
-          removeHomeAddress(val);
-          toast('Untagged from home');
-          updateHomeBanner();
+          retirePlaceTag(val);
+          banner.dataset.mode = '';
+          toast('Untagged \u00b7 past eras preserved');
+          refresh();
         }
       }
     });
@@ -18123,23 +18270,32 @@ function setupHomeAddresses() {
   const addBtn = document.getElementById('homeAddrAddBtn');
   const addInput = document.getElementById('homeAddrInput');
   if (addBtn && addInput) {
-    const doAdd = () => {
+    const doAdd = (kind) => {
       const v = (addInput.value || '').trim();
       if (!v) return;
-      const added = addHomeAddress(v);
+      const added = tagPlaceKind(v, kind || 'home', 'always');
       if (added) {
         addInput.value = '';
         const n = _countNightsForHomeAddress(v);
-        toast('Added · ' + n + ' night' + (n === 1 ? '' : 's') + ' matched');
+        toast('Tagged ' + PLACE_KINDS[kind || 'home'].lbl + ' \u00b7 ' + n + ' night' + (n === 1 ? '' : 's') + ' matched');
         renderHomeAddrList();
         updateHomeBanner();
       } else {
-        toast('Already in your home addresses');
+        toast('Already tagged');
       }
     };
-    addBtn.addEventListener('click', doAdd);
+    // The + Add button becomes three kind buttons (rendered once).
+    const btnHost = addBtn.parentElement;
+    addBtn.remove();
+    const kindWrap = document.createElement('div');
+    kindWrap.className = 'home-addr-kind-btns';
+    kindWrap.innerHTML = Object.keys(PLACE_KINDS).map(k =>
+      '<button type="button" class="place-kind-chip ' + PLACE_KINDS[k].cls + '" data-addr-add-kind="' + k + '">+ ' + PLACE_KINDS[k].lbl + '</button>').join('');
+    btnHost.appendChild(kindWrap);
+    kindWrap.querySelectorAll('[data-addr-add-kind]').forEach(b =>
+      b.addEventListener('click', () => doAdd(b.dataset.addrAddKind)));
     addInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); doAdd(); }
+      if (e.key === 'Enter') { e.preventDefault(); doAdd('home'); }
     });
   }
 }
@@ -18167,29 +18323,34 @@ function renderHomeAddrList() {
     list.innerHTML = '<div class="home-addr-empty">No home addresses tagged yet. Add one below or tag from the Today form.</div>';
     return;
   }
-  list.innerHTML = addrs.map(a => {
+  const today = isoToday();
+  list.innerHTML = addrs.map((a, ix) => {
     const count = _countNightsForHomeAddress(a.value);
-    const taggedAt = a.tagged_at ? a.tagged_at.slice(0, 10) : '';
-    const meta = (taggedAt ? 'Tagged ' + taggedAt : 'Tagged') +
-      ' &middot; ' + count + ' night' + (count === 1 ? '' : 's') + ' matched';
-    return `<div class="home-addr-row">
+    const K = PLACE_KINDS[a.kind || 'home'];
+    const from = a.from ? a.from.slice(0, 4) : (a.tagged_at ? a.tagged_at.slice(0, 4) : '');
+    const open = !a.to || a.to > today;
+    const era = open ? (a.from ? 'since ' + from : 'always')
+                     : ((a.from ? from : '\u2026') + '\u2013' + a.to.slice(0, 4));
+    const meta = era + ' &middot; ' + count + ' night' + (count === 1 ? '' : 's') + ' matched';
+    return `<div class="home-addr-row${open ? '' : ' retired'}">
       <div class="home-addr-row-head">
+        <span class="place-kind-pill ${K.cls}">${K.lbl}</span>
         <div class="home-addr-value">${escHtml(a.value)}</div>
-        <button class="home-addr-remove" type="button" data-addr-remove="${escAttr(a.value)}">Remove</button>
+        ${open ? `<button class="home-addr-remove" type="button" data-addr-retire="${ix}">Retire</button>`
+               : '<span class="home-addr-retired-word">retired</span>'}
       </div>
       <div class="home-addr-meta">${meta}</div>
     </div>`;
   }).join('');
-  // Wire remove buttons
-  list.querySelectorAll('[data-addr-remove]').forEach(btn => {
+  // Retire closes the era today - the past keeps its truth, always.
+  list.querySelectorAll('[data-addr-retire]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const v = btn.dataset.addrRemove;
-      const n = _countNightsForHomeAddress(v);
-      const msg = n > 1
-        ? 'Remove "' + v.slice(0, 40) + (v.length > 40 ? '…' : '') + '" from home addresses? This affects ' + n + ' nights.'
-        : 'Remove this home address?';
+      const a = addrs[parseInt(btn.dataset.addrRetire, 10)];
+      if (!a) return;
+      const n = _countNightsForHomeAddress(a.value);
+      const msg = 'Retire "' + String(a.value).slice(0, 40) + '"? Past nights keep their tag; from today it counts as travel. (' + n + ' nights matched)';
       if (confirm(msg)) {
-        removeHomeAddress(v);
+        retirePlaceTag(a.value);
         renderHomeAddrList();
         updateHomeBanner();
       }
