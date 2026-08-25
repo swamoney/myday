@@ -122,27 +122,25 @@
   .ix-more { margin-left:auto; font-family:var(--mono); font-size:0.75rem;
              color:#44557c; flex-shrink:0; }
   /* Room 2: the chapter spine */
-  .tdots { display:flex; gap:7px; flex-wrap:wrap; margin:0 0 6px 2px; }
+  .tdots { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 20px 2px; }
   .tdot { width:16px; height:16px; border-radius:4px; transform:rotate(45deg); border:none; padding:0;
           cursor:pointer; transition:transform .15s; }
   .tdot:hover { transform:scale(1.25); }
   .thold { position:relative; }
-  .tline { position:absolute; left:27px; top:14px; bottom:14px; width:0;
-           border-left:2px dashed #C6C0B0; }
-  .tline::before, .tline::after { content:''; position:absolute; left:-2px; width:6px;
-           height:6px; border-radius:50%; background:#B3AC99; }
-  .tline::before { top:-6px; } .tline::after { bottom:-6px; }
   .snode { display:grid; grid-template-columns:52px 1fr; gap:16px; align-items:start;
            padding:14px 4px; position:relative; cursor:pointer; border-radius:10px; }
   .snode:hover { background:#FBFCFE; }
-  .snode .tick { position:absolute; left:21px; top:50%; width:14px; height:0;
-                 border-top:2px solid #B3AC99; }
   .smark { width:52px; height:52px; display:flex; align-items:center;
            justify-content:center; font-family:var(--serif); font-size:0.9375rem;
            font-weight:700; position:relative; z-index:1; }
   .smark .diam { position:absolute; inset:5px; transform:rotate(45deg); border-radius:9px;
            box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
   .smark b { position:relative; color:#fff; font-weight:700; }
+  .rk-years { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#a5702f;
+              letter-spacing:0.05em; margin-left:6px; }
+  .rk-age { display:inline-block; font-family:var(--mono); font-size:0.5rem; font-weight:600;
+            color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px;
+            padding:2px 8px; margin-left:8px; letter-spacing:0.02em; vertical-align:1px; }
   .syears { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#a5702f;
             letter-spacing:0.05em; }
   .snum { font-family:var(--serif); font-size:1.375rem; font-weight:600; color:#182233;
@@ -323,12 +321,18 @@
   .reader-bar { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--paper); border-bottom:1px solid var(--rule); flex-shrink:0; }
   .reader-back { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:0.8125rem; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
   .reader-back:hover { border-color:var(--accent); color:var(--accent); }
-  .reader-title { flex:1; font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .reader-title { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--serif); font-size:1rem; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .reader-edit { background:transparent; border:1px solid var(--rule); border-radius:8px; padding:7px 12px; font-size:0.75rem; color:var(--ink-soft); cursor:pointer; white-space:nowrap; }
   .reader-edit:hover { border-color:var(--accent); color:var(--accent); }
+  /* Mobile: the bar compacts so Back / star / Delete / Edit all stay on screen -
+     the title is the one who yields (ellipsis), never the buttons. */
+  @media (max-width:560px) {
+    .reader-bar { gap:7px; padding:10px 10px; }
+    .reader-back, .reader-edit, .reader-del { padding:6px 9px; font-size:0.71875rem; }
+    .reader-title { font-size:0.875rem; }
+  }
   .reader-scroll { flex:1; overflow-y:auto; padding:30px 20px 60px; }
-  .rd-sticky { position:sticky; top:-30px; z-index:8; background:var(--r-bg,var(--bg));
-    padding:30px 0 10px; margin:-30px 0 16px; border-bottom:1px solid rgba(20,30,60,0.07); }
+  .rd-sticky { padding:0 0 10px; margin:0 0 16px; border-bottom:1px solid rgba(20,30,60,0.07); }
   .rd-sticky .reader-h1 { margin-bottom:8px; }
   /* RH-3: the chapter page wears the roadmap hero's sweep + sig bar,
      each chapter in its own coin's hue (the why grammar, chapter-dressed). */
@@ -351,7 +355,7 @@
   .rd-datehint { color:#a8b1c2; }
   .rd-datepick { position:absolute; inset:0; width:100%; height:100%; opacity:0;
     pointer-events:none; }
-  .reader-inner { max-width:680px; margin:0 auto; }
+  .reader-inner { max-width:1000px; margin:0 auto; }
   .reader-kind { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--r-acc); margin-bottom:8px; }
   .reader-h1 { font-family:'Fraunces',serif; font-size:1.6875rem; font-weight:600; line-height:1.3; margin-bottom:12px; }
   .reader-lead { font-family:'Fraunces',serif; font-size:1.125rem; color:var(--ink-soft); line-height:1.55; margin-bottom:20px; }
@@ -955,10 +959,10 @@ function renderTimeline(list, wrap) {
     html += '<div class="tdots">' + chs.map((r, i) => {
       return '<button class="tdot" data-open="' + escHtml(r.id) + '" title="' + escHtml(r.title) + '" style="background:' + chShade(i) + ';"></button>';
     }).join('') + '</div>';
-    html += '<div class="thold"><div class="tline"></div>' + chs.map((r, i) => {
+    html += '<div class="thold">' + chs.map((r, i) => {
       const sh = chShade(i);
       const age = ageLabel(r);
-      return '<div class="snode" data-open="' + escHtml(r.id) + '"><div class="tick"></div>' +
+      return '<div class="snode" data-open="' + escHtml(r.id) + '">' +
         '<div class="smark"><span class="diam" style="background:' + sh + ';"></span><b>' + romanNum(i + 1) + '</b></div>' +
         '<div>' +
           (yearsLabel(r) ? '<div class="syears">' + yearsLabel(r) + '</div>' : '') +
@@ -1178,8 +1182,7 @@ function openReader(id, keepNav) {
     if (dk === 'introspection') {
       meta = 'MUSING & LEARNING';
     } else if (dk === 'experience') {
-      meta = 'LIFE CHAPTER' + (yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
-        (ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '');
+      meta = 'LIFE CHAPTER';        // years + age join as index-styled spans below
     } else if (dk === 'diary') {
       const dt = r.created_at ? new Date(r.created_at) : null;
       meta = 'MY DIARY' + (dt ? ' \u00B7 ' + dt.toLocaleDateString(undefined,
@@ -1191,7 +1194,15 @@ function openReader(id, keepNav) {
     }
   } catch (e) { /* eyebrow stays plain */ }
   el('readerTitle').textContent = r.title;
-  el('readerKind').textContent = meta;
+  // The chapter page's years + age wear the INDEX grammar exactly: amber
+  // mono years (.syears voice) and the gold age pill.
+  if (dk === 'experience' && (yearsLabel(r) || ageLabel(r))) {
+    el('readerKind').innerHTML = escHtml(meta) +
+      (yearsLabel(r) ? ' <span class="rk-years">' + escHtml(yearsLabel(r)) + '</span>' : '') +
+      (ageLabel(r) ? ' <span class="rk-age">' + escHtml(ageLabel(r)) + '</span>' : '');
+  } else {
+    el('readerKind').textContent = meta;
+  }
   // RH-3: a chapter's name wears its coin's sweep; the sig bar follows in the
   // same hue. Everyone else keeps the plain serif title.
   (function () {

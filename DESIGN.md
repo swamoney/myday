@@ -101,6 +101,21 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**IL-2 round 5: mobile + page grammar** (25 Aug 2026): six fixes.
+(1) Mobile reader bar: the title yields (min-width:0 + ellipsis) so
+Back/star/Delete/Edit always fit; <=560px bar compacts (gap 7,
+buttons 6x9 @ 0.719rem). LESSON: in a flex bar, text flex items need
+min-width:0 or their min-content pushes buttons off small screens.
+(2) The timeline vertical line + ticks retired same-day to zero refs
+(markup emits + CSS; battery gotcha recorded: substring checks for
+'tline' false-match 'outline' - grep the CLASSED form '.tline').
+(3) .reader-inner max-width 680 -> 1000, matching why's .rm-inner.
+(4) The rd-sticky heading freeze removed (position/top/z/bg dropped;
+padding-bottom + divider kept). (5) Chapter page meta wears the index
+grammar exactly: eyebrow 'LIFE CHAPTER' + .rk-years (mono 0.5938
+amber #a5702f) + .rk-age gold pill (#8A5711/#FBF3E2/#E4D2AC).
+(6) tdots strip breathes: margin 10px above / 20px below.
+
 **IL-2 round 4: one ground + the true axis** (25 Aug 2026): every
 Inner Life individual page now stands on the SAME paper as the My Why
 individual pages - #fbfcfe (read from why.html's .rmw), set once on
