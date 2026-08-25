@@ -64,6 +64,20 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**MP-2 + MB-1 - navy reveals; the phone door keeps one line**
+(Aug 2026): the fold-pill takes the ACCENT WHISPER - #F3F6FB ground,
+accent-soft solid border, accent-ink text, accent chevron - the one
+family the stretch didn't use. The vocabulary gains a fourth stable
+word: gold opens rooms, NAVY reveals fields. This also healed the
+mixed-clothes leak (the label's old gold-brown text had outranked the
+grey costume; .exp-more-label now pinned at the same importance).
+MB-1: on <=480px the doors hold ONE line by construction - paddings
+tighten, the meta ellipsizes before any wrap, the 'this month - add
+more' tail hides (the door's existence implies it), and the owed chip
+speaks the short word: 'to pay'/'due' rendered as twin spans, desktop/
+mobile each showing its own. Desktop wording byte-identical. Setters
+write both twins; CSS chooses - zero behavioural JS change.
+
 **SP-1 - doors above the fold; spine amended and RE-FROZEN**
 (Aug 2026): Other + Recurring lifted OUT of the '+more' fold and
 seated between P4 and the fold-pill. The reason is stronger than

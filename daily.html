@@ -5896,19 +5896,40 @@
   .s-other-field.is-expanded .door-open .dw-close { display: inline; }
   .rec-collapse-field.is-expanded .door-open .dw-open { display: none; }
   .rec-collapse-field.is-expanded .door-open .dw-close { display: inline; }
-  /* The fold-pill sheds its gold costume: on this stretch gold now means
-     exactly one thing - a room you can open. */
+  /* MP-2 (Aug 2026): the pill takes the accent whisper - the one family
+     this stretch didn't use. Gold opens rooms; NAVY reveals fields. Cool
+     against the warm doors, clearly interactive, clearly not a room.
+     (Also heals the mixed-clothes leak: the label previously kept its old
+     gold-brown text on the grey body.) */
   .exp-more-toggle {
-    background: var(--paper-soft) !important;
-    border: 1px dashed var(--rule) !important;
-    color: var(--muted) !important;
+    background: #F3F6FB !important;
+    border: 1px solid var(--accent-soft) !important;
+    color: var(--accent-ink) !important;
     margin-top: 18px !important;
   }
+  .exp-more-toggle .exp-more-label { color: var(--accent-ink) !important; }
   .exp-more-toggle .exp-more-count {
-    background: #fff !important; border-color: var(--rule) !important;
-    color: var(--muted) !important;
+    background: #fff !important; border-color: var(--accent-soft) !important;
+    color: var(--accent-ink) !important;
   }
-  .exp-more-toggle .exp-more-chev { color: var(--muted) !important; }
+  .exp-more-toggle .exp-more-chev { color: var(--accent) !important; }
+
+  /* MB-1 (Aug 2026): on the phone the doors keep ONE line by construction -
+     essentials stay, the long tail hides, the meta ellipsizes before any
+     wrap. Desktop keeps the full wording untouched. */
+  .owe-s { display: none; }
+  @media (max-width: 480px) {
+    .other-summary, .rec-summary { padding: 8px 10px !important; flex-wrap: nowrap !important; }
+    .other-summary .door-lbl, .rec-summary .door-lbl { font-size: 0.5625rem; letter-spacing: 0.08em; }
+    .other-summary-text, .rec-summary-text {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+    }
+    .door-meta-x { display: none; }
+    .owe-l { display: none; }
+    .owe-s { display: inline; }
+    .rec-door-owe { font-size: 0.5938rem; flex-shrink: 0; }
+    .door-open { font-size: 0.5625rem; margin-left: 6px; }
+  }
   /* ==== NS-B: night stay memory ==== */
   .ns-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
   .ns-chips.hidden { display: none; }
@@ -17029,7 +17050,7 @@ function renderRecPending(history, monthPrefix) {
     return;
   }
   oweEl.className = 'rec-door-owe';
-  oweEl.textContent = _inr(total) + ' to pay';
+  oweEl.innerHTML = _inr(total) + ' <span class="owe-l">to pay</span><span class="owe-s">due</span>';
   if (chev) chev.classList.remove('settled');
 }
 function getRecurringHistory(viewedMonthYM) {
@@ -17560,7 +17581,8 @@ function renderOtherLog() {
       summaryEl.classList.add('has-items');
       summaryTextEl.innerHTML =
         recFmt(total) +
-        ' <span class="other-summary-cta">&middot; ' + items.length + ' ' + itemWord + ' this month &middot; add more</span>';
+        ' <span class="other-summary-cta">&middot; ' + items.length + ' ' + itemWord +
+        '<span class="door-meta-x"> this month &middot; add more</span></span>';
     }
   }
   if (titleEl) titleEl.textContent = items.length ? MONTH_NAMES[mNum - 1] + ' items' : '';
