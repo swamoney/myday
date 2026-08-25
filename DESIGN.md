@@ -64,6 +64,18 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**HP-2 + phone trim - loud when closed, calm when open** (Aug 2026):
+the navy pill became state-aware, reviving the pill's own original
+grammar (the old gold Toggle B was loud-closed/calm-open for the same
+reason): CLOSED = solid accent-soft, 4px navy left-stripe, filled navy
++7 badge, semibold - 'fields are folded here, don't forget' while
+entering; OPEN = the MP-2 whisper - nothing left to miss. Pure CSS on
+the existing aria-expanded flag. Vocabulary deepens, not breaks:
+gold = room, navy = reveal, LOUD navy = still folded. Phone: the
+Recurring door also drops '- 6 paid' (rec-summary-cta hidden <=480px) -
+the glance keeps amount, amber due, and OPEN; the count lives on
+desktop and inside the room.
+
 **MP-2 + MB-1 - navy reveals; the phone door keeps one line**
 (Aug 2026): the fold-pill takes the ACCENT WHISPER - #F3F6FB ground,
 accent-soft solid border, accent-ink text, accent chevron - the one
