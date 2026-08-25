@@ -64,6 +64,17 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**DC-1 - the confirm sheet (DC-2N tried and retired same day)**
+(Aug 2026): Rahul tried the armed-pill guard and preferred the sheet;
+DC-2N's machinery (armedDelete/_disarmDel, is-armed/del-armed clothes)
+retired same-day - audited to zero refs. DC-1: a singleton house
+overlay (JS-built, body-level per the overlay law) serving BOTH organ
+ledgers; every \u00d7 now awaits confirmDelete(label, dateIso), which
+names the exact item AND date - 'Delete Salon Rs 600 from 24 Aug?' -
+with Cancel / ember Delete. Cancel paths: Cancel button, backdrop tap,
+Escape. The data-del-label attributes written for DC-2N survive as the
+sheet's text source; both delete bodies run unchanged after consent.
+
 **DC-2N - the armed delete names its victim** (Aug 2026): both organ
 ledgers' \u00d7 buttons (Other month ledger + Recurring log share the
 .rec-log-del class) now pass through armedDelete(): first tap turns

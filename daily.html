@@ -5896,15 +5896,27 @@
   .s-other-field.is-expanded .door-open .dw-close { display: inline; }
   .rec-collapse-field.is-expanded .door-open .dw-open { display: none; }
   .rec-collapse-field.is-expanded .door-open .dw-close { display: inline; }
-  /* DC-2N: the armed delete names its victim */
-  .rec-log-del.is-armed {
-    font-family: var(--mono); font-size: 0.5625rem; font-weight: 600;
-    letter-spacing: 0.04em; background: var(--ember); color: #fff;
-    border-radius: 6px; padding: 3px 8px; white-space: nowrap;
-    max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+  /* DC-1: the confirm sheet names the item and the date */
+  .del-confirm-overlay {
+    position: fixed; inset: 0; z-index: 400;
+    background: rgba(10, 19, 37, 0.35);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
   }
-  .rec-log-del.is-armed:hover { background: var(--ember); color: #fff; }
-  .rec-log-row.del-armed { background: #FDF6F5; border-radius: 8px; }
+  .del-confirm-overlay.hidden { display: none; }
+  .del-confirm-sheet {
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 14px;
+    padding: 16px 16px 14px; width: 100%; max-width: 320px;
+    box-shadow: 0 12px 40px rgba(10, 19, 37, 0.25);
+  }
+  .del-confirm-q { font-size: 0.8125rem; line-height: 1.5; margin-bottom: 12px; }
+  .del-confirm-btns { display: flex; gap: 8px; }
+  .del-confirm-btn {
+    flex: 1; border: 1px solid var(--rule); background: #fff; color: var(--muted);
+    border-radius: 9px; padding: 8px 0; font-size: 0.75rem; font-weight: 600;
+    font-family: var(--sans); cursor: pointer;
+  }
+  .del-confirm-btn.del { background: var(--ember); border-color: var(--ember); color: #fff; }
 
   /* MP-2 (Aug 2026): the pill takes the accent whisper - the one family
      this stretch didn't use. Gold opens rooms; NAVY reveals fields. Cool
@@ -10375,33 +10387,48 @@ const HUB_SECTION_ORDER = [
 // Called once at boot (setupExpenseDisclosure) and on every input event
 // (updateExpenseFooter).
 
-// DC-2N (Aug 2026): the two-tap arm that NAMES the victim. First tap turns
-// the \u00d7 into an ember '<name> <amt> \u2014 DELETE?' pill and blushes the row;
-// the second tap (within 4s, on the pill) deletes; tapping anywhere else or
-// the timer passing disarms. An accidental brush costs nothing; a wrong-row
-// arm shows you the wrong name before any harm. Serves BOTH organ ledgers.
-function _disarmDel(btn) {
-  if (!btn) return;
-  clearTimeout(btn._disarmT);
-  if (btn._onDoc) { document.removeEventListener('click', btn._onDoc, true); btn._onDoc = null; }
-  btn.classList.remove('is-armed');
-  if (btn.dataset.prevHtml !== undefined) { btn.innerHTML = btn.dataset.prevHtml; delete btn.dataset.prevHtml; }
-  const row = btn.closest('.rec-log-row');
-  if (row) row.classList.remove('del-armed');
+// DC-1 (Aug 2026): the confirm sheet - Rahul's call after trying DC-2N.
+// A small house-styled dialog that names the exact item and date before any
+// delete: "Delete Salon - Rs 600 from 24 Aug?" with Cancel / Delete. One
+// singleton overlay serves BOTH organ ledgers (and any future ledger).
+let _delSheetResolve = null;
+function _ensureDelSheet() {
+  if (document.getElementById('delConfirmOverlay')) return;
+  const ov = document.createElement('div');
+  ov.id = 'delConfirmOverlay';
+  ov.className = 'del-confirm-overlay hidden';
+  ov.innerHTML = `<div class="del-confirm-sheet" role="dialog" aria-modal="true">
+      <div class="del-confirm-q" id="delConfirmQ"></div>
+      <div class="del-confirm-btns">
+        <button type="button" class="del-confirm-btn" id="delConfirmCancel">Cancel</button>
+        <button type="button" class="del-confirm-btn del" id="delConfirmGo">Delete</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close = (ans) => {
+    ov.classList.add('hidden');
+    if (_delSheetResolve) { _delSheetResolve(ans); _delSheetResolve = null; }
+  };
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(false); });
+  ov.querySelector('#delConfirmCancel').addEventListener('click', () => close(false));
+  ov.querySelector('#delConfirmGo').addEventListener('click', () => close(true));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !ov.classList.contains('hidden')) close(false);
+  });
 }
-function armedDelete(btn) {
-  if (btn.classList.contains('is-armed')) { _disarmDel(btn); return true; }
-  document.querySelectorAll('.rec-log-del.is-armed').forEach(b => _disarmDel(b));
-  btn.classList.add('is-armed');
-  btn.dataset.prevHtml = btn.innerHTML;
-  btn.textContent = (btn.dataset.delLabel || 'This item') + ' \u2014 DELETE?';
-  const row = btn.closest('.rec-log-row');
-  if (row) row.classList.add('del-armed');
-  btn._disarmT = setTimeout(() => _disarmDel(btn), 4000);
-  const onDoc = (ev) => { if (!btn.contains(ev.target)) _disarmDel(btn); };
-  btn._onDoc = onDoc;
-  setTimeout(() => document.addEventListener('click', onDoc, true), 0);
-  return false;
+function confirmDelete(label, dateIso) {
+  _ensureDelSheet();
+  const ov = document.getElementById('delConfirmOverlay');
+  const q = document.getElementById('delConfirmQ');
+  let when = '';
+  if (dateIso && dateIso.length === 10) {
+    const dd = parseInt(dateIso.slice(8, 10), 10);
+    const mm = parseInt(dateIso.slice(5, 7), 10);
+    when = ' from ' + dd + ' ' + MONTH_NAMES[mm - 1];
+  }
+  q.innerHTML = 'Delete <b>' + escHtml(label || 'this item') + '</b>' + when + '?';
+  ov.classList.remove('hidden');
+  return new Promise(res => { _delSheetResolve = res; });
 }
 
 function setupExpenseDisclosure() {
@@ -17334,8 +17361,8 @@ function renderRecurringLog() {
   // Wire remove buttons
   rowsEl.querySelectorAll('.rec-log-del').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!armedDelete(btn)) return;
       const date = btn.dataset.recDelDate;
+      if (!(await confirmDelete(btn.dataset.delLabel, date))) return;
       const idx = parseInt(btn.dataset.recDelIdx, 10);
       btn.disabled = true;
       const res = await removeRecurringPayment(date, idx);
@@ -17672,8 +17699,8 @@ function renderOtherLog() {
 
   rowsEl.querySelectorAll('.rec-log-del').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!armedDelete(btn)) return;
       const dIso = btn.dataset.otherDelDate;
+      if (!(await confirmDelete(btn.dataset.delLabel, dIso))) return;
       const idx = parseInt(btn.dataset.otherDelIdx, 10);
       btn.disabled = true;
       const res = await removeOtherItem(dIso, idx);
