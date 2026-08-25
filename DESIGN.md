@@ -64,6 +64,19 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**NT-A amendment - away means away from MY HOME only** (Aug 2026):
+Rahul's rule for the counters: Month/Year/Trends 'nights away' count
+every night not in your own bed - family home and sister's place ARE
+away there (while the Today/PDF tags still name them in their own
+colours; only true travel wears amber). _isAwayFromHome became
+date-aware: (normValue, modalKey, dateIso), not-away only when
+placeKindOn(value, date) === 'home' - era-correct, so a retired home's
+old nights stay not-away and its post-retirement nights count away.
+All seven call sites thread their date. isHomeAddress retired to zero
+refs (its any-tag semantics lasted one prompt). Sim: family night
+away; 2020 my-home not away; retired-home 2026 away; modal stay not
+away.
+
 **NT-A - places have kinds, tags have eras** (Aug 2026): the binary
 home/away verdict grew into a fixed three-word vocabulary - MY HOME
 (moss, silent on the day), FAMILY HOME (deep blue #1E5A8A), SISTER'S

@@ -7634,7 +7634,7 @@ const RES_KEYS = {
 
 // Home addresses registry — Supabase-backed user prefs with in-memory cache
 // and localStorage mirror. The public reader interface (getHomeAddresses,
-// isHomeAddress, _countNightsForHomeAddress) stays SYNCHRONOUS so the 6
+// placeKindOn, _countNightsForHomeAddress) stays SYNCHRONOUS so the
 // away-from-home call sites in hot loops don't need to be async. All async
 // work happens at load time (loadUserPrefs) and on writes (debounced upsert).
 //
@@ -7921,13 +7921,7 @@ function retirePlaceTag(value) {
   _commitPrefsChange();
   return true;
 }
-// Legacy predicate kept ONLY for the travel-records heuristic
-// (_isAwayFromHome), which has no date in hand: any tag of any kind, any
-// era, means 'one of my places' - family and sister nights are not travel.
-function isHomeAddress(value) {
-  if (!value) return false;
-  return placeTagsFor(value).length > 0;
-}
+
 
 // Count how many entries in allEntries have a nightStay matching the given
 // home-address string (used in the management view for "N nights matched").
@@ -11103,7 +11097,7 @@ function aggregateMonthly() {
     if (e.reading === 'Yes') m.readingYes++;
     // Normalised exactly as the Year card normalises it.
     const ns = (e.nightStay || '').trim().toLowerCase().slice(0, 64);
-    if (_isAwayFromHome(ns, modalByYear[date.slice(0, 4)])) m.awayNights++;
+    if (_isAwayFromHome(ns, modalByYear[date.slice(0, 4)], date)) m.awayNights++;
   }
   // Sorted ascending by ym
   return Object.values(months).sort((a, b) => a.ym.localeCompare(b.ym));
@@ -11352,9 +11346,9 @@ function _trendsAggregateByYear(months) {
     const entries = yearDateBuckets[y];
     const modalStay = _modalNightStay(entries);
     let away = 0, noSleep = 0;
-    entries.forEach(({ entry: e }) => {
+    entries.forEach(({ date: dIso2, entry: e }) => {
       const v = (e.nightStay || '').trim().toLowerCase().slice(0, 64);
-      if (_isAwayFromHome(v, modalStay)) away++;
+      if (_isAwayFromHome(v, modalStay, dIso2)) away++;
       const slot1 = (e.slot1 || '').trim();
       if (slot1 && !_isSleepSlot(slot1)) noSleep++;
     });
@@ -11491,7 +11485,7 @@ function _patternAwayVsHomeSatisfaction() {
     const y = date.slice(0, 4);
     const modal = yearModals[y] || '';
     const v = (e.nightStay || '').trim().toLowerCase().slice(0, 64);
-    if (_isAwayFromHome(v, modal)) { awaySat += sat; awayCount++; }
+    if (_isAwayFromHome(v, modal, date)) { awaySat += sat; awayCount++; }
     else { homeSat += sat; homeCount++; }
   }
   if (awayCount < 10 || homeCount < 10) return null;
@@ -11644,9 +11638,9 @@ function _recordMostTravelledYear() {
   for (const y in yearBuckets) {
     const entries = yearBuckets[y];
     const modal = _modalNightStay(entries);
-    const away = entries.filter(({ entry: e }) => {
+    const away = entries.filter(({ date: dIso2, entry: e }) => {
       const v = (e.nightStay || '').trim().toLowerCase().slice(0, 64);
-      return _isAwayFromHome(v, modal);
+      return _isAwayFromHome(v, modal, dIso2);
     });
     if (away.length === 0) continue;
     const trips = _groupConsecutiveTrips(away);
@@ -12966,9 +12960,9 @@ function renderMonthAccordions(monthYM, entries) {
   if (!entries.length) { awayWrap.innerHTML = ''; sleepWrap.innerHTML = ''; return; }
 
   const modalStay = _modalNightStay(entries);
-  const awayEntries = entries.filter(({ entry: e }) => {
+  const awayEntries = entries.filter(({ date: dIso2, entry: e }) => {
     const v = (e.nightStay || '').trim().toLowerCase().slice(0, 64);
-    return _isAwayFromHome(v, modalStay);
+    return _isAwayFromHome(v, modalStay, dIso2);
   });
   const awayTrips = _groupConsecutiveTrips(awayEntries);
 
@@ -14752,17 +14746,17 @@ function _modalNightStay(yearEntries) {
 
 // Decide whether a given nightStay value counts as "away from home" for
 // classification purposes (used by Month accordion, Year stats, Trends YoY).
-// Precedence:
-//   1. Blank value         → not away (no data)
-//   2. In home registry    → not away (explicit home)
-//   3. Matches modal stay  → not away (implicit home for the period)
-//   4. Otherwise           → away
-// Pass the normalized value (lowercase + trimmed + truncated) and the
-// per-period modal key (also normalized) the same way callers were already
-// computing them.
-function _isAwayFromHome(normValue, modalKey) {
+// NT-A rule (Rahul, Aug 2026): away-from-home means away from MY HOME only -
+// nights at the family home or sister's place COUNT as away here (they are
+// nights not in your own bed), while the Today/PDF tags still name them in
+// their own colours. Precedence:
+//   1. Blank value            → not away (no data)
+//   2. MY HOME on that date   → not away (era-correct)
+//   3. Matches modal stay     → not away (implicit home for the period)
+//   4. Otherwise              → away (travel, family, sister alike)
+function _isAwayFromHome(normValue, modalKey, dateIso) {
   if (!normValue) return false;
-  if (isHomeAddress(normValue)) return false;
+  if (placeKindOn(normValue, dateIso || isoToday()) === 'home') return false;
   if (normValue === modalKey) return false;
   return true;
 }
@@ -14982,9 +14976,9 @@ function renderYear() {
 
   // === Away-from-home detection ===
   const modalStay = _modalNightStay(yearEntries);
-  const awayEntries = yearEntries.filter(({ entry: e }) => {
+  const awayEntries = yearEntries.filter(({ date: dIso2, entry: e }) => {
     const v = (e.nightStay || '').trim().toLowerCase().slice(0, 64);
-    return _isAwayFromHome(v, modalStay);
+    return _isAwayFromHome(v, modalStay, dIso2);
   });
   const awayTrips = _groupConsecutiveTrips(awayEntries);
 
@@ -15821,7 +15815,7 @@ function computePdfYearSummary(yearStr, byMonth) {
   }
   const awayList = yearEntries.filter(item => {
     const v = (item.entry?.nightStay || '').trim().toLowerCase().slice(0, 64);
-    return _isAwayFromHome(v, modalKey);
+    return _isAwayFromHome(v, modalKey, item.date);
   });
   // Trip grouping — consecutive away dates = one trip
   const trips = [];
