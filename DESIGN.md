@@ -64,6 +64,14 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**TG-1 post-ship** (Aug 2026): the pill was rendering centered - a
+leftover rule from the retired Home button ('.home-banner.home
+.home-banner-status { justify-content:center; width:100% }') was
+still winning in the tagged state. Retired it plus the whole dead
+home-banner-home-btn CSS family (refs audited to zero). Lesson filed
+under the retirement law: when a component dies, grep its STATE
+overrides too, not just its base class.
+
 **TG-1 - the bare tag** (Aug 2026): the Property banner box retired;
 only the tag remains, left-seated and floating free 5px under the
 field, which keeps its full rounded shape in every state (the :has()
