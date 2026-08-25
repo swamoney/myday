@@ -101,6 +101,24 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**IL-2 round 3: TL-B** (25 Aug 2026): five settlements in one stroke.
+(1) The '+ a past day' door retired to zero refs (button, picker,
+wiring, .tn-past clothes) - its power lives on in every page's DP-1
+date row: write tonight, re-date the page. (2) 'Work in Progress' ->
+'My Whiteboard' (seg label, whiteboard print h1 + title; 'wip' view
+keys untouched, S1). (3) The age pill wears the house gold: #8A5711
+on #FBF3E2 with #E4D2AC hairline. (4) TL-B: RB_HUES rainbow coins
+RETIRED for TL_SHADES = terracotta #9C6B5A, brass #A98A4B, olive
+#6E7F5A, slate-blue #5A7086, plum #7A5A74 (5-cycle via chShade);
+marks are DIAMONDS (rotated rounded squares, white roman numeral,
+absolute .diam behind a centred b) at index and in the tdots strip
+(4px-radius rotated squares); the chapter page sweep ('4d' = 0.30)
+and sig bar ride the same shade by chapterSort index. (5) Chapter
+PRINT view now carries the full index grammar - amber LIFE CHAPTER
+eyebrow with years, gold age pill, name sweep in the shade, sig bar -
+built inline in exportEntryPrint for experience kind only; every
+other kind prints plain as before.
+
 **IL-2 round 2: fixes + MI-3/DP-1/RH-3** (25 Aug 2026): five fixes -
 (1) Delete lives on every note page (rdDel in the reader bar wired to
 readerEntry.id; the modal-era deleteEntry required editingId and had

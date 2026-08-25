@@ -123,7 +123,7 @@
              color:#44557c; flex-shrink:0; }
   /* Room 2: the chapter spine */
   .tdots { display:flex; gap:7px; flex-wrap:wrap; margin:0 0 6px 2px; }
-  .tdot { width:16px; height:16px; border-radius:50%; border:none; padding:0;
+  .tdot { width:16px; height:16px; border-radius:4px; transform:rotate(45deg); border:none; padding:0;
           cursor:pointer; transition:transform .15s; }
   .tdot:hover { transform:scale(1.25); }
   .thold { position:relative; }
@@ -137,9 +137,12 @@
   .snode:hover { background:#FBFCFE; }
   .snode .tick { position:absolute; left:19px; top:50%; width:13px; height:0;
                  border-top:2px solid #9DB897; }
-  .smark { width:52px; height:52px; border-radius:50%; display:flex; align-items:center;
-           justify-content:center; font-family:var(--serif); font-size:1.0625rem;
-           font-weight:600; position:relative; z-index:1; }
+  .smark { width:52px; height:52px; display:flex; align-items:center;
+           justify-content:center; font-family:var(--serif); font-size:0.9375rem;
+           font-weight:700; position:relative; z-index:1; }
+  .smark .diam { position:absolute; inset:5px; transform:rotate(45deg); border-radius:9px;
+           box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
+  .smark b { position:relative; color:#fff; font-weight:700; }
   .syears { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#a5702f;
             letter-spacing:0.05em; }
   .snum { font-family:var(--serif); font-size:1.375rem; font-weight:600; color:#182233;
@@ -147,8 +150,8 @@
   .s-stands { font-family:var(--serif); font-style:italic; font-size:0.875rem;
               color:#28324B; margin-top:5px; }
   .s-agepill { display:inline-block; margin-top:8px; font-family:var(--mono);
-               font-size:0.5rem; font-weight:600; color:#5a7050; background:#5a70500d;
-               border:1px solid #5a705026;
+               font-size:0.5rem; font-weight:600; color:#8A5711; background:#FBF3E2;
+               border:1px solid #E4D2AC;
                border-radius:999px; padding:2px 8px; }
   .addp { border:1.5px dashed var(--rule); border-radius:12px; padding:11px 14px;
           color:#8a97b3; font-size:0.8125rem; cursor:pointer; margin-top:10px; }
@@ -169,9 +172,6 @@
              border:1px solid #E2DFD4; border-radius:12px; padding:12px 14px;
              margin-bottom:10px; cursor:pointer; }
   .tn-cap { font-family:var(--serif); font-size:1rem; font-style:italic; color:#5c5747; }
-  .tn-past { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#8a94aa;
-    border:1px dashed var(--rule); border-radius:8px; padding:5px 10px; cursor:pointer; }
-  .tn-past:hover { color:#5c5747; border-color:#5c5747; }
   .tn-go { margin-left:auto; font-family:var(--mono); font-size:0.625rem; font-weight:600;
            background:#6f6a5c; color:#fff; border-radius:8px; padding:7px 13px; }
   .dlens { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
@@ -465,7 +465,7 @@
         
         <span data-view="diary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg><span class="seg-l">My Diary</span></span>
         <span data-view="writing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="seg-l">My Writings</span></span>
-        <span data-view="wip" class="seg-wip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5l-3.2 3.2l-2.6 .4a1 1 0 0 0-.6 1.7l4.6 4.6a1 1 0 0 0 1.7-.6l.4-2.6l3.2-3.2"/><line x1="9" y1="15" x2="4.5" y2="19.5"/><line x1="14.5" y1="4" x2="20" y2="9.5"/></svg><span class="seg-l">Work in Progress</span></span>
+        <span data-view="wip" class="seg-wip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5l-3.2 3.2l-2.6 .4a1 1 0 0 0-.6 1.7l4.6 4.6a1 1 0 0 0 1.7-.6l.4-2.6l3.2-3.2"/><line x1="9" y1="15" x2="4.5" y2="19.5"/><line x1="14.5" y1="4" x2="20" y2="9.5"/></svg><span class="seg-l">My Whiteboard</span></span>
       </div>
 
       
@@ -874,15 +874,11 @@ function cardHTML(r) {
     '</div>';
 }
 // ================= IL-2: the four rooms =================
-const RB_HUES = [
-  { lt:'#F9A79F', mid:'#F2867C', deep:'#C9564A', ink:'#5E1810' },
-  { lt:'#F8C894', mid:'#F0A85F', deep:'#C87B25', ink:'#5C3205' },
-  { lt:'#FFE79A', mid:'#F7D368', deep:'#D3AC2C', ink:'#544006' },
-  { lt:'#A6D6B2', mid:'#7FBE92', deep:'#4E9060', ink:'#153A21' },
-  { lt:'#A8C6EA', mid:'#7FA8DA', deep:'#4C7BB5', ink:'#10294A' },
-  { lt:'#BCB8E8', mid:'#9A95D4', deep:'#6A64AE', ink:'#1E1B47' },
-  { lt:'#D6B0E2', mid:'#BC8ECC', deep:'#8C61A0', ink:'#361A40' },
-];
+// TL-B (Aug 2026): the rainbow coins retired for muted heritage shades -
+// terracotta, brass, olive, slate-blue, plum - worn by diamond milestone
+// marks. Each chapter's page sweep + sig bar follow its own shade.
+const TL_SHADES = ['#9C6B5A', '#A98A4B', '#6E7F5A', '#5A7086', '#7A5A74'];
+function chShade(i) { return TL_SHADES[i % TL_SHADES.length]; }
 function romanNum(n) {
   const R = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
   let s = ''; R.forEach(([v, sym]) => { while (n >= v) { s += sym; n -= v; } });
@@ -956,14 +952,13 @@ function renderTimeline(list, wrap) {
   let html = '';
   if (chs.length) {
     html += '<div class="tdots">' + chs.map((r, i) => {
-      const h = RB_HUES[i % 7];
-      return '<button class="tdot" data-open="' + escHtml(r.id) + '" title="' + escHtml(r.title) + '" style="background:radial-gradient(circle at 38% 34%, ' + h.lt + ', ' + h.mid + ' 62%, ' + h.deep + ');"></button>';
+      return '<button class="tdot" data-open="' + escHtml(r.id) + '" title="' + escHtml(r.title) + '" style="background:' + chShade(i) + ';"></button>';
     }).join('') + '</div>';
     html += '<div class="thold"><div class="tline"></div>' + chs.map((r, i) => {
-      const h = RB_HUES[i % 7];
+      const sh = chShade(i);
       const age = ageLabel(r);
       return '<div class="snode" data-open="' + escHtml(r.id) + '"><div class="tick"></div>' +
-        '<div class="smark" style="background:radial-gradient(circle at 38% 34%, ' + h.lt + ', ' + h.mid + ' 62%, ' + h.deep + '); color:' + h.ink + '; box-shadow:0 6px 16px ' + h.deep + '59, inset 0 -3px 6px ' + h.deep + '40;">' + romanNum(i + 1) + '</div>' +
+        '<div class="smark"><span class="diam" style="background:' + sh + ';"></span><b>' + romanNum(i + 1) + '</b></div>' +
         '<div>' +
           (yearsLabel(r) ? '<div class="syears">' + yearsLabel(r) + '</div>' : '') +
           '<div class="snum">' + escHtml(r.title) + '</div>' +
@@ -1045,9 +1040,7 @@ function renderDiary(list, wrap) {
   const allDiary = rows.filter(r => displayKind(r.kind) === 'diary');
   const vocab = [];
   allDiary.forEach(r => entryChips(r).forEach(t => { if (!vocab.includes(t)) vocab.push(t); }));
-  let html = '<div class="tonight" id="tonightBtn"><span class="tn-cap">Tonight\u2019s page\u2026</span>' +
-    '<span class="tn-past" id="pastDayBtn">\uFF0B a past day</span><span class="tn-go">WRITE</span></div>' +
-    '<input type="date" id="pastDayPick" class="rd-datepick" style="position:fixed; left:-9999px;">';
+  let html = '<div class="tonight" id="tonightBtn"><span class="tn-cap">Tonight\u2019s page\u2026</span><span class="tn-go">WRITE</span></div>';
   if (vocab.length) {
     html += '<div class="dlens">' + vocab.map(t =>
       chipHtml(t, diaryTag === t ? 'on' : 'dim', 'data-lens="' + escHtml(t) + '"')).join('') +
@@ -1078,23 +1071,6 @@ function renderDiary(list, wrap) {
   }
   wrap.innerHTML = html;
   el('tonightBtn').addEventListener('click', openTonight);
-  // DP-1: the backfill door - the date comes FIRST, then the page opens.
-  const pb = el('pastDayBtn'), pp = el('pastDayPick');
-  if (pb && pp) {
-    pb.addEventListener('click', e => {
-      e.stopPropagation();
-      pp.style.pointerEvents = 'auto';
-      if (pp.showPicker) pp.showPicker(); else pp.click();
-    });
-    pp.addEventListener('change', async () => {
-      if (!pp.value) return;
-      const ymd = pp.value;
-      try {
-        const id = await quickInsert('diary', datePhrase_(ymd), { created_at: ymd + 'T12:00:00Z' });
-        if (id) { openReader(id); setRdEditing(true); setTimeout(() => rdNk.focusEnd(), 80); }
-      } catch (e2) { toast(e2.message || 'Couldn\u2019t open that day'); console.error(e2); }
-    });
-  }
   wrap.querySelectorAll('[data-open]').forEach(x =>
     x.addEventListener('click', () => openReader(x.dataset.open)));
   wrap.querySelectorAll('[data-lens]').forEach(c =>
@@ -1222,10 +1198,9 @@ function openReader(id, keepNav) {
     if (dk === 'experience') {
       const chs = rows.filter(x => displayKind(x.kind) === 'experience').sort(chapterSort);
       const ci = Math.max(0, chs.findIndex(x => x.id === r.id));
-      const hue = RB_HUES[ci % 7];
-      const sw = hue.deep + '4d';          // the coin's deep at 0.30
-      h1.innerHTML = '<span class="swp" style="--ch-sw:' + sw + ';">' + escHtml(r.title) + '</span>';
-      sig.style.setProperty('--ch-sol', hue.deep);
+      const sh = chShade(ci);
+      h1.innerHTML = '<span class="swp" style="--ch-sw:' + sh + '4d;">' + escHtml(r.title) + '</span>';
+      sig.style.setProperty('--ch-sol', sh);
       sig.classList.remove('hidden');
     } else {
       h1.textContent = r.title;
@@ -1512,7 +1487,23 @@ function exportEntryPrint() {
   const head1 = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Entry') + '</title>';
   const fontlink = '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">';
   const style = "<style>@page{margin:20mm} body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:640px;margin:40px auto;padding:0 24px} .kind{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#8a94a8;margin-bottom:12px} h1{font-weight:600;font-size:1.6875rem;line-height:1.3;margin:0 0 14px} .lead{font-size:1.125rem;color:#4a5670;margin-bottom:20px} .bd{font-size:1.125rem} .tags{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;color:#9aa4ba;margin-top:26px;border-top:1px solid #eee;padding-top:12px}</style>" + '<style>' + NoteEditor.contentCSS('.bd') + '</style>' + "</head><body>";
-  const bodyH = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div><h1>' + esc(r.title||'Untitled') + '</h1>' + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
+  // TL-B print: a chapter prints its full index grammar - amber years,
+  // gold age pill, the name's shade sweep, the sig bar. Others print plain.
+  let kindLine, h1H, sigH = '';
+  if (displayKind(r.kind) === 'experience') {
+    const chs = rows.filter(function(x){ return displayKind(x.kind) === 'experience'; }).sort(chapterSort);
+    const ci = Math.max(0, chs.findIndex(function(x){ return x.id === r.id; }));
+    const sh = chShade(ci);
+    kindLine = '<div class="kind" style="color:#a5702f;">LIFE CHAPTER' +
+      (yearsLabel(r) ? ' &middot; ' + esc(yearsLabel(r)) : '') +
+      (ageLabel(r) ? ' &nbsp;<span style="font-size:0.5938rem; color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px; padding:2px 8px;">' + esc(ageLabel(r)) + '</span>' : '') + '</div>';
+    h1H = '<h1><span style="padding:0 8px 2px; margin-left:-8px; background:linear-gradient(transparent 56%, ' + sh + '4d 56%, ' + sh + '4d 96%, transparent 96%); -webkit-box-decoration-break:clone; box-decoration-break:clone;">' + esc(r.title||'Untitled') + '</span></h1>';
+    sigH = '<div style="width:88px; height:6px; border-radius:3px; background:' + sh + '; margin:2px 0 14px;"></div>';
+  } else {
+    kindLine = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div>';
+    h1H = '<h1>' + esc(r.title||'Untitled') + '</h1>';
+  }
+  const bodyH = kindLine + h1H + sigH + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
   const tail = '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>';
   NoteEditor.openPrint(head1 + fontlink + style + bodyH + tail);
 }
@@ -1665,14 +1656,14 @@ el('editToggle').addEventListener('click', function(){ var on = document.body.cl
 function printIntro_() {
   if (activeView === 'wip') {
     if (!notes.length) { toast('Nothing to print here yet'); return; }
-    let wb = '<h1>Introspection \u00B7 Work in Progress</h1><div class="sub">' + notes.length
+    let wb = '<h1>My Whiteboard</h1><div class="sub">' + notes.length
       + (notes.length === 1 ? ' note' : ' notes') + '</div>';
     notes.forEach(n => {
       wb += '<div class="it"><div class="t">' + escHtml(n.heading || 'Untitled') + '</div>'
         + ((n.body || '').trim() ? '<div class="b">' + escHtml(n.body.trim()) + '</div>' : '')
         + '</div>';
     });
-    NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Work in Progress</title>'
+    NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Whiteboard</title>'
       + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">'
       + '<style>body{font-family:Fraunces,Georgia,serif;color:#1a2238;max-width:640px;margin:40px auto;padding:0 20px}h1{font-size:22px;margin:0 0 2px}.sub{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a94a8;margin-bottom:26px}.it{margin:0 0 22px;page-break-inside:avoid}.t{font-size:15px;font-weight:600;margin:0 0 3px}.b{font-size:13.5px;line-height:1.7;white-space:pre-wrap;margin-top:6px}</style>'
       + '</head><body>' + wb + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
