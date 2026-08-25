@@ -2913,13 +2913,7 @@
     color: var(--muted); font-family: var(--sans); font-weight: 500;
     margin-left: 6px;
   }
-  .other-summary-chev {
-    color: var(--muted); font-size:0.75rem; flex-shrink: 0;
-    transition: transform 0.2s;
-  }
-  /* When the field is expanded, rotate the chev 180deg so it points up.
-     Also subtly mark the summary itself with a deeper border. */
-  .s-other-field.is-expanded .other-summary-chev { transform: rotate(180deg); }
+
   .s-other-field.is-expanded .other-summary {
     border-color: var(--ember);
     background: #FCFAF8;
@@ -2963,14 +2957,10 @@
     color: var(--muted); font-family: var(--sans); font-weight: 500;
     margin-left: 6px;
   }
-  .rec-summary-chev {
-    color: var(--muted); font-size:0.75rem; flex-shrink: 0;
-    transition: transform 0.2s;
-  }
+
   /* Collapse the full panel by default; reveal only when .is-expanded. */
   .rec-collapse-field .recurring-card { display: none; }
   .rec-collapse-field.is-expanded .recurring-card { display: block; margin-top: 8px; }
-  .rec-collapse-field.is-expanded .rec-summary-chev { transform: rotate(180deg); }
   .rec-collapse-field.is-expanded .rec-summary {
     border-color: var(--plum, #5C2E40);
     background: #FCFAFB;
@@ -5884,15 +5874,9 @@
                   font-variant-numeric: tabular-nums; flex-shrink: 0; }
   .rec-door-owe.settled { color: var(--green-ink); }
   .rec-door-owe.hidden { display: none; }
-  .rec-summary-chev {
-    width: 22px; height: 22px; border-radius: 50%; background: #8A5711; color: #fff;
-    display: flex; align-items: center; justify-content: center; font-size: 0.6875rem;
-  }
-  .rec-summary-chev.settled { background: var(--moss); }
   .rec-collapse-field.is-expanded .rec-summary {
     border-radius: 11px 11px 0 0; border-bottom-color: transparent;
   }
-  .rec-collapse-field.is-expanded .rec-summary-chev { transform: rotate(180deg); }
   .rec-collapse-field.is-expanded .recurring-card {
     border: 1.5px solid #D9BD8E; border-top: none; border-radius: 0 0 11px 11px;
     background: #fff; padding: 11px 12px 12px; margin-top: 0;
@@ -5900,6 +5884,30 @@
   .s-recurring .input { background: #fff; border-color: var(--rule); }
   .rec-add-btn { background: var(--accent); border-color: var(--accent); }
   .rec-add-btn:hover { background: var(--accent-ink, #0A1F45); }
+  /* ==== OD-3: the label enters the door ==== */
+  .door-lbl { font-family: var(--mono); font-size: 0.5938rem; font-weight: 600;
+              letter-spacing: 0.1em; color: #8A5711; flex-shrink: 0; }
+  .door-open { margin-left: auto; font-family: var(--mono); font-size: 0.5938rem;
+               font-weight: 600; letter-spacing: 0.06em; color: #8A5711;
+               flex-shrink: 0; }
+  .door-open.settled { color: var(--moss); }
+  .door-open .dw-close { display: none; }
+  .s-other-field.is-expanded .door-open .dw-open { display: none; }
+  .s-other-field.is-expanded .door-open .dw-close { display: inline; }
+  .rec-collapse-field.is-expanded .door-open .dw-open { display: none; }
+  .rec-collapse-field.is-expanded .door-open .dw-close { display: inline; }
+  /* The fold-pill sheds its gold costume: on this stretch gold now means
+     exactly one thing - a room you can open. */
+  .exp-more-toggle {
+    background: var(--paper-soft) !important;
+    border: 1px dashed var(--rule) !important;
+    color: var(--muted) !important;
+  }
+  .exp-more-toggle .exp-more-count {
+    background: #fff !important; border-color: var(--rule) !important;
+    color: var(--muted) !important;
+  }
+  .exp-more-toggle .exp-more-chev { color: var(--muted) !important; }
   /* ==== NS-B: night stay memory ==== */
   .ns-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
   .ns-chips.hidden { display: none; }
@@ -5977,11 +5985,6 @@
                         color: var(--ink); font-variant-numeric: tabular-nums; }
   .other-summary-cta { font-family: var(--sans); font-size: 0.6875rem; font-weight: 500;
                        color: var(--muted); }
-  .other-summary-chev {
-    width: 22px; height: 22px; border-radius: 50%; background: #8A5711; color: #fff;
-    display: flex; align-items: center; justify-content: center; font-size: 0.6875rem;
-    margin-left: auto;
-  }
   .s-other-field.is-expanded .other-summary {
     border-radius: 11px 11px 0 0; border-bottom-color: transparent;
   }
@@ -6411,14 +6414,14 @@
         <span class="exp-more-chev" aria-hidden="true">&#9662;</span>
       </button>
       <div class="exp-more-fields" id="expMoreFields" hidden>
-      <div class="subhead daily organ">Other Expenses</div>
       <div class="field s-other-field">
         <!-- Collapsed summary: looks like a regular ₹ field. Shows either
              "no items · tap to add" (empty) or "₹X,XXX total · add more" (with items).
              Tap to expand. -->
         <div class="other-summary" id="otherSummary" role="button" tabindex="0" aria-expanded="false">
+          <span class="door-lbl">OTHER</span>
           <span class="other-summary-text" id="otherSummaryText">no items &middot; tap to add</span>
-          <span class="other-summary-chev" id="otherSummaryChev" aria-hidden="true">&#9662;</span>
+          <span class="door-open" id="otherSummaryChev" aria-hidden="true"><span class="dw-open">OPEN &#9662;</span><span class="dw-close">CLOSE &#9652;</span></span>
         </div>
 
         <!-- Expanded entry panel: chips + name + amount + log button.
@@ -6472,15 +6475,15 @@
            longer needs the focus-mode reveal rule since it lives inside
            s-expenses now. -->
       <div class="s-recurring s-recurring-merged rec-collapse-field">
-        <div class="subhead recu rec-merged-head organ">Recurring payments</div>
         <!-- Nested collapse (mirrors Other Expenses). Collapsed by default: a
              summary line shows the month's recurring total + bill count. Tap to
              expand the full add-payment panel below. Keeps the "8 more" reveal
              light. Summary text set by renderRecurringSummary(). -->
         <div class="rec-summary" id="recSummary" role="button" tabindex="0" aria-expanded="false">
+          <span class="door-lbl">RECURRING</span>
           <span class="rec-summary-text" id="recSummaryText">no bills yet &middot; tap to add rent, subscriptions…</span>
           <span class="rec-door-owe hidden" id="recDoorOwe"></span>
-          <span class="rec-summary-chev" id="recSummaryChev" aria-hidden="true">&#9662;</span>
+          <span class="door-open" id="recSummaryChev" aria-hidden="true"><span class="dw-open">OPEN &#9662;</span><span class="dw-close">CLOSE &#9652;</span></span>
         </div>
         <div class="recurring-card">
           <div class="rec-hint hidden" id="recHint"></div>

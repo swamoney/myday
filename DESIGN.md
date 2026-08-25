@@ -64,6 +64,22 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**OD-3 - the label enters the door** (Aug 2026): the crowded stretch
+between Transport and Lifestyle (Rahul's screenshot: gold fold-pill +
+grey band + gold door + grey band + gold door + three dashed seams)
+diagnosed as three golds competing, two visual units per organ, and an
+ambiguous tap target. Cure: the organ BANDS retired; each organ is now
+ONE tappable gold row with its name INSIDE the door (.door-lbl, mono
+0.5938rem gold-brown - the P-heading grammar); the chevron circle
+became an explicit OPEN/CLOSE verb that flips via CSS on the existing
+is-expanded flag (both words rendered, visibility swapped - zero JS
+churn); the fold-pill shed its gold for paper-soft + dashed border, so
+gold on this stretch means exactly one thing: a room you can open.
+RC-A's settled state moved from the circle to the verb
+(.door-open.settled = moss; the JS hooks ride the same element ids).
+Dead chev CSS (rotations, brown circles) retired same-day - css refs
+audited to zero. The amber owe chip and both summary texts untouched.
+
 **D2 - the band speaks one phrase** (Aug 2026): the day band's three-
 voice cluster retired for a single serif sentence - 'Friday, 14 August
 2026', the numeral one step larger (14pt inside 12pt) - drawn
