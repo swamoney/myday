@@ -101,6 +101,24 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**IL-2 round 6: EY-2 / DR-1 / TS-1 + hero mark** (26 Aug 2026): the
+page eyebrow leaves mono for the page sans (0.6875rem 600, 0.06em,
+uppercase, accent) with QUIET SUFFIXES in .rk-quiet (sans 400
+#a8b1c2, no uppercase): diary '· 27 Aug 2026' (weekday + commas
+dropped), writing '· N words · ~M min'; the diary STREAM's row dates
+(weekday short mono) are list furniture and stay. DR-1: the date-row
+pill retired ('tap to change' gone); 'Written <date>' in the dates
+line IS the control - .rd-wr dotted underline, delegated click on
+readerDates, picker primed at paint, offscreen fixed input. TS-1:
+TL_SHADES -> manuscript inks #3E5C76 indigo / #A4553F madder /
+#5F7355 moss / #B08A3E ochre / #6D4E66 aubergine. Rider: the
+chapter's diamond joins its page in the why-seal posture -
+.rd-sticky.ch grid (52px mark column, all children col 2, mark rows
+1-3), #rdMark painted with the chapter's ink + roman numeral, cleared
+for every other kind; the PRINT header wears the same diamond via a
+padded relative header (54px left, absolute rotated square) closed
+after the h1.
+
 **IL-2 round 5: mobile + page grammar** (25 Aug 2026): six fixes.
 (1) Mobile reader bar: the title yields (min-width:0 + ellipsis) so
 Back/star/Delete/Edit always fit; <=560px bar compacts (gap 7,

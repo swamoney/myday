@@ -333,6 +333,17 @@
   }
   .reader-scroll { flex:1; overflow-y:auto; padding:30px 20px 60px; }
   .rd-sticky { padding:0 0 10px; margin:0 0 16px; border-bottom:1px solid rgba(20,30,60,0.07); }
+  /* The chapter page stands in the why-seal posture: mark column + heading block */
+  .rd-sticky.ch { display:grid; grid-template-columns:52px 1fr; column-gap:14px; }
+  .rd-sticky.ch > * { grid-column:2; }
+  .rd-sticky.ch .rd-mark { grid-column:1; grid-row:1 / span 3; }
+  .rd-mark { width:52px; height:52px; position:relative; display:flex; align-items:center;
+             justify-content:center; }
+  .rd-mark.hidden { display:none; }
+  .rd-mark i { position:absolute; inset:5px; transform:rotate(45deg); border-radius:10px;
+               box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
+  .rd-mark b { position:relative; color:#fff; font-family:var(--serif); font-weight:700;
+               font-size:1rem; }
   .rd-sticky .reader-h1 { margin-bottom:8px; }
   /* RH-3: the chapter page wears the roadmap hero's sweep + sig bar,
      each chapter in its own coin's hue (the why grammar, chapter-dressed). */
@@ -346,17 +357,13 @@
   .reader-sig.hidden { display:none; }
   .rd-sticky .reader-lead { margin-bottom:6px; }
   .rd-sticky .reader-dates { margin:6px 0 0; }
-  /* DP-1: the page's date - picked, never presumed */
-  .rd-daterow { position:relative; display:inline-flex; align-items:center; gap:8px;
-    margin-top:8px; font-family:var(--mono); font-size:0.625rem; color:#5b6579;
-    border:1px solid var(--rule); border-radius:9px; padding:5px 11px; cursor:pointer;
-    background:#fff; }
-  .rd-daterow:hover { border-color:var(--r-acc); color:var(--r-acc); }
-  .rd-datehint { color:#a8b1c2; }
-  .rd-datepick { position:absolute; inset:0; width:100%; height:100%; opacity:0;
-    pointer-events:none; }
+  /* DR-1: the written date itself is the control - a dotted whisper, no pill */
+  .rd-wr { border-bottom:1px dotted #b9c2d4; cursor:pointer; }
+  .rd-wr:hover { color:var(--r-acc); border-bottom-color:var(--r-acc); }
+  .rd-datepick { position:fixed; left:-9999px; width:1px; height:1px; opacity:0; }
   .reader-inner { max-width:1000px; margin:0 auto; }
-  .reader-kind { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--r-acc); margin-bottom:8px; }
+  .reader-kind { font-family:var(--sans); font-size:0.6875rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--r-acc); margin-bottom:8px; }
+  .rk-quiet { font-weight:400; letter-spacing:0.02em; color:#a8b1c2; text-transform:none; }
   .reader-h1 { font-family:'Fraunces',serif; font-size:1.6875rem; font-weight:600; line-height:1.3; margin-bottom:12px; }
   .reader-lead { font-family:'Fraunces',serif; font-size:1.125rem; color:var(--ink-soft); line-height:1.55; margin-bottom:20px; }
   .reader-body { font-family:'Fraunces',serif; font-size:1.125rem; line-height:1.75; color:#1c2331; white-space:pre-wrap; }
@@ -515,17 +522,15 @@
   </div>
   <div class="reader-scroll">
     <div class="reader-inner">
-      <div class="rd-sticky">
+      <div class="rd-sticky" id="rdSticky">
+        <div class="rd-mark hidden" id="rdMark"></div>
         <div class="reader-kind" id="readerKind"></div>
         <div class="reader-h1" id="readerH1"></div>
         <div class="reader-sig hidden" id="rdSig"></div>
         <div class="reader-lead" id="readerLead"></div>
         <div class="reader-chips hidden" id="readerChips"></div>
         <div class="reader-dates" id="readerDates"></div>
-        <div class="rd-daterow" id="rdDateRow">
-          <span id="rdDateLbl"></span><span class="rd-datehint">tap to change</span>
-          <input type="date" id="rdDatePick" class="rd-datepick" tabindex="-1">
-        </div>
+        <input type="date" id="rdDatePick" class="rd-datepick" tabindex="-1">
         <div id="rdToolbar"></div>
       </div>
       <div class="reader-body" id="readerBody"></div>
@@ -882,7 +887,8 @@ function cardHTML(r) {
 // TL-B (Aug 2026): the rainbow coins retired for muted heritage shades -
 // terracotta, brass, olive, slate-blue, plum - worn by diamond milestone
 // marks. Each chapter's page sweep + sig bar follow its own shade.
-const TL_SHADES = ['#9C6B5A', '#A98A4B', '#6E7F5A', '#5A7086', '#7A5A74'];
+// TS-1 (Aug 2026): manuscript inks - indigo, madder, moss, ochre, aubergine.
+const TL_SHADES = ['#3E5C76', '#A4553F', '#5F7355', '#B08A3E', '#6D4E66'];
 function chShade(i) { return TL_SHADES[i % TL_SHADES.length]; }
 function romanNum(n) {
   const R = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
@@ -1184,15 +1190,23 @@ function openReader(id, keepNav) {
     } else if (dk === 'experience') {
       meta = 'LIFE CHAPTER';        // years + age join as index-styled spans below
     } else if (dk === 'diary') {
-      const dt = r.created_at ? new Date(r.created_at) : null;
-      meta = 'MY DIARY' + (dt ? ' \u00B7 ' + dt.toLocaleDateString(undefined,
-        { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '');
+      meta = 'MY DIARY';            // the day joins as a quiet sans suffix below
     } else if (dk === 'writing') {
-      const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
-      meta = 'MY WRITING' + (words ? ' \u00B7 ' + words.toLocaleString() + ' WORDS \u00B7 ~' +
-        Math.max(1, Math.round(words / 230)) + ' MIN' : '');
+      meta = 'MY WRITING';          // length joins as a quiet sans suffix below
     }
   } catch (e) { /* eyebrow stays plain */ }
+  // EY-2: quiet suffixes - calm sans beside the semibold section.
+  let quiet = '';
+  try {
+    if (dk === 'diary' && r.created_at) {
+      quiet = new Date(r.created_at).toLocaleDateString(undefined,
+        { day: 'numeric', month: 'short', year: 'numeric' });
+    } else if (dk === 'writing') {
+      const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
+      if (words) quiet = words.toLocaleString() + ' words \u00B7 ~' +
+        Math.max(1, Math.round(words / 230)) + ' min';
+    }
+  } catch (e) { quiet = ''; }
   el('readerTitle').textContent = r.title;
   // The chapter page's years + age wear the INDEX grammar exactly: amber
   // mono years (.syears voice) and the gold age pill.
@@ -1200,6 +1214,9 @@ function openReader(id, keepNav) {
     el('readerKind').innerHTML = escHtml(meta) +
       (yearsLabel(r) ? ' <span class="rk-years">' + escHtml(yearsLabel(r)) + '</span>' : '') +
       (ageLabel(r) ? ' <span class="rk-age">' + escHtml(ageLabel(r)) + '</span>' : '');
+  } else if (quiet) {
+    el('readerKind').innerHTML = escHtml(meta) +
+      ' <span class="rk-quiet">\u00B7 ' + escHtml(quiet) + '</span>';
   } else {
     el('readerKind').textContent = meta;
   }
@@ -1214,29 +1231,29 @@ function openReader(id, keepNav) {
       h1.innerHTML = '<span class="swp" style="--ch-sw:' + sh + '4d;">' + escHtml(r.title) + '</span>';
       sig.style.setProperty('--ch-sol', sh);
       sig.classList.remove('hidden');
+      const mk = el('rdMark');
+      mk.innerHTML = '<i style="background:' + sh + ';"></i><b>' + romanNum(ci + 1) + '</b>';
+      mk.classList.remove('hidden');
+      el('rdSticky').classList.add('ch');
     } else {
       h1.textContent = r.title;
       sig.classList.add('hidden');
+      el('rdMark').classList.add('hidden');
+      el('rdSticky').classList.remove('ch');
     }
   })();
   el('readerLead').textContent = r.essence || '';
   (function () {
     const fmt = iso => { if (!iso) return ''; try { return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
     const made = fmt(r.created_at), edited = fmt(r.updated_at);
-    let s = made ? ('Written ' + made) : '';
-    if (edited && edited !== made) s += ' \u00b7 edited ' + edited;
-    el('readerDates').textContent = s;
+    // DR-1: 'Written <date>' is the date control itself.
+    let s = made ? ('Written <span class="rd-wr" id="rdWritten" title="Change this entry\u2019s date">' + escHtml(made) + '</span>') : '';
+    if (edited && edited !== made) s += ' \u00b7 edited ' + escHtml(edited);
+    el('readerDates').innerHTML = s;
+    const pk = el('rdDatePick');
+    if (pk) pk.value = r.created_at ? localYmd_(r.created_at) : '';
   })();
   el('readerLead').style.display = r.essence ? '' : 'none';
-  // DP-1: the date row shows the entry's true day; tapping opens the picker.
-  (function () {
-    const lbl = el('rdDateLbl'), pick = el('rdDatePick');
-    if (!lbl || !pick) return;
-    const ymd = r.created_at ? localYmd_(r.created_at) : '';
-    lbl.textContent = ymd ? new Date(ymd + 'T12:00:00').toLocaleDateString(undefined,
-      { day: 'numeric', month: 'short', year: 'numeric' }) : 'set date';
-    pick.value = ymd;
-  })();
   // IL-2: the diary page wears its chips; + chip adds, tapping one removes.
   (function () {
     const host = el('readerChips');
@@ -1405,14 +1422,13 @@ function datePhrase_(ymd) {
   return new Date(ymd + 'T12:00:00').toLocaleDateString(undefined,
     { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
-el('rdDateRow').addEventListener('click', () => {
+el('readerDates').addEventListener('click', e => {
+  if (!e.target || e.target.id !== 'rdWritten') return;
   const pick = el('rdDatePick');
-  pick.style.pointerEvents = 'auto';
   if (pick.showPicker) pick.showPicker(); else pick.click();
 });
 el('rdDatePick').addEventListener('change', async () => {
   const pick = el('rdDatePick');
-  pick.style.pointerEvents = 'none';
   if (!readerEntry || !pick.value) return;
   const ymd = pick.value;
   const patch = { created_at: ymd + 'T12:00:00Z' };
@@ -1506,11 +1522,19 @@ function exportEntryPrint() {
     const chs = rows.filter(function(x){ return displayKind(x.kind) === 'experience'; }).sort(chapterSort);
     const ci = Math.max(0, chs.findIndex(function(x){ return x.id === r.id; }));
     const sh = chShade(ci);
-    kindLine = '<div class="kind" style="color:#a5702f;">LIFE CHAPTER' +
+    kindLine = '<div style="position:relative; padding-left:54px; min-height:44px;">' +
+      '<span style="position:absolute; left:0; top:0; width:40px; height:40px;">' +
+        '<span style="position:absolute; left:4px; top:4px; right:4px; bottom:4px; transform:rotate(45deg); border-radius:8px; background:' + sh + ';"></span>' +
+        '<span style="position:absolute; left:0; top:0; width:40px; height:40px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;">' + romanNum(ci + 1) + '</span>' +
+      '</span>' +
+      '<div class="kind" style="color:#a5702f;">LIFE CHAPTER' +
       (yearsLabel(r) ? ' &middot; ' + esc(yearsLabel(r)) : '') +
       (ageLabel(r) ? ' &nbsp;<span style="font-size:0.5938rem; color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px; padding:2px 8px;">' + esc(ageLabel(r)) + '</span>' : '') + '</div>';
     h1H = '<h1><span style="padding:0 8px 2px; margin-left:-8px; background:linear-gradient(transparent 56%, ' + sh + '4d 56%, ' + sh + '4d 96%, transparent 96%); -webkit-box-decoration-break:clone; box-decoration-break:clone;">' + esc(r.title||'Untitled') + '</span></h1>';
     sigH = '<div style="width:88px; height:6px; border-radius:3px; background:' + sh + '; margin:2px 0 14px;"></div>';
+    h1H = h1H + '';   // heading block continues inside the padded header
+    h1H = h1H.replace('<h1>', '<h1 style="margin-top:2px;">');
+    h1H = h1H + '</div>';    // closes the padded header wrap opened in kindLine
   } else {
     kindLine = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div>';
     h1H = '<h1>' + esc(r.title||'Untitled') + '</h1>';
