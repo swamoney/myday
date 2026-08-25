@@ -64,6 +64,26 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**IN-7 + GD-1 + HD (introspection.html)** (Aug 2026): the Inner Life
+renamed and remade. 'My Introspection' -> 'MY MUSINGS & LEARNINGS'
+(IN-7, Rahul's word 'musings' + the word that dignifies incident-
+lessons and feedback); 'My Life Experiences' -> 'MY LIFE TIMELINE'.
+Kind KEYS untouched everywhere (S1: records never change for display
+words) - only lbl clothes renamed. GD-1: the Gratitude tab retired
+(five tabs -> four, dead seg CSS removed); the diary is the single
+nightly door holding kind in (diary, gratitude), with the plum
+gratitude palette/kicker distinguishing rows natively; a diary-only
+lens (All / heart-Gratitude-only + 'N gratitudes this year' count);
+and a one-tap heart in the composer that MIRRORS the Type select
+(select stays the single source of truth; the chip only flips
+diary<->gratitude, painted via change events + a MutationObserver on
+the modal). Reversible forever: the old tab returns by one display
+change with every entry intact. HD: each room opens with an eyebrow
+(section name, section colour) + a serif roadmap heading - the four
+title strings in VIEW_HEADINGS are PLACEHOLDERS awaiting Rahul's
+roadmap note wording (his note lives in his DB; he must paste the
+headings; swap is title-strings-only).
+
 **TG-1 post-ship** (Aug 2026): the pill was rendering centered - a
 leftover rule from the retired Home button ('.home-banner.home
 .home-banner-status { justify-content:center; width:100% }') was
