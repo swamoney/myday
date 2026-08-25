@@ -102,18 +102,113 @@
   /* GD-1: the diary's own lens */
   .dfilters { display:flex; gap:6px; align-items:center; margin:0 0 10px; }
   .dfilters.hidden { display:none; }
-  .fchip { font-family:var(--sans); font-size:0.6563rem; font-weight:600;
-           border-radius:999px; padding:4px 11px; border:1px solid #cdd5e0; color:#5b6579;
-           background:#fff; cursor:pointer; }
-  .fchip.on { background:#f5f1f6; border-color:#dccfe0; color:#63496b; }
-  .fchip.g { color:#6d5474; border-color:#d8c9dc; }
-  .gcount { margin-left:auto; font-family:var(--sans); font-size:0.625rem; color:#8a97b3; }
-  /* GD-1: the composer's heart */
-  .grat-chip { font-family:var(--sans); font-size:0.6875rem; font-weight:600;
-               border-radius:999px; padding:5px 12px; border:1px solid #d8c9dc;
-               color:#6d5474; background:#fff; cursor:pointer; margin-top:6px; }
-  .grat-chip.on { background:#eae3ec; }
-  .grat-chip.hidden { display:none; }
+  /* ===== IL-2: the four rooms ===== */
+  /* Room 1: the index */
+  .todays { background:#EEF1F7; border:1px solid #D5DEEC; border-radius:12px;
+            padding:11px 14px; margin-bottom:12px; }
+  .td-cap { font-family:var(--mono); font-size:0.5313rem; font-weight:600;
+            letter-spacing:0.16em; color:#44557c; }
+  .td-line { font-family:var(--serif); font-size:1.0625rem; margin-top:4px; cursor:pointer; }
+  .qadd { margin-bottom:10px; }
+  .qadd input { width:100%; border:1.5px dashed var(--rule); border-radius:11px;
+                background:transparent; padding:10px 13px; font-size:0.875rem;
+                font-family:var(--sans); color:var(--ink); font-style:italic; }
+  .qadd input::placeholder { color:#9aa5bd; }
+  .ix { display:flex; align-items:baseline; gap:9px; padding:9px 6px;
+        border-bottom:1px dotted #d8dee8; border-radius:8px; cursor:pointer; }
+  .ix:hover { background:#FBFCFE; }
+  .ix-t { font-family:var(--serif); font-size:0.9688rem; }
+  .ix-fav { color:#c9a227; font-size:0.6875rem; flex-shrink:0; }
+  .ix-more { margin-left:auto; font-family:var(--mono); font-size:0.5313rem;
+             color:#44557c; flex-shrink:0; }
+  /* Room 2: the chapter spine */
+  .tdots { display:flex; gap:7px; flex-wrap:wrap; margin:0 0 6px 2px; }
+  .tdot { width:16px; height:16px; border-radius:50%; border:none; padding:0;
+          cursor:pointer; transition:transform .15s; }
+  .tdot:hover { transform:scale(1.25); }
+  .thold { position:relative; }
+  .tline { position:absolute; left:25px; top:14px; bottom:14px; width:0;
+           border-left:2px dashed #B9CCB4; }
+  .tline::before, .tline::after { content:''; position:absolute; left:-4px; width:6px;
+           height:6px; border-radius:50%; background:#9DB897; }
+  .tline::before { top:-6px; } .tline::after { bottom:-6px; }
+  .snode { display:grid; grid-template-columns:52px 1fr; gap:16px; align-items:start;
+           padding:14px 4px; position:relative; cursor:pointer; border-radius:10px; }
+  .snode:hover { background:#FBFCFE; }
+  .snode .tick { position:absolute; left:19px; top:50%; width:13px; height:0;
+                 border-top:2px solid #9DB897; }
+  .smark { width:52px; height:52px; border-radius:50%; display:flex; align-items:center;
+           justify-content:center; font-family:var(--serif); font-size:1.0625rem;
+           font-weight:600; position:relative; z-index:1; }
+  .syears { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#a5702f;
+            letter-spacing:0.05em; }
+  .snum { font-family:var(--serif); font-size:1.375rem; font-weight:600; color:#182233;
+          line-height:1.15; letter-spacing:-0.01em; margin-top:1px; }
+  .s-stands { font-family:var(--serif); font-style:italic; font-size:0.875rem;
+              color:#28324B; margin-top:5px; }
+  .s-agepill { display:inline-block; margin-top:8px; font-family:var(--mono);
+               font-size:0.5rem; font-weight:600; color:#5a7050; background:#5a70501f;
+               border-radius:999px; padding:2px 8px; }
+  .addp { border:1.5px dashed var(--rule); border-radius:12px; padding:11px 14px;
+          color:#8a97b3; font-size:0.8125rem; cursor:pointer; margin-top:10px; }
+  .addp:hover { color:var(--muted); border-color:#9aa5bd; }
+  .ch-askrow { margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+  .ch-askrow.hidden { display:none; }
+  .ch-askrow input { border:1px solid var(--rule); border-radius:10px; padding:9px 12px;
+                     font-size:0.8438rem; font-family:var(--sans); background:#fff; }
+  .ch-yrrow { display:flex; gap:8px; align-items:center; color:#8a97b3; }
+  .ch-yrrow input { flex:1; min-width:0; }
+  .ch-askrow button { font-family:var(--mono); font-size:0.625rem; font-weight:600;
+                      background:#5a7050; color:#fff; border:none; border-radius:9px;
+                      padding:10px 0; cursor:pointer; letter-spacing:0.06em; }
+  .by-row { margin-top:12px; font-family:var(--mono); font-size:0.5625rem; color:#8a97b3; }
+  .by-set { text-decoration:underline dotted; cursor:pointer; }
+  /* Room 3: the diary stream */
+  .tonight { display:flex; align-items:center; gap:9px; background:#F7F6F3;
+             border:1px solid #E2DFD4; border-radius:12px; padding:12px 14px;
+             margin-bottom:10px; cursor:pointer; }
+  .tn-cap { font-family:var(--serif); font-size:1rem; font-style:italic; color:#5c5747; }
+  .tn-go { margin-left:auto; font-family:var(--mono); font-size:0.625rem; font-weight:600;
+           background:#6f6a5c; color:#fff; border-radius:8px; padding:7px 13px; }
+  .dlens { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
+  .dchip { font-size:0.625rem; font-weight:600; border-radius:999px; padding:3px 9px;
+           border:1px solid; background:#fff; cursor:pointer; }
+  .dchip.dim { opacity:0.55; }
+  .dchip.on { outline:2px solid #cdd5e0; opacity:1; }
+  .dchip.addc { color:#9aa5bd; border-color:#d6dce6; background:#fff; }
+  .dlens-clear { font-family:var(--mono); font-size:0.5625rem; color:#8a97b3;
+                 cursor:pointer; text-decoration:underline dotted; }
+  .dent { padding:9px 6px; border-bottom:1px dashed var(--rule); border-radius:8px;
+          cursor:pointer; }
+  .dent:hover { background:#FBFCFE; }
+  .dl { display:flex; align-items:baseline; gap:9px; }
+  .dt { font-family:var(--mono); font-size:0.5938rem; color:var(--muted); flex-shrink:0; }
+  .dtx { font-family:var(--serif); font-size:0.875rem; }
+  .chiprow { display:flex; gap:4px; margin-top:5px; margin-left:58px; flex-wrap:wrap; }
+  .chiprow .dchip { cursor:default; }
+  .onday { background:#FBF9F2; border:1px dashed #E0D8BE; border-radius:11px;
+           padding:10px 13px; margin-top:12px; }
+  .od-cap { font-family:var(--mono); font-size:0.5313rem; font-weight:600;
+            letter-spacing:0.16em; color:#8a6d1f; }
+  .od-tx { font-family:var(--serif); font-size:0.8125rem; font-style:italic;
+           margin-top:4px; cursor:pointer; }
+  /* Room 4: the shelf */
+  .ecard { background:#fff; border:1px solid #E5D8DF; border-left:4px solid #7a4f63;
+           border-radius:12px; padding:12px 14px; margin-bottom:9px; cursor:pointer; }
+  .ecard:hover { background:#FDFBFC; }
+  .et { font-family:var(--serif); font-size:1.0625rem; font-weight:600; }
+  .el { font-size:0.75rem; color:var(--muted); font-style:italic; margin-top:2px; }
+  .wtags { display:flex; gap:4px; margin-top:7px; flex-wrap:wrap; }
+  .wtag { font-size:0.5938rem; font-weight:600; border-radius:999px; padding:2px 9px;
+          border:1px solid #E0CDD8; color:#7a4f63; background:#FBF6F9; cursor:pointer; }
+  .em { font-family:var(--mono); font-size:0.5rem; color:#8a97b3; margin-top:7px;
+        letter-spacing:0.04em; }
+  /* the diary page's chips in the reader */
+  .reader-chips { display:flex; gap:5px; flex-wrap:wrap; margin:2px 0 8px; }
+  .reader-chips.hidden { display:none; }
+  /* the chapter page's italic line speaks in hand */
+  .reader-overlay[data-kind="experience"] .reader-lead {
+    font-family:var(--hand); font-size:1.25rem; font-style:normal; color:#6b5d43; }
 
 
   .tag.all.active { background:var(--accent); border-color:var(--accent); }
@@ -210,7 +305,8 @@
   .reader-overlay[data-kind="diary"]         { --r-bg:#f7f6f3; --r-bar:#fcfcfa; --r-acc:#6f6a5c; }
   .reader-overlay[data-kind="introspection"] { --r-bg:#eef1f7; --r-bar:#f8fafc; --r-acc:#44557c; }
   .reader-overlay[data-kind="experience"]    { --r-bg:#f0f4ef; --r-bar:#f8fbf7; --r-acc:#5a7050; }
-  .reader-overlay[data-kind="gratitude"]     { --r-bg:#f5f1f6; --r-bar:#fbf8fb; --r-acc:#6d5474; }
+  .reader-overlay[data-kind="gratitude"]     { --r-bg:#f7f6f3; --r-bar:#fcfcfa; --r-acc:#6f6a5c; }
+  .reader-overlay[data-kind="writing"]       { --r-bg:#f7f0f4; --r-bar:#fbf8fa; --r-acc:#7a4f63; }
   .reader-overlay .reader-bar { background:var(--r-bar); }
   .reader-overlay .reader-kind { color:var(--r-acc); }
   .reader-overlay .reader-back:hover, .reader-overlay .reader-edit:hover { border-color:var(--r-acc); color:var(--r-acc); }
@@ -266,8 +362,6 @@
   /* edit-mode toggle: read = clean, edit reveals per-item controls */
   .card-edit, .row-edit { display:none; }
   body.editing .card-edit, body.editing .row-edit { display:flex; }
-  #newBtn { display:none; }
-  body.editing #newBtn { display:flex; }
   body:not(.editing) .card.add:not(#addCardEmpty):not(#addEmpty),
   body:not(.editing) .row.add,
   body:not(.editing) .sticky.add { display:none; }
@@ -328,26 +422,25 @@
         <a class="hub-back" href="/">&larr; Hub</a>
         <span class="lib-count" id="libCount">&mdash;</span>
       </div>
-      <div class="lib-eyebrow">reflections &amp; gratitude</div>
+      <div class="lib-eyebrow">the inner rooms</div>
       <div class="lib-title">My Inner Life</div>
-      <div class="lib-subline">Reflections gathered, gratitude kept.</div>
+      <div class="lib-subline">Learnings indexed, chapters kept, pages written.</div>
     </div>
     <div class="lib-body">
 
       <div class="toolbar">
         <div class="search"><span class="ic">&#9013;</span><input id="searchInput" placeholder="Search titles, ideas, tags&#8230;"></div>
-        <button class="btn-primary" id="newBtn">&#65291; New</button>
       </div>
 
       <div class="seg" id="seg">
         <span data-view="introspection" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1"/><circle cx="8" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="seg-l">My Musings &amp; Learnings</span></span>
-        <span data-view="experience"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-3-3-6-1-6 1.5S9 17 12 14"/><path d="M12 12c3-3 6-1 6 1.5S15 17 12 14"/><path d="M12 14v7"/></svg><span class="seg-l">My Life Timeline</span></span>
+        <span data-view="experience" class="sv-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-3-3-6-1-6 1.5S9 17 12 14"/><path d="M12 12c3-3 6-1 6 1.5S15 17 12 14"/><path d="M12 14v7"/></svg><span class="seg-l">My Life Timeline</span></span>
         
         <span data-view="diary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg><span class="seg-l">My Diary</span></span>
+        <span data-view="writing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="seg-l">My Writings</span></span>
         <span data-view="wip" class="seg-wip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5l-3.2 3.2l-2.6 .4a1 1 0 0 0-.6 1.7l4.6 4.6a1 1 0 0 0 1.7-.6l.4-2.6l3.2-3.2"/><line x1="9" y1="15" x2="4.5" y2="19.5"/><line x1="14.5" y1="4" x2="20" y2="9.5"/></svg><span class="seg-l">Work in Progress</span></span>
       </div>
 
-      <div class="dfilters hidden" id="dFilters"></div>
       
       <div id="cardsWrap"><div class="loading" id="loadingState">Loading&#8230;</div></div>
 
@@ -393,6 +486,7 @@
         <div class="reader-kind" id="readerKind"></div>
         <div class="reader-h1" id="readerH1"></div>
         <div class="reader-lead" id="readerLead"></div>
+        <div class="reader-chips hidden" id="readerChips"></div>
         <div class="reader-dates" id="readerDates"></div>
         <div id="rdToolbar"></div>
       </div>
@@ -420,11 +514,9 @@
         <select id="fKind">
           <option value="diary">Diary</option>
           <option value="introspection">Musings &amp; Learnings</option>
-          <option value="experience">Life Timeline</option>
-          <option value="gratitude">Gratitude</option>
+          <option value="experience">Life Chapter</option>
+          <option value="writing">Writing</option>
         </select>
-        <button type="button" class="grat-chip hidden" id="gratChip"
-          title="Mark tonight's page as gratitude">&#9829; Gratitude</button>
       </div>
       <div class="field" id="statusWrap">
         <label>Status</label>
@@ -521,7 +613,15 @@ let notesTimer = null;
 const STAR_ON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 const STAR_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 // Legacy kinds (essay/post/thread/note/reflection) all read as Introspection.
-function displayKind(k) { return (k === 'gratitude' || k === 'experience' || k === 'diary') ? k : 'introspection'; }
+// IL-2 (Aug 2026): four rooms. Legacy writing kinds (essay/post/thread/note)
+// join My Writings; gratitude reads as diary (pre-migration safety) - the
+// migration flips the kind and carries a 'gratitude' chip so nothing is lost.
+function displayKind(k) {
+  if (k === 'gratitude') return 'diary';
+  if (k === 'experience' || k === 'diary') return k;
+  if (k === 'writing' || k === 'essay' || k === 'post' || k === 'thread' || k === 'note') return 'writing';
+  return 'introspection';
+}
 const KIND = {
   essay:      { lbl:'Essay',      glyph:'\u270E', w1:'#fbf5ea', w2:'#f3ead9', icbg:'#f2e6cf', acc:'#a5702f' },
   post:       { lbl:'Post',       glyph:'\u275D', w1:'#eef3fb', w2:'#e2ebf7', icbg:'#dbe7f7', acc:'#3a5b9c' },
@@ -530,7 +630,8 @@ const KIND = {
   reflection: { lbl:'Reflection', glyph:'?',       w1:'#f4f0fa', w2:'#eae2f3', icbg:'#e6def0', acc:'#6b4a7a' },
   diary:      { lbl:'Diary', glyph:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg>', w1:'#f7f6f3', w2:'#ecebe5', icbg:'#e5e3da', acc:'#6f6a5c' },
   gratitude:  { lbl:'Gratitude',  glyph:'\u2665', w1:'#f5f1f6', w2:'#eae3ec', icbg:'#e4dbe7', acc:'#6d5474' },
-  experience: { lbl:'Life Timeline', glyph:'\u2618', w1:'#f0f4ef', w2:'#e5ebe2', icbg:'#dfe7db', acc:'#5a7050' },
+  writing: { lbl:'My Writing', glyph:'\u270E', w1:'#f7f0f4', w2:'#eee1e9', icbg:'#e8d8e2', acc:'#7a4f63' },
+  experience: { lbl:'Life Chapter', glyph:'\u2618', w1:'#f0f4ef', w2:'#e5ebe2', icbg:'#dfe7db', acc:'#5a7050' },
   introspection: { lbl:'Musings & Learnings', glyph:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1"/><circle cx="8" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg>', w1:'#eef1f7', w2:'#e3e8f1', icbg:'#dde4ef', acc:'#44557c' },
 };
 const WRITING_KINDS = ['essay','post','thread','note'];
@@ -679,17 +780,21 @@ function favFirst(list) {
   // each group, so starring never loses your chronology.
   return list.slice().sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0));
 }
-let diaryFilter = 'all';   // GD-1: 'all' | 'grat' - the diary's own lens
+let diaryTag = null;   // IL-2: the diary stream's chip lens (a tag name, or null)
+function entryChips(r) {
+  const t = (r.tags || []).slice();
+  if (r.kind === 'gratitude' && !t.includes('gratitude')) t.unshift('gratitude');
+  return t;
+}
 function viewRows() {
   let out;
   if (activeView === 'diary') {
-    // GD-1 (Aug 2026): the diary is the single nightly door - it holds both
-    // kinds. The record never merged; only the door did (kind stays exact).
-    out = rows.filter(r => r.kind === 'diary' || r.kind === 'gratitude');
-    if (diaryFilter === 'grat') out = out.filter(r => r.kind === 'gratitude');
+    out = rows.filter(r => displayKind(r.kind) === 'diary');
+    if (diaryTag) out = out.filter(r => entryChips(r).includes(diaryTag));
   }
   else if (activeView === 'experience') out = rows.filter(r => r.kind === 'experience');
-  else out = rows.filter(r => r.kind !== 'gratitude' && r.kind !== 'experience' && r.kind !== 'diary');
+  else if (activeView === 'writing') out = rows.filter(r => displayKind(r.kind) === 'writing');
+  else out = rows.filter(r => displayKind(r.kind) === 'introspection');
   return favFirst(out);
 }
 function filteredRows() {
@@ -708,25 +813,9 @@ function filteredRows() {
   }
   return out;
 }
-function renderDiaryFilters() {
-  const box = el('dFilters');
-  if (!box) return;
-  if (activeView !== 'diary') { box.classList.add('hidden'); box.innerHTML = ''; return; }
-  const yr = new Date().getFullYear() + '';
-  const n = rows.filter(r => r.kind === 'gratitude' && String(r.created_at || '').startsWith(yr)).length;
-  box.innerHTML =
-    '<span class="fchip' + (diaryFilter === 'all' ? ' on' : '') + '" data-df="all">All entries</span>' +
-    '<span class="fchip g' + (diaryFilter === 'grat' ? ' on' : '') + '" data-df="grat">\u2665 Gratitude</span>' +
-    '<span class="gcount">' + n + ' this year</span>';
-  box.classList.remove('hidden');
-  box.querySelectorAll('[data-df]').forEach(c => c.addEventListener('click', () => {
-    diaryFilter = c.dataset.df; render();
-  }));
-}
 function renderSeg() {
   // Only the tab spans (direct children) — not the inner label spans.
   el('seg').querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.view === activeView));
-  renderDiaryFilters();
 }
 function cardHTML(r) {
   const k = KIND[displayKind(r.kind)] || KIND.note;
@@ -751,6 +840,239 @@ function cardHTML(r) {
       '</div>' +
     '</div>';
 }
+// ================= IL-2: the four rooms =================
+const RB_HUES = [
+  { lt:'#F9A79F', mid:'#F2867C', deep:'#C9564A', ink:'#5E1810' },
+  { lt:'#F8C894', mid:'#F0A85F', deep:'#C87B25', ink:'#5C3205' },
+  { lt:'#FFE79A', mid:'#F7D368', deep:'#D3AC2C', ink:'#544006' },
+  { lt:'#A6D6B2', mid:'#7FBE92', deep:'#4E9060', ink:'#153A21' },
+  { lt:'#A8C6EA', mid:'#7FA8DA', deep:'#4C7BB5', ink:'#10294A' },
+  { lt:'#BCB8E8', mid:'#9A95D4', deep:'#6A64AE', ink:'#1E1B47' },
+  { lt:'#D6B0E2', mid:'#BC8ECC', deep:'#8C61A0', ink:'#361A40' },
+];
+function romanNum(n) {
+  const R = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let s = ''; R.forEach(([v, sym]) => { while (n >= v) { s += sym; n -= v; } });
+  return s || 'I';
+}
+async function quickInsert(kind, title, extra) {
+  const record = Object.assign({
+    user_id: userId, kind, title, status: '', essence: '', tags: [],
+    body: '', updated_at: new Date().toISOString(),
+  }, extra || {});
+  const { data, error } = await supa.from('iw_entries').insert(record).select();
+  if (error) { toast(error.message || 'Save failed'); return null; }
+  await loadRows();
+  return (data && data[0] && data[0].id) || null;
+}
+
+// ---- Room 1: My Musings & Learnings - the index (timeless, no dates) ----
+function renderMusings(list, wrap) {
+  let html = '';
+  if (list.length) {
+    const dayN = Math.floor(Date.now() / 86400000);
+    const pick = list[dayN % list.length];
+    html += '<div class="todays"><div class="td-cap">TODAY\u2019S REMINDER</div>' +
+      '<div class="td-line" data-open="' + escHtml(pick.id) + '">\u201C' + escHtml(pick.title) + '\u201D</div></div>';
+  }
+  html += '<div class="qadd"><input id="qAddMus" type="text" placeholder="\uFF0B  write a learning\u2026 Enter saves it"></div>';
+  if (!list.length) html += '<div class="empty"><div class="big">The index is empty</div><div class="small">Write the first line above.</div></div>';
+  html += list.map(r => {
+    const hasNote = NoteEditor.toPlain(r.body || '').trim().length > 0;
+    return '<div class="ix" data-open="' + escHtml(r.id) + '">' +
+      (r.favourite ? '<span class="ix-fav">\u2605</span>' : '') +
+      '<span class="ix-t">' + escHtml(r.title) + '</span>' +
+      (hasNote ? '<span class="ix-more">\u270E note</span>' : '') +
+      '</div>';
+  }).join('');
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-open]').forEach(x =>
+    x.addEventListener('click', () => openReader(x.dataset.open)));
+  const q = el('qAddMus');
+  if (q) q.addEventListener('keydown', async e => {
+    if (e.key !== 'Enter') return;
+    const t = q.value.trim(); if (!t) return;
+    q.disabled = true;
+    const id = await quickInsert('introspection', t);
+    if (id) toast('Added to the index');
+  });
+}
+
+// ---- Room 2: My Life Timeline - the chapter spine ----
+function birthYear() { try { return parseInt(localStorage.getItem('myday_birth_year') || '', 10) || null; } catch (e) { return null; } }
+function chapterSort(a, b) {
+  const ya = a.years_from || 9999, yb = b.years_from || 9999;
+  return ya - yb || String(a.created_at).localeCompare(String(b.created_at));
+}
+function yearsLabel(r) {
+  if (!r.years_from) return '';
+  if (!r.years_to) return r.years_from + '\u2013';
+  if (r.years_to === r.years_from) return String(r.years_from);
+  return r.years_from + '\u2013' + r.years_to;
+}
+function ageLabel(r) {
+  const by = birthYear();
+  if (!by || !r.years_from) return '';
+  const a1 = r.years_from - by;
+  if (!r.years_to) return 'AGE ' + a1 + '\u2013';
+  const a2 = r.years_to - by;
+  return a2 === a1 ? 'AGE ' + a1 : 'AGE ' + a1 + '\u2013' + a2;
+}
+function renderTimeline(list, wrap) {
+  const chs = list.slice().sort(chapterSort);
+  let html = '';
+  if (chs.length) {
+    html += '<div class="tdots">' + chs.map((r, i) => {
+      const h = RB_HUES[i % 7];
+      return '<button class="tdot" data-open="' + escHtml(r.id) + '" title="' + escHtml(r.title) + '" style="background:radial-gradient(circle at 38% 34%, ' + h.lt + ', ' + h.mid + ' 62%, ' + h.deep + ');"></button>';
+    }).join('') + '</div>';
+    html += '<div class="thold"><div class="tline"></div>' + chs.map((r, i) => {
+      const h = RB_HUES[i % 7];
+      const age = ageLabel(r);
+      return '<div class="snode" data-open="' + escHtml(r.id) + '"><div class="tick"></div>' +
+        '<div class="smark" style="background:radial-gradient(circle at 38% 34%, ' + h.lt + ', ' + h.mid + ' 62%, ' + h.deep + '); color:' + h.ink + '; box-shadow:0 6px 16px ' + h.deep + '59, inset 0 -3px 6px ' + h.deep + '40;">' + romanNum(i + 1) + '</div>' +
+        '<div>' +
+          (yearsLabel(r) ? '<div class="syears">' + yearsLabel(r) + '</div>' : '') +
+          '<div class="snum">' + escHtml(r.title) + '</div>' +
+          (r.essence ? '<div class="s-stands">' + escHtml(r.essence) + '</div>' : '') +
+          (age ? '<div class="s-agepill">' + age + '</div>' : '') +
+        '</div></div>';
+    }).join('') + '</div>';
+  } else {
+    html += '<div class="empty"><div class="big">No chapters yet</div><div class="small">Name the first era of your life below.</div></div>';
+  }
+  html += '<div class="addp" id="chAdd">\uFF0B Add a chapter</div>' +
+    '<div class="ch-askrow hidden" id="chAsk">' +
+      '<input id="chName" type="text" placeholder="Its name \u2014 e.g., School Years, Akurdi">' +
+      '<div class="ch-yrrow"><input id="chFrom" type="number" placeholder="2006"><span>\u2013</span>' +
+      '<input id="chTo" type="number" placeholder="2014 (blank = ongoing)"></div>' +
+      '<input id="chSig" type="text" placeholder="One italic line beneath it (optional)">' +
+      '<button id="chGo" type="button">CREATE \u2192 OPENS THE CHAPTER</button></div>' +
+    '<div class="by-row">' + (birthYear() ? 'birth year ' + birthYear() + ' \u00b7 ' : '') +
+      '<span class="by-set" id="bySet">' + (birthYear() ? 'change' : 'set birth year for age labels') + '</span></div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-open]').forEach(x =>
+    x.addEventListener('click', () => openReader(x.dataset.open)));
+  el('chAdd').addEventListener('click', () => { el('chAsk').classList.toggle('hidden'); });
+  el('bySet').addEventListener('click', () => {
+    const v = prompt('Your birth year (for the AGE labels):', birthYear() || '');
+    if (v && /^\d{4}$/.test(v.trim())) { localStorage.setItem('myday_birth_year', v.trim()); render(); }
+  });
+  el('chGo').addEventListener('click', async () => {
+    const nm = el('chName').value.trim(); if (!nm) { el('chName').focus(); return; }
+    const yf = parseInt(el('chFrom').value, 10) || null;
+    const yt = parseInt(el('chTo').value, 10) || null;
+    const id = await quickInsert('experience', nm, {
+      essence: el('chSig').value.trim(), years_from: yf, years_to: yt,
+    });
+    if (id) { openReader(id); setRdEditing(true); setTimeout(() => rdNk.focusEnd(), 80); }
+  });
+}
+
+// ---- Room 3: My Diary - the plain, chipped stream ----
+const CHIP_HUES = [
+  ['#6d5474', '#D8C9DC', '#F8F4F9'], ['#8A5711', '#E4D2AC', '#FBF6EA'],
+  ['#1E5A8A', '#C3D6E8', '#EFF5FA'], ['#356B4E', '#C9DCCF', '#EFF6F1'],
+  ['#8A1F1A', '#EAD6D2', '#FBF4F2'], ['#44557c', '#C9D3E6', '#F0F3F9'],
+];
+function chipHue(name) {
+  let hsum = 0; for (let i = 0; i < name.length; i++) hsum = (hsum * 31 + name.charCodeAt(i)) >>> 0;
+  return CHIP_HUES[hsum % CHIP_HUES.length];
+}
+function chipHtml(t, extraCls, attr) {
+  const h = chipHue(t);
+  const heart = t.toLowerCase() === 'gratitude' ? '\u2665 ' : '';
+  return '<span class="dchip ' + (extraCls || '') + '" ' + (attr || '') +
+    ' style="color:' + h[0] + ';border-color:' + h[1] + ';background:' + h[2] + ';">' + heart + escHtml(t) + '</span>';
+}
+async function openTonight() {
+  const today = new Date();
+  const iso = today.toISOString().slice(0, 10);
+  let r = rows.find(x => displayKind(x.kind) === 'diary' && String(x.created_at || '').slice(0, 10) === iso);
+  if (!r) {
+    const heading = today.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const id = await quickInsert('diary', heading);
+    if (!id) return;
+    r = rows.find(x => x.id === id);
+  }
+  if (r) { openReader(r.id); setRdEditing(true); setTimeout(() => rdNk.focusEnd(), 80); }
+}
+function renderDiary(list, wrap) {
+  const allDiary = rows.filter(r => displayKind(r.kind) === 'diary');
+  const vocab = [];
+  allDiary.forEach(r => entryChips(r).forEach(t => { if (!vocab.includes(t)) vocab.push(t); }));
+  let html = '<div class="tonight" id="tonightBtn"><span class="tn-cap">Tonight\u2019s page\u2026</span><span class="tn-go">WRITE</span></div>';
+  if (vocab.length) {
+    html += '<div class="dlens">' + vocab.map(t =>
+      chipHtml(t, diaryTag === t ? 'on' : 'dim', 'data-lens="' + escHtml(t) + '"')).join('') +
+      (diaryTag ? '<span class="dlens-clear" id="lensClear">\u00d7 all</span>' : '') + '</div>';
+  }
+  if (!list.length) html += '<div class="empty"><div class="big">' + (diaryTag ? 'No pages wear that chip' : 'The diary is unwritten') + '</div><div class="small">Tonight\u2019s page is one tap above.</div></div>';
+  html += list.map(r => {
+    const dt = r.created_at ? new Date(r.created_at) : null;
+    const ds = dt ? dt.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase() : '';
+    const chips = entryChips(r);
+    return '<div class="dent" data-open="' + escHtml(r.id) + '">' +
+      '<div class="dl"><span class="dt">' + ds + '</span><span class="dtx">' + escHtml(r.title) + '</span>' +
+      (r.favourite ? '<span class="ix-fav">\u2605</span>' : '') + '</div>' +
+      (chips.length ? '<div class="chiprow">' + chips.map(t => chipHtml(t)).join('') + '</div>' : '') +
+      '</div>';
+  }).join('');
+  // On This Day - the same date from earlier years
+  const now = new Date();
+  const mmdd = String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  const past = allDiary.filter(r => {
+    const c = String(r.created_at || '');
+    return c.slice(5, 10) === mmdd && c.slice(0, 4) !== String(now.getFullYear());
+  });
+  if (past.length) {
+    html += '<div class="onday"><div class="od-cap">ON THIS DAY</div>' + past.map(r =>
+      '<div class="od-tx" data-open="' + escHtml(r.id) + '">' + String(r.created_at).slice(0, 4) +
+      ' \u2014 \u201C' + escHtml(r.title) + '\u201D</div>').join('') + '</div>';
+  }
+  wrap.innerHTML = html;
+  el('tonightBtn').addEventListener('click', openTonight);
+  wrap.querySelectorAll('[data-open]').forEach(x =>
+    x.addEventListener('click', () => openReader(x.dataset.open)));
+  wrap.querySelectorAll('[data-lens]').forEach(c =>
+    c.addEventListener('click', () => { diaryTag = diaryTag === c.dataset.lens ? null : c.dataset.lens; render(); }));
+  const lc = el('lensClear');
+  if (lc) lc.addEventListener('click', () => { diaryTag = null; render(); });
+}
+
+// ---- Room 4: My Writings - the shelf ----
+function renderShelf(list, wrap) {
+  let html = '';
+  if (!list.length) html += '<div class="empty"><div class="big">Nothing on the shelf</div><div class="small">Begin a writing below \u2014 title first, everything else later.</div></div>';
+  html += list.map(r => {
+    const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
+    const mins = Math.max(1, Math.round(words / 230));
+    const touched = r.updated_at ? new Date(r.updated_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
+    return '<div class="ecard" data-open="' + escHtml(r.id) + '">' +
+      (r.favourite ? '<span class="ix-fav" style="float:right;">\u2605</span>' : '') +
+      '<div class="et">' + escHtml(r.title) + '</div>' +
+      (r.essence ? '<div class="el">' + escHtml(r.essence) + '</div>' : '') +
+      ((r.tags || []).length ? '<div class="wtags">' + r.tags.map(t => '<span class="wtag" data-wtag="' + escHtml(t) + '">#' + escHtml(t) + '</span>').join('') + '</div>' : '') +
+      '<div class="em">' + (words ? words.toLocaleString() + ' WORDS \u00b7 ~' + mins + ' MIN \u00b7 ' : '') + 'LAST TOUCHED ' + touched.toUpperCase() + '</div>' +
+      '</div>';
+  }).join('');
+  html += '<div class="addp" id="wrAdd">\uFF0B Begin a writing</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.ecard[data-open]').forEach(x =>
+    x.addEventListener('click', e => {
+      if (e.target.closest('[data-wtag]')) return;
+      openReader(x.dataset.open);
+    }));
+  wrap.querySelectorAll('[data-wtag]').forEach(t =>
+    t.addEventListener('click', () => { searchTerm = t.dataset.wtag; el('searchInput').value = searchTerm; render(); }));
+  el('wrAdd').addEventListener('click', async () => {
+    const t = prompt('The writing\u2019s title:');
+    if (!t || !t.trim()) return;
+    const id = await quickInsert('writing', t.trim());
+    if (id) { openReader(id); setRdEditing(true); setTimeout(() => rdNk.focusEnd(), 80); }
+  });
+}
+
 function render() {
   el('loadingState') && el('loadingState').remove();
   el('libCount').textContent = rows.length;
@@ -762,24 +1084,19 @@ function render() {
   if (isWip) { renderBoard(); return; }
   const list = filteredRows();
   const wrap = el('cardsWrap');
-  const addLabel = activeView === 'diary' ? 'New diary entry' : (activeView === 'experience' ? 'New experience' : (activeView === 'introspection' ? 'New entry' : 'New'));
 
-  if (rows.length === 0) {
-    wrap.innerHTML = '<div class="empty"><div class="big">Nothing here yet</div><div class="small">Start an introspection, or note something you&rsquo;re grateful for.</div></div>' +
-      '<div class="cards"><div class="card add" id="addEmpty"><span class="plus">+</span><span class="t">New entry</span></div></div>';
-    el('addEmpty').addEventListener('click', () => openModal(null));
-    return;
-  }
-
-  let html = '<div class="cards">';
-  list.forEach(r => { html += cardHTML(r); });
-  html += '<div class="card add" id="addCard"><span class="plus">+</span><span class="t">' + addLabel + '</span></div>';
-  html += '</div>';
-  if (list.length === 0) {
-    html = '<div class="empty"><div class="big">No matches</div><div class="small">Nothing under this filter or search.</div></div>' +
-      '<div class="cards"><div class="card add" id="addCard"><span class="plus">+</span><span class="t">' + addLabel + '</span></div></div>';
-  }
-  wrap.innerHTML = html;
+  // IL-2: while searching, results cross every room as kicker'd cards;
+  // otherwise each room draws its own furniture.
+  if (searchTerm) {
+    let html = '<div class="cards">';
+    list.forEach(r => { html += cardHTML(r); });
+    html += '</div>';
+    if (!list.length) html = '<div class="empty"><div class="big">No matches</div><div class="small">Nothing anywhere in the Inner Life.</div></div>';
+    wrap.innerHTML = html;
+  } else if (activeView === 'introspection') renderMusings(list, wrap);
+  else if (activeView === 'experience') renderTimeline(list, wrap);
+  else if (activeView === 'diary') renderDiary(list, wrap);
+  else renderShelf(list, wrap);
 
   wrap.querySelectorAll('.card[data-id]').forEach(card => {
     card.addEventListener('click', () => openReader(card.dataset.id));
@@ -813,14 +1130,26 @@ async function toggleFavourite(id) {
 function openReader(id, keepNav) {
   const r = rows.find(x => x.id === id); if (!r) return;
   const k = KIND[displayKind(r.kind)] || KIND.note;
+  // IL-2: each room speaks its own eyebrow. Musings are timeless (no date);
+  // chapters carry years + age; diary carries its day; writings their length.
+  const dk = displayKind(r.kind);
   let meta = k.lbl.toUpperCase();
-  (function () {
-    try {
+  try {
+    if (dk === 'introspection') {
+      meta = 'MUSING & LEARNING';
+    } else if (dk === 'experience') {
+      meta = 'LIFE CHAPTER' + (yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
+        (ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '');
+    } else if (dk === 'diary') {
       const dt = r.created_at ? new Date(r.created_at) : null;
-      if (dt) meta += ' \u00B7 ' + dt.toLocaleDateString(undefined,
-        { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
-    } catch (e) { /* date stays off the eyebrow */ }
-  })();
+      meta = 'MY DIARY' + (dt ? ' \u00B7 ' + dt.toLocaleDateString(undefined,
+        { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase() : '');
+    } else if (dk === 'writing') {
+      const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
+      meta = 'MY WRITING' + (words ? ' \u00B7 ' + words.toLocaleString() + ' WORDS \u00B7 ~' +
+        Math.max(1, Math.round(words / 230)) + ' MIN' : '');
+    }
+  } catch (e) { /* eyebrow stays plain */ }
   el('readerTitle').textContent = r.title;
   el('readerKind').textContent = meta;
   el('readerH1').textContent = r.title;
@@ -833,6 +1162,30 @@ function openReader(id, keepNav) {
     el('readerDates').textContent = s;
   })();
   el('readerLead').style.display = r.essence ? '' : 'none';
+  // IL-2: the diary page wears its chips; + chip adds, tapping one removes.
+  (function () {
+    const host = el('readerChips');
+    if (!host) return;
+    if (displayKind(r.kind) !== 'diary') { host.classList.add('hidden'); host.innerHTML = ''; return; }
+    const chips = entryChips(r);
+    host.innerHTML = chips.map(t => chipHtml(t, '', 'data-rdchip="' + escHtml(t) + '"')).join('') +
+      '<span class="dchip addc" id="rdChipAdd">\uFF0B chip</span>';
+    host.classList.remove('hidden');
+    host.querySelectorAll('[data-rdchip]').forEach(c => c.addEventListener('click', async () => {
+      const t = c.dataset.rdchip;
+      if (!confirm('Remove the \u201C' + t + '\u201D chip from this page?')) return;
+      const tags = (r.tags || []).filter(x => x !== t);
+      const { error } = await supa.from('iw_entries').update({ tags }).eq('id', r.id).eq('user_id', userId);
+      if (!error) { await loadRows(); openReader(r.id, true); }
+    }));
+    el('rdChipAdd').addEventListener('click', async () => {
+      const t = (prompt('Chip name (e.g., gratitude, travel, family):') || '').trim().toLowerCase();
+      if (!t) return;
+      const tags = Array.from(new Set([...(r.tags || []), t]));
+      const { error } = await supa.from('iw_entries').update({ tags }).eq('id', r.id).eq('user_id', userId);
+      if (!error) { await loadRows(); openReader(r.id, true); }
+    });
+  })();
   const bodyHtml = NoteEditor.toHtml(r.body || '').trim();
   el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   el('readerBodyInp').innerHTML = bodyHtml;
@@ -1240,7 +1593,6 @@ async function renderSoulDots() {
   } catch (e2) { console.error(e2); }
 }
 
-el('newBtn').addEventListener('click', () => openModal(null));
 el('exportBtn').addEventListener('click', exportAll);
 el('fKind').addEventListener('change', syncModalForKind);
 el('modalClose').addEventListener('click', closeModal);
@@ -1252,26 +1604,7 @@ el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; 
 // Bind to the tab spans only — clicking the inner label span has no data-view
 // and would set activeView to undefined.
 el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { activeView = s.dataset.view; render(); }));
-// GD-1: the heart is a one-tap mirror of the Type select - diary <-> gratitude.
-// The select stays the single source of truth; the chip only flips it.
-(function wireGratChip() {
-  const sel = el('fKind'), chip = el('gratChip');
-  if (!sel || !chip) return;
-  const paint = () => {
-    const v = sel.value;
-    chip.classList.toggle('hidden', v !== 'diary' && v !== 'gratitude');
-    chip.classList.toggle('on', v === 'gratitude');
-  };
-  sel.addEventListener('change', paint);
-  chip.addEventListener('click', () => {
-    sel.value = sel.value === 'gratitude' ? 'diary' : 'gratitude';
-    sel.dispatchEvent(new Event('change'));
-  });
-  const mo = new MutationObserver(paint);
-  const overlay = el('modalOverlay');
-  if (overlay) mo.observe(overlay, { attributes: true, attributeFilter: ['class'] });
-  paint();
-})();
+
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   if (!el('modalOverlay').classList.contains('hidden')) closeModal();

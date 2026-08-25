@@ -64,6 +64,43 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**IL-2 REDESIGN (introspection.html + migrate_inner_v2.sql)** (Aug
+2026): My Inner Life remade as four rooms, each with its own furniture
+and its own door; the one crowded New modal retired from creation
+(kept only for meta-edit). ROOM 1 Musings & Learnings: dense serif
+INDEX, timeless (no dates anywhere), Enter quick-add input (no popup),
+pencil marker on lines carrying a note, TODAY'S REMINDER surfacing one
+line per day (dayN % count - deterministic, no storage). ROOM 2 Life
+Timeline: chapter SPINE in the Why-pillars grammar studied from
+source - rainbow coin (RB_HUES 7-arc wrapping, roman numeral in the
+coin's own ink), YEARS ON THEIR OWN ROW (mono amber), huge serif name,
+italic stands-line (essence), AGE pill computed from birth year
+(localStorage myday_birth_year, set/change link); the vertical is
+DELIBERATELY KIN NOT TWIN to the whys' golden thread: a dashed green
+RULED line with a tick at every coin and rounded end-stops - an
+instrument that measures. Chapters sort by years_from (new int columns
+years_from/years_to via migrate_inner_v2.sql; single year = one label,
+open chapter = 'YYYY-'). Door: name + years + optional italic ->
+quickInsert -> straight into the editor. ROOM 3 Diary: plain stream -
+gratitude is NO LONGER A KIND; chips are the user's own vocabulary
+stored in the existing tags column (chipHtml hashes a hue per name;
+'gratitude' wears a heart). Tonight's page = find-or-create today's
+diary entry (title = the long date phrase) and open the editor. Chip
+lens filters the stream; ON THIS DAY resurfaces the same MM-DD from
+earlier years. The reader page wears the chips (add via prompt,
+tap-to-remove with confirm). Pre-migration gratitude rows read as
+diary via displayKind and wear a virtual gratitude chip - byte-safe
+until the SQL runs. ROOM 4 My Writings (ES-2): shelf cards with serif
+title, italic lead (essence), #tags (tap = search), live word count +
+~min at 230wpm + last-touched; door = title prompt -> editor. Legacy
+kinds essay/post/thread/note JOIN the room via displayKind (S1: keys
+untouched). Reader eyebrows speak per room: MUSING & LEARNING (no
+date) / LIFE CHAPTER + years + age / MY DIARY + day / MY WRITING +
+length; the chapter's lead line speaks in Caveat hand.
+migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
+appending "gratitude" into the text-JSON tags (idempotent, plain
+ASCII, verification SELECT at the end).
+
 **CL-1 (introspection.html)** (Aug 2026): four cleanups. (1) The
 hashtag filter row retired from every subsection - markup, renderTags,
 activeTag state, wip toggle, and .tags-row/.tag CSS all to zero refs;
