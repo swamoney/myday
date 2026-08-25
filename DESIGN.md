@@ -101,6 +101,27 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**MC-3 + Write + hub order** (26 Aug 2026): the main chips wear
+MC-3 - sleeping rooms are ink-coloured text on the transparent tray
+(opacity .85), the chosen room goes SOLID INK with a white label
+(background var(--t-acc), the DX inkwell; whiteboard keeps its gold
+tint vars). Tonight's WRITE cleaned: mono caps -> sans 0.75rem 600
+sentence-case 'Write'. index.html hub: My Inner Life card moved
+BEFORE My Wealth (window-swap with content asserts per the new
+window-cut law - both blocks verified to carry only their own card).
+
+**TL_SHADES regression + NEW LAW** (26 Aug 2026): the Timeline tab
+died after the DX round - jsdom harness caught it in one click:
+ReferenceError TL_SHADES at renderTimeline. A window-cut in the DX
+build silently swallowed the const (the cut asserted only distance,
+not content). Restored beside chShade. NEW STANDING LAW - WINDOW-CUT
+CONTENT ASSERTS: any find/slice removal must assert what the removed
+window CONTAINS (e.g., no 'const ', 'function ', or 'let ' tokens
+beyond the intended component), and the post-build battery must
+RE-RUN the anchors of prior rounds (a later cut can un-ship an
+earlier green check). The all-tabs click harness now exists
+(harness2.js pattern: click every seg tab, assert zero errors).
+
 **IL-2 round 7: the DX coherence stroke** (26 Aug 2026): MB - on
 phones the reader bar DROPS the path title entirely (display:none,
 back pinned left, actions right): the H1 sits one line below, so the

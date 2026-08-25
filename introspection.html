@@ -79,13 +79,14 @@
   /* Each tab carries a faint hint of its section's colour; the active one fills
      in and lifts (ring + shadow + bolder), so colour says WHICH section and
      weight says WHERE YOU ARE. */
-  .seg > span { display:inline-flex; align-items:center; justify-content:center; gap:5px; font-size:0.6875rem; font-weight:600; padding:6px 10px; border-radius:8px; cursor:pointer; white-space:nowrap; background:var(--t-faint); color:var(--t-acc); opacity:0.72; transition:opacity .15s, background .15s; }
+  .seg > span { display:inline-flex; align-items:center; justify-content:center; gap:5px; font-size:0.6875rem; font-weight:600; padding:6px 10px; border-radius:8px; cursor:pointer; white-space:nowrap; background:transparent; color:var(--t-acc); opacity:0.85; transition:opacity .15s, background .15s; }
   /* The inner label span must NOT inherit the tab chrome — that was painting a
      pale box around the text only (not the icon). */
   .seg .seg-l { background:none; padding:0; border-radius:0; box-shadow:none; opacity:1; font-weight:inherit; }
   .seg > span svg { width:15px; height:15px; flex-shrink:0; }
   .seg > span:hover { opacity:0.9; }
-  .seg > span.on { background:var(--t-bg); color:var(--t-acc); opacity:1; font-weight:700; box-shadow:0 2px 6px rgba(30,40,70,0.16); }
+  /* MC-3: the chosen room wears full ink, white label */
+  .seg > span.on { background:var(--t-acc); color:#fff; opacity:1; font-weight:700; box-shadow:0 2px 6px rgba(30,40,70,0.22); }
   .seg > span[data-view="diary"]         { --t-faint:#f8f6f2; --t-bg:#ebe6dc; --t-acc:#6B5B45; --t-ring:rgba(107,91,69,0.33); }
   .seg > span[data-view="introspection"] { --t-faint:#f3f6f9; --t-bg:#dfe7ee; --t-acc:#3E5C76; --t-ring:rgba(62,92,118,0.33); }
   .seg > span[data-view="experience"]    { --t-faint:#f4f7f2; --t-bg:#e3e9df; --t-acc:#5F7355; --t-ring:rgba(95,115,85,0.33); }
@@ -178,8 +179,9 @@
              border:1px solid #E2DFD4; border-radius:12px; padding:12px 14px;
              margin-bottom:10px; cursor:pointer; }
   .tn-cap { font-family:var(--serif); font-size:1rem; font-style:italic; color:#5c5747; }
-  .tn-go { margin-left:auto; font-family:var(--mono); font-size:0.625rem; font-weight:600;
-           background:#6B5B45; color:#fff; border-radius:8px; padding:7px 13px; }
+  .tn-go { margin-left:auto; font-family:var(--sans); font-size:0.75rem; font-weight:600;
+           letter-spacing:0.02em; background:#6B5B45; color:#fff; border-radius:8px;
+           padding:7px 14px; }
   .dlens { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; align-items:center; }
   .dchip { font-size:0.625rem; font-weight:600; border-radius:999px; padding:3px 9px;
            border:1px solid; background:#fff; cursor:pointer; }
@@ -848,6 +850,10 @@ function renderSeg() {
   // Only the tab spans (direct children) — not the inner label spans.
   el('seg').querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.view === activeView));
 }
+// TS-1 (Aug 2026): manuscript inks - indigo, madder, moss, ochre, aubergine.
+// (Restored 26 Aug: a window-cut in the DX round silently swallowed this
+// const; the timeline tab died with a TL_SHADES ReferenceError.)
+const TL_SHADES = ['#3E5C76', '#A4553F', '#5F7355', '#B08A3E', '#6D4E66'];
 function chShade(i) { return TL_SHADES[i % TL_SHADES.length]; }
 function romanNum(n) {
   const R = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
@@ -1012,7 +1018,7 @@ function renderDiary(list, wrap) {
   const allDiary = rows.filter(r => displayKind(r.kind) === 'diary');
   const vocab = [];
   allDiary.forEach(r => entryChips(r).forEach(t => { if (!vocab.includes(t)) vocab.push(t); }));
-  let html = '<div class="tonight" id="tonightBtn"><span class="tn-cap">Tonight\u2019s page\u2026</span><span class="tn-go">WRITE</span></div>';
+  let html = '<div class="tonight" id="tonightBtn"><span class="tn-cap">Tonight\u2019s page\u2026</span><span class="tn-go">Write</span></div>';
   if (vocab.length) {
     html += '<div class="dlens">' + vocab.map(t =>
       chipHtml(t, diaryTag === t ? 'on' : 'dim', 'data-lens="' + escHtml(t) + '"')).join('') +
