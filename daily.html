@@ -5210,25 +5210,18 @@
      below with shared border so they read as one unit. Two color states:
      moss-green for "home" (matches wellbeing palette), slate-grey dashed
      for "not home" (matches memo/reference styling). */
+  /* TG-1 (Aug 2026): the banner box retired - only the tag remains,
+     bare and left-seated under the field; the input keeps its full
+     rounded shape in every state. The pill itself is the button. */
   .home-banner {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 11px;
-    border-radius: 0 0 8px 8px;
+    display: flex; align-items: center; justify-content: flex-start;
+    flex-wrap: wrap;
+    padding: 0;
     font-family: var(--sans); font-size:0.6875rem;
-    margin-top: -1px; /* visually merge with input border above */
-    gap: 8px;
+    margin-top: 5px;
+    gap: 6px;
   }
   .home-banner.hidden { display: none; }
-  /* When the banner is visible below the input, square off the input's
-     bottom corners so the two elements read as one unit. */
-  #f_nightStay:has(+ #homeStatusBanner:not(.hidden)) {
-    border-radius: 8px 8px 0 0;
-  }
-  /* Fallback for older browsers without :has support — use a class on the
-     input toggled by JS alongside the banner show/hide. */
-  #f_nightStay.has-banner {
-    border-radius: 8px 8px 0 0;
-  }
   /* Home banner — Option A deeper lavender tint. Lives inside the Night Stay
      section which uses lavender chrome (s-night = #F5F4FB bg / #CECBE5 border
      / #534AB7 accent), so the banner sits in the same hue family and reads as
@@ -5236,17 +5229,8 @@
      Previously moss-green (#E5F0E8) which clashed with the surrounding lavender.
      "Not a home" state stays neutral grey — the contrast between the two banner
      states is preserved within a lavender-vs-grey palette. */
-  .home-banner.home {
-    background: #DCD8F0;
-    border: 0.5px solid #B8B3DD;
-    border-top: 0.5px solid #B8B3DD;
-    color: #3C3489;
-  }
-  .home-banner.not-home {
-    background: #F4F1ED;
-    border: 0.5px dashed #C9D1D9;
-    border-top: 0.5px dashed #C9D1D9;
-    color: #6E7A86;
+  .home-banner.home, .home-banner.not-home {
+    background: none; border: none; color: var(--muted);
   }
   .home-banner-status {
     display: flex; align-items: center; gap: 5px; font-weight: 600;
@@ -6050,6 +6034,13 @@
   .place-kind-chip.k-fam { color: #1E5A8A; border-color: #C3D6E8; }
   .place-kind-chip.k-sis { color: #6B3FA0; border-color: #D8C9EC; }
   .place-kind-chip.now { outline: 2px solid var(--rule); }
+  .place-kind-pill.as-btn { cursor: pointer; }
+  .place-ghost {
+    font-family: var(--mono); font-size: 0.5625rem; color: #8a97b3;
+    border: 1.5px dashed var(--rule); border-radius: 999px; padding: 2px 9px;
+    background: none; cursor: pointer;
+  }
+  .place-ghost:hover { color: var(--muted); border-color: #9aa5bd; }
   .place-ask { font-size: 0.625rem; color: #8a97b3; margin-right: 2px; }
   .place-travel-hint { font-size: 0.5938rem; color: #8a97b3; }
   .home-addr-row.retired { opacity: 0.6; }
@@ -9276,11 +9267,9 @@ function updateHomeBanner() {
   // Banner shows only when there's a value to evaluate
   if (!val) {
     banner.classList.add('hidden');
-    input.classList.remove('has-banner');
     return;
   }
   banner.classList.remove('hidden');
-  input.classList.add('has-banner');
   const mode = banner.dataset.mode || '';
   if (kindNow && mode !== 'choose' && mode !== 'when') {
     banner.classList.add('home');
@@ -9293,12 +9282,14 @@ function updateHomeBanner() {
     // and runs the confirm dialog before removing). One symbol, one button —
     // no separate × control. Visually quieter than the prior two-symbol design.
     const K = PLACE_KINDS[kindNow];
-    statusEl.innerHTML = '<span class="place-kind-pill ' + K.cls + '">\u2713 ' + K.lbl + '</span>';
-    actionsEl.innerHTML = '<button class="home-banner-link" type="button" data-home-action="change">change</button>';
+    statusEl.innerHTML = '<button class="place-kind-pill as-btn ' + K.cls +
+      '" type="button" data-home-action="change" title="Tap to change">\u2713 ' + K.lbl + '</button>';
+    actionsEl.innerHTML = '';
   } else if (mode === 'choose') {
     // chooser: pick a kind (current marked), or retire, or cancel
     banner.classList.add('not-home'); banner.classList.remove('home');
     statusEl.innerHTML = '<span class="place-ask">this place is\u2026</span>' +
+      '' +
       Object.keys(PLACE_KINDS).map(k =>
         '<button class="place-kind-chip ' + PLACE_KINDS[k].cls + (kindNow === k ? ' now' : '') +
         '" type="button" data-home-kind="' + k + '">' + PLACE_KINDS[k].lbl + '</button>').join('');
@@ -9316,11 +9307,8 @@ function updateHomeBanner() {
   } else {
     banner.classList.add('not-home');
     banner.classList.remove('home');
-    statusEl.innerHTML = '<span class="place-ask">not tagged \u2014 this place is\u2026</span>' +
-      Object.keys(PLACE_KINDS).map(k =>
-        '<button class="place-kind-chip ' + PLACE_KINDS[k].cls +
-        '" type="button" data-home-kind="' + k + '">' + PLACE_KINDS[k].lbl + '</button>').join('');
-    actionsEl.innerHTML = '<span class="place-travel-hint">or leave as travel</span>';
+    statusEl.innerHTML = '<button class="place-ghost" type="button" data-home-action="change">+ tag this place</button>';
+    actionsEl.innerHTML = '';
   }
 }
 

@@ -64,6 +64,16 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**TG-1 - the bare tag** (Aug 2026): the Property banner box retired;
+only the tag remains, left-seated and floating free 5px under the
+field, which keeps its full rounded shape in every state (the :has()
+corner-squaring and its has-banner JS fallback retired to zero refs).
+The PILL IS THE BUTTON: tap the kind pill to open the bare chip
+chooser (same era machinery beneath); an untagged place idles as one
+quiet dashed '+ tag this place' ghost - tap to choose, ignore for
+travel. The Night Stay field column returns to the same visual weight
+as every other field: one input, one small line of metadata.
+
 **NT-A amendment - away means away from MY HOME only** (Aug 2026):
 Rahul's rule for the counters: Month/Year/Trends 'nights away' count
 every night not in your own bed - family home and sister's place ARE
