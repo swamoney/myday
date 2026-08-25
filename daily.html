@@ -5896,6 +5896,16 @@
   .s-other-field.is-expanded .door-open .dw-close { display: inline; }
   .rec-collapse-field.is-expanded .door-open .dw-open { display: none; }
   .rec-collapse-field.is-expanded .door-open .dw-close { display: inline; }
+  /* DC-2N: the armed delete names its victim */
+  .rec-log-del.is-armed {
+    font-family: var(--mono); font-size: 0.5625rem; font-weight: 600;
+    letter-spacing: 0.04em; background: var(--ember); color: #fff;
+    border-radius: 6px; padding: 3px 8px; white-space: nowrap;
+    max-width: 60vw; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rec-log-del.is-armed:hover { background: var(--ember); color: #fff; }
+  .rec-log-row.del-armed { background: #FDF6F5; border-radius: 8px; }
+
   /* MP-2 (Aug 2026): the pill takes the accent whisper - the one family
      this stretch didn't use. Gold opens rooms; NAVY reveals fields. Cool
      against the warm doors, clearly interactive, clearly not a room.
@@ -10364,6 +10374,35 @@ const HUB_SECTION_ORDER = [
 // Wire the "7 more" toggle and compute the running Spent/Invested totals.
 // Called once at boot (setupExpenseDisclosure) and on every input event
 // (updateExpenseFooter).
+
+// DC-2N (Aug 2026): the two-tap arm that NAMES the victim. First tap turns
+// the \u00d7 into an ember '<name> <amt> \u2014 DELETE?' pill and blushes the row;
+// the second tap (within 4s, on the pill) deletes; tapping anywhere else or
+// the timer passing disarms. An accidental brush costs nothing; a wrong-row
+// arm shows you the wrong name before any harm. Serves BOTH organ ledgers.
+function _disarmDel(btn) {
+  if (!btn) return;
+  clearTimeout(btn._disarmT);
+  if (btn._onDoc) { document.removeEventListener('click', btn._onDoc, true); btn._onDoc = null; }
+  btn.classList.remove('is-armed');
+  if (btn.dataset.prevHtml !== undefined) { btn.innerHTML = btn.dataset.prevHtml; delete btn.dataset.prevHtml; }
+  const row = btn.closest('.rec-log-row');
+  if (row) row.classList.remove('del-armed');
+}
+function armedDelete(btn) {
+  if (btn.classList.contains('is-armed')) { _disarmDel(btn); return true; }
+  document.querySelectorAll('.rec-log-del.is-armed').forEach(b => _disarmDel(b));
+  btn.classList.add('is-armed');
+  btn.dataset.prevHtml = btn.innerHTML;
+  btn.textContent = (btn.dataset.delLabel || 'This item') + ' \u2014 DELETE?';
+  const row = btn.closest('.rec-log-row');
+  if (row) row.classList.add('del-armed');
+  btn._disarmT = setTimeout(() => _disarmDel(btn), 4000);
+  const onDoc = (ev) => { if (!btn.contains(ev.target)) _disarmDel(btn); };
+  btn._onDoc = onDoc;
+  setTimeout(() => document.addEventListener('click', onDoc, true), 0);
+  return false;
+}
 
 function setupExpenseDisclosure() {
   const toggle = document.getElementById('expMoreToggle');
@@ -17272,7 +17311,7 @@ function renderRecurringLog() {
       <span class="rec-log-name">${safeName}</span>
       ${tag}
       <span class="rec-log-amt">${recFmt(it.amt)}</span>
-      <button type="button" class="rec-log-del" data-rec-del-date="${it.date}" data-rec-del-idx="${it.idx}" aria-label="Remove ${safeName}">\u00d7</button>
+      <button type="button" class="rec-log-del" data-rec-del-date="${it.date}" data-rec-del-idx="${it.idx}" data-del-label="${safeName} ${recFmt(it.amt)}" aria-label="Remove ${safeName}">\u00d7</button>
     </div>`;
   }).join('');
   rowsEl.innerHTML = flatHtml;
@@ -17295,6 +17334,7 @@ function renderRecurringLog() {
   // Wire remove buttons
   rowsEl.querySelectorAll('.rec-log-del').forEach(btn => {
     btn.addEventListener('click', async () => {
+      if (!armedDelete(btn)) return;
       const date = btn.dataset.recDelDate;
       const idx = parseInt(btn.dataset.recDelIdx, 10);
       btn.disabled = true;
@@ -17621,7 +17661,7 @@ function renderOtherLog() {
       <span class="rec-log-name">${safeName}</span>
       ${tag}
       <span class="rec-log-amt">${recFmt(it.amt)}</span>
-      <button type="button" class="rec-log-del" data-other-del-date="${it.date}" data-other-del-idx="${it.idx}" aria-label="Remove ${safeName}">\u00d7</button>
+      <button type="button" class="rec-log-del" data-other-del-date="${it.date}" data-other-del-idx="${it.idx}" data-del-label="${safeName} ${recFmt(it.amt)}" aria-label="Remove ${safeName}">\u00d7</button>
     </div>`;
   }).join('');
 
@@ -17632,6 +17672,7 @@ function renderOtherLog() {
 
   rowsEl.querySelectorAll('.rec-log-del').forEach(btn => {
     btn.addEventListener('click', async () => {
+      if (!armedDelete(btn)) return;
       const dIso = btn.dataset.otherDelDate;
       const idx = parseInt(btn.dataset.otherDelIdx, 10);
       btn.disabled = true;

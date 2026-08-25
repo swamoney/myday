@@ -64,6 +64,21 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**DC-2N - the armed delete names its victim** (Aug 2026): both organ
+ledgers' \u00d7 buttons (Other month ledger + Recurring log share the
+.rec-log-del class) now pass through armedDelete(): first tap turns
+the \u00d7 into an ember pill reading '<name> <amt> - DELETE?' (label
+carried on data-del-label, written at render) and blushes the row;
+the second tap on the pill within 4s performs the existing delete
+body unchanged; any tap elsewhere (capture-phase doc listener) or the
+timer disarms and restores the \u00d7. Only one button can be armed at a
+time. Chosen over DC-1's confirm sheet after argued trade-offs: the
+sheet taxes every correct delete with a modal and breeds reflex-
+confirm; the armed pill stops the accidental brush at near-zero cost
+AND names the victim, catching wrong-row arms before harm. One
+pattern, both organs, and every future ledger. Sim: arm->confirm
+deletes; stray tap re-arms new row, prior stays safe.
+
 **HP-2 + phone trim - loud when closed, calm when open** (Aug 2026):
 the navy pill became state-aware, reviving the pill's own original
 grammar (the old gold Toggle B was loud-closed/calm-open for the same
