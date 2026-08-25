@@ -101,6 +101,18 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**IL-2 round 4: one ground + the true axis** (25 Aug 2026): every
+Inner Life individual page now stands on the SAME paper as the My Why
+individual pages - #fbfcfe (read from why.html's .rmw), set once on
+.reader-overlay; the per-kind rules keep only their accent voices
+(--r-acc), and the dead gratitude palette rule retired. The timeline
+vertical rectified by geometry, not eye: diamond centre = 2px node
+padding + 26px half-mark = 28px, so the 2px line sits at left:27
+(stroke 27-29, centre 28), ticks left:21 width:14 (21-35, centre 28),
+end-stop dots left:-2 (centre 28). The leftover greens from the
+retired coin era (#B9CCB4 line, #9DB897 dots/ticks) replaced with
+warm stone #C6C0B0 / #B3AC99 to sit with the heritage shades.
+
 **IL-2 round 3: TL-B** (25 Aug 2026): five settlements in one stroke.
 (1) The '+ a past day' door retired to zero refs (button, picker,
 wiring, .tn-past clothes) - its power lives on in every page's DP-1
