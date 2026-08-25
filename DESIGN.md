@@ -82,7 +82,10 @@ change with every entry intact. HD: each room opens with an eyebrow
 (section name, section colour) + a serif roadmap heading - the four
 title strings in VIEW_HEADINGS are PLACEHOLDERS awaiting Rahul's
 roadmap note wording (his note lives in his DB; he must paste the
-headings; swap is title-strings-only).
+headings; swap is title-strings-only). Post-ship: Rahul dropped the
+HD heading block entirely - viewHead markup, VIEW_HEADINGS,
+renderViewHead, and clothes all retired same-day to zero refs; the
+rooms open straight into their lens and stream.
 
 **TG-1 post-ship** (Aug 2026): the pill was rendering centered - a
 leftover rule from the retired Home button ('.home-banner.home

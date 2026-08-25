@@ -99,11 +99,6 @@
     .seg > span svg { width:17px; height:17px; }
   }
 
-  /* HD: the room's roadmap heading */
-  .view-heading { margin: 2px 0 10px; }
-  .vh-eyebrow { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; font-weight:600;
-                letter-spacing:0.16em; }
-  .vh-title { font-family:Georgia,'PT Serif',serif; font-size:1.1875rem; margin-top:2px; }
   /* GD-1: the diary's own lens */
   .dfilters { display:flex; gap:6px; align-items:center; margin:0 0 10px; }
   .dfilters.hidden { display:none; }
@@ -356,7 +351,6 @@
         <span data-view="wip" class="seg-wip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5l-3.2 3.2l-2.6 .4a1 1 0 0 0-.6 1.7l4.6 4.6a1 1 0 0 0 1.7-.6l.4-2.6l3.2-3.2"/><line x1="9" y1="15" x2="4.5" y2="19.5"/><line x1="14.5" y1="4" x2="20" y2="9.5"/></svg><span class="seg-l">Work in Progress</span></span>
       </div>
 
-      <div class="view-heading" id="viewHead"></div>
       <div class="dfilters hidden" id="dFilters"></div>
       <div class="tags-row" id="tagsRow"></div>
 
@@ -718,23 +712,6 @@ function filteredRows() {
   }
   return out;
 }
-// HD (Aug 2026): each room opens with its roadmap heading - eyebrow in the
-// section's colour, the heading in serif. The words below are PLACEHOLDERS
-// awaiting Rahul's roadmap note wording: swap the title strings here only.
-const VIEW_HEADINGS = {
-  introspection: { eyebrow: 'MY MUSINGS & LEARNINGS', title: 'What the days taught me', acc: '#44557c' },
-  experience:    { eyebrow: 'MY LIFE TIMELINE',       title: 'The road so far',         acc: '#5a7050' },
-  diary:         { eyebrow: 'MY DIARY',               title: 'One page, every night',    acc: '#63496b' },
-  wip:           { eyebrow: 'WORK IN PROGRESS',       title: 'Half-built, still true',   acc: '#6f6a5c' },
-};
-function renderViewHead() {
-  const h = el('viewHead');
-  if (!h) return;
-  const m = VIEW_HEADINGS[activeView];
-  if (!m) { h.innerHTML = ''; return; }
-  h.innerHTML = '<div class="vh-eyebrow" style="color:' + m.acc + ';">' + m.eyebrow + '</div>' +
-    '<div class="vh-title">' + m.title + '</div>';
-}
 function renderDiaryFilters() {
   const box = el('dFilters');
   if (!box) return;
@@ -753,7 +730,6 @@ function renderDiaryFilters() {
 function renderSeg() {
   // Only the tab spans (direct children) — not the inner label spans.
   el('seg').querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.view === activeView));
-  renderViewHead();
   renderDiaryFilters();
 }
 function renderTags() {
