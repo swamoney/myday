@@ -102,24 +102,20 @@
   /* GD-1: the diary's own lens */
   .dfilters { display:flex; gap:6px; align-items:center; margin:0 0 10px; }
   .dfilters.hidden { display:none; }
-  .fchip { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; font-weight:600;
-           border-radius:999px; padding:3px 10px; border:1.5px solid #cdd5e0; color:#5b6579;
+  .fchip { font-family:var(--sans); font-size:0.6563rem; font-weight:600;
+           border-radius:999px; padding:4px 11px; border:1px solid #cdd5e0; color:#5b6579;
            background:#fff; cursor:pointer; }
   .fchip.on { background:#f5f1f6; border-color:#dccfe0; color:#63496b; }
   .fchip.g { color:#6d5474; border-color:#d8c9dc; }
-  .gcount { margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:0.5313rem;
-            color:#8a97b3; }
+  .gcount { margin-left:auto; font-family:var(--sans); font-size:0.625rem; color:#8a97b3; }
   /* GD-1: the composer's heart */
-  .grat-chip { font-family:'IBM Plex Mono',monospace; font-size:0.5938rem; font-weight:600;
-               border-radius:999px; padding:4px 11px; border:1.5px solid #d8c9dc;
+  .grat-chip { font-family:var(--sans); font-size:0.6875rem; font-weight:600;
+               border-radius:999px; padding:5px 12px; border:1px solid #d8c9dc;
                color:#6d5474; background:#fff; cursor:pointer; margin-top:6px; }
   .grat-chip.on { background:#eae3ec; }
   .grat-chip.hidden { display:none; }
 
-  .tags-row { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; align-items:center; }
-  .tag { font-size:0.75rem; padding:5px 12px; border-radius:20px; border:1px solid var(--rule); background:var(--paper); color:var(--ink-soft); cursor:pointer; font-weight:500; }
-  .tag:hover { border-color:var(--rule-strong); }
-  .tag.active { background:var(--ink); color:#fff; border-color:var(--ink); }
+
   .tag.all.active { background:var(--accent); border-color:var(--accent); }
 
   /* CARDS (Wisdom, tint by kind) */
@@ -232,7 +228,7 @@
   .rd-sticky .reader-lead { margin-bottom:6px; }
   .rd-sticky .reader-dates { margin:6px 0 0; }
   .reader-inner { max-width:680px; margin:0 auto; }
-  .reader-kind { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .reader-kind { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--r-acc); margin-bottom:8px; }
   .reader-h1 { font-family:'Fraunces',serif; font-size:1.6875rem; font-weight:600; line-height:1.3; margin-bottom:12px; }
   .reader-lead { font-family:'Fraunces',serif; font-size:1.125rem; color:var(--ink-soft); line-height:1.55; margin-bottom:20px; }
   .reader-body { font-family:'Fraunces',serif; font-size:1.125rem; line-height:1.75; color:#1c2331; white-space:pre-wrap; }
@@ -352,8 +348,7 @@
       </div>
 
       <div class="dfilters hidden" id="dFilters"></div>
-      <div class="tags-row" id="tagsRow"></div>
-
+      
       <div id="cardsWrap"><div class="loading" id="loadingState">Loading&#8230;</div></div>
 
       <div class="wip" id="wipSection">
@@ -519,7 +514,6 @@ function rdSessionEnd_() {
   if (cur !== rdBaseline) NoteEditor.versions.record('inner', readerEntry.id, rdBaseline);
   rdBaseline = null;
 }
-let activeTag = null;
 let searchTerm = '';
 let editingId = null;
 let notesTimer = null;
@@ -699,8 +693,10 @@ function viewRows() {
   return favFirst(out);
 }
 function filteredRows() {
-  let out = viewRows();
-  if (activeTag) out = out.filter(r => (r.tags || []).includes(activeTag));
+  // CL-1 (Aug 2026): while the search box has text it looks through EVERY
+  // subsection at once - memory rarely files by section. Each result wears
+  // its kind kicker; clearing the search restores the tab's normal view.
+  let out = searchTerm ? favFirst(rows.slice()) : viewRows();
   if (searchTerm) {
     const q = searchTerm.toLowerCase();
     out = out.filter(r =>
@@ -720,8 +716,8 @@ function renderDiaryFilters() {
   const n = rows.filter(r => r.kind === 'gratitude' && String(r.created_at || '').startsWith(yr)).length;
   box.innerHTML =
     '<span class="fchip' + (diaryFilter === 'all' ? ' on' : '') + '" data-df="all">All entries</span>' +
-    '<span class="fchip g' + (diaryFilter === 'grat' ? ' on' : '') + '" data-df="grat">\u2665 Gratitude only</span>' +
-    '<span class="gcount">' + n + ' gratitude' + (n === 1 ? '' : 's') + ' this year</span>';
+    '<span class="fchip g' + (diaryFilter === 'grat' ? ' on' : '') + '" data-df="grat">\u2665 Gratitude</span>' +
+    '<span class="gcount">' + n + ' this year</span>';
   box.classList.remove('hidden');
   box.querySelectorAll('[data-df]').forEach(c => c.addEventListener('click', () => {
     diaryFilter = c.dataset.df; render();
@@ -731,16 +727,6 @@ function renderSeg() {
   // Only the tab spans (direct children) — not the inner label spans.
   el('seg').querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.view === activeView));
   renderDiaryFilters();
-}
-function renderTags() {
-  const tags = allTags();
-  const row = el('tagsRow');
-  let html = '<span class="tag all' + (activeTag === null ? ' active' : '') + '" data-tag="__all">All</span>';
-  tags.forEach(t => { html += '<span class="tag' + (activeTag === t ? ' active' : '') + '" data-tag="' + escHtml(t) + '">' + escHtml(t) + '</span>'; });
-  row.innerHTML = html;
-  row.querySelectorAll('.tag').forEach(chip => {
-    chip.addEventListener('click', () => { const t = chip.dataset.tag; activeTag = (t === '__all') ? null : t; render(); });
-  });
 }
 function cardHTML(r) {
   const k = KIND[displayKind(r.kind)] || KIND.note;
@@ -772,10 +758,8 @@ function render() {
   const isWip = activeView === 'wip';
   el('wipSection').style.display = isWip ? '' : 'none';
   document.querySelector('.toolbar').style.display = isWip ? 'none' : '';
-  el('tagsRow').style.display = isWip ? 'none' : '';
   el('cardsWrap').style.display = isWip ? 'none' : '';
   if (isWip) { renderBoard(); return; }
-  renderTags();
   const list = filteredRows();
   const wrap = el('cardsWrap');
   const addLabel = activeView === 'diary' ? 'New diary entry' : (activeView === 'experience' ? 'New experience' : (activeView === 'introspection' ? 'New entry' : 'New'));
@@ -829,8 +813,14 @@ async function toggleFavourite(id) {
 function openReader(id, keepNav) {
   const r = rows.find(x => x.id === id); if (!r) return;
   const k = KIND[displayKind(r.kind)] || KIND.note;
-  let meta = k.lbl;
-  if (isWriting(r.kind) && r.status && STATUS[r.status]) meta += ' \u00B7 ' + STATUS[r.status].lbl;
+  let meta = k.lbl.toUpperCase();
+  (function () {
+    try {
+      const dt = r.created_at ? new Date(r.created_at) : null;
+      if (dt) meta += ' \u00B7 ' + dt.toLocaleDateString(undefined,
+        { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+    } catch (e) { /* date stays off the eyebrow */ }
+  })();
   el('readerTitle').textContent = r.title;
   el('readerKind').textContent = meta;
   el('readerH1').textContent = r.title;

@@ -64,6 +64,20 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**CL-1 (introspection.html)** (Aug 2026): four cleanups. (1) The
+hashtag filter row retired from every subsection - markup, renderTags,
+activeTag state, wip toggle, and .tags-row/.tag CSS all to zero refs;
+#tags survive on cards (.ctag) and inside search. (2) SEARCH CROSSES
+THE WHOLE INNER LIFE: with text in the box, filteredRows searches all
+rows regardless of tab (kind kickers identify each result's room);
+cleared, the tab's view returns. (3) Note pages open in the Circle
+page's grammar: the reader eyebrow became mono 0.5313rem / 0.18em
+tracking / weight 600 in the section accent (var(--r-acc)), now
+carrying KIND + DATE uppercase; the Fraunces 600 title stands beneath
+as before. (4) The diary lens + composer heart shed the tiny tracked
+mono for the page's own sans a step larger; count quieted to 'N this
+year'; 'Gratitude only' -> 'Gratitude'.
+
 **IN-7 + GD-1 + HD (introspection.html)** (Aug 2026): the Inner Life
 renamed and remade. 'My Introspection' -> 'MY MUSINGS & LEARNINGS'
 (IN-7, Rahul's word 'musings' + the word that dignifies incident-
