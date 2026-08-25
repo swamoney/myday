@@ -64,6 +64,13 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**Ledger date cells speak the date alone** (Aug 2026): both organ
+ledgers' date cells dropped the ' - today' suffix (screenshot showed
+'Aug 25 - today Salon' crowding the name column; the date already says
+it, and the ledger is month-scoped). The two orphaned todayIso
+declarations retired same-day; the third, still-used one elsewhere
+kept.
+
 **DC-1 - the confirm sheet (DC-2N tried and retired same day)**
 (Aug 2026): Rahul tried the armed-pill guard and preferred the sheet;
 DC-2N's machinery (armedDelete/_disarmDel, is-armed/del-armed clothes)

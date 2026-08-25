@@ -17319,7 +17319,6 @@ function renderRecurringLog() {
   //     Flat Rent     ₹32,000
   //   May 1 · migrated     ← annotation appears on day-1 of past months with 3+ payments,
   //     ...                  marking the historical-import stack date.
-  const todayIso = isoToday();
   // LG (Aug 2026): the grouped staircase retired - one bill, one line.
   // date - name - group tag (tap flips) - amount - delete; newest first.
   let total = 0;
@@ -17332,7 +17331,7 @@ function renderRecurringLog() {
       + '" data-recflip-idx="' + (it.idx !== undefined ? it.idx : '') + '" title="Tap to switch group">'
       + (grp === 'office' ? 'OFFICE' : 'HOME') + '</button>';
     const safeName = it.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const dcell = recShortDate(it.date) + (it.date === todayIso ? ' \u00b7 today' : '');
+    const dcell = recShortDate(it.date);
     return `<div class="rec-log-row lg">
       <span class="lg-d">${dcell}</span>
       <span class="rec-log-name">${safeName}</span>
@@ -17676,11 +17675,10 @@ function renderOtherLog() {
     return;
   }
 
-  const todayIso = isoToday();
   rowsEl.innerHTML = items.map(it => {
     const env = envForOtherItem_(it);
     const safeName = String(it.name || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const dcell = recShortDate(it.date) + (it.date === todayIso ? ' \u00b7 today' : '');
+    const dcell = recShortDate(it.date);
     const tag = '<button type="button" class="oe-tag oe-' + env + '" data-oeflip-date="' + it.date
       + '" data-oeflip-idx="' + it.idx + '" title="Tap to move to the next envelope">' + OE_TAG[env] + '</button>';
     return `<div class="rec-log-row lg">
