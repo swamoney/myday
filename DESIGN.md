@@ -101,6 +101,31 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**IL-2 round 7: the DX coherence stroke** (26 Aug 2026): MB - on
+phones the reader bar DROPS the path title entirely (display:none,
+back pinned left, actions right): the H1 sits one line below, so the
+bar title is desktop-only wayfinding; truncating it was noise.
+DX-1 ONE INKWELL: room accents re-derived from the manuscript inks -
+Diary sepia #6B5B45, Musings indigo #3E5C76, Timeline moss #5F7355,
+Writings aubergine #6D4E66 (Whiteboard gold) - across seg tints
+(writing tint rule added; it had none), reader --r-acc, tonight's
+WRITE, ix-more fleuron, chapter-ask button, shelf borders/wtag; the
+chapter page eyebrow drinks ITS OWN chapter's ink (style.color = sh,
+cleared for other kinds). DX-2 chips: CHIP_HUES retuned to the six
+inks (aubergine/ochre/indigo/moss/madder/sepia soft triples); hash
+untouched so every word keeps its colour forever. DX-3 search: rows
+for finding - .sfind (ink kicker naming the room + serif title +
+fav star); THE CARD ERA ENDED: cardHTML, its binds, and the CARDS css
+block retired to zero refs (the shared edit-mode rule survives for
+the whiteboard's .sticky.add; a healed cut - the binds removal left
+a dangling '});' + addCard line, caught by node --check). DX-4:
+Today's Reminder is an heirloom - cream #FDFCF7/#EAE4D2, gold-sepia
+sans caption, the line in 1.125rem Fraunces italic opened by the
+fleuron. DX-5: diary tab FIRST and the page now LANDS on the diary
+(activeView default 'diary' - flagged completion of the mock's
+'evenings open on the right room'). DX-6 (Year in the Inner Life
+printable) remains a noted future ritual.
+
 **IL-2 round 6: EY-2 / DR-1 / TS-1 + hero mark** (26 Aug 2026): the
 page eyebrow leaves mono for the page sans (0.6875rem 600, 0.06em,
 uppercase, accent) with QUIET SUFFIXES in .rk-quiet (sans 400
