@@ -101,6 +101,44 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**IL-2 round 2: fixes + MI-3/DP-1/RH-3** (25 Aug 2026): five fixes -
+(1) Delete lives on every note page (rdDel in the reader bar wired to
+readerEntry.id; the modal-era deleteEntry required editingId and had
+become unreachable - LESSON: when a component retires, every capability
+that lived ONLY inside it must be rehomed the same day). (2) Tonight's
+WRITE verified sound by a jsdom harness that boots the real page with
+a stubbed supabase and clicks the button (harness law: simulations
+import the real structure); hardened anyway - failures now toast, and
+today's page matches by LOCAL date (UTC slicing misfiled early-morning
+IST pages under yesterday). (3) Writings wear the readerChips tag row.
+(4) Age pill: whisper fill #5a70500d + hairline border. (5) Musings
+quick-add seated at the END of the index. Then the three locks:
+MI-3 - the fleuron (U+2767) is the note marker, icon only.
+DP-1 - every page wears a date row (mono pill under the dates line)
+that edits created_at via a hidden input+showPicker; dates written as
+ymd+T12:00:00Z (midday UTC keeps the local day stable across
+timezones); a diary page titled by its old date phrase is retitled to
+the new phrase; the diary gains the '+ a past day' door (date FIRST,
+then the page opens) for backfilling. Flagged deviation from the mock:
+'undated until picked' is not real - created_at always exists (DB
+stamps the row's birth), so the row shows the true date from birth.
+RH-3 - the chapter page wears the roadmap hero's grammar in ITS OWN
+COIN'S hue: title sweep = coin deep at 0.30 alpha ('4d'), 56%->96%
+band with box-decoration-break:clone for wrapped lines; sig bar 88x6
+r3 in the coin deep; hue index = position in chapterSort order, the
+same index the spine uses. Non-chapters keep the plain serif title.
+The screenshot's white-on-blue block was text SELECTION, not design -
+decoded against the why source before matching.
+
+**IL-2 migration ran** (25 Aug 2026): iw_entries now diary 3 /
+experience 1 / introspection 9 - zero gratitude rows; the moved
+entries wear the "gratitude" chip in jsonb tags. First attempt failed
+with btrim(jsonb): the tags column is JSONB, not text-JSON as the app
+serialization suggested. NEW STANDING LAW: column types are read from
+the database's own error or schema, never assumed from app-side
+serialization; migrations speak the column's native dialect
+(jsonb_typeof guard, @> containment for idempotence, || append).
+
 **CL-1 (introspection.html)** (Aug 2026): four cleanups. (1) The
 hashtag filter row retired from every subsection - markup, renderTags,
 activeTag state, wip toggle, and .tags-row/.tag CSS all to zero refs;
