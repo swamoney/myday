@@ -64,6 +64,26 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**AD-1 - due-today confirmations, learned from the log** (Aug 2026):
+recurring bills that auto-debit (or simply recur) now greet their day
+with a confirmation instead of a typing task. ENGINE (computeDueBills,
+pure history, zero setup, zero new schema): a bill is due when today's
+DOM >= its usual logging day - the modal FIRST-logging DOM across 2+
+past months, clamped to short months - and it isn't logged this month.
+Unpaid past its day it LINGERS as 'due since the Nth' (dashed card)
+until logged or skipped; logging any way, card or normal field, on any
+day, dissolves it (the record keeps the truth of when money moved).
+FACE: amber 'N due today' tag on the door (only such mornings); DUE
+TODAY strip atop the room; each card = name + grp + skip-this-month +
+LAST-AMOUNT CHIP (one tap = logged at that figure) + free amount input
+(evalExpr maths) + LOG. New typed figures become next month's chip
+automatically since the chip reads the log. Writes go ONLY through
+addRecurringPayment; repaints ride renderRecurringLog. Skip is a
+device-local month-scoped note (localStorage, pruned monthly) - the
+record itself is never touched by a skip. Fixture sim from the real
+engine source: due-on-day, lingering, 1-month exclusion, paid
+exclusion, sort - all exact.
+
 **Ledger date cells speak the date alone** (Aug 2026): both organ
 ledgers' date cells dropped the ' - today' suffix (screenshot showed
 'Aug 25 - today Salon' crowding the name column; the date already says

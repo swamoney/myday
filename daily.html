@@ -5896,6 +5896,65 @@
   .s-other-field.is-expanded .door-open .dw-close { display: inline; }
   .rec-collapse-field.is-expanded .door-open .dw-open { display: none; }
   .rec-collapse-field.is-expanded .door-open .dw-close { display: inline; }
+  /* AD-1: due-today confirmations */
+  .rec-due-tag {
+    font-family: var(--mono); font-size: 0.5938rem; color: #8A5711;
+    flex-shrink: 0; margin-left: auto;
+  }
+  .rec-due-tag.hidden { display: none; }
+  .rec-due-tag:not(.hidden) ~ .rec-door-owe { margin-left: 8px; }
+  .rec-due-strip.hidden { display: none; }
+  .rd-head {
+    font-family: var(--mono); font-size: 0.5625rem; font-weight: 600;
+    letter-spacing: 0.1em; color: #8A5711; margin-bottom: 6px; display: flex;
+  }
+  .rd-head .rd-src { margin-left: auto; color: #8a97b3; letter-spacing: 0.02em;
+    font-weight: 400; text-transform: none; }
+  .rd-card {
+    background: #fff; border: 1px solid #D9BD8E; border-radius: 10px;
+    padding: 8px 10px; margin-bottom: 7px;
+  }
+  .rd-card.rd-since { border-style: dashed; }
+  .rd-r1 { display: flex; align-items: baseline; gap: 7px; font-size: 0.71875rem; }
+  .rd-grp {
+    font-family: var(--mono); font-size: 0.5rem; color: var(--muted);
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 5px;
+    padding: 1px 5px;
+  }
+  .rd-when { font-family: var(--mono); font-size: 0.5rem; color: #8A5711; }
+  .rd-skip {
+    margin-left: auto; font-family: var(--mono); font-size: 0.5625rem;
+    color: #8a97b3; background: none; border: none; cursor: pointer;
+    text-decoration: underline dotted; padding: 0;
+  }
+  .rd-r2 { display: flex; align-items: center; gap: 7px; margin-top: 7px; }
+  .rd-chip {
+    font-family: var(--mono); font-size: 0.6563rem; font-weight: 600;
+    background: #F8F1E4; border: 1.5px solid #D9BD8E; color: #8A5711;
+    border-radius: 999px; padding: 4px 12px; cursor: pointer; text-align: left;
+    white-space: nowrap;
+  }
+  .rd-chip small {
+    font-family: var(--sans); font-weight: 500; font-size: 0.5rem;
+    color: #a8823f; display: block; letter-spacing: 0.04em;
+  }
+  .rd-chip:hover { background: #F3E8D2; }
+  .rd-in {
+    flex: 1; min-width: 0; border: 1px solid var(--rule); border-radius: 9px;
+    background: #fff; padding: 7px 9px; font-size: 0.75rem;
+    font-family: var(--sans); color: var(--ink);
+  }
+  .rd-go {
+    font-family: var(--mono); font-size: 0.5938rem; font-weight: 600;
+    background: var(--moss); color: #fff; border: none; border-radius: 8px;
+    padding: 7px 11px; cursor: pointer;
+  }
+  .rd-go:disabled, .rd-chip:disabled { opacity: 0.5; cursor: default; }
+  @media (max-width: 480px) {
+    .rd-head .rd-src { display: none; }
+    .rd-when { display: none; }
+  }
+
   /* DC-1: the confirm sheet names the item and the date */
   .del-confirm-overlay {
     position: fixed; inset: 0; z-index: 400;
@@ -6535,11 +6594,13 @@
         <div class="rec-summary" id="recSummary" role="button" tabindex="0" aria-expanded="false">
           <span class="door-lbl">RECURRING</span>
           <span class="rec-summary-text" id="recSummaryText">no bills yet &middot; tap to add rent, subscriptions…</span>
+          <span class="rec-due-tag hidden" id="recDueTag"></span>
           <span class="rec-door-owe hidden" id="recDoorOwe"></span>
           <span class="door-open" id="recSummaryChev" aria-hidden="true"><span class="dw-open">OPEN &#9662;</span><span class="dw-close">CLOSE &#9652;</span></span>
         </div>
         <div class="recurring-card">
           <div class="rec-hint hidden" id="recHint"></div>
+          <div class="rec-due-strip hidden" id="recDueStrip"></div>
           <div class="rec-field">
             <input class="input rec-name-input" type="text" id="recName" placeholder="e.g., Flat Rent" autocomplete="off" aria-label="What did you pay today?">
             <div class="chip-garden-tools"><button type="button" class="chip-edit-link" data-chipedit="rec">edit chips</button></div>
@@ -17380,6 +17441,8 @@ function renderRecurringLog() {
   // Nested collapse: refresh the summary line (month total + count) whenever
   // the log re-renders.
   if (typeof renderRecurringSummary === 'function') renderRecurringSummary();
+  // AD-1: the due strip derives from the same log - repaint together.
+  if (typeof renderRecDueStrip === 'function') renderRecDueStrip();
 }
 
 // Nested collapse summary line. Shows the CURRENT MONTH's recurring total +
@@ -17409,6 +17472,156 @@ function renderRecurringSummary() {
   textEl.innerHTML =
     recFmt(total) +
     ' <span class="rec-summary-cta">&middot; ' + count + ' paid</span>';
+}
+
+// =========== AD-1: auto-debit / due-today confirmations (Aug 2026) ======
+// Pure history, zero setup, zero new storage: a bill is 'due' when today's
+// day-of-month has reached its usual logging day (modal first-logging DOM
+// across 2+ past months) and it hasn't been logged this month. The card
+// offers the LAST amount as a one-tap chip, or a fresh amount typed there;
+// either path writes through addRecurringPayment - the log stays the only
+// truth, and the reminder derives from it. 'Skip' silences a bill for the
+// current month only (device-local note; nothing written to the record).
+function _adSkipKey() { return 'myday_ad1_skips'; }
+function _adSkips() {
+  try {
+    const ym = isoToday().slice(0, 7);
+    const all = JSON.parse(localStorage.getItem(_adSkipKey()) || '{}');
+    return new Set(all[ym] || []);
+  } catch (e) { return new Set(); }
+}
+function _adSkipAdd(nameLower) {
+  try {
+    const ym = isoToday().slice(0, 7);
+    const all = JSON.parse(localStorage.getItem(_adSkipKey()) || '{}');
+    const keep = {}; keep[ym] = Array.from(new Set([...(all[ym] || []), nameLower]));
+    localStorage.setItem(_adSkipKey(), JSON.stringify(keep)); // prunes old months
+  } catch (e) { /* non-fatal */ }
+}
+function computeDueBills() {
+  const todayIso = isoToday();
+  const ym = todayIso.slice(0, 7);
+  const dom = parseInt(todayIso.slice(8, 10), 10);
+  const y = parseInt(todayIso.slice(0, 4), 10);
+  const m = parseInt(todayIso.slice(5, 7), 10);
+  const daysThisMonth = new Date(y, m, 0).getDate();
+  const skips = _adSkips();
+
+  const firstDomByMonth = new Map();  // nameLower -> Map(ym' -> min DOM)
+  const last = new Map();             // nameLower -> {name, amt, grp, date}
+  const paidThisMonth = new Set();
+
+  Object.keys(allEntries).forEach(dt => {
+    const payments = parseRecurring(allEntries[dt]);
+    if (!payments.length) return;
+    const eYm = dt.slice(0, 7);
+    const eDom = parseInt(dt.slice(8, 10), 10);
+    payments.forEach(p => {
+      const nl = String(p.name || '').toLowerCase().trim();
+      if (!nl) return;
+      if (eYm === ym) paidThisMonth.add(nl);
+      if (eYm < ym) {
+        if (!firstDomByMonth.has(nl)) firstDomByMonth.set(nl, new Map());
+        const mm2 = firstDomByMonth.get(nl);
+        mm2.set(eYm, Math.min(mm2.get(eYm) || 32, eDom));
+      }
+      const prev = last.get(nl);
+      if (!prev || dt > prev.date) last.set(nl, { name: p.name, amt: p.amt, grp: p.grp || '', date: dt });
+    });
+  });
+
+  const due = [];
+  firstDomByMonth.forEach((byYm, nl) => {
+    if (byYm.size < 2) return;                       // pattern needs 2+ months
+    if (paidThisMonth.has(nl) || skips.has(nl)) return;
+    const freq = new Map();
+    byYm.forEach(d0 => freq.set(d0, (freq.get(d0) || 0) + 1));
+    let modal = 31, best = 0;
+    freq.forEach((c, d0) => { if (c > best || (c === best && d0 < modal)) { modal = d0; best = c; } });
+    const dueDay = Math.min(modal, daysThisMonth);
+    if (dom >= dueDay) {
+      const li = last.get(nl) || { name: nl, amt: 0, grp: '' };
+      due.push({ name: li.name, amt: li.amt, grp: li.grp, dueDay, since: dom > dueDay });
+    }
+  });
+  due.sort((a, b) => a.dueDay - b.dueDay || a.name.localeCompare(b.name));
+  return due;
+}
+async function _adConfirm(name, amt, grp) {
+  const res = await addRecurringPayment(isoToday(), name, amt, grp || undefined);
+  if (!res.ok) return false;
+  renderRecurringLog();                              // refreshes summary too
+  if (isoToday() === currentDate) {
+    if (typeof updateTodayProgressRing === 'function') updateTodayProgressRing();
+    if (typeof updateExpenseFooter === 'function') updateExpenseFooter();
+  }
+  renderRecDueStrip();
+  return true;
+}
+function renderRecDueStrip() {
+  const strip = document.getElementById('recDueStrip');
+  const tag = document.getElementById('recDueTag');
+  if (!strip) return;
+  const due = computeDueBills();
+  if (tag) {
+    tag.classList.toggle('hidden', due.length === 0);
+    tag.textContent = due.length ? (due.length + ' due today') : '';
+  }
+  if (!due.length) { strip.classList.add('hidden'); strip.innerHTML = ''; return; }
+  const todayIso = isoToday();
+  const dd = parseInt(todayIso.slice(8, 10), 10);
+  const mm = parseInt(todayIso.slice(5, 7), 10);
+  let html = '<div class="rd-head">DUE TODAY \u00b7 ' + dd + ' ' +
+    MONTH_NAMES[mm - 1].slice(0, 3).toUpperCase() +
+    '<span class="rd-src">learned from your history</span></div>';
+  html += due.map((b, ix) => {
+    const nm = escHtml(b.name);
+    const grpTag = b.grp ? '<span class="rd-grp">' + escHtml(String(b.grp).toUpperCase()) + '</span>' : '';
+    const when = b.since ? 'due since the ' + b.dueDay + ordSuffix(b.dueDay) : 'usually the ' + b.dueDay + ordSuffix(b.dueDay);
+    return `<div class="rd-card${b.since ? ' rd-since' : ''}" data-rd-ix="${ix}">
+      <div class="rd-r1"><b>${nm}</b>${grpTag}<span class="rd-when">${when}</span>
+        <button type="button" class="rd-skip" data-rd-skip="${ix}">skip this month</button></div>
+      <div class="rd-r2">
+        <button type="button" class="rd-chip" data-rd-chip="${ix}">\u20b9${Number(b.amt).toLocaleString('en-IN')}<small>last amount \u00b7 tap = done</small></button>
+        <input class="rd-in" type="text" inputmode="decimal" placeholder="or \u20b9 new amount\u2026" data-rd-in="${ix}" aria-label="New amount for ${nm}">
+        <button type="button" class="rd-go" data-rd-go="${ix}">LOG \u2713</button>
+      </div>
+    </div>`;
+  }).join('');
+  strip.innerHTML = html;
+  strip.classList.remove('hidden');
+  strip.querySelectorAll('[data-rd-chip]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const b = due[parseInt(btn.dataset.rdChip, 10)];
+      btn.disabled = true;
+      const ok = await _adConfirm(b.name, b.amt, b.grp);
+      if (!ok) btn.disabled = false;
+    });
+  });
+  strip.querySelectorAll('[data-rd-go]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const ix = parseInt(btn.dataset.rdGo, 10);
+      const b = due[ix];
+      const inp = strip.querySelector('[data-rd-in="' + ix + '"]');
+      const amt = evalExpr(inp ? inp.value : '');
+      if (!amt || amt <= 0) { if (inp) inp.focus(); return; }
+      btn.disabled = true;
+      const ok = await _adConfirm(b.name, amt, b.grp);
+      if (!ok) btn.disabled = false;
+    });
+  });
+  strip.querySelectorAll('[data-rd-skip]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const b = due[parseInt(btn.dataset.rdSkip, 10)];
+      _adSkipAdd(String(b.name).toLowerCase().trim());
+      renderRecDueStrip();
+    });
+  });
+}
+function ordSuffix(n) {
+  const v = n % 100;
+  if (v >= 11 && v <= 13) return 'th';
+  return ({ 1: 'st', 2: 'nd', 3: 'rd' })[n % 10] || 'th';
 }
 
 function setupRecurring() {
