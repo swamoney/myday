@@ -64,6 +64,22 @@ a modal with copy-last-month; loaded at boot beside user prefs. The
 table joined backup, audit, and restore in the same commit; cache
 version bumped on the four pages that load note-editor.js.
 
+**SP-1 - doors above the fold; spine amended and RE-FROZEN**
+(Aug 2026): Other + Recurring lifted OUT of the '+more' fold and
+seated between P4 and the fold-pill. The reason is stronger than
+convenience: the Recurring door carries live pending intelligence
+(the amber 'to pay' chip), and intelligence behind a fold must be
+remembered to be seen - above the fold it catches the eye daily until
+it turns moss. Other earns the seat on frequency; since OD-3 each door
+costs one compact row. The pill now tells the new truth: +7, 'more -
+lifestyle, hotel, taxes & tracking' (no organ named that is not
+inside). Doors stay CLOSED BY DEFAULT in every state - audited: the
+only is-expanded adds target section containers (hub focus), never the
+organ doors; both organs already re-collapse on every date change.
+THE SPINE, AMENDED ONCE DELIBERATELY, IS RE-FROZEN AS: P0-P4 fields ->
+OTHER door -> RECURRING door -> fold(P5 Lifestyle, P6 Hotel, Taxes,
+Tracking). Future reorders require the same deliberate amendment.
+
 **OD-3 - the label enters the door** (Aug 2026): the crowded stretch
 between Transport and Lifestyle (Rahul's screenshot: gold fold-pill +
 grey band + gold door + grey band + gold door + three dashed seams)
