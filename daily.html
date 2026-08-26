@@ -17341,7 +17341,7 @@ function renderRecPending(history, monthPrefix) {
     if (history.paidThisMonth.has(nl)) return;
     // RB (Aug 2026): a bill you've declared stopped leaves the pending
     // amount too - history keeps the record, the debt stops pretending.
-    if (rbP[nl] && rbP[nl].ans === 'no') return;
+    if (rbP[nl] && (rbP[nl].ans === 'no' || rbP[nl].hide)) return;
     const last = history.lastByName.get(nl);
     total += last ? (Number(last.amt) || 0) : 0;
     count++;
@@ -17430,7 +17430,7 @@ function refreshRecHint(history) {
   if (!hintEl) return;
   const rbH = _rbMap();
   const pending = history.usuallyPaid.filter(n => !history.paidThisMonth.has(n) &&
-    !(rbH[n] && rbH[n].ans === 'no'));   // stopped bills leave the hint too
+    !(rbH[n] && (rbH[n].ans === 'no' || rbH[n].hide)));   // stopped/removed leave the hint
   if (pending.length === 0) {
     hintEl.classList.add('hidden');
     hintEl.innerHTML = '';
@@ -17740,6 +17740,7 @@ function computeDueBills() {
     freq.forEach((c, d0) => { if (c > best || (c === best && d0 < modal)) { modal = d0; best = c; } });
     const li = last.get(nl) || { name: nl, amt: 0, grp: '', date: '' };
     const a = rb[nl];
+    if (a && a.hide) return;             // removed names never speak again
     // RB-2 (Aug 2026): a hand-picked day beats the history guess.
     const pick = a && a.day >= 1 && a.day <= 31 ? a.day : modal;
     const dueDay = Math.min(pick, daysThisMonth);
@@ -17775,7 +17776,7 @@ function computeDueBills() {
     const a = rb[nl];
     // Hand-made reminders: enlisted by hand (manual) OR an irregular name
     // you blessed and gave a day to. Your day makes it real; no pattern needed.
-    if (!a || a.ans !== 'yes' || (!a.manual && !(a.day >= 1))) return;
+    if (!a || a.hide || a.ans !== 'yes' || (!a.manual && !(a.day >= 1))) return;
     if (firstDomByMonth.has(nl) && firstDomByMonth.get(nl).size >= 2) return; // detected handles it
     if (paidThisMonth.has(nl) || skips.has(nl)) return;
     const pick = a.day >= 1 && a.day <= 31 ? a.day : 1;
@@ -17813,7 +17814,9 @@ function _rbAllDetected() {
     });
   });
   const out = [], seen = new Set();
+  const rbHid = _rbMap();
   firstDomByMonth.forEach((byYm, nl) => {
+    if (rbHid[nl] && rbHid[nl].hide) { seen.add(nl); return; }
     const monthly = byYm.size >= 2;
     const freq = new Map();
     byYm.forEach(d0 => freq.set(d0, (freq.get(d0) || 0) + 1));
@@ -17872,7 +17875,8 @@ function openReminderSheet() {
         ? 'day ' + dayNow + ' \u00b7 from history'
         : 'irregular \u00b7 set a day';
     const meta = '\u20b9' + Number(r.amt).toLocaleString('en-IN') +
-      (a.note ? ' \u00b7 ' + escHtml(a.note) : '') + (r.manual ? ' \u00b7 by hand' : '');
+      (a.note && a.ans !== 'yes' ? ' \u00b7 ' + escHtml(a.note) : '') +
+      (r.manual ? ' \u00b7 by hand' : '');
     return '<div class="rb-row"><button type="button" class="rb-sw ' + (on ? 'on' : 'off') +
       '" data-rb-sw="' + escHtml(r.nl) + '" role="switch" aria-checked="' + on + '"><i></i></button>' +
       '<span class="rb-nm">' + escHtml(r.name) + '</span>' +
@@ -17880,7 +17884,9 @@ function openReminderSheet() {
         '" data-rb-cur="' + dayNow + '" title="Pick the reminder day yourself">' + dayLbl + '</button>' +
       '<span class="rb-meta">' + meta + '</span>' +
       '<button type="button" class="rb-rowstop" data-rb-rowstop="' + escHtml(r.nl) +
-        '" title="Stopped \u2014 never remind">\u2298</button></div>';
+        '" title="Stopped \u2014 never remind">\u2298</button>' +
+      (on ? '' : '<button type="button" class="rb-rowhide" data-rb-rowhide="' + escHtml(r.nl) +
+        '" title="Remove from this list">\u00D7</button>') + '</div>';
   }).join('') : '<div class="rb-empty">No recurring names in your history yet.</div>';
   // RB-2: enlist a bill by hand - no history required.
   list.innerHTML += '<div class="rb-addrow">' +
@@ -17892,7 +17898,8 @@ function openReminderSheet() {
     sw.addEventListener('click', () => {
       const nl = sw.dataset.rbSw;
       const now = (_rbMap()[nl] || {}).ans === 'yes';
-      _rbSet(nl, { ans: now ? 'no' : 'yes' });
+      // Switching a bill back ON is a fresh start - the stopped note leaves.
+      _rbSet(nl, now ? { ans: 'no' } : { ans: 'yes', note: '' });
       openReminderSheet();   // repaint
     });
   });
@@ -17909,6 +17916,13 @@ function openReminderSheet() {
       const n = parseInt(t, 10);
       if (!n || n < 1 || n > 31) { toast('A day from 1 to 31, please'); return; }
       _rbSet(nl, { day: n });
+      openReminderSheet();
+    });
+  });
+  // Removed names leave the sheet entirely (hide:1 - old duplicates die here).
+  list.querySelectorAll('[data-rb-rowhide]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _rbSet(btn.dataset.rbRowhide, { ans: 'no', hide: 1 });
       openReminderSheet();
     });
   });
@@ -18041,7 +18055,7 @@ function renderRecDueStrip() {
   });
   strip.querySelectorAll('[data-rb-keep]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const patch = { ans: 'yes' };
+      const patch = { ans: 'yes', note: '' };   // a yes always clears old stop notes
       if (btn.dataset.rbYm) { patch.lapseFor = btn.dataset.rbYm; patch.keep = 1; }
       // The day window opens right here: pick a day in the same breath as the
       // yes. Cancel or empty keeps the history guess - the yes is never lost.

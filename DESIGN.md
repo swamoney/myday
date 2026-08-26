@@ -101,6 +101,19 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-6: fresh starts + removable names** (26 Aug 2026):
+(1) Restarted bills no longer wear the old obituary: switching ON and
+every yes path write note:'' (fresh start), and the sheet's meta
+speaks the note only while ans !== 'yes' (display guard, belt +
+braces). (2) A name can now LEAVE the sheet: off rows wear a small x
+that sets {ans:'no', hide:1}; hidden names vanish from the sheet
+list, the detection engine, the asks, the manual loop, the pending
+amount, and the usually-paid hint - the answer for retired
+duplicates like 'mngl gas' beside 'flat mngl gas'. History untouched;
+reversible only by paying the bill again under that exact name (a
+fresh 2-month pattern would still stay hidden - hide is permanent
+until edited in prefs), which suits a dead duplicate.
+
 **RB-5: the day rides the yes** (26 Aug 2026): tapping 'Yes, remind'
 on any ask opens the day window in the same breath, prefilled with
 the history guess (data-rb-dom); a number 1-31 saves as the picked
