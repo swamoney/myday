@@ -101,6 +101,15 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**HB-1: the hub line restored** (26 Aug 2026): the Inner Life card's
+desc returned to its 18 Aug original - 'Reflections gathered,
+gratitude kept.' - found in the transcripts (born with the D4 'My
+Inner Life' rename). The IL-2-era 'Learnings indexed, chapters kept,
+pages written.' read like a feature list; the original has the
+music, and 'gratitude kept' remains true - gratitude lives as chips
+in the diary. LESSON: microcopy history lives in /mnt/transcripts;
+check it before rewriting a line the user once loved.
+
 **RB AUDIT (full)** (26 Aug 2026): requested proactive audit of the
 whole recurring/reminder system before long-term reliance. METHOD:
 (1) boot-order race analysis - loadUserPrefs RESETS _userPrefs, so
