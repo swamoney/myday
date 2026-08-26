@@ -17989,7 +17989,7 @@ function renderRecDueStrip() {
       : nm + ' hasn\u2019t been logged for ' + a.months + ' months \u2014 still remind you?';
     return '<div class="rd-ask">' + line +
       '<span class="rb-yn">' +
-      '<button type="button" class="rb-yes" data-rb-keep="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(ym3) + '">Yes, remind</button>' +
+      '<button type="button" class="rb-yes" data-rb-keep="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(ym3) + '" data-rb-dom="' + (a.dueDay || '') + '">Yes, remind</button>' +
       '<button type="button" class="rb-no" data-rb-no="' + escHtml(a.nl) + '">No, never</button>' +
       '<button type="button" class="rb-ended" data-rb-ended="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(ym3) + '">It stopped</button>' +
       '</span></div>';
@@ -18043,6 +18043,15 @@ function renderRecDueStrip() {
     btn.addEventListener('click', () => {
       const patch = { ans: 'yes' };
       if (btn.dataset.rbYm) { patch.lapseFor = btn.dataset.rbYm; patch.keep = 1; }
+      // The day window opens right here: pick a day in the same breath as the
+      // yes. Cancel or empty keeps the history guess - the yes is never lost.
+      const guess = btn.dataset.rbDom || '';
+      const raw = window.prompt('Remind on which day of the month? (1\u201331)\n' +
+        'Leave empty to follow the history guess' + (guess ? ' (~the ' + guess + ')' : '') + '.', guess);
+      if (raw !== null) {
+        const n = parseInt(String(raw).trim(), 10);
+        if (n >= 1 && n <= 31) patch.day = n;
+      }
       _rbSet(btn.dataset.rbKeep, patch);
       renderRecDueStrip();
     });

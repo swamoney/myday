@@ -101,6 +101,12 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-5: the day rides the yes** (26 Aug 2026): tapping 'Yes, remind'
+on any ask opens the day window in the same breath, prefilled with
+the history guess (data-rb-dom); a number 1-31 saves as the picked
+day, while CANCEL or empty keeps the history guess - the yes itself
+is never lost either way.
+
 **RB-4: three answers together + the sheet's stop symbol**
 (26 Aug 2026): every ask card (new-pattern AND lapse) now stands all
 three answers side by side - moss 'Yes, remind' / plain 'No, never' /
