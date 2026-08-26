@@ -5873,6 +5873,44 @@
     padding: 1px 5px;
   }
   .rd-when { font-family: var(--mono); font-size: 0.5rem; color: #8A5711; }
+  .rd-stop { font-size:0.625rem; font-weight:600; color:#A8443E; background:transparent;
+    border:1px solid #E5C8C5; border-radius:8px; padding:4px 9px; cursor:pointer; }
+  .rd-stop:hover { background:#FBF1F0; }
+  .rd-ask { border:1.5px dashed #D8CBAA; background:#FCFAF3; border-radius:11px;
+    padding:9px 12px; font-size:0.71875rem; margin-top:7px; display:flex;
+    align-items:center; gap:8px; flex-wrap:wrap; color:#3D4866; }
+  .rb-yn { display:inline-flex; gap:6px; margin-left:auto; }
+  .rb-yes { font-size:0.6563rem; font-weight:600; color:#fff; background:#5F7355;
+    border:1px solid #5F7355; border-radius:8px; padding:4px 11px; cursor:pointer; }
+  .rb-no { font-size:0.6563rem; font-weight:600; color:#7b8598; background:#fff;
+    border:1px solid #cdd5e0; border-radius:8px; padding:4px 11px; cursor:pointer; }
+  .rd-manage { cursor:pointer; background:none; border:none; font:inherit; }
+  .rb-bell { background:none; border:none; cursor:pointer; font-size:0.8125rem;
+    padding:0 2px; line-height:1; vertical-align:-1px; }
+  .rb-overlay { position:fixed; inset:0; background:rgba(10,19,37,0.42); z-index:640;
+    display:flex; align-items:flex-end; justify-content:center; }
+  .rb-overlay.hidden { display:none; }
+  .rb-sheet { background:#fbfcfe; border-radius:16px 16px 0 0; width:min(560px, 100%);
+    max-height:76vh; overflow:auto; padding:16px 16px 22px;
+    box-shadow:0 -8px 30px rgba(10,19,37,0.25); }
+  .rb-sh-head { font-family:var(--mono, monospace); font-size:0.625rem; font-weight:600;
+    letter-spacing:0.14em; color:#8A5711; display:flex; align-items:center; }
+  .rb-sh-x { margin-left:auto; background:none; border:none; font-size:1.25rem;
+    color:#8a94aa; cursor:pointer; line-height:1; }
+  .rb-sh-sub { font-size:0.6875rem; color:#68748c; margin:5px 0 12px; }
+  .rb-row { display:flex; align-items:center; gap:10px; padding:9px 2px;
+    border-bottom:1px dashed #dde3ec; }
+  .rb-row:last-child { border-bottom:none; }
+  .rb-sw { width:36px; height:20px; border-radius:999px; position:relative; border:none;
+    cursor:pointer; flex-shrink:0; padding:0; }
+  .rb-sw i { position:absolute; top:3px; width:14px; height:14px; border-radius:50%;
+    background:#fff; box-shadow:0 1px 2px rgba(10,19,37,0.25); }
+  .rb-sw.on { background:#5F7355; } .rb-sw.on i { right:3px; }
+  .rb-sw.off { background:#c9d1dd; } .rb-sw.off i { left:3px; }
+  .rb-nm { font-size:0.75rem; font-weight:600; }
+  .rb-meta { margin-left:auto; font-family:var(--mono, monospace); font-size:0.5625rem;
+    color:#8a97b3; text-align:right; }
+  .rb-empty { font-size:0.71875rem; color:#8a97b3; padding:14px 2px; }
   .rd-skip {
     margin-left: auto; font-family: var(--mono); font-size: 0.5625rem;
     color: #8a97b3; background: none; border: none; cursor: pointer;
@@ -6576,7 +6614,7 @@
              expand the full add-payment panel below. Keeps the "8 more" reveal
              light. Summary text set by renderRecurringSummary(). -->
         <div class="rec-summary" id="recSummary" role="button" tabindex="0" aria-expanded="false">
-          <span class="door-lbl">RECURRING</span>
+          <span class="door-lbl">RECURRING</span><button type="button" class="rb-bell" id="rbBellBtn" title="Reminder settings" aria-label="Reminder settings">&#128276;</button>
           <span class="rec-summary-text" id="recSummaryText">no bills yet &middot; tap to add rent, subscriptions…</span>
           <span class="rec-due-tag hidden" id="recDueTag"></span>
           <span class="rec-door-owe hidden" id="recDoorOwe"></span>
@@ -17544,20 +17582,57 @@ function renderRecurringSummary() {
 // truth, and the reminder derives from it. 'Skip' silences a bill for the
 // current month only (device-local note; nothing written to the record).
 function _adSkipKey() { return 'myday_ad1_skips'; }
+// RB-1 (Aug 2026): reminders are a WHITELIST the user owns, living in
+// user_prefs (Supabase-synced, device-proof for the decades ahead).
+//   _userPrefs.reminderBills      = { nameLower: {ans:'yes'|'no', at, note?,
+//                                     lapseFor?, keep?} }
+//   _userPrefs.reminderMonthSkips = { 'YYYY-MM': [nameLower] } (pruned)
+// The old localStorage month-skip list folds in once, then retires.
+function _rbMap() {
+  if (!_userPrefs.reminderBills || typeof _userPrefs.reminderBills !== 'object') {
+    _userPrefs.reminderBills = {};
+  }
+  return _userPrefs.reminderBills;
+}
+function _rbSet(nameLower, patch) {
+  const m2 = _rbMap();
+  m2[nameLower] = Object.assign({}, m2[nameLower] || {}, patch,
+    { at: new Date().toISOString().slice(0, 10) });
+  _commitPrefsChange();
+}
 function _adSkips() {
   try {
     const ym = isoToday().slice(0, 7);
-    const all = JSON.parse(localStorage.getItem(_adSkipKey()) || '{}');
-    return new Set(all[ym] || []);
+    // one-time fold of the pre-RB-1 localStorage skips into prefs
+    const legacy = localStorage.getItem(_adSkipKey());
+    if (legacy) {
+      try {
+        const all = JSON.parse(legacy) || {};
+        const store = _userPrefs.reminderMonthSkips || {};
+        Object.keys(all).forEach(k => {
+          store[k] = Array.from(new Set([...(store[k] || []), ...(all[k] || [])]));
+        });
+        _userPrefs.reminderMonthSkips = store;
+        _commitPrefsChange();
+      } catch (e2) { /* fold is best-effort */ }
+      localStorage.removeItem(_adSkipKey());
+    }
+    const sk = _userPrefs.reminderMonthSkips || {};
+    return new Set(sk[ym] || []);
   } catch (e) { return new Set(); }
 }
 function _adSkipAdd(nameLower) {
   try {
     const ym = isoToday().slice(0, 7);
-    const all = JSON.parse(localStorage.getItem(_adSkipKey()) || '{}');
-    const keep = {}; keep[ym] = Array.from(new Set([...(all[ym] || []), nameLower]));
-    localStorage.setItem(_adSkipKey(), JSON.stringify(keep)); // prunes old months
+    const keep = {}; keep[ym] = Array.from(new Set([
+      ...((_userPrefs.reminderMonthSkips || {})[ym] || []), nameLower]));
+    _userPrefs.reminderMonthSkips = keep;   // prunes old months
+    _commitPrefsChange();
   } catch (e) { /* non-fatal */ }
+}
+function _monthsBetween(ymA, ymB) {   // ymB - ymA in calendar months
+  const a = ymA.split('-').map(Number), b = ymB.split('-').map(Number);
+  return (b[0] - a[0]) * 12 + (b[1] - a[1]);
 }
 function computeDueBills() {
   const todayIso = isoToday();
@@ -17591,22 +17666,129 @@ function computeDueBills() {
     });
   });
 
-  const due = [];
+  const due = [], asks = [];
+  const rb = _rbMap();
   firstDomByMonth.forEach((byYm, nl) => {
     if (byYm.size < 2) return;                       // pattern needs 2+ months
-    if (paidThisMonth.has(nl) || skips.has(nl)) return;
     const freq = new Map();
     byYm.forEach(d0 => freq.set(d0, (freq.get(d0) || 0) + 1));
     let modal = 31, best = 0;
     freq.forEach((c, d0) => { if (c > best || (c === best && d0 < modal)) { modal = d0; best = c; } });
     const dueDay = Math.min(modal, daysThisMonth);
+    const li = last.get(nl) || { name: nl, amt: 0, grp: '', date: '' };
+    const a = rb[nl];
+
+    // Undecided: the one-time ask (the day-one jury covers stopped bills too).
+    if (!a || (a.ans !== 'yes' && a.ans !== 'no')) {
+      asks.push({ kind: 'new', nl, name: li.name, amt: li.amt, grp: li.grp,
+                  months: byYm.size, dueDay });
+      return;
+    }
+    if (a.ans !== 'yes') return;                     // 'no' = silence forever
+
+    // The lapse guard: three silent months -> ask once per stoppage.
+    const lastYm = String(li.date || '').slice(0, 7);
+    const silentMonths = lastYm ? _monthsBetween(lastYm, ym) : 0;
+    if (silentMonths >= 3) {
+      if (a.lapseFor === lastYm) {
+        if (!a.keep) return;                         // asked, no keep -> silent
+      } else {
+        asks.push({ kind: 'lapse', nl, name: li.name, months: silentMonths, lastYm });
+        return;
+      }
+    }
+
+    if (paidThisMonth.has(nl) || skips.has(nl)) return;
     if (dom >= dueDay) {
-      const li = last.get(nl) || { name: nl, amt: 0, grp: '' };
-      due.push({ name: li.name, amt: li.amt, grp: li.grp, dueDay, since: dom > dueDay });
+      due.push({ nl, name: li.name, amt: li.amt, grp: li.grp, dueDay, since: dom > dueDay });
     }
   });
   due.sort((a, b) => a.dueDay - b.dueDay || a.name.localeCompare(b.name));
-  return due;
+  asks.sort((a, b) => a.name.localeCompare(b.name));
+  return { due, asks };
+}
+// RB-1: the reminder sheet - every name the engine knows, one switch each.
+function _rbAllDetected() {
+  const todayIso = isoToday();
+  const ym = todayIso.slice(0, 7);
+  const firstDomByMonth = new Map(), last = new Map();
+  Object.keys(allEntries).forEach(dt => {
+    const payments = parseRecurring(allEntries[dt]);
+    if (!payments.length) return;
+    const eYm = dt.slice(0, 7), eDom = parseInt(dt.slice(8, 10), 10);
+    payments.forEach(p => {
+      const nl = String(p.name || '').toLowerCase().trim();
+      if (!nl) return;
+      if (eYm <= ym) {
+        if (!firstDomByMonth.has(nl)) firstDomByMonth.set(nl, new Map());
+        const mm2 = firstDomByMonth.get(nl);
+        mm2.set(eYm, Math.min(mm2.get(eYm) || 32, eDom));
+      }
+      const prev = last.get(nl);
+      if (!prev || dt > prev.date) last.set(nl, { name: p.name, amt: p.amt, date: dt });
+    });
+  });
+  const out = [];
+  firstDomByMonth.forEach((byYm, nl) => {
+    const monthly = byYm.size >= 2;
+    const freq = new Map();
+    byYm.forEach(d0 => freq.set(d0, (freq.get(d0) || 0) + 1));
+    let modal = 31, best = 0;
+    freq.forEach((c, d0) => { if (c > best || (c === best && d0 < modal)) { modal = d0; best = c; } });
+    const li = last.get(nl) || { name: nl, amt: 0, date: '' };
+    out.push({ nl, name: li.name, amt: li.amt, monthly, dom: modal, lastDate: li.date });
+  });
+  out.sort((a, b) => (b.monthly - a.monthly) || a.name.localeCompare(b.name));
+  return out;
+}
+function _rbEnsureSheet() {
+  if (document.getElementById('rbSheetOverlay')) return;
+  const ov = document.createElement('div');
+  ov.id = 'rbSheetOverlay';
+  ov.className = 'rb-overlay hidden';
+  ov.innerHTML = '<div class="rb-sheet" role="dialog" aria-modal="true" aria-label="Reminder settings">' +
+    '<div class="rb-sh-head">REMINDERS \u00b7 YOUR HAND ON THE BELL' +
+    '<button type="button" class="rb-sh-x" id="rbSheetClose" aria-label="Close">\u00d7</button></div>' +
+    '<div class="rb-sh-sub">Only switched-on bills ever remind. Answers live in your database.</div>' +
+    '<div id="rbSheetList"></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('click', e => { if (e.target === ov) _rbSheetClose(); });
+  document.getElementById('rbSheetClose').addEventListener('click', _rbSheetClose);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !ov.classList.contains('hidden')) _rbSheetClose();
+  });
+}
+function _rbSheetClose() {
+  const ov = document.getElementById('rbSheetOverlay');
+  if (ov) ov.classList.add('hidden');
+  renderRecDueStrip();
+}
+function openReminderSheet() {
+  _rbEnsureSheet();
+  const ov = document.getElementById('rbSheetOverlay');
+  const list = document.getElementById('rbSheetList');
+  const rb = _rbMap();
+  const rows = _rbAllDetected();
+  list.innerHTML = rows.length ? rows.map(r => {
+    const a = rb[r.nl] || {};
+    const on = a.ans === 'yes';
+    const meta = (r.monthly ? '~' + r.dom + ordSuffix(r.dom) : 'irregular') +
+      ' \u00b7 \u20b9' + Number(r.amt).toLocaleString('en-IN') +
+      (a.note ? ' \u00b7 ' + escHtml(a.note) : '');
+    return '<div class="rb-row"><button type="button" class="rb-sw ' + (on ? 'on' : 'off') +
+      '" data-rb-sw="' + escHtml(r.nl) + '" role="switch" aria-checked="' + on + '"><i></i></button>' +
+      '<span class="rb-nm">' + escHtml(r.name) + '</span>' +
+      '<span class="rb-meta">' + meta + '</span></div>';
+  }).join('') : '<div class="rb-empty">No recurring names in your history yet.</div>';
+  list.querySelectorAll('[data-rb-sw]').forEach(sw => {
+    sw.addEventListener('click', () => {
+      const nl = sw.dataset.rbSw;
+      const now = (_rbMap()[nl] || {}).ans === 'yes';
+      _rbSet(nl, { ans: now ? 'no' : 'yes' });
+      openReminderSheet();   // repaint
+    });
+  });
+  ov.classList.remove('hidden');
 }
 async function _adConfirm(name, amt, grp) {
   const res = await addRecurringPayment(isoToday(), name, amt, grp || undefined);
@@ -17623,31 +17805,51 @@ function renderRecDueStrip() {
   const strip = document.getElementById('recDueStrip');
   const tag = document.getElementById('recDueTag');
   if (!strip) return;
-  const due = computeDueBills();
+  const bills = computeDueBills();
+  const due = bills.due, asks = bills.asks;
   if (tag) {
     tag.classList.toggle('hidden', due.length === 0);
     tag.textContent = due.length ? (due.length + ' due today') : '';
   }
-  if (!due.length) { strip.classList.add('hidden'); strip.innerHTML = ''; return; }
+  if (!due.length && !asks.length) { strip.classList.add('hidden'); strip.innerHTML = ''; return; }
   const todayIso = isoToday();
   const dd = parseInt(todayIso.slice(8, 10), 10);
   const mm = parseInt(todayIso.slice(5, 7), 10);
-  let html = '<div class="rd-head">DUE TODAY \u00b7 ' + dd + ' ' +
-    MONTH_NAMES[mm - 1].slice(0, 3).toUpperCase() +
-    '<span class="rd-src">learned from your history</span></div>';
+  let html = due.length
+    ? '<div class="rd-head">DUE TODAY \u00b7 ' + dd + ' ' +
+      MONTH_NAMES[mm - 1].slice(0, 3).toUpperCase() +
+      '<button type="button" class="rd-src rd-manage" data-rb-sheet="1">only bills you\u2019ve blessed \u00b7 manage \uD83D\uDD14</button></div>'
+    : '';
   html += due.map((b, ix) => {
     const nm = escHtml(b.name);
     const grpTag = b.grp ? '<span class="rd-grp">' + escHtml(String(b.grp).toUpperCase()) + '</span>' : '';
     const when = b.since ? 'due since the ' + b.dueDay + ordSuffix(b.dueDay) : 'usually the ' + b.dueDay + ordSuffix(b.dueDay);
     return `<div class="rd-card${b.since ? ' rd-since' : ''}" data-rd-ix="${ix}">
       <div class="rd-r1"><b>${nm}</b>${grpTag}<span class="rd-when">${when}</span>
-        <button type="button" class="rd-skip" data-rd-skip="${ix}">skip this month</button></div>
+        <button type="button" class="rd-skip" data-rd-skip="${ix}">skip this month</button>
+        <button type="button" class="rd-stop" data-rd-stop="${ix}" title="This bill has ended \u2014 stop reminding forever">stopped</button></div>
       <div class="rd-r2">
         <button type="button" class="rd-chip" data-rd-chip="${ix}">\u20b9${Number(b.amt).toLocaleString('en-IN')}<small>last amount \u00b7 tap = done</small></button>
         <input class="rd-in" type="text" inputmode="decimal" placeholder="or \u20b9 new amount\u2026" data-rd-in="${ix}" aria-label="New amount for ${nm}">
         <button type="button" class="rd-go" data-rd-go="${ix}">LOG \u2713</button>
       </div>
     </div>`;
+  }).join('');
+  // RB-1: the quiet asks - new patterns introduce themselves once; lapsed
+  // whitelisted bills hand back the switch once per stoppage.
+  html += asks.map(a => {
+    const nm = escHtml(a.name);
+    if (a.kind === 'new') {
+      return '<div class="rd-ask">' + nm + ' looks monthly (seen ' + a.months +
+        ' month' + (a.months === 1 ? '' : 's') + ', ~the ' + a.dueDay + ordSuffix(a.dueDay) +
+        ') \u2014 remind you?' +
+        '<span class="rb-yn"><button type="button" class="rb-yes" data-rb-yes="' + escHtml(a.nl) + '">Yes, remind</button>' +
+        '<button type="button" class="rb-no" data-rb-no="' + escHtml(a.nl) + '">No, never</button></span></div>';
+    }
+    return '<div class="rd-ask">' + nm + ' hasn\u2019t been logged for ' + a.months +
+      ' months \u2014 still remind you?' +
+      '<span class="rb-yn"><button type="button" class="rb-yes" data-rb-keep="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(a.lastYm) + '">Keep reminding</button>' +
+      '<button type="button" class="rb-no" data-rb-ended="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(a.lastYm) + '">It stopped</button></span></div>';
   }).join('');
   strip.innerHTML = html;
   strip.classList.remove('hidden');
@@ -17678,7 +17880,46 @@ function renderRecDueStrip() {
       renderRecDueStrip();
     });
   });
+  const mg = strip.querySelector('[data-rb-sheet]');
+  if (mg) mg.addEventListener('click', openReminderSheet);
+  // RB-1: one-tap retirement from the strip itself.
+  strip.querySelectorAll('[data-rd-stop]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const b = due[parseInt(btn.dataset.rdStop, 10)];
+      _rbSet(b.nl, { ans: 'no', note: 'stopped ' + isoToday().slice(0, 7) });
+      renderRecDueStrip();
+    });
+  });
+  strip.querySelectorAll('[data-rb-yes]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _rbSet(btn.dataset.rbYes, { ans: 'yes' });
+      renderRecDueStrip();
+    });
+  });
+  strip.querySelectorAll('[data-rb-no]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _rbSet(btn.dataset.rbNo, { ans: 'no' });
+      renderRecDueStrip();
+    });
+  });
+  strip.querySelectorAll('[data-rb-keep]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _rbSet(btn.dataset.rbKeep, { lapseFor: btn.dataset.rbYm, keep: 1 });
+      renderRecDueStrip();
+    });
+  });
+  strip.querySelectorAll('[data-rb-ended]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _rbSet(btn.dataset.rbEnded, { ans: 'no', lapseFor: btn.dataset.rbYm,
+        note: 'stopped ' + isoToday().slice(0, 7) });
+      renderRecDueStrip();
+    });
+  });
 }
+(function wireRbBell() {
+  const b = document.getElementById('rbBellBtn');
+  if (b) b.addEventListener('click', e => { e.stopPropagation(); openReminderSheet(); });
+})();
 function ordSuffix(n) {
   const v = n % 100;
   if (v >= 11 && v <= 13) return 'th';

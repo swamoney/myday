@@ -101,6 +101,27 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-1: reminders in the user's hand (daily.html)** (26 Aug 2026):
+AD-1's guess-everything strip became an OWNED WHITELIST. Storage:
+_userPrefs.reminderBills = { nameLower: {ans, at, note?, lapseFor?,
+keep?} } and reminderMonthSkips = { ym: [names] } - both ride
+user_prefs (Supabase, device-proof); the localStorage skip list folds
+in once then retires. Engine (computeDueBills -> {due, asks}):
+undecided detected patterns (>=2 months; irregulars never suggested)
+ask ONCE as 'new' candidates (the day-one jury - stopped bills die at
+first answer); ans 'no' = silence forever; ans 'yes' bills fire due
+cards, EXCEPT the LAPSE GUARD: >=3 silent calendar months -> one
+'lapse' ask per stoppage (lapseFor = lastYm marks asked; keep:1
+resumes reminders despite silence; 'It stopped' -> ans no + note;
+a resumed-then-lapsed bill earns one fresh ask because lastYm moves).
+FACE: due cards gain a quiet ember 'stopped' beside skip-month
+(one-tap retirement, noted 'stopped YYYY-MM'); asks are dashed
+rd-ask strips with moss Yes / plain No; the strip head is a manage
+tap; a bell by RECURRING opens the body-level rb sheet - every
+detected name, one switch each, meta (~dom, last amount, notes).
+Tag counts real dues only. Fixture sim ran the REAL fn source:
+jury/lapse/keep/stopped paths all green.
+
 **MC-3 + Write + hub order** (26 Aug 2026): the main chips wear
 MC-3 - sleeping rooms are ink-coloured text on the transparent tray
 (opacity .85), the chosen room goes SOLID INK with a white label
