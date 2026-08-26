@@ -101,6 +101,25 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB AUDIT (full)** (26 Aug 2026): requested proactive audit of the
+whole recurring/reminder system before long-term reliance. METHOD:
+(1) boot-order race analysis - loadUserPrefs RESETS _userPrefs, so
+any pre-load write would be lost; verified loadAndStart AWAITS
+loadUserPrefs before the first paint (renderEntry), and offline
+fallback mirrors reminderBills via _writePrefsToLocalStorage - no
+race exists. (2) 12-case behavioural sim on the REAL fn source:
+day-31 clamping (Sep 30, Feb 28), lapse guard cycles (ask once ->
+keep -> resume -> fresh ask on new stoppage), hide beats everything,
+month-skip, paid-later clears earlier views, asks today-anchor-only.
+One sim case initially failed and was proven a WRONG TEST, not a
+bug: a blessed bill silent 6 months must lapse-ask, not nag - the
+guard correctly intercepted; recorded as B2 (six silent months ->
+ask, never a silent nag). (3) 21-anchor full regression battery
+across RB-1..8 - ALL GREEN. Known intentional behaviours: keep:1
+persists until the next stoppage; hide is permanent unless prefs
+edited; skip is calendar-month scoped; asks never appear on past
+days; the amber tag is today-only.
+
 **RB-8: missed bills stay visible all month** (26 Aug 2026):
 computeDueBills(anchorIso) - the engine anchors to any day (today by
 default); asks (new/lapse) speak only when the anchor IS today.
