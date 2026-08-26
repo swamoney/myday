@@ -13986,6 +13986,30 @@ function _inr(n) { return '\u20B9' + Math.round(n).toLocaleString('en-IN'); }
 // Absent budget -> chip stays empty (no zeros pretending).
 // CHIP: paint the user-grown chips into a garden. Presets stay in markup;
 // customs render after them, before the dashed add-chip. Edit mode shows x.
+// Preset chips (baked in markup) can be HIDDEN - the answer lives in prefs
+// so it follows every device. 'edit chips' now arms an X on presets too.
+function _hiddenPresetChips(kind) {
+  const store = _userPrefs.hiddenPresetChips || {};
+  return Array.isArray(store[kind]) ? store[kind] : [];
+}
+function hidePresetChip(kind, name) {
+  const store = _userPrefs.hiddenPresetChips || {};
+  const arr = Array.isArray(store[kind]) ? store[kind] : [];
+  if (!arr.includes(name)) arr.push(name);
+  store[kind] = arr;
+  _userPrefs.hiddenPresetChips = store;
+  _commitPrefsChange();
+}
+function applyHiddenPresetChips(kind) {
+  const host = document.getElementById(kind === 'rec' ? 'recChips' : 'otherChips');
+  if (!host) return;
+  const hidden = _hiddenPresetChips(kind);
+  const dataAttr = kind === 'rec' ? 'recName' : 'otherName';
+  host.querySelectorAll('.chip-preset:not(.chip-custom)').forEach(ch => {
+    const nm = ch.dataset[dataAttr] || '';
+    ch.classList.toggle('hidden', hidden.includes(nm));
+  });
+}
 function renderCustomChips(kind) {
   const host = document.getElementById(kind === 'rec' ? 'recChips' : 'otherChips');
   if (!host) return;
@@ -14002,6 +14026,20 @@ function renderCustomChips(kind) {
       + (editing ? '<span class="chip-x" data-chipx="' + escHtml(nm) + '" title="Remove chip">\u00D7</span>' : '');
     host.appendChild(b);
   });
+  // Presets wear the X in edit mode too - deleting hides them via prefs.
+  host.querySelectorAll('.chip-preset:not(.chip-custom)').forEach(ch => {
+    const old = ch.querySelector('.chip-x'); if (old) old.remove();
+    if (editing) {
+      const nm = ch.dataset[kind === 'rec' ? 'recName' : 'otherName'] || '';
+      const x = document.createElement('span');
+      x.className = 'chip-x';
+      x.setAttribute('data-chipx-preset', nm);
+      x.title = 'Remove chip';
+      x.textContent = '\u00D7';
+      ch.appendChild(x);
+    }
+  });
+  applyHiddenPresetChips(kind);
   const add = document.createElement('button');
   add.type = 'button';
   add.className = 'chip chip-addc';
@@ -17729,14 +17767,17 @@ function computeDueBills() {
   // Once logged for two months they graduate into the detected set above.
   Object.keys(rb).forEach(nl => {
     const a = rb[nl];
-    if (!a || !a.manual || a.ans !== 'yes') return;
+    // Hand-made reminders: enlisted by hand (manual) OR an irregular name
+    // you blessed and gave a day to. Your day makes it real; no pattern needed.
+    if (!a || a.ans !== 'yes' || (!a.manual && !(a.day >= 1))) return;
     if (firstDomByMonth.has(nl) && firstDomByMonth.get(nl).size >= 2) return; // detected handles it
     if (paidThisMonth.has(nl) || skips.has(nl)) return;
     const pick = a.day >= 1 && a.day <= 31 ? a.day : 1;
     const dueDay = Math.min(pick, daysThisMonth);
     if (dom >= dueDay) {
       const li = last.get(nl);
-      due.push({ nl, name: (a.manual.name || nl), amt: (li ? li.amt : (a.manual.amt || 0)),
+      due.push({ nl, name: (li ? li.name : ((a.manual && a.manual.name) || nl)),
+                 amt: (li ? li.amt : ((a.manual && a.manual.amt) || 0)),
                  grp: '', dueDay, since: dom > dueDay });
     }
   });
@@ -17819,9 +17860,11 @@ function openReminderSheet() {
     const a = rb[r.nl] || {};
     const on = a.ans === 'yes';
     const dayNow = (a.day >= 1 && a.day <= 31) ? a.day : r.dom;
-    const dayLbl = (r.monthly || a.manual || r.manual)
-      ? 'day ' + dayNow + (a.day ? '' : ' \u00b7 from history')
-      : 'irregular';
+    const dayLbl = (a.day >= 1 && a.day <= 31)
+      ? 'day ' + a.day
+      : (r.monthly || a.manual || r.manual)
+        ? 'day ' + dayNow + ' \u00b7 from history'
+        : 'irregular \u00b7 set a day';
     const meta = '\u20b9' + Number(r.amt).toLocaleString('en-IN') +
       (a.note ? ' \u00b7 ' + escHtml(a.note) : '') + (r.manual ? ' \u00b7 by hand' : '');
     return '<div class="rb-row"><button type="button" class="rb-sw ' + (on ? 'on' : 'off') +
@@ -18087,6 +18130,8 @@ function setupRecurring() {
     const addBtn = document.getElementById(btnId);
     if (!host || !row || !nameIn || !addBtn) return;
     host.addEventListener('click', e => {
+      const xp = e.target.closest('[data-chipx-preset]');
+      if (xp) { e.stopPropagation(); hidePresetChip(kind, xp.dataset.chipxPreset); renderCustomChips(kind); return; }
       const x = e.target.closest('[data-chipx]');
       if (x) { e.stopPropagation(); removeCustomChip(kind, x.dataset.chipx); renderCustomChips(kind); return; }
       if (e.target.closest('.chip-addc')) { row.classList.toggle('hidden'); if (!row.classList.contains('hidden')) nameIn.focus(); return; }
@@ -18119,6 +18164,8 @@ function setupRecurring() {
   });
   renderCustomChips('other');
   renderCustomChips('rec');
+  applyHiddenPresetChips('rec');
+  applyHiddenPresetChips('other');
   renderNightMemory();
   ['f_nightCity', 'f_nightStay', 'f_stayedWith'].forEach(id => {
     const el = document.getElementById(id);

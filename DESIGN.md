@@ -101,6 +101,22 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-3: irregular days + deletable preset chips** (26 Aug 2026):
+(1) 'Unable to save date in irregular recurring' - two faults: the
+sheet's day label ignored a.day for irregular rows (showed
+'irregular' even after picking - looked unsaved), and the engine's
+hand-made loop required a.manual, so an irregular name + your day
+fired nothing. Now: hand-made reminders fire for ans yes AND
+(manual OR day set); irregular rows read 'irregular - set a day'
+until picked, then 'day N'; history's casing/amount reused when any
+payment exists. Sim: one-month Water Tanker + day 15 -> due@15/900.
+(2) 'MNGL Gas' preset chip undeletable - preset chips are baked in
+markup and 'edit chips' armed X only on .chip-custom. Now presets
+wear the X in edit mode too; deleting HIDES via
+_userPrefs.hiddenPresetChips[kind] (device-proof), applied at every
+paint + boot. Duplicate garden entries ('mngl gas' vs 'flat mngl
+gas') die by one X each.
+
 **RB-2 post-ship** (26 Aug 2026): 'day picker not there' report -
 a jsdom sheet harness ran the REAL openReminderSheet source: 2 rows,
 2 day pills ('day 5 - from history' / 'day 28'), add row, switches
