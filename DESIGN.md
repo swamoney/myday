@@ -101,6 +101,19 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-8: missed bills stay visible all month** (26 Aug 2026):
+computeDueBills(anchorIso) - the engine anchors to any day (today by
+default); asks (new/lapse) speak only when the anchor IS today.
+The strip now lives on PAST days of the current month too: head
+'STILL UNPAID - <day>' with note 'logs to this day', and BOTH log
+paths (last-amount chip + typed) write to stripDate = the viewed
+day via _adConfirm(dateIso,...) - one date, one truth per screen
+preserved because the card SAYS where it writes. A bill paid later
+in the month stops nagging on earlier views (paidThisMonth is
+month-scoped). Future days + other months stay hidden; the amber
+tag remains today-only. Sim: due@5 visible on the 12th, absent on
+the 3rd, asks today-only, paid-on-20th clears the 12th's view.
+
 **RB-7: one date, one truth per screen** (26 Aug 2026): logging a
 missed payment from a past day landed on TODAY - the due strip's
 LOG writes to isoToday() by design (it is today's furniture), but

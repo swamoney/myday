@@ -17699,8 +17699,10 @@ function _monthsBetween(ymA, ymB) {   // ymB - ymA in calendar months
   const a = ymA.split('-').map(Number), b = ymB.split('-').map(Number);
   return (b[0] - a[0]) * 12 + (b[1] - a[1]);
 }
-function computeDueBills() {
-  const todayIso = isoToday();
+function computeDueBills(anchorIso) {
+  // Anchored to a day: today by default, or a viewed past day of this month
+  // (RB-8) so missed bills stay visible from their due day onward.
+  const todayIso = anchorIso || isoToday();
   const ym = todayIso.slice(0, 7);
   const dom = parseInt(todayIso.slice(8, 10), 10);
   const y = parseInt(todayIso.slice(0, 4), 10);
@@ -17747,9 +17749,12 @@ function computeDueBills() {
     const dueDay = Math.min(pick, daysThisMonth);
 
     // Undecided: the one-time ask (the day-one jury covers stopped bills too).
+    // Asks are today's conversation only - past days show plain dues.
     if (!a || (a.ans !== 'yes' && a.ans !== 'no')) {
-      asks.push({ kind: 'new', nl, name: li.name, amt: li.amt, grp: li.grp,
-                  months: byYm.size, dueDay });
+      if (todayIso === isoToday()) {
+        asks.push({ kind: 'new', nl, name: li.name, amt: li.amt, grp: li.grp,
+                    months: byYm.size, dueDay });
+      }
       return;
     }
     if (a.ans !== 'yes') return;                     // 'no' = silence forever
@@ -17761,7 +17766,9 @@ function computeDueBills() {
       if (a.lapseFor === lastYm) {
         if (!a.keep) return;                         // asked, no keep -> silent
       } else {
-        asks.push({ kind: 'lapse', nl, name: li.name, months: silentMonths, lastYm });
+        if (todayIso === isoToday()) {
+          asks.push({ kind: 'lapse', nl, name: li.name, months: silentMonths, lastYm });
+        }
         return;
       }
     }
@@ -17947,8 +17954,8 @@ function openReminderSheet() {
   });
   ov.classList.remove('hidden');
 }
-async function _adConfirm(name, amt, grp) {
-  const res = await addRecurringPayment(isoToday(), name, amt, grp || undefined);
+async function _adConfirm(dateIso, name, amt, grp) {
+  const res = await addRecurringPayment(dateIso || isoToday(), name, amt, grp || undefined);
   if (!res.ok) return false;
   renderRecurringLog();                              // refreshes summary too
   if (isoToday() === currentDate) {
@@ -17962,29 +17969,39 @@ function renderRecDueStrip() {
   const strip = document.getElementById('recDueStrip');
   const tag = document.getElementById('recDueTag');
   if (!strip) return;
-  // The due strip is TODAY's furniture. On a past (or future) day it hides
-  // completely - its LOG writes to today by design, which misled logging of
-  // missed payments. On a past day, the room's own input is the door: it
-  // writes to the viewed day. One date, one truth per screen.
-  if (typeof currentDate !== 'undefined' && currentDate !== isoToday()) {
-    strip.classList.add('hidden'); strip.innerHTML = '';
+  // RB-8: missed bills stay visible from their due day onward, all month.
+  // On today: the full strip (dues + asks), logging to today. On a PAST day
+  // of the current month: a 'still unpaid' strip anchored to that day, and
+  // its LOG writes to the VIEWED day - one date, one truth per screen.
+  // Future days and other months: hidden.
+  const viewIso = (typeof currentDate !== 'undefined' && currentDate) ? currentDate : isoToday();
+  const isTodayView = viewIso === isoToday();
+  if (!isTodayView) {
     if (tag) { tag.classList.add('hidden'); tag.textContent = ''; }
-    return;
+    if (viewIso > isoToday() || viewIso.slice(0, 7) !== isoToday().slice(0, 7)) {
+      strip.classList.add('hidden'); strip.innerHTML = '';
+      return;
+    }
   }
-  const bills = computeDueBills();
+  const stripDate = viewIso;
+  const bills = computeDueBills(stripDate);
   const due = bills.due, asks = bills.asks;
-  if (tag) {
+  if (isTodayView && tag) {
     tag.classList.toggle('hidden', due.length === 0);
     tag.textContent = due.length ? (due.length + ' due today') : '';
   }
+
   if (!due.length && !asks.length) { strip.classList.add('hidden'); strip.innerHTML = ''; return; }
-  const todayIso = isoToday();
-  const dd = parseInt(todayIso.slice(8, 10), 10);
-  const mm = parseInt(todayIso.slice(5, 7), 10);
+  const dd = parseInt(stripDate.slice(8, 10), 10);
+  const mm = parseInt(stripDate.slice(5, 7), 10);
+  const headWord = isTodayView ? 'DUE TODAY' : 'STILL UNPAID';
+  const headNote = isTodayView
+    ? 'only bills you\u2019ve blessed \u00b7 manage \uD83D\uDD14'
+    : 'logs to this day \u00b7 ' + dd + ' ' + MONTH_NAMES[mm - 1].slice(0, 3);
   let html = due.length
-    ? '<div class="rd-head">DUE TODAY \u00b7 ' + dd + ' ' +
+    ? '<div class="rd-head">' + headWord + ' \u00b7 ' + dd + ' ' +
       MONTH_NAMES[mm - 1].slice(0, 3).toUpperCase() +
-      '<button type="button" class="rd-src rd-manage" data-rb-sheet="1">only bills you\u2019ve blessed \u00b7 manage \uD83D\uDD14</button></div>'
+      '<button type="button" class="rd-src rd-manage" data-rb-sheet="1">' + headNote + '</button></div>'
     : '';
   html += due.map((b, ix) => {
     const nm = escHtml(b.name);
@@ -18024,7 +18041,7 @@ function renderRecDueStrip() {
     btn.addEventListener('click', async () => {
       const b = due[parseInt(btn.dataset.rdChip, 10)];
       btn.disabled = true;
-      const ok = await _adConfirm(b.name, b.amt, b.grp);
+      const ok = await _adConfirm(stripDate, b.name, b.amt, b.grp);
       if (!ok) btn.disabled = false;
     });
   });
@@ -18036,7 +18053,7 @@ function renderRecDueStrip() {
       const amt = evalExpr(inp ? inp.value : '');
       if (!amt || amt <= 0) { if (inp) inp.focus(); return; }
       btn.disabled = true;
-      const ok = await _adConfirm(b.name, amt, b.grp);
+      const ok = await _adConfirm(stripDate, b.name, amt, b.grp);
       if (!ok) btn.disabled = false;
     });
   });
