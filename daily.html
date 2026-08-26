@@ -5910,6 +5910,20 @@
   .rb-nm { font-size:0.75rem; font-weight:600; }
   .rb-meta { margin-left:auto; font-family:var(--mono, monospace); font-size:0.5625rem;
     color:#8a97b3; text-align:right; }
+  .rb-day { font-family:var(--mono, monospace); font-size:0.5625rem; font-weight:600;
+    color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px;
+    padding:2px 9px; cursor:pointer; flex-shrink:0; }
+  .rb-day:hover { background:#F7EBCF; }
+  .rb-addrow { display:flex; gap:6px; margin-top:12px; padding-top:12px;
+    border-top:1px solid #e6ebf2; flex-wrap:wrap; }
+  .rb-add-nm { flex:2; min-width:110px; border:1px solid #cdd5e0; border-radius:9px;
+    padding:7px 10px; font-size:0.71875rem; }
+  .rb-add-day { width:60px; border:1px solid #cdd5e0; border-radius:9px;
+    padding:7px 8px; font-size:0.71875rem; }
+  .rb-add-amt { flex:1; min-width:90px; border:1px solid #cdd5e0; border-radius:9px;
+    padding:7px 10px; font-size:0.71875rem; }
+  .rb-add-go { font-size:0.6563rem; font-weight:700; color:#fff; background:#0A1325;
+    border:none; border-radius:9px; padding:7px 14px; cursor:pointer; }
   .rb-empty { font-size:0.71875rem; color:#8a97b3; padding:14px 2px; }
   .rd-skip {
     margin-left: auto; font-family: var(--mono); font-size: 0.5625rem;
@@ -17674,9 +17688,11 @@ function computeDueBills() {
     byYm.forEach(d0 => freq.set(d0, (freq.get(d0) || 0) + 1));
     let modal = 31, best = 0;
     freq.forEach((c, d0) => { if (c > best || (c === best && d0 < modal)) { modal = d0; best = c; } });
-    const dueDay = Math.min(modal, daysThisMonth);
     const li = last.get(nl) || { name: nl, amt: 0, grp: '', date: '' };
     const a = rb[nl];
+    // RB-2 (Aug 2026): a hand-picked day beats the history guess.
+    const pick = a && a.day >= 1 && a.day <= 31 ? a.day : modal;
+    const dueDay = Math.min(pick, daysThisMonth);
 
     // Undecided: the one-time ask (the day-one jury covers stopped bills too).
     if (!a || (a.ans !== 'yes' && a.ans !== 'no')) {
@@ -17701,6 +17717,21 @@ function computeDueBills() {
     if (paidThisMonth.has(nl) || skips.has(nl)) return;
     if (dom >= dueDay) {
       due.push({ nl, name: li.name, amt: li.amt, grp: li.grp, dueDay, since: dom > dueDay });
+    }
+  });
+  // RB-2: manual reminders - bills you enlisted by hand, no history needed.
+  // Once logged for two months they graduate into the detected set above.
+  Object.keys(rb).forEach(nl => {
+    const a = rb[nl];
+    if (!a || !a.manual || a.ans !== 'yes') return;
+    if (firstDomByMonth.has(nl) && firstDomByMonth.get(nl).size >= 2) return; // detected handles it
+    if (paidThisMonth.has(nl) || skips.has(nl)) return;
+    const pick = a.day >= 1 && a.day <= 31 ? a.day : 1;
+    const dueDay = Math.min(pick, daysThisMonth);
+    if (dom >= dueDay) {
+      const li = last.get(nl);
+      due.push({ nl, name: (a.manual.name || nl), amt: (li ? li.amt : (a.manual.amt || 0)),
+                 grp: '', dueDay, since: dom > dueDay });
     }
   });
   due.sort((a, b) => a.dueDay - b.dueDay || a.name.localeCompare(b.name));
@@ -17728,7 +17759,7 @@ function _rbAllDetected() {
       if (!prev || dt > prev.date) last.set(nl, { name: p.name, amt: p.amt, date: dt });
     });
   });
-  const out = [];
+  const out = [], seen = new Set();
   firstDomByMonth.forEach((byYm, nl) => {
     const monthly = byYm.size >= 2;
     const freq = new Map();
@@ -17737,6 +17768,15 @@ function _rbAllDetected() {
     freq.forEach((c, d0) => { if (c > best || (c === best && d0 < modal)) { modal = d0; best = c; } });
     const li = last.get(nl) || { name: nl, amt: 0, date: '' };
     out.push({ nl, name: li.name, amt: li.amt, monthly, dom: modal, lastDate: li.date });
+    seen.add(nl);
+  });
+  // Hand-enlisted bills with no history yet still belong on the sheet.
+  const rb2 = _rbMap();
+  Object.keys(rb2).forEach(nl => {
+    const a = rb2[nl];
+    if (!a || !a.manual || seen.has(nl)) return;
+    out.push({ nl, name: a.manual.name || nl, amt: a.manual.amt || 0,
+               monthly: true, dom: (a.day || 1), lastDate: '', manual: true });
   });
   out.sort((a, b) => (b.monthly - a.monthly) || a.name.localeCompare(b.name));
   return out;
@@ -17772,14 +17812,25 @@ function openReminderSheet() {
   list.innerHTML = rows.length ? rows.map(r => {
     const a = rb[r.nl] || {};
     const on = a.ans === 'yes';
-    const meta = (r.monthly ? '~' + r.dom + ordSuffix(r.dom) : 'irregular') +
-      ' \u00b7 \u20b9' + Number(r.amt).toLocaleString('en-IN') +
-      (a.note ? ' \u00b7 ' + escHtml(a.note) : '');
+    const dayNow = (a.day >= 1 && a.day <= 31) ? a.day : r.dom;
+    const dayLbl = (r.monthly || a.manual || r.manual)
+      ? 'day ' + dayNow + (a.day ? '' : ' \u00b7 from history')
+      : 'irregular';
+    const meta = '\u20b9' + Number(r.amt).toLocaleString('en-IN') +
+      (a.note ? ' \u00b7 ' + escHtml(a.note) : '') + (r.manual ? ' \u00b7 by hand' : '');
     return '<div class="rb-row"><button type="button" class="rb-sw ' + (on ? 'on' : 'off') +
       '" data-rb-sw="' + escHtml(r.nl) + '" role="switch" aria-checked="' + on + '"><i></i></button>' +
       '<span class="rb-nm">' + escHtml(r.name) + '</span>' +
+      '<button type="button" class="rb-day" data-rb-day="' + escHtml(r.nl) +
+        '" data-rb-cur="' + dayNow + '" title="Pick the reminder day yourself">' + dayLbl + '</button>' +
       '<span class="rb-meta">' + meta + '</span></div>';
   }).join('') : '<div class="rb-empty">No recurring names in your history yet.</div>';
+  // RB-2: enlist a bill by hand - no history required.
+  list.innerHTML += '<div class="rb-addrow">' +
+    '<input class="rb-add-nm" id="rbAddNm" type="text" placeholder="bill name\u2026" aria-label="Bill name">' +
+    '<input class="rb-add-day" id="rbAddDay" type="number" min="1" max="31" placeholder="day" aria-label="Day of month">' +
+    '<input class="rb-add-amt" id="rbAddAmt" type="text" inputmode="decimal" placeholder="\u20b9 approx (optional)" aria-label="Approximate amount">' +
+    '<button type="button" class="rb-add-go" id="rbAddGo">ADD</button></div>';
   list.querySelectorAll('[data-rb-sw]').forEach(sw => {
     sw.addEventListener('click', () => {
       const nl = sw.dataset.rbSw;
@@ -17787,6 +17838,33 @@ function openReminderSheet() {
       _rbSet(nl, { ans: now ? 'no' : 'yes' });
       openReminderSheet();   // repaint
     });
+  });
+  // RB-2: the day is yours to pick; history only suggests.
+  list.querySelectorAll('[data-rb-day]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const nl = btn.dataset.rbDay;
+      const cur = btn.dataset.rbCur || '';
+      const raw = window.prompt('Remind on which day of the month? (1\u201331)\n' +
+        'Leave empty to go back to the history guess.', cur);
+      if (raw === null) return;
+      const t = String(raw).trim();
+      if (t === '') { _rbSet(nl, { day: 0 }); openReminderSheet(); return; }
+      const n = parseInt(t, 10);
+      if (!n || n < 1 || n > 31) { toast('A day from 1 to 31, please'); return; }
+      _rbSet(nl, { day: n });
+      openReminderSheet();
+    });
+  });
+  const addGo = document.getElementById('rbAddGo');
+  if (addGo) addGo.addEventListener('click', () => {
+    const nm = (document.getElementById('rbAddNm').value || '').trim();
+    const dayV = parseInt(document.getElementById('rbAddDay').value, 10);
+    const amt = evalExpr(document.getElementById('rbAddAmt').value || '') || 0;
+    if (!nm) { toast('Name the bill first'); return; }
+    if (!dayV || dayV < 1 || dayV > 31) { toast('A day from 1 to 31, please'); return; }
+    const nl = nm.toLowerCase();
+    _rbSet(nl, { ans: 'yes', day: dayV, manual: { name: nm, amt } });
+    openReminderSheet();
   });
   ov.classList.remove('hidden');
 }

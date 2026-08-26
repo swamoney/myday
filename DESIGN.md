@@ -101,6 +101,18 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-2: the day is his, not history's (daily.html)** (26 Aug 2026):
+rb entries gain day (1-31) and manual {name, amt}. Engine: a
+hand-picked day BEATS the history modal (pick = a.day || modal,
+clamped to month length); manual bills fire with ZERO history (due
+when dom >= day, last-logged amount once any exists, else the
+approx), and graduate into detection once 2+ months are logged.
+Sheet: every row wears a gold DAY PILL ('day 5 - from history' vs
+'day 28' when hand-set; tap -> prompt 1-31, empty resets to the
+history guess) + an add-by-hand row (name / day / approx amount via
+evalExpr) so a brand-new bill needs no waiting. Fixture sim on the
+real fn source: 28th-not-yet / 20th-due / manual-Rent-due all green.
+
 **RB-1: reminders in the user's hand (daily.html)** (26 Aug 2026):
 AD-1's guess-everything strip became an OWNED WHITELIST. Storage:
 _userPrefs.reminderBills = { nameLower: {ans, at, note?, lapseFor?,
