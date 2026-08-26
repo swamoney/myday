@@ -17292,8 +17292,12 @@ function renderRecPending(history, monthPrefix) {
   };
   if (monthPrefix !== nowYM || !history.usuallyPaid.length) { hide(); return; }
   let total = 0, count = 0;
+  const rbP = _rbMap();
   history.usuallyPaid.forEach(nl => {
     if (history.paidThisMonth.has(nl)) return;
+    // RB (Aug 2026): a bill you've declared stopped leaves the pending
+    // amount too - history keeps the record, the debt stops pretending.
+    if (rbP[nl] && rbP[nl].ans === 'no') return;
     const last = history.lastByName.get(nl);
     total += last ? (Number(last.amt) || 0) : 0;
     count++;
@@ -17380,7 +17384,9 @@ function refreshRecChipStates(paidThisMonthSet) {
 function refreshRecHint(history) {
   const hintEl = document.getElementById('recHint');
   if (!hintEl) return;
-  const pending = history.usuallyPaid.filter(n => !history.paidThisMonth.has(n));
+  const rbH = _rbMap();
+  const pending = history.usuallyPaid.filter(n => !history.paidThisMonth.has(n) &&
+    !(rbH[n] && rbH[n].ans === 'no'));   // stopped bills leave the hint too
   if (pending.length === 0) {
     hintEl.classList.add('hidden');
     hintEl.innerHTML = '';

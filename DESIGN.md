@@ -101,6 +101,17 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-2 post-ship** (26 Aug 2026): 'day picker not there' report -
+a jsdom sheet harness ran the REAL openReminderSheet source: 2 rows,
+2 day pills ('day 5 - from history' / 'day 28'), add row, switches
+all render; bell markup + wiring verified in bytes. Code sound -
+stale deployment/cache suspected; told Rahul the sheet lives behind
+the bell by RECURRING. AND the cancelled-bill leak he sniffed out
+was REAL: renderRecPending's 'to pay' total and refreshRecHint's
+'usually paid - not yet' names both counted stopped bills; both now
+skip rb ans 'no'. History keeps the record; the debt stops
+pretending.
+
 **RB-2: the day is his, not history's (daily.html)** (26 Aug 2026):
 rb entries gain day (1-31) and manual {name, amt}. Engine: a
 hand-picked day BEATS the history modal (pick = a.day || modal,
