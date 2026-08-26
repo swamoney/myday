@@ -101,6 +101,15 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**HB-2: the room door matches** (26 Aug 2026): introspection.html's
+lib-subline restored to 'Reflections gathered, gratitude kept.' -
+the 18-Aug-era line, now identical on the hub card and the room
+hero. Transcript archaeology confirmed the 18-Aug room structure:
+H1 'My Inner Life' with per-section headings 'Introspection - <view>'
+(no eyebrow, no feature-list subline); the feature-list line was
+IL-2's addition. Title and 'the inner rooms' eyebrow kept as-is
+(offered to drop the eyebrow for full 18-Aug fidelity; Rahul's call).
+
 **HB-1: the hub line restored** (26 Aug 2026): the Inner Life card's
 desc returned to its 18 Aug original - 'Reflections gathered,
 gratitude kept.' - found in the transcripts (born with the D4 'My
