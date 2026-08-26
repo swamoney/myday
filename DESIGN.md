@@ -101,6 +101,17 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-4: three answers together + the sheet's stop symbol**
+(26 Aug 2026): every ask card (new-pattern AND lapse) now stands all
+three answers side by side - moss 'Yes, remind' / plain 'No, never' /
+ember 'It stopped' - one glance, one tap; the yes handler unified
+(keep doubles as plain yes; lapseFor/keep ride only when a lapse ym
+exists), the separate data-rb-yes wiring retired to zero refs;
+'It stopped' notes 'stopped YYYY-MM'. The reminder sheet: every row
+ends with an ember circle-slash (U+2298) - one tap declares a bill
+stopped from the popup itself (ans no + stoppage note), switch
+flips off on repaint.
+
 **RB-3: irregular days + deletable preset chips** (26 Aug 2026):
 (1) 'Unable to save date in irregular recurring' - two faults: the
 sheet's day label ignored a.day for irregular rows (showed

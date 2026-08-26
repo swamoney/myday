@@ -5884,6 +5884,9 @@
     border:1px solid #5F7355; border-radius:8px; padding:4px 11px; cursor:pointer; }
   .rb-no { font-size:0.6563rem; font-weight:600; color:#7b8598; background:#fff;
     border:1px solid #cdd5e0; border-radius:8px; padding:4px 11px; cursor:pointer; }
+  .rb-ended { font-size:0.6563rem; font-weight:600; color:#A8443E; background:#fff;
+    border:1px solid #E5C8C5; border-radius:8px; padding:4px 11px; cursor:pointer; }
+  .rb-ended:hover { background:#FBF1F0; }
   .rd-manage { cursor:pointer; background:none; border:none; font:inherit; }
   .rb-bell { background:none; border:none; cursor:pointer; font-size:0.8125rem;
     padding:0 2px; line-height:1; vertical-align:-1px; }
@@ -5924,6 +5927,9 @@
     padding:7px 10px; font-size:0.71875rem; }
   .rb-add-go { font-size:0.6563rem; font-weight:700; color:#fff; background:#0A1325;
     border:none; border-radius:9px; padding:7px 14px; cursor:pointer; }
+  .rb-rowstop { flex-shrink:0; background:none; border:none; cursor:pointer;
+    color:#C9A5A2; font-size:0.9375rem; line-height:1; padding:2px 4px; }
+  .rb-rowstop:hover { color:#A8443E; }
   .rb-empty { font-size:0.71875rem; color:#8a97b3; padding:14px 2px; }
   .rd-skip {
     margin-left: auto; font-family: var(--mono); font-size: 0.5625rem;
@@ -17872,7 +17878,9 @@ function openReminderSheet() {
       '<span class="rb-nm">' + escHtml(r.name) + '</span>' +
       '<button type="button" class="rb-day" data-rb-day="' + escHtml(r.nl) +
         '" data-rb-cur="' + dayNow + '" title="Pick the reminder day yourself">' + dayLbl + '</button>' +
-      '<span class="rb-meta">' + meta + '</span></div>';
+      '<span class="rb-meta">' + meta + '</span>' +
+      '<button type="button" class="rb-rowstop" data-rb-rowstop="' + escHtml(r.nl) +
+        '" title="Stopped \u2014 never remind">\u2298</button></div>';
   }).join('') : '<div class="rb-empty">No recurring names in your history yet.</div>';
   // RB-2: enlist a bill by hand - no history required.
   list.innerHTML += '<div class="rb-addrow">' +
@@ -17901,6 +17909,13 @@ function openReminderSheet() {
       const n = parseInt(t, 10);
       if (!n || n < 1 || n > 31) { toast('A day from 1 to 31, please'); return; }
       _rbSet(nl, { day: n });
+      openReminderSheet();
+    });
+  });
+  // The stopped symbol: one tap ends a bill from the sheet itself.
+  list.querySelectorAll('[data-rb-rowstop]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _rbSet(btn.dataset.rbRowstop, { ans: 'no', note: 'stopped ' + isoToday().slice(0, 7) });
       openReminderSheet();
     });
   });
@@ -17966,17 +17981,18 @@ function renderRecDueStrip() {
   // whitelisted bills hand back the switch once per stoppage.
   html += asks.map(a => {
     const nm = escHtml(a.name);
-    if (a.kind === 'new') {
-      return '<div class="rd-ask">' + nm + ' looks monthly (seen ' + a.months +
-        ' month' + (a.months === 1 ? '' : 's') + ', ~the ' + a.dueDay + ordSuffix(a.dueDay) +
-        ') \u2014 remind you?' +
-        '<span class="rb-yn"><button type="button" class="rb-yes" data-rb-yes="' + escHtml(a.nl) + '">Yes, remind</button>' +
-        '<button type="button" class="rb-no" data-rb-no="' + escHtml(a.nl) + '">No, never</button></span></div>';
-    }
-    return '<div class="rd-ask">' + nm + ' hasn\u2019t been logged for ' + a.months +
-      ' months \u2014 still remind you?' +
-      '<span class="rb-yn"><button type="button" class="rb-yes" data-rb-keep="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(a.lastYm) + '">Keep reminding</button>' +
-      '<button type="button" class="rb-no" data-rb-ended="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(a.lastYm) + '">It stopped</button></span></div>';
+    // All three answers stand together on every ask - one glance, one tap.
+    const ym3 = a.lastYm || '';
+    const line = a.kind === 'new'
+      ? nm + ' looks monthly (seen ' + a.months + ' month' + (a.months === 1 ? '' : 's') +
+        ', ~the ' + a.dueDay + ordSuffix(a.dueDay) + ') \u2014 remind you?'
+      : nm + ' hasn\u2019t been logged for ' + a.months + ' months \u2014 still remind you?';
+    return '<div class="rd-ask">' + line +
+      '<span class="rb-yn">' +
+      '<button type="button" class="rb-yes" data-rb-keep="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(ym3) + '">Yes, remind</button>' +
+      '<button type="button" class="rb-no" data-rb-no="' + escHtml(a.nl) + '">No, never</button>' +
+      '<button type="button" class="rb-ended" data-rb-ended="' + escHtml(a.nl) + '" data-rb-ym="' + escHtml(ym3) + '">It stopped</button>' +
+      '</span></div>';
   }).join('');
   strip.innerHTML = html;
   strip.classList.remove('hidden');
@@ -18017,12 +18033,6 @@ function renderRecDueStrip() {
       renderRecDueStrip();
     });
   });
-  strip.querySelectorAll('[data-rb-yes]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      _rbSet(btn.dataset.rbYes, { ans: 'yes' });
-      renderRecDueStrip();
-    });
-  });
   strip.querySelectorAll('[data-rb-no]').forEach(btn => {
     btn.addEventListener('click', () => {
       _rbSet(btn.dataset.rbNo, { ans: 'no' });
@@ -18031,7 +18041,9 @@ function renderRecDueStrip() {
   });
   strip.querySelectorAll('[data-rb-keep]').forEach(btn => {
     btn.addEventListener('click', () => {
-      _rbSet(btn.dataset.rbKeep, { lapseFor: btn.dataset.rbYm, keep: 1 });
+      const patch = { ans: 'yes' };
+      if (btn.dataset.rbYm) { patch.lapseFor = btn.dataset.rbYm; patch.keep = 1; }
+      _rbSet(btn.dataset.rbKeep, patch);
       renderRecDueStrip();
     });
   });
