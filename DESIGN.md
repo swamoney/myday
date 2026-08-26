@@ -101,6 +101,17 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**RB-7: one date, one truth per screen** (26 Aug 2026): logging a
+missed payment from a past day landed on TODAY - the due strip's
+LOG writes to isoToday() by design (it is today's furniture), but
+the strip stayed visible while browsing history and misled the tap.
+Fix: renderRecDueStrip hides strip + tag whenever currentDate !==
+isoToday(), and the date-change flow (selectDate) now repaints the
+strip so it leaves on navigation and returns on today. Past-day
+logging flows through the room's own input, which already writes to
+currentDate (verified). LAW REINFORCED: today-only furniture must
+HIDE on other days, not merely behave differently.
+
 **RB-6: fresh starts + removable names** (26 Aug 2026):
 (1) Restarted bills no longer wear the old obituary: switching ON and
 every yes path write note:'' (fresh start), and the sheet's meta

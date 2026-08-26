@@ -10055,6 +10055,7 @@ async function selectDate(iso) {
   renderDateNav();
   renderEntry();
   renderNightMemory();
+  renderRecDueStrip();   // the due strip is today-only; hide/show on date change
   paintFormHeadroom();   // R-B: browsing a date shows that month's headroom
   setSaveState('');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -17961,6 +17962,15 @@ function renderRecDueStrip() {
   const strip = document.getElementById('recDueStrip');
   const tag = document.getElementById('recDueTag');
   if (!strip) return;
+  // The due strip is TODAY's furniture. On a past (or future) day it hides
+  // completely - its LOG writes to today by design, which misled logging of
+  // missed payments. On a past day, the room's own input is the door: it
+  // writes to the viewed day. One date, one truth per screen.
+  if (typeof currentDate !== 'undefined' && currentDate !== isoToday()) {
+    strip.classList.add('hidden'); strip.innerHTML = '';
+    if (tag) { tag.classList.add('hidden'); tag.textContent = ''; }
+    return;
+  }
   const bills = computeDueBills();
   const due = bills.due, asks = bills.asks;
   if (tag) {
