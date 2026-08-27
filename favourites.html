@@ -75,6 +75,12 @@
   .search { flex:1; display:flex; align-items:center; gap:8px; background:var(--paper-soft); border:1px solid var(--rule); border-radius:9px; padding:9px 12px; }
   .search input { border:0; background:transparent; outline:none; width:100%; font-size:0.8438rem; }
   .search .ic { color:var(--muted); }
+  .shelf-door { display:flex; align-items:center; gap:8px; width:100%; margin-top:8px;
+    padding:10px 12px; border-radius:10px; border:1.5px dashed #b9c8e0; background:transparent;
+    color:#2f5187; font-family:var(--sans); font-size:0.75rem; font-weight:600;
+    cursor:pointer; text-align:left; }
+  .shelf-door:hover { background:#f2f6fd; }
+  .shelf-door .pl { font-size:0.9375rem; line-height:1; }
   .btn-ghost { background:transparent; border:1px solid var(--rule,#cdd5e0); border-radius:10px;
     padding:9px 14px; font-size:0.75rem; font-weight:600; color:var(--muted,#4a5570); cursor:pointer; }
   .btn-ghost:hover { border-color:#8a97b3; }
@@ -168,8 +174,6 @@
   /* edit-mode toggle: read = clean, edit reveals per-item controls */
   .card-edit, .row-edit { display:none; }
   body.editing .card-edit, body.editing .row-edit { display:flex; }
-  #newBtn { display:none; }
-  body.editing #newBtn { display:flex; }
   body:not(.editing) .card.add:not(#addCardEmpty):not(#addEmpty),
   body:not(.editing) .row.add,
   body:not(.editing) .sticky.add { display:none; }
@@ -216,13 +220,9 @@
   .fav-seg > span.on { background:var(--t-acc,#3E5C76); color:#fff; opacity:1; box-shadow:0 2px 6px rgba(30,40,70,0.22); font-weight:700; }
   .fav-seg > span:hover { opacity:0.9; }
   /* chip themes = the section washes (t-bg = w2, t-acc = acc) */
-  .fav-seg > span[data-sec="all-time"] { --t-faint:#f3f6f9; --t-bg:#dfe7ee; --t-acc:#3E5C76; }
-  .fav-seg > span[data-sec="music"]    { --t-faint:#f7f4f6; --t-bg:#eae2e8; --t-acc:#6D4E66; }
-  .fav-seg > span[data-sec="books"]    { --t-faint:#f4f7f2; --t-bg:#e3e9df; --t-acc:#5F7355; }
-  .fav-seg > span[data-sec="podcasts"] { --t-faint:#faf7f0; --t-bg:#efe6d4; --t-acc:#B08A3E; }
-  .fav-seg > span[data-sec="marathi"]  { --t-faint:#faf4f2; --t-bg:#efdfda; --t-acc:#A4553F; }
-  .fav-seg > span[data-sec="movies"]   { --t-faint:#f8f6f2; --t-bg:#ebe6dc; --t-acc:#6B5B45; }
-  .fav-seg > span[data-sec="wisdom"]   { --t-faint:#faf7ef; --t-bg:#f1e8d2; --t-acc:#8a6d1f; }
+  /* LR-3: one ink for every chip - the Library blue, the Links chip's exact
+     clothes on all seven. The seven-ink round retires. */
+  .fav-seg > span { --t-acc:#2f5187; }
   /* Small wrapping chips at every width, as My Why has. A grid stretches them
      into buttons and costs three times the height. */
   @media (max-width:560px){
@@ -374,7 +374,6 @@
       <div class="toolbar">
         <div class="search"><span class="ic">&#9013;</span><input id="searchInput" placeholder="Search titles, tags, links&#8230;"></div>
         <button class="btn-ghost" id="editToggleTop" type="button">Edit</button>
-        <button class="btn-primary" id="newBtn">&#65291; New</button>
       </div>
 
       <div class="fav-seg" id="favSeg">
@@ -579,6 +578,23 @@ const SEC_THEMES = {
   'podcasts': LIB_THEME, 'marathi': LIB_THEME, 'movies': LIB_THEME,
   'wisdom': LIB_THEME,
 };
+// LR-3: each shelf's own door - the words on the dashed way in at index end.
+const SHELF_DOORS = {
+  'all-time': 'Keep a link',
+  'music':    'Add a song',
+  'books':    'New book note',
+  'podcasts': 'New podcast note',
+  'marathi':  '\u0928\u0935\u0940\u0928 \u0928\u094B\u0902\u0926',
+  'movies':   'New watch note',
+  'wisdom':   'Keep a passage',
+};
+function _appendShelfDoor(wrap) {
+  const label = SHELF_DOORS[activeSection] || 'New';
+  wrap.insertAdjacentHTML('beforeend',
+    '<button type="button" class="shelf-door" id="shelfDoor">' +
+    '<span class="pl">\uFF0B</span> ' + escHtml(label) + '</button>');
+  el('shelfDoor').addEventListener('click', () => openModal(null));
+}
 const SECTIONS = {
   // A (Aug 2026): renamed from 'All-Time'; the 'all-time' KEY is law and never changes.
   'all-time': { lbl:'My Favourite Links', kind:'links' },
@@ -864,9 +880,9 @@ function render() {
   if (list.length === 0) {
     const label = sec.lbl;
     wrap.innerHTML = '<div class="empty"><div class="big">Nothing in ' + escHtml(label) + ' yet</div>' +
-      '<div class="small">' + (activeType || activeTag || searchTerm ? 'Nothing under this filter or search.' : 'Tap New to add your first.') + '</div>' +
-      (activeType || activeTag || searchTerm ? '' : '<button class="btn-primary" id="addEmpty">\uFF0B New</button>') + '</div>';
-    const ae = el('addEmpty'); if (ae) ae.addEventListener('click', () => openModal(null));
+      '<div class="small">' + (activeType || activeTag || searchTerm ? 'Nothing under this filter or search.' : 'The door below adds your first.') + '</div>' +
+      '</div>';
+    if (!(activeType || activeTag || searchTerm)) _appendShelfDoor(wrap);
     return;
   }
 
@@ -904,6 +920,7 @@ function render() {
     }));
     wrap.querySelectorAll('.ncard .nedit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openModal(b.dataset.edit); }));
     wrap.querySelectorAll('.ncard .nstar').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); toggleFav(b.dataset.fav); }));
+    _appendShelfDoor(wrap);
     return;
   }
 
@@ -927,6 +944,7 @@ function render() {
       const r = rows.find(x => x.id === row.dataset.play); if (r) openLink(r.url);
     }));
     wrap.querySelectorAll('.mrow .m-edit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openModal(b.dataset.edit); }));
+    _appendShelfDoor(wrap);
     return;
   }
 
@@ -958,6 +976,7 @@ function render() {
   wrap.querySelectorAll('.row-edit').forEach(btn => {
     btn.addEventListener('click', e => { e.stopPropagation(); openModal(btn.dataset.edit); });
   });
+  _appendShelfDoor(wrap);
 }
 
 
@@ -1513,7 +1532,6 @@ async function renderSoulDots() {
   } catch (e2) { console.error(e2); }
 }
 
-el('newBtn').addEventListener('click', () => openModal(null));
 el('exportBtn').addEventListener('click', exportAll);
 el('modalClose').addEventListener('click', closeModal);
 el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });

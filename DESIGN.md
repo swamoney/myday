@@ -136,6 +136,21 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-3: one chip ink + a door per shelf** (26 Aug 2026): (1) CHIPS -
+the seven-ink round retires; every chip wears the Links chip's exact
+clothes: one rule (.fav-seg > span { --t-acc:#2f5187 }), sleeping =
+blue names on the tray, chosen = solid Library blue + white (MC-3
+kept). (2) DOORS - the toolbar's single 'New' RETIRED to zero refs
+(markup, listener, CSS); each shelf's index now ENDS with its own
+dashed door (SHELF_DOORS): Keep a link / Add a song / New book note /
+New podcast note / (Marathi) navin nond / New watch note / Keep a
+passage - _appendShelfDoor called from all four render branches +
+the empty state (whose copy now says 'The door below adds your
+first.'); each door opens the entry window already standing in its
+shelf (openModal(null) presets fSection = activeSection, verified).
+Harness: all seven doors carry their own words; wisdom door opens
+the modal preset to wisdom. Search + Edit remain in the toolbar.
+
 **LR-2: crest hero + one box wash + in-place headings**
 (26 Aug 2026): (1) HERO - corrected to be IDENTICAL to My Why and
 My Inner Life (LR-1's light hero was my invention; the true family
