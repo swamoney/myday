@@ -136,6 +136,22 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**TL-4: the print button was printing the WRONG THING**
+(26 Aug 2026): the true fault behind 'print shows only Life Chapter
++ heading': the toolbar Print button ALWAYS called printIntro_ (the
+section-view print) even with a chapter page open - and the section
+rows carried no period/age. Fixes: (1) printBtn now routes an OPEN
+page to exportEntryPrint (full chapter grammar with diamond, period,
+age); the section view still prints via printIntro_. (2) The
+section print's rows now carry period + age in the meta line
+('Life Chapter - 2006-2014 - AGE 8-16'; isolated composition test on
+the real fn source: all green). (3) SLOW print fixed: all three
+print tails replace the fixed 400/500ms + remote-font wait with a
+document.fonts.ready race capped at 900ms - prints fire as soon as
+fonts land, never hang on the network. (Two jsdom boot-race false
+alarms during verification were proven harness flakiness by the
+isolated test - the wrong-test-vs-real-bug distinction held.)
+
 **TL-3: one ask for the period; every output speaks it**
 (26 Aug 2026): (1) 'only from can be edited' - phones swallow a
 SECOND prompt() (dialog-spam suppression), so the end year never

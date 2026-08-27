@@ -1615,7 +1615,7 @@ function exportEntryPrint() {
     h1H = '<h1>' + esc(r.title||'Untitled') + '</h1>';
   }
   const bodyH = kindLine + h1H + sigH + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
-  const tail = '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>';
+  const tail = '<scr'+'ipt>window.onload=function(){var done=false;var go=function(){if(done)return;done=true;window.print();};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);setTimeout(go,900);}else{setTimeout(go,300);}};</scr'+'ipt></body></html>';
   NoteEditor.openPrint(head1 + fontlink + style + bodyH + tail);
 }
 
@@ -1777,7 +1777,7 @@ function printIntro_() {
     NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>My Whiteboard</title>'
       + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">'
       + '<style>body{font-family:Fraunces,Georgia,serif;color:#1a2238;max-width:640px;margin:40px auto;padding:0 20px}h1{font-size:22px;margin:0 0 2px}.sub{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a94a8;margin-bottom:26px}.it{margin:0 0 22px;page-break-inside:avoid}.t{font-size:15px;font-weight:600;margin:0 0 3px}.b{font-size:13.5px;line-height:1.7;white-space:pre-wrap;margin-top:6px}</style>'
-      + '</head><body>' + wb + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
+      + '</head><body>' + wb + '<scr' + 'ipt>window.onload=function(){var done=false;var go=function(){if(done)return;done=true;window.print();};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);setTimeout(go,900);}else{setTimeout(go,300);}};</scr' + 'ipt></body></html>');
     return;
   }
   const list = viewRows();
@@ -1788,16 +1788,26 @@ function printIntro_() {
     + (list.length === 1 ? ' entry' : ' entries') + '</div>';
   list.forEach(r => {
     const k = KIND[r.kind];
-    body += '<div class="it"><div class="m">' + escHtml((k && k.lbl) || '') + '</div>'
+    const per = displayKind(r.kind) === 'experience'
+      ? (yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
+        (ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '')
+      : '';
+    body += '<div class="it"><div class="m">' + escHtml(((k && k.lbl) || '') + per) + '</div>'
       + '<div class="t">' + escHtml(r.title || 'Untitled') + '</div>'
       + (r.essence ? '<div class="e">' + escHtml(r.essence) + '</div>' : '')
       + ((r.tags || []).length ? '<div class="m" style="margin-top:4px">' + escHtml(r.tags.join(' \u00B7 ')) + '</div>' : '')
       + '</div>';
   });
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Introspection</title>'
-    + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">' + '<style>body{font-family:Fraunces,Georgia,serif;color:#1a2238;max-width:640px;margin:40px auto;padding:0 20px}h1{font-size:22px;margin:0 0 2px}.sub{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a94a8;margin-bottom:26px}.it{margin:0 0 22px;page-break-inside:avoid}.t{font-size:15px;font-weight:600;margin:0 0 3px}.m{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8a94a8;margin-bottom:5px}.e{font-style:italic;color:#3a445c;font-size:13px;margin:4px 0 0}.b{font-size:13.5px;line-height:1.7;white-space:pre-wrap;margin-top:6px}</style>' + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt></body></html>');
+    + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">' + '<style>body{font-family:Fraunces,Georgia,serif;color:#1a2238;max-width:640px;margin:40px auto;padding:0 20px}h1{font-size:22px;margin:0 0 2px}.sub{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#8a94a8;margin-bottom:26px}.it{margin:0 0 22px;page-break-inside:avoid}.t{font-size:15px;font-weight:600;margin:0 0 3px}.m{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#8a94a8;margin-bottom:5px}.e{font-style:italic;color:#3a445c;font-size:13px;margin:4px 0 0}.b{font-size:13.5px;line-height:1.7;white-space:pre-wrap;margin-top:6px}</style>' + '</head><body>' + body + '<scr' + 'ipt>window.onload=function(){var done=false;var go=function(){if(done)return;done=true;window.print();};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);setTimeout(go,900);}else{setTimeout(go,300);}};</scr' + 'ipt></body></html>');
 }
-el('printBtn').addEventListener('click', printIntro_);
+el('printBtn').addEventListener('click', function () {
+  // THE FAULT: this button always printed the section view - so a chapter
+  // page printed as 'Life Chapter + heading' only. An open page now prints
+  // ITSELF (the full chapter grammar: diamond, period, age, sweep).
+  if (readerEntry && !el('readerOverlay').classList.contains('hidden')) { exportEntryPrint(); return; }
+  printIntro_();
+});
 const SOUL_RAINBOW = [
   { lt:'#F9A79F', mid:'#F2867C', deep:'#C9564A', ink:'#5E1810', solid:'#c05247' },   // red
   { lt:'#F8C894', mid:'#F0A85F', deep:'#C87B25', ink:'#5C3205', solid:'#a3641e' },   // orange
