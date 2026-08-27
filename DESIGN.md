@@ -136,6 +136,14 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**TL-5: the printed timeline speaks its name, in life order**
+(26 Aug 2026): section print heading 'Life Experiences' -> 'My Life
+Timeline' (label only), and the timeline print now sorts by
+chapterSort - from the first chapter of life onward, overriding
+favFirst/newest ordering (print-only; the on-screen spine already
+lived in life order). Isolated composition test: title renamed, old
+name zero refs in output, School Years < College < Recent Chapter.
+
 **TL-4: the print button was printing the WRONG THING**
 (26 Aug 2026): the true fault behind 'print shows only Life Chapter
 + heading': the toolbar Print button ALWAYS called printIntro_ (the
