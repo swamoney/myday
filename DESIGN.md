@@ -136,6 +136,21 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-4: the door IS the form - no popup** (26 Aug 2026): studied
+the Inner Life's add flows as asked - Musings' Enter door (one
+field, straight in) and the diary's WRITE (a tap, then the page).
+Ported both: tapping a shelf door now expands INLINE (no modal).
+Notes shelves (books/podcasts/marathi/movies/wisdom): ONE field with
+its own hint ('which book?', 'what did you watch?', Marathi
+'shirshak...', wisdom 'whose words / where from?'), button reads
+OPEN THE PAGE - Enter/tap creates the row and walks straight onto
+the reader in edit mode to write. Links + Music: name + link inline,
+ADD. Esc collapses back to the door. Minimal record (title, section,
+url for links/music; everything else empty, enrichable later from
+the page/modal). Harness: books door -> insert -> page open editing;
+links door -> two fields -> url normalized. The old modal remains
+for edit-pencil flows only.
+
 **LR-3: one chip ink + a door per shelf** (26 Aug 2026): (1) CHIPS -
 the seven-ink round retires; every chip wears the Links chip's exact
 clothes: one rule (.fav-seg > span { --t-acc:#2f5187 }), sleeping =

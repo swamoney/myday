@@ -80,6 +80,16 @@
     color:#2f5187; font-family:var(--sans); font-size:0.75rem; font-weight:600;
     cursor:pointer; text-align:left; }
   .shelf-door:hover { background:#f2f6fd; }
+  .door-form { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .door-form.hidden { display:none; }
+  .door-in { flex:1; min-width:130px; border:1.5px dashed #b9c8e0; border-radius:10px;
+    padding:9px 11px; font-size:0.8125rem; background:#fff; color:var(--ink); }
+  .door-in.grow { flex:2; }
+  .door-in:focus { outline:none; border-style:solid; border-color:#2f5187; }
+  .door-go { font-size:0.6563rem; font-weight:700; letter-spacing:0.04em; color:#fff;
+    background:#2f5187; border:none; border-radius:10px; padding:9px 14px; cursor:pointer;
+    flex-shrink:0; }
+  .door-go:disabled { opacity:0.6; }
   .shelf-door .pl { font-size:0.9375rem; line-height:1; }
   .btn-ghost { background:transparent; border:1px solid var(--rule,#cdd5e0); border-radius:10px;
     padding:9px 14px; font-size:0.75rem; font-weight:600; color:var(--muted,#4a5570); cursor:pointer; }
@@ -588,12 +598,75 @@ const SHELF_DOORS = {
   'movies':   'New watch note',
   'wisdom':   'Keep a passage',
 };
+// LR-4 (Aug 2026): the door IS the form - no popup. Studied from the Inner
+// Life: Musings' Enter door (one field, straight in), the diary's WRITE
+// (a tap, then the page). Notes shelves take ONE field and open the page
+// to write; Links and Music take name + link inline.
+const DOOR_HINTS = {
+  'all-time': ['what is it?', 'paste the link\u2026'],
+  'music':    ['song / album\u2026', 'paste the link\u2026'],
+  'books':    'which book?',
+  'podcasts': 'which podcast / episode?',
+  'marathi':  '\u0936\u0940\u0930\u094D\u0937\u0915\u2026',
+  'movies':   'what did you watch?',
+  'wisdom':   'whose words / where from?',
+};
 function _appendShelfDoor(wrap) {
   const label = SHELF_DOORS[activeSection] || 'New';
   wrap.insertAdjacentHTML('beforeend',
     '<button type="button" class="shelf-door" id="shelfDoor">' +
-    '<span class="pl">\uFF0B</span> ' + escHtml(label) + '</button>');
-  el('shelfDoor').addEventListener('click', () => openModal(null));
+    '<span class="pl">\uFF0B</span> ' + escHtml(label) + '</button>' +
+    '<div class="door-form hidden" id="doorForm"></div>');
+  el('shelfDoor').addEventListener('click', _openShelfDoor);
+}
+function _openShelfDoor() {
+  const sec = activeSection;
+  const s = SECTIONS[sec] || {};
+  const hint = DOOR_HINTS[sec];
+  const form = el('doorForm');
+  const two = Array.isArray(hint);
+  form.innerHTML = two
+    ? '<input type="text" id="doorT" class="door-in" placeholder="' + hint[0] + '">' +
+      '<input type="url" id="doorU" class="door-in" placeholder="' + hint[1] + '" inputmode="url">' +
+      '<button type="button" class="door-go" id="doorGo">ADD</button>'
+    : '<input type="text" id="doorT" class="door-in grow" placeholder="' + hint + '">' +
+      '<button type="button" class="door-go" id="doorGo">' +
+        (s.kind === 'notes' ? 'OPEN THE PAGE' : 'ADD') + '</button>';
+  el('shelfDoor').classList.add('hidden');
+  form.classList.remove('hidden');
+  const t = el('doorT');
+  t.focus();
+  const go = () => _doorCreate(sec, two);
+  el('doorGo').addEventListener('click', go);
+  form.querySelectorAll('.door-in').forEach(inp => {
+    inp.addEventListener('keydown', ev => {
+      if (ev.key === 'Enter') { ev.preventDefault(); go(); }
+      if (ev.key === 'Escape') { form.classList.add('hidden'); el('shelfDoor').classList.remove('hidden'); }
+    });
+  });
+}
+async function _doorCreate(sec, two) {
+  const title = (el('doorT').value || '').trim();
+  if (!title) { el('doorT').focus(); return; }
+  const url = two ? normalizeUrl(el('doorU').value || '') : '';
+  if (two && !url) { el('doorU').focus(); return; }
+  const goBtn = el('doorGo'); goBtn.disabled = true;
+  const record = {
+    user_id: userId, title, section: sec,
+    url: (sec === 'all-time' || sec === 'music') ? url : '',
+    source_url: '', type: '', tags: [], note: '', essence: '',
+    updated_at: new Date().toISOString(),
+  };
+  try {
+    const { data, error } = await supa.from('bookmarks').insert(record).select();
+    if (error) throw error;
+    const newId = (data && data[0] && data[0].id) || null;
+    toast('Saved');
+    await loadRows();
+    // Notes shelves walk straight onto the page to write - no popup, ever.
+    const s = SECTIONS[sec] || {};
+    if (s.kind === 'notes' && newId) { openReader(newId); setFrEditing(true); }
+  } catch (e) { toast('Could not save'); goBtn.disabled = false; }
 }
 const SECTIONS = {
   // A (Aug 2026): renamed from 'All-Time'; the 'all-time' KEY is law and never changes.
