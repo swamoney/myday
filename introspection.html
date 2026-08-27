@@ -313,6 +313,7 @@
   /* Mobile: the bar compacts so Back / star / Delete / Edit all stay on screen -
      the title is the one who yields (ellipsis), never the buttons. */
   @media (max-width:560px) {
+    .rd-datepick { font-size:1rem; padding:4px 9px; max-width:12em; }
     .reader-bar { gap:7px; padding:10px 10px; }
     .reader-back, .reader-edit, .reader-del { padding:6px 9px; font-size:0.71875rem; }
     /* The path drops the title on phones - the H1 sits one line below; the
@@ -347,12 +348,14 @@
   .reader-sig.hidden { display:none; }
   .rd-sticky .reader-lead { margin-bottom:6px; }
   .rd-sticky .reader-dates { margin:6px 0 0; }
-  /* DR-1: the written date itself is the control - a dotted whisper, no pill */
-  .rd-wr { border-bottom:1px dotted #b9c2d4; cursor:pointer; }
-  .rd-wr:hover { color:var(--r-acc); border-bottom-color:var(--r-acc); }
-  .rd-wr { position:relative; display:inline-block; }
-  .rd-datepick { position:absolute; inset:0; width:100%; height:100%; opacity:0;
-    border:0; padding:0; margin:0; cursor:pointer; -webkit-appearance:none; }
+  /* DR-1: the written date itself is the control */
+  /* DP-3: the date is a visible native input - one tap, the system picker.
+     (Off-screen inputs + showPicker threw; opacity-0 overlays proved fragile
+     on device. A plain visible control cannot fail.) */
+  .rd-datepick { display:inline-block; font-family:var(--sans); font-size:0.71875rem;
+    color:#4a556e; background:#FBFCFE; border:1px dashed #b9c2d4; border-radius:7px;
+    padding:2px 7px; margin-left:2px; cursor:pointer; max-width:11em; vertical-align:baseline; }
+  .rd-datepick:focus { outline:2px solid rgba(68,85,124,0.35); outline-offset:1px; }
   .reader-inner { max-width:1000px; margin:0 auto; }
   .reader-kind { font-family:var(--sans); font-size:0.6875rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--r-acc); margin-bottom:8px; }
   .rk-quiet { font-weight:400; letter-spacing:0.02em; color:#a8b1c2; text-transform:none; }
@@ -1144,6 +1147,7 @@ async function toggleFavourite(id) {
 
 // ===== READER =====
 function openReader(id, keepNav) {
+  _rdDateApplied = '';
   const r = rows.find(x => x.id === id); if (!r) return;
   const k = KIND[displayKind(r.kind)] || KIND.note;
   // IL-2: each room speaks its own eyebrow. Musings are timeless (no date);
@@ -1216,8 +1220,8 @@ function openReader(id, keepNav) {
     const made = fmt(r.created_at), edited = fmt(r.updated_at);
     // DR-1: 'Written <date>' is the date control itself.
     const curYmd = r.created_at ? localYmd_(r.created_at) : '';
-    let s = made ? ('Written <span class="rd-wr" id="rdWritten" title="Change this entry\u2019s date">' + escHtml(made) +
-      '<input type="date" id="rdDatePick" class="rd-datepick" value="' + curYmd + '"></span>') : '';
+    let s = made ? ('Written <input type="date" id="rdDatePick" class="rd-datepick" value="' + curYmd +
+      '" title="Change this entry\u2019s date" aria-label="Entry date">') : '';
     if (edited && edited !== made) s += ' \u00b7 edited ' + escHtml(edited);
     el('readerDates').innerHTML = s;
   })();
@@ -1390,11 +1394,22 @@ function datePhrase_(ymd) {
   return new Date(ymd + 'T12:00:00').toLocaleDateString(undefined,
     { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
-el('readerDates').addEventListener('change', async e => {
+el('readerDates').addEventListener('click', e => {
+  // Some phones don't open the calendar from a styled date input's tap.
+  // A click inside the control asks for the picker explicitly.
+  const pick = e.target && e.target.closest ? e.target.closest('#rdDatePick') : null;
+  if (pick && typeof pick.showPicker === 'function') {
+    try { pick.showPicker(); } catch (e2) { /* gesture rules vary; typing still works */ }
+  }
+});
+let _rdDateApplied = '';
+async function _rdDateCommit(e) {
   const pick = e.target;
   if (!pick || pick.id !== 'rdDatePick') return;
   if (!readerEntry || !pick.value) return;
   const ymd = pick.value;
+  if (ymd === _rdDateApplied) return;   // change+input both fire; commit once
+  _rdDateApplied = ymd;
   const patch = { created_at: ymd + 'T12:00:00Z' };
   const oldYmd = readerEntry.created_at ? localYmd_(readerEntry.created_at) : '';
   if (displayKind(readerEntry.kind) === 'diary' && oldYmd &&
@@ -1410,7 +1425,9 @@ el('readerDates').addEventListener('change', async e => {
     await loadRows();
     openReader(readerEntry.id);
   } catch (e) { toast(e.message || 'Couldn\u2019t change the date'); console.error(e); }
-});
+}
+el('readerDates').addEventListener('change', _rdDateCommit);
+el('readerDates').addEventListener('input', _rdDateCommit);
 const rdNk = NoteEditor.mount({
   toolbar: el('rdToolbar'), editor: el('readerBodyInp'), reader: el('readerBody'),
   onChange: scheduleRdSave,

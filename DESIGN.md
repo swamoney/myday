@@ -118,6 +118,19 @@ retitle guard compares datePhrase_(oldYmd) in the SAME env at
 runtime, so real devices retitle correctly). LESSON: hidden-input
 date pickers must OVERLAY their trigger, never sit off-screen.
 
+**DP-2: the date control made phone-proof** (26 Aug 2026): 'unable
+to change date on any page' - a jsdom harness proved the mechanism
+sound on desktop (input renders, change commits created_at), so the
+fault is mobile interaction: styled <input type=date> taps don't
+reliably open the calendar on phones, and sub-16px fonts invite iOS
+focus-zoom flakiness. Fix: a click inside readerDates calls
+pick.showPicker() explicitly (guarded try - gesture rules vary);
+BOTH 'change' and 'input' commit through one _rdDateCommit with a
+_rdDateApplied once-guard (reset per openReader); phones get the
+control at 1rem with a larger pad. Note: two rep() attempts died
+safely on a guessed openReader signature (it is (id, keepNav)) -
+count-asserts held, no partial writes.
+
 **HB-2: the room door matches** (26 Aug 2026): introspection.html's
 lib-subline restored to 'Reflections gathered, gratitude kept.' -
 the 18-Aug-era line, now identical on the hub card and the room
