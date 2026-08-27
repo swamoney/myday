@@ -136,6 +136,31 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-1 + A: My Library joins the manuscript house (favourites.html)**
+(26 Aug 2026): (1) HERO - the navy poster gradient RETIRED; light
+paper hero in the house voice: eyebrow 'the shelves', serif title,
+subline 'Music, podcasts, books & more - kept for good.', count
+badge in gold-on-cream. (2) CHIPS - MC-3 (sleeping = ink text on
+transparent tray, chosen = solid ink + white) with SEVEN shelf inks:
+Links indigo #3E5C76, Music aubergine #6D4E66, Books moss #5F7355,
+Podcasts ochre #B08A3E, Marathi madder #A4553F, Movies sepia
+#6B5B45, Wisdom gold #8a6d1f (wisdom had NO tint rule before - one
+added). (3) NAME A - 'All-Time' -> lbl 'My Favourite Links' (room
+headings, modal select, print); the chip shows one word 'Links';
+the 'all-time' KEY is law, unchanged. A comment-swallowed-comma
+syntax slip was caught by node --check and healed (comment moved to
+its own line). (4) ONE GROUND - the six per-section reader paper
+tints retired; every open page sits on #fbfcfe like My Why/Inner
+Life; sections speak through eyebrow ink. (5) DELETE LIVES ON THE
+PAGE - frDel (ember trash) in the notes-reader bar: confirm ->
+delete -> closeReader -> reload (harness-verified; first attempt
+called a nonexistent closeNoteReader - the page's closer is
+closeReader). The foot editToggle gained a discoverable TWIN at the
+toolbar (editToggleTop, Edit<->Done, shared _libToggleEditing) so
+row pencils + modal Delete are reachable for links/music rows.
+Harness: all 7 shelf chips click clean, reader delete fires, edit
+mode toggles. Data untouched: same bookmarks table, same keys.
+
 **DP-3: heading edit verified + phone insurance** (26 Aug 2026):
 'page heading unable to update' - a jsdom harness ran the REAL flow
 (Edit -> contenteditable H1 -> type -> Done): update {title} sent,
