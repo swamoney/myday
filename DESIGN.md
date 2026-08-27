@@ -136,6 +136,18 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-8: the wisdom door takes the file itself** (26 Aug 2026):
+the wisdom shelf door no longer opens any page or asks any question -
+its label is 'Upload a saved page (.html)' and tapping it summons
+the file picker directly. On pick: read, isDoc-validate, _docCapture
+fills title (first h1/h2/h3, falling back to <title>, falling back
+to the filename) and the one-line summary (essence), INSERT, toast
+'Kept - "<title>"', reload the index. No page opens before, during,
+or after; the entry appears on the index already named and
+summarised, and tapping it opens the full html (LR-7). Harness:
+door label, picker summoned with no text field, auto title
+'Meditations' + summary, no page opened - all green.
+
 **LR-7: wisdom = the html itself + self-introducing uploads**
 (26 Aug 2026): (1) tapping a wisdom entry opens the FULL saved html
 straight away (openReader gains forcePage; wisdom doc rows route to

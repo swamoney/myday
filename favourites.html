@@ -545,7 +545,7 @@ const SHELF_DOORS = {
   'podcasts': 'New podcast note',
   'marathi':  '\u0928\u0935\u0940\u0928 \u0928\u094B\u0902\u0926',
   'movies':   'New watch note',
-  'wisdom':   'Keep a passage',
+  'wisdom':   'Upload a saved page (.html)',
 };
 // LR-4 (Aug 2026): the door IS the form - no popup. Studied from the Inner
 // Life: Musings' Enter door (one field, straight in), the diary's WRITE
@@ -605,6 +605,44 @@ function _appendShelfDoor(wrap) {
 }
 function _openShelfDoor() {
   const sec = activeSection;
+  // LR-8: the wisdom door takes the FILE itself - pick the saved page and
+  // the entry makes itself (heading -> title, first line -> summary).
+  if (sec === 'wisdom') {
+    let fi = el('doorFile');
+    if (!fi) {
+      fi = document.createElement('input');
+      fi.type = 'file'; fi.id = 'doorFile'; fi.accept = '.html,.htm,text/html';
+      fi.className = 'hidden';
+      document.body.appendChild(fi);
+      fi.addEventListener('change', () => {
+        const file = fi.files && fi.files[0];
+        fi.value = '';
+        if (!file) return;
+        const rd = new FileReader();
+        rd.onload = async () => {
+          const html2 = String(rd.result || '');
+          if (!isDoc(html2)) { toast('That file is not a saved .html page'); return; }
+          const cap = _docCapture(html2);
+          const record = {
+            user_id: userId, title: cap.title || file.name.replace(/\.html?$/i, ''),
+            section: 'wisdom', url: '', source_url: '', type: '', tags: [],
+            note: html2, essence: cap.summary || '',
+            updated_at: new Date().toISOString(),
+          };
+          try {
+            const { error } = await supa.from('bookmarks').insert(record).select();
+            if (error) throw error;
+            toast(cap.title ? 'Kept \u2014 \u201C' + cap.title + '\u201D' : 'Saved page kept');
+            await loadRows();
+          } catch (e) { toast('Could not save'); }
+        };
+        rd.onerror = () => toast('Could not read that file');
+        rd.readAsText(file);
+      });
+    }
+    fi.click();
+    return;
+  }
   const s = SECTIONS[sec] || {};
   const hint = DOOR_HINTS[sec];
   const form = el('doorForm');
