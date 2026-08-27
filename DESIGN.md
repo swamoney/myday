@@ -136,6 +136,26 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-5: the popup is DEAD; wisdom gets its pages back**
+(26 Aug 2026): (1) FULL RETIREMENT - modal markup block, openModal,
+closeModal, saveBookmark, deleteBookmark, shapeModalForSection,
+renderTypeChips, pendingDoc/fFile upload, all binds and the Esc
+handler: ZERO refs (window-cuts with content asserts; editingId
+retired). New-page uploads are gone WITH it - flagged to Rahul.
+(2) Pencils rehomed: notes pencil -> straight onto the page in edit
+mode; links/music pencils -> _rowInlineEdit (row swaps to title +
+link + SAVE + U+2298 delete in place; Esc restores). Delete now
+lives on every page (frDel) and every row. (3) WISDOM PAGES
+RESTORED: openReader no longer routes doc rows to the doc viewer -
+every entry opens a PAGE; the passage (essence) stands above the
+note as a serif quotation (editable in place, _frPassageCommit);
+the old saved-page upload waits as a dashed 'Open the saved page'
+attachment door; the doc body is guarded at open, save
+(saveFrCore_ early-return), and close (setFrEditing rewrite skip -
+found by harness when the attachment door vanished on open).
+Harnesses: doc-row page + passage + door + commit + never-overwrite,
+plain-wisdom editable body, inline row editor + row delete all green.
+
 **LR-4: the door IS the form - no popup** (26 Aug 2026): studied
 the Inner Life's add flows as asked - Musings' Enter door (one
 field, straight in) and the diary's WRITE (a tap, then the page).

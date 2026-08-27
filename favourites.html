@@ -90,6 +90,9 @@
     background:#2f5187; border:none; border-radius:10px; padding:9px 14px; cursor:pointer;
     flex-shrink:0; }
   .door-go:disabled { opacity:0.6; }
+  .rie-del { background:none; border:none; color:#C9A5A2; font-size:1rem; cursor:pointer;
+    padding:2px 6px; flex-shrink:0; }
+  .rie-del:hover { color:#A8443E; }
   .shelf-door .pl { font-size:0.9375rem; line-height:1; }
   .btn-ghost { background:transparent; border:1px solid var(--rule,#cdd5e0); border-radius:10px;
     padding:9px 14px; font-size:0.75rem; font-weight:600; color:var(--muted,#4a5570); cursor:pointer; }
@@ -344,6 +347,16 @@
     cursor:text; -webkit-user-select:text; user-select:text;
     -webkit-tap-highlight-color:rgba(68,85,124,0.12); min-height:1.3em; }
   .fr-h1-edit:focus { outline-color:#8a97b3; }
+  .fr-passage { font-family:var(--serif); font-style:italic; font-size:1.0625rem;
+    color:#2f3a52; line-height:1.6; margin-top:10px; padding:10px 14px;
+    border-left:3px solid #dfe9f8; background:#f7fafd; border-radius:0 10px 10px 0; }
+  .fr-passage.hidden { display:none; }
+  .fr-docdoor { display:flex; align-items:center; gap:8px; border:1.5px dashed #b9c8e0;
+    background:transparent; color:#2f5187; border-radius:10px; padding:11px 13px;
+    font-size:0.8125rem; font-weight:600; cursor:pointer; }
+  .fr-docdoor:hover { background:#f2f6fd; }
+  .fr-docnote { font-size:0.71875rem; color:#68748c; margin-top:8px; line-height:1.55; }
+  body.fr-doc.fr-editing #frBodyInp, body.fr-doc #frToolbar, body.fr-doc #frSave { display:none !important; }
   .fr-del { color:#A8443E; }
   .fr-del:hover { background:#FBF1F0; }
   @media (max-width:640px){ .fr-in { padding:20px 16px 30px; } .fr-h1 { font-size:1.5rem; } }
@@ -417,81 +430,6 @@
 </main>
 
 <!-- ADD / EDIT MODAL -->
-<div class="modal-overlay hidden" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title" id="modalTitle">New favourite</span>
-      <button class="modal-close" id="modalClose">&#215;</button>
-    </div>
-    <div class="field">
-      <label>Section</label>
-      <select id="fSection">
-        <option value="all-time">My Favourite Links</option>
-        <option value="books">Books</option>
-        <option value="podcasts">Podcasts</option>
-        <option value="marathi">&#2350;&#2352;&#2366;&#2336;&#2368; (Marathi)</option>
-        <option value="movies">Movies / Live Shows</option>
-        <option value="music">Music</option>
-        <option value="wisdom">Wisdom Library</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Title</label>
-      <input id="fTitle" placeholder="e.g., Deep Focus &#8212; instrumental beats">
-    </div>
-    <div class="field" id="fldUrl">
-      <label id="lblUrl">Link (URL)</label>
-      <input id="fUrl" placeholder="https://open.spotify.com/&#8230;" inputmode="url">
-      <div class="hint" id="hintUrl">Opens to play when you tap the item.</div>
-    </div>
-    <div class="field hidden" id="fldSource">
-      <label id="lblSource">Source link</label>
-      <input id="fSource" placeholder="https://&#8230; where it&#8217;s from" inputmode="url">
-    </div>
-    <div class="field hidden" id="fldUpload">
-      <label>Saved page (optional)</label>
-      <div class="upload-row">
-        <label class="upload-btn" for="fFile">Choose an HTML file</label>
-        <input type="file" id="fFile" accept=".html,.htm,text/html" style="display:none">
-        <span class="upload-name" id="fFileName">No file chosen</span>
-      </div>
-      <div class="hint">The whole page is kept, and opens as it was written. Leave this alone to write a note instead.</div>
-    </div>
-    <div class="field hidden" id="fldEssence">
-      <label>The passage</label>
-      <textarea id="fEssence" rows="3" placeholder="The line worth keeping, in their words&#8230;"></textarea>
-      <div class="hint">What the thing actually said. The note below is what you made of it.</div>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Category</label>
-        <input id="fType" list="typeSuggest" placeholder="Music, Podcast, Movie&#8230;">
-        <datalist id="typeSuggest"></datalist>
-        <div class="type-chips" id="typeChips"></div>
-        <div class="hint">Tap one, or type your own.</div>
-      </div>
-      <div class="field">
-        <label>Tags &#8212; comma separated</label>
-        <input id="fTags" placeholder="Focus, Workout">
-      </div>
-    </div>
-    <div class="field" id="fldNote">
-      <label id="lblNote">Note (optional)</label>
-      <textarea id="fNote" placeholder="Your highlight or takeaway&#8230;"></textarea>
-    </div>
-    <div class="note-hand hidden" id="noteHand">
-      <div class="nh-txt" id="noteHandTxt"></div>
-      <button type="button" class="nh-btn hidden" id="openNoteBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span>Write / edit note</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></button>
-    </div>
-    <div class="modal-error hidden" id="modalError"></div>
-    <div class="modal-actions">
-      <button class="btn-delete hidden" id="deleteBtn">Delete</button>
-      <span class="spacer"></span>
-      <button class="btn-save" id="saveBtn">Save</button>
-    </div>
-  </div>
-</div>
-
 <div class="doc-overlay hidden" id="docOverlay">
   <div class="doc-bar">
     <button class="doc-btn" id="docBack" type="button">&larr; Back</button>
@@ -521,6 +459,7 @@
             <div class="fr-eyebrow" id="frEyebrow"></div>
             <div class="fr-h1" id="frH1"></div>
             <div class="fr-srcline" id="frSrcline"></div>
+            <div class="fr-passage hidden" id="frPassage"></div>
           </div>
           <div class="fr-headbtns">
             <button class="eb fr-del" id="frDel" type="button" title="Delete this entry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg><span>Delete</span></button>
@@ -562,7 +501,6 @@ let rows = [];
 let activeType = null;   // null = All
 let activeTag = null;    // null = All
 let searchTerm = '';
-let editingId = null;
 
 // ===== HELPERS =====
 function el(id) { return document.getElementById(id); }
@@ -611,6 +549,41 @@ const DOOR_HINTS = {
   'movies':   'what did you watch?',
   'wisdom':   'whose words / where from?',
 };
+// LR-5: rows edit where they stand - the popup is fully retired.
+function _rowInlineEdit(rowEl, id) {
+  const r = rows.find(x => String(x.id) === String(id));
+  if (!r || !rowEl) return;
+  rowEl.innerHTML =
+    '<div class="door-form" style="width:100%;">' +
+    '<input type="text" class="door-in grow" id="rieT" value="' + escHtml(r.title || '') + '">' +
+    '<input type="url" class="door-in" id="rieU" value="' + escHtml(r.url || '') + '" placeholder="link\u2026">' +
+    '<button type="button" class="door-go" id="rieGo">SAVE</button>' +
+    '<button type="button" class="rie-del" id="rieDel" title="Delete">\u2298</button></div>';
+  rowEl.querySelector('#rieGo').addEventListener('click', async () => {
+    const t = (rowEl.querySelector('#rieT').value || '').trim();
+    const u = normalizeUrl(rowEl.querySelector('#rieU').value || '');
+    if (!t) return;
+    try {
+      const { error } = await supa.from('bookmarks')
+        .update({ title: t, url: u, updated_at: new Date().toISOString() })
+        .eq('id', id).eq('user_id', userId);
+      if (error) throw error;
+      r.title = t; r.url = u; toast('Saved'); render();
+    } catch (e) { toast('Could not save'); }
+  });
+  rowEl.querySelector('#rieDel').addEventListener('click', async () => {
+    if (!confirm('Delete this entry? This cannot be undone.')) return;
+    try {
+      const { error } = await supa.from('bookmarks').delete().eq('id', id).eq('user_id', userId);
+      if (error) throw error;
+      toast('Deleted'); await loadRows();
+    } catch (e) { toast('Could not delete'); }
+  });
+  rowEl.querySelectorAll('.door-in').forEach(inp => inp.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter') { ev.preventDefault(); rowEl.querySelector('#rieGo').click(); }
+    if (ev.key === 'Escape') render();
+  }));
+}
 function _appendShelfDoor(wrap) {
   const label = SHELF_DOORS[activeSection] || 'New';
   wrap.insertAdjacentHTML('beforeend',
@@ -792,72 +765,6 @@ async function loadRows() {
   }
 }
 
-async function saveBookmark() {
-  const section = el('fSection').value || 'all-time';
-  const s = SECTIONS[section] || SECTIONS['all-time'];
-  const title = el('fTitle').value.trim();
-  const url = normalizeUrl(el('fUrl').value);
-  const source = normalizeUrl(el('fSource').value);
-  const errorEl = el('modalError'); errorEl.classList.add('hidden');
-  const fail = (m) => { errorEl.textContent = m; errorEl.classList.remove('hidden'); };
-  if (!title) { fail('Title is required'); return; }
-  // Link required only where the item IS a link (all-time, music).
-  if ((section === 'all-time' || section === 'music') && !url) { fail('Link (URL) is required'); return; }
-  // Marathi must carry a source so you can return to it.
-  if (s.srcReq && !source) { fail('A source link is required for \u092e\u0930\u093e\u0920\u0940'); return; }
-  const tags = el('fTags').value.split(',').map(t => t.trim()).filter(Boolean);
-  // An uploaded page replaces the note entirely — it is the note.
-  const record = {
-    user_id: userId, title, section,
-    url: (section === 'all-time' || section === 'music') ? url : '',
-    source_url: (s.kind === 'notes') ? source : '',
-    type: el('fType').value.trim(),
-    tags, note: pendingDoc != null ? pendingDoc
-            : ((section === 'music') ? '' : el('fNote').value.trim()),
-    essence: s.essence ? el('fEssence').value.trim() : '',
-    updated_at: new Date().toISOString(),
-  };
-  const btn = el('saveBtn'); btn.disabled = true; btn.textContent = 'Saving\u2026';
-  try {
-    let newId = null;
-    if (editingId) {
-      const { error } = await supa.from('bookmarks').update(record).eq('id', editingId).eq('user_id', userId);
-      if (error) throw error; toast('Updated');
-    } else {
-      // .select() so we get the new id back and can open its editor next.
-      const { data, error } = await supa.from('bookmarks').insert(record).select();
-      if (error) throw error;
-      newId = (data && data[0] && data[0].id) || null;
-      toast('Saved');
-    }
-    // Jump to the section it was filed into, so it never looks like it vanished.
-    if (SECTIONS[record.section]) { activeSection = record.section; activeTag = null; }
-    closeModal(); await loadRows();
-    // A new note goes straight into the full-width editor \u2014 that's where
-    // notes are actually written, so there's no cramped box to fight.
-    if (newId && s.kind === 'notes') {
-      openReader(newId);
-      setFrEditing(true);
-      setTimeout(() => el('frBodyInp').focus(), 80);
-    }
-  } catch (e) {
-    errorEl.textContent = (e && e.message) ? e.message : 'Save failed';
-    errorEl.classList.remove('hidden');
-  } finally { btn.disabled = false; btn.textContent = 'Save'; }
-}
-
-async function deleteBookmark() {
-  if (!editingId) return;
-  if (!confirm('Delete this bookmark?')) return;
-  try {
-    const { error } = await supa.from('bookmarks').delete().eq('id', editingId).eq('user_id', userId);
-    if (error) throw error; toast('Deleted'); closeModal(); await loadRows();
-  } catch (e) {
-    el('modalError').textContent = (e && e.message) ? e.message : 'Delete failed';
-    el('modalError').classList.remove('hidden');
-  }
-}
-
 // ===== RENDER =====
 function allTypes() {
   const set = new Set();
@@ -897,9 +804,8 @@ function renderSectionNav() {
       if (inNav.indexOf(k) < 0) console.warn('Section "' + k + '" has no chip in favSeg');
     });
     inNav.forEach(k => { if (!SECTIONS[k]) console.warn('Chip "' + k + '" has no section'); });
-    const inSel = Array.from(el('fSection').options).map(o => o.value);
     Object.keys(SECTIONS).forEach(k => {
-      if (inSel.indexOf(k) < 0) console.warn('Section "' + k + '" has no option in fSection');
+      if (false) console.warn('Section "' + k + '" has no option in fSection');
     });
   }
   seg.querySelectorAll(':scope > span').forEach(s => s.classList.toggle('on', s.dataset.sec === activeSection));
@@ -991,7 +897,7 @@ function render() {
       if (e.target.closest('[data-fav]') || e.target.closest('[data-edit]')) return;
       openReader(c.dataset.open);
     }));
-    wrap.querySelectorAll('.ncard .nedit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openModal(b.dataset.edit); }));
+    wrap.querySelectorAll('.ncard .nedit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openReader(b.dataset.edit); setFrEditing(true); }));
     wrap.querySelectorAll('.ncard .nstar').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); toggleFav(b.dataset.fav); }));
     _appendShelfDoor(wrap);
     return;
@@ -1016,7 +922,7 @@ function render() {
       if (e.target.closest('[data-edit]')) return;
       const r = rows.find(x => x.id === row.dataset.play); if (r) openLink(r.url);
     }));
-    wrap.querySelectorAll('.mrow .m-edit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openModal(b.dataset.edit); }));
+    wrap.querySelectorAll('.mrow .m-edit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); _rowInlineEdit(b.closest('.mrow'), b.dataset.edit); }));
     _appendShelfDoor(wrap);
     return;
   }
@@ -1047,14 +953,14 @@ function render() {
     row.addEventListener('click', () => { const r = rows.find(x => x.id === row.dataset.id); if (r) openLink(r.url); });
   });
   wrap.querySelectorAll('.row-edit').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); openModal(btn.dataset.edit); });
+    btn.addEventListener('click', e => { e.stopPropagation(); _rowInlineEdit(btn.closest('.row'), btn.dataset.edit); });
   });
   _appendShelfDoor(wrap);
 }
 
 
 // ===== NOTES READER PAGE =====
-let frId = null, frTimer = null;
+let frId = null, frTimer = null, frHasDoc = false;
 let frBaseline = null, frVTimer = null;
 function fmtNoteDate(iso) {
   if (!iso) return '';
@@ -1132,7 +1038,9 @@ function openDocReader(r) {
 }
 function openReader(id, keepNav) {
   const r = rows.find(x => x.id === id); if (!r) return;
-  if (isDoc(r.note)) { openDocReader(r); return; }
+  // LR-5: every entry has a PAGE - the earlier Wisdom Library's saved-page
+  // uploads no longer hijack the open; they wait as an attachment button.
+  const hasDoc = isDoc(r.note);
   if (!keepNav) frNavIds = filteredRows().map(x => x.id);  // arrows follow the list you came from
   const sec = SECTIONS[secOf(r)] || SECTIONS['all-time'];
   el('frPage').dataset.sec = secOf(r);   // reader wears the box's colour
@@ -1140,10 +1048,28 @@ function openReader(id, keepNav) {
   el('frTtl').textContent = sec.lbl;
   el('frEyebrow').textContent = sec.eyebrow || sec.lbl;
   el('frH1').textContent = r.title || '';
-  const noteHtml = NoteEditor.toHtml(r.note);
-  el('frBody').innerHTML = noteHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
-  el('frBody').classList.toggle('empty', !noteHtml);
-  el('frBodyInp').innerHTML = noteHtml;
+  frHasDoc = hasDoc;
+  // The passage (essence) stands above the note as a quiet quotation - the
+  // earlier Wisdom Library's voice, restored.
+  const pass = (r.essence || '').trim();
+  el('frPassage').innerHTML = pass ? '\u201C' + escHtml(pass) + '\u201D' : '';
+  el('frPassage').classList.toggle('hidden', !pass);
+  if (hasDoc) {
+    el('frBody').innerHTML =
+      '<button type="button" class="fr-docdoor" id="frDocDoor">' +
+      '\uD83D\uDCC4&nbsp; Open the saved page</button>' +
+      '<div class="fr-docnote">This entry carries a saved page from the earlier ' +
+      'Wisdom Library. The page opens in its own reader; the title, passage and ' +
+      'star are editable here.</div>';
+    el('frBody').classList.remove('empty');
+    el('frBodyInp').innerHTML = '';
+    el('frDocDoor').addEventListener('click', () => openDocReader(r));
+  } else {
+    const noteHtml = NoteEditor.toHtml(r.note);
+    el('frBody').innerHTML = noteHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+    el('frBody').classList.toggle('empty', !noteHtml);
+    el('frBodyInp').innerHTML = noteHtml;
+  }
   el('frStar').classList.toggle('on', !!r.favourite);
   // source line
   const src = (r.source_url || '').trim();
@@ -1154,7 +1080,7 @@ function openReader(id, keepNav) {
   const dt = noteDatesHtml(r);
   if (dt) sl += (sl ? '<span>&middot;</span>' : '') + dt;
   el('frSrcline').innerHTML = sl;
-  frBaseline = noteHtml;
+  frBaseline = hasDoc ? '' : NoteEditor.sanitize(el('frBodyInp').innerHTML);
   frLoadedUpd = r.updated_at || null;
   clearInterval(frVTimer);
   frVTimer = setInterval(() => {          // marathon-session safety snapshot
@@ -1184,6 +1110,19 @@ function setFrEditing(on) {
   document.body.classList.toggle('fr-editing', !!on);
   el('frEdit').classList.toggle('hot', !!on);
   el('frEditLabel').textContent = on ? 'Done' : 'Edit';
+  // Doc rows keep their saved page as the body - only heading, passage and
+  // star edit; the body editor stays out of the way.
+  document.body.classList.toggle('fr-doc', !!frHasDoc);
+  // The passage edits in place too (the wisdom voice).
+  const ps = el('frPassage');
+  if (on && !ps.classList.contains('hidden')) {
+    ps.setAttribute('contenteditable', 'true');
+    ps.classList.add('fr-h1-edit');
+  } else {
+    ps.contentEditable = 'false';
+    ps.classList.remove('fr-h1-edit');
+    if (wasEditing && !on) { _frPassageCommit(ps.textContent); }
+  }
   // LR-2: the page heading edits in place, exactly like an Inner Life page.
   const h1 = el('frH1');
   if (on) {
@@ -1200,14 +1139,32 @@ function setFrEditing(on) {
     h1.classList.remove('fr-h1-edit');
   }
   if (!on) {
-    const html = NoteEditor.sanitize(el('frBodyInp').innerHTML).trim();
-    el('frBodyInp').innerHTML = html;
-    el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
-    el('frBody').classList.toggle('empty', !html);
+    if (!frHasDoc) {   // doc rows keep their attachment door; never rewrite it
+      const html = NoteEditor.sanitize(el('frBodyInp').innerHTML).trim();
+      el('frBodyInp').innerHTML = html;
+      el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+      el('frBody').classList.toggle('empty', !html);
+    }
     if (wasEditing) { _frTitleCommit(h1.textContent); }
   } else {
     nk.refresh();
   }
+}
+async function _frPassageCommit(raw) {
+  if (!frId) return;
+  const r = rows.find(x => String(x.id) === String(frId));
+  if (!r) return;
+  const t = String(raw || '').replace(/[\u201C\u201D]/g, '').replace(/\s+/g, ' ').trim();
+  if (t === (r.essence || '').trim()) { return; }
+  try {
+    const { error } = await supa.from('bookmarks').update({ essence: t })
+      .eq('id', frId).eq('user_id', userId);
+    if (error) throw error;
+    r.essence = t;
+    el('frPassage').innerHTML = t ? '\u201C' + escHtml(t) + '\u201D' : '';
+    el('frPassage').classList.toggle('hidden', !t);
+    toast('Passage saved');
+  } catch (e) { toast('Could not save the passage'); }
 }
 async function _frTitleCommit(raw) {
   if (!frId) return;
@@ -1245,6 +1202,7 @@ function saveQueueKick_fr() { saveFr_(true); }
 async function saveFrCore_(force) {
   clearTimeout(frTimer);
   if (frId === null) return;
+  if (frHasDoc) return;   // the saved page IS the body; never overwrite it
   const r = rows.find(x => x.id === frId); if (!r) return;
   const val = NoteEditor.sanitize(el('frBodyInp').innerHTML);
   if (r.note === val) { frDirty = false; el('frSave').textContent = 'Saved'; return; }
@@ -1373,104 +1331,12 @@ function openLink(url) {
 }
 
 // ===== MODAL =====
-function shapeModalForSection(sec) {
-  const s = SECTIONS[sec] || SECTIONS['all-time'];
-  const isMusic = sec === 'music';
-  const isAllTime = sec === 'all-time';
-  const isNotes = s.kind === 'notes';
-  // Link (play/open) field — shown for all-time + music
-  el('fldUrl').classList.toggle('hidden', !(isMusic || isAllTime));
-  el('lblUrl').textContent = isMusic ? 'Link to play' : 'Link (URL)';
-  el('hintUrl').textContent = isMusic ? 'Opens to play (Spotify, YouTube\u2026).' : 'Opens when you tap the item.';
-  // Source link — shown for notes sections; required for marathi
-  el('fldSource').classList.toggle('hidden', !isNotes || !!s.essence);
-  el('lblSource').textContent = s.srcReq ? 'Source link (required)' : 'Source link (optional)';
-  // The passage — only Wisdom carries one.
-  el('fldEssence').classList.toggle('hidden', !s.essence);
-  el('fldUpload').classList.toggle('hidden', !s.essence);
-  // Note field: All-Time keeps its short inline note (it has no reader page).
-  // The notes sections write in the full-width editor instead, so the cramped
-  // textarea is removed entirely there.
-  el('fldNote').classList.toggle('hidden', isMusic || isNotes);
-  el('lblNote').textContent = 'Note (optional)';
-  const hand = el('noteHand');
-  // A wisdom entry is a saved page, not something you write here.
-  hand.classList.toggle('hidden', !isNotes || !!s.essence);
-  if (isNotes) {
-    el('noteHandTxt').textContent = editingId
-      ? 'Your note opens in the full-width editor, with formatting, highlights and images.'
-      : 'Save this, and the full-width note editor opens straight away \u2014 with formatting, highlights and images.';
-    el('openNoteBtn').classList.toggle('hidden', !editingId);
-  }
-}
-function openModal(id) {
-  editingId = id;
-  el('modalError').classList.add('hidden');
-  if (id) {
-    const r = rows.find(x => x.id === id); if (!r) return;
-    el('modalTitle').textContent = 'Edit favourite';
-    el('fSection').value = secOf(r);
-    el('fTitle').value = r.title || '';
-    el('fUrl').value = r.url || '';
-    el('fSource').value = r.source_url || '';
-    el('fType').value = r.type || '';
-    el('fTags').value = (r.tags || []).join(', ');
-    el('fNote').value = r.note || '';
-    el('fEssence').value = r.essence || '';
-    pendingDoc = null;
-    el('fFileName').textContent = isDoc(r.note) ? 'A saved page is attached' : 'No file chosen';
-    el('fFileName').classList.toggle('loaded', isDoc(r.note));
-    el('fFile').value = '';
-    el('deleteBtn').classList.remove('hidden');
-  } else {
-    el('modalTitle').textContent = 'New favourite';
-    el('fSection').value = (activeSection && SECTIONS[activeSection]) ? activeSection : 'all-time';
-    el('fTitle').value = ''; el('fUrl').value = ''; el('fSource').value = '';
-    el('fType').value = ''; el('fTags').value = ''; el('fNote').value = ''; el('fEssence').value = '';
-    pendingDoc = null;
-    el('fFileName').textContent = 'No file chosen';
-    el('fFileName').classList.remove('loaded');
-    el('fFile').value = '';
-    el('deleteBtn').classList.add('hidden');
-  }
-  shapeModalForSection(el('fSection').value);
-  renderTypeChips(el('fSection').value);
-  el('modalOverlay').classList.remove('hidden');
-  if (typeof syncTypeChips === 'function') syncTypeChips();
-}
-function closeModal() { el('modalOverlay').classList.add('hidden'); editingId = null; }
-
-let pendingDoc = null;   // an uploaded page waiting to be saved
-el('fFile').addEventListener('change', e => {
-  const file = e.target.files && e.target.files[0];
-  if (!file) return;
-  const rd = new FileReader();
-  rd.onload = () => {
-    pendingDoc = String(rd.result || '');
-    const n = el('fFileName');
-    n.textContent = file.name; n.classList.add('loaded');
-    // Read the page rather than asking you to retype what it already says.
-    const got = readDoc(pendingDoc);
-    if (got.title && !el('fTitle').value.trim()) el('fTitle').value = got.title;
-    if (got.passage && !el('fEssence').value.trim()) el('fEssence').value = got.passage;
-  };
-  rd.onerror = () => toast('Could not read that file');
-  rd.readAsText(file);
-});
 function closeDoc() {
   el('docFrame').srcdoc = '';               // stop whatever the page was doing
   el('docOverlay').classList.add('hidden');
   document.body.classList.remove('doc-open');
 }
 el('docBack').addEventListener('click', closeDoc);
-el('openNoteBtn').addEventListener('click', () => {
-  const id = editingId; if (!id) return;
-  closeModal();
-  openReader(id);
-  setFrEditing(true);
-  setTimeout(() => el('frBodyInp').focus(), 60);
-});
-el('fSection').addEventListener('change', () => { shapeModalForSection(el('fSection').value); el('fType').value=''; renderTypeChips(el('fSection').value); });
 
 // ===== EXPORT (backs up your curation) =====
 async function exportAll() {
@@ -1606,10 +1472,6 @@ async function renderSoulDots() {
 }
 
 el('exportBtn').addEventListener('click', exportAll);
-el('modalClose').addEventListener('click', closeModal);
-el('modalOverlay').addEventListener('click', e => { if (e.target === el('modalOverlay')) closeModal(); });
-el('saveBtn').addEventListener('click', saveBookmark);
-el('deleteBtn').addEventListener('click', deleteBookmark);
 el('frDel').addEventListener('click', async () => {
   // LR-1: delete lives where you are - on the entry's own page.
   if (!frId) return;
@@ -1622,17 +1484,7 @@ el('frDel').addEventListener('click', async () => {
     await loadRows();
   } catch (e) { toast('Could not delete'); }
 });
-function renderTypeChips(section) {
-  const cats = SECTION_CATS[section] || [];
-  const tc = el('typeChips');
-  // Music has no category concept; hide the whole field there.
-  const fieldWrap = el('fType') ? el('fType').closest('.field') : null;
-  if (fieldWrap) fieldWrap.classList.toggle('hidden', cats.length === 0);
-  if (!tc) return;
-  tc.innerHTML = cats.map(c => '<button type="button" class="type-chip" data-type="' + c + '">' + c + '</button>').join('');
-  const dl = el('typeSuggest'); if (dl) dl.innerHTML = cats.map(c => '<option value="' + c + '"></option>').join('');
-  if (typeof syncTypeChips === 'function') syncTypeChips();
-}
+
 function syncTypeChips() {
   const v = (el('fType') ? (el('fType').value || '') : '').trim().toLowerCase();
   document.querySelectorAll('#typeChips .type-chip').forEach(c => c.classList.toggle('active', c.dataset.type.toLowerCase() === v));
@@ -1643,7 +1495,6 @@ function syncTypeChips() {
   if (ft) ft.addEventListener('input', syncTypeChips);
 })();
 el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !el('modalOverlay').classList.contains('hidden')) closeModal(); });
 
 boot();
 </script>
