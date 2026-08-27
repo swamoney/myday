@@ -101,6 +101,23 @@ migrate_inner_v2.sql: ALTER years columns + UPDATE gratitude->diary
 appending "gratitude" into the text-JSON tags (idempotent, plain
 ASCII, verification SELECT at the end).
 
+**DP-2: the date picker works everywhere** (26 Aug 2026): 'unable
+to change date on any page' - ROOT CAUSE: .rd-datepick was an
+off-screen input (position:fixed; left:-9999px) and the tap door
+called showPicker(); Chrome/Safari THROW showPicker on invisible
+inputs, and iOS ignores click() on them - so no platform opened the
+picker. FIX: the input now lives INSIDE the rd-wr span, absolutely
+covering the date text at opacity 0 - a native tap target that
+works on every platform; value prefilled at render; the change
+handler became a delegate on readerDates (input re-created per
+render); showPicker retired to zero refs. Harness: input inside
+span, prefilled, change -> created_at update, zero errors (the
+harness's 'retitled false' is an env artifact - jsdom's en-US
+datePhrase_ differs from the fixture's en-GB-style title; the
+retitle guard compares datePhrase_(oldYmd) in the SAME env at
+runtime, so real devices retitle correctly). LESSON: hidden-input
+date pickers must OVERLAY their trigger, never sit off-screen.
+
 **HB-2: the room door matches** (26 Aug 2026): introspection.html's
 lib-subline restored to 'Reflections gathered, gratitude kept.' -
 the 18-Aug-era line, now identical on the hub card and the room
