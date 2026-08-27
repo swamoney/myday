@@ -136,6 +136,14 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-8b: capture breathes between the lines** (26 Aug 2026):
+two-line headings captured without a space ('The Artof Living') -
+textContent glues <br>-broken and nested pieces together. _docCapture
+now walks child nodes (textOf) putting a space between every text
+piece and element, then collapses whitespace. Case battery:
+br-split -> 'The Art of Living'; nested spans -> 'Deep Work';
+newline+mixed -> 'Two Lines' + 'Bold Italic tail'; plain unchanged.
+
 **LR-8: the wisdom door takes the file itself** (26 Aug 2026):
 the wisdom shelf door no longer opens any page or asks any question -
 its label is 'Upload a saved page (.html)' and tapping it summons

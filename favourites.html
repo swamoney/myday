@@ -1077,19 +1077,29 @@ function _docCapture(html2) {
   try {
     const doc2 = new DOMParser().parseFromString(html2, 'text/html');
     const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+    // textContent glues '<br>'-broken and nested lines together ('OneTwo');
+    // walking the nodes puts a breath between every piece.
+    const textOf = (node) => {
+      let out = '';
+      node.childNodes.forEach(ch => {
+        if (ch.nodeType === 3) out += ch.textContent + ' ';
+        else if (ch.nodeType === 1) out += textOf(ch) + ' ';
+      });
+      return out;
+    };
     let title = '';
     const h = doc2.querySelector('h1, h2, h3');
-    if (h) title = clean(h.textContent);
+    if (h) title = clean(textOf(h));
     if (!title) title = clean(doc2.title);
     let summary = '';
     if (h) {
       // the first meaningful text after the heading
       let n = h.nextElementSibling;
-      while (n && !summary) { summary = clean(n.textContent); n = n.nextElementSibling; }
+      while (n && !summary) { summary = clean(textOf(n)); n = n.nextElementSibling; }
     }
     if (!summary) {
       const p = doc2.querySelector('p');
-      if (p) summary = clean(p.textContent);
+      if (p) summary = clean(textOf(p));
     }
     if (summary === title) summary = '';
     if (summary.length > 160) summary = summary.slice(0, 157).trimEnd() + '\u2026';
