@@ -136,6 +136,22 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**TL-2: the period edits on the page; print speaks it**
+(26 Aug 2026): (1) chapter pages could never edit their years after
+creation. Now the eyebrow's period is TAPPABLE (rk-tap dotted
+underline): 'set the years' when unset, '2006-2014' when set; tap ->
+two prompts (from; to blank = ongoing; validated, end >= start) ->
+_editChapterYears updates years_from/years_to, repaints the page and
+re-renders the spine (chapterSort reorders). The age pill is
+tappable too (change birth year), and when years exist but no birth
+year, a quiet 'age?' pill offers it (the standing 'birth year never
+set' pending item finally has a door on the page itself). Harness:
+'set the years' -> commit {2006,2014} -> pill '2006-2014' -> 'age?'
+-> birth 1998 -> 'AGE 8-16'. (2) PRINT already carried amber years +
+gold age pill (TL-B) - they were EMPTY because his row had no years;
+with (1) they fill; unset chapters now print 'years not set' so the
+gap is visible on paper too.
+
 **LR-8b: capture breathes between the lines** (26 Aug 2026):
 two-line headings captured without a space ('The Artof Living') -
 textContent glues <br>-broken and nested pieces together. _docCapture

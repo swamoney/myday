@@ -145,6 +145,7 @@
   .smark .diam { position:absolute; inset:5px; transform:rotate(45deg); border-radius:9px;
            box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
   .smark b { position:relative; color:#fff; font-weight:700; }
+  .rk-tap { cursor:pointer; border-bottom:1px dotted currentColor; }
   .rk-years { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#a5702f;
               letter-spacing:0.05em; margin-left:6px; }
   .rk-age { display:inline-block; font-family:var(--mono); font-size:0.5rem; font-weight:600;
@@ -917,6 +918,27 @@ function chapterSort(a, b) {
   const ya = a.years_from || 9999, yb = b.years_from || 9999;
   return ya - yb || String(a.created_at).localeCompare(String(b.created_at));
 }
+async function _editChapterYears(r) {
+  const f = prompt('This chapter begins in which year?', r.years_from || '');
+  if (f === null) return;
+  const yf = parseInt(String(f).trim(), 10);
+  if (!yf || yf < 1900 || yf > 2100) { toast('A four-digit year, please'); return; }
+  const t = prompt('And ends in which year? (leave blank if it is still going)', r.years_to || '');
+  if (t === null) return;
+  let yt = String(t).trim() === '' ? null : parseInt(String(t).trim(), 10);
+  if (yt !== null && (!yt || yt < yf || yt > 2100)) { toast('The end year must not come before the start'); return; }
+  try {
+    const { error } = await supa.from('iw_entries')
+      .update({ years_from: yf, years_to: yt }).eq('id', r.id).eq('user_id', userId);
+    if (error) throw error;
+    r.years_from = yf; r.years_to = yt;
+    const row = rows.find(x => String(x.id) === String(r.id));
+    if (row) { row.years_from = yf; row.years_to = yt; }
+    toast('Period saved');
+    openReader(r.id, true);
+    render();   // the spine re-orders by years
+  } catch (e) { toast('Could not save the period'); }
+}
 function yearsLabel(r) {
   if (!r.years_from) return '';
   if (!r.years_to) return r.years_from + '\u2013';
@@ -1184,10 +1206,26 @@ function openReader(id, keepNav) {
   el('readerTitle').textContent = r.title;
   // The chapter page's years + age wear the INDEX grammar exactly: amber
   // mono years (.syears voice) and the gold age pill.
-  if (dk === 'experience' && (yearsLabel(r) || ageLabel(r))) {
+  if (dk === 'experience') {
+    // The period is TAPPABLE - edit the years right on the page. When unset,
+    // the pill says so; the age pill offers the birth year when missing.
+    const yl = yearsLabel(r);
+    const al = ageLabel(r);
     el('readerKind').innerHTML = escHtml(meta) +
-      (yearsLabel(r) ? ' <span class="rk-years">' + escHtml(yearsLabel(r)) + '</span>' : '') +
-      (ageLabel(r) ? ' <span class="rk-age">' + escHtml(ageLabel(r)) + '</span>' : '');
+      ' <span class="rk-years rk-tap" id="rkYears" title="Tap to edit the period">' +
+        (yl ? escHtml(yl) : 'set the years') + '</span>' +
+      (al ? ' <span class="rk-age rk-tap" id="rkAge" title="Tap to change your birth year">' + escHtml(al) + '</span>'
+          : (yl && !birthYear() ? ' <span class="rk-age rk-tap" id="rkAge" title="Set your birth year for age labels">age?</span>' : ''));
+    const ry = el('rkYears');
+    if (ry) ry.addEventListener('click', () => _editChapterYears(r));
+    const ra = el('rkAge');
+    if (ra) ra.addEventListener('click', () => {
+      const v = prompt('Your birth year (for the AGE labels):', birthYear() || '');
+      if (v && /^\d{4}$/.test(v.trim())) {
+        localStorage.setItem('myday_birth_year', v.trim());
+        openReader(r.id, true); render();
+      }
+    });
   } else if (quiet) {
     el('readerKind').innerHTML = escHtml(meta) +
       ' <span class="rk-quiet">\u00B7 ' + escHtml(quiet) + '</span>';
@@ -1559,7 +1597,7 @@ function exportEntryPrint() {
         '<span style="position:absolute; left:0; top:0; width:40px; height:40px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;">' + romanNum(ci + 1) + '</span>' +
       '</span>' +
       '<div class="kind" style="color:#a5702f;">LIFE CHAPTER' +
-      (yearsLabel(r) ? ' &middot; ' + esc(yearsLabel(r)) : '') +
+      (yearsLabel(r) ? ' &middot; ' + esc(yearsLabel(r)) : ' &middot; years not set') +
       (ageLabel(r) ? ' &nbsp;<span style="font-size:0.5938rem; color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px; padding:2px 8px;">' + esc(ageLabel(r)) + '</span>' : '') + '</div>';
     h1H = '<h1><span style="padding:0 8px 2px; margin-left:-8px; background:linear-gradient(transparent 56%, ' + sh + '4d 56%, ' + sh + '4d 96%, transparent 96%); -webkit-box-decoration-break:clone; box-decoration-break:clone;">' + esc(r.title||'Untitled') + '</span></h1>';
     sigH = '<div style="width:88px; height:6px; border-radius:3px; background:' + sh + '; margin:2px 0 14px;"></div>';
