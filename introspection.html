@@ -919,14 +919,18 @@ function chapterSort(a, b) {
   return ya - yb || String(a.created_at).localeCompare(String(b.created_at));
 }
 async function _editChapterYears(r) {
-  const f = prompt('This chapter begins in which year?', r.years_from || '');
-  if (f === null) return;
-  const yf = parseInt(String(f).trim(), 10);
-  if (!yf || yf < 1900 || yf > 2100) { toast('A four-digit year, please'); return; }
-  const t = prompt('And ends in which year? (leave blank if it is still going)', r.years_to || '');
-  if (t === null) return;
-  let yt = String(t).trim() === '' ? null : parseInt(String(t).trim(), 10);
-  if (yt !== null && (!yt || yt < yf || yt > 2100)) { toast('The end year must not come before the start'); return; }
+  // ONE ask for the whole period - phones often swallow a second prompt,
+  // which made the end year uneditable. '2006-2014', or '2006-' if ongoing.
+  const cur = r.years_from ? (r.years_from + '\u2013' + (r.years_to || '')) : '';
+  const raw = prompt('The period of this chapter \u2014 e.g. 2006\u20132014,\nor just 2006\u2013 if it is still going:', cur);
+  if (raw === null) return;
+  const m = String(raw).trim().replace(/\s+/g, '')
+    .match(/^(\d{4})(?:[\u2013\u2014-]|to)?(\d{4})?[\u2013\u2014-]?$/i);
+  if (!m) { toast('Like this: 2006\u20132014, or 2006\u2013 for ongoing'); return; }
+  const yf = parseInt(m[1], 10);
+  let yt = m[2] ? parseInt(m[2], 10) : null;
+  if (yf < 1900 || yf > 2100) { toast('A year between 1900 and 2100, please'); return; }
+  if (yt !== null && (yt < yf || yt > 2100)) { toast('The end year must not come before the start'); return; }
   try {
     const { error } = await supa.from('iw_entries')
       .update({ years_from: yf, years_to: yt }).eq('id', r.id).eq('user_id', userId);
@@ -1547,7 +1551,9 @@ function entryPlain_(r) {
 }
 function entryMd_(r) {
   const date = readerDateStr_(r);
-  let md = '# ' + (r.title || 'Untitled') + '\n\n*' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') + '*\n\n';
+  let md = '# ' + (r.title || 'Untitled') + '\n\n*' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') +
+    (displayKind(r.kind) === 'experience' && yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
+    (displayKind(r.kind) === 'experience' && ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '') + '*\n\n';
   if (r.essence) md += '> ' + r.essence + '\n\n';
   md += (NoteEditor.toMarkdown(r.body) || '') + '\n';
   if (r.tags && r.tags.length) md += '\n---\n\nTags: ' + r.tags.join(', ') + '\n';

@@ -136,6 +136,18 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**TL-3: one ask for the period; every output speaks it**
+(26 Aug 2026): (1) 'only from can be edited' - phones swallow a
+SECOND prompt() (dialog-spam suppression), so the end year never
+took. The period now edits in ONE ask: '2006-2014' or '2006-' for
+ongoing (regex takes -, en/em dash, 'to'; validated). NEW LAW:
+never chain two prompts on one gesture - phones may suppress the
+second. (2) Print verified by harness to carry BOTH the amber
+period and the gold AGE pill once the data exists (2006-2014 +
+AGE 8-16 found in composed print html) - the earlier 'missing' was
+the missing data itself. The .md export now carries period + age
+too (four-output-paths law honoured).
+
 **TL-2: the period edits on the page; print speaks it**
 (26 Aug 2026): (1) chapter pages could never edit their years after
 creation. Now the eyebrow's period is TAPPABLE (rk-tap dotted
