@@ -136,6 +136,20 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-6: wisdom shows its pages; the upload returns**
+(26 Aug 2026): correction from Rahul - the earlier Wisdom Library
+DISPLAYED the saved html as the page (not behind a door) and had an
+upload. Both restored: doc rows render the saved page INLINE in an
+iframe (sandbox allow-same-origin allow-popups, srcdoc - same
+posture as the doc overlay) with a small 'Full screen' button
+opening the old reader; the attachment-door design retired to zero
+refs. UPLOAD: wisdom pages in edit mode show a dashed 'Upload the
+saved page (.html)' door (frFile) - reads text, isDoc-validates,
+confirms before replacing an existing page or written note, updates
+note, repaints the page inline. saveFrCore_/setFrEditing doc guards
+unchanged. Harness: inline frame + full-screen + upload-only-in-
+edit-on-wisdom + upload commit + repaint all green.
+
 **LR-5: the popup is DEAD; wisdom gets its pages back**
 (26 Aug 2026): (1) FULL RETIREMENT - modal markup block, openModal,
 closeModal, saveBookmark, deleteBookmark, shapeModalForSection,

@@ -351,11 +351,18 @@
     color:#2f3a52; line-height:1.6; margin-top:10px; padding:10px 14px;
     border-left:3px solid #dfe9f8; background:#f7fafd; border-radius:0 10px 10px 0; }
   .fr-passage.hidden { display:none; }
-  .fr-docdoor { display:flex; align-items:center; gap:8px; border:1.5px dashed #b9c8e0;
-    background:transparent; color:#2f5187; border-radius:10px; padding:11px 13px;
-    font-size:0.8125rem; font-weight:600; cursor:pointer; }
-  .fr-docdoor:hover { background:#f2f6fd; }
-  .fr-docnote { font-size:0.71875rem; color:#68748c; margin-top:8px; line-height:1.55; }
+  .fr-docstrip { display:flex; justify-content:flex-end; margin-bottom:6px; }
+  .fr-docfull { background:none; border:1px solid #cdd5e0; border-radius:8px; color:#4a5570;
+    font-size:0.6875rem; font-weight:600; padding:5px 10px; cursor:pointer; }
+  .fr-docfull:hover { border-color:#2f5187; color:#2f5187; }
+  .fr-docframe { width:100%; height:70vh; border:1px solid #dfe9f8; border-radius:12px;
+    background:#fff; }
+  .fr-uploadrow { margin:10px 0 0; }
+  .fr-uploadrow.hidden { display:none; }
+  .fr-upload { display:inline-flex; align-items:center; gap:7px; border:1.5px dashed #b9c8e0;
+    color:#2f5187; border-radius:10px; padding:9px 13px; font-size:0.75rem; font-weight:600;
+    cursor:pointer; }
+  .fr-upload:hover { background:#f2f6fd; }
   body.fr-doc.fr-editing #frBodyInp, body.fr-doc #frToolbar, body.fr-doc #frSave { display:none !important; }
   .fr-del { color:#A8443E; }
   .fr-del:hover { background:#FBF1F0; }
@@ -469,6 +476,10 @@
           </div>
         </div>
       <div class="fr-toolbar" id="frToolbar"></div>
+        <div class="fr-uploadrow hidden" id="frUploadRow">
+          <label class="fr-upload" for="frFile">&#10514;&nbsp; Upload the saved page (.html)</label>
+          <input type="file" id="frFile" accept=".html,.htm,text/html" class="hidden">
+        </div>
       </div>
       <div class="fr-body" id="frBody"></div>
       <div class="fr-body-inp" id="frBodyInp" contenteditable="true" data-placeholder="Your highlight or note&#8230;"></div>
@@ -1055,15 +1066,20 @@ function openReader(id, keepNav) {
   el('frPassage').innerHTML = pass ? '\u201C' + escHtml(pass) + '\u201D' : '';
   el('frPassage').classList.toggle('hidden', !pass);
   if (hasDoc) {
+    // The saved page IS the wisdom entry - it displays right on the page,
+    // as the earlier Wisdom Library did. Full screen one tap away.
     el('frBody').innerHTML =
-      '<button type="button" class="fr-docdoor" id="frDocDoor">' +
-      '\uD83D\uDCC4&nbsp; Open the saved page</button>' +
-      '<div class="fr-docnote">This entry carries a saved page from the earlier ' +
-      'Wisdom Library. The page opens in its own reader; the title, passage and ' +
-      'star are editable here.</div>';
+      '<div class="fr-docstrip"><button type="button" class="fr-docfull" id="frDocFull">' +
+      '\u26F6&nbsp; Full screen</button></div>';
+    const frm = document.createElement('iframe');
+    frm.className = 'fr-docframe';
+    frm.title = 'Saved page';
+    frm.setAttribute('sandbox', 'allow-same-origin allow-popups');
+    frm.srcdoc = r.note || '';
+    el('frBody').appendChild(frm);
     el('frBody').classList.remove('empty');
     el('frBodyInp').innerHTML = '';
-    el('frDocDoor').addEventListener('click', () => openDocReader(r));
+    el('frDocFull').addEventListener('click', () => openDocReader(r));
   } else {
     const noteHtml = NoteEditor.toHtml(r.note);
     el('frBody').innerHTML = noteHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
@@ -1113,6 +1129,14 @@ function setFrEditing(on) {
   // Doc rows keep their saved page as the body - only heading, passage and
   // star edit; the body editor stays out of the way.
   document.body.classList.toggle('fr-doc', !!frHasDoc);
+  // The upload door, back from the earlier Wisdom Library: in edit mode a
+  // wisdom page takes a saved .html and makes it the page.
+  const up = el('frUploadRow');
+  if (up) {
+    const r0 = rows.find(x => String(x.id) === String(frId));
+    const isWisdom = r0 && secOf(r0) === 'wisdom';
+    up.classList.toggle('hidden', !(on && isWisdom));
+  }
   // The passage edits in place too (the wisdom voice).
   const ps = el('frPassage');
   if (on && !ps.classList.contains('hidden')) {
@@ -1472,6 +1496,33 @@ async function renderSoulDots() {
 }
 
 el('exportBtn').addEventListener('click', exportAll);
+el('frFile').addEventListener('change', () => {
+  const file = el('frFile').files && el('frFile').files[0];
+  el('frFile').value = '';
+  if (!file || !frId) return;
+  const r = rows.find(x => String(x.id) === String(frId));
+  if (!r) return;
+  const rd = new FileReader();
+  rd.onload = async () => {
+    const html2 = String(rd.result || '');
+    if (!isDoc(html2)) { toast('That file is not a saved .html page'); return; }
+    const had = (r.note || '').trim();
+    if (had && !confirm(had && isDoc(r.note)
+      ? 'Replace the saved page on this entry?'
+      : 'This entry has a written note. The saved page will replace it. Continue?')) return;
+    try {
+      const { error } = await supa.from('bookmarks')
+        .update({ note: html2, updated_at: new Date().toISOString() })
+        .eq('id', frId).eq('user_id', userId);
+      if (error) throw error;
+      r.note = html2;
+      toast('Saved page uploaded');
+      openReader(frId, true);   // repaint: the page now displays it
+    } catch (e) { toast('Could not upload'); }
+  };
+  rd.onerror = () => toast('Could not read that file');
+  rd.readAsText(file);
+});
 el('frDel').addEventListener('click', async () => {
   // LR-1: delete lives where you are - on the entry's own page.
   if (!frId) return;
