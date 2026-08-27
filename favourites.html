@@ -58,15 +58,16 @@
 
   /* ---- SHELL + HERO (mirrors My Wisdom) ---- */
   .lib-shell { background:var(--paper); border:1px solid rgba(255,255,255,0.9); border-radius:20px; overflow:hidden; box-shadow:0 18px 44px rgba(20,30,60,0.13); }
-  /* LR-1: the navy poster retires; the library joins the manuscript house. */
-  .lib-hero { background:var(--paper); color:var(--ink); padding:26px 26px 18px; border-bottom:1px solid #e6ebf2; }
+  /* LR-2: the hero matches My Why and My Inner Life byte-for-byte - one
+     family crest across the rooms. */
+  .lib-hero { background:linear-gradient(155deg,#203a72,#0f1f42); color:#fff; padding:30px 26px; }
   .lib-hero-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; }
-  .hub-back { font-family:var(--mono); font-size:0.6875rem; letter-spacing:0.1em; text-transform:uppercase; color:#8a94aa; text-decoration:none; transition:color .15s; }
+  .hub-back { font-family:var(--mono); font-size:0.6875rem; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.5); text-decoration:none; transition:color .15s; }
   .hub-back:hover { color:var(--gold); }
-  .lib-eyebrow { font-family:var(--sans); font-size:0.6875rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:#68748c; margin-bottom:6px; }
-  .lib-title { font-family:var(--serif); font-size:2.25rem; font-weight:600; letter-spacing:-0.01em; color:var(--ink); line-height:1.05; }
-  .lib-subline { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#4a5570; margin-top:8px; }
-  .lib-count { width:36px; height:36px; border-radius:50%; background:#FBF3E2; border:1px solid #E4D2AC; color:#8A5711; font-family:var(--mono); font-size:0.9375rem; font-weight:600; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .lib-eyebrow { font-family:'Caveat',cursive; font-weight:500; font-size:1.4375rem; letter-spacing:0.01em; color:#f3d585; margin-bottom:11px; }
+  .lib-title { font-family:var(--serif); font-size:2.5rem; font-weight:600; letter-spacing:-0.02em; color:#fff; line-height:1.02; }
+  .lib-subline { font-family:var(--serif); font-style:italic; font-size:1rem; color:rgba(255,255,255,0.7); margin-top:12px; }
+  .lib-count { width:36px; height:36px; border-radius:50%; background:var(--gold); color:#1c2436; font-family:var(--mono); font-size:0.9375rem; font-weight:600; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
   .lib-body { padding:18px 20px 6px; }
   @media (max-width:560px){ .lib-hero { padding:26px 20px; } .lib-title { font-size:2.25rem; } .lib-body { padding:16px 16px 6px; } }
 
@@ -329,6 +330,10 @@
   .eb svg { width:15px; height:15px; }
   .eb.hot { background:#fdf3d3; border-color:var(--gold,#f4c430); color:#9a7b1a; }
   .fr-star { color:#d7dce4; } .fr-star.on { color:var(--gold,#f4c430); }
+  .fr-h1-edit { outline:1.5px dashed #b9c2d4; outline-offset:4px; border-radius:6px;
+    cursor:text; -webkit-user-select:text; user-select:text;
+    -webkit-tap-highlight-color:rgba(68,85,124,0.12); min-height:1.3em; }
+  .fr-h1-edit:focus { outline-color:#8a97b3; }
   .fr-del { color:#A8443E; }
   .fr-del:hover { background:#FBF1F0; }
   @media (max-width:640px){ .fr-in { padding:20px 16px 30px; } .fr-h1 { font-size:1.5rem; } }
@@ -360,7 +365,7 @@
         <a class="hub-back" href="/">&#8592; Hub</a>
         <span class="lib-count" id="count">&#8212;</span>
       </div>
-      <div class="lib-eyebrow">the shelves</div>
+      <div class="lib-eyebrow">The things worth coming back to</div>
       <div class="lib-title">My Library</div>
       <div class="lib-subline">Music, podcasts, books &amp; more &mdash; kept for good.</div>
     </div>
@@ -566,14 +571,13 @@ const SEC_ICONS = {
   'movies': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="10" rx="2"/><path d="m3.5 10-.9-3.6L19.9 2.6l.9 3.6zM7.4 9.2 6 5.7M12.2 8 10.8 4.5M17 6.8 15.6 3.3"/></svg>',
   'wisdom': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg>',
 };
+// LR-2: ONE box colour across every shelf - the wisdom blue, now the
+// Library's own signature wash. Sections tell apart by chip ink + eyebrow.
+const LIB_THEME = { w1:'#f2f6fd', w2:'#dfe9f8', acc:'#2f5187' };
 const SEC_THEMES = {
-  'all-time': { w1:'#f5f7fa', w2:'#e3e8f1', acc:'#44557c' },   // swapped with Books
-  'music':    { w1:'#f6f5fb', w2:'#e6e3f3', acc:'#5f57a8' },   // violet
-  'books':    { w1:'#f2f7f7', w2:'#e2edec', acc:'#4a6f6a' },   // swapped with All-Time
-  'podcasts': { w1:'#f8f5f9', w2:'#eae3ec', acc:'#6d5474' },   // = gratitude plum
-  'marathi':  { w1:'#f8f7f4', w2:'#ecebe5', acc:'#6f6a5c' },   // = diary sand
-  'movies':   { w1:'#f5f8f4', w2:'#e5ebe2', acc:'#5a7050' },   // = experience green
-  'wisdom':   { w1:'#f2f6fd', w2:'#dfe9f8', acc:'#2f5187' },   // its own blue, kept from the old room
+  'all-time': LIB_THEME, 'music': LIB_THEME, 'books': LIB_THEME,
+  'podcasts': LIB_THEME, 'marathi': LIB_THEME, 'movies': LIB_THEME,
+  'wisdom': LIB_THEME,
 };
 const SECTIONS = {
   // A (Aug 2026): renamed from 'All-Time'; the 'all-time' KEY is law and never changes.
@@ -1084,16 +1088,52 @@ function closeReader() {
   render();
 }
 function setFrEditing(on) {
+  const wasEditing = document.body.classList.contains('fr-editing');
   document.body.classList.toggle('fr-editing', !!on);
   el('frEdit').classList.toggle('hot', !!on);
   el('frEditLabel').textContent = on ? 'Done' : 'Edit';
+  // LR-2: the page heading edits in place, exactly like an Inner Life page.
+  const h1 = el('frH1');
+  if (on) {
+    h1.setAttribute('contenteditable', 'true');
+    h1.classList.add('fr-h1-edit');
+    if (!h1._frTitleWired) {
+      h1._frTitleWired = true;
+      h1.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter') { ev.preventDefault(); h1.blur(); }
+      });
+    }
+  } else {
+    h1.contentEditable = 'false';
+    h1.classList.remove('fr-h1-edit');
+  }
   if (!on) {
     const html = NoteEditor.sanitize(el('frBodyInp').innerHTML).trim();
     el('frBodyInp').innerHTML = html;
     el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
     el('frBody').classList.toggle('empty', !html);
+    if (wasEditing) { _frTitleCommit(h1.textContent); }
   } else {
     nk.refresh();
+  }
+}
+async function _frTitleCommit(raw) {
+  if (!frId) return;
+  const r = rows.find(x => String(x.id) === String(frId));
+  if (!r) return;
+  const t = String(raw || '').replace(/\s+/g, ' ').trim();
+  if (!t || t === r.title) { el('frH1').textContent = r.title || ''; return; }
+  try {
+    const { error } = await supa.from('bookmarks').update({ title: t })
+      .eq('id', frId).eq('user_id', userId);
+    if (error) throw error;
+    r.title = t;
+    el('frH1').textContent = t;
+    toast('Title saved');
+    render();
+  } catch (e) {
+    el('frH1').textContent = r.title || '';
+    toast('Could not save the title');
   }
 }
 function scheduleFrSave() { frDirty = true; frUpdateWc_(); el('frSave').textContent = 'Saving\u2026'; clearTimeout(frTimer); frTimer = setTimeout(() => saveFr_(), 700); }

@@ -136,6 +136,23 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-2: crest hero + one box wash + in-place headings**
+(26 Aug 2026): (1) HERO - corrected to be IDENTICAL to My Why and
+My Inner Life (LR-1's light hero was my invention; the true family
+crest is the navy gradient): linear-gradient(155deg,#203a72,#0f1f42),
+Caveat gold eyebrow 'The things worth coming back to', 2.5rem white
+serif title, italic subline (kept: 'Music, podcasts, books & more -
+kept for good.'), gold count badge, ghost hub-back. (2) ONE BOX
+COLOUR - SEC_THEMES collapsed to a single LIB_THEME = the wisdom
+blue (w1 #f2f6fd, w2 #dfe9f8, acc #2f5187), now the Library's own
+signature wash on every shelf's index boxes; shelves tell apart by
+MC-3 chip ink + eyebrow. (3) HEADINGS EDIT IN PLACE - frH1 goes
+contenteditable in edit mode (dashed affordance + iOS text-select
+insurance, Enter commits), Done commits bookmarks.title with
+revert-on-failure; harness verified: title update + body save both
+fire, h1 repaints. The LR-1 record below stands for the delete fix,
+the rename (A), chips, and grounds.
+
 **LR-1 + A: My Library joins the manuscript house (favourites.html)**
 (26 Aug 2026): (1) HERO - the navy poster gradient RETIRED; light
 paper hero in the house voice: eyebrow 'the shelves', serif title,
