@@ -136,6 +136,16 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**TL-6: prints wear the app's own names; the diary keeps its dates**
+(26 Aug 2026): section print h1s now match the tabs exactly -
+My Diary / My Musings & Learnings / My Life Timeline / My Writings
+(the 'Introspection - Writing Desk' fallback that mislabelled the
+musings print retired; the 'Introspection -' prefix dropped
+everywhere; whiteboard already printed as My Whiteboard). Diary
+print rows carry each page's date in the meta line ('a diary lives
+by its dates'). Isolated test: both h1s, date on row, zero
+'Writing Desk'/prefix refs in output.
+
 **TL-5: the printed timeline speaks its name, in life order**
 (26 Aug 2026): section print heading 'Life Experiences' -> 'My Life
 Timeline' (label only), and the timeline print now sorts by

@@ -1785,16 +1785,19 @@ function printIntro_() {
   // The timeline prints in LIFE ORDER - from the first chapter onward,
   // never newest-first, never favourites-first.
   if (activeView === 'experience') list = list.slice().sort(chapterSort);
-  const vl = activeView === 'diary' ? 'Diary'
-    : activeView === 'experience' ? 'My Life Timeline' : 'Writing Desk';
-  let body = '<h1>Introspection \u00B7 ' + vl + '</h1><div class="sub">' + list.length
+  // The print wears the app's own room names - nothing else.
+  const vl = activeView === 'diary' ? 'My Diary'
+    : activeView === 'experience' ? 'My Life Timeline'
+    : activeView === 'writing' ? 'My Writings'
+    : 'My Musings & Learnings';
+  let body = '<h1>' + escHtml(vl) + '</h1><div class="sub">' + list.length
     + (list.length === 1 ? ' entry' : ' entries') + '</div>';
   list.forEach(r => {
     const k = KIND[r.kind];
     const per = displayKind(r.kind) === 'experience'
       ? (yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
         (ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '')
-      : '';
+      : (activeView === 'diary' ? ' \u00B7 ' + readerDateStr_(r) : '');   // a diary lives by its dates
     body += '<div class="it"><div class="m">' + escHtml(((k && k.lbl) || '') + per) + '</div>'
       + '<div class="t">' + escHtml(r.title || 'Untitled') + '</div>'
       + (r.essence ? '<div class="e">' + escHtml(r.essence) + '</div>' : '')
