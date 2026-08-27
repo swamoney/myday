@@ -118,6 +118,36 @@ retitle guard compares datePhrase_(oldYmd) in the SAME env at
 runtime, so real devices retitle correctly). LESSON: hidden-input
 date pickers must OVERLAY their trigger, never sit off-screen.
 
+**TH-1: the heading edits in place** (27 Aug 2026): 'unable to
+update page heading' - ROOT CAUSE: openModal (the card-era editor
+that renamed entries) survives with ZERO callers; DX-3's card
+retirement removed its last caller, silently orphaning title editing
+- a retirement-law breach caught late (retire to zero refs INCLUDING
+the capability, not just the code). FIX: the reader's Edit mode now
+makes the H1 itself editable (contenteditable=true via attribute -
+Firefox rejects plaintext-only; commit reads textContent so pasted
+formatting flattens; Enter blurs); Done commits via _rdTitleCommit
+(trimmed, empty keeps old name, unchanged skips the write), updates
+the row cache, toasts, and repaints through openReader(id, true) so
+chapter sweeps return. RECURSION GUARD: openReader resets edit
+state on every open, so setRdEditing(false) commits ONLY when
+wasEditing (first harness run recursed to stack overflow; caught,
+guarded, re-proven). Harness: Edit -> type -> Done sends
+{title:'New Heading'}, zero errors. openModal remains orphaned -
+flagged for retirement or reuse next session.
+
+**DP-3: heading edit verified + phone insurance** (26 Aug 2026):
+'page heading unable to update' - a jsdom harness ran the REAL flow
+(Edit -> contenteditable H1 -> type -> Done): update {title} sent,
+h1 repainted, zero errors - the mechanism is SOUND. _rdTitleCommit
+confirmed async (an earlier print truncated the 'async' keyword -
+checked bytes before alarming). Added iOS insurance on .rd-h1-edit:
+-webkit-user-select:text + tap-highlight + min-height + cursor:text
+(WebKit contenteditable focus can fail without selectable text).
+The flow, for the record: Edit -> the heading grows a dashed box ->
+tap IT -> type -> Done (or Enter). Prime suspect remains a stale
+deployment; awaiting confirmation on the fresh file.
+
 **DP-2: the date control made phone-proof** (26 Aug 2026): 'unable
 to change date on any page' - a jsdom harness proved the mechanism
 sound on desktop (input renders, change commits created_at), so the

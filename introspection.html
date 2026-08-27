@@ -355,6 +355,10 @@
   .rd-datepick { display:inline-block; font-family:var(--sans); font-size:0.71875rem;
     color:#4a556e; background:#FBFCFE; border:1px dashed #b9c2d4; border-radius:7px;
     padding:2px 7px; margin-left:2px; cursor:pointer; max-width:11em; vertical-align:baseline; }
+  .rd-h1-edit { outline:1.5px dashed #b9c2d4; outline-offset:4px; border-radius:6px;
+    cursor:text; -webkit-user-select:text; user-select:text;
+    -webkit-tap-highlight-color:rgba(68,85,124,0.12); min-height:1.4em; }
+  .rd-h1-edit:focus { outline-color:#8a97b3; }
   .rd-datepick:focus { outline:2px solid rgba(68,85,124,0.35); outline-offset:1px; }
   .reader-inner { max-width:1000px; margin:0 auto; }
   .reader-kind { font-family:var(--sans); font-size:0.6875rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--r-acc); margin-bottom:8px; }
@@ -1283,13 +1287,59 @@ function closeReader() {
 // ----- in-reader writing (shared editor) -----
 let rdTimer = null;
 function setRdEditing(on) {
+  // openReader resets edit state on every open; only a REAL exit from
+  // editing commits the heading (else commit->repaint->reset recurses).
+  const wasEditing = document.body.classList.contains('rd-editing');
   document.body.classList.toggle('rd-editing', !!on);
   el('readerEdit').textContent = on ? 'Done' : 'Edit';
-  if (!on) {
+  // The heading edits in place with the page (the card-era modal that once
+  // renamed entries retired in DX; the reader is the title's home now).
+  const h1 = el('readerH1');
+  if (on) {
+    if (readerEntry) h1.textContent = readerEntry.title || '';
+    // 'true' everywhere (Firefox rejects plaintext-only); the commit reads
+    // textContent, so any pasted formatting flattens to plain text anyway.
+    h1.setAttribute('contenteditable', 'true');
+    h1.classList.add('rd-h1-edit');
+    if (!h1._rdTitleWired) {
+      h1._rdTitleWired = true;
+      h1.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter') { ev.preventDefault(); h1.blur(); }
+      });
+    }
+  } else {
+    h1.contentEditable = 'false';
+    h1.classList.remove('rd-h1-edit');
     const html = NoteEditor.sanitize(el('readerBodyInp').innerHTML).trim();
     el('readerBodyInp').innerHTML = html;
     el('readerBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
-  } else { rdNk.refresh(); }
+    if (wasEditing) { _rdTitleCommit(h1.textContent); }
+    return;
+  }
+  rdNk.refresh();
+}
+async function _rdTitleCommit(raw) {
+  if (!readerEntry) return;
+  const t = String(raw || '').replace(/\s+/g, ' ').trim();
+  if (!t || t === readerEntry.title) {
+    // Empty keeps the old name; unchanged needs no save. Repaint either way
+    // so chapters get their sweep back after plain-text editing.
+    openReader(readerEntry.id, true);
+    return;
+  }
+  try {
+    const { error } = await supa.from('iw_entries').update({ title: t })
+      .eq('id', readerEntry.id).eq('user_id', userId);
+    if (error) throw error;
+    readerEntry.title = t;
+    const row = rows.find(x => String(x.id) === String(readerEntry.id));
+    if (row) row.title = t;
+    toast('Title saved');
+  } catch (e) {
+    toast('Could not save the title');
+  }
+  openReader(readerEntry.id, true);   // repaint: sweep, path bar, index
+  render();
 }
 function scheduleRdSave() { rdDirty = true; rdUpdateWc_(); el('rdSave').textContent = 'Saving\u2026'; clearTimeout(rdTimer); rdTimer = setTimeout(() => saveRd_(), 700); }
 let rdSaving = false, rdQueued = false;
