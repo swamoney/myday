@@ -136,6 +136,20 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**LR-7: wisdom = the html itself + self-introducing uploads**
+(26 Aug 2026): (1) tapping a wisdom entry opens the FULL saved html
+straight away (openReader gains forcePage; wisdom doc rows route to
+openDocReader unless forced) - nothing between the tap and the page;
+the edit pencil opens the page tools (title/passage/upload/delete)
+via forcePage. (2) _docCapture(html): DOMParser reads the page's
+first h1/h2/h3 (falls back to <title>) as the TITLE and the first
+meaningful text after the heading (falls back to first <p>) as the
+one-line SUMMARY (essence, shown on the wisdom index cards which
+already render essence); fills ONLY empty fields - your own words
+are never overwritten; clipped 120/160 chars; toast 'Uploaded -
+heading captured'. Harness: tap=doc-only, pencil=tools, capture
+title 'The Daily Stoic' + summary line - all green.
+
 **LR-6: wisdom shows its pages; the upload returns**
 (26 Aug 2026): correction from Rahul - the earlier Wisdom Library
 DISPLAYED the saved html as the page (not behind a door) and had an

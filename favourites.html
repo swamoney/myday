@@ -908,7 +908,7 @@ function render() {
       if (e.target.closest('[data-fav]') || e.target.closest('[data-edit]')) return;
       openReader(c.dataset.open);
     }));
-    wrap.querySelectorAll('.ncard .nedit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openReader(b.dataset.edit); setFrEditing(true); }));
+    wrap.querySelectorAll('.ncard .nedit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openReader(b.dataset.edit, false, true); setFrEditing(true); }));
     wrap.querySelectorAll('.ncard .nstar').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); toggleFav(b.dataset.fav); }));
     _appendShelfDoor(wrap);
     return;
@@ -1034,6 +1034,31 @@ function readDoc(html) {
   } catch (e) { console.error('readDoc', e); }
   return out;
 }
+// LR-7: read a saved page's heading + the line beneath it.
+function _docCapture(html2) {
+  try {
+    const doc2 = new DOMParser().parseFromString(html2, 'text/html');
+    const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+    let title = '';
+    const h = doc2.querySelector('h1, h2, h3');
+    if (h) title = clean(h.textContent);
+    if (!title) title = clean(doc2.title);
+    let summary = '';
+    if (h) {
+      // the first meaningful text after the heading
+      let n = h.nextElementSibling;
+      while (n && !summary) { summary = clean(n.textContent); n = n.nextElementSibling; }
+    }
+    if (!summary) {
+      const p = doc2.querySelector('p');
+      if (p) summary = clean(p.textContent);
+    }
+    if (summary === title) summary = '';
+    if (summary.length > 160) summary = summary.slice(0, 157).trimEnd() + '\u2026';
+    if (title.length > 120) title = title.slice(0, 117).trimEnd() + '\u2026';
+    return { title, summary };
+  } catch (e) { return { title: '', summary: '' }; }
+}
 function isDoc(s) {
   const t = String(s || '').trim().slice(0, 400).toLowerCase();
   return t.indexOf('<!doctype html') === 0 || t.indexOf('<html') === 0;
@@ -1047,11 +1072,13 @@ function openDocReader(r) {
   document.body.classList.add('doc-open');
   el('docOverlay').dataset.id = r.id;
 }
-function openReader(id, keepNav) {
+function openReader(id, keepNav, forcePage) {
   const r = rows.find(x => x.id === id); if (!r) return;
-  // LR-5: every entry has a PAGE - the earlier Wisdom Library's saved-page
-  // uploads no longer hijack the open; they wait as an attachment button.
   const hasDoc = isDoc(r.note);
+  // LR-7: a wisdom entry IS its saved page - tapping it opens the full html,
+  // nothing between. The edit pencil (forcePage) still opens the page tools
+  // (title, passage, upload, delete).
+  if (hasDoc && !forcePage && secOf(r) === 'wisdom') { openDocReader(r); return; }
   if (!keepNav) frNavIds = filteredRows().map(x => x.id);  // arrows follow the list you came from
   const sec = SECTIONS[secOf(r)] || SECTIONS['all-time'];
   el('frPage').dataset.sec = secOf(r);   // reader wears the box's colour
@@ -1510,14 +1537,22 @@ el('frFile').addEventListener('change', () => {
     if (had && !confirm(had && isDoc(r.note)
       ? 'Replace the saved page on this entry?'
       : 'This entry has a written note. The saved page will replace it. Continue?')) return;
+    // LR-7: the page introduces itself - its heading becomes the title and
+    // the first line under it becomes the one-line summary on the index
+    // (only where you haven't written your own).
+    const cap = _docCapture(html2);
+    const patch = { note: html2, updated_at: new Date().toISOString() };
+    if (cap.title && !(r.title || '').trim()) patch.title = cap.title;
+    if (cap.summary && !(r.essence || '').trim()) patch.essence = cap.summary;
     try {
       const { error } = await supa.from('bookmarks')
-        .update({ note: html2, updated_at: new Date().toISOString() })
-        .eq('id', frId).eq('user_id', userId);
+        .update(patch).eq('id', frId).eq('user_id', userId);
       if (error) throw error;
       r.note = html2;
-      toast('Saved page uploaded');
-      openReader(frId, true);   // repaint: the page now displays it
+      if (patch.title) r.title = patch.title;
+      if (patch.essence) r.essence = patch.essence;
+      toast(patch.title || patch.essence ? 'Uploaded \u2014 heading captured' : 'Saved page uploaded');
+      openReader(frId, true, true);   // repaint the page tools with it
     } catch (e) { toast('Could not upload'); }
   };
   rd.onerror = () => toast('Could not read that file');
