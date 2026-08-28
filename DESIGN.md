@@ -136,6 +136,18 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**BK-4: one Arrange, at the foot** (26 Aug 2026): the header
+Arrange retired to zero refs (markup, wiring, css); the end-actions
+foot button before Edit is the only trigger. Section-leave disarm
+kept.
+
+**BK-4: one Arrange, in the family's clothes** (26 Aug 2026): the
+header Arrange retired to zero refs (markup, css, wiring); the foot
+button is the only door, standing before Edit in the end-actions
+pill, wearing the family anatomy - a two-arrow up/down svg + mono
+uppercase word (bkArrangeWord flips Arrange <-> Done), gold ink
+while arranging. Section-leave disarm kept.
+
 **BK-3: Arrange stands before Edit** (26 Aug 2026): a second
 Arrange trigger joins the end-actions box, BEFORE the pencil Edit -
 the thumb's own corner. Both Arrange buttons (index header + foot)
