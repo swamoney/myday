@@ -136,6 +136,19 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**BK-2: the mark hugs the name; Arrange lives on the index**
+(26 Aug 2026): two faults Rahul caught on device. (1) AHEAD drifted
+to the right corner - .stamp .st has flex:1, so a SIBLING mark rides
+the far edge; the mark now lives INSIDE the title span, hugging the
+name's last word (margin-left 9px, vertical-align 2px). (2) the
+arrows never showed - p-editing only toggles from PAGES (bkEdit is
+the dream page's edit; the index has no edit mode), so the gate
+never opened. The index now has its own ARRANGE button beside the
+count (bk-hd flex; Arrange <-> Done, gold when armed) toggling
+body.bk-arranging, which gates the arrows + the plan-chip yield;
+arranging survives repaints. Harness: mark inside title span,
+Arrange->Done, nudge reorders + writes, arranging persists.
+
 **BK-1 + S1: AHEAD in ember, the order of hopes (why.html)**
 (26 Aug 2026): LOCKED B+F2 built - the waiting mark says AHEAD in
 deep ember #7A2F38/#fff (the rose whisper retired), standing BESIDE

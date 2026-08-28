@@ -1111,12 +1111,18 @@
   .mcard { cursor:pointer; }
   .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px 10px; flex-wrap:wrap; }
   /* V3 stamps — one design, three states, used on the page and in the book */
+  .bk-arr { margin-left:auto; background:none; border:1px solid #cdd5e0; border-radius:8px;
+    color:#4a5570; font-size:0.6875rem; font-weight:600; padding:5px 11px; cursor:pointer; }
+  .bk-arr:hover { border-color:#8a97b3; }
+  body.bk-arranging .bk-arr { border-color:#f4c430; color:#8a6d1f; }
+  .bk-hd { display:flex; align-items:center; gap:10px; }
+  .stamp .st .bk-mark { margin-left:9px; vertical-align:2px; }
   .bk-ud { display:none; flex-direction:column; gap:2px; margin-left:auto; flex-shrink:0; }
-  body.p-editing .bk-ud { display:inline-flex; }
+  body.bk-arranging .bk-ud { display:inline-flex; }
   .bk-ud button { border:1px solid #cdd5e0; background:#fff; border-radius:6px; width:27px;
     height:20px; font-size:0.5625rem; color:#3D4866; cursor:pointer; line-height:1; padding:0; }
   .bk-ud button:hover { border-color:#8a97b3; }
-  body.p-editing .stamp .plan { display:none; }   /* the corner yields to the arrows while editing */
+  body.bk-arranging .stamp .plan { display:none; }   /* the corner yields to the arrows while arranging */
   .bk-mark { display:inline-block; font-family:var(--mono); font-weight:600; letter-spacing:0.12em; border-radius:6px; white-space:nowrap; }
   .bk-mark.not_yet { background:#7A2F38; color:#fff; }   /* F2: deep ember - a fire not yet lit, equal in weight to DONE */
   .bk-mark.wip     { background:#1F6F68; color:#fff; }
@@ -1273,7 +1279,7 @@
           </button>
         </div>
         <div class="bk-book">
-          <div class="bk-hd"><span class="bk-count" id="bkCount"></span></div>
+          <div class="bk-hd"><span class="bk-count" id="bkCount"></span><button type="button" class="bk-arr" id="bkArrange">Arrange</button></div>
           <div id="stamps"></div>
         </div>
       </div>
@@ -5253,10 +5259,11 @@ function bkCard(b) {
     ? '<span class="bk-tickd" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
     : (wip ? '<span class="bk-live" aria-hidden="true"></span>'
            : '<span class="bk-ring" aria-hidden="true"></span>');
-  // BK-1: the waiting mark stands BESIDE the name - 'this one, still ahead'
-  // in a single sweep. Done and in-the-making keep their marks in the deck.
-  let inner = sym + '<span class="st">' + escHtml(b.title) + '</span>' +
-    (st === 'not_yet' ? bkMark(b, false) : '');
+  // BK-1: the waiting mark rides INSIDE the title span, hugging the last
+  // word of the name - .st flexes wide, so a sibling would drift to the
+  // right edge (the fault Rahul caught).
+  let inner = sym + '<span class="st">' + escHtml(b.title) +
+    (st === 'not_yet' ? ' ' + bkMark(b, false) : '') + '</span>';
   // The chip cluster rides in a deck: invisible on desktop, its own line on phones.
   let deck = '';
   if (done) deck += bkStars_(b);
@@ -5298,6 +5305,14 @@ function renderStamps() {
   wrap.innerHTML = '<div class="stamps">' + rows.map(bkCard).join('') + '</div>';
   // S1: in edit mode every waiting row grows quiet arrows; a tap nudges one
   // place and saves at once.
+  const arr = el('bkArrange');
+  if (arr && !arr._wired) {
+    arr._wired = true;
+    arr.addEventListener('click', () => {
+      const on = document.body.classList.toggle('bk-arranging');
+      arr.textContent = on ? 'Done' : 'Arrange';
+    });
+  }
   wrap.querySelectorAll('[data-bk-nudge]').forEach(btn =>
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
