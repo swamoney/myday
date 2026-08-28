@@ -136,6 +136,13 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**BK-3: Arrange stands before Edit** (26 Aug 2026): a second
+Arrange trigger joins the end-actions box, BEFORE the pencil Edit -
+the thumb's own corner. Both Arrange buttons (index header + foot)
+share one painter and one state (bk-arranging); the foot one shows
+only on the bucket section, and LEAVING the section disarms
+arranging (mirroring 'Edit belongs to the section you are in').
+
 **BK-2: the mark hugs the name; Arrange lives on the index**
 (26 Aug 2026): two faults Rahul caught on device. (1) AHEAD drifted
 to the right corner - .stamp .st has flex:1, so a SIBLING mark rides
