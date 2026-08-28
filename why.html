@@ -1111,8 +1111,14 @@
   .mcard { cursor:pointer; }
   .bk-statrow { margin-top:11px; display:flex; align-items:center; gap:10px 10px; flex-wrap:wrap; }
   /* V3 stamps — one design, three states, used on the page and in the book */
+  .bk-ud { display:none; flex-direction:column; gap:2px; margin-left:auto; flex-shrink:0; }
+  body.p-editing .bk-ud { display:inline-flex; }
+  .bk-ud button { border:1px solid #cdd5e0; background:#fff; border-radius:6px; width:27px;
+    height:20px; font-size:0.5625rem; color:#3D4866; cursor:pointer; line-height:1; padding:0; }
+  .bk-ud button:hover { border-color:#8a97b3; }
+  body.p-editing .stamp .plan { display:none; }   /* the corner yields to the arrows while editing */
   .bk-mark { display:inline-block; font-family:var(--mono); font-weight:600; letter-spacing:0.12em; border-radius:6px; white-space:nowrap; }
-  .bk-mark.not_yet { background:#fbeeef; color:#8a3540; }   /* F1: the old stamp tiles' rose, kept as a memory */
+  .bk-mark.not_yet { background:#7A2F38; color:#fff; }   /* F2: deep ember - a fire not yet lit, equal in weight to DONE */
   .bk-mark.wip     { background:#1F6F68; color:#fff; }
   .bk-mark.done    { background:#22334f; color:#fff; }
   .bk-stampro .bk-mark { font-size:0.5625rem; padding:6px 13px; }
@@ -5235,7 +5241,7 @@ function bkStarsText_(b) {
 function bkMark(b, big) {
   const st = b.status || 'not_yet';
   const txt = st === 'done' ? ('DONE \u00B7 ' + bkFmt(b.lived_on))
-            : (st === 'wip' ? 'IN THE MAKING' : 'NOT YET');
+            : (st === 'wip' ? 'IN THE MAKING' : 'AHEAD');   // B+F2 (Aug 2026): the waiting mark looks forward
   return '<span class="bk-mark ' + st + '">' + txt + '</span>';
 }
 function bkCard(b) {
@@ -5247,13 +5253,19 @@ function bkCard(b) {
     ? '<span class="bk-tickd" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>'
     : (wip ? '<span class="bk-live" aria-hidden="true"></span>'
            : '<span class="bk-ring" aria-hidden="true"></span>');
-  let inner = sym + '<span class="st">' + escHtml(b.title) + '</span>';
+  // BK-1: the waiting mark stands BESIDE the name - 'this one, still ahead'
+  // in a single sweep. Done and in-the-making keep their marks in the deck.
+  let inner = sym + '<span class="st">' + escHtml(b.title) + '</span>' +
+    (st === 'not_yet' ? bkMark(b, false) : '');
   // The chip cluster rides in a deck: invisible on desktop, its own line on phones.
   let deck = '';
   if (done) deck += bkStars_(b);
-  // A waiting dream with a plan lets the gold date speak alone - the ring
-  // already says 'not begun'. The dream's own page still states NOT YET.
-  if (!(st === 'not_yet' && b.planned_on)) deck += bkMark(b, false);
+  if (st !== 'not_yet') deck += bkMark(b, false);
+  if (!done) {
+    inner += '<span class="bk-ud" aria-hidden="true">' +
+      '<button type="button" data-bk-nudge="' + escHtml(b.id) + '" data-bk-dir="-1" title="Move up">\u25B2</button>' +
+      '<button type="button" data-bk-nudge="' + escHtml(b.id) + '" data-bk-dir="1" title="Move down">\u25BC</button></span>';
+  }
   if (!done && b.planned_on) deck += '<span class="plan' + (e && e.over ? ' over' : '') + '">'
       + (e && e.over ? 'PASSED \u00B7 ' : 'BY ') + bkFmt(b.planned_on) + '</span>';
   inner += '<span class="rowdeck">' + deck + '</span>';
@@ -5274,9 +5286,40 @@ function renderStamps() {
   const rows = buckets.slice().sort((a, c) => {
     const ra = rank[a.status || 'not_yet'], rc = rank[c.status || 'not_yet'];
     if (ra !== rc) return ra - rc;
+    // S1 (Aug 2026): within the waiting ranks, YOUR sequence rules -
+    // sort_order first (unset sinks below set), then age.
+    if ((a.status || 'not_yet') !== 'done') {
+      const sa = (a.sort_order == null ? 1e9 : a.sort_order);
+      const sc = (c.sort_order == null ? 1e9 : c.sort_order);
+      if (sa !== sc) return sa - sc;
+    }
     return 0;
   });
   wrap.innerHTML = '<div class="stamps">' + rows.map(bkCard).join('') + '</div>';
+  // S1: in edit mode every waiting row grows quiet arrows; a tap nudges one
+  // place and saves at once.
+  wrap.querySelectorAll('[data-bk-nudge]').forEach(btn =>
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.bkNudge, dir = parseInt(btn.dataset.bkDir, 10);
+      const waiting = rows.filter(b => (b.status || 'not_yet') !== 'done');
+      const i = waiting.findIndex(b => String(b.id) === String(id));
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= waiting.length) return;
+      const moved = waiting.splice(i, 1)[0];
+      waiting.splice(j, 0, moved);
+      try {
+        for (let k2 = 0; k2 < waiting.length; k2++) {
+          if (waiting[k2].sort_order !== k2) {
+            const { error } = await supa.from('bucket_items')
+              .update({ sort_order: k2 }).eq('id', waiting[k2].id).eq('user_id', userId);
+            if (error) throw error;
+            waiting[k2].sort_order = k2;
+          }
+        }
+        renderStamps();
+      } catch (e2) { toast('Could not save the order'); }
+    }));
   wrap.querySelectorAll('[data-bk]').forEach(s =>
     s.addEventListener('click', (e) => { if (e.target.closest('.stx')) return; openDream(s.dataset.bk); }));
   wrap.querySelectorAll('[data-stx]').forEach(x =>
@@ -6010,7 +6053,7 @@ el('bkPrint').addEventListener('click', () => {
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.7;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:#9a7b3a}h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:2rem;margin:6px 0 4px}.meta{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;letter-spacing:.1em;color:#8a6f43;margin-bottom:18px}h2{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#9a7b3a;margin:26px 0 10px;font-weight:600}.essay{font-size:1.125rem}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">My Bucket List</div><h1>' + esc(b.title || '') + '</h1>'
-    + '<div class="meta">' + (lived ? ('\u2713 DONE \u00B7 ' + esc(bkFmt(b.lived_on))) : (b.status === 'wip' ? 'WORK IN PROGRESS' : 'NOT YET'))
+    + '<div class="meta">' + (lived ? ('\u2713 DONE \u00B7 ' + esc(bkFmt(b.lived_on))) : (b.status === 'wip' ? 'WORK IN PROGRESS' : 'AHEAD'))
       + ' &middot; WRITTEN ' + esc(bkFmt(b.dreamed_on || b.created_at))
       + (b.planned_on ? ' &middot; PLANNED FOR ' + esc(bkFmt(b.planned_on)) : '') + '</div>'
     + '<div class="essay">' + (NoteEditor.toHtml(NoteEditor.sanitize(el('bkWhy').innerHTML)) || '') + '</div>';

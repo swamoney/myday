@@ -136,6 +136,22 @@ guarded, re-proven). Harness: Edit -> type -> Done sends
 {title:'New Heading'}, zero errors. openModal remains orphaned -
 flagged for retirement or reuse next session.
 
+**BK-1 + S1: AHEAD in ember, the order of hopes (why.html)**
+(26 Aug 2026): LOCKED B+F2 built - the waiting mark says AHEAD in
+deep ember #7A2F38/#fff (the rose whisper retired), standing BESIDE
+the dream's name (row: ring, name, mark; done and in-the-making keep
+deck marks; the plan-suppression rule retired - mark and gold plan
+date coexist). The dream page + ro say AHEAD too (four-output-paths;
+'NOT YET LIVED/FINALIZED' in the Decisions room untouched - not
+bucket voice). S1: within waiting ranks the user's sequence rules -
+sort_order asc (unset sinks), then age; edit mode (p-editing) grows
+quiet arrows per waiting row (bk-ud, corner plan chip yields while
+editing); a nudge reorders the WAITING list and writes positions for
+changed rows only. migrate_bucket_order.sql adds sort_order to
+bucket_items (plain ASCII, safe re-run) - PENDING Rahul runs it once.
+Harness: AHEAD x2, row order [ring, name, mark, arrows], nudge wrote
+[b2:0, b1:1], list reordered, done row unmoved.
+
 **TL-6: prints wear the app's own names; the diary keeps its dates**
 (26 Aug 2026): section print h1s now match the tabs exactly -
 My Diary / My Musings & Learnings / My Life Timeline / My Writings
