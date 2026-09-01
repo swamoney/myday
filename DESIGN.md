@@ -141,6 +141,19 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**BK-6: time-bound beside the name (W2 + B)** (1 Sep 2026): every
+waiting row now carries its mark AND its plan's countdown inside the
+title span - IN THE MAKING / AHEAD, then a gold chip 'N MONTHS LEFT -
+date' (weeks under two months, days under two weeks, TODAY on the
+day), rose 'PASSED - date' after; the corner plan chip and the deck
+marks for waiting rows retired (DONE keeps stars + mark in the
+deck). One voice across the four paths: bkLeftText_ feeds the index
+chip, the dream page's PLANNED FOR value, and the section print
+(bands renamed to the app's words: In the making / Ahead / Done).
+The existing runway hairline under the row is untouched. Harness:
+sitar '15 MONTHS LEFT', family book 'PASSED', Konkan '3 WEEKS LEFT',
+done row deck-only; print bands + countdown present.
+
 **BK-5: a plan may let go of its date** (1 Sep 2026): bkSaveDate
 threw away every empty value (`if (!value) return`), so a PLANNED FOR
 date could be set but never removed - and phone date pickers rarely

@@ -1119,7 +1119,7 @@
   #bkArrangeFoot.hidden { display:none; }
   body.bk-arranging #bkArrangeFoot { color:#8a6d1f; }
   .bk-hd { display:flex; align-items:center; gap:10px; }
-  .stamp .st .bk-mark { margin-left:9px; vertical-align:2px; }
+  .stamp .st .bk-mark, .stamp .st .plan { margin-left:9px; vertical-align:2px; }
   .bk-ud { display:none; flex-direction:column; gap:2px; margin-left:auto; flex-shrink:0; }
   body.bk-arranging .bk-ud { display:inline-flex; }
   .bk-ud button { border:1px solid #cdd5e0; background:#fff; border-radius:6px; width:27px;
@@ -2467,12 +2467,12 @@ function printSection() {
     prOpen_('My Priority', body); return;
   }
   if (activeSec === 'bucket') {
-    const S = { not_yet:'Not yet', wip:'Work in progress', done:'Done' };
+    const S = { not_yet:'Ahead', wip:'In the making', done:'Done' };
     let body = '<div class="eyebrow">My Why</div><h1>My Bucket List</h1>';
     ['wip','not_yet','done'].forEach(st => {
       const rows = buckets.filter(b => (b.status || 'not_yet') === st); if (!rows.length) return;
       body += '<h2>' + e(S[st]) + '</h2><ul>' + rows.map(b => '<li><strong>' + e(b.title || '') + '</strong>'
-        + (b.planned_on ? ' <span class="meta">planned for ' + e(bkFmt(b.planned_on)) + '</span>' : '')
+        + (b.planned_on ? ' <span class="meta">' + e(bkLeftText_(b).toLowerCase()) + '</span>' : '')
         + (b.lived_on ? ' <span class="meta">done ' + e(bkFmt(b.lived_on)) + '</span>' : '')
         + (bkStarsText_(b) ? ' <span class="meta">' + bkStarsText_(b) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
@@ -5261,6 +5261,28 @@ function bkMark(b, big) {
             : (st === 'wip' ? 'IN THE MAKING' : 'AHEAD');   // B+F2 (Aug 2026): the waiting mark looks forward
   return '<span class="bk-mark ' + st + '">' + txt + '</span>';
 }
+// BK-6 (Sep 2026): how long the plan has left, in the coarsest honest unit -
+// months, then weeks under two months, then days under two weeks. Past the
+// date it simply says PASSED. Computed from dates already kept.
+function bkLeftText_(b) {
+  if (!b.planned_on) return '';
+  const end = new Date(b.planned_on + 'T00:00:00');
+  if (isNaN(end)) return '';
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  const days = Math.round((end - now) / 86400000);
+  if (days < 0) return 'PASSED \u00B7 ' + bkFmt(b.planned_on);
+  let left;
+  if (days === 0) left = 'TODAY';
+  else if (days < 14) left = days + (days === 1 ? ' DAY LEFT' : ' DAYS LEFT');
+  else if (days < 61) { const w = Math.round(days / 7); left = w + (w === 1 ? ' WEEK LEFT' : ' WEEKS LEFT'); }
+  else { const m = Math.round(days / 30.44); left = m + (m === 1 ? ' MONTH LEFT' : ' MONTHS LEFT'); }
+  return left + ' \u00B7 ' + bkFmt(b.planned_on);
+}
+function bkLeftChip_(b) {
+  const t = bkLeftText_(b); if (!t) return '';
+  const over = t.indexOf('PASSED') === 0;
+  return '<span class="plan' + (over ? ' over' : '') + '">' + escHtml(t) + '</span>';
+}
 function bkCard(b) {
   const st = b.status || 'not_yet';
   const done = st === 'done', wip = st === 'wip';
@@ -5273,19 +5295,18 @@ function bkCard(b) {
   // BK-1: the waiting mark rides INSIDE the title span, hugging the last
   // word of the name - .st flexes wide, so a sibling would drift to the
   // right edge (the fault Rahul caught).
+  // BK-6: IN THE MAKING joins AHEAD beside the name, and the plan's
+  // countdown rides right after the mark - the row is time-bound at a glance.
   let inner = sym + '<span class="st">' + escHtml(b.title) +
-    (st === 'not_yet' ? ' ' + bkMark(b, false) : '') + '</span>';
+    (done ? '' : ' ' + bkMark(b, false) + bkLeftChip_(b)) + '</span>';
   // The chip cluster rides in a deck: invisible on desktop, its own line on phones.
   let deck = '';
-  if (done) deck += bkStars_(b);
-  if (st !== 'not_yet') deck += bkMark(b, false);
+  if (done) deck += bkStars_(b) + bkMark(b, false);
   if (!done) {
     inner += '<span class="bk-ud" aria-hidden="true">' +
       '<button type="button" data-bk-nudge="' + escHtml(b.id) + '" data-bk-dir="-1" title="Move up">\u25B2</button>' +
       '<button type="button" data-bk-nudge="' + escHtml(b.id) + '" data-bk-dir="1" title="Move down">\u25BC</button></span>';
   }
-  if (!done && b.planned_on) deck += '<span class="plan' + (e && e.over ? ' over' : '') + '">'
-      + (e && e.over ? 'PASSED \u00B7 ' : 'BY ') + bkFmt(b.planned_on) + '</span>';
   inner += '<span class="rowdeck">' + deck + '</span>';
   if (!done) {
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
@@ -5910,7 +5931,7 @@ function bkRenderStatus() {
     if (b.planned_on) {
       out += '<span class="rod' + (e && e.over ? ' over' : '') + '">'
         + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
-        + '<span class="pv">' + bkFmt(b.planned_on) + '</span></span>';
+        + '<span class="pv">' + escHtml(bkLeftText_(b)) + '</span></span>';
     }
     ro.innerHTML = out;
   }
