@@ -149,8 +149,6 @@
   /* My Trips: the pin mark, the sea's dates, the year rail */
   .smark .pin { position:absolute; inset:5px; border-radius:50% 50% 50% 0; transform:rotate(-45deg);
                 box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
-  .tdot.tp { border-radius:50%; transform:none; }
-  .tdot.tp:hover { transform:scale(1.25); }
   .ch-askrow button.tp-go { background:#2F6B8A; }
   .sdates { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#2F6B8A; letter-spacing:0.05em; }
   .s-where { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; color:#68789a; margin-top:4px; }
@@ -1095,8 +1093,9 @@ function renderTimeline(list, wrap) {
 }
 
 // ---- Room 2b: My Trips (TR-1/TR-2, Sep 2026) - the Timeline's grammar, the sea's ink ----
-const TRIP_SHADES = ['#2F6B8A', '#4A80A0', '#6394B2', '#7EA8C2', '#9BBBD0'];
-function tripShade(i) { return TRIP_SHADES[i % TRIP_SHADES.length]; }
+// TR-5: one sea for every trip - the numbers alone count the journeys.
+const TRIP_SEA = '#2F6B8A';
+function tripShade() { return TRIP_SEA; }
 const TRIP_KINDS = { sights:'SIGHTS', food:'FOOD', stay:'STAY', travel:'TRAVEL', other:'OTHER' };
 const TRIP_KIND_INK = { sights:'#2F6B8A', food:'#A4553F', stay:'#6D4E66', travel:'#5F7355', other:'#6a7690' };
 const TRIP_KIND_ORDER = ['sights', 'food', 'stay', 'travel', 'other'];
@@ -1273,11 +1272,7 @@ function renderTrips(list, wrap) {
   const trs = list.slice().sort(tripSort);
   let html = '';
   if (trs.length) {
-    // The stones row keeps to forty; past that the years alone lead the way.
-    if (trs.length <= 40) {
-      html += '<div class="tdots">' + trs.map((r, i) =>
-        '<button class="tdot tp" data-open="' + escHtml(r.id) + '" title="' + escHtml(r.title) + '" style="background:' + tripShade(i) + ';"></button>').join('') + '</div>';
-    }
+    // TR-5: no stones row - the pins and the year rail lead the way.
     html += '<div class="thold">';
     let lastYear = '';
     trs.forEach((r, i) => {

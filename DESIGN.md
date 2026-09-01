@@ -141,6 +141,15 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**TR-5: no stones row, one sea** (1 Sep 2026): the trips index
+drops the top row of stones (pins + year rail lead the way);
+TRIP_SHADES retired for a single TRIP_SEA (#2F6B8A) on every pin,
+the page mark/sweep and the print crest - numbers alone count the
+journeys. Ordering stays by date: harness showed a Goa trip dated
+Mar 2026 slotting between Dec 2025 and Jun 2026 (Rahul's 'add in
+between' is answered by dates, not by hand - no Arrange in a
+timeline room).
+
 **TR-4: where + the italic line edit as inputs** (1 Sep 2026): the
 where line's tap-to-prompt was unreachable on the page and the
 italic line (essence) had NO edit path at all once a trip or
