@@ -161,6 +161,13 @@
   .rk-told { display:inline-block; font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.1em;
              color:#fff; background:#2F6B8A; border-radius:999px; padding:2px 9px; margin-left:8px; vertical-align:1px;
              border-bottom:1px dotted rgba(255,255,255,0.7); }
+  .rd-meta { display:none; flex-direction:column; gap:6px; margin:6px 0 8px; }
+  body.rd-editing .rd-meta:not(.hidden) { display:flex; }
+  .rd-meta-in { border:1px dashed #b9cfe0; border-radius:8px; padding:8px 10px; font-size:0.8125rem; font-family:var(--mono);
+                letter-spacing:0.06em; background:#fff; width:100%; }
+  .rd-meta-in.sig { font-family:var(--serif); font-style:italic; letter-spacing:0; font-size:0.9375rem; }
+  .rd-meta-in:focus { outline:none; border-style:solid; border-color:#2F6B8A; }
+  body.rd-editing .rd-where, body.rd-editing #readerLead { display:none !important; }
   .rd-where { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; color:#68789a; cursor:pointer;
               border-bottom:1px dotted #68789a; display:inline-block; margin:2px 0 8px; }
   .rd-where.faint { color:#b9c2d4; border-bottom-color:#b9c2d4; text-transform:none; letter-spacing:0.02em; }
@@ -597,6 +604,10 @@
         <div class="rd-tripdates hidden" id="rdTripDates">
           <input type="date" id="rdTpFrom" title="From"><span>&ndash;</span><input type="date" id="rdTpTo" title="To">
           <button type="button" class="rd-tpsave" id="rdTpSave">Save</button>
+        </div>
+        <div class="rd-meta hidden" id="rdMeta">
+          <input type="text" id="rdMetaWhere" class="rd-meta-in" placeholder="Where &mdash; Leh &middot; Nubra &middot; with Priya">
+          <input type="text" id="rdMetaSig" class="rd-meta-in sig" placeholder="One italic line beneath the heading">
         </div>
         <div class="reader-lead" id="readerLead"></div>
         <div class="reader-chips hidden" id="readerChips"></div>
@@ -1644,6 +1655,35 @@ function openReader(id, keepNav) {
       } catch (e) { toast('Could not save'); }
     };
     tripRenderDays_(r, document.body.classList.contains('rd-editing'));
+  })();
+  // The meta row: in edit mode the where line and the italic line are plain
+  // inputs (prompts proved unreliable to reach on the page); they save on change.
+  (function () {
+    const row = el('rdMeta'); if (!row) return;
+    const wantsMeta = dk === 'trip' || dk === 'experience';
+    row.classList.toggle('hidden', !wantsMeta);
+    row.dataset.kind = dk;
+    el('rdMetaWhere').style.display = dk === 'trip' ? '' : 'none';
+    el('rdMetaWhere').value = r.place || '';
+    el('rdMetaSig').value = r.essence || '';
+    if (!row._wired) {
+      row._wired = true;
+      const save = async (field, val) => {
+        const cur = readerEntry; if (!cur) return;
+        const patch = {}; patch[field] = val.trim();
+        try {
+          const { error } = await supa.from('iw_entries').update(patch).eq('id', cur.id).eq('user_id', userId);
+          if (error) throw error;
+          cur[field] = val.trim();
+          if (field === 'place') { const wh = el('rdWhere'); wh.innerHTML = cur.place ? escHtml(cur.place.toUpperCase()) : 'where? \u2014 tap to add'; wh.classList.toggle('faint', !cur.place); }
+          if (field === 'essence') { el('readerLead').textContent = cur.essence; el('readerLead').style.display = cur.essence ? '' : 'none'; }
+          toast('Saved'); render();
+        } catch (e) { toast('Could not save'); }
+      };
+      el('rdMetaWhere').addEventListener('change', () => save('place', el('rdMetaWhere').value));
+      el('rdMetaSig').addEventListener('change', () => save('essence', el('rdMetaSig').value));
+      [el('rdMetaWhere'), el('rdMetaSig')].forEach(inp => inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); inp.blur(); } }));
+    }
   })();
   el('readerLead').textContent = r.essence || '';
   (function () {

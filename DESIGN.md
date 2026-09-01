@@ -141,6 +141,16 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**TR-4: where + the italic line edit as inputs** (1 Sep 2026): the
+where line's tap-to-prompt was unreachable on the page and the
+italic line (essence) had NO edit path at all once a trip or
+chapter existed (readerLead hid itself when empty). Now edit mode
+shows a META ROW under the heading - a mono 'Where' input (trips)
+and a serif-italic 'One italic line' input (trips AND chapters) -
+saving on change/Enter; read mode shows the where line and the
+lead as before. Harness: both inputs present, both saved, read
+mode shows both; chapter page gets the italic input only.
+
 **TR-3: the day book that actually holds** (1 Sep 2026): Rahul's
 'unable to add, doesn't show, no button to finish' - THE FAULT: the
 ledger edited a book object living in tripRenderDays_'s closure,
