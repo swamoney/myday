@@ -141,6 +141,17 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**BK-5: a plan may let go of its date** (1 Sep 2026): bkSaveDate
+threw away every empty value (`if (!value) return`), so a PLANNED FOR
+date could be set but never removed - and phone date pickers rarely
+offer 'clear'. Now an emptied PLANNED FOR (or WRITTEN) saves as null
+('no specific date'); DONE keeps its day required. A small ember
+'x no date' button rides beside PLANNED FOR in edit mode, shown only
+while a date exists; it empties the input and saves null. The index
+plan chip and the runway bar both vanish with it. Harness: chip
+present -> clear -> null written -> input empty -> button hides ->
+chip gone.
+
 **BK-4: one Arrange, in the family's clothes** (26 Aug 2026): the
 header Arrange retired to zero refs (markup, css, wiring); the foot
 button is the only door, standing before Edit in the end-actions

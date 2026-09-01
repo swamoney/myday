@@ -825,6 +825,11 @@
   .bkname { font-family:var(--serif); font-weight:700; font-size:1.625rem; line-height:1.2; color:#182233; margin-top:5px; overflow-wrap:anywhere; }
   body.p-editing #bkName { border-bottom:1px solid #dcc78a; padding-bottom:2px; outline:none; }
   body.p-editing #bkName:focus { border-bottom-color:#c9a94a; }
+  .bk-dclr { display:none; margin-left:6px; background:none; border:1px solid #d8c3c6; color:#8a3540;
+    border-radius:6px; font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.06em;
+    text-transform:uppercase; padding:3px 7px; cursor:pointer; vertical-align:middle; }
+  body.p-editing .bk-dclr { display:inline-block; }
+  .bk-dclr.hidden { display:none !important; }
   .bk-dts { display:none; align-items:center; gap:12px; flex-wrap:wrap; }
   body.p-editing #bkWin .bk-dts { display:inline-flex; }
   .bk-dts label { display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.12em; color:#9a7b3a; }
@@ -1866,7 +1871,7 @@
           </div>
           <div class="bk-dts">
             <label>WRITTEN <input type="date" id="bkDreamedOn"></label>
-            <label>PLANNED FOR <input type="date" id="bkPlannedOn"></label>
+            <label>PLANNED FOR <input type="date" id="bkPlannedOn"><button type="button" class="bk-dclr" id="bkPlanClear" title="No specific date">&times; no date</button></label>
             <label id="bkLivedWrap">DONE <input type="date" id="bkLivedOn"></label>
           </div>
         </div>
@@ -5888,6 +5893,7 @@ function bkRenderStatus() {
   const done = b.status === 'done';
   el('bkDreamedOn').value = (b.dreamed_on || String(b.created_at || '').slice(0,10) || '');
   el('bkPlannedOn').value = b.planned_on || '';
+  el('bkPlanClear').classList.toggle('hidden', !b.planned_on);
   el('bkLivedOn').value = b.lived_on || '';
   el('bkLivedWrap').style.display = done ? '' : 'none';   // only Done carries a date field
   el('bkStat').querySelectorAll('[data-st]').forEach(s =>
@@ -5999,13 +6005,21 @@ async function bkSetStatus(st) {
 }
 async function bkSaveDate(field, value) {
   if (!bkEditing_()) return;
-  const b = bkRow(); if (!b || !value) { bkRenderStatus(); return; }
-  const rec = {}; rec[field] = value; rec.updated_at = new Date().toISOString();
+  const b = bkRow(); if (!b) { bkRenderStatus(); return; }
+  // Plans change: an emptied PLANNED FOR (or WRITTEN) is a real choice -
+  // 'no specific date' - and saves as null. DONE keeps its day.
+  if (!value && field === 'lived_on') { bkRenderStatus(); return; }
+  const rec = {}; rec[field] = value || null; rec.updated_at = new Date().toISOString();
   const { error } = await supa.from('bucket_items').update(rec).eq('id', bkId).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save date'); bkRenderStatus(); return; }
-  b[field] = value;
+  b[field] = value || null;
   bkRenderStatus(); renderStamps();
 }
+// Phone date pickers rarely offer 'clear' - the plan gets its own way out.
+el('bkPlanClear').addEventListener('click', () => {
+  el('bkPlannedOn').value = '';
+  bkSaveDate('planned_on', '');
+});
 el('bkDreamedOn').addEventListener('change', () => bkSaveDate('dreamed_on', el('bkDreamedOn').value));
 el('bkPlannedOn').addEventListener('change', () => bkSaveDate('planned_on', el('bkPlannedOn').value));
 el('bkLivedOn').addEventListener('change', () => bkSaveDate('lived_on', el('bkLivedOn').value));
