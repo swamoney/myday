@@ -90,6 +90,7 @@
   .seg > span[data-view="diary"]         { --t-faint:#f8f6f2; --t-bg:#ebe6dc; --t-acc:#6B5B45; --t-ring:rgba(107,91,69,0.33); }
   .seg > span[data-view="introspection"] { --t-faint:#f3f6f9; --t-bg:#dfe7ee; --t-acc:#3E5C76; --t-ring:rgba(62,92,118,0.33); }
   .seg > span[data-view="experience"]    { --t-faint:#f4f7f2; --t-bg:#e3e9df; --t-acc:#5F7355; --t-ring:rgba(95,115,85,0.33); }
+  .seg > span[data-view="trip"]          { --t-faint:#f1f6f9; --t-bg:#dde9f0; --t-acc:#2F6B8A; --t-ring:rgba(47,107,138,0.33); }
   .seg > span[data-view="writing"]       { --t-faint:#f7f4f6; --t-bg:#eae2e8; --t-acc:#6D4E66; --t-ring:rgba(109,78,102,0.33); }
   .seg > span[data-view="wip"]           { --t-faint:#faf2e0; --t-bg:#f0e6d2; --t-acc:#9a7b3a; --t-ring:rgba(154,123,58,0.35); }
   /* Mobile: 4 sections won't fit in one row, so show them as a 2x2 grid —
@@ -145,6 +146,63 @@
   .smark .diam { position:absolute; inset:5px; transform:rotate(45deg); border-radius:9px;
            box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
   .smark b { position:relative; color:#fff; font-weight:700; }
+  /* My Trips: the pin mark, the sea's dates, the year rail */
+  .smark .pin { position:absolute; inset:5px; border-radius:50% 50% 50% 0; transform:rotate(-45deg);
+                box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
+  .tdot.tp { border-radius:50%; transform:none; }
+  .tdot.tp:hover { transform:scale(1.25); }
+  .sdates { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#2F6B8A; letter-spacing:0.05em; }
+  .s-where { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; color:#68789a; margin-top:4px; }
+  .tp-year { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em; color:#8a97b3;
+             margin:14px 0 2px 2px; padding-top:8px; border-top:1px dotted #d8dee8; }
+  .tp-year:first-child { border-top:none; padding-top:0; margin-top:4px; }
+  .rk-years.tp { color:#2F6B8A; }
+  .rk-told { display:inline-block; font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.1em;
+             color:#fff; background:#2F6B8A; border-radius:999px; padding:2px 9px; margin-left:8px; vertical-align:1px;
+             border-bottom:1px dotted rgba(255,255,255,0.7); }
+  .rd-where { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; color:#68789a; cursor:pointer;
+              border-bottom:1px dotted #68789a; display:inline-block; margin:2px 0 8px; }
+  .rd-where.faint { color:#b9c2d4; border-bottom-color:#b9c2d4; text-transform:none; letter-spacing:0.02em; }
+  .rd-where.hidden { display:none; }
+  .rd-tripdates { display:flex; gap:8px; align-items:center; margin:4px 0 8px; }
+  .rd-tripdates.hidden { display:none; }
+  .rd-tripdates input { border:1px solid var(--rule); border-radius:8px; padding:6px 8px; font-size:0.8125rem; font-family:var(--sans); background:#fff; }
+  .rd-tpsave { background:#2F6B8A; color:#fff; border:none; border-radius:8px; padding:7px 12px; font-size:0.6875rem; font-weight:700; cursor:pointer; }
+  /* the day book */
+  .rd-days { margin:6px 0 18px; }
+  .rd-days.hidden, body.tell-essay .rd-days { display:none; }
+  body.tell-days #readerBody, body.tell-days #readerBodyInp, body.tell-days #rdToolbar { display:none !important; }
+  .tp-sh { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.16em; color:#68789a; margin:12px 0 6px; display:flex; align-items:baseline; gap:10px; }
+  .tp-sh .tp-tot { margin-left:auto; color:var(--ink); font-weight:600; }
+  .tp-day { border-left:3px solid #2F6B8A; padding:2px 0 2px 14px; margin:10px 0 14px; }
+  .tp-dh { display:flex; align-items:baseline; gap:10px; }
+  .tp-dn { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em; color:#2F6B8A; }
+  .tp-dd { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#8a97b3; }
+  .tp-dt { margin-left:auto; font-family:var(--mono); font-size:0.5625rem; color:#68789a; }
+  .tp-dp { font-family:var(--serif); font-size:0.9375rem; font-weight:600; margin:2px 0 6px; }
+  .tp-ln { display:grid; grid-template-columns:64px 1fr 84px; gap:10px; align-items:baseline; padding:5px 0; border-bottom:1px dotted #e3e8ef; }
+  .tp-ln:last-child { border-bottom:none; }
+  .tp-cat { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.12em; border-radius:5px; padding:4px 6px;
+            text-align:center; color:#fff; border:none; cursor:pointer; white-space:nowrap; }
+  .tp-cat.ro { cursor:default; }
+  .tp-tx { font-size:0.8125rem; color:var(--muted); line-height:1.5; }
+  .tp-rs { font-family:var(--mono); font-size:0.6875rem; color:var(--ink); text-align:right; white-space:nowrap; }
+  .tp-rs.none { color:#b9c2d4; }
+  .tp-addday { display:inline-block; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#8a97b3;
+               background:none; border:1.5px dashed #d3dbe6; border-radius:8px; padding:7px 10px; margin-top:6px; cursor:pointer; }
+  .tp-addday:hover { color:#2F6B8A; border-color:#2F6B8A; }
+  .tp-ledger { background:#F2F7FB; border:1px dashed #b9cfe0; border-radius:10px; padding:10px 12px; margin-top:6px; }
+  .tp-in { border:1px solid var(--rule); border-radius:8px; padding:7px 9px; font-size:0.8125rem; font-family:var(--sans); background:#fff; width:100%; min-width:0; }
+  .tp-title { margin-bottom:8px; font-family:var(--serif); font-weight:600; }
+  .tp-lr { display:grid; grid-template-columns:78px 1fr 84px 22px; gap:8px; align-items:center; margin-bottom:6px; }
+  .tp-x { background:none; border:none; color:#C9A5A2; font-size:1rem; cursor:pointer; padding:0; line-height:1; }
+  .tp-x:hover { color:#A8443E; }
+  .tp-dh .tp-x { margin-left:6px; font-size:0.875rem; }
+  @media (max-width:560px) {
+    .tp-lr { grid-template-columns:70px 1fr 22px; }
+    .tp-lr .tp-cost { grid-column:1 / span 2; }
+    .tp-ln { grid-template-columns:58px 1fr 72px; gap:6px; }
+  }
   .rk-tap { cursor:pointer; border-bottom:1px dotted currentColor; }
   .rk-years { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#a5702f;
               letter-spacing:0.05em; margin-left:6px; }
@@ -332,6 +390,7 @@
   .rd-mark { width:52px; height:52px; position:relative; display:flex; align-items:center;
              justify-content:center; }
   .rd-mark.hidden { display:none; }
+  .rd-mark i.pin { border-radius:50% 50% 50% 0 !important; transform:rotate(-45deg) !important; }
   .rd-mark i { position:absolute; inset:5px; transform:rotate(45deg); border-radius:10px;
                box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
   .rd-mark b { position:relative; color:#fff; font-family:var(--serif); font-weight:700;
@@ -475,6 +534,7 @@
         <span data-view="diary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h12"/></svg><span class="seg-l">My Diary</span></span>
         <span data-view="introspection" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20l1.3 -3.9a9 8 0 1 1 3.4 2.9l-4.7 1"/><circle cx="8" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="0.9" fill="currentColor" stroke="none"/></svg><span class="seg-l">My Musings &amp; Learnings</span></span>
         <span data-view="experience" class="sv-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12c-3-3-6-1-6 1.5S9 17 12 14"/><path d="M12 12c3-3 6-1 6 1.5S15 17 12 14"/><path d="M12 14v7"/></svg><span class="seg-l">My Life Timeline</span></span>
+        <span data-view="trip" class="sv-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span class="seg-l">My Trips</span></span>
         
         <span data-view="writing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span class="seg-l">My Writings</span></span>
         <span data-view="wip" class="seg-wip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4.5l-3.2 3.2l-2.6 .4a1 1 0 0 0-.6 1.7l4.6 4.6a1 1 0 0 0 1.7-.6l.4-2.6l3.2-3.2"/><line x1="9" y1="15" x2="4.5" y2="19.5"/><line x1="14.5" y1="4" x2="20" y2="9.5"/></svg><span class="seg-l">My Whiteboard</span></span>
@@ -527,11 +587,17 @@
         <div class="reader-kind" id="readerKind"></div>
         <div class="reader-h1" id="readerH1"></div>
         <div class="reader-sig hidden" id="rdSig"></div>
+        <div class="rd-where hidden" id="rdWhere"></div>
+        <div class="rd-tripdates hidden" id="rdTripDates">
+          <input type="date" id="rdTpFrom" title="From"><span>&ndash;</span><input type="date" id="rdTpTo" title="To">
+          <button type="button" class="rd-tpsave" id="rdTpSave">Save</button>
+        </div>
         <div class="reader-lead" id="readerLead"></div>
         <div class="reader-chips hidden" id="readerChips"></div>
         <div class="reader-dates" id="readerDates"></div>
         <div id="rdToolbar"></div>
       </div>
+      <div class="rd-days hidden" id="rdDays"></div>
       <div class="reader-body" id="readerBody"></div>
       <div class="reader-body inp" id="readerBodyInp" contenteditable="true" data-placeholder="Write the full piece&#8230;"></div>
       <div class="reader-foot">
@@ -660,11 +726,12 @@ const STAR_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 // migration flips the kind and carries a 'gratitude' chip so nothing is lost.
 function displayKind(k) {
   if (k === 'gratitude') return 'diary';
-  if (k === 'experience' || k === 'diary') return k;
+  if (k === 'experience' || k === 'diary' || k === 'trip') return k;
   if (k === 'writing' || k === 'essay' || k === 'post' || k === 'thread' || k === 'note') return 'writing';
   return 'introspection';
 }
 const KIND = {
+  trip:       { lbl:'Trip',       glyph:'\u2316', w1:'#f1f6f9', w2:'#dde9f0', icbg:'#d7e6ee', acc:'#2F6B8A' },
   essay:      { lbl:'Essay',      glyph:'\u270E', w1:'#fbf5ea', w2:'#f3ead9', icbg:'#f2e6cf', acc:'#a5702f' },
   post:       { lbl:'Post',       glyph:'\u275D', w1:'#eef3fb', w2:'#e2ebf7', icbg:'#dbe7f7', acc:'#3a5b9c' },
   thread:     { lbl:'Thread',     glyph:'\u2261', w1:'#f2f8f4', w2:'#e4efe8', icbg:'#dcebe2', acc:'#3d7a5c' },
@@ -835,6 +902,7 @@ function viewRows() {
     if (diaryTag) out = out.filter(r => entryChips(r).includes(diaryTag));
   }
   else if (activeView === 'experience') out = rows.filter(r => r.kind === 'experience');
+  else if (activeView === 'trip') out = rows.filter(r => r.kind === 'trip');
   else if (activeView === 'writing') out = rows.filter(r => displayKind(r.kind) === 'writing');
   else out = rows.filter(r => displayKind(r.kind) === 'introspection');
   return favFirst(out);
@@ -849,6 +917,8 @@ function filteredRows() {
     out = out.filter(r =>
       (r.title || '').toLowerCase().includes(q) ||
       (r.essence || '').toLowerCase().includes(q) ||
+      (r.place || '').toLowerCase().includes(q) ||
+      tripDaysText_(r).toLowerCase().includes(q) ||
       NoteEditor.toPlain(r.body).toLowerCase().includes(q) ||
       (r.tags || []).some(t => t.toLowerCase().includes(q))
     );
@@ -1007,6 +1077,231 @@ function renderTimeline(list, wrap) {
   });
 }
 
+// ---- Room 2b: My Trips (TR-1/TR-2, Sep 2026) - the Timeline's grammar, the sea's ink ----
+const TRIP_SHADES = ['#2F6B8A', '#4A80A0', '#6394B2', '#7EA8C2', '#9BBBD0'];
+function tripShade(i) { return TRIP_SHADES[i % TRIP_SHADES.length]; }
+const TRIP_KINDS = { sights:'SIGHTS', food:'FOOD', stay:'STAY', travel:'TRAVEL', other:'OTHER' };
+const TRIP_KIND_INK = { sights:'#2F6B8A', food:'#A4553F', stay:'#6D4E66', travel:'#5F7355', other:'#6a7690' };
+const TRIP_KIND_ORDER = ['sights', 'food', 'stay', 'travel', 'other'];
+function tripSort(a, b) {
+  const da = a.trip_from || '9999-12-31', db = b.trip_from || '9999-12-31';
+  return da < db ? -1 : da > db ? 1 : String(a.created_at).localeCompare(String(b.created_at));
+}
+function tripDate_(iso) { return iso ? new Date(iso + 'T00:00:00') : null; }
+function tripFmt_(iso, withYear) {
+  const dt = tripDate_(iso); if (!dt || isNaN(dt)) return '';
+  const o = { day: 'numeric', month: 'short' }; if (withYear) o.year = 'numeric';
+  return dt.toLocaleDateString('en-GB', o);
+}
+function tripNights_(r) {
+  const a = tripDate_(r.trip_from), b = tripDate_(r.trip_to || r.trip_from);
+  if (!a || !b || isNaN(a) || isNaN(b)) return 0;
+  return Math.max(1, Math.round((b - a) / 86400000) + 1);
+}
+// '14-24 Jun 2026' / '28 Dec 2025 - 3 Jan 2026' / '14 Jun 2026' (a day trip)
+function tripDatesLabel(r) {
+  if (!r.trip_from) return '';
+  const a = tripDate_(r.trip_from), b = tripDate_(r.trip_to || r.trip_from);
+  if (!b || isNaN(b) || r.trip_to === r.trip_from || !r.trip_to) return tripFmt_(r.trip_from, true);
+  if (a.getFullYear() !== b.getFullYear()) return tripFmt_(r.trip_from, true) + ' \u2013 ' + tripFmt_(r.trip_to, true);
+  if (a.getMonth() !== b.getMonth()) return tripFmt_(r.trip_from, false) + ' \u2013 ' + tripFmt_(r.trip_to, true);
+  return a.getDate() + '\u2013' + tripFmt_(r.trip_to, true);
+}
+function tripDaysLabel(r) { const n = tripNights_(r); return n ? n + (n === 1 ? ' DAY' : ' DAYS') : ''; }
+function tripAgeLabel(r) {
+  const by = birthYear(); const dt = tripDate_(r.trip_from);
+  if (!by || !dt || isNaN(dt)) return '';
+  return 'AGE ' + (dt.getFullYear() - by);
+}
+function tripBook_(r) {
+  // The day book: { currency, days:[ { title, lines:[ { k, t, c } ] } ] }
+  let b = r.days;
+  if (typeof b === 'string') { try { b = JSON.parse(b); } catch (e) { b = null; } }
+  if (!b || typeof b !== 'object') b = {};
+  if (!Array.isArray(b.days)) b.days = [];
+  if (!b.currency) b.currency = '\u20B9';
+  return b;
+}
+function tripDaysText_(r) {
+  if (r.kind !== 'trip') return '';
+  const b = tripBook_(r);
+  return b.days.map(dy => (dy.title || '') + ' ' + (dy.lines || []).map(l => l.t || '').join(' ')).join(' ');
+}
+function tripMoney_(n, cur) {
+  if (n == null || n === '' || isNaN(n)) return '';
+  return (cur || '\u20B9') + ' ' + Number(n).toLocaleString('en-IN');
+}
+function tripDayCost_(dy) { return (dy.lines || []).reduce((s, l) => s + (isNaN(parseFloat(l.c)) ? 0 : parseFloat(l.c)), 0); }
+function tripTotal_(b) { return b.days.reduce((s, dy) => s + tripDayCost_(dy), 0); }
+function tripDayDate_(r, i) {
+  const a = tripDate_(r.trip_from); if (!a || isNaN(a)) return '';
+  const dt = new Date(a); dt.setDate(dt.getDate() + i);
+  return dt.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+}
+let tripSaveTimer_ = null;
+function tripSaveBook_(r, book, now) {
+  clearTimeout(tripSaveTimer_);
+  const go = async () => {
+    try {
+      const { error } = await supa.from('iw_entries').update({ days: book, updated_at: new Date().toISOString() })
+        .eq('id', r.id).eq('user_id', userId);
+      if (error) throw error;
+      r.days = book;
+    } catch (e) { toast('Could not save the day book'); }
+  };
+  if (now) go(); else tripSaveTimer_ = setTimeout(go, 700);
+}
+function tripRenderDays_(r, editing) {
+  const host = el('rdDays'); if (!host) return;
+  const book = tripBook_(r);
+  const cur = book.currency;
+  const total = tripTotal_(book);
+  let html = '';
+  if (book.days.length || editing) {
+    html += '<div class="tp-sh">DAY BOOK' + (total ? '<span class="tp-tot">TRIP TOTAL ' + escHtml(tripMoney_(total, cur)) + '</span>' : '') + '</div>';
+  }
+  book.days.forEach((dy, i) => {
+    const dc = tripDayCost_(dy);
+    html += '<div class="tp-day" data-day="' + i + '">' +
+      '<div class="tp-dh"><span class="tp-dn">DAY ' + (i + 1) + '</span><span class="tp-dd">' + escHtml(tripDayDate_(r, i)) + '</span>' +
+        (dc ? '<span class="tp-dt">' + escHtml(tripMoney_(dc, cur)) + '</span>' : '') +
+        (editing ? '<button type="button" class="tp-x" data-dayx="' + i + '" title="Remove this day">\u2298</button>' : '') + '</div>';
+    if (editing) {
+      html += '<div class="tp-ledger">' +
+        '<input type="text" class="tp-in tp-title" data-dtitle="' + i + '" placeholder="Place / title of the day" value="' + escHtml(dy.title || '') + '">';
+      const lines = (dy.lines || []).slice();
+      lines.push({ k: 'other', t: '', c: '' });   // a blank line always waits
+      lines.forEach((ln, j) => {
+        const k = TRIP_KINDS[ln.k] ? ln.k : 'other';
+        html += '<div class="tp-lr">' +
+          '<button type="button" class="tp-cat" data-kcyc="' + i + ':' + j + '" style="background:' + TRIP_KIND_INK[k] + ';">' + TRIP_KINDS[k] + ' \u25BE</button>' +
+          '<input type="text" class="tp-in" data-lt="' + i + ':' + j + '" placeholder="what happened\u2026" value="' + escHtml(ln.t || '') + '">' +
+          '<input type="text" inputmode="decimal" class="tp-in tp-cost" data-lc="' + i + ':' + j + '" placeholder="' + escHtml(cur) + '" value="' + escHtml(ln.c == null ? '' : String(ln.c)) + '">' +
+          (j < lines.length - 1 ? '<button type="button" class="tp-x" data-lx="' + i + ':' + j + '" title="Remove">\u2298</button>' : '<span></span>') +
+          '</div>';
+      });
+      html += '</div>';
+    } else {
+      if (dy.title) html += '<div class="tp-dp">' + escHtml(dy.title) + '</div>';
+      (dy.lines || []).forEach(ln => {
+        const k = TRIP_KINDS[ln.k] ? ln.k : 'other';
+        const c = tripMoney_(ln.c, cur);
+        html += '<div class="tp-ln"><span class="tp-cat ro" style="background:' + TRIP_KIND_INK[k] + ';">' + TRIP_KINDS[k] + '</span>' +
+          '<span class="tp-tx">' + escHtml(ln.t || '') + '</span>' +
+          '<span class="tp-rs' + (c ? '' : ' none') + '">' + (c ? escHtml(c) : '\u2014') + '</span></div>';
+      });
+    }
+    html += '</div>';
+  });
+  // An empty day book (or the end of one) is a quiet door to the next day.
+  html += '<button type="button" class="tp-addday" id="tpAddDay">\uFF0B DAY ' + (book.days.length + 1) +
+    (r.trip_from ? ' \u00B7 ' + escHtml(tripDayDate_(r, book.days.length)) : '') + '</button>';
+  host.innerHTML = html;
+  host.classList.remove('hidden');
+  el('tpAddDay').addEventListener('click', () => {
+    book.days.push({ title: '', lines: [] });
+    tripSaveBook_(r, book, true);
+    if (!document.body.classList.contains('rd-editing')) setRdEditing(true);
+    else tripRenderDays_(r, true);
+    setTimeout(() => { const t = host.querySelector('[data-dtitle="' + (book.days.length - 1) + '"]'); if (t) t.focus(); }, 40);
+  });
+  if (!editing) return;
+  const readLine = (i, j) => {
+    const dy = book.days[i]; if (!dy.lines) dy.lines = [];
+    while (dy.lines.length <= j) dy.lines.push({ k: 'other', t: '', c: '' });
+    return dy.lines[j];
+  };
+  const prune = () => book.days.forEach(dy => { dy.lines = (dy.lines || []).filter(l => (l.t || '').trim() || (l.c !== '' && l.c != null)); });
+  host.querySelectorAll('[data-dtitle]').forEach(inp => inp.addEventListener('input', () => {
+    book.days[parseInt(inp.dataset.dtitle, 10)].title = inp.value; tripSaveBook_(r, book);
+  }));
+  host.querySelectorAll('[data-lt]').forEach(inp => inp.addEventListener('input', () => {
+    const [i, j] = inp.dataset.lt.split(':').map(Number);
+    const wasBlank = j >= (book.days[i].lines || []).length;
+    readLine(i, j).t = inp.value; prune(); tripSaveBook_(r, book);
+    if (wasBlank && inp.value) { tripRenderDays_(r, true); const n = host.querySelector('[data-lt="' + i + ':' + j + '"]'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }
+  }));
+  host.querySelectorAll('[data-lc]').forEach(inp => inp.addEventListener('input', () => {
+    const [i, j] = inp.dataset.lc.split(':').map(Number);
+    const v = inp.value.replace(/[^0-9.]/g, '');
+    readLine(i, j).c = v === '' ? '' : parseFloat(v); prune(); tripSaveBook_(r, book);
+  }));
+  host.querySelectorAll('[data-kcyc]').forEach(btn => btn.addEventListener('click', () => {
+    const [i, j] = btn.dataset.kcyc.split(':').map(Number);
+    const ln = readLine(i, j);
+    ln.k = TRIP_KIND_ORDER[(TRIP_KIND_ORDER.indexOf(ln.k) + 1) % TRIP_KIND_ORDER.length];
+    btn.textContent = TRIP_KINDS[ln.k] + ' \u25BE'; btn.style.background = TRIP_KIND_INK[ln.k];
+    if ((ln.t || '').trim() || ln.c !== '') tripSaveBook_(r, book);
+  }));
+  host.querySelectorAll('[data-lx]').forEach(btn => btn.addEventListener('click', () => {
+    const [i, j] = btn.dataset.lx.split(':').map(Number);
+    book.days[i].lines.splice(j, 1); tripSaveBook_(r, book, true); tripRenderDays_(r, true);
+  }));
+  host.querySelectorAll('[data-dayx]').forEach(btn => btn.addEventListener('click', () => {
+    const i = parseInt(btn.dataset.dayx, 10);
+    if (!confirm('Remove Day ' + (i + 1) + ' and its lines?')) return;
+    book.days.splice(i, 1); tripSaveBook_(r, book, true); tripRenderDays_(r, true);
+  }));
+}
+function renderTrips(list, wrap) {
+  const trs = list.slice().sort(tripSort);
+  let html = '';
+  if (trs.length) {
+    // The stones row keeps to forty; past that the years alone lead the way.
+    if (trs.length <= 40) {
+      html += '<div class="tdots">' + trs.map((r, i) =>
+        '<button class="tdot tp" data-open="' + escHtml(r.id) + '" title="' + escHtml(r.title) + '" style="background:' + tripShade(i) + ';"></button>').join('') + '</div>';
+    }
+    html += '<div class="thold">';
+    let lastYear = '';
+    trs.forEach((r, i) => {
+      const yr = (r.trip_from || '').slice(0, 4);
+      if (yr && yr !== lastYear) { html += '<div class="tp-year">' + escHtml(yr) + '</div>'; lastYear = yr; }
+      const sh = tripShade(i);
+      const dl = tripDatesLabel(r), dn = tripDaysLabel(r), age = tripAgeLabel(r);
+      html += '<div class="snode" data-open="' + escHtml(r.id) + '">' +
+        '<div class="smark"><span class="pin" style="background:' + sh + ';"></span><b>' + (i + 1) + '</b></div>' +
+        '<div>' +
+          '<div class="sdates">' + (dl ? escHtml(dl.toUpperCase()) + (dn ? ' \u00B7 ' + dn : '') : 'DATES NOT SET') + '</div>' +
+          '<div class="snum">' + escHtml(r.title) + '</div>' +
+          (r.place ? '<div class="s-where">' + escHtml(r.place.toUpperCase()) + '</div>' : '') +
+          (r.essence ? '<div class="s-stands">' + escHtml(r.essence) + '</div>' : '') +
+          (age ? '<div class="s-agepill">' + age + '</div>' : '') +
+        '</div></div>';
+    });
+    html += '</div>';
+  } else {
+    html += '<div class="empty"><div class="big">No trips yet</div><div class="small">Name the first journey below.</div></div>';
+  }
+  html += '<div class="addp" id="tpAdd">\uFF0B Add a trip</div>' +
+    '<div class="ch-askrow hidden" id="tpAsk">' +
+      '<input id="tpName" type="text" placeholder="Its name \u2014 e.g., Ten days in Ladakh">' +
+      '<div class="ch-yrrow"><input id="tpFrom" type="date" title="From"><span>\u2013</span><input id="tpTo" type="date" title="To (blank = one day)"></div>' +
+      '<input id="tpWhere" type="text" placeholder="Where \u2014 Leh \u00B7 Nubra \u00B7 Pangong (optional)">' +
+      '<input id="tpSig" type="text" placeholder="One italic line beneath it (optional)">' +
+      '<button class="btn-primary" id="tpGo" type="button">Open the page</button>' +
+    '</div>';
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('[data-open]').forEach(x => x.addEventListener('click', () => openReader(x.dataset.open)));
+  el('tpAdd').addEventListener('click', () => {
+    el('tpAsk').classList.toggle('hidden');
+    if (!el('tpAsk').classList.contains('hidden')) el('tpName').focus();
+  });
+  el('tpName').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); el('tpGo').click(); } });
+  el('tpGo').addEventListener('click', async () => {
+    const nm = el('tpName').value.trim(); if (!nm) { el('tpName').focus(); return; }
+    const f = el('tpFrom').value || null;
+    let t = el('tpTo').value || null;
+    if (f && t && t < f) { toast('The trip cannot end before it begins'); return; }
+    if (f && !t) t = f;
+    const id = await quickInsert('trip', nm, {
+      essence: el('tpSig').value.trim(), trip_from: f, trip_to: t,
+      place: el('tpWhere').value.trim(), telling: 'both', days: { currency: '\u20B9', days: [] },
+    });
+    if (id) { openReader(id); setRdEditing(true); }
+  });
+}
+
 // ---- Room 3: My Diary - the plain, chipped stream ----
 // DX-2 (Aug 2026): the six chip triples drink the manuscript inkwell.
 // The hash is untouched - every word keeps its colour forever.
@@ -1155,6 +1450,7 @@ function render() {
       x.addEventListener('click', () => openReader(x.dataset.open)));
   } else if (activeView === 'introspection') renderMusings(list, wrap);
   else if (activeView === 'experience') renderTimeline(list, wrap);
+  else if (activeView === 'trip') renderTrips(list, wrap);
   else if (activeView === 'diary') renderDiary(list, wrap);
   else renderShelf(list, wrap);
 }
@@ -1187,6 +1483,8 @@ function openReader(id, keepNav) {
   try {
     if (dk === 'introspection') {
       meta = 'MUSING & LEARNING';
+    } else if (dk === 'trip') {
+      meta = 'TRIP';                // dates + days + age + the told-as pill join below
     } else if (dk === 'experience') {
       meta = 'LIFE CHAPTER';        // years + age join as index-styled spans below
     } else if (dk === 'diary') {
@@ -1230,6 +1528,46 @@ function openReader(id, keepNav) {
         openReader(r.id, true); render();
       }
     });
+  } else if (dk === 'trip') {
+    const dl = tripDatesLabel(r), dn = tripDaysLabel(r), al = tripAgeLabel(r);
+    const tell = r.telling || 'both';
+    const TELL = { essay: 'ESSAY', days: 'DAY BOOK', both: 'BOTH' };
+    el('readerKind').innerHTML = escHtml(meta) +
+      ' <span class="rk-years rk-tap tp" id="rkTpDates" title="Tap to edit the dates">' +
+        (dl ? escHtml(dl) + (dn ? ' \u00B7 ' + dn.toLowerCase() : '') : 'set the dates') + '</span>' +
+      (al ? ' <span class="rk-age rk-tap" id="rkAge" title="Tap to change your birth year">' + escHtml(al) + '</span>'
+          : (dl && !birthYear() ? ' <span class="rk-age rk-tap" id="rkAge" title="Set your birth year for age labels">age?</span>' : '')) +
+      ' <span class="rk-told rk-tap" id="rkTold" title="How this trip is told - tap to change">TOLD AS \u00B7 ' + TELL[tell] + '</span>';
+    el('rkTpDates').addEventListener('click', () => {
+      const row = el('rdTripDates');
+      el('rdTpFrom').value = r.trip_from || ''; el('rdTpTo').value = r.trip_to || '';
+      row.classList.toggle('hidden');
+    });
+    el('rdTpSave').onclick = async () => {
+      const f = el('rdTpFrom').value || null; let t = el('rdTpTo').value || null;
+      if (!f) { toast('A start date, please'); return; }
+      if (t && t < f) { toast('The trip cannot end before it begins'); return; }
+      if (!t) t = f;
+      try {
+        const { error } = await supa.from('iw_entries').update({ trip_from: f, trip_to: t }).eq('id', r.id).eq('user_id', userId);
+        if (error) throw error;
+        r.trip_from = f; r.trip_to = t; toast('Dates saved');
+        el('rdTripDates').classList.add('hidden'); openReader(r.id, true); render();
+      } catch (e) { toast('Could not save the dates'); }
+    };
+    const ra = el('rkAge');
+    if (ra) ra.addEventListener('click', () => {
+      const v = prompt('Your birth year (for the AGE labels):', birthYear() || '');
+      if (v && /^\d{4}$/.test(v.trim())) { localStorage.setItem('myday_birth_year', v.trim()); openReader(r.id, true); render(); }
+    });
+    el('rkTold').addEventListener('click', async () => {
+      const next = { essay: 'days', days: 'both', both: 'essay' }[r.telling || 'both'];
+      try {
+        const { error } = await supa.from('iw_entries').update({ telling: next }).eq('id', r.id).eq('user_id', userId);
+        if (error) throw error;
+        r.telling = next; openReader(r.id, true);
+      } catch (e) { toast('Could not save'); }
+    });
   } else if (quiet) {
     el('readerKind').innerHTML = escHtml(meta) +
       ' <span class="rk-quiet">\u00B7 ' + escHtml(quiet) + '</span>';
@@ -1252,6 +1590,18 @@ function openReader(id, keepNav) {
       mk.classList.remove('hidden');
       el('rdSticky').classList.add('ch');
       el('readerKind').style.color = sh;   // the eyebrow drinks the chapter's ink
+    } else if (dk === 'trip') {
+      const trs = rows.filter(x => x.kind === 'trip').sort(tripSort);
+      const ti = Math.max(0, trs.findIndex(x => x.id === r.id));
+      const sh = tripShade(ti);
+      h1.innerHTML = '<span class="swp" style="--ch-sw:' + sh + '4d;">' + escHtml(r.title) + '</span>';
+      sig.style.setProperty('--ch-sol', sh);
+      sig.classList.remove('hidden');
+      const mk = el('rdMark');
+      mk.innerHTML = '<i class="pin" style="background:' + sh + ';"></i><b>' + (ti + 1) + '</b>';
+      mk.classList.remove('hidden');
+      el('rdSticky').classList.add('ch');
+      el('readerKind').style.color = sh;
     } else {
       h1.textContent = r.title;
       sig.classList.add('hidden');
@@ -1259,6 +1609,26 @@ function openReader(id, keepNav) {
       el('rdSticky').classList.remove('ch');
       el('readerKind').style.color = '';
     }
+  })();
+  // TR-1: the where line (tappable, one ask) and the day book (TR-2).
+  (function () {
+    const wh = el('rdWhere');
+    el('rdTripDates').classList.add('hidden');
+    if (dk !== 'trip') { wh.classList.add('hidden'); wh.innerHTML = ''; el('rdDays').classList.add('hidden'); el('rdDays').innerHTML = ''; document.body.classList.remove('rd-trip'); return; }
+    document.body.classList.add('rd-trip');
+    wh.innerHTML = r.place ? escHtml(r.place.toUpperCase()) : 'where? \u2014 tap to add';
+    wh.classList.toggle('faint', !r.place);
+    wh.classList.remove('hidden');
+    wh.onclick = async () => {
+      const v = prompt('Where \u2014 places, companions (e.g., Leh \u00B7 Nubra \u00B7 with Priya):', r.place || '');
+      if (v === null) return;
+      try {
+        const { error } = await supa.from('iw_entries').update({ place: v.trim() }).eq('id', r.id).eq('user_id', userId);
+        if (error) throw error;
+        r.place = v.trim(); openReader(r.id, true); render();
+      } catch (e) { toast('Could not save'); }
+    };
+    tripRenderDays_(r, document.body.classList.contains('rd-editing'));
   })();
   el('readerLead').textContent = r.essence || '';
   (function () {
@@ -1299,6 +1669,8 @@ function openReader(id, keepNav) {
     });
   })();
   const bodyHtml = NoteEditor.toHtml(r.body || '').trim();
+  document.body.classList.toggle('tell-days', dk === 'trip' && (r.telling || 'both') === 'days');
+  document.body.classList.toggle('tell-essay', dk === 'trip' && (r.telling || 'both') === 'essay');
   el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
   el('readerBodyInp').innerHTML = bodyHtml;
   if (!keepNav) rdNavIds = filteredRows().map(x => x.id);
@@ -1334,6 +1706,10 @@ function setRdEditing(on) {
   const wasEditing = document.body.classList.contains('rd-editing');
   document.body.classList.toggle('rd-editing', !!on);
   el('readerEdit').textContent = on ? 'Done' : 'Edit';
+  if (readerEntry && readerEntry.kind === 'trip') {
+    if (!on && wasEditing) tripSaveBook_(readerEntry, tripBook_(readerEntry), true);
+    tripRenderDays_(readerEntry, !!on);
+  }
   // The heading edits in place with the page (the card-era modal that once
   // renamed entries retired in DX; the reader is the title's home now).
   const h1 = el('readerH1');
@@ -1551,11 +1927,32 @@ function entryPlain_(r) {
 }
 function entryMd_(r) {
   const date = readerDateStr_(r);
-  let md = '# ' + (r.title || 'Untitled') + '\n\n*' + entryLabel_(r) + (date ? ' \u00B7 ' + date : '') +
+  const isTrip = r.kind === 'trip';
+  let md = '# ' + (r.title || 'Untitled') + '\n\n*' + (isTrip ? 'Trip' : entryLabel_(r)) + (date && !isTrip ? ' \u00B7 ' + date : '') +
     (displayKind(r.kind) === 'experience' && yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
-    (displayKind(r.kind) === 'experience' && ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '') + '*\n\n';
+    (displayKind(r.kind) === 'experience' && ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '') +
+    (isTrip && tripDatesLabel(r) ? ' \u00B7 ' + tripDatesLabel(r) + (tripDaysLabel(r) ? ' \u00B7 ' + tripDaysLabel(r).toLowerCase() : '') : '') +
+    (isTrip && tripAgeLabel(r) ? ' \u00B7 ' + tripAgeLabel(r) : '') + '*\n\n';
+  if (isTrip && r.place) md += r.place.toUpperCase() + '\n\n';
   if (r.essence) md += '> ' + r.essence + '\n\n';
-  md += (NoteEditor.toMarkdown(r.body) || '') + '\n';
+  const tell = r.telling || 'both';
+  if (isTrip && tell !== 'essay') {
+    const b = tripBook_(r);
+    if (b.days.length) {
+      md += '## Day book' + (tripTotal_(b) ? ' \u2014 trip total ' + tripMoney_(tripTotal_(b), b.currency) : '') + '\n\n';
+      b.days.forEach((dy, i) => {
+        md += '### Day ' + (i + 1) + ' \u00B7 ' + tripDayDate_(r, i) + (dy.title ? ' \u2014 ' + dy.title : '') + '\n\n';
+        if ((dy.lines || []).length) {
+          md += '| Kind | What | Cost |\n|---|---|---|\n';
+          dy.lines.forEach(ln => { md += '| ' + TRIP_KINDS[ln.k] + ' | ' + (ln.t || '').replace(/\|/g, '/') + ' | ' + (tripMoney_(ln.c, b.currency) || '') + ' |\n'; });
+          const dc = tripDayCost_(dy);
+          if (dc) md += '| | *Day total* | *' + tripMoney_(dc, b.currency) + '* |\n';
+          md += '\n';
+        }
+      });
+    }
+  }
+  if (!(isTrip && tell === 'days')) md += (NoteEditor.toMarkdown(r.body) || '') + '\n';
   if (r.tags && r.tags.length) md += '\n---\n\nTags: ' + r.tags.join(', ') + '\n';
   return md;
 }
@@ -1584,6 +1981,28 @@ function exportEntryMd() {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
 }
+// The day book on paper: a small table per day, each day kept whole on a page.
+function tripDaysPrintHtml_(r, esc) {
+  const b = tripBook_(r); if (!b.days.length) return '';
+  const cur = b.currency; const total = tripTotal_(b);
+  let h = '<div style="font-family:IBM Plex Mono,monospace; font-size:0.5625rem; letter-spacing:0.16em; color:#68789a; margin:14px 0 6px; display:flex;">DAY BOOK' +
+    (total ? '<span style="margin-left:auto; color:#182233; font-weight:600;">TRIP TOTAL ' + esc(tripMoney_(total, cur)) + '</span>' : '') + '</div>';
+  b.days.forEach(function (dy, i) {
+    const dc = tripDayCost_(dy);
+    h += '<div style="border-left:3px solid #2F6B8A; padding:2px 0 2px 12px; margin:8px 0 12px; page-break-inside:avoid; break-inside:avoid;">' +
+      '<div style="font-family:IBM Plex Mono,monospace; font-size:0.5625rem; letter-spacing:0.14em; display:flex; gap:10px;"><span style="color:#2F6B8A; font-weight:600;">DAY ' + (i + 1) + '</span><span style="color:#8a97b3;">' + esc(tripDayDate_(r, i)) + '</span>' +
+      (dc ? '<span style="margin-left:auto; color:#68789a;">' + esc(tripMoney_(dc, cur)) + '</span>' : '') + '</div>' +
+      (dy.title ? '<div style="font-weight:600; margin:2px 0 4px;">' + esc(dy.title) + '</div>' : '') +
+      '<table style="width:100%; border-collapse:collapse; font-size:0.75rem;">' +
+      (dy.lines || []).map(function (ln) {
+        const k = TRIP_KINDS[ln.k] ? ln.k : 'other';
+        return '<tr><td style="width:64px; padding:3px 6px 3px 0; font-family:IBM Plex Mono,monospace; font-size:0.5rem; letter-spacing:0.1em; color:' + TRIP_KIND_INK[k] + '; vertical-align:top;">' + TRIP_KINDS[k] + '</td>' +
+          '<td style="padding:3px 0; border-bottom:1px dotted #e3e8ef;">' + esc(ln.t || '') + '</td>' +
+          '<td style="width:80px; padding:3px 0; text-align:right; font-family:IBM Plex Mono,monospace; font-size:0.6875rem; border-bottom:1px dotted #e3e8ef;">' + esc(tripMoney_(ln.c, cur) || '\u2014') + '</td></tr>';
+      }).join('') + '</table></div>';
+  });
+  return h;
+}
 function exportEntryPrint() {
   if (!readerEntry) return; const r = readerEntry; const date = readerDateStr_(r);
   const esc = function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
@@ -1610,11 +2029,35 @@ function exportEntryPrint() {
     h1H = h1H + '';   // heading block continues inside the padded header
     h1H = h1H.replace('<h1>', '<h1 style="margin-top:2px;">');
     h1H = h1H + '</div>';    // closes the padded header wrap opened in kindLine
+  } else if (r.kind === 'trip') {
+    // TR-1 print: the chapter crest with the pin - TRIP / dates / days / age,
+    // the where line, then (TR-2) the day book above the essay per the telling.
+    const trs = rows.filter(function(x){ return x.kind === 'trip'; }).sort(tripSort);
+    const ti = Math.max(0, trs.findIndex(function(x){ return x.id === r.id; }));
+    const sh = tripShade(ti);
+    kindLine = '<div style="position:relative; padding-left:54px; min-height:44px;">' +
+      '<span style="position:absolute; left:0; top:0; width:40px; height:40px;">' +
+        '<span style="position:absolute; left:4px; top:4px; right:4px; bottom:4px; transform:rotate(-45deg); border-radius:50% 50% 50% 0; background:' + sh + ';"></span>' +
+        '<span style="position:absolute; left:0; top:0; width:40px; height:40px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;">' + (ti + 1) + '</span>' +
+      '</span>' +
+      '<div class="kind" style="color:#2F6B8A;">TRIP' +
+      (tripDatesLabel(r) ? ' &middot; ' + esc(tripDatesLabel(r).toUpperCase()) + (tripDaysLabel(r) ? ' &middot; ' + tripDaysLabel(r) : '') : ' &middot; dates not set') +
+      (tripAgeLabel(r) ? ' &nbsp;<span style="font-size:0.5938rem; color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px; padding:2px 8px;">' + esc(tripAgeLabel(r)) + '</span>' : '') + '</div>';
+    h1H = '<h1 style="margin-top:2px;"><span style="padding:0 8px 2px; margin-left:-8px; background:linear-gradient(transparent 56%, ' + sh + '4d 56%, ' + sh + '4d 96%, transparent 96%); -webkit-box-decoration-break:clone; box-decoration-break:clone;">' + esc(r.title||'Untitled') + '</span></h1>' +
+      (r.place ? '<div style="font-family:IBM Plex Mono,monospace; font-size:0.5625rem; letter-spacing:0.12em; color:#68789a; margin-top:4px;">' + esc(r.place.toUpperCase()) + '</div>' : '') +
+      '</div>';
+    sigH = '<div style="width:88px; height:6px; border-radius:3px; background:' + sh + '; margin:2px 0 14px;"></div>';
   } else {
     kindLine = '<div class="kind">' + esc(entryLabel_(r)) + (date ? ' &middot; ' + esc(date) : '') + '</div>';
     h1H = '<h1>' + esc(r.title||'Untitled') + '</h1>';
   }
-  const bodyH = kindLine + h1H + sigH + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>' + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
+  let daysH = '', essayH = '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>';
+  if (r.kind === 'trip') {
+    const tell = r.telling || 'both';
+    if (tell === 'days') essayH = '';
+    if (tell !== 'essay') daysH = tripDaysPrintHtml_(r, esc);
+  }
+  const bodyH = kindLine + h1H + sigH + (r.essence ? '<div class="lead">' + esc(r.essence) + '</div>' : '') + daysH + essayH + (r.tags && r.tags.length ? '<div class="tags">' + esc(r.tags.map(function(t){return '#'+t;}).join('  ')) + '</div>' : '');
   const tail = '<scr'+'ipt>window.onload=function(){var done=false;var go=function(){if(done)return;done=true;window.print();};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);setTimeout(go,900);}else{setTimeout(go,300);}};</scr'+'ipt></body></html>';
   NoteEditor.openPrint(head1 + fontlink + style + bodyH + tail);
 }
@@ -1726,7 +2169,9 @@ async function exportAll() {
   const old = cap ? cap.textContent : ''; if (cap) cap.textContent = 'Exporting\u2026'; if (btn) btn.disabled = true;
   try {
     const zip = new JSZip();
-    zip.file('entries.json', JSON.stringify(rows.map(r => ({ kind:r.kind, title:r.title, status:r.status, essence:r.essence, body:r.body, tags:r.tags, created_at:r.created_at, updated_at:r.updated_at })), null, 2));
+    zip.file('entries.json', JSON.stringify(rows.map(r => ({ kind:r.kind, title:r.title, status:r.status, essence:r.essence, body:r.body, tags:r.tags,
+      years_from:r.years_from, years_to:r.years_to, trip_from:r.trip_from, trip_to:r.trip_to, place:r.place, telling:r.telling, days:r.days,
+      created_at:r.created_at, updated_at:r.updated_at })), null, 2));
     zip.file('wip-notes.json', JSON.stringify(notes.map(n => ({ heading:n.heading, body:n.body })), null, 2));
     const byKind = {};
     rows.forEach(r => { const k = (KIND[displayKind(r.kind)] || KIND.note).lbl; (byKind[k] = byKind[k] || []).push(r); });
@@ -1785,9 +2230,11 @@ function printIntro_() {
   // The timeline prints in LIFE ORDER - from the first chapter onward,
   // never newest-first, never favourites-first.
   if (activeView === 'experience') list = list.slice().sort(chapterSort);
+  if (activeView === 'trip') list = list.slice().sort(tripSort);
   // The print wears the app's own room names - nothing else.
   const vl = activeView === 'diary' ? 'My Diary'
     : activeView === 'experience' ? 'My Life Timeline'
+    : activeView === 'trip' ? 'My Trips'
     : activeView === 'writing' ? 'My Writings'
     : 'My Musings & Learnings';
   let body = '<h1>' + escHtml(vl) + '</h1><div class="sub">' + list.length
@@ -1797,6 +2244,9 @@ function printIntro_() {
     const per = displayKind(r.kind) === 'experience'
       ? (yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
         (ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '')
+      : r.kind === 'trip'
+        ? (tripDatesLabel(r) ? ' \u00B7 ' + tripDatesLabel(r).toUpperCase() + (tripDaysLabel(r) ? ' \u00B7 ' + tripDaysLabel(r) : '') : '') +
+          (tripAgeLabel(r) ? ' \u00B7 ' + tripAgeLabel(r) : '') + (r.place ? ' \u00B7 ' + r.place.toUpperCase() : '')
       : (activeView === 'diary' ? ' \u00B7 ' + readerDateStr_(r) : '');   // a diary lives by its dates
     body += '<div class="it"><div class="m">' + escHtml(((k && k.lbl) || '') + per) + '</div>'
       + '<div class="t">' + escHtml(r.title || 'Untitled') + '</div>'

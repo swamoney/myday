@@ -141,6 +141,47 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**TR-1 + TR-2: My Trips - a new room in My Inner Life** (1 Sep
+2026): kind 'trip' in iw_entries, tab between My Life Timeline and
+My Writings, the sea's ink (#2F6B8A, TRIP_SHADES five sea steps).
+INDEX = the Timeline's grammar with a PIN mark (P1, arabic numbers -
+roman gets long past forty trips), dates where years were
+('14-24 JUN 2026 - 11 DAYS', tripDatesLabel handles same-month /
+cross-month / cross-year / day trip), a mono where line, the italic
+line, the gold age pill (tripAgeLabel from birth year); a YEAR RAIL
+divides the spine; the stones row shows only up to forty trips.
+Door: name, from-to date inputs (blank to = a day trip), where, sig
+-> quickInsert -> page opens editing. PAGE = the chapter page's twin
+full width: eyebrow TRIP + tappable dates pill (opens an INLINE
+two-date row with Save - no chained prompts) + age pill + TOLD AS
+pill (one tap cycles essay -> days -> both, saved as 'telling',
+default 'both'); the pin mark + sweep + sig bar; the where line
+tappable (one ask). DAY BOOK (TR-2, C: above the essay): one JSON
+document per trip in 'days' {currency, days:[{title, lines:[{k,t,c}]}]};
+five fixed kinds (sights/food/stay/travel/other) each in its ink;
+day dates computed from trip_from; day totals + trip total add
+themselves (en-IN grouping); read = cards; edit = ledger (kind chip
+cycles on tap, text, cost, remove; a blank line always waits; days
+add with one tap and take the next date; debounced save 700ms,
+immediate on Done/add/remove). EMPTY BOOK in BOTH: no header, no
+totals - only the quiet '+ DAY 1 - <date>' door (Rahul's question).
+The essay hides when told as DAY BOOK; the book hides when ESSAY;
+data always kept. FOUR PATHS: entry print (pin crest, TRIP - dates
+- days - age, where, day-book tables page-break-safe, essay per
+telling), section print ('My Trips', life order, dates/days/age/
+where per row), .md (header, where, day book as tables with day
+totals), zip (now carries years_from/to, trip_*, place, telling,
+days - the zip had silently omitted the chapter years before: a
+pre-existing gap closed). Search reaches the where line + day book
+text. migrate_trips.sql adds the five columns (plain ASCII, safe
+re-run) - PENDING Rahul runs it once. Harness (jsdom): tab, spine
+(order, dates, days, where, age, year rail, pins), eyebrow, where,
+pin mark, day book read (total 9,000; lines; door DAY 2), book above
+essay, told-as cycle + surface classes, ledger + blank line +
+cost -> saved (4 lines, total 9,500), where one-ask saved, empty
+book door-only, print crest/age/table/where, md (isolated: header,
+where, day-book table, day total), door insert. All green.
+
 **BK-8: the making stands three lines tall; AHEAD keeps only its
 date (T1 + D1)** (1 Sep 2026): the countdown clipped on phones. A
 wip row is now a three-line block on EVERY screen - .l1 name, .l2
