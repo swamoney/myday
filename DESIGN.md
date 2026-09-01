@@ -141,6 +141,16 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**BK-7: AHEAD is a hope, IN THE MAKING is a clock (H2)**
+(1 Sep 2026): the clock - countdown chip + runway hairline (.edge) -
+belongs to wip alone. AHEAD sheds both and only WHISPERS its date:
+ember mark + quiet grey mono '- 20 SEP 2026' (.bk-when, no chip);
+no 'time left', no PASSED, ever (a hope is not late). Dream page:
+AHEAD's PLANNED FOR shows the plain date, never the over state;
+print: countdown only under In the making, Ahead prints 'planned
+for <date>'. Harness: wip row chip+runway; ahead rows whisper/none,
+no runway; ahead page plain + no over; print bands correct.
+
 **BK-6: time-bound beside the name (W2 + B)** (1 Sep 2026): every
 waiting row now carries its mark AND its plan's countdown inside the
 title span - IN THE MAKING / AHEAD, then a gold chip 'N MONTHS LEFT -

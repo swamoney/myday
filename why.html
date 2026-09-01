@@ -1120,6 +1120,8 @@
   body.bk-arranging #bkArrangeFoot { color:#8a6d1f; }
   .bk-hd { display:flex; align-items:center; gap:10px; }
   .stamp .st .bk-mark, .stamp .st .plan { margin-left:9px; vertical-align:2px; }
+  .stamp .st .bk-when { font-family:var(--mono); font-size:0.5313rem; font-weight:500; letter-spacing:0.1em;
+    color:#8a97b3; margin-left:9px; vertical-align:2px; white-space:nowrap; }
   .bk-ud { display:none; flex-direction:column; gap:2px; margin-left:auto; flex-shrink:0; }
   body.bk-arranging .bk-ud { display:inline-flex; }
   .bk-ud button { border:1px solid #cdd5e0; background:#fff; border-radius:6px; width:27px;
@@ -2472,7 +2474,7 @@ function printSection() {
     ['wip','not_yet','done'].forEach(st => {
       const rows = buckets.filter(b => (b.status || 'not_yet') === st); if (!rows.length) return;
       body += '<h2>' + e(S[st]) + '</h2><ul>' + rows.map(b => '<li><strong>' + e(b.title || '') + '</strong>'
-        + (b.planned_on ? ' <span class="meta">' + e(bkLeftText_(b).toLowerCase()) + '</span>' : '')
+        + (b.planned_on ? ' <span class="meta">' + e(st === 'wip' ? bkLeftText_(b).toLowerCase() : 'planned for ' + bkFmt(b.planned_on)) + '</span>' : '')
         + (b.lived_on ? ' <span class="meta">done ' + e(bkFmt(b.lived_on)) + '</span>' : '')
         + (bkStarsText_(b) ? ' <span class="meta">' + bkStarsText_(b) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
@@ -5297,8 +5299,12 @@ function bkCard(b) {
   // right edge (the fault Rahul caught).
   // BK-6: IN THE MAKING joins AHEAD beside the name, and the plan's
   // countdown rides right after the mark - the row is time-bound at a glance.
-  let inner = sym + '<span class="st">' + escHtml(b.title) +
-    (done ? '' : ' ' + bkMark(b, false) + bkLeftChip_(b)) + '</span>';
+  // BK-7: AHEAD is a hope, IN THE MAKING is a clock. The countdown and the
+  // runway belong to wip alone; an AHEAD dream only whispers its date.
+  let inner = sym + '<span class="st">' + escHtml(b.title) + ' ' +
+    (done ? '' : wip ? bkMark(b, false) + bkLeftChip_(b)
+                     : bkMark(b, false) + (b.planned_on ? '<span class="bk-when">\u00B7 ' + escHtml(bkFmt(b.planned_on)) + '</span>' : '')) +
+    '</span>';
   // The chip cluster rides in a deck: invisible on desktop, its own line on phones.
   let deck = '';
   if (done) deck += bkStars_(b) + bkMark(b, false);
@@ -5310,7 +5316,7 @@ function bkCard(b) {
   inner += '<span class="rowdeck">' + deck + '</span>';
   if (!done) {
     inner += '<button class="stx" data-stx="' + b.id + '" type="button" aria-label="Delete">&times;</button>';
-    if (e) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
+    if (e && wip) inner += '<span class="edge' + (e.over ? ' over' : '') + '"><i style="width:' + e.pct + '%"></i></span>';
   }
   // every dream gets the same row — rail, symbol, and pill carry the status
   return '<div class="stamp' + (done ? ' inked' : '') + (wip ? ' wip' : '') + '" data-bk="' + b.id + '">' + inner + '</div>';
@@ -5929,9 +5935,10 @@ function bkRenderStatus() {
     const e = done ? null : bkElapsed(b);
     let out = '';
     if (b.planned_on) {
-      out += '<span class="rod' + (e && e.over ? ' over' : '') + '">'
-        + '<span class="pk">' + (e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
-        + '<span class="pv">' + escHtml(bkLeftText_(b)) + '</span></span>';
+      const wip2 = b.status === 'wip';
+      out += '<span class="rod' + (wip2 && e && e.over ? ' over' : '') + '">'
+        + '<span class="pk">' + (wip2 && e && e.over ? 'PLANNED FOR \u00B7 PASSED' : 'PLANNED FOR') + '</span>'
+        + '<span class="pv">' + escHtml(wip2 ? bkLeftText_(b) : bkFmt(b.planned_on)) + '</span></span>';
     }
     ro.innerHTML = out;
   }
