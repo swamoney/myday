@@ -141,6 +141,18 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**BK-8: the making stands three lines tall; AHEAD keeps only its
+date (T1 + D1)** (1 Sep 2026): the countdown clipped on phones. A
+wip row is now a three-line block on EVERY screen - .l1 name, .l2
+mark + countdown (flex-wrap), the existing .edge runway as line
+three (padding-bottom 16px makes room) - in a faint teal wash
+(#F1F7F6 / #D6E7E4, teal left rule). AHEAD's word retires from the
+INDEX: an AHEAD dream shows its name and, if planned, the plain
+date as a solid ember chip (bk-mark not_yet reused); no date, name
+alone. .bk-when retired to zero refs. Dream page + print still say
+AHEAD in full. Harness: wip l1/l2/runway + chips; ahead date chip
+only / name only, no runway; the word AHEAD absent from the index.
+
 **BK-7: AHEAD is a hope, IN THE MAKING is a clock (H2)**
 (1 Sep 2026): the clock - countdown chip + runway hairline (.edge) -
 belongs to wip alone. AHEAD sheds both and only WHISPERS its date:

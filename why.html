@@ -1120,8 +1120,11 @@
   body.bk-arranging #bkArrangeFoot { color:#8a6d1f; }
   .bk-hd { display:flex; align-items:center; gap:10px; }
   .stamp .st .bk-mark, .stamp .st .plan { margin-left:9px; vertical-align:2px; }
-  .stamp .st .bk-when { font-family:var(--mono); font-size:0.5313rem; font-weight:500; letter-spacing:0.1em;
-    color:#8a97b3; margin-left:9px; vertical-align:2px; white-space:nowrap; }
+  /* BK-8: the three-line making block, teal-washed */
+  .stamp.wip { background:#F1F7F6; border-color:#D6E7E4; border-left-color:#1F6F68; padding-bottom:16px; }
+  .stamp.wip .st .l1 { display:block; }
+  .stamp.wip .st .l2 { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .stamp.wip .st .l2 .bk-mark, .stamp.wip .st .l2 .plan { margin-left:0; vertical-align:baseline; }
   .bk-ud { display:none; flex-direction:column; gap:2px; margin-left:auto; flex-shrink:0; }
   body.bk-arranging .bk-ud { display:inline-flex; }
   .bk-ud button { border:1px solid #cdd5e0; background:#fff; border-radius:6px; width:27px;
@@ -5301,9 +5304,15 @@ function bkCard(b) {
   // countdown rides right after the mark - the row is time-bound at a glance.
   // BK-7: AHEAD is a hope, IN THE MAKING is a clock. The countdown and the
   // runway belong to wip alone; an AHEAD dream only whispers its date.
-  let inner = sym + '<span class="st">' + escHtml(b.title) + ' ' +
-    (done ? '' : wip ? bkMark(b, false) + bkLeftChip_(b)
-                     : bkMark(b, false) + (b.planned_on ? '<span class="bk-when">\u00B7 ' + escHtml(bkFmt(b.planned_on)) + '</span>' : '')) +
+  // BK-8 (T1+D1): a dream in the making stands three lines tall on every
+  // screen - name / clock / runway - so nothing clips and it is the loudest
+  // thing on the list. AHEAD drops its word: only the date, in ember.
+  let inner = sym + '<span class="st">' +
+    (wip
+      ? '<span class="l1">' + escHtml(b.title) + '</span>' +
+        '<span class="l2">' + bkMark(b, false) + bkLeftChip_(b) + '</span>'
+      : escHtml(b.title) +
+        (!done && b.planned_on ? ' <span class="bk-mark not_yet">' + escHtml(bkFmt(b.planned_on)) + '</span>' : '')) +
     '</span>';
   // The chip cluster rides in a deck: invisible on desktop, its own line on phones.
   let deck = '';
