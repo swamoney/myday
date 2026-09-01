@@ -141,6 +141,25 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**TR-3: the day book that actually holds** (1 Sep 2026): Rahul's
+'unable to add, doesn't show, no button to finish' - THE FAULT: the
+ledger edited a book object living in tripRenderDays_'s closure,
+while Done re-parsed r.days (still the OLD book until the debounced
+write returned) and SAVED THE OLD BOOK OVER THE NEW one, then
+rendered it - entries vanished. Fix: tripSaveBook_ assigns r.days =
+book synchronously (one LIVE book; Done and every repaint read it).
+Also: the auto 'blank line' that re-rendered on the first keystroke
+(focus loss on phones) retired - lines are explicit ('+ ADD A LINE'
+per day, x to remove, nothing pruned under a typing hand), a new
+day opens with one line ready, and a sea DONE button closes the
+ledger from the bottom (readerEdit's twin). 'DATES NOT SET' retired
+from the index (a blank stays blank); the door's button wears the
+chapter door's clothes (mono, full width, the sea: CREATE -> OPENS
+THE TRIP). Harness (the user's journey): door -> DAY 1 -> type title
+/ line / cost with NO re-render -> add a line (focused) -> kind cycle
+-> DONE -> read mode shows 2 lines, title, total 9,000 -> saved
+book correct -> reopen still shows.
+
 **TR-1 + TR-2: My Trips - a new room in My Inner Life** (1 Sep
 2026): kind 'trip' in iw_entries, tab between My Life Timeline and
 My Writings, the sea's ink (#2F6B8A, TRIP_SHADES five sea steps).

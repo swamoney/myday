@@ -151,6 +151,7 @@
                 box-shadow:0 4px 12px rgba(10,19,37,0.18), inset 0 -3px 5px rgba(0,0,0,0.14); }
   .tdot.tp { border-radius:50%; transform:none; }
   .tdot.tp:hover { transform:scale(1.25); }
+  .ch-askrow button.tp-go { background:#2F6B8A; }
   .sdates { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#2F6B8A; letter-spacing:0.05em; }
   .s-where { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; color:#68789a; margin-top:4px; }
   .tp-year { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em; color:#8a97b3;
@@ -191,6 +192,11 @@
   .tp-addday { display:inline-block; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#8a97b3;
                background:none; border:1.5px dashed #d3dbe6; border-radius:8px; padding:7px 10px; margin-top:6px; cursor:pointer; }
   .tp-addday:hover { color:#2F6B8A; border-color:#2F6B8A; }
+  .tp-foot { display:flex; gap:8px; align-items:center; margin-top:6px; }
+  .tp-addline { display:inline-block; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#2F6B8A;
+                background:none; border:1px dashed #b9cfe0; border-radius:8px; padding:6px 10px; margin-top:2px; cursor:pointer; }
+  .tp-done { margin-left:auto; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.1em; color:#fff;
+             background:#2F6B8A; border:none; border-radius:8px; padding:8px 14px; cursor:pointer; }
   .tp-ledger { background:#F2F7FB; border:1px dashed #b9cfe0; border-radius:10px; padding:10px 12px; margin-top:6px; }
   .tp-in { border:1px solid var(--rule); border-radius:8px; padding:7px 9px; font-size:0.8125rem; font-family:var(--sans); background:#fff; width:100%; min-width:0; }
   .tp-title { margin-bottom:8px; font-family:var(--serif); font-weight:600; }
@@ -1141,6 +1147,7 @@ function tripDayDate_(r, i) {
 let tripSaveTimer_ = null;
 function tripSaveBook_(r, book, now) {
   clearTimeout(tripSaveTimer_);
+  r.days = book;   // the page and Done read the LIVE book, never a stale parse
   const go = async () => {
     try {
       const { error } = await supa.from('iw_entries').update({ days: book, updated_at: new Date().toISOString() })
@@ -1169,17 +1176,17 @@ function tripRenderDays_(r, editing) {
     if (editing) {
       html += '<div class="tp-ledger">' +
         '<input type="text" class="tp-in tp-title" data-dtitle="' + i + '" placeholder="Place / title of the day" value="' + escHtml(dy.title || '') + '">';
-      const lines = (dy.lines || []).slice();
-      lines.push({ k: 'other', t: '', c: '' });   // a blank line always waits
+      const lines = (dy.lines || []);
       lines.forEach((ln, j) => {
         const k = TRIP_KINDS[ln.k] ? ln.k : 'other';
         html += '<div class="tp-lr">' +
           '<button type="button" class="tp-cat" data-kcyc="' + i + ':' + j + '" style="background:' + TRIP_KIND_INK[k] + ';">' + TRIP_KINDS[k] + ' \u25BE</button>' +
           '<input type="text" class="tp-in" data-lt="' + i + ':' + j + '" placeholder="what happened\u2026" value="' + escHtml(ln.t || '') + '">' +
           '<input type="text" inputmode="decimal" class="tp-in tp-cost" data-lc="' + i + ':' + j + '" placeholder="' + escHtml(cur) + '" value="' + escHtml(ln.c == null ? '' : String(ln.c)) + '">' +
-          (j < lines.length - 1 ? '<button type="button" class="tp-x" data-lx="' + i + ':' + j + '" title="Remove">\u2298</button>' : '<span></span>') +
+          '<button type="button" class="tp-x" data-lx="' + i + ':' + j + '" title="Remove">\u2298</button>' +
           '</div>';
       });
+      html += '<button type="button" class="tp-addline" data-addline="' + i + '">\uFF0B ADD A LINE</button>';
       html += '</div>';
     } else {
       if (dy.title) html += '<div class="tp-dp">' + escHtml(dy.title) + '</div>';
@@ -1194,44 +1201,52 @@ function tripRenderDays_(r, editing) {
     html += '</div>';
   });
   // An empty day book (or the end of one) is a quiet door to the next day.
-  html += '<button type="button" class="tp-addday" id="tpAddDay">\uFF0B DAY ' + (book.days.length + 1) +
-    (r.trip_from ? ' \u00B7 ' + escHtml(tripDayDate_(r, book.days.length)) : '') + '</button>';
+  html += '<div class="tp-foot"><button type="button" class="tp-addday" id="tpAddDay">\uFF0B DAY ' + (book.days.length + 1) +
+    (r.trip_from ? ' \u00B7 ' + escHtml(tripDayDate_(r, book.days.length)) : '') + '</button>' +
+    (editing ? '<button type="button" class="tp-done" id="tpDone">DONE</button>' : '') + '</div>';
   host.innerHTML = html;
   host.classList.remove('hidden');
   el('tpAddDay').addEventListener('click', () => {
-    book.days.push({ title: '', lines: [] });
+    book.days.push({ title: '', lines: [{ k: 'sights', t: '', c: '' }] });
     tripSaveBook_(r, book, true);
     if (!document.body.classList.contains('rd-editing')) setRdEditing(true);
     else tripRenderDays_(r, true);
     setTimeout(() => { const t = host.querySelector('[data-dtitle="' + (book.days.length - 1) + '"]'); if (t) t.focus(); }, 40);
   });
   if (!editing) return;
+  el('tpDone').addEventListener('click', () => setRdEditing(false));
+  host.querySelectorAll('[data-addline]').forEach(btn => btn.addEventListener('click', () => {
+    const i = parseInt(btn.dataset.addline, 10);
+    if (!book.days[i].lines) book.days[i].lines = [];
+    book.days[i].lines.push({ k: 'other', t: '', c: '' });
+    tripSaveBook_(r, book);
+    tripRenderDays_(r, true);
+    const n = host.querySelector('[data-lt="' + i + ':' + (book.days[i].lines.length - 1) + '"]'); if (n) n.focus();
+  }));
   const readLine = (i, j) => {
     const dy = book.days[i]; if (!dy.lines) dy.lines = [];
     while (dy.lines.length <= j) dy.lines.push({ k: 'other', t: '', c: '' });
     return dy.lines[j];
   };
-  const prune = () => book.days.forEach(dy => { dy.lines = (dy.lines || []).filter(l => (l.t || '').trim() || (l.c !== '' && l.c != null)); });
+  const prune = () => {};   // lines stay until removed with the x - nothing vanishes under a typing hand
   host.querySelectorAll('[data-dtitle]').forEach(inp => inp.addEventListener('input', () => {
     book.days[parseInt(inp.dataset.dtitle, 10)].title = inp.value; tripSaveBook_(r, book);
   }));
   host.querySelectorAll('[data-lt]').forEach(inp => inp.addEventListener('input', () => {
     const [i, j] = inp.dataset.lt.split(':').map(Number);
-    const wasBlank = j >= (book.days[i].lines || []).length;
-    readLine(i, j).t = inp.value; prune(); tripSaveBook_(r, book);
-    if (wasBlank && inp.value) { tripRenderDays_(r, true); const n = host.querySelector('[data-lt="' + i + ':' + j + '"]'); if (n) { n.focus(); n.setSelectionRange(n.value.length, n.value.length); } }
+    readLine(i, j).t = inp.value; tripSaveBook_(r, book);
   }));
   host.querySelectorAll('[data-lc]').forEach(inp => inp.addEventListener('input', () => {
     const [i, j] = inp.dataset.lc.split(':').map(Number);
     const v = inp.value.replace(/[^0-9.]/g, '');
-    readLine(i, j).c = v === '' ? '' : parseFloat(v); prune(); tripSaveBook_(r, book);
+    readLine(i, j).c = v === '' ? '' : parseFloat(v); tripSaveBook_(r, book);
   }));
   host.querySelectorAll('[data-kcyc]').forEach(btn => btn.addEventListener('click', () => {
     const [i, j] = btn.dataset.kcyc.split(':').map(Number);
     const ln = readLine(i, j);
     ln.k = TRIP_KIND_ORDER[(TRIP_KIND_ORDER.indexOf(ln.k) + 1) % TRIP_KIND_ORDER.length];
     btn.textContent = TRIP_KINDS[ln.k] + ' \u25BE'; btn.style.background = TRIP_KIND_INK[ln.k];
-    if ((ln.t || '').trim() || ln.c !== '') tripSaveBook_(r, book);
+    tripSaveBook_(r, book);
   }));
   host.querySelectorAll('[data-lx]').forEach(btn => btn.addEventListener('click', () => {
     const [i, j] = btn.dataset.lx.split(':').map(Number);
@@ -1262,7 +1277,7 @@ function renderTrips(list, wrap) {
       html += '<div class="snode" data-open="' + escHtml(r.id) + '">' +
         '<div class="smark"><span class="pin" style="background:' + sh + ';"></span><b>' + (i + 1) + '</b></div>' +
         '<div>' +
-          '<div class="sdates">' + (dl ? escHtml(dl.toUpperCase()) + (dn ? ' \u00B7 ' + dn : '') : 'DATES NOT SET') + '</div>' +
+          (dl ? '<div class="sdates">' + escHtml(dl.toUpperCase()) + (dn ? ' \u00B7 ' + dn : '') + '</div>' : '') +
           '<div class="snum">' + escHtml(r.title) + '</div>' +
           (r.place ? '<div class="s-where">' + escHtml(r.place.toUpperCase()) + '</div>' : '') +
           (r.essence ? '<div class="s-stands">' + escHtml(r.essence) + '</div>' : '') +
@@ -1279,7 +1294,7 @@ function renderTrips(list, wrap) {
       '<div class="ch-yrrow"><input id="tpFrom" type="date" title="From"><span>\u2013</span><input id="tpTo" type="date" title="To (blank = one day)"></div>' +
       '<input id="tpWhere" type="text" placeholder="Where \u2014 Leh \u00B7 Nubra \u00B7 Pangong (optional)">' +
       '<input id="tpSig" type="text" placeholder="One italic line beneath it (optional)">' +
-      '<button class="btn-primary" id="tpGo" type="button">Open the page</button>' +
+      '<button id="tpGo" type="button" class="tp-go">CREATE \u2192 OPENS THE TRIP</button>' +
     '</div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-open]').forEach(x => x.addEventListener('click', () => openReader(x.dataset.open)));
