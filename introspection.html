@@ -159,6 +159,11 @@
   .rk-told { display:inline-block; font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.1em;
              color:#fff; background:#2F6B8A; border-radius:999px; padding:2px 9px; margin-left:8px; vertical-align:1px;
              border-bottom:1px dotted rgba(255,255,255,0.7); }
+  .tp-co { display:inline-block; font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.12em;
+           border-radius:6px; padding:4px 9px; color:#fff; margin-left:8px; vertical-align:2px; border:none; }
+  .rd-meta-co { display:flex; gap:8px; flex-wrap:wrap; }
+  .rd-meta-co .tp-co.pick { margin-left:0; cursor:pointer; opacity:0.45; }
+  .rd-meta-co .tp-co.pick.onp { opacity:1; box-shadow:0 0 0 2px var(--paper), 0 0 0 3.5px currentColor; }
   .rd-meta { display:none; flex-direction:column; gap:6px; margin:6px 0 8px; }
   body.rd-editing .rd-meta:not(.hidden) { display:flex; }
   .rd-meta-in { border:1px dashed #b9cfe0; border-radius:8px; padding:8px 10px; font-size:0.8125rem; font-family:var(--mono);
@@ -606,6 +611,7 @@
         <div class="rd-meta hidden" id="rdMeta">
           <input type="text" id="rdMetaWhere" class="rd-meta-in" placeholder="Where &mdash; Leh &middot; Nubra &middot; with Priya">
           <input type="text" id="rdMetaSig" class="rd-meta-in sig" placeholder="One italic line beneath the heading">
+          <div class="rd-meta-co" id="rdMetaCo"></div>
         </div>
         <div class="reader-lead" id="readerLead"></div>
         <div class="reader-chips hidden" id="readerChips"></div>
@@ -1096,6 +1102,14 @@ function renderTimeline(list, wrap) {
 // TR-5: one sea for every trip - the numbers alone count the journeys.
 const TRIP_SEA = '#2F6B8A';
 function tripShade() { return TRIP_SEA; }
+// TR-6 (C1): the trip's company - four true inks, fixed for thirty years.
+const TRIP_COMPANY = { business: 'BUSINESS', solo: 'SOLO', family: 'FAMILY', friends: 'FRIENDS' };
+const TRIP_COMPANY_INK = { business: '#44546A', solo: '#B08A3E', family: '#5F7355', friends: '#A4553F' };
+function tripCoChip_(r, mono) {
+  const c = r.company;
+  if (!c || !TRIP_COMPANY[c]) return '';
+  return '<span class="tp-co" style="background:' + TRIP_COMPANY_INK[c] + ';">' + TRIP_COMPANY[c] + '</span>';
+}
 const TRIP_KINDS = { sights:'SIGHTS', food:'FOOD', stay:'STAY', travel:'TRAVEL', other:'OTHER' };
 const TRIP_KIND_INK = { sights:'#2F6B8A', food:'#A4553F', stay:'#6D4E66', travel:'#5F7355', other:'#6a7690' };
 const TRIP_KIND_ORDER = ['sights', 'food', 'stay', 'travel', 'other'];
@@ -1283,7 +1297,7 @@ function renderTrips(list, wrap) {
       html += '<div class="snode" data-open="' + escHtml(r.id) + '">' +
         '<div class="smark"><span class="pin" style="background:' + sh + ';"></span><b>' + (i + 1) + '</b></div>' +
         '<div>' +
-          (dl ? '<div class="sdates">' + escHtml(dl.toUpperCase()) + (dn ? ' \u00B7 ' + dn : '') + '</div>' : '') +
+          (dl || tripCoChip_(r) ? '<div class="sdates">' + (dl ? escHtml(dl.toUpperCase()) + (dn ? ' \u00B7 ' + dn : '') : '') + tripCoChip_(r) + '</div>' : '') +
           '<div class="snum">' + escHtml(r.title) + '</div>' +
           (r.place ? '<div class="s-where">' + escHtml(r.place.toUpperCase()) + '</div>' : '') +
           (r.essence ? '<div class="s-stands">' + escHtml(r.essence) + '</div>' : '') +
@@ -1558,6 +1572,7 @@ function openReader(id, keepNav) {
         (dl ? escHtml(dl) + (dn ? ' \u00B7 ' + dn.toLowerCase() : '') : 'set the dates') + '</span>' +
       (al ? ' <span class="rk-age rk-tap" id="rkAge" title="Tap to change your birth year">' + escHtml(al) + '</span>'
           : (dl && !birthYear() ? ' <span class="rk-age rk-tap" id="rkAge" title="Set your birth year for age labels">age?</span>' : '')) +
+      ' ' + tripCoChip_(r) +
       ' <span class="rk-told rk-tap" id="rkTold" title="How this trip is told - tap to change">TOLD AS \u00B7 ' + TELL[tell] + '</span>';
     el('rkTpDates').addEventListener('click', () => {
       const row = el('rdTripDates');
@@ -1661,6 +1676,22 @@ function openReader(id, keepNav) {
     el('rdMetaWhere').style.display = dk === 'trip' ? '' : 'none';
     el('rdMetaWhere').value = r.place || '';
     el('rdMetaSig').value = r.essence || '';
+    const co = el('rdMetaCo');
+    co.style.display = dk === 'trip' ? '' : 'none';
+    if (dk === 'trip') {
+      co.innerHTML = Object.keys(TRIP_COMPANY).map(k =>
+        '<button type="button" class="tp-co pick' + (r.company === k ? ' onp' : '') + '" data-co="' + k + '" style="background:' + TRIP_COMPANY_INK[k] + ';">' + TRIP_COMPANY[k] + '</button>').join('');
+      co.querySelectorAll('[data-co]').forEach(btn => btn.addEventListener('click', async () => {
+        const cur = readerEntry; if (!cur) return;
+        const next = cur.company === btn.dataset.co ? null : btn.dataset.co;   // tap again clears
+        try {
+          const { error } = await supa.from('iw_entries').update({ company: next }).eq('id', cur.id).eq('user_id', userId);
+          if (error) throw error;
+          cur.company = next;
+          openReader(cur.id, true); setRdEditing(true); render();
+        } catch (e) { toast('Could not save'); }
+      }));
+    }
     if (!row._wired) {
       row._wired = true;
       const save = async (field, val) => {
@@ -1675,6 +1706,7 @@ function openReader(id, keepNav) {
           toast('Saved'); render();
         } catch (e) { toast('Could not save'); }
       };
+      row._saveCo = save;
       el('rdMetaWhere').addEventListener('change', () => save('place', el('rdMetaWhere').value));
       el('rdMetaSig').addEventListener('change', () => save('essence', el('rdMetaSig').value));
       [el('rdMetaWhere'), el('rdMetaSig')].forEach(inp => inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); inp.blur(); } }));
@@ -1982,7 +2014,8 @@ function entryMd_(r) {
     (displayKind(r.kind) === 'experience' && yearsLabel(r) ? ' \u00B7 ' + yearsLabel(r) : '') +
     (displayKind(r.kind) === 'experience' && ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '') +
     (isTrip && tripDatesLabel(r) ? ' \u00B7 ' + tripDatesLabel(r) + (tripDaysLabel(r) ? ' \u00B7 ' + tripDaysLabel(r).toLowerCase() : '') : '') +
-    (isTrip && tripAgeLabel(r) ? ' \u00B7 ' + tripAgeLabel(r) : '') + '*\n\n';
+    (isTrip && tripAgeLabel(r) ? ' \u00B7 ' + tripAgeLabel(r) : '') +
+    (isTrip && r.company && TRIP_COMPANY[r.company] ? ' \u00B7 ' + TRIP_COMPANY[r.company].toLowerCase() : '') + '*\n\n';
   if (isTrip && r.place) md += r.place.toUpperCase() + '\n\n';
   if (r.essence) md += '> ' + r.essence + '\n\n';
   const tell = r.telling || 'both';
@@ -2092,7 +2125,8 @@ function exportEntryPrint() {
       '</span>' +
       '<div class="kind" style="color:#2F6B8A;">TRIP' +
       (tripDatesLabel(r) ? ' &middot; ' + esc(tripDatesLabel(r).toUpperCase()) + (tripDaysLabel(r) ? ' &middot; ' + tripDaysLabel(r) : '') : ' &middot; dates not set') +
-      (tripAgeLabel(r) ? ' &nbsp;<span style="font-size:0.5938rem; color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px; padding:2px 8px;">' + esc(tripAgeLabel(r)) + '</span>' : '') + '</div>';
+      (tripAgeLabel(r) ? ' &nbsp;<span style="font-size:0.5938rem; color:#8A5711; background:#FBF3E2; border:1px solid #E4D2AC; border-radius:999px; padding:2px 8px;">' + esc(tripAgeLabel(r)) + '</span>' : '') +
+      (r.company && TRIP_COMPANY[r.company] ? ' &nbsp;<span style="font-size:0.5rem; letter-spacing:0.12em; color:#fff; background:' + TRIP_COMPANY_INK[r.company] + '; border-radius:6px; padding:3px 8px;">' + TRIP_COMPANY[r.company] + '</span>' : '') + '</div>';
     h1H = '<h1 style="margin-top:2px;"><span style="padding:0 8px 2px; margin-left:-8px; background:linear-gradient(transparent 56%, ' + sh + '4d 56%, ' + sh + '4d 96%, transparent 96%); -webkit-box-decoration-break:clone; box-decoration-break:clone;">' + esc(r.title||'Untitled') + '</span></h1>' +
       (r.place ? '<div style="font-family:IBM Plex Mono,monospace; font-size:0.5625rem; letter-spacing:0.12em; color:#68789a; margin-top:4px;">' + esc(r.place.toUpperCase()) + '</div>' : '') +
       '</div>';
@@ -2220,7 +2254,7 @@ async function exportAll() {
   try {
     const zip = new JSZip();
     zip.file('entries.json', JSON.stringify(rows.map(r => ({ kind:r.kind, title:r.title, status:r.status, essence:r.essence, body:r.body, tags:r.tags,
-      years_from:r.years_from, years_to:r.years_to, trip_from:r.trip_from, trip_to:r.trip_to, place:r.place, telling:r.telling, days:r.days,
+      years_from:r.years_from, years_to:r.years_to, trip_from:r.trip_from, trip_to:r.trip_to, place:r.place, telling:r.telling, days:r.days, company:r.company,
       created_at:r.created_at, updated_at:r.updated_at })), null, 2));
     zip.file('wip-notes.json', JSON.stringify(notes.map(n => ({ heading:n.heading, body:n.body })), null, 2));
     const byKind = {};
@@ -2296,7 +2330,9 @@ function printIntro_() {
         (ageLabel(r) ? ' \u00B7 ' + ageLabel(r) : '')
       : r.kind === 'trip'
         ? (tripDatesLabel(r) ? ' \u00B7 ' + tripDatesLabel(r).toUpperCase() + (tripDaysLabel(r) ? ' \u00B7 ' + tripDaysLabel(r) : '') : '') +
-          (tripAgeLabel(r) ? ' \u00B7 ' + tripAgeLabel(r) : '') + (r.place ? ' \u00B7 ' + r.place.toUpperCase() : '')
+          (tripAgeLabel(r) ? ' \u00B7 ' + tripAgeLabel(r) : '') +
+          (r.company && TRIP_COMPANY[r.company] ? ' \u00B7 ' + TRIP_COMPANY[r.company] : '') +
+          (r.place ? ' \u00B7 ' + r.place.toUpperCase() : '')
       : (activeView === 'diary' ? ' \u00B7 ' + readerDateStr_(r) : '');   // a diary lives by its dates
     body += '<div class="it"><div class="m">' + escHtml(((k && k.lbl) || '') + per) + '</div>'
       + '<div class="t">' + escHtml(r.title || 'Untitled') + '</div>'

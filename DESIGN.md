@@ -141,6 +141,21 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**TR-6: the trip's company (C1)** (1 Sep 2026): one 'company'
+column (business | solo | family | friends, names fixed for thirty
+years) with four true inks - FAMILY moss #5F7355, FRIENDS
+terracotta #A4553F, SOLO gold #B08A3E, BUSINESS slate #44546A - all
+apart from the room's sea so the tag reads before the words. The
+chip rides the index dates line (stands alone when dates are
+blank), the page eyebrow (after age, before TOLD AS), the print
+crest, the section-print row and the .md header; zip carries the
+column. Choosing: the edit-mode meta row grows the four chips -
+tap to choose (ring + full ink), tap the chosen one again to CLEAR
+(null - a trip may carry no tag). migrate_trips.sql gains the
+column (safe re-run whether or not the first run happened).
+Harness: eyebrow chip, picker ring, switch saved, clear writes
+null + chip leaves the eyebrow, print chip present.
+
 **TR-5: no stones row, one sea** (1 Sep 2026): the trips index
 drops the top row of stones (pins + year rail lead the way);
 TRIP_SHADES retired for a single TRIP_SEA (#2F6B8A) on every pin,
