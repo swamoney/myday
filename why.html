@@ -1491,6 +1491,7 @@
       <div class="pp-pgtw"><span class="pp-pgt" id="ppPageT"></span></div>
       <div class="pp-pgm" id="ppPageM"></div>
     </div>
+    <div class="rd-album" id="ppAlbum"></div>
     <div class="pp-pgbody" id="ppPageBody"></div>
   </div></div>
 </div>
@@ -1617,6 +1618,7 @@
       <span class="rcap" id="dcRateCap"></span>
     </div>
     <span class="dc-storyshelf">The story</span>
+    <div class="rd-album" id="dcAlbum"></div>
     <div id="dcStoryBar"></div>
     <div class="dc-story" id="dcStory" contenteditable="true"></div>
     <div class="dc-delrow"><button class="dc-delbtn" id="dcDelBtn" type="button">Remove this decision</button></div>
@@ -1841,6 +1843,7 @@
           </div>
         </div>
       <div class="rm-div short"><span></span></div>
+      <div class="rd-album" id="rmAlbum"></div>
       <div id="rmToolbar"></div>
       <div class="rm-sec">
         <div class="rm-essay ro" id="rmEssayRO"></div>
@@ -1881,6 +1884,7 @@
         </div>
       </div>
       <div class="pk">What it means to me</div>
+      <div class="rd-album" id="mtAlbum"></div>
       <div class="pessay ro" id="mtMeanRO"></div>
       <div class="pessay inp" id="mtMean" contenteditable="true" data-placeholder="Why it matters&hellip;"></div>
       <div class="pfoot">
@@ -2013,6 +2017,7 @@
         <div class="p-ch"><button class="p-ct" type="button" data-toggle="note"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">The long note</span></button>
           <span class="p-cn" id="pNoteSum"></span></div>
         <div class="p-sbody">
+        <div class="rd-album" id="pAlbum"></div>
         <div class="pessay ro" id="pEssayRO"></div>
         <div id="pToolbar"></div>
         <div class="pessay inp" id="pEssay" contenteditable="true" data-placeholder="What they mean to me. What I want this to be. What I keep avoiding&#8230;"></div>
@@ -2648,6 +2653,7 @@ async function deletePillar() {
   if (!confirm('Delete this why?')) return;
   try {
     const { error } = await supa.from('why_pillars').delete().eq('id', editingId).eq('user_id', userId);
+    if (!error && window.MyAlbum) MyAlbum.deleteAll('roadmap', editingId);
     if (error) throw error;
     closeModal(); await loadPillars(); toast('Deleted');
   } catch (e) { toast('Delete failed'); }
@@ -2818,6 +2824,7 @@ function openRoadmap(id) {
   }, 600000);
   el('rmSave').textContent = '';
   setRoadmapEditing(false);   // always opens read-only
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('rmAlbum'), room: 'roadmap', entryId: id, editing: false });
   renderRoadmapRead();
   renderPp();
   ppLoadPageIds_();
@@ -2982,6 +2989,7 @@ async function ppOpenPage(id) {
   if (!f) return;
   const e = f.e;
   ppPageEntry_ = id;
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('ppAlbum'), room: 'journey', entryId: id, editing: false });
   const hue = ppPageHue_();
   const phd = el('ppPage');   // vars on the root: header and caret both inherit
   phd.style.setProperty('--pgt', ppBlend_(hue.lt, 0.26));
@@ -3021,6 +3029,7 @@ function ppRenderPage_(body) {
 }
 let ppEditor_ = null;
 function ppOpenWriter_(body) {
+  if (window.MyAlbum && userId && ppPageEntry_ !== null && el('ppAlbum')) MyAlbum.setEditing(el('ppAlbum'), true);
   el('ppPageBody').innerHTML =
     '<div class="pp-pgtools">'
     + '<button class="pp-pgbtn" type="button" id="ppWriteCancel">Cancel</button>'
@@ -3038,6 +3047,7 @@ async function ppSaveStory_() {
   try {
     if (!NoteEditor.toPlain(body).trim()) {
       await supa.from('why_journeys').delete().eq('user_id', userId).eq('entry_id', String(id));
+    if (window.MyAlbum) MyAlbum.deleteAll('journey', id);
       ppPages_.delete(String(id));
     } else {
       await supa.from('why_journeys').upsert({
@@ -3231,7 +3241,8 @@ el('ppItemDel').addEventListener('click', async () => {
   const o = ppList_(ppItemEditing_.sec)[ppItemEditing_.idx];
   ppList_(ppItemEditing_.sec).splice(ppItemEditing_.idx, 1);
   if (o) {
-    try { await supa.from('why_journeys').delete().eq('user_id', userId).eq('entry_id', String(o.id)); }
+    try { await supa.from('why_journeys').delete().eq('user_id', userId).eq('entry_id', String(o.id));
+      if (window.MyAlbum) MyAlbum.deleteAll('journey', o.id); }
     catch (e) { console.error(e); }
     ppPages_.delete(String(o.id));
     if (ppPageEntry_ === o.id) { el('ppPage').classList.remove('on'); ppPageEntry_ = null; }
@@ -3316,6 +3327,7 @@ el('ppLogDel').addEventListener('click', async () => {
   rmData.pp.log = rmData.pp.log.filter(x => x.id !== id);
   try {
     await supa.from('why_journeys').delete().eq('user_id', userId).eq('entry_id', String(id));
+    if (window.MyAlbum) MyAlbum.deleteAll('journey', id);
   } catch (e) { console.error(e); }
   ppPages_.delete(String(id));
   el('ppLogModal').classList.add('hidden'); ppLogEditing_ = null;
@@ -3387,6 +3399,7 @@ function renderRoadmapRead() {
 }
 function setRoadmapEditing(on) {
   document.body.classList.toggle('rm-editing', !!on);
+  if (window.MyAlbum && userId && rmId !== null && el('rmAlbum')) MyAlbum.setEditing(el('rmAlbum'), !!on);
   const b = el('rmEdit'); if (b) b.classList.toggle('hot', !!on);
   const l = el('rmEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
   if (!on) renderRoadmapRead();
@@ -3919,6 +3932,7 @@ async function deletePerson() {
   if (!editingPerson || !confirm('Remove this person?')) return;
   try {
     const { error } = await supa.from('why_circle').delete().eq('id', editingPerson).eq('user_id', userId);
+    if (!error && window.MyAlbum) MyAlbum.deleteAll('circle', editingPerson);
     if (error) throw error;
     closeCircleModal(); await loadCircle(); toast('Removed');
   } catch (e) { toast('Could not remove'); }
@@ -4142,6 +4156,7 @@ function openPerson(id) {
     if (cur !== pBaseline) { NoteEditor.versions.record('circle', pId, pBaseline); pBaseline = cur; }
   }, 600000);
   el('pSave').textContent = '';
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('pAlbum'), room: 'circle', entryId: id, editing: false });
   setPersonEditing(false);
   renderPersonRead();
   renderMoments();
@@ -4168,6 +4183,7 @@ function renderPersonRead() {
 }
 function setPersonEditing(on) {
   document.body.classList.toggle('p-editing', !!on);
+  if (window.MyAlbum && userId && pId !== null && el('pAlbum')) MyAlbum.setEditing(el('pAlbum'), !!on);
   const b = el('pEdit'); if (b) b.classList.toggle('hot', !!on);
   const l = el('pEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
   if (!on) renderPersonRead();
@@ -5057,6 +5073,7 @@ function openMantra(id) {
   mtSrcBase = el('mtSrc').textContent;
   el('mtTitleBar').innerHTML = 'My Mantra &middot; ' + escHtml(NoteEditor.toPlain(mtLineBase).slice(0, 60));
   el('mtSave').textContent = '';
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('mtAlbum'), room: 'mantra', entryId: id, editing: false });
   setMtEditing(false);
   el('mtWin').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -5079,6 +5096,7 @@ function mtUpdateWc_() {
 }
 function setMtEditing(on) {
   document.body.classList.toggle('p-editing', !!on);
+  if (window.MyAlbum && userId && mtId !== null && el('mtAlbum')) MyAlbum.setEditing(el('mtAlbum'), !!on);
   el('mtLine').style.display = on ? '' : 'none';
   el('mtLineRO').style.display = on ? 'none' : '';
   const b = el('mtEdit'); if (b) b.classList.toggle('hot', !!on);
@@ -5180,6 +5198,7 @@ el('mtDel').addEventListener('click', async () => {
   const m = mtRow(); if (!m) return;
   if (!confirm('Delete this mantra? This cannot be undone.')) return;
   const { error } = await supa.from('why_mantras').delete().eq('id', mtId).eq('user_id', userId);
+    if (!error && window.MyAlbum) MyAlbum.deleteAll('mantra', mtId);
   if (error) { console.error(error); toast('Could not delete'); return; }
   mtDirty = false;
   await closeMantra(true);   // nothing left to save
@@ -5625,6 +5644,7 @@ function openDecision(id) {
   el('dcDelBtn').textContent = sealed ? 'Remove from the trail' : 'Remove this decision';
   el('dcStory').innerHTML = NoteEditor.toHtml(d.note_html || '');
   dcNoteBase = NoteEditor.sanitize(el('dcStory').innerHTML);
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('dcAlbum'), room: 'decision', entryId: id, editing: false });
   setDcEditing(false);   // every page opens reading; the pen waits in the footer
   el('dcWin').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -5654,6 +5674,7 @@ function dcStoryFlush_() {
 }
 function setDcEditing(on) {
   el('dcWin').classList.toggle('dc-editing', !!on);
+  if (window.MyAlbum && userId && dcId !== null && el('dcAlbum')) MyAlbum.setEditing(el('dcAlbum'), !!on);
   el('dcEditWord').textContent = on ? 'Done' : 'Edit';
   const d = dcRow_(); const sealed = d && d.status === 'trail';
   el('dcQA').querySelectorAll('textarea').forEach(ta => { ta.readOnly = sealed || !on; });
@@ -5934,6 +5955,7 @@ el('dcDelBtn').addEventListener('click', async () => {
     : ('Remove "' + d.title + '" from the desk? Its answers go with it.');
   if (!confirm(msg)) return;
   const { error } = await supa.from('why_decisions').delete().eq('id', d.id).eq('user_id', userId);
+    if (!error && window.MyAlbum) MyAlbum.deleteAll('decision', d.id);
   if (error) { console.error(error); toast('Could not remove it'); return; }
   dcRows = dcRows.filter(x => String(x.id) !== String(d.id));
   dcClose_();

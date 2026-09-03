@@ -141,6 +141,26 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**PH-1e: the law fulfilled - every editor gets its album** (3 Sep
+2026): Rahul's law restated ('wherever the editor stands') exposed
+that why.html carries SEVEN editors, only bucket wired. Enumerated
+every NoteEditor.mount in the app (introspection 1, favourites 1,
+why 7; index/audit/daily/wealth mount none - no camera there).
+Wired the six missing why.html contexts: ROADMAP (rm, room
+'roadmap', per pillar id, host above rmToolbar), CIRCLE person (p,
+room 'circle', host above pEssayRO), MANTRA (mt, room 'mantra',
+host above mtMeanRO), DECISION (dc, room 'decision', host above
+dcStoryBar), JOURNEY pillar-story pages (pp, room 'journey', host
+above ppPageBody; writer open flips editing on). Each: mount at
+open, setEditing in its toggle fn, orphan-law deleteAll at every
+delete site (circle/mantra/decision/roadmap + all three
+why_journeys shapes). Also PH-1 polish: .at-strip tiles cap at
+110-150px on desktop (were quarter-screen giants), 3-across on
+phones. Harness: all four openable contexts mount + show ADD in
+edit, zero errors. Root cause of 'works only in library':
+introspection.html + why.html on the SERVER were stale - only
+favourites had been re-uploaded.
+
 **PH-1d: the camera that answered with silence** (3 Sep 2026):
 Rahul: camera button present, tap does nothing. Three silent
 paths, all given voices: (1) attachments.js missing -> the camera
