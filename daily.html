@@ -358,6 +358,9 @@
   .backup-ind-fresh { color: var(--muted); }
   .backup-ind-amber { color: #BA7517; }
   .backup-ind-red { color: var(--ember); font-weight: 600; }
+  /* GD-1: the album's monthly knock - a second pill beneath the words' one */
+  .album-ind { top: 44px; color: #2F6B8A; font-weight: 600; }
+  .album-ind.hidden { display: none; }
   .backup-ind:hover { background: var(--paper); }
   .backup-ind:active { transform: scale(0.96); }
 
@@ -6260,6 +6263,7 @@
       </svg>
     </button>
     <button class="backup-ind backup-ind-fresh" id="backupIndicator" type="button" aria-label="Backup status">never backed up</button>
+    <button class="backup-ind album-ind hidden" id="albumIndicator" type="button" aria-label="Album copy due">album copy due</button>
     <h1>My Day</h1>
     <div class="editorial-ornament" style="margin: 6px 0 0;">
       <span class="line"></span>
@@ -8054,6 +8058,30 @@ function renderBackupIndicator() {
   el.className = cls;
   el.title = 'Tap for backup info — last export: ' + last.toLocaleDateString();
 }
+// GD-1: on the 1st and after, if the album holds anything and this month's copy
+// has not been taken, the knock appears; it leads to the home foot's Album zip.
+async function renderAlbumIndicator() {
+  const el = document.getElementById('albumIndicator'); if (!el) return;
+  try {
+    const s = await supa.auth.getSession();
+    const uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+    if (!uid) return;
+    const c = await supa.from('attachments').select('id', { count: 'exact', head: true }).eq('user_id', uid).eq('kind', 'photo');
+    if (!c || !c.count) { el.classList.add('hidden'); return; }
+    const q = await supa.from('user_prefs').select('prefs').eq('user_id', uid).maybeSingle();
+    const last = q && q.data && q.data.prefs && q.data.prefs.last_album_copy;
+    const ym = new Date().toISOString().slice(0, 7);
+    const due = !last || String(last).slice(0, 7) !== ym;
+    el.classList.toggle('hidden', !due);
+    el.textContent = last ? 'album copy due' : 'album never copied';
+    el.title = 'The album\u2019s monthly copy: one tap on the home page\u2019s Album zip';
+  } catch (e) { el.classList.add('hidden'); }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('albumIndicator');
+  if (el) el.addEventListener('click', () => { location.href = 'index.html#keep'; });
+  setTimeout(renderAlbumIndicator, 1500);
+});
 function showBackupHelpToast() {
   toast('Open Export tab → Generate CSV (or annual PDF). Save the file to Drive/Dropbox.');
 }

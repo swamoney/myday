@@ -112,6 +112,17 @@
      child 2. An odd number of rooms therefore ends on an even child — that one
      stretches across instead of sitting alone. Works for any number, forever. */
   .cards > .card:not(.feat):last-child:nth-child(even) { grid-column:1 / -1; }
+  /* GD-1: the keep block - two gauges above the buttons */
+  .keep { text-align:left; max-width:420px; margin:0 auto 12px; border-top:1px dotted #cdd5e0; padding-top:12px; }
+  .keep-h { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; font-weight:600; letter-spacing:0.16em; color:#68789a; margin-bottom:8px; }
+  .keep-l { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; font-weight:600; letter-spacing:0.1em; color:#68789a; display:flex; }
+  .keep-l span { margin-left:auto; color:#182233; font-weight:600; }
+  .keep-l span.warn { color:#8a6d1f; } .keep-l span.full { color:#7A2F38; }
+  .keep-bar { height:7px; border-radius:4px; background:#e6ebf2; margin:4px 0 10px; overflow:hidden; }
+  .keep-bar i { display:block; height:100%; transition:width .4s; }
+  .keep-sweep { display:block; font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; letter-spacing:0.05em; color:#7A2F38; margin-top:7px; }
+  .keep-sweep:empty { display:none; }
+  .keep-sweep button { background:none; border:none; color:#2F6B8A; font:inherit; font-weight:600; cursor:pointer; padding:0 0 0 6px; }
   .backup-age { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; letter-spacing:0.05em; color:#56607A; margin-top:7px; }
   .backup-age.warn { color:#b8860b; font-weight:600; }
   .backup-age:empty { display:none; }
@@ -204,6 +215,8 @@
 
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20260822a"></script>
+<script src="attachments.js?v=20260903a"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -292,12 +305,20 @@
     </div>
   </div>
 
-  <div class="end-wrap">
+  <div class="end-wrap" id="keep">
+    <div class="keep">
+      <div class="keep-h">KEEP &middot; WORDS AND ALBUM</div>
+      <div class="keep-g"><div class="keep-l">WORDS &middot; ALL ROOMS <span id="keepWordsN">measured at your next backup</span></div><div class="keep-bar"><i id="keepWordsBar" style="width:0%; background:#5F7355;"></i></div></div>
+      <div class="keep-g"><div class="keep-l">ALBUM &middot; PHOTOS <span id="keepAlbumN">&hellip;</span></div><div class="keep-bar"><i id="keepAlbumBar" style="width:0%; background:#2F6B8A;"></i></div></div>
+    </div>
     <div class="end-actions">
-      <button id="exportAllBtn" type="button" title="Download a complete backup: every note and entry, all rooms, three files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span id="backupWord">Backup</span></button>
+      <button id="exportAllBtn" type="button" title="Download a complete backup of your words: every note and entry, all rooms, three files"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span id="backupWord">Backup words</span></button>
+      <button id="albumZipBtn" type="button" title="Download every photo in the album as one zip with a manifest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1l1.2-1.6A1.5 1.5 0 0 1 9.9 3.8h4.2a1.5 1.5 0 0 1 1.2.6L16.5 6h1A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg><span id="albumWord">Album zip</span></button>
       <button id="signOutBtn" title="Sign out" aria-label="Sign out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>Sign out</button>
     </div>
     <span class="backup-age" id="backupAge"></span>
+    <span class="backup-age" id="albumAge"></span>
+    <span class="keep-sweep" id="keepSweep"></span>
   </div>
  </div></div>
 </main>
@@ -619,6 +640,110 @@ boot();
     } catch (e) { alert('Backup failed to start.'); if (lbl) lbl.textContent = 'Backup'; }
   });
 })();
+
+// ---- GD-1: the keep block - gauges, album zip, sweep (the free-plan guardians) ----
+var _keepPrefs = null;
+async function _keepReadPrefs(uid) {
+  var q = await supa.from('user_prefs').select('prefs').eq('user_id', uid).maybeSingle();
+  _keepPrefs = (q && q.data && q.data.prefs) || {};
+  return _keepPrefs;
+}
+async function _keepWritePrefs(uid, patch) {
+  var prefs = await _keepReadPrefs(uid);           // read-merge-write, never clobber
+  Object.keys(patch).forEach(function (k) { prefs[k] = patch[k]; });
+  await supa.from('user_prefs').upsert({ user_id: uid, prefs: prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  _keepPrefs = prefs;
+}
+function _mb(n) { var m = (n || 0) / 1048576; return m < 10 ? (Math.round(m * 10) / 10) : Math.round(m); }
+async function refreshKeep() {
+  try {
+    var s = await supa.auth.getSession();
+    var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+    if (!uid) return;
+    if (window.MyAlbum) MyAlbum.init(supa, uid);
+    var prefs = await _keepReadPrefs(uid);
+    // words: measured at the last words backup (the free plan hides the true database size)
+    var wn = document.getElementById('keepWordsN'), wb = document.getElementById('keepWordsBar');
+    if (prefs.words_bytes) {
+      var wp = prefs.words_bytes / (500 * 1048576);
+      wn.textContent = '\u223C' + _mb(prefs.words_bytes) + 'MB OF 500MB';
+      wn.className = wp > 0.9 ? 'full' : wp > 0.7 ? 'warn' : '';
+      wb.style.width = Math.min(100, Math.round(wp * 100)) + '%';
+    }
+    // album: exact, from the rows
+    var an = document.getElementById('keepAlbumN'), ab = document.getElementById('keepAlbumBar');
+    if (window.MyAlbum) {
+      var u = await MyAlbum.usage();
+      an.textContent = _mb(u.used) + 'MB OF 1GB \u00B7 \u223C' + u.left.toLocaleString('en-IN') + ' PHOTOS LEFT';
+      an.className = u.pct > 0.9 ? 'full' : u.pct > 0.7 ? 'warn' : '';
+      ab.style.width = Math.min(100, Math.round(u.pct * 100)) + '%';
+      var aa = document.getElementById('albumAge');
+      if (u.count === 0) aa.textContent = '';
+      else if (!prefs.last_album_copy) { aa.textContent = 'Album never copied'; aa.classList.add('warn'); }
+      else {
+        var ad = Math.floor((Date.now() - new Date(prefs.last_album_copy).getTime()) / 86400000);
+        aa.textContent = ad === 0 ? 'Album copied today' : ('Album copied ' + ad + (ad === 1 ? ' day ago' : ' days ago'));
+        aa.classList.toggle('warn', ad > 40);
+      }
+    }
+    _keepRenderSweep(prefs);
+  } catch (e) {}
+}
+function _keepRenderSweep(prefs) {
+  var el = document.getElementById('keepSweep'); if (!el) return;
+  var sw = prefs && prefs.album_sweep;
+  if (!sw || !sw.ids || !sw.ids.length) { el.innerHTML = ''; return; }
+  el.innerHTML = 'SWEEP \u00B7 ' + sw.ids.length + ' ORPHAN FILE' + (sw.ids.length === 1 ? '' : 'S') + ' (' + _mb(sw.bytes) + 'MB) NOT ON ANY PAGE' +
+    '<button type="button" id="keepClear">CLEAR THEM \u2192</button>';
+  document.getElementById('keepClear').addEventListener('click', async function () {
+    if (!confirm('Remove ' + sw.ids.length + ' file(s) that no page refers to? This cannot be undone.')) return;
+    try {
+      var s = await supa.auth.getSession(); var uid = s.data.session.user.id;
+      var n = await MyAlbum.clearGhosts(sw.ids);
+      await _keepWritePrefs(uid, { album_sweep: { ids: [], bytes: 0, at: new Date().toISOString() } });
+      alert(n + ' file(s) cleared.');
+      refreshKeep();
+    } catch (e) { alert('Could not clear: ' + (e && e.message || e)); }
+  });
+}
+// The words backup hands its pack here: measure the words, sweep the album.
+if (window.NoteEditor) NoteEditor.onExportPack = async function (pack) {
+  try {
+    var s = await supa.auth.getSession(); var uid = s.data.session.user.id;
+    var bytes = 0;
+    Object.keys(pack.tables || {}).forEach(function (t) { if (t !== 'note_versions' && t !== 'attachments') bytes += JSON.stringify(pack.tables[t]).length; });
+    var patch = { words_bytes: bytes };
+    if (window.MyAlbum) {
+      var rows = (pack.tables && pack.tables.attachments) || await MyAlbum.fetchAllRows();
+      var sw = MyAlbum.sweepFrom(pack, rows);
+      patch.album_sweep = { ids: sw.ghosts.map(function (r) { return String(r.id); }), bytes: sw.bytes, at: new Date().toISOString() };
+    }
+    await _keepWritePrefs(uid, patch);
+    refreshKeep();
+  } catch (e) {}
+};
+(function () {
+  var b = document.getElementById('albumZipBtn');
+  if (!b) return;
+  b.addEventListener('click', async function () {
+    var lbl = document.getElementById('albumWord');
+    try {
+      var s = await supa.auth.getSession();
+      var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+      if (!uid) { alert('Sign in first.'); return; }
+      if (!window.MyAlbum) { alert('The album kit is not loaded.'); return; }
+      MyAlbum.init(supa, uid);
+      b.disabled = true; lbl.textContent = 'Gathering\u2026';
+      var res = await MyAlbum.exportAlbum(function (done, total) { lbl.textContent = done + ' / ' + total; });
+      await _keepWritePrefs(uid, { last_album_copy: new Date().toISOString() });
+      lbl.textContent = 'Album zip';
+      if (res.failed) alert(res.failed + ' photo(s) could not be downloaded; the rest are in the zip.');
+      refreshKeep();
+    } catch (e) { alert('Album zip failed: ' + (e && e.message || e)); lbl.textContent = 'Album zip'; }
+    finally { b.disabled = false; }
+  });
+})();
+refreshKeep();
 
 // ---- R5: the hub remembers the monthly ritual (stamp lives in user_prefs) ----
 async function refreshBackupAge() {
