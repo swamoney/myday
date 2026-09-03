@@ -115,17 +115,19 @@
   function render(st) {
     const host = st.host;
     const rows = st.rows;
-    if (!rows.length && !st.editing) { host.innerHTML = ''; host.classList.add('at-empty'); return; }
+    // The page stays clean: with nothing kept and the boxes unsummoned,
+    // the strip takes no room - the camera in the toolbar is the door.
+    if (!rows.length && !(st.editing && st.showAdd)) { host.innerHTML = ''; host.classList.add('at-empty'); return; }
     host.classList.remove('at-empty');
     signAll(rows.map(r => r.thumb_path || r.path)).then(urls => {
       let h = '<div class="at-strip">';
       rows.forEach((r, i) => { h += tileHtml(st, r, i, urls); });
-      if (st.editing) {
+      if (st.editing && st.showAdd) {
         h += '<button type="button" class="at-add" data-at-add><b>\uFF0B</b>ADD</button>' +
              '<button type="button" class="at-add lk" data-at-link><b>&#128279;</b>LINK</button>';
       }
       h += '</div>';
-      if (st.editing) {
+      if (st.editing && st.showAdd) {
         h += '<input type="file" accept="image/*" multiple class="at-file" style="position:absolute; left:-9999px; top:0; width:1px; height:1px; opacity:0;">' +
              '<div class="at-meter"></div>';
       }
@@ -291,9 +293,15 @@
         : 'Open a page and tap Edit \u2014 the camera adds photos to that page');
       return;
     }
+    if (!st.showAdd) {
+      st.showAdd = true;
+      render(st);
+      setTimeout(() => (st.host.scrollIntoView && st.host.scrollIntoView({ behavior: 'smooth', block: 'center' })), 60);
+      return;
+    }
     const f = st.host.querySelector('.at-file');
     if (f) f.click();
-    else st.host.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    else (st.host.scrollIntoView && st.host.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   });
 
   // ---- public ----
@@ -302,7 +310,7 @@
     async mount(opts) {
       // opts: host (element), room, entryId, dayIndex (null), editing (bool)
       const st = { host: opts.host, room: opts.room, entryId: String(opts.entryId),
-        dayIndex: opts.dayIndex == null ? null : opts.dayIndex, editing: !!opts.editing, rows: [] };
+        dayIndex: opts.dayIndex == null ? null : opts.dayIndex, editing: !!opts.editing, showAdd: false, rows: [] };
       mounts[opts.host.id || (opts.host.id = 'at' + Math.random().toString(36).slice(2, 8))] = st;
       try { await fetchRows(st); } catch (e) { st.rows = []; }
       render(st);
@@ -310,7 +318,9 @@
     },
     setEditing(host, on) {
       const st = mounts[host.id]; if (!st) return;
-      st.editing = !!on; render(st);
+      st.editing = !!on;
+      if (!on) st.showAdd = false;   // Done folds the boxes away again
+      render(st);
     },
     unmount(host) {
       const st = mounts[host.id]; if (!st) return;
