@@ -141,6 +141,59 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**IN-1: the body is the album** (3 Sep 2026, Rahul's redesign):
+the strip and its boxes retire; photos and videos live IN the
+writing at the cursor as blog figures. LAW: the body stores only a
+NAKED token <figure data-at="id"></figure> - never a URL (links
+rot; tokens don't); bytes/caption/quiet stay in attachments +
+private storage and are dressed fresh at render. note-editor.js:
+FIGURE allowed; sanitize strips every dressed innard/attribute
+but data-at (so signed URLs never reach the database); toolbar =
+two doors, camera (act 'photos' -> 'myday-photo') and video
+(ICONS.video, 'myday-video'); the old boxes/strip UI gone.
+attachments.js v2: mount({host, room, entryId, watch:[readRoot,
+editRoot]}) + MutationObserver on the watch roots = any repaint
+re-dresses figures (zero per-page hydrate calls); dressFig_
+(photo img + figcaption / YouTube nocookie iframe IN THE FLOW /
+album dashed door), edit mode adds on-figure tools (caption
+input, QUIET, x = row + files gone + 'input' dispatched so the
+page saves); figures are contenteditable=false blocks (backspace
+removes whole); read-mode tap: quiet reveals, photo opens the
+viewer (photos only). Insert: grabRange_ captures the cursor on
+the tap, insertFigure_ lands the figure as a block after the
+cursor's paragraph (+ an empty <p> to keep writing), dispatches
+'input'. Photo = ONE per tap. Legacy rows not referenced by any
+token render in the old host strip until placed. FOUR PATHS:
+NoteEditor.toMarkdown patched (tokens -> '[photo: caption]',
+'[video: caption - url]', '[album...]' from the cache, so .md AND
+zip carry them everywhere); NoteEditor.openPrint patched (window
+opens ON the tap for pop-up rules, then the page arrives dressed:
+signed <img> + caption, video/album as dashed lines with URL;
+never a naked token). All nine editors (introspection reader,
+library reader, why: bucket/roadmap/circle/mantra/decision/
+journey) mount with their read+edit roots. THE Done race (found
+by harness): introspection's Done repainted from readerEntry.body
+BEFORE the debounced save -> a just-placed figure vanished from
+view; readerEdit now saves first, then leaves edit mode.
+Harness: read dress + caption, legacy strip only for unplaced,
+edit tools + contenteditable=false, video lands after the
+cursor's paragraph (P, FIG, P, FIG, P), player dressed, caption
+saved, remove deletes both files + figure, sanitize keeps the
+naked token and no iframe, Done-then-read shows the player, print
+dressed (signed img, caption, VIDEO line, no token), md lines,
+bucket + library dress + tools + no old boxes. All green.
+
+**PH-1f: the boxes wait for the camera** (3 Sep 2026): Rahul -
+ADD/LINK tiles crowded every editor by default. Now edit mode
+shows only KEPT tiles (photos/links already on the page); the
+dashed ADD + LINK boxes and the meter stay folded until the
+toolbar camera is tapped (tap 1 summons the boxes + scrolls to
+them, tap 2 opens the camera roll); Done folds them away again
+(showAdd resets in setEditing(false)). Empty page + boxes
+unsummoned = the strip takes no room at all. scrollIntoView
+guarded for jsdom. Harness: photo tile shows in edit without
+boxes, tap 1 summons, tap 2 opens roll, Done+Edit starts folded.
+
 **PH-1e: the law fulfilled - every editor gets its album** (3 Sep
 2026): Rahul's law restated ('wherever the editor stands') exposed
 that why.html carries SEVEN editors, only bucket wired. Enumerated

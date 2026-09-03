@@ -367,6 +367,24 @@
   .fr-del { color:#A8443E; }
   .fr-del:hover { background:#FBF1F0; }
   @media (max-width:640px){ .fr-in { padding:20px 16px 30px; } .fr-h1 { font-size:1.5rem; } }
+  /* IN-1: figures in the flow */
+  .md-fig { margin:14px 0; position:relative; }
+  .md-fig .mdf-im { width:100%; border-radius:12px; display:block; }
+  .md-fig figcaption { font-family:var(--serif); font-style:italic; font-size:0.75rem; color:#68789a; margin-top:6px; text-align:center; }
+  .md-ph.quiet .mdf-im { filter:blur(20px) saturate(0.7); }
+  .md-ph.quiet::after { content:'\1F441  tap to reveal'; position:absolute; left:0; right:0; top:44%; text-align:center;
+    color:#fff; font-family:var(--mono); font-size:0.5938rem; letter-spacing:0.1em; text-shadow:0 1px 8px rgba(0,0,0,0.6); pointer-events:none; }
+  .mdf-frame { width:100%; aspect-ratio:16/9; border:none; border-radius:12px; display:block; background:#0A1325; }
+  .mdf-alink { display:block; text-align:center; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em;
+               color:#2F6B8A; border:1.5px dashed #b9cfe0; border-radius:9px; padding:8px 11px; text-decoration:none; }
+  .mdf-tools { position:absolute; top:8px; right:8px; display:flex; gap:6px; z-index:3; }
+  .mdf-tools button { font-family:var(--mono); font-size:0.5625rem; font-weight:600; color:#fff; background:rgba(10,19,37,0.6);
+                      border:none; border-radius:6px; padding:3px 8px; cursor:pointer; }
+  .mdf-tools .mdf-q.on { background:#8a6d1f; }
+  .mdf-tools .mdf-x { background:rgba(122,47,56,0.9); }
+  .mdf-capin { display:block; width:70%; margin:6px auto 0; border:1px dashed #b9cfe0; border-radius:7px;
+               font-family:var(--serif); font-style:italic; font-size:0.75rem; text-align:center; padding:5px 8px; color:#3D4866; background:#fff; }
+  .md-gone { display:none; }
   /* PH-1: the album strip and viewer */
   .rd-album { margin:8px 0 6px; }
   .rd-album.at-empty { margin:0; }
@@ -1232,7 +1250,8 @@ function openReader(id, keepNav, forcePage) {
     if (cur !== frBaseline) { NoteEditor.versions.record('bookmark', frId, frBaseline); frBaseline = cur; }
   }, 600000);
   setFrEditing(false);
-  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('frAlbum'), room: 'library', entryId: id, editing: false });
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('frAlbum'), room: 'library', entryId: id,
+    watch: [el('frBody'), el('frBodyInp')], editing: false });
   frUpdateNav_();
   frUpdateWc_();
   nk.closePopovers();

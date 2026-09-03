@@ -49,7 +49,7 @@
   ];
   var CLASS_OK = /^(tc-(rose|sage|plum|gold|blue|grey)|hl-(yellow|green|pink|blue|grey)|fr-check|fr-cb|done)$/;
   var ALLOWED = { B:1, STRONG:1, I:1, EM:1, U:1, S:1, STRIKE:1, DEL:1, H3:1, UL:1, OL:1, LI:1,
-                  BLOCKQUOTE:1, P:1, BR:1, IMG:1, A:1, DIV:1, SPAN:1, HR:1 };
+                  BLOCKQUOTE:1, P:1, BR:1, IMG:1, A:1, DIV:1, SPAN:1, HR:1, FIGURE:1 };
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -86,6 +86,21 @@
           var sWrap = document.createElement('s');
           while (ch.firstChild) sWrap.appendChild(ch.firstChild);
           ch.appendChild(sWrap);
+        }
+        /* IN-1: a figure with data-at is an album token - the body stores it
+           NAKED (no dressed innards, no signed URLs, no classes) and render
+           dresses it fresh. Everything else about it is stripped. */
+        if (ch.tagName === 'FIGURE') {
+          var tok = ch.getAttribute('data-at');
+          if (tok) {
+            while (ch.firstChild) ch.removeChild(ch.firstChild);
+            Array.prototype.slice.call(ch.attributes).forEach(function (a) {
+              if (a.name.toLowerCase() !== 'data-at') ch.removeAttribute(a.name);
+            });
+            return;
+          }
+          while (ch.firstChild) node.insertBefore(ch.firstChild, ch);
+          node.removeChild(ch); return;
         }
         Array.prototype.slice.call(ch.attributes).forEach(function (a) {
           var n = a.name.toLowerCase();
@@ -785,6 +800,7 @@
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
     photo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1l1.2-1.6A1.5 1.5 0 0 1 9.9 3.8h4.2a1.5 1.5 0 0 1 1.2.6L16.5 6h1A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>',
+    video: '<svg viewBox="0 0 24 24" ' + SVG + '><rect x="3.5" y="5" width="17" height="14" rx="3.5"/><path d="M10.2 9.2l4.6 2.8-4.6 2.8z"/></svg>',
     strike: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M17 6.5c-.8-1.5-2.6-2.5-5-2.5-2.9 0-5 1.5-5 3.7 0 1.5 1 2.6 3 3.3"/><path d="M7 17.5c.8 1.5 2.6 2.5 5 2.5 2.9 0 5-1.5 5-3.7 0-1.5-1-2.6-3-3.3"/><path d="M4 12h16"/></svg>',
     clearfmt: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 6V4h12v2"/><path d="M10 4v14"/><path d="M7 18h6"/><path d="m16.5 13.5 5 5"/><path d="m21.5 13.5-5 5"/></svg>',
     undo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
@@ -836,7 +852,8 @@
       btn('act', 'check', '', 'Checklist', ICONS.check) +
       '<span class="nk-sep"></span>' +
       btn('act', 'link', '', 'Link', ICONS.link) +
-      btn('act', 'photos', '', 'Photos - add to this page\'s album', ICONS.photo) +
+      btn('act', 'photos', '', 'Photo - lands at your cursor', ICONS.photo) +
+      btn('act', 'video', '', 'Video link - plays at your cursor', ICONS.video) +
       btn('act', 'hr', '', 'Divider', ICONS.hr) +
       '<div class="nk-pop hidden" data-nk-swpop="text"></div>' +
       '<div class="nk-pop hidden" data-nk-swpop="high"></div>';
@@ -1043,7 +1060,11 @@
       var act = b.dataset.nkAct, pop = b.dataset.nkPop, cmd = b.dataset.nkCmd;
       if (act === 'photos') {
         if (!window.MyAlbum) { alert('The album is not loaded \u2014 attachments.js is missing from the site. Upload it beside note-editor.js and refresh.'); return; }
-        window.dispatchEvent(new CustomEvent('myday-photos')); return;
+        window.dispatchEvent(new CustomEvent('myday-photo')); return;
+      }
+      if (act === 'video') {
+        if (!window.MyAlbum) { alert('The album is not loaded \u2014 attachments.js is missing from the site. Upload it beside note-editor.js and refresh.'); return; }
+        window.dispatchEvent(new CustomEvent('myday-video')); return;
       }
       if (act === 'link') { activeInst = inst; saveRange(); openLink(); return; }
       if (act === 'check') { insertChecklist(); return; }

@@ -1197,6 +1197,24 @@
   .essay-date { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.06em; text-transform:uppercase; color:#9aa4ba; margin:0 0 10px; }
   .essay-date:empty { display:none; }
   .rm-essay.ro, .rm-essay.inp, .pessay.ro, .pessay.inp { white-space:normal; }
+  /* IN-1: figures in the flow */
+  .md-fig { margin:14px 0; position:relative; }
+  .md-fig .mdf-im { width:100%; border-radius:12px; display:block; }
+  .md-fig figcaption { font-family:var(--serif); font-style:italic; font-size:0.75rem; color:#68789a; margin-top:6px; text-align:center; }
+  .md-ph.quiet .mdf-im { filter:blur(20px) saturate(0.7); }
+  .md-ph.quiet::after { content:'\1F441  tap to reveal'; position:absolute; left:0; right:0; top:44%; text-align:center;
+    color:#fff; font-family:var(--mono); font-size:0.5938rem; letter-spacing:0.1em; text-shadow:0 1px 8px rgba(0,0,0,0.6); pointer-events:none; }
+  .mdf-frame { width:100%; aspect-ratio:16/9; border:none; border-radius:12px; display:block; background:#0A1325; }
+  .mdf-alink { display:block; text-align:center; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em;
+               color:#2F6B8A; border:1.5px dashed #b9cfe0; border-radius:9px; padding:8px 11px; text-decoration:none; }
+  .mdf-tools { position:absolute; top:8px; right:8px; display:flex; gap:6px; z-index:3; }
+  .mdf-tools button { font-family:var(--mono); font-size:0.5625rem; font-weight:600; color:#fff; background:rgba(10,19,37,0.6);
+                      border:none; border-radius:6px; padding:3px 8px; cursor:pointer; }
+  .mdf-tools .mdf-q.on { background:#8a6d1f; }
+  .mdf-tools .mdf-x { background:rgba(122,47,56,0.9); }
+  .mdf-capin { display:block; width:70%; margin:6px auto 0; border:1px dashed #b9cfe0; border-radius:7px;
+               font-family:var(--serif); font-style:italic; font-size:0.75rem; text-align:center; padding:5px 8px; color:#3D4866; background:#fff; }
+  .md-gone { display:none; }
   /* PH-1: the album strip and viewer */
   .rd-album { margin:8px 0 6px; }
   .rd-album.at-empty { margin:0; }
@@ -2824,7 +2842,8 @@ function openRoadmap(id) {
   }, 600000);
   el('rmSave').textContent = '';
   setRoadmapEditing(false);   // always opens read-only
-  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('rmAlbum'), room: 'roadmap', entryId: id, editing: false });
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('rmAlbum'), room: 'roadmap', entryId: id,
+    watch: [el('rmEssayRO'), el('rmEssay')], editing: false });
   renderRoadmapRead();
   renderPp();
   ppLoadPageIds_();
@@ -2989,7 +3008,8 @@ async function ppOpenPage(id) {
   if (!f) return;
   const e = f.e;
   ppPageEntry_ = id;
-  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('ppAlbum'), room: 'journey', entryId: id, editing: false });
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('ppAlbum'), room: 'journey', entryId: id,
+    watch: [el('ppPageBody')], editing: false });
   const hue = ppPageHue_();
   const phd = el('ppPage');   // vars on the root: header and caret both inherit
   phd.style.setProperty('--pgt', ppBlend_(hue.lt, 0.26));
@@ -4156,7 +4176,8 @@ function openPerson(id) {
     if (cur !== pBaseline) { NoteEditor.versions.record('circle', pId, pBaseline); pBaseline = cur; }
   }, 600000);
   el('pSave').textContent = '';
-  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('pAlbum'), room: 'circle', entryId: id, editing: false });
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('pAlbum'), room: 'circle', entryId: id,
+    watch: [el('pEssayRO'), el('pEssay')], editing: false });
   setPersonEditing(false);
   renderPersonRead();
   renderMoments();
@@ -5073,7 +5094,8 @@ function openMantra(id) {
   mtSrcBase = el('mtSrc').textContent;
   el('mtTitleBar').innerHTML = 'My Mantra &middot; ' + escHtml(NoteEditor.toPlain(mtLineBase).slice(0, 60));
   el('mtSave').textContent = '';
-  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('mtAlbum'), room: 'mantra', entryId: id, editing: false });
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('mtAlbum'), room: 'mantra', entryId: id,
+    watch: [el('mtMeanRO'), el('mtMean')], editing: false });
   setMtEditing(false);
   el('mtWin').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -5644,7 +5666,8 @@ function openDecision(id) {
   el('dcDelBtn').textContent = sealed ? 'Remove from the trail' : 'Remove this decision';
   el('dcStory').innerHTML = NoteEditor.toHtml(d.note_html || '');
   dcNoteBase = NoteEditor.sanitize(el('dcStory').innerHTML);
-  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('dcAlbum'), room: 'decision', entryId: id, editing: false });
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('dcAlbum'), room: 'decision', entryId: id,
+    watch: [el('dcStory')], editing: false });
   setDcEditing(false);   // every page opens reading; the pen waits in the footer
   el('dcWin').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -5995,7 +6018,8 @@ function openDream(id) {
   el('bkSave').textContent = '';
   bkRenderStatus();
   setBkEditing(false);
-  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('bkAlbum'), room: 'bucket', entryId: id, editing: false });
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('bkAlbum'), room: 'bucket', entryId: id,
+    watch: [el('bkWhyRO'), el('bkWhy')], editing: false });
   el('bkWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
