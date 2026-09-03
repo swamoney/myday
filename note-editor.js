@@ -96,10 +96,12 @@
             while (ch.firstChild) ch.removeChild(ch.firstChild);
             /* IN-2: data-w (a whole percent, 10..100) is the one other thing a token keeps */
             var wv = parseInt(ch.getAttribute('data-w') || '', 10);
+            var al = String(ch.getAttribute('data-al') || '').toLowerCase();   /* IN-3: l | r; absent = centre */
             Array.prototype.slice.call(ch.attributes).forEach(function (a) {
               if (a.name.toLowerCase() !== 'data-at') ch.removeAttribute(a.name);
             });
             if (wv >= 10 && wv < 100) ch.setAttribute('data-w', String(wv));
+            if ((al === 'l' || al === 'r') && wv >= 10 && wv < 100) ch.setAttribute('data-al', al);
             return;
           }
           while (ch.firstChild) node.insertBefore(ch.firstChild, ch);

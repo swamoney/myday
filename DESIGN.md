@@ -141,6 +141,22 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**IN-3: centre / left / right - the writing wraps** (3 Sep 2026):
+Rahul asked for alignment; opinion given and taken: left/right
+mean the TEXT WRAPS (float, magazine shape), never a cosmetic
+shift with blank space. Token keeps data-al (l | r; absent =
+centre) - sanitize keeps it ONLY with a data-w below 100 (a
+full-width photo has nothing to align to; applyW_ drops data-al
+when width returns to full). Edit tools: a moss CENTRE -> LEFT ->
+RIGHT chip beside size, hidden at full width. Classes al-l /
+al-r float the figure with 18px gutters; every editor's read +
+edit roots clear floats after the last figure (::after clear);
+phone mercy under 480px: floats fall back to centred blocks
+(display only). Print floats the figure the same way. Harness:
+chip cycles, FULL hides chip + drops data-al, 3/4 brings it
+back, sanitize keeps data-w + data-al, saved body carries it,
+read shows the float, print carries float:right + width:75%.
+
 **IN-2: a photo's size lives in its token** (3 Sep 2026, R1+R2,
 centred, snapping): the figure token may keep ONE more attribute,
 data-w (whole percent 10..99; absent = full) - sanitize keeps it

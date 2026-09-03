@@ -105,10 +105,24 @@
   const CHIP_STEPS = [100, 75, 50, 33];
   function figW_(fig) { const w = parseInt(fig.getAttribute('data-w') || '', 10); return (w >= 10 && w < 100) ? w : 100; }
   function wLabel_(w) { return w >= 100 ? 'FULL' : w === 75 ? '\u00BE' : w === 66 ? '\u2154' : w === 50 ? '\u00BD' : w === 33 ? '\u2153' : w === 25 ? '\u00BC' : w + '%'; }
+  function figAl_(fig) { const v = fig.getAttribute('data-al'); return (v === 'l' || v === 'r') && figW_(fig) < 100 ? v : ''; }
   function applyW_(fig) {
     const w = figW_(fig);
     fig.style.width = w >= 100 ? '' : w + '%';
     const chip = fig.querySelector('[data-mdf-sz]'); if (chip) chip.textContent = wLabel_(w);
+    // IN-3: alignment rides with the size - a full-width photo has nothing to align to
+    if (w >= 100) fig.removeAttribute('data-al');
+    const al = figAl_(fig);
+    fig.classList.toggle('al-l', al === 'l');
+    fig.classList.toggle('al-r', al === 'r');
+    const ac = fig.querySelector('[data-mdf-al]');
+    if (ac) { ac.textContent = al === 'l' ? 'LEFT' : al === 'r' ? 'RIGHT' : 'CENTRE'; ac.style.display = w >= 100 ? 'none' : ''; }
+  }
+  function setAl_(st, fig, al) {
+    if (al) fig.setAttribute('data-al', al); else fig.removeAttribute('data-al');
+    applyW_(fig);
+    const root = st.watch.find(x => x && x.contains(fig));
+    if (root) root.dispatchEvent(new Event('input', { bubbles: true }));
   }
   function setW_(st, fig, w) {
     w = Math.round(w);
@@ -120,6 +134,7 @@
   function figTools_(st, r) {
     return '<span class="mdf-tools" contenteditable="false">' +
       (r.kind === 'photo' ? '<button type="button" class="mdf-sz" data-mdf-sz title="Size - tap to cycle">FULL</button>' : '') +
+      (r.kind === 'photo' ? '<button type="button" class="mdf-al" data-mdf-al title="Centre, left or right - tap to cycle">CENTRE</button>' : '') +
       (r.kind === 'photo' ? '<button type="button" class="mdf-q' + (r.quiet ? ' on' : '') + '" data-mdf-q>QUIET</button>' : '') +
       '<button type="button" class="mdf-x" data-mdf-x title="Remove">&#10005;</button></span>';
   }
@@ -175,6 +190,11 @@
         const i = CHIP_STEPS.indexOf(cur);
         const next = CHIP_STEPS[(i < 0 ? 0 : i + 1) % CHIP_STEPS.length];
         setW_(st, fig, next);
+      });
+      const alc = fig.querySelector('[data-mdf-al]');
+      if (alc) alc.addEventListener('click', () => {
+        const cur = figAl_(fig);
+        setAl_(st, fig, cur === '' ? 'l' : cur === 'l' ? 'r' : '');
       });
       const hd = fig.querySelector('[data-mdf-handle]');
       if (hd) {
@@ -470,8 +490,9 @@
       const r = rows[String(f.dataset.at)];
       const w = document.createElement('div');
       if (r && r.kind === 'photo') {
-        const pw = figW_(f);
-        w.innerHTML = '<figure style="margin:14px auto; page-break-inside:avoid; break-inside:avoid;' + (pw < 100 ? ' width:' + pw + '%;' : '') + '">' +
+        const pw = figW_(f), pal = figAl_(f);
+        const fl = pal === 'l' ? ' float:left; margin:4px 18px 8px 0;' : pal === 'r' ? ' float:right; margin:4px 0 8px 18px;' : ' margin:14px auto;';
+        w.innerHTML = '<figure style="page-break-inside:avoid; break-inside:avoid;' + fl + (pw < 100 ? ' width:' + pw + '%;' : '') + '">' +
           '<img src="' + esc(u[r.path] || '') + '" alt="" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;">' +
           (r.caption ? '<figcaption style="font-style:italic; font-size:11px; color:#68789a; text-align:center; margin-top:5px;">' + esc(r.caption) + '</figcaption>' : '') + '</figure>';
       } else if (r) {
