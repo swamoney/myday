@@ -1197,12 +1197,62 @@
   .essay-date { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.06em; text-transform:uppercase; color:#9aa4ba; margin:0 0 10px; }
   .essay-date:empty { display:none; }
   .rm-essay.ro, .rm-essay.inp, .pessay.ro, .pessay.inp { white-space:normal; }
+  /* PH-1: the album strip and viewer */
+  .rd-album { margin:8px 0 6px; }
+  .rd-album.at-empty { margin:0; }
+  .at-strip { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+  @media (max-width:480px) { .at-strip { grid-template-columns:repeat(3, 1fr); } }
+  .at-ph { position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; border:1px solid #dde5ee; cursor:pointer; }
+  .at-fill { position:absolute; inset:0; background-size:cover; background-position:center; }
+  .at-ph.quiet .at-fill { filter:blur(14px) saturate(0.7); transform:scale(1.2); }
+  .at-ph.quiet::after { content:'\1F441'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+                        font-size:1.125rem; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,0.5); }
+  .at-ph.vid::after { content:'\25B6'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+                      font-size:1.125rem; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,0.6); pointer-events:none; }
+  .at-vlen { position:absolute; right:5px; top:5px; font-family:var(--mono); font-size:0.5rem; color:#fff;
+             background:rgba(10,19,37,0.55); border-radius:5px; padding:2px 5px; z-index:2; }
+  .at-cap { position:absolute; left:0; right:0; bottom:0; font-size:0.5625rem; color:#fff; padding:14px 7px 5px;
+            background:linear-gradient(transparent, rgba(10,19,37,0.65)); }
+  .at-alink { display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:0.5625rem;
+              letter-spacing:0.08em; color:#2F6B8A; border:1.5px dashed #b9cfe0; border-radius:9px; padding:7px 11px;
+              text-decoration:none; align-self:center; }
+  .at-add { border:1.5px dashed #b9c8e0; border-radius:10px; aspect-ratio:1; display:flex; flex-direction:column; gap:4px;
+            align-items:center; justify-content:center; color:#8a97b3; font-size:0.5625rem; font-family:var(--mono);
+            letter-spacing:0.08em; background:none; cursor:pointer; }
+  .at-add b { font-size:1.125rem; font-weight:400; }
+  .at-add:hover { color:#2F6B8A; border-color:#2F6B8A; }
+  .at-rowtools { position:absolute; top:4px; left:4px; right:4px; display:flex; gap:4px; z-index:2; }
+  .at-rowtools button { font-size:0.5625rem; background:rgba(10,19,37,0.6); color:#fff; border:none; border-radius:5px;
+                        padding:2px 6px; cursor:pointer; }
+  .at-rowtools .at-del { margin-left:auto; background:rgba(122,47,56,0.85); }
+  .at-q { position:absolute; right:4px; bottom:28px; font-size:0.5rem; font-family:var(--mono); color:#fff;
+          background:rgba(10,19,37,0.6); border:none; border-radius:5px; padding:2px 5px; cursor:pointer; z-index:2; }
+  .at-q.on { background:#8a6d1f; }
+  .at-capin { position:absolute; left:4px; right:4px; bottom:4px; border:none; border-radius:6px; font-size:0.5625rem;
+              padding:4px 6px; background:rgba(255,255,255,0.92); color:#1c2740; z-index:2; }
+  .at-meter { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.1em; color:#8a97b3; margin-top:8px; }
+  .at-meter.warn { color:#8a6d1f; } .at-meter.full { color:#7A2F38; }
+  .at-err { font-size:0.75rem; color:#8a97b3; }
+  .at-viewer { position:fixed; inset:0; background:rgba(10,19,37,0.94); z-index:300; display:flex; align-items:center;
+               justify-content:center; }
+  .at-viewer.hidden { display:none; }
+  .at-vbody { max-width:92vw; max-height:78vh; display:flex; align-items:center; justify-content:center; }
+  .at-vimg { max-width:92vw; max-height:78vh; border-radius:8px; }
+  .at-vframe { width:min(92vw, 720px); aspect-ratio:16/9; border:none; border-radius:8px; }
+  .at-vload { color:#fff; font-size:1.5rem; }
+  .at-vcap { position:fixed; left:0; right:0; bottom:18px; text-align:center; color:#cfd8ea; font-size:0.75rem; }
+  .at-vclose, .at-vprev, .at-vnext { position:fixed; background:rgba(255,255,255,0.12); color:#fff; border:none;
+    border-radius:50%; width:40px; height:40px; font-size:1.125rem; cursor:pointer; z-index:301; }
+  .at-vclose { top:16px; right:16px; }
+  .at-vprev { left:10px; top:50%; transform:translateY(-50%); }
+  .at-vnext { right:10px; top:50%; transform:translateY(-50%); }
 </style>
 </head>
 <body>
 
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20260822a"></script>
+<script src="attachments.js?v=20260901a"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -1882,6 +1932,7 @@
         </div>
         <div id="bkWhyToolbar"></div>
       </div>
+      <div class="rd-album" id="bkAlbum"></div>
       <div class="pessay ro" id="bkWhyRO"></div>
       <div class="pessay inp" id="bkWhy" contenteditable="true" data-placeholder="Write about this dream&hellip;"></div>
       <div class="pfoot">
@@ -2620,7 +2671,7 @@ async function boot() {
   const { data: { session } } = await supa.auth.getSession();
   el('bootLoading').classList.add('hidden');
   if (session && session.user) {
-    userId = session.user.id; showApp(); await loadPillars();
+    userId = session.user.id; if (window.MyAlbum) MyAlbum.init(supa, userId); showApp(); await loadPillars();
   } else {
     el('authOverlay').classList.remove('hidden');
   }
@@ -5395,6 +5446,7 @@ function renderStamps() {
       if (!b || b.status === 'done') return;
       if (!confirm('Delete "' + b.title + '"? This cannot be undone.')) return;
       const { error } = await supa.from('bucket_items').delete().eq('id', b.id).eq('user_id', userId);
+      if (!error && window.MyAlbum) MyAlbum.deleteAll('bucket', b.id);
       if (error) { console.error(error); toast('Could not delete'); return; }
       await loadBuckets(); toast('Dream removed');
     }));
@@ -5921,6 +5973,7 @@ function openDream(id) {
   el('bkSave').textContent = '';
   bkRenderStatus();
   setBkEditing(false);
+  if (window.MyAlbum && userId) MyAlbum.mount({ host: el('bkAlbum'), room: 'bucket', entryId: id, editing: false });
   el('bkWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -5982,6 +6035,7 @@ function setBkEditing(on) {
   const rb = el('bkRateBox'); if (rb && !rb.classList.contains('hidden')) bkRatePaint_();
   const b2 = el('bkEdit'); if (b2) b2.classList.toggle('hot', !!on);
   const l = el('bkEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
+  if (window.MyAlbum && userId && bkId !== null) MyAlbum.setEditing(el('bkAlbum'), !!on);
   if (!on) {
     const w = NoteEditor.sanitize(el('bkWhy').innerHTML);
     if (bkId !== null && w !== bkWhyBase) { NoteEditor.versions.record('bucket-why', bkId, bkWhyBase); bkWhyBase = w; }
@@ -6070,6 +6124,7 @@ el('bkDel').addEventListener('click', async () => {
   const b = bkRow(); if (!b || b.status === 'done') return;
   if (!confirm('Delete this dream? This cannot be undone.')) return;
   const { error } = await supa.from('bucket_items').delete().eq('id', bkId).eq('user_id', userId);
+  if (!error && window.MyAlbum) MyAlbum.deleteAll('bucket', bkId);
   if (error) { console.error(error); toast('Could not delete'); return; }
   closeDream(); await loadBuckets(); toast('Dream removed');
 });

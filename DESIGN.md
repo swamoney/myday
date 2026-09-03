@@ -141,6 +141,68 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**PH-1b: the kit spreads - bucket + library** (1 Sep 2026): the
+rollout is only mounting, never rebuilding - each file gains four
+touches: the attachments.js script tag, a host div (.rd-album)
+above the page body (#bkAlbum before bkWhyRO; #frAlbum before
+frBody), MyAlbum.init at session, mount on page open + setEditing
+in the edit toggle, deleteAll at every delete site (orphan law),
+and the shared at-* CSS block copied into the head style. Rooms:
+'bucket' (why.html dream pages), 'library' (favourites.html
+readers, incl. doc pages via forcePage pencil). Harness both:
+strip mounts with caption, edit tiles + add/link/meter appear, no
+errors. REMAINING rooms for later rounds: trips day-level strips,
+daily.html, wealth.html, circle, decisions pages; then backup-page
+gauges + album zip + monthly reminder; print/md/zip media.
+
+**PH-1a: the album kit lands in the Inner Life reader** (1 Sep
+2026): attachments.js born - the editor's companion, built ONCE
+(MyAlbum: init/mount/setEditing/unmount/deleteAll). Photos shrink
+on the phone (canvas -> webp, 1600px keep + 320px thumb, ~200-300KB
+pair), upload to private bucket 'myday-album' under
+user/room/entry/, one attachments row each (kind photo | youtube |
+album; caption, quiet, sort_order, bytes). Strip renders thumbs via
+batch signed URLs (1h); read mode = tiles + viewer (swipe, YouTube
+plays as nocookie iframe, quiet unblurs only here); edit mode =
+tiles with move/remove/on-tile caption/QUIET + ADD (multi file) +
+LINK (YouTube -> inline player, Google Photos -> album door chip;
+anything else refused) + the whisper meter (sum of bytes, amber
+70% ember 90%). The orphan law: both iw_entries delete sites call
+MyAlbum.deleteAll (storage files first, rows after).
+migrate_photos.sql: attachments table + RLS (own-rows only) +
+bucket + storage policies keyed to auth.uid() folder - plain
+ASCII, safe re-run. PENDING Rahul runs it once. Mounted in the
+Inner Life reader (#rdAlbum between lead and day book) = five
+rooms lit at once (Diary/Musings/Timeline/Trips/Writings).
+Harness (stubbed storage): strip mounts, 3 tiles + quiet + yt +
+album door, thumbs signed, viewer opens with caption '1 of 3',
+third item is the yt iframe, edit shows 4 tiles + add/link/meter,
+caption + quiet toggle saved, reorder writes all four sort_orders,
+pasted yt link kept, remove deletes BOTH storage paths. All green.
+NEXT (PH-1b+): day-level strips for trips, the other files
+(why/favourites/daily/wealth/circle), backup-page gauges + album
+zip + monthly reminder, print/md/zip carrying media.
+
+**PH-0: photos/video - the standing principles (brainstorm, NOT
+built)** (1 Sep 2026): direction discussed and mocked
+(mock-photos-shape-v1.html), nothing locked. (1) MyDay is the ALBUM,
+not the vault: curated compressed copies live in Supabase Storage
+under the user's own auth; the heap and long videos stay in Google
+Photos as an optional link attachment - a lost link is a lost
+shortcut, never a lost memory. (2) Rahul's scope ruling: media
+attaches ANYWHERE the note editor stands - every page in every
+room (diary, musings, writings, whiteboard, timeline, trips,
+bucket dreams, library notes, circle, decisions...), NOT a trips
+feature. Architectural consequence: the photo strip must be built
+ONCE as a NoteEditor-level companion (shared module, one
+attachments table keyed user/room/entry/day_index) so every
+present and FUTURE room gets it for free - never per-room strips.
+(3) One quiet flag (blur until tap) for personal items; client-side
+compression ~1600px webp; short clips uploaded, long video linked;
+thumbnails client-made; export carries a media manifest +
+download-all path. Phasing when locked: P1 photos everywhere +
+viewer + quiet; P2 short clips; P3 links/paste.
+
 **TR-6: the trip's company (C1)** (1 Sep 2026): one 'company'
 column (business | solo | family | friends, names fixed for thirty
 years) with four true inks - FAMILY moss #5F7355, FRIENDS
