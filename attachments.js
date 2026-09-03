@@ -370,6 +370,7 @@
       st.rows.push(data[0]);
       st._urls = null;                       // the new file needs its signed dress
       insertFigure_(st, data[0].id);
+      usage_().then(u => toast('Photo kept \u00B7 ' + usageLine_(u))).catch(() => {});   // GD-1: the whisper
     } catch (e) { toast('The photo could not be kept'); }
   }
   function addVideoLink_(st) {
@@ -435,6 +436,91 @@
     grabRange_(st);
     addVideoLink_(st);
   });
+
+  // ---- GD-1: the guardians - usage, the album zip, the sweep ----
+  const GB = 1024 * 1024 * 1024;
+  async function usage_() {
+    const { data, error } = await supa.from('attachments').select('bytes').eq('user_id', userId);
+    if (error) throw error;
+    const used = (data || []).reduce((s, r) => s + (r.bytes || 0), 0);
+    return { used, count: (data || []).length, pct: used / GB, left: Math.max(0, Math.floor((GB - used) / 300000)) };
+  }
+  function usageLine_(u) {
+    const m = u.used / 1048576;
+    return 'ALBUM \u00B7 ' + (m < 10 ? Math.round(m * 10) / 10 : Math.round(m)) + 'MB OF 1GB \u00B7 \u223C' + u.left.toLocaleString('en-IN') + ' LEFT';
+  }
+  async function fetchAllRows_() {
+    const PAGE = 1000; let from = 0, out = [];
+    for (let guard = 0; guard < 200; guard++) {
+      const { data, error } = await supa.from('attachments').select('*').eq('user_id', userId)
+        .order('created_at', { ascending: true }).range(from, from + PAGE - 1);
+      if (error) throw error;
+      out = out.concat(data || []);
+      if (!data || data.length < PAGE) break;
+      from += PAGE;
+    }
+    return out;
+  }
+  function safeName_(s) { return String(s || '').replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'x'; }
+  // The album zip: every photo with a manifest that ties it back to its page token.
+  async function exportAlbum_(onProgress) {
+    if (!window.JSZip) throw new Error('JSZip not loaded');
+    const rows = await fetchAllRows_();
+    const zip = new JSZip();
+    const day = new Date().toISOString().slice(0, 10);
+    const manifest = { app: 'MyDay', kind: 'album', exported: new Date().toISOString(), count: rows.length, items: [] };
+    let md = '# MyDay album \u2014 ' + day + '\n\nEvery photo and link kept in MyDay, tied to its page by token id.\n\n';
+    md += '| id | room | page | kind | file | caption | date | size |\n|---|---|---|---|---|---|---|---|\n';
+    const photos = rows.filter(r => r.kind === 'photo' && r.path);
+    let done = 0, failed = 0;
+    for (const r of rows) {
+      let file = '';
+      if (r.kind === 'photo' && r.path) {
+        try {
+          const { data, error } = await supa.storage.from(BUCKET).download(r.path);
+          if (error || !data) throw error || new Error('no data');
+          const ext = (r.path.split('.').pop() || 'webp').toLowerCase();
+          file = safeName_(r.room) + '/' + safeName_(r.entry_id) + '/' + safeName_(r.id) + '.' + ext;
+          zip.file(file, data);
+        } catch (e) { failed++; file = '(could not download)'; }
+        done++;
+        if (onProgress) onProgress(done, photos.length);
+      }
+      manifest.items.push({ id: r.id, room: r.room, entry_id: r.entry_id, day_index: r.day_index, kind: r.kind,
+        file: file, url: r.url || '', caption: r.caption || '', quiet: !!r.quiet, sort_order: r.sort_order,
+        bytes: r.bytes || 0, created_at: r.created_at, path: r.path || '', thumb_path: r.thumb_path || '' });
+      md += '| ' + r.id + ' | ' + r.room + ' | ' + r.entry_id + ' | ' + r.kind + ' | ' + (file || r.url || '') + ' | ' +
+        String(r.caption || '').replace(/\|/g, '/') + ' | ' + String(r.created_at || '').slice(0, 10) + ' | ' + Math.round((r.bytes || 0) / 1024) + 'KB |\n';
+    }
+    if (failed) manifest.warnings = [failed + ' photo(s) could not be downloaded'];
+    zip.file('manifest.json', JSON.stringify(manifest, null, 1));
+    zip.file('manifest.md', md);
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'myday-album-' + day + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 20000);
+    return { count: rows.length, photos: photos.length, failed };
+  }
+  // The sweep: rows no page token refers to. Reads the words-backup pack (every table's text).
+  function sweepFrom_(pack, rows) {
+    const tables = Object.assign({}, (pack && pack.tables) || {}); delete tables.attachments;
+    const text = JSON.stringify(tables);
+    const seen = new Set();
+    const re = /data-at=\\?"([A-Za-z0-9-]+)\\?"/g; let m;
+    while ((m = re.exec(text))) seen.add(m[1]);
+    const ghosts = rows.filter(r => !seen.has(String(r.id)));
+    return { ghosts, bytes: ghosts.reduce((s, r) => s + (r.bytes || 0), 0) };
+  }
+  async function clearGhosts_(ids) {
+    const want = new Set(ids.map(String));
+    const rows = (await fetchAllRows_()).filter(r => want.has(String(r.id)));
+    const paths = [];
+    rows.forEach(r => { if (r.path) paths.push(r.path); if (r.thumb_path) paths.push(r.thumb_path); });
+    if (paths.length) await supa.storage.from(BUCKET).remove(paths);
+    for (const r of rows) await supa.from('attachments').delete().eq('id', r.id).eq('user_id', userId);
+    return rows.length;
+  }
 
   // ---- the other output paths: print and .md dress the tokens too ----
   function cachedRow_(id) {
@@ -572,6 +658,8 @@
           .eq('room', room).eq('entry_id', String(entryId));
       } catch (e) { /* the sweep on the backup page catches strays */ }
     },
+    usage: usage_, usageLine: usageLine_, exportAlbum: exportAlbum_,
+    sweepFrom: sweepFrom_, clearGhosts: clearGhosts_, fetchAllRows: fetchAllRows_,
     _youtubeId: youtubeId, _isGPhotos: isGPhotos,
   };
 })();

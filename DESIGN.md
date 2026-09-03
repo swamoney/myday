@@ -141,6 +141,39 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**GD-1: the guardians (A, S1)** (3 Sep 2026): the free-plan
+watchmen the strip's retirement had orphaned, now at the HOME
+FOOT (index.html #keep) beside the words backup. (1) TWO GAUGES:
+WORDS - measured at each words backup (JSON bytes of every table
+but note_versions/attachments; the free plan hides the true DB
+size) stored in prefs.words_bytes, label 'measured at your next
+backup' until then; ALBUM - exact sum of attachments.bytes,
+'~N photos left' at 300KB, amber >70% ember >90%. (1b) the
+WHISPER: every kept photo's toast reads 'Photo kept - ALBUM -
+12MB OF 1GB - ~3,300 LEFT'. (2) ALBUM ZIP (one zip, A): the old
+Backup button is now 'Backup words'; 'Album zip' beside it
+downloads every photo (storage.download, sequential, progress
+'n / total' on the button) under room/entry/id.webp with
+manifest.json + manifest.md tying each file to its token id,
+caption, date, size; stamps prefs.last_album_copy; age line
+'Album copied N days ago' / 'Album never copied'. (3) THE KNOCK:
+daily.html grows a second sea pill under the words' backup pill
+- 'album copy due' / 'album never copied' - shown only when
+photos exist and prefs.last_album_copy is not this month; tap ->
+index.html#keep. (4) THE SWEEP (S1, never silent): the words
+backup hands its pack to NoteEditor.onExportPack; the hub scans
+every table's text for data-at tokens, rows unreferenced =
+ghosts -> prefs.album_sweep; the foot shows 'SWEEP - N ORPHAN
+FILES (MB) NOT ON ANY PAGE - CLEAR THEM' and clears (files then
+rows) only on tap + confirm. Also: 'attachments' joined
+EXPORT_TABLES and restore.html's table list (captions/paths ride
+the words backup; bytes ride the album zip). Harness (index,
+single-scope eval): gauges + ages + button words, onExportPack
+measures + finds ghost g1, sweep line + CLEAR removes both files
+and the row, album zip downloads the live photo + stamps + age
+'copied today'; daily knock isolated: hidden with no photos,
+'never copied', hidden when copied this month, 'due' when old.
+
 **IN-3: centre / left / right - the writing wraps** (3 Sep 2026):
 Rahul asked for alignment; opinion given and taken: left/right
 mean the TEXT WRAPS (float, magazine shape), never a cosmetic

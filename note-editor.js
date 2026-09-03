@@ -581,7 +581,8 @@
                        'why_pillars','why_mantras','why_circle','why_priority',
                        'bucket_items','why_places','note_versions',
                        'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions',
-                       'why_journeys','why_decisions','why_decision_points','day_budgets'];
+                       'why_journeys','why_decisions','why_decision_points','day_budgets',
+                       'attachments'];   /* GD-1: the album's rows (paths, captions) - files ride the album zip */
   function _dl(name, text, type) {
     var blob = new Blob([text], { type: type });
     var url = URL.createObjectURL(blob);
@@ -717,6 +718,8 @@
       });
       if (problems.length) pack.export_warnings = problems;
       _dl(jsonName, JSON.stringify(pack, null, 1), 'application/json;charset=utf-8');
+      /* GD-1: the hub measures the words and sweeps the album from this same pack */
+      try { if (typeof NoteEditor.onExportPack === 'function') NoteEditor.onExportPack(pack); } catch (e) {}
 
       /* ---- 2) the human file: the notes system as a readable book ---- */
       var by = {}; results.forEach(function (r) { by[r.table] = r.rows; });
