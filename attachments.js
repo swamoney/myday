@@ -280,6 +280,15 @@
     else if (window.NoteEditor && NoteEditor.toast) NoteEditor.toast(msg);
   }
 
+  // The toolbar's camera: any page's editor can call the album.
+  window.addEventListener('myday-photos', () => {
+    const st = Object.values(mounts).find(s => s.editing);
+    if (!st) return;
+    const f = st.host.querySelector('.at-file');
+    if (f) f.click();
+    else st.host.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
   // ---- public ----
   window.MyAlbum = {
     init(client, uid) { supa = client; userId = uid; },

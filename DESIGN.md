@@ -141,6 +141,25 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**PH-1c: the old image tool retires; the camera takes its seat**
+(3 Sep 2026): Rahul saw only the OLD 'Insert image by link'
+(Pexels/Wikimedia) in the editor toolbar - two cameras is a
+thirty-year confusion and the old one stored rot-prone hotlinks.
+Retired to zero refs in note-editor.js: dialog markup, dlg img
+fields, imgOk handler, openImg, resolveImageUrl, toolbar button,
+ICONS.img. KEPT: rendering of existing inline images in old notes
++ the floating 'Remove image' button (dlg.imgDel serves old
+content). In its seat: a camera button (ICONS.photo, act
+'photos') that dispatches window event 'myday-photos';
+attachments.js listens and opens the file picker of whichever
+mounted strip is editing (scrolls to it if none). Harness:
+isolated toolbar (photos btn present, img btn gone, dispatch
+fires, img dialog gone, link dialog kept) + full introspection
+journey (camera in #rdToolbar opens #rdAlbum's picker, no
+errors). NOTE for Rahul's sighting: if attachments.js is missing
+from the server the strip silently self-disables - upload it +
+migrate_photos.sql, hard refresh / incognito for the PWA cache.
+
 **PH-1b: the kit spreads - bucket + library** (1 Sep 2026): the
 rollout is only mounting, never rebuilding - each file gains four
 touches: the attachments.js script tag, a host div (.rd-album)

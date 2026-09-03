@@ -276,20 +276,6 @@
     if (dlg) return;
     var wrap = document.createElement('div');
     wrap.innerHTML =
-      '<div class="nk-overlay hidden" data-nk="img">' +
-        '<div class="nk-modal">' +
-          '<div class="nk-mt">Insert image</div><div class="nk-ms">paste an image link</div>' +
-          '<div class="nk-fld"><label>Image URL</label><input data-nk-f="imgUrl" placeholder="paste photo link (Unsplash, Pexels…)" inputmode="url"></div>' +
-          '<div class="nk-find">find images on ' +
-            '<a href="https://www.pexels.com/search/" target="_blank" rel="noopener noreferrer">Pexels</a> · ' +
-            '<a href="https://commons.wikimedia.org/" target="_blank" rel="noopener noreferrer">Wikimedia</a>' +
-            '<span class="nk-find-tip">just copy the photo\u2019s page link and paste it above \u2014 the image is fetched automatically</span></div>' +
-          '<div class="nk-fld"><label>Caption (optional)</label><input data-nk-f="imgAlt" placeholder="What this shows"></div>' +
-          '<div class="nk-err hidden" data-nk-f="imgErr"></div>' +
-          '<div class="nk-actions"><span style="flex:1"></span>' +
-            '<button type="button" class="nk-btn" data-nk-f="imgCancel">Cancel</button>' +
-            '<button type="button" class="nk-btn pri" data-nk-f="imgOk">Insert</button></div>' +
-        '</div></div>' +
       '<div class="nk-overlay hidden" data-nk="link">' +
         '<div class="nk-modal">' +
           '<div class="nk-mt">Add link</div><div class="nk-ms">attach a URL to the selected text</div>' +
@@ -305,25 +291,13 @@
     var f = function (k) { return wrap.querySelector('[data-nk-f="' + k + '"]'); };
     dlg = {
       root: wrap,
-      img: wrap.querySelector('[data-nk="img"]'),
       link: wrap.querySelector('[data-nk="link"]'),
-      imgUrl: f('imgUrl'), imgAlt: f('imgAlt'), imgErr: f('imgErr'),
       linkUrl: f('linkUrl'), linkErr: f('linkErr'), linkRemove: f('linkRemove'),
       linkOk: f('linkOk')
     };
-    f('imgCancel').addEventListener('click', function () { dlg.img.classList.add('hidden'); });
     f('linkCancel').addEventListener('click', function () { dlg.link.classList.add('hidden'); });
-    dlg.img.addEventListener('click', function (e) { if (e.target === dlg.img) dlg.img.classList.add('hidden'); });
     dlg.link.addEventListener('click', function (e) { if (e.target === dlg.link) dlg.link.classList.add('hidden'); });
 
-    f('imgOk').addEventListener('click', function () {
-      if (!activeInst) return;
-      var url = resolveImageUrl(dlg.imgUrl.value);
-      if (!/^https?:\/\//i.test(url)) { dlg.imgErr.textContent = 'Enter a valid image link (https://…)'; dlg.imgErr.classList.remove('hidden'); return; }
-      var alt = (dlg.imgAlt.value || '').trim();
-      dlg.img.classList.add('hidden');
-      activeInst.insertHTML('<img src="' + url.replace(/"/g, '&quot;') + '" alt="' + esc(alt) + '"><p><br></p>');
-    });
     f('linkOk').addEventListener('click', function () {
       if (!activeInst) return;
       var url = normUrl(dlg.linkUrl.value);
@@ -377,24 +351,6 @@
        pexels.com/photo/...-<id>/            -> images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg
        commons.wikimedia.org/wiki/File:<n>   -> Special:FilePath/<n> (302 to file)
      If a pattern ever changes, pasting the raw image address still works. */
-  function resolveImageUrl(u) {
-    u = String(u || '').trim();
-    // Share-sheets often copy "Photo title … https://…" — keep only the link.
-    var found = u.match(/https?:\/\/\S+/i);
-    if (found) u = found[0];
-    u = normUrl(u);
-    var m;
-    // already a direct image host — leave untouched
-    if (/^https?:\/\/(images\.pexels\.com|upload\.wikimedia\.org)\//i.test(u)) return u;
-    // pexels photo page (id is the trailing number in the slug)
-    m = u.match(/^https?:\/\/(?:www\.)?pexels\.com\/photo\/[^?#]*?(\d+)\/?(?:[?#].*)?$/i);
-    if (m) return 'https://images.pexels.com/photos/' + m[1] + '/pexels-photo-' + m[1] + '.jpeg';
-    // wikimedia commons File: page
-    m = u.match(/^https?:\/\/commons\.wikimedia\.org\/wiki\/File:([^?#]+)/i);
-    if (m) return 'https://commons.wikimedia.org/wiki/Special:FilePath/' + m[1];
-    return u;
-  }
-
   function normUrl(u) {
     u = String(u || '').trim();
     if (u && !/^https?:\/\//i.test(u) && /^[\w-]+(\.[\w-]+)+/.test(u)) u = 'https://' + u;
@@ -828,6 +784,7 @@
   /* ---------- toolbar definition ---------- */
   var SVG = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   var ICONS = {
+    photo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1l1.2-1.6A1.5 1.5 0 0 1 9.9 3.8h4.2a1.5 1.5 0 0 1 1.2.6L16.5 6h1A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>',
     strike: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M17 6.5c-.8-1.5-2.6-2.5-5-2.5-2.9 0-5 1.5-5 3.7 0 1.5 1 2.6 3 3.3"/><path d="M7 17.5c.8 1.5 2.6 2.5 5 2.5 2.9 0 5-1.5 5-3.7 0-1.5-1-2.6-3-3.3"/><path d="M4 12h16"/></svg>',
     clearfmt: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M4 6V4h12v2"/><path d="M10 4v14"/><path d="M7 18h6"/><path d="m16.5 13.5 5 5"/><path d="m21.5 13.5-5 5"/></svg>',
     undo: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>',
@@ -843,7 +800,6 @@
     ol: '<svg viewBox="0 0 24 24" ' + SVG + '><line x1="10" y1="6" x2="20" y2="6"/><line x1="10" y1="12" x2="20" y2="12"/><line x1="10" y1="18" x2="20" y2="18"/><text x="2" y="8" font-size="7" fill="currentColor" stroke="none" font-family="monospace">1</text><text x="2" y="14.5" font-size="7" fill="currentColor" stroke="none" font-family="monospace">2</text><text x="2" y="21" font-size="7" fill="currentColor" stroke="none" font-family="monospace">3</text></svg>',
     check: '<svg viewBox="0 0 24 24" ' + SVG + '><rect x="3" y="4" width="7" height="7" rx="1.5"/><path d="M4.5 7.5l1.5 1.5 2.5-3"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><line x1="13" y1="7.5" x2="21" y2="7.5"/><line x1="13" y1="17.5" x2="21" y2="17.5"/></svg>',
     link: '<svg viewBox="0 0 24 24" ' + SVG + '><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
-    img: '<svg viewBox="0 0 24 24" ' + SVG + '><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="M21 16l-5-5L5 21"/></svg>',
     hr: '<svg viewBox="0 0 24 24" ' + SVG + '><line x1="3" y1="12" x2="21" y2="12"/><circle cx="12" cy="7" r="0.9" fill="currentColor" stroke="none"/><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/></svg>'
   };
 
@@ -880,7 +836,7 @@
       btn('act', 'check', '', 'Checklist', ICONS.check) +
       '<span class="nk-sep"></span>' +
       btn('act', 'link', '', 'Link', ICONS.link) +
-      btn('act', 'img', '', 'Insert image by link', ICONS.img) +
+      btn('act', 'photos', '', 'Photos - add to this page\'s album', ICONS.photo) +
       btn('act', 'hr', '', 'Divider', ICONS.hr) +
       '<div class="nk-pop hidden" data-nk-swpop="text"></div>' +
       '<div class="nk-pop hidden" data-nk-swpop="high"></div>';
@@ -1085,7 +1041,7 @@
     toolbar.addEventListener('click', function (e) {
       var b = e.target.closest('.nk-b'); if (!b) return;
       var act = b.dataset.nkAct, pop = b.dataset.nkPop, cmd = b.dataset.nkCmd;
-      if (act === 'img') { activeInst = inst; saveRange(); openImg(); return; }
+      if (act === 'photos') { window.dispatchEvent(new CustomEvent('myday-photos')); return; }
       if (act === 'link') { activeInst = inst; saveRange(); openLink(); return; }
       if (act === 'check') { insertChecklist(); return; }
       if (act === 'clearfmt') {
@@ -1126,12 +1082,6 @@
     });
 
     /* dialogs (per-instance open + insert) */
-    function openImg() {
-      dlg.imgUrl.value = ''; dlg.imgAlt.value = '';
-      dlg.imgErr.classList.add('hidden');
-      dlg.img.classList.remove('hidden');
-      setTimeout(function () { dlg.imgUrl.focus(); }, 30);
-    }
     function openLink() {
       var sel = window.getSelection();
       var a = sel && sel.anchorNode && sel.anchorNode.parentElement ? sel.anchorNode.parentElement.closest('a') : null;
