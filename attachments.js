@@ -126,7 +126,7 @@
       }
       h += '</div>';
       if (st.editing) {
-        h += '<input type="file" accept="image/*" multiple class="at-file" style="display:none;">' +
+        h += '<input type="file" accept="image/*" multiple class="at-file" style="position:absolute; left:-9999px; top:0; width:1px; height:1px; opacity:0;">' +
              '<div class="at-meter"></div>';
       }
       host.innerHTML = h;
@@ -278,12 +278,19 @@
   function toast(st, msg) {
     if (window.toast) window.toast(msg);
     else if (window.NoteEditor && NoteEditor.toast) NoteEditor.toast(msg);
+    else alert(msg);
   }
 
   // The toolbar's camera: any page's editor can call the album.
   window.addEventListener('myday-photos', () => {
     const st = Object.values(mounts).find(s => s.editing);
-    if (!st) return;
+    if (!st) {
+      const anyMounted = Object.values(mounts)[0];
+      toast(anyMounted, anyMounted
+        ? 'Tap Edit on the page first \u2014 then the camera adds to its album'
+        : 'Open a page and tap Edit \u2014 the camera adds photos to that page');
+      return;
+    }
     const f = st.host.querySelector('.at-file');
     if (f) f.click();
     else st.host.scrollIntoView({ behavior: 'smooth', block: 'center' });

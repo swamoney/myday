@@ -141,6 +141,16 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**PH-1d: the camera that answered with silence** (3 Sep 2026):
+Rahul: camera button present, tap does nothing. Three silent
+paths, all given voices: (1) attachments.js missing -> the camera
+now says so in an alert instead of dispatching into the void; (2)
+tapped in READ mode -> a guiding toast ('Tap Edit on the page
+first'); (3) iOS refuses .click() on display:none file inputs ->
+the picker input now hides off-screen (absolute, -9999px, opacity
+0), never display:none. Harness: read-mode tap toasts, edit-mode
+tap opens the picker, input carries the off-screen style.
+
 **PH-1c: the old image tool retires; the camera takes its seat**
 (3 Sep 2026): Rahul saw only the OLD 'Insert image by link'
 (Pexels/Wikimedia) in the editor toolbar - two cameras is a

@@ -1041,7 +1041,10 @@
     toolbar.addEventListener('click', function (e) {
       var b = e.target.closest('.nk-b'); if (!b) return;
       var act = b.dataset.nkAct, pop = b.dataset.nkPop, cmd = b.dataset.nkCmd;
-      if (act === 'photos') { window.dispatchEvent(new CustomEvent('myday-photos')); return; }
+      if (act === 'photos') {
+        if (!window.MyAlbum) { alert('The album is not loaded \u2014 attachments.js is missing from the site. Upload it beside note-editor.js and refresh.'); return; }
+        window.dispatchEvent(new CustomEvent('myday-photos')); return;
+      }
       if (act === 'link') { activeInst = inst; saveRange(); openLink(); return; }
       if (act === 'check') { insertChecklist(); return; }
       if (act === 'clearfmt') {
