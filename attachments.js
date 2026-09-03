@@ -100,8 +100,26 @@
   }
 
   // ---- the figures: dress each token in the flow ----
+  // IN-2: the figure's width lives in its token (data-w, whole percent); missing = full.
+  const SNAPS = [25, 33, 50, 66, 75, 100];
+  const CHIP_STEPS = [100, 75, 50, 33];
+  function figW_(fig) { const w = parseInt(fig.getAttribute('data-w') || '', 10); return (w >= 10 && w < 100) ? w : 100; }
+  function wLabel_(w) { return w >= 100 ? 'FULL' : w === 75 ? '\u00BE' : w === 66 ? '\u2154' : w === 50 ? '\u00BD' : w === 33 ? '\u2153' : w === 25 ? '\u00BC' : w + '%'; }
+  function applyW_(fig) {
+    const w = figW_(fig);
+    fig.style.width = w >= 100 ? '' : w + '%';
+    const chip = fig.querySelector('[data-mdf-sz]'); if (chip) chip.textContent = wLabel_(w);
+  }
+  function setW_(st, fig, w) {
+    w = Math.round(w);
+    if (w >= 100) fig.removeAttribute('data-w'); else fig.setAttribute('data-w', String(Math.max(10, w)));
+    applyW_(fig);
+    const root = st.watch.find(x => x && x.contains(fig));
+    if (root) root.dispatchEvent(new Event('input', { bubbles: true }));
+  }
   function figTools_(st, r) {
     return '<span class="mdf-tools" contenteditable="false">' +
+      (r.kind === 'photo' ? '<button type="button" class="mdf-sz" data-mdf-sz title="Size - tap to cycle">FULL</button>' : '') +
       (r.kind === 'photo' ? '<button type="button" class="mdf-q' + (r.quiet ? ' on' : '') + '" data-mdf-q>QUIET</button>' : '') +
       '<button type="button" class="mdf-x" data-mdf-x title="Remove">&#10005;</button></span>';
   }
@@ -115,9 +133,11 @@
       const src = u[r.path] || u[r.thumb_path] || '';
       fig.innerHTML = (editing ? figTools_(st, r) : '') +
         '<img class="mdf-im" src="' + esc(src) + '" alt="" loading="lazy">' +
+        (editing ? '<span class="mdf-handle" data-mdf-handle contenteditable="false" title="Drag to resize"></span>' : '') +
         (editing
           ? '<input class="mdf-capin" data-mdf-cap placeholder="caption\u2026" value="' + esc(r.caption || '') + '">'
           : (r.caption && !r.quiet ? '<figcaption>' + esc(r.caption) + '</figcaption>' : ''));
+      applyW_(fig);
     } else if (r.kind === 'youtube') {
       fig.classList.add('md-yt');
       const id = youtubeId(r.url);
@@ -147,6 +167,47 @@
         cap.addEventListener('change', () => saveRow(st, r.id, { caption: cap.value.trim() })
           .catch(() => toast('Could not save the caption')));
         cap.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); cap.blur(); } ev.stopPropagation(); });
+      }
+      // IN-2: the chip cycles FULL -> 3/4 -> 1/2 -> 1/3; the handle drags with snapping
+      const sz = fig.querySelector('[data-mdf-sz]');
+      if (sz) sz.addEventListener('click', () => {
+        const cur = figW_(fig);
+        const i = CHIP_STEPS.indexOf(cur);
+        const next = CHIP_STEPS[(i < 0 ? 0 : i + 1) % CHIP_STEPS.length];
+        setW_(st, fig, next);
+      });
+      const hd = fig.querySelector('[data-mdf-handle]');
+      if (hd) {
+        let dragging = false, parentW = 0, leftX = 0;
+        const onMove = (ev) => {
+          if (!dragging) return;
+          ev.preventDefault();
+          const x = (ev.touches ? ev.touches[0].clientX : ev.clientX);
+          // centred figure: the drag widens both sides, so width = 2 * distance from the centre
+          const centre = leftX + parentW / 2;
+          let pct = Math.max(10, Math.min(100, ((x - centre) * 2 / parentW) * 100));
+          fig.style.width = pct >= 100 ? '' : pct + '%';
+          fig.dataset.mdfDrag = String(Math.round(pct));
+        };
+        const onUp = () => {
+          if (!dragging) return;
+          dragging = false;
+          document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp);
+          document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp);
+          const raw = parseInt(fig.dataset.mdfDrag || '100', 10); delete fig.dataset.mdfDrag;
+          const snapped = SNAPS.reduce((b, s) => Math.abs(s - raw) < Math.abs(b - raw) ? s : b, 100);
+          setW_(st, fig, snapped);
+        };
+        const onDown = (ev) => {
+          const root = st.watch.find(x => x && x.contains(fig)) || fig.parentElement;
+          const rect = root.getBoundingClientRect();
+          parentW = rect.width || 1; leftX = rect.left;
+          dragging = true; ev.preventDefault(); ev.stopPropagation();
+          document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+          document.addEventListener('touchmove', onMove, { passive: false }); document.addEventListener('touchend', onUp);
+        };
+        hd.addEventListener('mousedown', onDown);
+        hd.addEventListener('touchstart', onDown, { passive: false });
       }
       const q = fig.querySelector('[data-mdf-q]');
       if (q) q.addEventListener('click', () => saveRow(st, r.id, { quiet: !r.quiet })
@@ -409,7 +470,8 @@
       const r = rows[String(f.dataset.at)];
       const w = document.createElement('div');
       if (r && r.kind === 'photo') {
-        w.innerHTML = '<figure style="margin:14px 0; page-break-inside:avoid; break-inside:avoid;">' +
+        const pw = figW_(f);
+        w.innerHTML = '<figure style="margin:14px auto; page-break-inside:avoid; break-inside:avoid;' + (pw < 100 ? ' width:' + pw + '%;' : '') + '">' +
           '<img src="' + esc(u[r.path] || '') + '" alt="" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;">' +
           (r.caption ? '<figcaption style="font-style:italic; font-size:11px; color:#68789a; text-align:center; margin-top:5px;">' + esc(r.caption) + '</figcaption>' : '') + '</figure>';
       } else if (r) {

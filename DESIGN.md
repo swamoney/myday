@@ -141,6 +141,23 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**IN-2: a photo's size lives in its token** (3 Sep 2026, R1+R2,
+centred, snapping): the figure token may keep ONE more attribute,
+data-w (whole percent 10..99; absent = full) - sanitize keeps it
+and nothing else; no columns, no table, bytes stay 1600px. Edit
+tools grow a sea size CHIP (cycles FULL -> 3/4 -> 1/2 -> 1/3) and
+a round corner HANDLE (mouse + touch; a centred figure widens
+both ways so width = 2 x distance from centre; release snaps to
+25/33/50/66/75/100). Both call setW_ -> data-w + inline width +
+'input' dispatched so the page saves. Read and print honour it
+(print figure gets width:N% + margin auto); .md keeps its line.
+Phone mercy: below 480px, 25/33 DISPLAY at 50% (CSS only, token
+untouched, print honours the true size) - Rahul was told and may
+drop it. Videos stay full width. Harness: read width applied,
+chip reads 1/2, taps 33 then FULL (attr removed), drag to 520/600
+snaps 75, sanitize keeps data-w="75" only, Done saves it, print
+carries width:75%. All green.
+
 **IN-1: the body is the album** (3 Sep 2026, Rahul's redesign):
 the strip and its boxes retire; photos and videos live IN the
 writing at the cursor as blog figures. LAW: the body stores only a
