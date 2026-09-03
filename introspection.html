@@ -219,6 +219,55 @@
     .tp-lr .tp-cost { grid-column:1 / span 2; }
     .tp-ln { grid-template-columns:58px 1fr 72px; gap:6px; }
   }
+  /* PH-1: the album strip and viewer */
+  .rd-album { margin:8px 0 6px; }
+  .rd-album.at-empty { margin:0; }
+  .at-strip { display:grid; grid-template-columns:repeat(auto-fill, minmax(110px, 150px)); gap:8px; }
+  @media (max-width:480px) { .at-strip { grid-template-columns:repeat(3, 1fr); } }
+  .at-ph { position:relative; aspect-ratio:1; border-radius:10px; overflow:hidden; border:1px solid #dde5ee; cursor:pointer; }
+  .at-fill { position:absolute; inset:0; background-size:cover; background-position:center; }
+  .at-ph.quiet .at-fill { filter:blur(14px) saturate(0.7); transform:scale(1.2); }
+  .at-ph.quiet::after { content:'\1F441'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+                        font-size:1.125rem; color:#fff; text-shadow:0 1px 6px rgba(0,0,0,0.5); }
+  .at-ph.vid::after { content:'\25B6'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+                      font-size:1.125rem; color:#fff; text-shadow:0 1px 8px rgba(0,0,0,0.6); pointer-events:none; }
+  .at-vlen { position:absolute; right:5px; top:5px; font-family:var(--mono); font-size:0.5rem; color:#fff;
+             background:rgba(10,19,37,0.55); border-radius:5px; padding:2px 5px; z-index:2; }
+  .at-cap { position:absolute; left:0; right:0; bottom:0; font-size:0.5625rem; color:#fff; padding:14px 7px 5px;
+            background:linear-gradient(transparent, rgba(10,19,37,0.65)); }
+  .at-alink { display:inline-flex; align-items:center; gap:7px; font-family:var(--mono); font-size:0.5625rem;
+              letter-spacing:0.08em; color:#2F6B8A; border:1.5px dashed #b9cfe0; border-radius:9px; padding:7px 11px;
+              text-decoration:none; align-self:center; }
+  .at-add { border:1.5px dashed #b9c8e0; border-radius:10px; aspect-ratio:1; display:flex; flex-direction:column; gap:4px;
+            align-items:center; justify-content:center; color:#8a97b3; font-size:0.5625rem; font-family:var(--mono);
+            letter-spacing:0.08em; background:none; cursor:pointer; }
+  .at-add b { font-size:1.125rem; font-weight:400; }
+  .at-add:hover { color:#2F6B8A; border-color:#2F6B8A; }
+  .at-rowtools { position:absolute; top:4px; left:4px; right:4px; display:flex; gap:4px; z-index:2; }
+  .at-rowtools button { font-size:0.5625rem; background:rgba(10,19,37,0.6); color:#fff; border:none; border-radius:5px;
+                        padding:2px 6px; cursor:pointer; }
+  .at-rowtools .at-del { margin-left:auto; background:rgba(122,47,56,0.85); }
+  .at-q { position:absolute; right:4px; bottom:28px; font-size:0.5rem; font-family:var(--mono); color:#fff;
+          background:rgba(10,19,37,0.6); border:none; border-radius:5px; padding:2px 5px; cursor:pointer; z-index:2; }
+  .at-q.on { background:#8a6d1f; }
+  .at-capin { position:absolute; left:4px; right:4px; bottom:4px; border:none; border-radius:6px; font-size:0.5625rem;
+              padding:4px 6px; background:rgba(255,255,255,0.92); color:#1c2740; z-index:2; }
+  .at-meter { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.1em; color:#8a97b3; margin-top:8px; }
+  .at-meter.warn { color:#8a6d1f; } .at-meter.full { color:#7A2F38; }
+  .at-err { font-size:0.75rem; color:#8a97b3; }
+  .at-viewer { position:fixed; inset:0; background:rgba(10,19,37,0.94); z-index:300; display:flex; align-items:center;
+               justify-content:center; }
+  .at-viewer.hidden { display:none; }
+  .at-vbody { max-width:92vw; max-height:78vh; display:flex; align-items:center; justify-content:center; }
+  .at-vimg { max-width:92vw; max-height:78vh; border-radius:8px; }
+  .at-vframe { width:min(92vw, 720px); aspect-ratio:16/9; border:none; border-radius:8px; }
+  .at-vload { color:#fff; font-size:1.5rem; }
+  .at-vcap { position:fixed; left:0; right:0; bottom:18px; text-align:center; color:#cfd8ea; font-size:0.75rem; }
+  .at-vclose, .at-vprev, .at-vnext { position:fixed; background:rgba(255,255,255,0.12); color:#fff; border:none;
+    border-radius:50%; width:40px; height:40px; font-size:1.125rem; cursor:pointer; z-index:301; }
+  .at-vclose { top:16px; right:16px; }
+  .at-vprev { left:10px; top:50%; transform:translateY(-50%); }
+  .at-vnext { right:10px; top:50%; transform:translateY(-50%); }
   .rk-tap { cursor:pointer; border-bottom:1px dotted currentColor; }
   .rk-years { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:#a5702f;
               letter-spacing:0.05em; margin-left:6px; }
@@ -514,6 +563,7 @@
 
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20260822a"></script>
+<script src="attachments.js?v=20260901a"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -618,6 +668,7 @@
         <div class="reader-dates" id="readerDates"></div>
         <div id="rdToolbar"></div>
       </div>
+      <div class="rd-album" id="rdAlbum"></div>
       <div class="rd-days hidden" id="rdDays"></div>
       <div class="reader-body" id="readerBody"></div>
       <div class="reader-body inp" id="readerBodyInp" contenteditable="true" data-placeholder="Write the full piece&#8230;"></div>
@@ -800,7 +851,7 @@ function isWriting(kind) { return false; } // status removed: entries are simple
 // ===== AUTH =====
 async function boot() {
   const { data: { session } } = await supa.auth.getSession();
-  if (session && session.user) { userId = session.user.id; showApp(); renderSoulDots(); await loadAll(); }
+  if (session && session.user) { userId = session.user.id; if (window.MyAlbum) MyAlbum.init(supa, userId); showApp(); renderSoulDots(); await loadAll(); }
   else { el('authOverlay').classList.remove('hidden'); }
 }
 function showApp() { el('authOverlay').classList.add('hidden'); el('app').classList.remove('hidden'); }
@@ -892,7 +943,9 @@ async function deleteEntry() {
   if (!confirm('Delete this entry? This can\'t be undone.')) return;
   try {
     const { error } = await supa.from('iw_entries').delete().eq('id', editingId).eq('user_id', userId);
-    if (error) throw error; toast('Deleted'); closeModal(); await loadRows();
+    if (error) throw error;
+    if (window.MyAlbum) MyAlbum.deleteAll('iw', editingId);   // the orphan law
+    toast('Deleted'); closeModal(); await loadRows();
   } catch (e) {
     el('modalError').textContent = (e && e.message) ? e.message : 'Delete failed';
     el('modalError').classList.remove('hidden');
@@ -1646,6 +1699,11 @@ function openReader(id, keepNav) {
       el('readerKind').style.color = '';
     }
   })();
+  // PH-1: the album strip - every Inner Life page carries one.
+  if (window.MyAlbum && userId) {
+    MyAlbum.mount({ host: el('rdAlbum'), room: 'iw', entryId: r.id,
+      editing: document.body.classList.contains('rd-editing') });
+  }
   // TR-1: the where line (tappable, one ask) and the day book (TR-2).
   (function () {
     const wh = el('rdWhere');
@@ -1792,6 +1850,7 @@ function setRdEditing(on) {
     if (!on && wasEditing) tripSaveBook_(readerEntry, tripBook_(readerEntry), true);
     tripRenderDays_(readerEntry, !!on);
   }
+  if (readerEntry && window.MyAlbum && userId) MyAlbum.setEditing(el('rdAlbum'), !!on);
   // The heading edits in place with the page (the card-era modal that once
   // renamed entries retired in DX; the reader is the title's home now).
   const h1 = el('readerH1');
@@ -1929,6 +1988,7 @@ el('rdDel').addEventListener('click', async () => {
     const { error } = await supa.from('iw_entries').delete()
       .eq('id', readerEntry.id).eq('user_id', userId);
     if (error) throw error;
+    if (window.MyAlbum) MyAlbum.deleteAll('iw', readerEntry.id);   // the orphan law
     rdDirty = false;                      // nothing left to save
     readerEntry = null;
     el('readerOverlay').classList.add('hidden');
