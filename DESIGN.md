@@ -141,11 +141,17 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
-**HUB 2.3 (C3 + the review)** (4 Sep 2026): the door caps at
-1080px centred (the 2560px screen had the card's parts at two far
-ends); '118 DAYS LEFT' in ember #a8323f; on desktop each room's
-pulse sits at the RIGHT edge of its row, baseline with the name
-(grid 1fr/auto; phones stack as before); pulses one shade lighter
+**C2 + V1/ALL** (4 Sep 2026): the ring's caption '118 DAYS LEFT' is
+ink (#182233) - the ring's second fact at the 68%'s weight (ember
+C3 lasted an hour). My Why's section bar: every chip is FILLED AT
+REST (its --t-bg paper, own ink, opacity 1) and SOLID WHEN CHOSEN
+(--t-acc fill, white text); the decisions chip leaves petrol for
+the Library blue (#d9e5f5 / #2f5187). The other five chips keep
+their own colours under the new rule.
+
+**HUB 2.3 (C3 + the review)** (4 Sep 2026): (the 1080px cap was
+built then CANCELLED by Rahul - the door keeps the full width;) '118 DAYS LEFT' in ember #a8323f; the right-edge pulse was built then CANCELLED by Rahul - pulses
+stay under the line at the left on every screen; pulses one shade lighter
 (opacity .82) with bold numbers at full ink; rail dots 14px;
 '1 DAYS' -> TOMORROW (0 -> TODAY); '118 remain' hidden on desktop
 (the ring says it) and shown on phones (.rm span). Harness green.
