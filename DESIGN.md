@@ -141,6 +141,18 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-D (D1): the target date as a sign** (4 Sep 2026): on an OPEN
+decision page a full-width gold band (#f4c430, the tag chip's
+fill) sits under the sig bar - 'DECIDE BY - 30 September 2026'
+in serif at heading weight (dcFmtLong_); red (#a8323f) with
+'PAST THE TARGET' once the date has passed; hidden with no
+target; the band IS the door to change the date (clicks through
+to Edit details). The small gold TARGET pill now appears only on
+sealed pages. Print's meta line reads 'decide by <date in
+words>'. Name LOCKED N1 'My Decisions' - to rename with the move
+(DC-M). Harness: band for open+target, red+late, hidden without
+target and on sealed, band opens details, print in words.
+
 **DC-H2 (S2)** (4 Sep 2026): every checklist page's title sweep is now the stamp's rust as a wash (#f0d9cc) and the sig bar the rust itself (#9a4a2e), pending and sealed alike - index and page in one tongue; the teal (#cfe2e8 / #23677a) retired to zero refs.
 
 **DC-H2 (S2)** (4 Sep 2026): every checklist page's title sweep is now the stamp's rust as a wash (#f0d9cc) and the sig bar the rust itself (#9a4a2e), pending and sealed alike - index and page in one tongue.

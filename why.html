@@ -624,6 +624,14 @@
              padding:0 10px 2px; margin-left:-10px;
              background:linear-gradient(transparent 56%, #f0d9cc 56%); }
   .dc-sig { width:88px; height:6px; border-radius:3px; background:#9a4a2e; margin:11px 0 2px; }
+  /* DC-D (D1): the gold band - the target date as a sign, not a pill */
+  .dc-band { display:flex; align-items:center; gap:14px; width:100%; text-align:left; background:#f4c430; color:#2a1d08; border:none;
+             border-radius:10px; padding:10px 14px; margin:12px 0 4px; box-shadow:0 4px 10px rgba(244,196,48,0.35); cursor:pointer; }
+  .dc-band.hidden { display:none; }
+  .dc-band .lbl { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.16em; flex-shrink:0; }
+  .dc-band .dt { font-family:var(--serif); font-size:1.25rem; font-weight:700; letter-spacing:-0.01em; }
+  .dc-band.late { background:#a8323f; color:#fff; box-shadow:0 4px 10px rgba(168,50,63,0.35); }
+  .dc-band:hover { filter:brightness(1.03); }
   .dc-meta { display:flex; flex-direction:column; gap:6px; align-items:flex-start; margin:14px 0 18px; }
   .dc-pill { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
              text-transform:uppercase; border-radius:6px; padding:4px 10px; background:#eef1f6; color:#4A5570; }
@@ -1673,6 +1681,7 @@
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span></div>
     <div class="dc-sig"></div>
+    <button class="dc-band hidden" id="dcBand" type="button" title="Change the date"><span class="lbl"></span><span class="dt"></span></button>
     <div class="dc-meta" id="dcMeta"></div>
     <div class="tb-host" id="dcBoard"></div>
     <button class="dc-back dc-details" id="dcDetailsBtn" type="button">Edit details &mdash; name, dates, verdict</button>
@@ -5632,6 +5641,13 @@ function dcStarsRO_(d) {
   for (let i = 1; i <= 5; i++) s += '<b class="' + (i <= r ? 'on' : '') + '">\u2605</b>';
   return s + '</span>';
 }
+const DC_MON_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function dcFmtLong_(d) {
+  if (!d) return '';
+  const x = new Date(d + 'T00:00:00');
+  if (isNaN(x)) return escHtml(d);
+  return x.getDate() + ' ' + DC_MON_LONG[x.getMonth()] + ' ' + x.getFullYear();
+}
 function dcFmt_(d) {
   if (!d) return '';
   const x = new Date(d + 'T00:00:00');
@@ -5676,7 +5692,17 @@ function openDecision(id) {
   const qa = Array.isArray(d.answers) ? d.answers : [];
   el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS';
   el('dcName').textContent = d.title;
-  let meta = d.target_on ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
+  // DC-D (D1): on an open decision the target is a full-width gold band under the
+  // heading, red once the date has passed; sealed pages keep their small pills.
+  const band = el('dcBand');
+  if (!sealed && d.target_on) {
+    const late = d.target_on < new Date().toISOString().slice(0, 10);
+    band.querySelector('.lbl').textContent = late ? 'PAST THE TARGET' : 'DECIDE BY';
+    band.querySelector('.dt').textContent = dcFmtLong_(d.target_on);
+    band.classList.toggle('late', late);
+    band.classList.remove('hidden');
+  } else band.classList.add('hidden');
+  let meta = (sealed && d.target_on) ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
   if (sealed) {
     meta += '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
       + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>' + dcVerdict_(d)
@@ -5817,7 +5843,7 @@ el('dcPrintBtn').addEventListener('click', () => {
         + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
         + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
         + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
-      : ('On the desk' + (d.target_on ? ' \u00B7 target ' + e(dcFmt_(d.target_on)) : ''))) + '</p><ul>';
+      : ('On the desk' + (d.target_on ? ' \u00B7 decide by ' + e(dcFmtLong_(d.target_on)) : ''))) + '</p><ul>';
   const tbn = window.MyBoard ? MyBoard.notesFor('decision:' + d.id) : [];
   if (tbn.length) {
     body = body.replace(/<ul>$/, '') + '<h2>Thinking board</h2><ul>' +
@@ -5955,6 +5981,7 @@ el('dcQNew').addEventListener('keydown', e => { if (e.key === 'Enter') el('dcQAd
 // verdict wording on a sealed one. The answers and the story have their own
 // doors; this modal touches only the frame around them.
 let dcEMadePick = null;
+el('dcBand').addEventListener('click', () => el('dcDetailsBtn').click());
 el('dcDetailsBtn').addEventListener('click', () => {
   const d = dcRow_(); if (!d) return;
   el('dcEName').value = d.title || '';
