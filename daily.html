@@ -3827,8 +3827,23 @@
     font-size:0.75rem; font-weight: 700; color: var(--ink);
   }
   .cf-sub-val.regular,
-  .cf-sub-val.topup   { color: #534AB7; }
+  .cf-sub-val.topup,
+  .cf-sub-val.equity,
+  .cf-sub-val.global  { color: #534AB7; }
   .cf-sub-val.redeem  { color: #4F8A5C; }
+  /* IV-1 (S2): IN / OUT rows + NET */
+  .cf-ledger { margin: 6px 0 10px; border-top: 1px dashed var(--rule); }
+  .cf-grp { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 8px 4px; border-bottom: 1px dashed var(--rule); }
+  .cf-grp-lab { font-family: var(--mono); font-size:0.5rem; letter-spacing: 0.16em; color: var(--muted); }
+  .cf-four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .cf-grp.out .cf-four { grid-template-columns: 1fr; justify-items: start; }
+  .cf-grp-sum { font-family: var(--mono); font-size:0.75rem; font-weight: 700; color: #534AB7; white-space: nowrap; }
+  .cf-grp.out .cf-grp-sum { color: #4F8A5C; }
+  .cf-net { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 4px 2px; }
+  .cf-net-lab { font-family: var(--mono); font-size:0.5625rem; letter-spacing: 0.16em; color: var(--muted); }
+  .cf-net-val { font-family: var(--serif); font-size:1.125rem; font-weight: 700; color: var(--ink); }
+  .cf-net.neg .cf-net-val { color: #a8323f; }
+  @media (max-width: 520px) { .cf-four { grid-template-columns: 1fr 1fr; } .cf-grp { grid-template-columns: 30px 1fr auto; gap: 8px; } }
   /* Week variant — slightly smaller to fit the compact week card */
   .week-cashflow .cf-subrow { padding: 8px 4px; margin: 4px 0 8px; }
   .week-cashflow .cf-sub-val { font-size:0.6875rem; }
@@ -5781,7 +5796,7 @@
              letter-spacing: 0.06em; color: var(--muted); margin-left: auto;
              border: 1px solid var(--rule); border-radius: 5px; padding: 1px 6px; }
   .s-expenses .input, .section.s-expenses .textarea { background: #fff; border-color: var(--rule); }
-  #f_regularInvestment, #f_topUp {
+  #f_regularInvestment, #f_topUp, #f_directEquity, #f_globalInvest {
     background: var(--accent-soft); border-color: var(--accent-soft);
     border-left: 2px solid var(--accent);
   }
@@ -6514,6 +6529,22 @@
           <button class="plus-btn" data-calc-plus="f_topUp">+</button>
         </div>
         <div class="calc-total hidden" id="f_topUp_calc"></div>
+      </div>
+      <div class="field">
+        <label>Direct Equity <span class="sub">stocks bought directly</span></label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_directEquity" placeholder="0  or  12000+8000"></div>
+          <button class="plus-btn" data-calc-plus="f_directEquity">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_directEquity_calc"></div>
+      </div>
+      <div class="field">
+        <label>Global Investment <span class="sub">US / international funds &amp; stocks</span></label>
+        <div class="calc-row">
+          <div class="currency-wrap"><span class="currency-symbol">₹</span><input class="input" type="text" inputmode="decimal" id="f_globalInvest" placeholder="0  or  5000+5000"></div>
+          <button class="plus-btn" data-calc-plus="f_globalInvest">+</button>
+        </div>
+        <div class="calc-total hidden" id="f_globalInvest_calc"></div>
       </div>
       <div class="field">
         <label>Investment Redemption <span class="sub">amount credited to bank (if any)</span></label>
@@ -7586,8 +7617,8 @@ const supa = window.supabase.createClient(
 // CC tracking: creditCardBill is a tracking-only field — saved/displayed
 // like a money input but NEVER summed into any outflow/spend total. Its own
 // dedicated charts in Month and Year views.
-const FIELDS = ['regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','gstPayment','gstPaymentNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith'];
-const CALC_FIELDS = ['regularInvestment','topUp','investmentRedemption','food','dmart','dailyTransport','shopping','hotelStay','travel','entertainment','taxes','creditCardBill','gstPayment'];
+const FIELDS = ['regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','creditCardBill','creditCardBillNote','gstPayment','gstPaymentNote','walk','heart','reading','readingTakeaway','satisfaction','introspection','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith'];
+const CALC_FIELDS = ['regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','dmart','dailyTransport','shopping','hotelStay','travel','entertainment','taxes','creditCardBill','gstPayment'];
 const TOGGLE_FIELDS = ['reading'];
 const TEXT_FIELDS = ['foodNote','dmartNote','dailyTransportNote','shoppingNote','hotelStayNote','travelNote','entertainmentNote','taxesNote','creditCardBillNote','gstPaymentNote','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -7599,6 +7630,7 @@ const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','
 const FIELD_TO_COL = {
   regularInvestment:'regular_investment',
   topUp:'top_up',
+  directEquity:'direct_equity', globalInvest:'global_invest',   /* IV-1 */
   investmentRedemption:'investment_redemption', food:'food', foodNote:'food_note', dmart:'dmart', dmartNote:'groceries_note', dailyTransport:'daily_transport', dailyTransportNote:'transport_note', shopping:'shopping', shoppingNote:'shopping_note', hotelStay:'hotel_stay', hotelStayNote:'hotel_stay_note', travel:'travel', travelNote:'travel_note', entertainment:'entertainment', entertainmentNote:'entertainment_note', taxes:'taxes', taxesNote:'taxes_note', creditCardBill:'credit_card_bill', creditCardBillNote:'credit_card_bill_note', gstPayment:'gst_payment', gstPaymentNote:'gst_payment_note',
   walk:'walk', heart:'heart', reading:'reading', readingTakeaway:'reading_takeaway', satisfaction:'overall_satisfaction', introspection:'introspection',
   slot1:'slot1', slot2:'slot2', slot3:'slot3', slot4:'slot4', slot5:'slot5', slot6:'slot6',
@@ -9650,7 +9682,7 @@ function toast(msg) {
 // the field IDs (without 'f_' prefix) that count toward "section has content".
 const TODAY_SECTIONS = [
   { cls: 's-expenses', label: 'Investments & Expenses',
-    fields: ['regularInvestment','topUp','food','dmart','dailyTransport','aiUsage','shopping','hotelStay','hotelStayNote','travel','travelNote','other','otherNote'] },
+    fields: ['regularInvestment','topUp','directEquity','globalInvest','food','dmart','dailyTransport','aiUsage','shopping','hotelStay','hotelStayNote','travel','travelNote','other','otherNote'] },
   { cls: 's-health', label: 'Health & Mind',
     fields: ['walk','heart','reading'] },
   { cls: 's-time', label: 'The Hours',
@@ -10417,7 +10449,7 @@ function computeHubPreview(cls) {
     parseRecurring(e).forEach(r => { recTotal += num(r.amt); });
     total += recTotal;
     // Investments too (expressions welcome here as well)
-    const invest = money(e.regularInvestment) + money(e.topUp);
+    const invest = money(e.regularInvestment) + money(e.topUp) + money(e.directEquity) + money(e.globalInvest);
     if (total === 0 && invest === 0) return '';
     if (invest > 0 && total > 0) return fmtINR(invest) + ' in · ' + fmtINR(total) + ' out';
     if (invest > 0) return fmtINR(invest) + ' invested';
@@ -10683,11 +10715,14 @@ function updateExpenseFooter() {
     spent += recurringSum(currentEntry) || 0;
   }
 
-  const invested = liveVal('regularInvestment') + liveVal('topUp');
+  const invested = liveVal('regularInvestment') + liveVal('topUp') + liveVal('directEquity') + liveVal('globalInvest');
   const redemption = liveVal('investmentRedemption');
 
   spentEl.textContent = fmtINR(spent);
-  investedEl.textContent = fmtINR(invested);
+  // IV-1 (F2): on a redemption day the footer says the net, with in/out beneath.
+  investedEl.textContent = fmtINR(redemption > 0 ? invested - redemption : invested);
+  const investedLabelEl = investedEl.parentElement ? investedEl.parentElement.querySelector('.exp-footer-label') : null;
+  if (investedLabelEl) investedLabelEl.textContent = redemption > 0 ? 'Net invested' : 'Invested';
   // S1: the section header whispers today's spend (hidden at zero).
   const whisperEl = document.getElementById('expTodayWhisper');
   if (whisperEl) whisperEl.textContent = spent > 0 ? fmtINR(spent) + ' today' : '';
@@ -10702,7 +10737,7 @@ function updateExpenseFooter() {
       redNote.id = 'expFooterRedemption';
       investedItem.appendChild(redNote);
     }
-    if (redNote) redNote.textContent = fmtINR(redemption) + ' redeemed';
+    if (redNote) redNote.textContent = 'IN ' + fmtINR(invested) + ' \u00B7 OUT ' + fmtINR(redemption);
   } else if (redNote) {
     redNote.remove();
   }
@@ -10721,6 +10756,8 @@ function updateExpenseFooter() {
 const EXP_SUMMARY_SPEC = [
   { key: 'regularInvestment',    label: 'Regular Investment', group: 'invest' },
   { key: 'topUp',                label: 'Top-Up Investment',  group: 'invest' },
+  { key: 'directEquity',         label: 'Direct Equity',      group: 'invest' },
+  { key: 'globalInvest',         label: 'Global Investment',  group: 'invest' },
   { key: 'food',        label: 'Food',           note: 'foodNote',           group: 'spend' },
   { key: 'dmart',       label: 'Groceries',      note: 'dmartNote',          group: 'spend' },
   { key: 'dailyTransport',        label: 'Transport',      note: 'dailyTransportNote',           group: 'spend' },
@@ -11109,7 +11146,7 @@ function aggregateMonthly() {
       months[ym] = {
         ym, satSum: 0, satCount: 0,
         food: 0, dmart: 0, dailyTransport: 0, aiUsage: 0, shopping: 0, hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0,
-        regularInvestment: 0, topUp: 0, investmentRedemption: 0,
+        regularInvestment: 0, topUp: 0, directEquity: 0, globalInvest: 0, investmentRedemption: 0,
         recurring: 0,
         walk: 0, walkDays: 0,
         readingYes: 0, awayNights: 0, daysLogged: 0
@@ -11123,7 +11160,7 @@ function aggregateMonthly() {
       m.satSum += s; m.satCount++;
     }
     // Phase 6: include regularInvestment in aggregation (was missing)
-    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other','topUp','regularInvestment','investmentRedemption'].forEach(f => {
+    ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other','topUp','regularInvestment','directEquity','globalInvest','investmentRedemption'].forEach(f => {
       const n = evalExpr(e[f]);
       if (n !== null) m[f] += n;
     });
@@ -11161,7 +11198,7 @@ function _almMonthValue(m, metric) {
   if (metric === 'reading') return m.readingYes > 0 ? m.readingYes : null;
   if (metric === 'away') return m.awayNights > 0 ? m.awayNights : null;
   if (metric === 'invest') {
-    const inv = (Number(m.regularInvestment) || 0) + (Number(m.topUp) || 0) - (Number(m.investmentRedemption) || 0);
+    const inv = (Number(m.regularInvestment) || 0) + (Number(m.topUp) || 0) + (Number(m.directEquity) || 0) + (Number(m.globalInvest) || 0) - (Number(m.investmentRedemption) || 0);
     return inv > 0 ? inv : null;
   }
   if (metric === 'spend') {
@@ -11353,7 +11390,7 @@ function _trendsAggregateByYear(months) {
             + (m.shopping || 0) + (m.hotelStay || 0) + (m.entertainment || 0)
             + (m.taxes || 0) + (m.other || 0) + (m.recurring || 0);
     // Net invest = regular + topup - redemption (same definition as Year cash flow)
-    Y.invest += (m.regularInvestment || 0) + (m.topUp || 0) - (m.investmentRedemption || 0);
+    Y.invest += (m.regularInvestment || 0) + (m.topUp || 0) + (m.directEquity || 0) + (m.globalInvest || 0) - (m.investmentRedemption || 0);
     Y.satSum += m.satSum; Y.satCount += m.satCount;
     Y.walk += m.walk || 0; Y.walkDays += m.walkDays || 0;
     Y.readingYes += m.readingYes || 0;
@@ -11659,7 +11696,7 @@ function _recordHighestInvestMonth(months) {
   let best = null;
   months.forEach(m => {
     if (m.daysLogged < 15) return;
-    const inv = (m.regularInvestment || 0) + (m.topUp || 0) - (m.investmentRedemption || 0);
+    const inv = (m.regularInvestment || 0) + (m.topUp || 0) + (m.directEquity || 0) + (m.globalInvest || 0) - (m.investmentRedemption || 0);
     if (inv > 0 && (!best || inv > best.invest)) {
       best = { ym: m.ym, invest: inv, days: m.daysLogged };
     }
@@ -12348,7 +12385,7 @@ function renderWeek() {
   });
   const investVals = days.map(d => {
     if (!d.entry) return 0;
-    return (evalExpr(d.entry.regularInvestment) || 0) + (evalExpr(d.entry.topUp) || 0) - (evalExpr(d.entry.investmentRedemption) || 0);
+    return (evalExpr(d.entry.regularInvestment) || 0) + (evalExpr(d.entry.topUp) || 0) + (evalExpr(d.entry.directEquity) || 0) + (evalExpr(d.entry.globalInvest) || 0) - (evalExpr(d.entry.investmentRedemption) || 0);
   });
   const walkMax = Math.max(60, ...walkVals);
   const spendMax = Math.max(500, ...spendVals);
@@ -12362,6 +12399,8 @@ function renderWeek() {
   // Only consumed when totalRedemption > 0 — otherwise the sub-strip is hidden.
   const totalRegular = days.reduce((s, d) => s + (d.entry ? (evalExpr(d.entry.regularInvestment) || 0) : 0), 0);
   const totalTopUp = days.reduce((s, d) => s + (d.entry ? (evalExpr(d.entry.topUp) || 0) : 0), 0);
+  const totalEquity = days.reduce((s, d) => s + (d.entry ? (evalExpr(d.entry.directEquity) || 0) : 0), 0);
+  const totalGlobal = days.reduce((s, d) => s + (d.entry ? (evalExpr(d.entry.globalInvest) || 0) : 0), 0);
   const totalRedemption = days.reduce((s, d) => s + (d.entry ? (evalExpr(d.entry.investmentRedemption) || 0) : 0), 0);
   const satEntries = days.filter(d => d.entry?.satisfaction != null && d.entry.satisfaction !== '').map(d => Number(d.entry.satisfaction));
   const avgSat = satEntries.length ? (satEntries.reduce((a,b) => a+b, 0) / satEntries.length) : null;
@@ -12400,13 +12439,7 @@ function renderWeek() {
     }
     const dayCountLabel = daysLogged === 1 ? '1 day · daily-only' : `${daysLogged} days · daily-only`;
     // Phase 11+: build redemption sub-strip HTML (empty string when redemption = 0).
-    const subRowHtml = totalRedemption > 0
-      ? `<div class="cf-subrow">
-          <div class="cf-sub-cell"><div class="cf-sub-lbl">Regular</div><div class="cf-sub-val regular">${fmt(totalRegular)}</div></div>
-          <div class="cf-sub-cell"><div class="cf-sub-lbl">Top-Up</div><div class="cf-sub-val topup">${fmt(totalTopUp)}</div></div>
-          <div class="cf-sub-cell"><div class="cf-sub-lbl">Redeemed</div><div class="cf-sub-val redeem">&minus;${fmt(totalRedemption)}</div></div>
-        </div>`
-      : '';
+    const subRowHtml = cfLedgerHtml_({ regularInvestment: totalRegular, topUp: totalTopUp, directEquity: totalEquity, globalInvest: totalGlobal, investmentRedemption: totalRedemption }, fmt);
     html += `<div class="week-cashflow">
       <div class="week-cashflow-head">
         <span class="week-cashflow-title">Cash flow</span>
@@ -12672,7 +12705,9 @@ function renderMonthStats(monthYM, entries, dayCount) {
   );
   const investVals = entries.map(({ entry: e }) =>
     (evalExpr(e.regularInvestment) || 0) +
-    (evalExpr(e.topUp) || 0) -
+    (evalExpr(e.topUp) || 0) +
+    (evalExpr(e.directEquity) || 0) +
+    (evalExpr(e.globalInvest) || 0) -
     (evalExpr(e.investmentRedemption) || 0)
   );
 
@@ -13419,6 +13454,20 @@ function renderMonthRecurringGroupBreakdowns(monthYM, entries) {
   });
 }
 
+// IV-1 (S2): the investment ledger under a cashflow card - IN (four cells,
+// summed) over OUT (redeemed), then NET; shown whenever anything was invested
+// or redeemed in the period. A negative net (more out than in) reads red.
+function cfLedgerHtml_(c, fmt) {
+  const reg = c.regularInvestment || 0, top = c.topUp || 0, eq = c.directEquity || 0, gl = c.globalInvest || 0, out = c.investmentRedemption || 0;
+  const tin = reg + top + eq + gl; const net = tin - out;
+  if (!tin && !out) return '';
+  const cell = (l, v, cls) => `<div class="cf-sub-cell"><div class="cf-sub-lbl">${l}</div><div class="cf-sub-val ${cls}">${fmt(v)}</div></div>`;
+  return `<div class="cf-ledger">
+      <div class="cf-grp"><div class="cf-grp-lab">IN</div><div class="cf-four">${cell('Regular', reg, 'regular')}${cell('Top-Up', top, 'topup')}${cell('Equity', eq, 'equity')}${cell('Global', gl, 'global')}</div><div class="cf-grp-sum">${fmt(tin)}</div></div>
+      <div class="cf-grp out"><div class="cf-grp-lab">OUT</div><div class="cf-four">${cell('Redeemed', out, 'redeem')}</div><div class="cf-grp-sum">&minus;${fmt(out)}</div></div>
+      <div class="cf-net${net < 0 ? ' neg' : ''}"><span class="cf-net-lab">NET INVESTED</span><span class="cf-net-val">${net < 0 ? '&minus;' : ''}${fmt(Math.abs(net))}</span></div>
+    </div>`;
+}
 function renderMonthCashFlow(monthYM, totalInvest, totalSpendDaily, dayCount, components) {
   const wrap = document.getElementById('monthCashFlow');
   if (!wrap) return;
@@ -13466,14 +13515,7 @@ function renderMonthCashFlow(monthYM, totalInvest, totalSpendDaily, dayCount, co
 
   const dayLabel = dayCount === 1 ? '1 day logged' : `${dayCount} days logged`;
   // Phase 11+: redemption sub-strip (hidden when no redemption logged for this month).
-  const redemption = (components && components.investmentRedemption) || 0;
-  const subRowHtml = redemption > 0
-    ? `<div class="cf-subrow">
-        <div class="cf-sub-cell"><div class="cf-sub-lbl">Regular</div><div class="cf-sub-val regular">${fmt(components.regularInvestment || 0)}</div></div>
-        <div class="cf-sub-cell"><div class="cf-sub-lbl">Top-Up</div><div class="cf-sub-val topup">${fmt(components.topUp || 0)}</div></div>
-        <div class="cf-sub-cell"><div class="cf-sub-lbl">Redeemed</div><div class="cf-sub-val redeem">&minus;${fmt(redemption)}</div></div>
-      </div>`
-    : '';
+  const subRowHtml = cfLedgerHtml_(components || {}, fmt);
 
   wrap.innerHTML = `<div class="month-cashflow">
     <div class="month-cashflow-head">
@@ -14558,7 +14600,7 @@ function renderMonth() {
   const datesInMonth = Object.keys(allEntries).filter(d => d.startsWith(monthCursor)).sort();
   const entries = datesInMonth.map(d => ({ date: d, entry: allEntries[d] }));
 
-  const totals = { regularInvestment:0, topUp:0, investmentRedemption:0, food:0, dmart:0, dailyTransport:0, aiUsage:0, shopping:0, hotelStay:0, travel:0, entertainment:0, taxes:0, other:0, creditCardBill:0, creditCardBillCount:0, walkSum:0, walkCount:0, heartSum:0, heartCount:0, satSum:0, satCount:0, readingYes:0, introspectionYes:0 };
+  const totals = { regularInvestment:0, topUp:0, directEquity:0, globalInvest:0, investmentRedemption:0, food:0, dmart:0, dailyTransport:0, aiUsage:0, shopping:0, hotelStay:0, travel:0, entertainment:0, taxes:0, other:0, creditCardBill:0, creditCardBillCount:0, walkSum:0, walkCount:0, heartSum:0, heartCount:0, satSum:0, satCount:0, readingYes:0, introspectionYes:0 };
   // CC tracking: per-day CC payments, NOT summed into any outflow total.
   // Stored on totals for the dedicated chart card below.
   const ccDaily = {}; // {dateIso: amount}
@@ -14566,7 +14608,7 @@ function renderMonth() {
     // Ship 3b: explicit field list — includes virtual derived fields
     // (aiUsage, other) since they're no longer in CALC_FIELDS but ARE
     // populated on the entry by deriveOtherFields().
-    ['regularInvestment','topUp','investmentRedemption','food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(f => {
+    ['regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(f => {
       const n = evalExpr(e[f]);
       if (n !== null) totals[f] += n;
     });
@@ -14592,7 +14634,7 @@ function renderMonth() {
   const fmt = n => Math.round(n).toLocaleString('en-IN');
   const totalSpend = totals.food + totals.dmart + totals.dailyTransport + totals.aiUsage + totals.shopping + totals.hotelStay + totals.travel + totals.entertainment + totals.taxes + totals.other;
   // Phase 9: total invested across the month = regular + top-up
-  const totalInvest = totals.regularInvestment + totals.topUp - (totals.investmentRedemption || 0);
+  const totalInvest = totals.regularInvestment + totals.topUp + totals.directEquity + totals.globalInvest - (totals.investmentRedemption || 0);
 
   // Render daily charts (satisfaction / spend / walk) at the top
   renderMonthCharts(monthCursor, entries);
@@ -14605,7 +14647,7 @@ function renderMonth() {
   renderHeatmap();
   // Phase 9: render cash-flow snapshot. Pulls recurring totals from cache;
   // re-rendered below if recurring actuals fetch lands later.
-  renderMonthCashFlow(monthCursor, totalInvest, totalSpend, entries.length, { regularInvestment: totals.regularInvestment, topUp: totals.topUp, investmentRedemption: totals.investmentRedemption });
+  renderMonthCashFlow(monthCursor, totalInvest, totalSpend, entries.length, { regularInvestment: totals.regularInvestment, topUp: totals.topUp, directEquity: totals.directEquity, globalInvest: totals.globalInvest, investmentRedemption: totals.investmentRedemption });
 
   // Phase 9: Outflow breakdown card — same async-render pattern as totals
   // grid + cash-flow card. Reads recurring byGroup from cached recT;
@@ -14988,16 +15030,22 @@ function renderYear() {
     shopping: 0, hotelStay: 0, travel: 0, entertainment: 0, taxes: 0, other: 0,
   };
   // Phase 11+: per-component aggregates for redemption sub-strip (sum across the year)
-  let yearTotalRegular = 0, yearTotalTopUp = 0, yearTotalRedemption = 0;
+  let yearTotalRegular = 0, yearTotalTopUp = 0, yearTotalEquity = 0, yearTotalGlobal = 0, yearTotalRedemption = 0;
   yearEntries.forEach(({ entry: e }) => {
     const ri = evalExpr(e.regularInvestment);
     const tu = evalExpr(e.topUp);
+    const de = evalExpr(e.directEquity);
+    const gi = evalExpr(e.globalInvest);
     const ird = evalExpr(e.investmentRedemption);
     if (ri !== null) totalInvest += ri;
     if (tu !== null) totalInvest += tu;
+    if (de !== null) totalInvest += de;
+    if (gi !== null) totalInvest += gi;
     if (ird !== null) totalInvest -= ird;
     if (ri !== null) yearTotalRegular += ri;
     if (tu !== null) yearTotalTopUp += tu;
+    if (de !== null) yearTotalEquity += de;
+    if (gi !== null) yearTotalGlobal += gi;
     if (ird !== null) yearTotalRedemption += ird;
     // Phase 9: include aiUsage, shopping, hotelStay in year-level daily-spend total
     ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'].forEach(field => {
@@ -15105,13 +15153,7 @@ function renderYear() {
       netHtml = `<div class="year-cf-net">Balanced<strong>${fmt(totalInvest)}</strong>invest matches spend</div>`;
     }
     // Phase 11+: redemption sub-strip (hidden when no redemption logged this year).
-    const subRowHtml = yearTotalRedemption > 0
-      ? `<div class="cf-subrow">
-          <div class="cf-sub-cell"><div class="cf-sub-lbl">Regular</div><div class="cf-sub-val regular">${fmt(yearTotalRegular)}</div></div>
-          <div class="cf-sub-cell"><div class="cf-sub-lbl">Top-Up</div><div class="cf-sub-val topup">${fmt(yearTotalTopUp)}</div></div>
-          <div class="cf-sub-cell"><div class="cf-sub-lbl">Redeemed</div><div class="cf-sub-val redeem">&minus;${fmt(yearTotalRedemption)}</div></div>
-        </div>`
-      : '';
+    const subRowHtml = cfLedgerHtml_({ regularInvestment: yearTotalRegular, topUp: yearTotalTopUp, directEquity: yearTotalEquity, globalInvest: yearTotalGlobal, investmentRedemption: yearTotalRedemption }, fmt);
     html += `<div class="year-card">
       <div class="year-card-head">
         <span class="year-card-title">${escHtml(yearCursor)} cash flow</span>
@@ -15400,7 +15442,7 @@ const CSV_HEADERS = [
 // Final two columns: Overall Satisfaction + Introspection — moved to the
 // end so reflective/qualitative fields read as the closing summary of each
 // day's row.
-const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection'];
+const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection'];
 
 // Ship 4: headers for the second CSV (one row per Other item).
 const CSV_OTHER_ITEMS_HEADERS = ['Date','Item Name','Amount'];
@@ -15854,9 +15896,13 @@ function computePdfYearSummary(yearStr, byMonth) {
     monthlySpend[m].days++;
     const ri = evalExpr(e.regularInvestment);
     const tu = evalExpr(e.topUp);
+    const de = evalExpr(e.directEquity);
+    const gi = evalExpr(e.globalInvest);
     const ird = evalExpr(e.investmentRedemption);
     if (ri !== null) totalInvest += ri;
     if (tu !== null) totalInvest += tu;
+    if (de !== null) totalInvest += de;
+    if (gi !== null) totalInvest += gi;
     if (ird !== null) totalInvest -= ird;
     // Phase 11+: sum ALL 9 expense categories (previous version only summed
     // food/dmart/dailyTransport/other — 5 categories missing, which caused the Year
@@ -16426,7 +16472,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   const OTHER_ENV_TAG = { official:'P0', home:'P1', health:'P3', lifestyle:'P5', misc:'MISC' };
 
   const invRows = [];
-  [['regularInvestment','Regular Investment'],['topUp','Top-Up Investment']].forEach(([k, l]) => {
+  [['regularInvestment','Regular Investment'],['topUp','Top-Up Investment'],['directEquity','Direct Equity'],['globalInvest','Global Investment']].forEach(([k, l]) => {
     const v = evx(k); if (v > 0) invRows.push({ label: l, amt: v });
   });
   const redeem = evx('investmentRedemption');

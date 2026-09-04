@@ -141,13 +141,34 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**IV-1: four ways in, one way out (F2 + S2)** (4 Sep 2026): My
+Day's Investments gain Direct Equity (directEquity/direct_equity)
+and Global Investment (globalInvest/global_invest) between Top-Up
+and Redemption - same lavender family, same + calculator. Law:
+NET = Regular + Top-Up + Equity + Global - Redemption, extended in
+ONE asserted sweep across every site: FIELDS, CALC_FIELDS, the
+column map, CSV order, the summary spec, the section field list,
+the past-day receipt rows, the footer, the month rollup
+(twice), the year loop (twice), the week/month/year component
+sums and the cashflow callers (eleven formulas; a regex proves no
+2-term formula survives). S2: the three-cell redemption strip
+retires for one shared cfLedgerHtml_ - IN (four cells, summed)
+over OUT (redeemed) then NET INVESTED (red when negative), shown
+whenever the period invested OR redeemed (was: only on
+redemption). F2: the day footer reads 'Net invested' with 'IN x -
+OUT y' beneath on a redemption day, plain 'Invested' otherwise.
+migrate_invest.sql adds the two text columns (old rows read 0) -
+PENDING Rahul runs it once. Harness: ledger in/out/net/5 cells,
+negative red, empty hides, invest-only shows; formula sweep.
+
 **C2 + V1/ALL** (4 Sep 2026): the ring's caption '118 DAYS LEFT' is
 ink (#182233) - the ring's second fact at the 68%'s weight (ember
 C3 lasted an hour). My Why's section bar: every chip is FILLED AT
 REST (its --t-bg paper, own ink, opacity 1) and SOLID WHEN CHOSEN
 (--t-acc fill, white text); the decisions chip leaves petrol for
 the Library blue (#d9e5f5 / #2f5187). The other five chips keep
-their own colours under the new rule.
+their own colours under the new rule. The 'New decision' button
+(.pl-addbtn.dc-rust) wears the same solid blue (#2f5187).
 
 **HUB 2.3 (C3 + the review)** (4 Sep 2026): (the 1080px cap was
 built then CANCELLED by Rahul - the door keeps the full width;) '118 DAYS LEFT' in ember #a8323f; the right-edge pulse was built then CANCELLED by Rahul - pulses
