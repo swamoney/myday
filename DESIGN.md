@@ -141,6 +141,21 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-H: pending decisions hang (H1 + 1)** (4 Sep 2026): the desk's
+flat rows retire; open decisions hang from a wooden RAIL (.dc-rail)
+as parchment TAGS (.dc-tag: string, hole, alternating +-1.3deg
+tilt, hover levels) each stamped DECISION PENDING in rust at the
+corner; beneath the name a rust progress bar 'n / total' and the
+target date as a chip in today's exact fill (#f4c430 gold, dark
+ink; #a8323f red once the date has passed; NO chip when unset).
+Rahul: no days-left countdown anywhere. Phones (+1): one tag per
+row. The trail keeps its rows; print/.md lists untouched. The old
+.dc-target / .dc-pending clothes retired to zero refs. Harness:
+rail + 3 tags + 3 stamps, progress 1/2 = 50%, gold chip, late chip
+red, unset = no chip, trail kept, tap opens.
+
+**DC-S1** (4 Sep 2026): Rahul - stickies should be the Whiteboard's size; .tb-st now 330px x 466px min, 20/22/30 padding, Caveat 1.5rem title, 0.84rem body (the 150px 'small' idea retired); the add tile stays a modest 120px.
+
 **DC-S: the thinking board** (4 Sep 2026): the Whiteboard's
 stickies as a shared kit - stickies.js (MyBoard: init / mount
 {host, scope, title, readOnly} / setReadOnly / notesFor /

@@ -589,12 +589,6 @@
               display:inline-flex; align-items:center; justify-content:center; }
   .dc-tickd svg { width:9px; height:9px; }
   .dc-card .dc-dnut svg { width:34px; height:34px; display:block; }
-  .dc-target { font-family:var(--mono); font-size:0.5938rem; font-weight:700; background:#f4c430;
-               color:#1d2d4d; border-radius:7px; padding:5px 10px; flex-shrink:0; }
-  /* P2 (Aug 2026): a dream can wait sweetly; a pending decision is a debt. */
-  .dc-pending { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
-                text-transform:uppercase; background:#a8323f; color:#fff; border-radius:6px;
-                padding:4px 10px; flex-shrink:0; }
   .dc-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(30,40,60,0.10); }
   .dc-card .t { font-family:var(--serif); font-size:1rem; font-weight:600; color:#232f45; flex:1; min-width:0; overflow-wrap:anywhere; }
     /* C3 (Aug 2026): the donut carries ring, count, and progress in one organ. */
@@ -1203,6 +1197,32 @@
   .mdf-tools .mdf-sz { background:#2F6B8A; }
   .mdf-tools .mdf-al { background:#5F7355; }
   /* DC-S: the thinking board - the Whiteboard's stickies, small, on a checklist page */
+  /* DC-H: the rail and the hanging tags (H1); one tag per row on phones (+1) */
+  .dc-rail { position:relative; height:10px; margin:6px 6px 0; border-top:3px solid #a68a6a; border-radius:2px; }
+  .dc-rail::before, .dc-rail::after { content:''; position:absolute; top:-9px; width:9px; height:9px; border-radius:50%; background:#7a5f43; }
+  .dc-rail::before { left:-3px; } .dc-rail::after { right:-3px; }
+  .dc-hang { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; padding:0 10px 6px; }
+  .dc-tag { position:relative; width:200px; margin-top:26px; cursor:pointer; }
+  .dc-tag .string { position:absolute; left:50%; top:-26px; width:2px; height:34px; background:#8a6a4a; }
+  .dc-tag .card { position:relative; background:linear-gradient(180deg,#fbf6ec,#f3ead9); border:1px solid #e0d2ba; border-radius:6px 6px 10px 10px;
+                  padding:26px 14px 14px; box-shadow:0 10px 18px rgba(30,40,60,0.14); transform-origin:top center; transition:transform .15s; }
+  .dc-tag:nth-child(odd) .card { transform:rotate(-1.4deg); } .dc-tag:nth-child(even) .card { transform:rotate(1.2deg); }
+  .dc-tag:hover .card { transform:rotate(0) translateY(-2px); }
+  .dc-tag .hole { position:absolute; top:9px; left:50%; transform:translateX(-50%); width:11px; height:11px; border-radius:50%; background:#e2e8f2; box-shadow:inset 0 1px 2px rgba(0,0,0,0.35); }
+  .dc-tag .stamp { position:absolute; top:12px; right:-8px; transform:rotate(8deg); font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.16em;
+                   color:#9a4a2e; border:2px solid #9a4a2e; border-radius:4px; padding:3px 7px; opacity:0.85; background:rgba(251,246,236,0.7); }
+  .dc-tag .t { font-family:var(--serif); font-size:1.0625rem; font-weight:600; color:#232f45; line-height:1.2; margin:6px 0 10px; overflow-wrap:anywhere; }
+  .dc-tag .prog { display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.1em; color:#8a7a68; }
+  .dc-tag .prog i { flex:1; height:4px; border-radius:2px; background:#e6dccb; overflow:hidden; display:block; }
+  .dc-tag .prog i b { display:block; height:100%; background:#9a4a2e; }
+  .dc-tag .chips { margin-top:10px; min-height:4px; }
+  .dc-tag .chip { display:inline-block; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.06em; color:#1d2d4d; background:#f4c430; border-radius:7px; padding:4px 10px; }
+  .dc-tag .chip.late { background:#a8323f; color:#fff; }
+  @media (max-width:560px) {
+    .dc-hang { gap:14px; padding:0 4px 6px; }
+    .dc-tag { width:100%; margin-top:22px; }
+    .dc-tag .string { top:-22px; height:30px; }
+  }
   .tb-host { margin:4px 0 14px; }
   .tb-host.tb-empty { display:none; }
   .tb-h { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em; color:#8a7a68; margin:10px 0 8px; display:flex; align-items:baseline; gap:10px; }
@@ -5621,14 +5641,21 @@ function dcFmt_(d) {
 function renderDecisions() {
   const desk = dcRows.filter(d => d.status !== 'trail');
   const trail = dcRows.filter(d => d.status === 'trail');
-  el('dcDeskList').innerHTML = desk.map(d => {
-    const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
-    const pct = total ? Math.round(n / total * 100) : 0;
-    return '<div class="dc-card" data-dc="' + d.id + '">' + dcDonut_(n, total)
-      + '<span class="t">' + escHtml(d.title) + '</span>'
-      + '<span class="rowdeck"><span class="dc-pending">Decision Pending</span>'
-      + (d.target_on ? '<span class="dc-target">BY ' + dcFmt_(d.target_on) + '</span>' : '') + '</span></div>';
-  }).join('') || '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
+  // DC-H (H1 + 1): open decisions HANG from a rail as parchment tags - the shape says pending.
+  const today = new Date().toISOString().slice(0, 10);
+  el('dcDeskList').innerHTML = desk.length
+    ? '<div class="dc-rail"></div><div class="dc-hang">' + desk.map(d => {
+        const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
+        const pct = total ? Math.round(n / total * 100) : 0;
+        const late = d.target_on && d.target_on < today;
+        return '<div class="dc-tag" data-dc="' + d.id + '"><span class="string"></span>' +
+          '<div class="card"><span class="hole"></span><span class="stamp">DECISION PENDING</span>' +
+          '<div class="t">' + escHtml(d.title) + '</div>' +
+          '<div class="prog">' + n + ' / ' + total + '<i><b style="width:' + pct + '%;"></b></i></div>' +
+          '<div class="chips">' + (d.target_on ? '<span class="chip' + (late ? ' late' : '') + '">BY ' + escHtml(String(dcFmt_(d.target_on)).toUpperCase()) + '</span>' : '') + '</div>' +
+          '</div></div>';
+      }).join('') + '</div>'
+    : '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
   el('dcTrailList').innerHTML = trail.map(d =>
     '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + '" data-dc="' + d.id + '">'
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
