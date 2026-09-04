@@ -107,12 +107,10 @@
   .end-actions #signOutBtn:hover { color:#a8443e; }
 
   /* Banner grid: Daily spans the full row, the other four sit in a row of four. */
-  .cards { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
-  /* The feature card is child 1 and spans both columns, so the rooms start at
+/* The feature card is child 1 and spans both columns, so the rooms start at
      child 2. An odd number of rooms therefore ends on an even child — that one
      stretches across instead of sitting alone. Works for any number, forever. */
-  .cards > .card:not(.feat):last-child:nth-child(even) { grid-column:1 / -1; }
-  /* GD-1: the keep block - two gauges above the buttons */
+/* GD-1: the keep block - two gauges above the buttons */
   .keep { text-align:left; max-width:420px; margin:0 auto 12px; border-top:1px dotted #cdd5e0; padding-top:12px; }
   .keep-h { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; font-weight:600; letter-spacing:0.16em; color:#68789a; margin-bottom:8px; }
   .keep-l { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; font-weight:600; letter-spacing:0.1em; color:#68789a; display:flex; }
@@ -126,70 +124,67 @@
   .backup-age { font-family:'IBM Plex Mono',monospace; font-size:0.5625rem; letter-spacing:0.05em; color:#56607A; margin-top:7px; }
   .backup-age.warn { color:#b8860b; font-weight:600; }
   .backup-age:empty { display:none; }
-  @media (max-width:560px){ .cards { grid-template-columns:1fr; } }
-  .card {
-    border:1px solid transparent; border-radius:22px; padding:26px 24px;   /* H4: no line — shadow only */
-    background:rgba(255,255,255,0.78); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
-    display:flex; flex-direction:column; gap:10px; cursor:pointer;
-    transition:transform .12s, box-shadow .18s, border-color .18s;
-    position:relative; min-height:200px; box-shadow:0 10px 26px rgba(30,50,90,0.10);
-  }
-  .card:hover { transform:translateY(-2px); box-shadow:0 16px 34px rgba(30,50,90,0.14); }
-  .card:active { transform:translateY(0) scale(0.995); }
 
-  /* Daily feature banner — spans all four columns, horizontal, navy. */
-  .card.feat { grid-column:1 / -1; flex-direction:row; align-items:center; gap:22px; min-height:auto; padding:26px 30px;
-    background:linear-gradient(125deg,#232f52 0%,#141d38 100%); border:none; border-radius:22px; box-shadow:0 16px 38px rgba(12,20,45,0.32); }
-  .card.feat:hover { transform:translateY(-2px); box-shadow:0 18px 40px rgba(20,40,80,0.32); border:none; }
-  .card.feat .feat-txt { display:flex; flex-direction:column; gap:3px; }
-  .card.feat .feat-status { margin-left:auto; display:flex; align-items:center; gap:16px; padding-right:6px; }
-  .card.feat .feat-status-txt { text-align:right; border-right:2px solid rgba(244,196,48,0.65); padding-right:15px; }
-  .card.feat .feat-label { font-family:var(--sans); font-size:0.5312rem; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#f4c430; margin-bottom:6px; }
-  .card.feat .feat-date { font-family:var(--sans); font-size:1.125rem; font-weight:600; line-height:1.1; color:#fff; }
-  .card.feat .feat-day { font-family:var(--sans); font-size:0.6875rem; font-weight:400; color:rgba(255,255,255,0.78); margin-top:6px; }
-  .card.feat .feat-remain { display:inline-block; background:#f4c430; color:#1d2d4d; font-weight:600; padding:3px 9px; border-radius:6px; margin-top:5px; }
-  /* O2: grid and number side by side - the block sits inside the row's height. */
-  .feat-sym { flex-shrink:0; display:flex; align-items:center; gap:12px; }
-  .feat-sym-col { display:flex; flex-direction:column; align-items:center; gap:2px; }
-  .feat-months { display:grid; grid-template-columns:repeat(4,13px); gap:4px; }
-  .feat-months i { width:13px; height:13px; border-radius:4px; background:rgba(255,255,255,0.14); }
-  .feat-months i.f { background:#9B8CF2; }
-  .feat-months i.h { background:linear-gradient(90deg,#9B8CF2 var(--f,50%), rgba(255,255,255,0.14) 0); }
-  .feat-sym-pct { font-family:var(--sans); font-size:1.25rem; font-weight:700; letter-spacing:0.06em; color:#fff; margin-top:1px; }
-  .feat-sym-cap { font-family:var(--sans); font-size:0.4688rem; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#CFC6FA; margin-top:1px; max-width:64px; text-align:center; }
-  @media (max-width:520px){
-    .card.feat .feat-status { margin-left:0; width:100%; justify-content:space-between; padding-right:0; margin-top:4px; }
-    .card.feat .feat-status-txt { text-align:left; border-right:none; border-left:2px solid rgba(244,196,48,0.65); padding-right:0; padding-left:13px; }
-  }
-  .card.feat .c-title { color:#fff; font-size:1.625rem; }
-  .card.feat .c-desc { color:rgba(255,255,255,0.82); font-size:0.8438rem; margin-top:2px; }
-  .card.feat .c-ic { width:58px; height:58px; font-size:1.6875rem; border-radius:15px; background:rgba(255,255,255,0.16); color:#fff; flex-shrink:0; }
-  .card.feat .c-go { color:rgba(255,255,255,0.6); }
-  @media (max-width:480px){ .card.feat { flex-direction:column; align-items:flex-start; } }
+/* Daily feature banner — spans all four columns, horizontal, navy. */
 
-  .c-ic { width:52px; height:52px; border-radius:15px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-family:var(--serif); }
-  .c-ic svg { width:1.5rem; height:1.5rem; }   /* every room icon is drawn, not an OS glyph */
-  .c-title { font-family:var(--serif); font-size:1.375rem; font-weight:600; color:#182233; line-height:1.15; padding-right:20px; }
-  .c-desc { font-size:0.8125rem; color:#3D4866; line-height:1.45; }   /* was #6a7690 — 4.26:1, under the 4.5:1 minimum */
-  .c-go { position:absolute; top:16px; right:18px; font-size:0.9375rem; color:#5F6B85; }
-  .card:hover .c-go { color:#5a6a88; }
+
+
+
+/* O2: grid and number side by side - the block sits inside the row's height. */
+
+
+
+
+   /* every room icon is drawn, not an OS glyph */
+   /* was #6a7690 — 4.26:1, under the 4.5:1 minimum */
+
 
   /* Each room card is tinted with that room's own paper, so the hub previews
      what it opens: My Why bronze, Favourites teal, Wisdom blue, Inner Life plum. */
-  .shade-money { background:linear-gradient(160deg,#fdf7e9,#f3e6cb); }
-  .shade-wis   { background:linear-gradient(160deg,#eff5fd,#dae8f7); }
-  .shade-wealth{ background:linear-gradient(160deg,#f0f7f1,#e3efe4); }
-  .shade-intro { background:linear-gradient(160deg,#f9f4fa,#eadfec); }
 
-  .ic-daily  { background:#eaeff6; color:#2b4a72; }
-  .ic-money  { background:#efdfbe; color:#7d6427; }   /* Favourites — teal */
-  .ic-wisdom { background:#cfe1f6; color:#2f5187; }   /* Wisdom — deeper blue, clear of the page */
-  .ic-wealth { background:#cfe6d3; color:#2b5f3a; }   /* Wealth — green, 32 degrees clear of the nearest */
-  .ic-intro  { background:#e3d5e7; color:#63496b; }   /* Inner Life — plum */
+
+   /* Favourites — teal */
+/* Wisdom — deeper blue, clear of the page */
+/* Wealth — green, 32 degrees clear of the nearest */
+/* Inner Life — plum */
 
   /* Richer footer — divider, larger serif, bolder rainbow. */
   /* Footer F-A — light glass card, content constrained to a centered island. */
   /* C2: the creed speaks from the page itself - a benediction, not a widget. */
+  /* HUB 2.0 (B2-N + Y1): the day card, the knock line, the spine */
+  .hub-day { margin:8px 0 6px; }
+  .dayn { display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center; background:#fff; border:1px solid #dfe5ee; border-radius:16px;
+          padding:18px 130px 18px 22px; position:relative; overflow:hidden; text-decoration:none; color:inherit; cursor:pointer; }
+  .dayn:hover { border-color:#c9d3e2; }
+  .dayn .num { font-family:'Fraunces',Georgia,serif; font-size:2.75rem; font-weight:700; color:#182233; line-height:1; }
+  .dayn .num small { display:block; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.18em; color:#8a97b3; font-weight:400; margin-bottom:2px; }
+  .dayn .mid .t { font-family:'Fraunces',Georgia,serif; font-size:1.1875rem; font-weight:700; color:#182233; }
+  .dayn .mid .s { font-size:0.75rem; color:#3D4866; margin-top:2px; }
+  .dayn .mid .cta { display:inline-block; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; font-weight:700; letter-spacing:0.14em; background:#f4c430; color:#2a1d08; border-radius:7px; padding:6px 10px; }
+  .dayn .mid .cta.done { background:#e4efe6; color:#2f6146; }
+  .cring { position:absolute; right:-38px; top:-38px; width:150px; height:150px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+           background:conic-gradient(#7a63c6 0 var(--yr, 0%), #e6ebf2 var(--yr, 0%) 100%); }
+  .cring::before { content:''; position:absolute; inset:6px; border-radius:50%; background:#fff; }
+  .cring b { position:relative; font-family:'IBM Plex Mono',monospace; font-size:0.625rem; font-weight:700; color:#5b4a86; transform:translate(-20px, 20px); text-align:center; }
+  .cring b small { display:block; font-size:0.4375rem; letter-spacing:0.14em; color:#8a97b3; font-weight:600; margin-top:2px; }
+  .knocks { display:flex; gap:14px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.1em; color:#8a97b3; margin:8px 0 10px 4px; min-height:0; }
+  .knocks:empty { display:none; }
+  .knocks a { color:inherit; text-decoration:none; }
+  .knocks a::before, .knocks span::before { content:'\25CF'; color:#f4c430; margin-right:6px; }
+  .knocks .ask { color:#8a6d1f; font-weight:700; }
+  .spine { position:relative; padding-left:34px; margin-top:6px; }
+  .spine::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:3px; border-radius:2px; background:linear-gradient(180deg,#7a63c6 0 var(--yr, 0%), #cfd6e4 var(--yr, 0%)); }
+  .srow { display:block; position:relative; padding:14px 0 16px; border-bottom:1px dotted #cfd6e4; text-decoration:none; color:inherit; cursor:pointer; }
+  .srow:last-child { border-bottom:none; }
+  .srow .dot { position:absolute; left:-30px; top:18px; width:16px; height:16px; border-radius:50%; border:3px solid var(--bg, #eef2f7); box-shadow:0 0 0 1px #cfd6e4; }
+  .srow .n { font-family:'Fraunces',Georgia,serif; font-size:1.4375rem; font-weight:700; color:#182233; line-height:1.1; }
+  .srow .d { font-size:0.75rem; color:#3D4866; margin-top:3px; }
+  .srow .p { font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; letter-spacing:0.1em; margin-top:6px; min-height:0; }
+  .srow .p:empty { display:none; }
+  .srow .p b { font-weight:700; }
+  .srow.keeprow .n { font-size:1rem; color:#68789a; }
+  .srow:hover .n { text-decoration:underline; text-decoration-color:#cfd6e4; text-underline-offset:4px; }
+  @media (max-width:560px) { .dayn { padding-right:96px; } .cring { width:120px; height:120px; right:-34px; top:-34px; } .cring b { transform:translate(-16px, 16px); font-size:0.5625rem; } }
   .hub-foot { text-align:center; margin-top:36px; padding:0 24px; }
   .hub-foot .foot-inner { max-width:520px; margin:0 auto; }
   .hub-foot .foot-orn { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:12px; color:#c9a94a; font-size:0.75rem; }
@@ -245,54 +240,25 @@
     </div>
   </div>
 
-  <div class="cards">
-    <a class="card feat" id="cardDaily">
-      <span class="c-go">→</span>
-      <div class="c-ic ic-daily"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2.1"/></svg></div>
-      <div class="feat-txt">
-        <div class="c-title">My Day</div>
-        <div class="c-desc">Today's entry — the tracker</div>
+  <div class="hub-day" id="hubDay">
+    <a class="dayn" id="cardDaily">
+      <div class="num"><small>TODAY</small><span id="dayNum">&mdash;</span></div>
+      <div class="mid">
+        <div class="t" id="dayLine">&mdash;</div>
+        <div class="s" id="dayCount">&mdash;</div>
+        <span class="cta" id="dayCta">WRITE TODAY &rarr;</span>
       </div>
-      <div class="feat-status">
-        <div class="feat-status-txt">
-          <div class="feat-label">Today</div>
-          <div class="feat-date" id="featDate">—</div>
-          <div class="feat-day" id="featDay">—</div>
-          <div class="feat-day feat-remain" id="featRemain">—</div>
-        </div>
-        <div class="feat-sym" aria-label="Year progress">
-          <div class="feat-months" id="featMonths"></div>
-          <div class="feat-sym-col">
-            <div class="feat-sym-pct" id="featRingPct">&mdash;</div>
-            <div class="feat-sym-cap">of 2026 lived</div>
-          </div>
-        </div>
-      </div>
+      <span class="cring" id="yearRing"><b><span id="yearPct">&mdash;</span><small>OF THE YEAR</small></b></span>
     </a>
-    <a class="card shade-money" id="cardMoney">
-      <span class="c-go">→</span>
-      <div class="c-ic ic-money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16 8 13.5 13.5 8 16 10.5 10.5 16 8"/></svg></div>
-      <div class="c-title">My Why</div>
-      <div class="c-desc">What it&rsquo;s all for</div>
-    </a>
-    <a class="card shade-intro" id="cardIntro">
-      <span class="c-go">→</span>
-      <div class="c-ic ic-intro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg></div>
-      <div class="c-title">My Inner Life</div>
-      <div class="c-desc">Reflections gathered, gratitude kept.</div>
-    </a>
-    <a class="card shade-wealth" id="cardWealth">
-      <span class="c-go">&rarr;</span>
-      <div class="c-ic ic-wealth"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20V10"/><path d="M9 20V4"/><path d="M15 20v-7"/><path d="M21 20V7"/></svg></div>
-      <div class="c-title">My Wealth</div>
-      <div class="c-desc">What I have put in, and how it grew</div>
-    </a>
-    <a class="card shade-wis" id="cardFav">
-      <span class="c-go">→</span>
-      <div class="c-ic ic-wisdom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M16 6a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2z"/><path d="M9 18a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/></svg></div>
-      <div class="c-title">My Library</div>
-      <div class="c-desc">Music, podcasts, books &amp; more</div>
-    </a>
+    <div class="knocks" id="hubKnocks"></div>
+  </div>
+
+  <div class="spine" id="hubSpine">
+    <a class="srow" id="cardMoney"><span class="dot" style="background:#e6c34a;"></span><div class="n">My Why</div><div class="d">What it&rsquo;s all for</div><div class="p" id="pulseWhy" style="color:#8a6d1f;"></div></a>
+    <a class="srow" id="cardIntro"><span class="dot" style="background:#b565c7;"></span><div class="n">My Inner Life</div><div class="d">Reflections gathered, gratitude kept.</div><div class="p" id="pulseInner" style="color:#6D4E66;"></div></a>
+    <a class="srow" id="cardWealth"><span class="dot" style="background:#5aab6a;"></span><div class="n">My Wealth</div><div class="d">What I have put in, and how it grew</div><div class="p" id="pulseWealth" style="color:#5F7355;"></div></a>
+    <a class="srow" id="cardFav"><span class="dot" style="background:#4a86c8;"></span><div class="n">My Library</div><div class="d">Music, podcasts, books &amp; more</div><div class="p" id="pulseLib" style="color:#2f5187;"></div></a>
+    <a class="srow keeprow" href="#keep"><span class="dot" style="background:#8a97b3;"></span><div class="n">Keep &middot; words &amp; album</div><div class="p" id="pulseKeep" style="color:#8a97b3;"></div></a>
   </div>
 
   <div class="hub-foot">
@@ -416,7 +382,8 @@ async function renderHubDots(session) {
 // Runs once the hub is visible: fills the greeting + Daily banner status.
 function onEnter() {
   updateGreeting();
-  updateDailyStatus();
+  paintDayCard();
+  refreshPulses();
 }
 
 // Time-aware greeting — weekday + part of day.
@@ -429,42 +396,137 @@ function updateGreeting() {
   if (g) g.textContent = days[now.getDay()] + ' · ' + part;
 }
 
-// Daily banner — today's date + day-of-year progress + ring.
-function updateDailyStatus() {
+// HUB 2.0: the day card - the calendar alone paints it; one lookup decides the call.
+function paintDayCard() {
   const now = new Date();
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const dateStr = days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()] + ' ' + now.getFullYear();
   const y = now.getFullYear();
-  const startOfYear = new Date(y, 0, 1);
-  const dayOfYear = Math.floor((now - startOfYear) / 86400000) + 1;
+  const dayOfYear = Math.floor((now - new Date(y, 0, 1)) / 86400000) + 1;
   const isLeap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
-  const totalDays = isLeap ? 366 : 365;
-  const pct = Math.round((dayOfYear / totalDays) * 100);
-  const dEl = el('featDate'); if (dEl) dEl.textContent = dateStr;
-  const dyEl = el('featDay'); if (dyEl) dyEl.textContent = 'Day ' + dayOfYear + ' of ' + totalDays;
-  const remain = totalDays - dayOfYear;
-  const capEl = document.querySelector('.feat-sym-cap');
-  if (capEl) capEl.textContent = 'of ' + y + ' lived';
-  const rmEl = el('featRemain');
-  if (rmEl) rmEl.textContent = remain + (remain === 1 ? ' day remains' : ' days remain');
-  const pctEl = el('featRingPct'); if (pctEl) pctEl.textContent = pct + '%';
-  // S4: twelve month-cells — past months filled, the current one part-filled
-  // by day-of-month, the rest waiting as ghosts.
-  const mw = el('featMonths');
-  if (mw) {
-    const mIdx = now.getMonth();
-    const daysInMonth = new Date(y, mIdx + 1, 0).getDate();
-    const monthFrac = Math.round((now.getDate() / daysInMonth) * 100);
-    let cells = '';
-    for (let i = 0; i < 12; i++) {
-      if (i < mIdx) cells += '<i class="f"></i>';
-      else if (i === mIdx) cells += '<i class="h" style="--f:' + monthFrac + '%"></i>';
-      else cells += '<i></i>';
-    }
-    mw.innerHTML = cells;
-  }
+  const total = isLeap ? 366 : 365;
+  const pct = Math.round((dayOfYear / total) * 100);
+  const remain = total - dayOfYear;
+  const set = (id, t) => { const e = el(id); if (e) e.textContent = t; };
+  set('dayNum', String(now.getDate()));
+  set('dayLine', months[now.getMonth()] + ' ' + y + ' \u00B7 ' + days[now.getDay()]);
+  set('dayCount', 'Day ' + dayOfYear + ' of ' + total + ' \u00B7 ' + remain + (remain === 1 ? ' remains' : ' remain'));
+  set('yearPct', pct + '%');
+  document.documentElement.style.setProperty('--yr', pct + '%');
 }
+const PULSE_TTL = 10 * 60 * 1000;
+function _pulseCache(read, val) {
+  try {
+    if (read) { const r = JSON.parse(sessionStorage.getItem('myday_hub_pulse') || 'null'); return (r && Date.now() - r.at < PULSE_TTL) ? r.v : null; }
+    sessionStorage.setItem('myday_hub_pulse', JSON.stringify({ at: Date.now(), v: val }));
+  } catch (e) { return null; }
+}
+function _dayWord(iso) {
+  if (!iso) return '';
+  const d = new Date(iso); if (isNaN(d)) return '';
+  const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const diff = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (diff <= 0) return 'TODAY';
+  if (diff === 1) return 'YESTERDAY';
+  if (diff < 7) return days[d.getDay()];
+  const mon = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return d.getDate() + ' ' + mon[d.getMonth()] + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : '');
+}
+function _esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+async function loadPulses(uid) {
+  const today = new Date().toISOString().slice(0, 10);
+  const q = async (fn) => { try { const r = await fn(); return r && !r.error ? r : null; } catch (e) { return null; } };
+  const v = {};
+  // the day: does today's row exist?
+  const e = await q(() => supa.from('entries').select('updated_at').eq('user_id', uid).eq('entry_date', today).limit(1));
+  v.dayWritten = !!(e && e.data && e.data.length); v.dayAt = v.dayWritten ? (e.data[0].updated_at || '') : '';
+  // why: decisions pending + nearest planned dream
+  const dc = await q(() => supa.from('why_decisions').select('id, title, target_on, status').eq('user_id', uid).neq('status', 'trail'));
+  v.pending = dc ? (dc.data || []).length : null;
+  v.decideBy = null;
+  if (dc) (dc.data || []).forEach(r => { if (r.target_on && r.target_on >= today) { const dd = Math.round((new Date(r.target_on) - new Date(today)) / 86400000); if (dd <= 30 && (!v.decideBy || dd < v.decideBy.days)) v.decideBy = { days: dd, title: r.title, on: r.target_on }; } });
+  const bk = await q(() => supa.from('bucket_items').select('planned_on, status').eq('user_id', uid).neq('status', 'done').not('planned_on', 'is', null).gte('planned_on', today).order('planned_on', { ascending: true }).limit(1));
+  v.dream = bk && bk.data && bk.data.length ? Math.round((new Date(bk.data[0].planned_on) - new Date(today)) / 86400000) : null;
+  // inner life: last wrote, last trip
+  const iw = await q(() => supa.from('iw_entries').select('updated_at').eq('user_id', uid).order('updated_at', { ascending: false }).limit(1));
+  v.lastWrote = iw && iw.data && iw.data.length ? iw.data[0].updated_at : null;
+  const tr = await q(() => supa.from('iw_entries').select('title, trip_to').eq('user_id', uid).eq('kind', 'trip').not('trip_to', 'is', null).order('trip_to', { ascending: false }).limit(1));
+  v.lastTrip = tr && tr.data && tr.data.length ? tr.data[0] : null;
+  // wealth: newest snapshot
+  const ws = await q(() => supa.from('wealth_snapshots').select('on_date').eq('user_id', uid).order('on_date', { ascending: false }).limit(1));
+  v.snap = ws && ws.data && ws.data.length ? ws.data[0].on_date : null;
+  // library: books, wisdom, newest
+  const bc = await q(() => supa.from('bookmarks').select('id', { count: 'exact', head: true }).eq('user_id', uid).eq('section', 'books'));
+  const wc = await q(() => supa.from('bookmarks').select('id', { count: 'exact', head: true }).eq('user_id', uid).eq('section', 'wisdom'));
+  const bl = await q(() => supa.from('bookmarks').select('created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(1));
+  v.books = bc ? bc.count : null; v.wisdom = wc ? wc.count : null;
+  v.lastKept = bl && bl.data && bl.data.length ? bl.data[0].created_at : null;
+  return v;
+}
+function paintPulses(v, prefs) {
+  const set = (id, html) => { const e = el(id); if (e) e.innerHTML = html; };
+  const mon = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const now = new Date();
+  // the day's call
+  const cta = el('dayCta');
+  if (cta) {
+    if (v.dayWritten) {
+      const at = v.dayAt ? new Date(v.dayAt) : null;
+      const hm = at && !isNaN(at) ? String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0') : '';
+      cta.className = 'cta done'; cta.innerHTML = '\u2713 WRITTEN' + (hm ? ' AT ' + hm : '') + ' \u00B7 OPEN \u2192';
+    } else { cta.className = 'cta'; cta.textContent = 'WRITE TODAY \u2192'; }
+  }
+  // why
+  let w = [];
+  if (v.pending != null) w.push('<b>' + v.pending + '</b> DECISION' + (v.pending === 1 ? '' : 'S') + ' PENDING');
+  if (v.dream != null) w.push('<b>1</b> DREAM AHEAD \u00B7 ' + (v.dream === 0 ? 'TODAY' : v.dream + ' DAYS'));
+  else if (v.pending != null) w.push('NO DREAM PLANNED');
+  set('pulseWhy', w.join(' \u00B7 '));
+  // inner life
+  let n = [];
+  if (v.lastWrote) n.push('LAST WROTE <b>' + _dayWord(v.lastWrote) + '</b>');
+  if (v.lastTrip) { const t = new Date(v.lastTrip.trip_to); n.push('LAST TRIP <b>' + _esc(String(v.lastTrip.title || '').toUpperCase().slice(0, 22)) + '</b>' + (isNaN(t) ? '' : ' \u00B7 ' + mon[t.getMonth()] + (t.getFullYear() !== now.getFullYear() ? ' ' + t.getFullYear() : ''))); }
+  set('pulseInner', n.join(' \u00B7 '));
+  // wealth
+  let s = [];
+  if (v.snap) { const t = new Date(v.snap); if (!isNaN(t)) { s.push('LAST SNAPSHOT <b>' + mon[t.getMonth()] + (t.getFullYear() !== now.getFullYear() ? ' ' + t.getFullYear() : '') + '</b>'); if (t.getFullYear() !== now.getFullYear() || t.getMonth() !== now.getMonth()) s.push(['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'][now.getMonth()] + '\u2019S <b>DUE</b>'); } }
+  else if (v.snap === null) s.push('NO SNAPSHOT YET');
+  set('pulseWealth', s.join(' \u00B7 '));
+  // library
+  let l = [];
+  if (v.books != null) l.push('<b>' + v.books + '</b> BOOK' + (v.books === 1 ? '' : 'S'));
+  if (v.wisdom != null) l.push('<b>' + v.wisdom + '</b> WISDOM PAGE' + (v.wisdom === 1 ? '' : 'S'));
+  if (v.lastKept) l.push('LAST KEPT <b>' + _dayWord(v.lastKept) + '</b>');
+  set('pulseLib', l.join(' \u00B7 '));
+  // knocks + keep
+  const k = [];
+  if (!v.dayWritten) k.push('<a class="ask" href="' + ROOMS.daily + '">ENTRY NOT YET WRITTEN</a>');
+  const lastAlbum = prefs && prefs.last_album_copy; const ym = now.toISOString().slice(0, 7);
+  if (prefs && prefs.album_has_photos && (!lastAlbum || String(lastAlbum).slice(0, 7) !== ym)) k.push('<a href="#keep">ALBUM COPY DUE</a>');
+  if (prefs && prefs.last_backup) { const ad = Math.floor((Date.now() - new Date(prefs.last_backup).getTime()) / 86400000); k.push('<a href="#keep">BACKED UP ' + (ad === 0 ? 'TODAY' : ad + 'D AGO') + '</a>'); }
+  if (v.decideBy) { const t = new Date(v.decideBy.on); k.push('<a href="' + ROOMS.why + '">DECIDE BY ' + t.getDate() + ' ' + mon[t.getMonth()] + ' \u00B7 ' + _esc(String(v.decideBy.title || '').toUpperCase().slice(0, 28)) + '</a>'); }
+  set('hubKnocks', k.join(''));
+  const kp = [];
+  if (prefs && prefs.last_backup) { const ad = Math.floor((Date.now() - new Date(prefs.last_backup).getTime()) / 86400000); kp.push('BACKED UP ' + (ad === 0 ? 'TODAY' : ad + 'D AGO')); }
+  if (prefs && prefs.album_has_photos) kp.push(lastAlbum && String(lastAlbum).slice(0, 7) === ym ? 'ALBUM COPIED' : '<b>ALBUM COPY DUE</b>');
+  set('pulseKeep', kp.join(' \u00B7 '));
+}
+async function refreshPulses() {
+  try {
+    const s = await supa.auth.getSession();
+    const uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+    if (!uid) return;
+    let prefs = {};
+    try { const q = await supa.from('user_prefs').select('prefs').eq('user_id', uid).maybeSingle(); prefs = (q && q.data && q.data.prefs) || {}; } catch (e) {}
+    try { const c = await supa.from('attachments').select('id', { count: 'exact', head: true }).eq('user_id', uid).eq('kind', 'photo'); prefs.album_has_photos = !!(c && c.count); } catch (e) {}
+    const cached = _pulseCache(true);
+    if (cached) paintPulses(cached, prefs);
+    const v = await loadPulses(uid);
+    _pulseCache(false, v);
+    paintPulses(v, prefs);
+  } catch (e) {}
+}
+
 
 
 async function handleSignIn() {

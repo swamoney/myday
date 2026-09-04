@@ -141,6 +141,31 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**HUB 2.0 (B2-N + Y1): the door that speaks** (4 Sep 2026, after
+eight mocks): the four room cards and the navy My Day banner
+retire (25+20 CSS rules + updateDailyStatus to zero refs). In
+their place: (1) THE DAY CARD - white, no shadow: the numeral,
+'September 2026 - Friday', 'Day 247 of 365 - 118 remain', one gold
+call, and the Y1 RING in the top-right corner (conic hairline,
+--yr custom property, '68% / OF THE YEAR' inside) - all from the
+calendar alone; the call flips to moss 'WRITTEN AT 21:10 - OPEN'
+when today's entries row exists (one date lookup). (2) THE KNOCK
+LINE under it: ENTRY NOT YET WRITTEN (gold), ALBUM COPY DUE,
+BACKED UP N D AGO, DECIDE BY <date> - <title> (nearest target
+within 30 days) - each a link. (3) THE SPINE: a rail filled
+violet to the year's percent, the rooms hanging as rows with a
+colour dot, name, line, and a PULSE in the room's ink: Why =
+decisions pending + nearest planned dream in days (or NO DREAM
+PLANNED); Inner Life = LAST WROTE <weekday/date> + LAST TRIP
+<title> - <month> (never a 'next' - trips are written after);
+Wealth = LAST SNAPSHOT <mon> + <MONTH>'S DUE when none this
+month; Library = books + wisdom counts + LAST KEPT; a last Keep
+row links to #keep. Six small reads (counts / latest-one, never
+bodies), cached in sessionStorage 10 min (paint cached, then
+refresh). Head, foot, soul dots and the keep block unchanged.
+Harness (single-scope): day fields + --yr, moss call, four pulses,
+knocks, keep row, links, cache, legacy gone, no errors.
+
 **DC-N: 'My Checklist' -> 'My Decisions'** (4 Sep 2026): the six labels (tab, page bar, section print h1 + h2 in the all-rooms print, page-print eyebrow, mode title) renamed in why.html; keys untouched (data-sec 'decisions', activeSec, tables). Move to My Inner Life HELD - Rahul may keep the room in My Why; DC-M stays a scheduled option, not a plan.
 
 **DC-D (D1): the target date as a sign** (4 Sep 2026): on an OPEN
