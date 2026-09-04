@@ -141,6 +141,8 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-N: 'My Checklist' -> 'My Decisions'** (4 Sep 2026): the six labels (tab, page bar, section print h1 + h2 in the all-rooms print, page-print eyebrow, mode title) renamed in why.html; keys untouched (data-sec 'decisions', activeSec, tables). Move to My Inner Life HELD - Rahul may keep the room in My Why; DC-M stays a scheduled option, not a plan.
+
 **DC-D (D1): the target date as a sign** (4 Sep 2026): on an OPEN
 decision page a full-width gold band (#f4c430, the tag chip's
 fill) sits under the sig bar - 'DECIDE BY - 30 September 2026'
