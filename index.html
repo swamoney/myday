@@ -72,7 +72,7 @@
   /* HUB — Polar + Mist, 3-B: vertically-centered shell, Daily banner, wide. */
   /* No box — content sits directly on the page gradient, top-aligned. */
   .stage { display:block; }
-  .shell { width:100%; background:none; border:none; border-radius:0; padding:0; box-shadow:none; }
+  .shell { width:100%; max-width:1080px; margin:0 auto; background:none; border:none; border-radius:0; padding:0; box-shadow:none; }   /* HUB 2.3: the door caps at 1080px */
   @media (max-width:760px){ .shell { padding:0; } }
 
   .hub-head { text-align:center; margin-bottom:30px; position:relative; }
@@ -161,7 +161,7 @@
   .dayn .big em { font-style:normal; color:#5b4a86; }
   /* S2: the ring keeps the number and the year; days-left steps out beneath */
   .dayn .ringwrap { text-align:center; flex-shrink:0; }
-  .dayn .rcap { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#7a63c6; margin-top:8px; font-weight:700; }
+  .dayn .rcap { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#a8323f; margin-top:8px; font-weight:700; }   /* C3: ember */
   .dayn .ask { display:block; margin-top:7px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.12em; color:#8a6d1f; font-weight:700; }
   .dayn .ask:empty { display:none; }
   .dayn .ask::before { content:'\25CF'; color:#f4c430; margin-right:6px; }
@@ -174,6 +174,8 @@
   .dayn .months .cap { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#8a97b3; margin-top:6px; }
   .dayn:hover { border-color:#c9d3e2; }
   .dayn .mid .s { font-size:0.75rem; color:#3D4866; margin-top:2px; }
+  .dayn .mid .s .rm { display:none; }                       /* desktop: the ring says it */
+  @media (max-width:560px) { .dayn .mid .s .rm { display:inline; } }
   .dayn .mid .cta { display:inline-block; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; font-weight:700; letter-spacing:0.14em; background:#f4c430; color:#2a1d08; border-radius:7px; padding:6px 10px; }
   .dayn .mid .cta.done { background:#e4efe6; color:#2f6146; }
   /* K3: a whole 96px ring in the card like a seal - ink number, year, days left */
@@ -190,14 +192,17 @@
   .knocks .ask { color:#8a6d1f; font-weight:700; }
   .spine { position:relative; padding-left:34px; margin-top:6px; }
   .spine::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:3px; border-radius:2px; background:linear-gradient(180deg,#7a63c6 0 var(--yr, 0%), #cfd6e4 var(--yr, 0%)); }
-  .srow { display:block; position:relative; padding:14px 0 16px; border-bottom:1px dotted #cfd6e4; text-decoration:none; color:inherit; cursor:pointer; }
+  .srow { display:grid; grid-template-columns:1fr auto; gap:20px; align-items:baseline; position:relative; padding:12px 0 14px; border-bottom:1px dotted #cfd6e4; text-decoration:none; color:inherit; cursor:pointer; }
+  .srow .n, .srow .d { grid-column:1; }
+  .srow .p { grid-column:2; grid-row:1 / span 2; align-self:baseline; text-align:right; }
+  @media (max-width:560px) { .srow { display:block; } .srow .p { text-align:left; } }
   .srow:last-child { border-bottom:none; }
-  .srow .dot { position:absolute; left:-30px; top:18px; width:16px; height:16px; border-radius:50%; border:3px solid var(--bg, #eef2f7); box-shadow:0 0 0 1px #cfd6e4; }
+  .srow .dot { position:absolute; left:-29px; top:16px; width:14px; height:14px; border-radius:50%; border:3px solid var(--bg, #eef2f7); box-shadow:0 0 0 1px #cfd6e4; }
   .srow .n { font-family:'Fraunces',Georgia,serif; font-size:1.4375rem; font-weight:700; color:#182233; line-height:1.1; }
   .srow .d { font-size:0.75rem; color:#3D4866; margin-top:3px; }
-  .srow .p { font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; letter-spacing:0.1em; margin-top:6px; min-height:0; }
+  .srow .p { font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; letter-spacing:0.1em; margin-top:6px; min-height:0; opacity:0.82; }
   .srow .p:empty { display:none; }
-  .srow .p b { font-weight:700; }
+  .srow .p b { font-weight:700; opacity:1; }
   .srow.keeprow .n { font-size:1rem; color:#68789a; }
   .srow:hover .n { text-decoration:underline; text-decoration-color:#cfd6e4; text-underline-offset:4px; }
   @media (max-width:560px) {
@@ -436,7 +441,7 @@ function paintDayCard() {
   const set = (id, t) => { const e = el(id); if (e) e.textContent = t; };
   set('dayLine', days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()]);
   set('dayYear', String(y));
-  set('dayCount', 'Day ' + dayOfYear + ' of ' + total + ' \u00B7 ' + remain + (remain === 1 ? ' remains' : ' remain'));
+  const dc = el('dayCount'); if (dc) dc.innerHTML = 'Day ' + dayOfYear + ' of ' + total + '<span class="rm"> \u00B7 ' + remain + (remain === 1 ? ' remains' : ' remain') + '</span>';
   set('yearPct', pct + '%');
   set('yearOf', 'OF ' + y);
   set('yearLeft', remain + (remain === 1 ? ' DAY LEFT' : ' DAYS LEFT'));
@@ -517,7 +522,7 @@ function paintPulses(v, prefs) {
   // why
   let w = [];
   if (v.pending != null) w.push('<b>' + v.pending + '</b> DECISION' + (v.pending === 1 ? '' : 'S') + ' PENDING');
-  if (v.dream != null) w.push('<b>1</b> DREAM AHEAD \u00B7 ' + (v.dream === 0 ? 'TODAY' : v.dream + ' DAYS'));
+  if (v.dream != null) w.push('<b>1</b> DREAM AHEAD \u00B7 ' + (v.dream === 0 ? 'TODAY' : v.dream === 1 ? 'TOMORROW' : v.dream + ' DAYS'));
   else if (v.pending != null) w.push('NO DREAM PLANNED');
   set('pulseWhy', w.join(' \u00B7 '));
   // inner life

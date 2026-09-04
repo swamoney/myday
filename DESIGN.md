@@ -141,6 +141,15 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**HUB 2.3 (C3 + the review)** (4 Sep 2026): the door caps at
+1080px centred (the 2560px screen had the card's parts at two far
+ends); '118 DAYS LEFT' in ember #a8323f; on desktop each room's
+pulse sits at the RIGHT edge of its row, baseline with the name
+(grid 1fr/auto; phones stack as before); pulses one shade lighter
+(opacity .82) with bold numbers at full ink; rail dots 14px;
+'1 DAYS' -> TOMORROW (0 -> TODAY); '118 remain' hidden on desktop
+(the ring says it) and shown on phones (.rm span). Harness green.
+
 **HUB 2.2 (S2 + D1)** (4 Sep 2026): the ring keeps only '68%' +
 'OF 2026' inside; '118 DAYS LEFT' steps out beneath it in violet
 (.rcap; hidden on phones where the day line already says
