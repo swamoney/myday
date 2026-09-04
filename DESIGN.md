@@ -141,6 +141,15 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**HUB 2.2 (S2 + D1)** (4 Sep 2026): the ring keeps only '68%' +
+'OF 2026' inside; '118 DAYS LEFT' steps out beneath it in violet
+(.rcap; hidden on phones where the day line already says
+'remain'). The orphan numeral retires: the date is ONE heading
+line the human way - 'Friday, 4 September' in violet serif with
+the year in ink, TODAY as a mono eyebrow above; the card's grid
+is 1fr / months / ring. Harness: line, count, ring inside/beneath,
+no numeral, ask in card.
+
 **HUB 2.1 (W1 + K3)** (4 Sep 2026): the ring becomes a whole 96px
 SEAL in the card (ink '68%', 'OF 2026', '118 DAYS LEFT' in violet;
 phones keep the corner placement with a bigger number); the

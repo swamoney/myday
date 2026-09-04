@@ -153,8 +153,15 @@
   /* C2: the creed speaks from the page itself - a benediction, not a widget. */
   /* HUB 2.0 (B2-N + Y1): the day card, the knock line, the spine */
   .hub-day { margin:8px 0 6px; }
-  .dayn { display:grid; grid-template-columns:auto 1fr auto auto; gap:26px; align-items:center; background:#fff; border:1px solid #dfe5ee; border-radius:16px;
+  .dayn { display:grid; grid-template-columns:1fr auto auto; gap:26px; align-items:center; background:#fff; border:1px solid #dfe5ee; border-radius:16px;
           padding:18px 22px; position:relative; overflow:hidden; text-decoration:none; color:inherit; cursor:pointer; }
+  /* D1: the date as one heading line, said the human way */
+  .dayn .eb { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.18em; color:#8a97b3; }
+  .dayn .big { font-family:'Fraunces',Georgia,serif; font-size:1.75rem; font-weight:700; color:#182233; line-height:1.15; margin-top:2px; }
+  .dayn .big em { font-style:normal; color:#5b4a86; }
+  /* S2: the ring keeps the number and the year; days-left steps out beneath */
+  .dayn .ringwrap { text-align:center; flex-shrink:0; }
+  .dayn .rcap { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#7a63c6; margin-top:8px; font-weight:700; }
   .dayn .ask { display:block; margin-top:7px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.12em; color:#8a6d1f; font-weight:700; }
   .dayn .ask:empty { display:none; }
   .dayn .ask::before { content:'\25CF'; color:#f4c430; margin-right:6px; }
@@ -166,9 +173,6 @@
   .dayn .months i.part { background:linear-gradient(90deg, #7a63c6 var(--mf, 50%), #e6ebf2 var(--mf, 50%)); }
   .dayn .months .cap { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#8a97b3; margin-top:6px; }
   .dayn:hover { border-color:#c9d3e2; }
-  .dayn .num { font-family:'Fraunces',Georgia,serif; font-size:2.75rem; font-weight:700; color:#182233; line-height:1; }
-  .dayn .num small { display:block; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.18em; color:#8a97b3; font-weight:400; margin-bottom:2px; }
-  .dayn .mid .t { font-family:'Fraunces',Georgia,serif; font-size:1.1875rem; font-weight:700; color:#182233; }
   .dayn .mid .s { font-size:0.75rem; color:#3D4866; margin-top:2px; }
   .dayn .mid .cta { display:inline-block; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; font-weight:700; letter-spacing:0.14em; background:#f4c430; color:#2a1d08; border-radius:7px; padding:6px 10px; }
   .dayn .mid .cta.done { background:#e4efe6; color:#2f6146; }
@@ -178,7 +182,7 @@
   .cring::before { content:''; position:absolute; inset:8px; border-radius:50%; background:#fff; }
   .cring b { position:relative; font-family:'IBM Plex Mono',monospace; font-size:1.0625rem; font-weight:700; color:#182233; text-align:center; line-height:1; }
   .cring b small { display:block; font-size:0.4375rem; letter-spacing:0.14em; color:#8a97b3; font-weight:700; margin-top:4px; }
-  .cring b em { display:block; font-style:normal; font-size:0.4375rem; letter-spacing:0.14em; color:#7a63c6; font-weight:700; margin-top:3px; }
+
   .knocks { display:flex; gap:14px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.1em; color:#8a97b3; margin:8px 0 10px 4px; min-height:0; }
   .knocks:empty { display:none; }
   .knocks a { color:inherit; text-decoration:none; }
@@ -197,11 +201,13 @@
   .srow.keeprow .n { font-size:1rem; color:#68789a; }
   .srow:hover .n { text-decoration:underline; text-decoration-color:#cfd6e4; text-underline-offset:4px; }
   @media (max-width:560px) {
-    .dayn { grid-template-columns:auto 1fr; gap:14px; padding-right:96px; }
+    .dayn { grid-template-columns:1fr; gap:14px; padding-right:96px; }
     .dayn .months { display:none; }
+    .dayn .big { font-size:1.375rem; }
+    .dayn .ringwrap { position:static; }
     .cring { position:absolute; right:-30px; top:-30px; width:110px; height:110px; }
     .cring b { transform:translate(-16px, 16px); font-size:0.8125rem; }
-    .cring b em { display:none; }
+    .dayn .rcap { display:none; }
   }
   .hub-foot { text-align:center; margin-top:36px; padding:0 24px; }
   .hub-foot .foot-inner { max-width:520px; margin:0 auto; }
@@ -260,15 +266,15 @@
 
   <div class="hub-day" id="hubDay">
     <a class="dayn" id="cardDaily">
-      <div class="num"><small>TODAY</small><span id="dayNum">&mdash;</span></div>
       <div class="mid">
-        <div class="t" id="dayLine">&mdash;</div>
+        <div class="eb">TODAY</div>
+        <div class="big"><em id="dayLine">&mdash;</em> <span id="dayYear"></span></div>
         <div class="s" id="dayCount">&mdash;</div>
         <span class="cta" id="dayCta">WRITE TODAY &rarr;</span>
         <span class="ask" id="dayAsk"></span>
       </div>
       <div class="months" id="dayMonths"><div class="grid" id="dayMonthsGrid"></div><div class="cap" id="dayMonthsCap"></div></div>
-      <span class="cring" id="yearRing"><b><span id="yearPct">&mdash;</span><small id="yearOf">OF THE YEAR</small><em id="yearLeft"></em></b></span>
+      <div class="ringwrap"><span class="cring" id="yearRing"><b><span id="yearPct">&mdash;</span><small id="yearOf">OF THE YEAR</small></b></span><div class="rcap" id="yearLeft"></div></div>
     </a>
     <div class="knocks" id="hubKnocks"></div>
   </div>
@@ -428,8 +434,8 @@ function paintDayCard() {
   const pct = Math.round((dayOfYear / total) * 100);
   const remain = total - dayOfYear;
   const set = (id, t) => { const e = el(id); if (e) e.textContent = t; };
-  set('dayNum', String(now.getDate()));
-  set('dayLine', months[now.getMonth()] + ' ' + y + ' \u00B7 ' + days[now.getDay()]);
+  set('dayLine', days[now.getDay()] + ', ' + now.getDate() + ' ' + months[now.getMonth()]);
+  set('dayYear', String(y));
   set('dayCount', 'Day ' + dayOfYear + ' of ' + total + ' \u00B7 ' + remain + (remain === 1 ? ' remains' : ' remain'));
   set('yearPct', pct + '%');
   set('yearOf', 'OF ' + y);
