@@ -924,7 +924,12 @@ async function loadRows() {
 }
 async function loadNotes() {
   try {
-    const { data, error } = await supa.from('wip_notes').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+    // DC-S: the Whiteboard keeps only unscoped notes; before migrate_board.sql the
+    // 'scope' column is absent, so a failed filter falls back to the plain read.
+    let { data, error } = await supa.from('wip_notes').select('*').eq('user_id', userId).is('scope', null).order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+    if (error && /scope|column/i.test(String(error.message || error))) {
+      ({ data, error } = await supa.from('wip_notes').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).order('created_at', { ascending: true }));
+    }
     if (error) throw error;
     notes = data || [];
     renderBoard();

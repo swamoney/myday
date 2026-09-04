@@ -1202,6 +1202,24 @@
   /* IN-2: the width lives in data-w; small photos stand centred */
   .mdf-tools .mdf-sz { background:#2F6B8A; }
   .mdf-tools .mdf-al { background:#5F7355; }
+  /* DC-S: the thinking board - the Whiteboard's stickies, small, on a checklist page */
+  .tb-host { margin:4px 0 14px; }
+  .tb-host.tb-empty { display:none; }
+  .tb-h { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em; color:#8a7a68; margin:10px 0 8px; display:flex; align-items:baseline; gap:10px; }
+  .tb-fold { margin-left:auto; background:none; border:none; font:inherit; color:#b0a08c; cursor:pointer; letter-spacing:0.1em; }
+  .tb-board { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start; }
+  .tb-board.folded { display:none; }
+  .tb-st { width:150px; min-height:150px; padding:16px 12px 24px; border-radius:3px; box-shadow:0 6px 14px rgba(30,40,70,0.14); position:relative; display:flex; flex-direction:column; }
+  .tb-st:nth-child(odd) { transform:rotate(-1.1deg); } .tb-st:nth-child(even) { transform:rotate(1.3deg); }
+  .tb-st::before { content:''; position:absolute; top:6px; left:50%; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:rgba(0,0,0,0.16); }
+  .tb-hd { font-family:'Caveat',cursive; font-size:1.0625rem; font-weight:600; background:none; border:none; width:100%; padding:2px 0; outline:none; }
+  .tb-bd { font-family:var(--sans); font-size:0.6875rem; line-height:1.45; color:#2f3a52; background:none; border:none; width:100%; flex:1; resize:none; outline:none; min-height:70px; }
+  .tb-x { position:absolute; bottom:4px; right:8px; background:none; border:none; font-size:0.9375rem; color:rgba(0,0,0,0.28); cursor:pointer; }
+  .tb-st.add { background:none; border:1.5px dashed #c9b9a2; box-shadow:none; transform:none; align-items:center; justify-content:center;
+               font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#b0a08c; cursor:pointer; text-align:center; }
+  .tb-st.add.wide { width:100%; min-height:44px; padding:10px; }
+  .tb-st.add:hover { color:#9a4a2e; border-color:#9a4a2e; }
+  .tb-err { font-size:0.75rem; color:#8a97b3; }
   /* IN-3: left / right = the writing wraps; the body clears after the last figure */
   .md-ph.al-l { float:left; margin:4px 18px 8px 0; }
   .md-ph.al-r { float:right; margin:4px 0 8px 18px; }
@@ -1283,6 +1301,7 @@
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20260822a"></script>
 <script src="attachments.js?v=20260901a"></script>
+<script src="stickies.js?v=20260904a"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -1634,6 +1653,7 @@
     <div><span class="dc-name" id="dcName"></span></div>
     <div class="dc-sig"></div>
     <div class="dc-meta" id="dcMeta"></div>
+    <div class="tb-host" id="dcBoard"></div>
     <button class="dc-back dc-details" id="dcDetailsBtn" type="button">Edit details &mdash; name, dates, verdict</button>
     <div class="dc-banner hidden" id="dcCatch">
       <span class="b-t" id="dcCatchTxt"></span>
@@ -2707,7 +2727,7 @@ async function boot() {
   const { data: { session } } = await supa.auth.getSession();
   el('bootLoading').classList.add('hidden');
   if (session && session.user) {
-    userId = session.user.id; if (window.MyAlbum) MyAlbum.init(supa, userId); showApp(); await loadPillars();
+    userId = session.user.id; if (window.MyAlbum) MyAlbum.init(supa, userId); if (window.MyBoard) MyBoard.init(supa, userId); showApp(); await loadPillars();
   } else {
     el('authOverlay').classList.remove('hidden');
   }
@@ -5678,6 +5698,7 @@ function openDecision(id) {
   el('dcDelBtn').textContent = sealed ? 'Remove from the trail' : 'Remove this decision';
   el('dcStory').innerHTML = NoteEditor.toHtml(d.note_html || '');
   dcNoteBase = NoteEditor.sanitize(el('dcStory').innerHTML);
+  if (window.MyBoard && userId) MyBoard.mount({ host: el('dcBoard'), scope: 'decision:' + id, title: 'THINKING BOARD', readOnly: (dcRows.find(x => x.id === id) || {}).status === 'trail' });
   if (window.MyAlbum && userId) MyAlbum.mount({ host: el('dcAlbum'), room: 'decision', entryId: id,
     watch: [el('dcStory')], editing: false });
   setDcEditing(false);   // every page opens reading; the pen waits in the footer
@@ -5769,6 +5790,12 @@ el('dcPrintBtn').addEventListener('click', () => {
         + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
         + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
       : ('On the desk' + (d.target_on ? ' \u00B7 target ' + e(dcFmt_(d.target_on)) : ''))) + '</p><ul>';
+  const tbn = window.MyBoard ? MyBoard.notesFor('decision:' + d.id) : [];
+  if (tbn.length) {
+    body = body.replace(/<ul>$/, '') + '<h2>Thinking board</h2><ul>' +
+      tbn.map(n => '<li>' + (n.heading ? '<strong>' + e(n.heading) + '</strong>' + (n.body ? '<br>' : '') : '') + '<span class="meta">' + e(n.body || '') + '</span></li>').join('') +
+      '</ul><h2>The checklist</h2><ul>';
+  }
   qa.forEach(x => {
     body += '<li><strong>' + e(x.q) + '</strong><br><span class="meta">'
       + (String(x.a || '').trim() ? e(x.a) : '(unanswered)') + '</span></li>';
@@ -5991,6 +6018,7 @@ el('dcDelBtn').addEventListener('click', async () => {
   if (!confirm(msg)) return;
   const { error } = await supa.from('why_decisions').delete().eq('id', d.id).eq('user_id', userId);
     if (!error && window.MyAlbum) MyAlbum.deleteAll('decision', d.id);
+    if (!error && window.MyBoard) MyBoard.deleteScope('decision:' + d.id);   // the board goes with it
   if (error) { console.error(error); toast('Could not remove it'); return; }
   dcRows = dcRows.filter(x => String(x.id) !== String(d.id));
   dcClose_();

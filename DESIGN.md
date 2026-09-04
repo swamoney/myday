@@ -141,6 +141,29 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-S: the thinking board** (4 Sep 2026): the Whiteboard's
+stickies as a shared kit - stickies.js (MyBoard: init / mount
+{host, scope, title, readOnly} / setReadOnly / notesFor /
+deleteScope / unmount), same five colours and tilt, SMALL (150px)
+with a Caveat title and a body, '+ PIN A NOTE' (wide whisper when
+empty), x to remove (confirm only if the note has words), fold
+that remembers per scope (localStorage). Notes live in wip_notes
+with ONE new column 'scope' (migrate_board.sql; null = the
+Whiteboard, 'decision:ID' = a checklist page); the Whiteboard's
+own read now filters is('scope', null) with a graceful fallback
+until the migration runs. Mounted on every checklist page under
+dcMeta (#dcBoard); a sealed (trail) decision's board is read-only
+and hides when empty; decision delete takes its notes (orphan
+law); page print carries 'Thinking board' before 'The checklist'.
+Opinion given: My Checklist belongs in My Inner Life (thinking,
+not identity) - transplant as its own round (DC-M) after this,
+stickies included; data tables never move. Harness: board title
++ existing note, pin inserts scope + focuses, typing saves,
+fold hides + remembers, print carries the board before the
+checklist, remove deletes, sealed = read-only + hidden when
+empty. PENDING Rahul: run migrate_board.sql once; upload
+stickies.js.
+
 **GD-1: the guardians (A, S1)** (3 Sep 2026): the free-plan
 watchmen the strip's retirement had orphaned, now at the HOME
 FOOT (index.html #keep) beside the words backup. (1) TWO GAUGES:
