@@ -153,8 +153,18 @@
   /* C2: the creed speaks from the page itself - a benediction, not a widget. */
   /* HUB 2.0 (B2-N + Y1): the day card, the knock line, the spine */
   .hub-day { margin:8px 0 6px; }
-  .dayn { display:grid; grid-template-columns:auto 1fr; gap:18px; align-items:center; background:#fff; border:1px solid #dfe5ee; border-radius:16px;
-          padding:18px 130px 18px 22px; position:relative; overflow:hidden; text-decoration:none; color:inherit; cursor:pointer; }
+  .dayn { display:grid; grid-template-columns:auto 1fr auto auto; gap:26px; align-items:center; background:#fff; border:1px solid #dfe5ee; border-radius:16px;
+          padding:18px 22px; position:relative; overflow:hidden; text-decoration:none; color:inherit; cursor:pointer; }
+  .dayn .ask { display:block; margin-top:7px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.12em; color:#8a6d1f; font-weight:700; }
+  .dayn .ask:empty { display:none; }
+  .dayn .ask::before { content:'\25CF'; color:#f4c430; margin-right:6px; }
+  /* W1: the twelve months in the desktop's middle */
+  .dayn .months { text-align:center; }
+  .dayn .months .grid { display:grid; grid-template-columns:repeat(6, 14px); gap:4px; justify-content:center; }
+  .dayn .months i { width:14px; height:14px; border-radius:3px; background:#e6ebf2; display:block; }
+  .dayn .months i.on { background:#7a63c6; }
+  .dayn .months i.part { background:linear-gradient(90deg, #7a63c6 var(--mf, 50%), #e6ebf2 var(--mf, 50%)); }
+  .dayn .months .cap { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#8a97b3; margin-top:6px; }
   .dayn:hover { border-color:#c9d3e2; }
   .dayn .num { font-family:'Fraunces',Georgia,serif; font-size:2.75rem; font-weight:700; color:#182233; line-height:1; }
   .dayn .num small { display:block; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.18em; color:#8a97b3; font-weight:400; margin-bottom:2px; }
@@ -162,11 +172,13 @@
   .dayn .mid .s { font-size:0.75rem; color:#3D4866; margin-top:2px; }
   .dayn .mid .cta { display:inline-block; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; font-weight:700; letter-spacing:0.14em; background:#f4c430; color:#2a1d08; border-radius:7px; padding:6px 10px; }
   .dayn .mid .cta.done { background:#e4efe6; color:#2f6146; }
-  .cring { position:absolute; right:-38px; top:-38px; width:150px; height:150px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  /* K3: a whole 96px ring in the card like a seal - ink number, year, days left */
+  .cring { position:relative; width:96px; height:96px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
            background:conic-gradient(#7a63c6 0 var(--yr, 0%), #e6ebf2 var(--yr, 0%) 100%); }
-  .cring::before { content:''; position:absolute; inset:6px; border-radius:50%; background:#fff; }
-  .cring b { position:relative; font-family:'IBM Plex Mono',monospace; font-size:0.625rem; font-weight:700; color:#5b4a86; transform:translate(-20px, 20px); text-align:center; }
-  .cring b small { display:block; font-size:0.4375rem; letter-spacing:0.14em; color:#8a97b3; font-weight:600; margin-top:2px; }
+  .cring::before { content:''; position:absolute; inset:8px; border-radius:50%; background:#fff; }
+  .cring b { position:relative; font-family:'IBM Plex Mono',monospace; font-size:1.0625rem; font-weight:700; color:#182233; text-align:center; line-height:1; }
+  .cring b small { display:block; font-size:0.4375rem; letter-spacing:0.14em; color:#8a97b3; font-weight:700; margin-top:4px; }
+  .cring b em { display:block; font-style:normal; font-size:0.4375rem; letter-spacing:0.14em; color:#7a63c6; font-weight:700; margin-top:3px; }
   .knocks { display:flex; gap:14px; flex-wrap:wrap; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.1em; color:#8a97b3; margin:8px 0 10px 4px; min-height:0; }
   .knocks:empty { display:none; }
   .knocks a { color:inherit; text-decoration:none; }
@@ -184,7 +196,13 @@
   .srow .p b { font-weight:700; }
   .srow.keeprow .n { font-size:1rem; color:#68789a; }
   .srow:hover .n { text-decoration:underline; text-decoration-color:#cfd6e4; text-underline-offset:4px; }
-  @media (max-width:560px) { .dayn { padding-right:96px; } .cring { width:120px; height:120px; right:-34px; top:-34px; } .cring b { transform:translate(-16px, 16px); font-size:0.5625rem; } }
+  @media (max-width:560px) {
+    .dayn { grid-template-columns:auto 1fr; gap:14px; padding-right:96px; }
+    .dayn .months { display:none; }
+    .cring { position:absolute; right:-30px; top:-30px; width:110px; height:110px; }
+    .cring b { transform:translate(-16px, 16px); font-size:0.8125rem; }
+    .cring b em { display:none; }
+  }
   .hub-foot { text-align:center; margin-top:36px; padding:0 24px; }
   .hub-foot .foot-inner { max-width:520px; margin:0 auto; }
   .hub-foot .foot-orn { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:12px; color:#c9a94a; font-size:0.75rem; }
@@ -247,8 +265,10 @@
         <div class="t" id="dayLine">&mdash;</div>
         <div class="s" id="dayCount">&mdash;</div>
         <span class="cta" id="dayCta">WRITE TODAY &rarr;</span>
+        <span class="ask" id="dayAsk"></span>
       </div>
-      <span class="cring" id="yearRing"><b><span id="yearPct">&mdash;</span><small>OF THE YEAR</small></b></span>
+      <div class="months" id="dayMonths"><div class="grid" id="dayMonthsGrid"></div><div class="cap" id="dayMonthsCap"></div></div>
+      <span class="cring" id="yearRing"><b><span id="yearPct">&mdash;</span><small id="yearOf">OF THE YEAR</small><em id="yearLeft"></em></b></span>
     </a>
     <div class="knocks" id="hubKnocks"></div>
   </div>
@@ -412,7 +432,20 @@ function paintDayCard() {
   set('dayLine', months[now.getMonth()] + ' ' + y + ' \u00B7 ' + days[now.getDay()]);
   set('dayCount', 'Day ' + dayOfYear + ' of ' + total + ' \u00B7 ' + remain + (remain === 1 ? ' remains' : ' remain'));
   set('yearPct', pct + '%');
+  set('yearOf', 'OF ' + y);
+  set('yearLeft', remain + (remain === 1 ? ' DAY LEFT' : ' DAYS LEFT'));
   document.documentElement.style.setProperty('--yr', pct + '%');
+  // W1: twelve month cells - past filled, the current part-filled by the day, the rest waiting
+  const mg = el('dayMonthsGrid');
+  if (mg) {
+    const mIdx = now.getMonth();
+    const dim = new Date(y, mIdx + 1, 0).getDate();
+    const mf = Math.round((now.getDate() / dim) * 100);
+    let cells = '';
+    for (let i = 0; i < 12; i++) cells += i < mIdx ? '<i class="on"></i>' : (i === mIdx ? '<i class="part" style="--mf:' + mf + '%;"></i>' : '<i></i>');
+    mg.innerHTML = cells;
+    set('dayMonthsCap', y + ' \u00B7 MONTH BY MONTH');
+  }
 }
 const PULSE_TTL = 10 * 60 * 1000;
 function _pulseCache(read, val) {
@@ -450,8 +483,6 @@ async function loadPulses(uid) {
   // inner life: last wrote, last trip
   const iw = await q(() => supa.from('iw_entries').select('updated_at').eq('user_id', uid).order('updated_at', { ascending: false }).limit(1));
   v.lastWrote = iw && iw.data && iw.data.length ? iw.data[0].updated_at : null;
-  const tr = await q(() => supa.from('iw_entries').select('title, trip_to').eq('user_id', uid).eq('kind', 'trip').not('trip_to', 'is', null).order('trip_to', { ascending: false }).limit(1));
-  v.lastTrip = tr && tr.data && tr.data.length ? tr.data[0] : null;
   // wealth: newest snapshot
   const ws = await q(() => supa.from('wealth_snapshots').select('on_date').eq('user_id', uid).order('on_date', { ascending: false }).limit(1));
   v.snap = ws && ws.data && ws.data.length ? ws.data[0].on_date : null;
@@ -476,6 +507,7 @@ function paintPulses(v, prefs) {
       cta.className = 'cta done'; cta.innerHTML = '\u2713 WRITTEN' + (hm ? ' AT ' + hm : '') + ' \u00B7 OPEN \u2192';
     } else { cta.className = 'cta'; cta.textContent = 'WRITE TODAY \u2192'; }
   }
+  const ask = el('dayAsk'); if (ask) ask.textContent = v.dayWritten ? '' : 'ENTRY NOT YET WRITTEN';
   // why
   let w = [];
   if (v.pending != null) w.push('<b>' + v.pending + '</b> DECISION' + (v.pending === 1 ? '' : 'S') + ' PENDING');
@@ -484,8 +516,7 @@ function paintPulses(v, prefs) {
   set('pulseWhy', w.join(' \u00B7 '));
   // inner life
   let n = [];
-  if (v.lastWrote) n.push('LAST WROTE <b>' + _dayWord(v.lastWrote) + '</b>');
-  if (v.lastTrip) { const t = new Date(v.lastTrip.trip_to); n.push('LAST TRIP <b>' + _esc(String(v.lastTrip.title || '').toUpperCase().slice(0, 22)) + '</b>' + (isNaN(t) ? '' : ' \u00B7 ' + mon[t.getMonth()] + (t.getFullYear() !== now.getFullYear() ? ' ' + t.getFullYear() : ''))); }
+  if (v.lastWrote) n.push('LAST WROTE <b>' + _dayWord(v.lastWrote) + '</b>');   // one fact only - the phone's width
   set('pulseInner', n.join(' \u00B7 '));
   // wealth
   let s = [];
@@ -500,9 +531,7 @@ function paintPulses(v, prefs) {
   set('pulseLib', l.join(' \u00B7 '));
   // knocks + keep
   const k = [];
-  if (!v.dayWritten) k.push('<a class="ask" href="' + ROOMS.daily + '">ENTRY NOT YET WRITTEN</a>');
   const lastAlbum = prefs && prefs.last_album_copy; const ym = now.toISOString().slice(0, 7);
-  if (prefs && prefs.album_has_photos && (!lastAlbum || String(lastAlbum).slice(0, 7) !== ym)) k.push('<a href="#keep">ALBUM COPY DUE</a>');
   if (prefs && prefs.last_backup) { const ad = Math.floor((Date.now() - new Date(prefs.last_backup).getTime()) / 86400000); k.push('<a href="#keep">BACKED UP ' + (ad === 0 ? 'TODAY' : ad + 'D AGO') + '</a>'); }
   if (v.decideBy) { const t = new Date(v.decideBy.on); k.push('<a href="' + ROOMS.why + '">DECIDE BY ' + t.getDate() + ' ' + mon[t.getMonth()] + ' \u00B7 ' + _esc(String(v.decideBy.title || '').toUpperCase().slice(0, 28)) + '</a>'); }
   set('hubKnocks', k.join(''));

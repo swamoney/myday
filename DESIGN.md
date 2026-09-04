@@ -141,6 +141,18 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**HUB 2.1 (W1 + K3)** (4 Sep 2026): the ring becomes a whole 96px
+SEAL in the card (ink '68%', 'OF 2026', '118 DAYS LEFT' in violet;
+phones keep the corner placement with a bigger number); the
+desktop's empty middle holds the TWELVE MONTH CELLS again (past
+filled, the current part-filled by the day via --mf, caption
+'2026 - MONTH BY MONTH'; hidden under 560px); ENTRY NOT YET
+WRITTEN moved INSIDE the card under the gold call; the ALBUM COPY
+DUE knock removed from under My Day (it lives in the keep row and
+My Day's pill); Inner Life's pulse is ONE fact (last wrote) - the
+last-trip read retired. Harness: K3 texts, 12 cells (8 on, 1
+part), ask in card, knocks without album, one-fact pulse.
+
 **HUB 2.0 (B2-N + Y1): the door that speaks** (4 Sep 2026, after
 eight mocks): the four room cards and the navy My Day banner
 retire (25+20 CSS rules + updateDailyStatus to zero refs). In
