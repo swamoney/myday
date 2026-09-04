@@ -141,6 +141,10 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-H2 (S2)** (4 Sep 2026): every checklist page's title sweep is now the stamp's rust as a wash (#f0d9cc) and the sig bar the rust itself (#9a4a2e), pending and sealed alike - index and page in one tongue; the teal (#cfe2e8 / #23677a) retired to zero refs.
+
+**DC-H2 (S2)** (4 Sep 2026): every checklist page's title sweep is now the stamp's rust as a wash (#f0d9cc) and the sig bar the rust itself (#9a4a2e), pending and sealed alike - index and page in one tongue.
+
 **DC-H: pending decisions hang (H1 + 1)** (4 Sep 2026): the desk's
 flat rows retire; open decisions hang from a wooden RAIL (.dc-rail)
 as parchment TAGS (.dc-tag: string, hole, alternating +-1.3deg
