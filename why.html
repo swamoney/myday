@@ -579,11 +579,11 @@
         gap:6px; align-items:center; }
     .dc-card .rowdeck { padding-left:47px; }         /* under the title, past the donut */
     .dc-card.trail .rowdeck { padding-left:28px; }
-  .dc-card.trail .rowdeck.has-note { display:flex; flex-direction:column; align-items:flex-end; gap:4px; padding-left:0; margin-left:auto; max-width:60%; }
-  .dc-card.trail .rowdeck .dc-rline1 { display:contents; }
-  .dc-card.trail .rowdeck.has-note .dc-rline1 { display:flex; align-items:center; gap:10px; }
-  .dc-rnote { font-family:var(--serif); font-style:italic; font-weight:400; font-size:0.8125rem; color:#5b5548; line-height:1.4; text-align:right; }
-  @media (max-width:520px) { .dc-card.trail .rowdeck.has-note { max-width:100%; align-items:flex-start; margin-left:0; flex-basis:100%; } .dc-rnote { text-align:left; } .dc-card.trail { flex-wrap:wrap; } }   /* past the small disc */
+  .dc-card.trail { flex-wrap:wrap; }
+  .dc-vl { flex-basis:100%; display:flex; align-items:baseline; gap:10px; border-top:1px dotted #d8dee8; margin-top:6px; padding-top:7px; }
+  .dc-vl .lbl { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.16em; color:#9aa5b8; white-space:nowrap; }
+  .dc-vl .dc-stars-ro b { font-size:0.75rem; }
+  .dc-rnote { font-family:var(--serif); font-style:italic; font-weight:400; font-size:0.8125rem; color:#6b6558; line-height:1.4; }   /* past the small disc */
     .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
     .stamp .rowdeck:empty { display:none; }
   }
@@ -5769,15 +5769,18 @@ function renderDecisions() {
     '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + '" data-dc="' + d.id + '">'
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
     + '<span class="t">' + escHtml(d.title) + '</span>'
-    // R2: the deck is a small rating block - stars and date on the first line, the comment beneath, right-aligned
-    + '<span class="rowdeck' + ((d.rating_note || '').trim() ? ' has-note' : '') + '"><span class="dc-rline1">' + dcStarsRO_(d)
+    + '<span class="rowdeck">'
     + '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>'
     + (d.qset === 'ten' ? '<span class="dc-pill wait">THE TEN</span>' : '')
     + '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
     + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
     + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span>'
-    + ((d.rating_note || '').trim() ? '<span class="dc-rnote">\u201C' + escHtml(d.rating_note.trim()) + '\u201D</span>' : '')
-    + '</span></div>'
+    // S1: the ledger line - a dotted hairline, LOOKING BACK, muted stars, the sentence in quiet italic
+    + ((Number(d.satisfaction) || (d.rating_note || '').trim())
+        ? '<span class="dc-vl"><span class="lbl">LOOKING BACK</span>' + dcStarsRO_(d)
+          + ((d.rating_note || '').trim() ? '<span class="dc-rnote">' + escHtml(d.rating_note.trim()) + '</span>' : '') + '</span>'
+        : '')
+    + '</div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
   const tidy = document.body.classList.contains('editing');
   document.querySelectorAll('[data-dc]').forEach(c =>
