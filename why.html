@@ -583,6 +583,11 @@
     .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
     .stamp .rowdeck:empty { display:none; }
   }
+  /* T2: the row's weather - moss for a call that went well, ember for one that didn't; 3 = today's white; unrated/cancelled untouched */
+  .dc-card.trail.r5 { background:linear-gradient(160deg,#f7fbf8,#e6f1ea); border-left-color:#2f6146; }
+  .dc-card.trail.r4 { background:linear-gradient(160deg,#f9fcf9,#edf3ee); border-left-color:#5F7355; }
+  .dc-card.trail.r2 { background:linear-gradient(160deg,#fdf9f7,#f5ece8); border-left-color:#b57a6a; }
+  .dc-card.trail.r1 { background:linear-gradient(160deg,#fcf6f6,#f3e5e5); border-left-color:#a8323f; }
   /* S1: the ledger line - a dotted hairline, LOOKING BACK, muted stars, the sentence (every screen) */
   .dc-card.trail { flex-wrap:wrap; }
   .dc-vl { flex-basis:100%; width:100%; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; border-top:1px dotted #d8dee8; margin-top:8px; padding-top:7px; }
@@ -5769,7 +5774,7 @@ function renderDecisions() {
       }).join('') + '</div>'
     : '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
   el('dcTrailList').innerHTML = trail.map(d =>
-    '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + '" data-dc="' + d.id + '">'
+    '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + (Number(d.satisfaction) && !dcCanx_(d) ? ' r' + Number(d.satisfaction) : '') + '" data-dc="' + d.id + '">'
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
     + '<span class="t">' + escHtml(d.title) + '</span>'
     + '<span class="rowdeck">'
