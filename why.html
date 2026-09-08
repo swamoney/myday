@@ -719,6 +719,13 @@
   #dcWin:not(.dc-editing) .dc-ratebox { border-color:transparent; background:transparent; padding:0; margin-top:8px; }
   #dcWin:not(.dc-editing) .dc-ratebox .rstars b { cursor:default; pointer-events:none; font-size:1.125rem; }
   #dcWin:not(.dc-editing) .dc-ratebox.unrated { display:none; }
+  /* the comment under the stars */
+  .dc-ratebox .rnote { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#3b3629; margin-top:8px; line-height:1.5; }
+  .dc-ratebox .rnote.hidden { display:none; }
+  .dc-ratebox .rnote-in { display:none; width:100%; margin-top:8px; border:1px dashed #d8c78f; border-radius:8px; padding:8px 10px;
+                          font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#3b3629; background:#fff; }
+  #dcWin.dc-editing .dc-ratebox .rnote-in { display:block; }
+  #dcWin.dc-editing .dc-ratebox .rnote { display:none; }
   .dc-decrow { display:flex; gap:8px; margin:16px 0 8px; }
   .dc-decide { background:#23677a; border:1px solid #23677a; color:#fff; border-radius:9px;
                padding:10px 16px; font-weight:600; font-size:0.8125rem; cursor:pointer; }
@@ -1724,6 +1731,8 @@
       <span class="rlbl">Looking back, how did it turn out?</span>
       <span class="rstars" id="dcRateStars"><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b></span>
       <span class="rcap" id="dcRateCap"></span>
+      <div class="rnote" id="dcRateNoteRO"></div>
+      <input class="rnote-in" id="dcRateNote" maxlength="240" placeholder="A line looking back \u2014 what the years taught (optional)">
     </div>
     <span class="dc-storyshelf">The story</span>
     <div class="rd-album" id="dcAlbum"></div>
@@ -2515,7 +2524,7 @@ async function exportWhy() {
         + (sealed ? (dcVerdictLong_(d)
             + (d.decided_on ? ' \u00B7 ' + xEsc_(dcFmt_(d.decided_on)) : '')
             + (d.happened_on ? ' \u00B7 happened ' + xEsc_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
-            + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
+            + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : ''))
           : ('On the desk' + (d.target_on ? ' \u00B7 target ' + xEsc_(dcFmt_(d.target_on)) : '')
             + ' \u00B7 ' + dcAnswered_(d) + ' of ' + qa.length + ' answered')) + '</p>';
       const answered = qa.filter(x => x && String(x.a || '').trim());
@@ -5896,7 +5905,7 @@ function dcMd_(d) {
     ? (dcVerdictLong_(d)
        + (d.decided_on ? ' \u00B7 ' + dcText_(dcFmt_(d.decided_on)) : '')
        + (d.happened_on ? ' \u00B7 happened ' + dcText_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
-       + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '\n\n')
+       + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + ((d.rating_note || '').trim() ? '\n\n> ' + dcText_(d.rating_note) : '') + '\n\n')
     : ('On the desk' + (d.target_on ? ' \u00B7 target ' + dcText_(dcFmt_(d.target_on)) : '') + '\n\n');
   qa.forEach((x, i) => {
     md += (i + 1) + '. **' + x.q + '**\n';
@@ -5927,7 +5936,7 @@ el('dcPrintBtn').addEventListener('click', () => {
     + (sealed ? (dcVerdictLong_(d)
         + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
         + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
-        + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : ''))
+        + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : ''))
       : ('On the desk' + (d.target_on ? ' \u00B7 decide by ' + e(dcFmtLong_(d.target_on)) : ''))) + '</p><ul>';
   const tbn = window.MyBoard ? MyBoard.notesFor('decision:' + d.id) : [];
   if (tbn.length) {
@@ -5950,8 +5959,20 @@ function dcRatePaint_() {
   el('dcRateStars').querySelectorAll('b').forEach((s, i) => s.classList.toggle('on', i < r));
   el('dcRateCap').textContent = r ? DC_RATE_CAP[r] : 'tap a star when the years have spoken';
   el('dcRateCap').classList.toggle('hint', !r);
-  el('dcRateBox').classList.toggle('unrated', !r);
+  el('dcRateBox').classList.toggle('unrated', !r && !(d.rating_note || '').trim());
+  const note = (d.rating_note || '').trim();
+  el('dcRateNoteRO').textContent = note; el('dcRateNoteRO').classList.toggle('hidden', !note);
+  el('dcRateNote').value = note;
 }
+// The comment under the stars: saved on change, only on a sealed page in edit mode.
+el('dcRateNote').addEventListener('change', async () => {
+  const d = dcRow_(); if (!d || d.status !== 'trail') return;
+  const v = el('dcRateNote').value.trim();
+  const { error } = await supa.from('why_decisions').update({ rating_note: v || null }).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save the note'); return; }
+  d.rating_note = v || null; dcRatePaint_(); toast(v ? 'Noted' : 'Note cleared');
+});
+el('dcRateNote').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el('dcRateNote').blur(); } });
 el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
   s.addEventListener('click', async () => {
     const d = dcRow_(); if (!d || d.status !== 'trail') return;
