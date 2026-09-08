@@ -141,6 +141,27 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-T2: the import learns Rahul's real sheet** (9 Sep 2026):
+Book1.xlsx showed the true layout - a TWO-ROW header (row 1: the
+title 'One Life Checklist' merged over A:D + the ten questions in
+E..N, some with line breaks inside the cell; row 2: Start Date /
+Target Date / Current Status in B..D), the decision in column A,
+no 'Decision' header. Rebuilt: (1) .xlsx / .csv UPLOAD door
+(SheetJS from cdnjs fetched only when a file is chosen; first
+sheet -> grid), paste kept; (2) dcTextGrid_ is quote-aware so a
+line break inside a pasted cell never starts a row; (3)
+dcParseGrid_ merges up to three header rows column-wise, maps
+Start Date -> created_at, Target Date -> target_on, Current
+Status -> Done/Yes/Completed = sealed (decided_on = target, else
+start), Cancelled/Dropped/No = sealed cancelled, Pending/Open/
+blank = stays OPEN on the desk (the import can restore pending
+ones too), n/10 columns by number, column A = the name when
+unnamed; preview says 'n to the trail, m to the desk', DONE / NO /
+PENDING per row; button 'Bring n in'. Template .csv now mirrors
+his header. Tested on the real workbook (openpyxl grid) + a pasted
+TSV with a multi-line quoted header cell: 3 rows, sealed / open /
+cancelled all right, q2 and q10 landed, dates read.
+
 **DC-T: the Ten join the checklist; the old decisions join the
 trail (A2 + I1)** (8 Sep 2026): Rahul's ten pre-app questions
 live verbatim as DC_TEN_POINTS (his capitals, quotes and >>>);

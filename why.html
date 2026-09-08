@@ -649,6 +649,9 @@
   .dc-imp-row .d { font-family:var(--mono); font-size:0.5313rem; color:#68789a; }
   .dc-imp-row .v { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:3px 8px; color:#2f6146; background:#e4efe6; }
   .dc-imp-row .v.cancelled { color:#5f6b85; background:#eef1f6; }
+  .dc-imp-row .v.desk { color:#9a4a2e; background:#f6e9e2; }
+  .dc-import-file { display:inline-block; position:relative; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:#2f5187; border-radius:8px; padding:9px 12px; cursor:pointer; }
+  .dc-import-or { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin:8px 0 6px; }
   .dc-imp-warn { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.08em; color:#8a6d1f; padding:4px 0; }
   .dc-meta { display:flex; flex-direction:column; gap:6px; align-items:flex-start; margin:14px 0 18px; }
   .dc-pill { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
@@ -1793,8 +1796,10 @@
 <div class="modal-overlay hidden" id="dcImportModal">
   <div class="modal">
     <div class="modal-title">Import past decisions</div>
-    <div class="modal-sub">copy the rows from your sheet, header row included, and paste &mdash; nothing is written until you seal</div>
-    <textarea id="dcImportText" class="dc-import-ta" placeholder="Decision&#9;Date&#9;1/10 WHY&#9;2/10 10 YR&#9;&hellip;&#9;Verdict"></textarea>
+    <div class="modal-sub">upload your One Life Checklist .xlsx as it is, or paste its rows &mdash; nothing is written until you seal</div>
+    <label class="dc-import-file" for="dcImportFile">&#8593; Upload the .xlsx / .csv<input type="file" id="dcImportFile" accept=".xlsx,.xls,.csv" style="position:absolute; left:-9999px;"></label>
+    <div class="dc-import-or">or paste</div>
+    <textarea id="dcImportText" class="dc-import-ta" placeholder="Paste the rows from your sheet, header rows included"></textarea>
     <div class="dc-import-prev" id="dcImportPrev"></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcImportSeal" type="button" disabled>Seal into the trail</button>
@@ -6112,48 +6117,107 @@ function dcParseDate_(s) {
   if ((m = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})$/)) && MON[m[1].slice(0, 3).toLowerCase()]) return m[3] + '-' + String(MON[m[1].slice(0, 3).toLowerCase()]).padStart(2, '0') + '-' + m[2].padStart(2, '0');
   const t = new Date(s); return isNaN(t) ? null : t.toISOString().slice(0, 10);
 }
-function dcParseImport_(text) {
-  const lines = String(text || '').replace(/\r/g, '').split('\n').filter(l => l.trim());
-  if (lines.length < 2) return { rows: [], problems: ['Paste the header row and at least one decision'] };
-  const sep = lines[0].indexOf('\t') > -1 ? '\t' : ',';
-  const split = (l) => l.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
-  const head = split(lines[0]).map(h => h.toLowerCase());
-  const col = { name: -1, date: -1, verdict: -1, outcome: -1, q: {} };
+// Quote-aware split of pasted text into a grid: Excel wraps multi-line cells in
+// quotes, so a line break inside a cell must not start a new row.
+function dcTextGrid_(text) {
+  const s = String(text || '').replace(/\r\n?/g, '\n');
+  const sep = s.indexOf('\t') > -1 ? '\t' : ',';
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (q) { if (ch === '"') { if (s[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === sep) { row.push(cell); cell = ''; }
+    else if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += ch;
+  }
+  if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+  return rows.map(r => r.map(c => String(c == null ? '' : c).trim()));
+}
+// The One Life Checklist layout: a title row that also carries the ten questions
+// (E..N), a second header row with Start Date / Target Date / Current Status, the
+// decision's name in column A, one decision per row beneath. Any single-row
+// header with a Decision column still reads.
+function dcParseGrid_(grid) {
+  const rows = [], problems = [];
+  const clean = grid.filter(r => r.some(c => String(c).trim() !== ''));
+  if (clean.length < 2) return { rows, problems: ['The sheet needs its header rows and at least one decision'] };
+  const isQ = (h) => /(\d{1,2})\s*\/\s*10/.test(String(h));
+  // header rows = the first rows (up to 3) that carry n/10 markers or the date/status words
+  let hRows = 0;
+  for (let i = 0; i < Math.min(3, clean.length); i++) {
+    const r = clean[i].map(c => String(c).toLowerCase());
+    if (r.some(isQ) || r.some(c => /start date|target date|current status|^date$|decided|verdict|status/.test(c))) hRows = i + 1; else if (hRows) break;
+  }
+  if (!hRows) return { rows, problems: ['No header found \u2014 the ten questions (1/10 \u2026 10/10) or the date columns must be in the first rows'] };
+  const width = Math.max.apply(null, clean.map(r => r.length));
+  const head = [];
+  for (let c = 0; c < width; c++) { const parts = []; for (let i = 0; i < hRows; i++) { const v = String((clean[i] || [])[c] || '').trim(); if (v) parts.push(v); } head.push(parts.join(' ').toLowerCase()); }
+  const col = { name: -1, start: -1, target: -1, status: -1, verdict: -1, outcome: -1, q: {} };
   head.forEach((h, i) => {
-    let m = h.match(/(\d{1,2})\s*\/\s*10/);
+    const m = h.match(/(\d{1,2})\s*\/\s*10/);
     if (m) { col.q[Number(m[1])] = i; return; }
-    if (col.name < 0 && /decision|title|what/.test(h)) col.name = i;
-    else if (col.date < 0 && /date|decided|when/.test(h)) col.date = i;
+    if (col.start < 0 && /start date|started|opened/.test(h)) col.start = i;
+    else if (col.target < 0 && /target date|target|decide by|deadline/.test(h)) col.target = i;
+    else if (col.status < 0 && /current status|status/.test(h)) col.status = i;
     else if (col.verdict < 0 && /verdict|result|made/.test(h)) col.verdict = i;
     else if (col.outcome < 0 && /outcome|happened|note/.test(h)) col.outcome = i;
+    else if (col.start < 0 && col.target < 0 && /^date$|decided|when/.test(h)) col.target = i;
+    else if (col.name < 0 && /decision|title|what|checklist/.test(h)) col.name = i;
   });
-  if (col.name < 0) col.name = 0;
-  const rows = [], problems = [];
-  lines.slice(1).forEach((l, li) => {
-    const c = split(l);
-    const title = (c[col.name] || '').trim();
-    if (!title) { problems.push('row ' + (li + 2) + ' \u2014 no decision name, skipped'); return; }
-    const when = col.date > -1 ? dcParseDate_(c[col.date]) : null;
-    if (col.date > -1 && c[col.date] && !when) problems.push('row ' + (li + 2) + ' \u2014 date not read: "' + c[col.date] + '"');
-    const answers = dcTen.map((q, i) => ({ q: q, a: (col.q[i + 1] != null ? (c[col.q[i + 1]] || '') : '') }));
-    const v = ((col.verdict > -1 ? c[col.verdict] : '') || '').toLowerCase();
-    const made = /gut|quick/.test(v) ? 'quick' : /no\b|cancel|drop|walk/.test(v) ? 'cancelled' : 'thoughtful';
-    const outcome = col.outcome > -1 ? (c[col.outcome] || '').trim() : '';
-    rows.push({ title, when, answers, made, outcome, answered: answers.filter(x => x.a).length });
+  if (col.name < 0) col.name = 0;   // column A is the decision when unnamed
+  clean.slice(hRows).forEach((c, li) => {
+    const title = String(c[col.name] || '').trim();
+    if (!title) { problems.push('row ' + (li + hRows + 1) + ' \u2014 no decision name, skipped'); return; }
+    const start = col.start > -1 ? dcParseDate_(c[col.start]) : null;
+    const target = col.target > -1 ? dcParseDate_(c[col.target]) : null;
+    if (col.start > -1 && c[col.start] && !start) problems.push('row ' + (li + hRows + 1) + ' \u2014 start date not read: "' + c[col.start] + '"');
+    if (col.target > -1 && c[col.target] && !target) problems.push('row ' + (li + hRows + 1) + ' \u2014 target date not read: "' + c[col.target] + '"');
+    const answers = dcTen.map((q, i) => ({ q: q, a: String(col.q[i + 1] != null ? (c[col.q[i + 1]] || '') : '').trim() }));
+    const st = String((col.status > -1 ? c[col.status] : '') || (col.verdict > -1 ? c[col.verdict] : '') || '').toLowerCase();
+    // status words: done/yes/completed/finalized -> sealed; cancelled/dropped/no -> sealed as cancelled; pending/open/in progress/blank -> still on the desk
+    const cancelled = /cancel|drop|walk|^no\b/.test(st);
+    const sealed = cancelled || /done|yes|complete|final|closed|decided|taken|sealed/.test(st);
+    const made = cancelled ? 'cancelled' : /gut|quick/.test(st) ? 'quick' : 'thoughtful';
+    const outcome = col.outcome > -1 ? String(c[col.outcome] || '').trim() : '';
+    rows.push({ title, start, target, sealed, made, outcome, answers, answered: answers.filter(x => x.a).length,
+      when: sealed ? (target || start) : null });
   });
   return { rows, problems };
 }
+function dcParseImport_(text) { return dcParseGrid_(dcTextGrid_(text)); }
+// .xlsx / .csv: SheetJS is fetched only when a file is chosen.
+function dcLoadSheetJs_() {
+  if (window.XLSX) return Promise.resolve();
+  return new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = res; s.onerror = () => rej(new Error('xlsx')); document.head.appendChild(s); });
+}
+async function dcImportFile_(file) {
+  try {
+    if (/\.csv$/i.test(file.name)) { el('dcImportText').value = await file.text(); dcImportPreview_(); return; }
+    await dcLoadSheetJs_();
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const grid = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, dateNF: 'yyyy-mm-dd', defval: '' });
+    dcImportPreviewGrid_(grid.map(r => r.map(c => c instanceof Date ? c.toISOString().slice(0, 10) : String(c == null ? '' : c))));
+    el('dcImportText').value = '';
+    el('dcImportText').placeholder = file.name + ' \u2014 read ' + grid.length + ' rows';
+  } catch (e) { toast('Could not read that file'); }
+}
 let dcImportRows_ = [];
-function dcImportPreview_() {
-  const { rows, problems } = dcParseImport_(el('dcImportText').value);
+function dcImportPreview_() { dcImportPreviewGrid_(dcTextGrid_(el('dcImportText').value)); }
+function dcImportPreviewGrid_(grid) {
+  const { rows, problems } = dcParseGrid_(grid);
   dcImportRows_ = rows;
   const fmtD = (iso) => iso ? dcFmt_(iso).toUpperCase() : 'NO DATE';
-  el('dcImportPrev').innerHTML = (rows.length ? '<div class="dc-imp-h">PREVIEW \u00B7 ' + rows.length + ' DECISION' + (rows.length === 1 ? '' : 'S') + ' READ</div>' : '') +
-    rows.map(r => '<div class="dc-imp-row"><span class="t">' + escHtml(r.title) + '</span><span class="d">' + fmtD(r.when) + ' \u00B7 ' + r.answered + ' / ' + dcTen.length + ' ANSWERED</span>' +
-      '<span class="v ' + r.made + '">' + (r.made === 'cancelled' ? '\u2715 NO' : '\u2713 YES') + '</span></div>').join('') +
+  const nSeal = rows.filter(r => r.sealed).length, nDesk = rows.length - nSeal;
+  el('dcImportPrev').innerHTML = (rows.length ? '<div class="dc-imp-h">PREVIEW \u00B7 ' + rows.length + ' DECISION' + (rows.length === 1 ? '' : 'S') + ' READ \u00B7 ' + nSeal + ' TO THE TRAIL, ' + nDesk + ' TO THE DESK</div>' : '') +
+    rows.map(r => '<div class="dc-imp-row"><span class="t">' + escHtml(r.title) + '</span><span class="d">' +
+      (r.sealed ? fmtD(r.when) : (r.target ? 'BY ' + fmtD(r.target) : 'NO TARGET')) + ' \u00B7 ' + r.answered + ' / ' + dcTen.length + ' ANSWERED</span>' +
+      '<span class="v ' + (r.sealed ? r.made : 'desk') + '">' + (r.sealed ? (r.made === 'cancelled' ? '\u2715 NO' : '\u2713 DONE') : 'PENDING') + '</span></div>').join('') +
     problems.map(p => '<div class="dc-imp-warn">' + escHtml(p) + '</div>').join('');
   el('dcImportSeal').disabled = !rows.length;
-  el('dcImportSeal').textContent = rows.length ? 'Seal ' + rows.length + ' into the trail' : 'Seal into the trail';
+  el('dcImportSeal').textContent = rows.length ? 'Bring ' + rows.length + ' in' : 'Bring them in';
 }
 el('dcImportBtn').addEventListener('click', () => {
   el('dcImportText').value = ''; el('dcImportPrev').innerHTML = ''; el('dcImportSeal').disabled = true;
@@ -6161,24 +6225,31 @@ el('dcImportBtn').addEventListener('click', () => {
 });
 el('dcImportCancel').addEventListener('click', () => el('dcImportModal').classList.add('hidden'));
 el('dcImportText').addEventListener('input', dcImportPreview_);
+el('dcImportFile').addEventListener('change', () => { const f = el('dcImportFile').files && el('dcImportFile').files[0]; if (f) dcImportFile_(f); el('dcImportFile').value = ''; });
 el('dcImportTpl').addEventListener('click', () => {
-  const head = ['Decision', 'Date'].concat(dcTen.map((q, i) => (i + 1) + '/10')).concat(['Verdict', 'Outcome']);
-  const csv = head.map(h => '"' + h.replace(/"/g, '""') + '"').join(',') + '\n"Left the agency","12-03-2024",' + dcTen.map(() => '""').join(',') + ',"Yes",""\n';
+  const head = ['Decision', 'Start Date', 'Target Date', 'Current Status'].concat(dcTen.map((q, i) => (i + 1) + '/10'));
+  const csv = head.map(h => '"' + h.replace(/"/g, '""') + '"').join(',') + '\n"Left the agency","01-01-2024","12-03-2024","Done",' + dcTen.map(() => '""').join(',') + '\n';
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'past-decisions-template.csv';
   document.body.appendChild(a); a.click(); a.remove();
 });
 el('dcImportSeal').addEventListener('click', async () => {
   if (!dcImportRows_.length) return;
-  if (!confirm('Seal ' + dcImportRows_.length + ' past decision(s) into the trail? They can be deleted like any decision.')) return;
-  const recs = dcImportRows_.map(r => ({ user_id: userId, title: r.title, status: 'trail', made: r.made,
-    decided_on: r.when || new Date().toISOString().slice(0, 10), target_on: null, qset: 'ten', answers: r.answers,
-    note_html: r.outcome ? '<p>' + escHtml(r.outcome) + '</p>' : '' }));
+  const nSeal = dcImportRows_.filter(r => r.sealed).length;
+  if (!confirm('Bring ' + dcImportRows_.length + ' decision(s) in \u2014 ' + nSeal + ' sealed into the trail, ' + (dcImportRows_.length - nSeal) + ' onto the desk? They can be deleted like any decision.')) return;
+  const recs = dcImportRows_.map(r => {
+    const rec = { user_id: userId, title: r.title, qset: 'ten', answers: r.answers, target_on: r.target || null,
+      note_html: r.outcome ? '<p>' + escHtml(r.outcome) + '</p>' : '' };
+    if (r.sealed) { rec.status = 'trail'; rec.made = r.made; rec.decided_on = r.when || new Date().toISOString().slice(0, 10); }
+    else rec.status = 'open';
+    if (r.start) rec.created_at = r.start + 'T09:00:00';
+    return rec;
+  });
   const { data, error } = await supa.from('why_decisions').insert(recs).select('*');
   if (error) { console.error(error); toast('Could not seal them'); return; }
   (data || []).forEach(x => dcRows.unshift(x));
   renderDecisions();
   el('dcImportModal').classList.add('hidden');
-  toast((data || []).length + ' sealed into the trail');
+  toast((data || []).length + ' brought in');
 });
 el('dcPtsBtn').addEventListener('click', () => {
   dcWPts = dcPoints.slice(); dcWTen = dcTen.slice();
