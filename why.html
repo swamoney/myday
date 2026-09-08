@@ -5826,9 +5826,11 @@ function openDecision(id) {
     '<div class="dc-qa' + (String(x.a || '').trim() ? ' answered' : '') + '">'
     + '<div class="q"><i>' + (i + 1) + '</i>' + escHtml(x.q || '') + '</div>'
     + '<textarea data-dcq="' + i + '" placeholder="' + (sealed ? '(unanswered at the time)' : 'your answer\u2026') + '"'
-    + (sealed ? ' readonly' : '') + '>' + escHtml(x.a || '') + '</textarea></div>'
+    + (sealed ? ' readonly data-sealed="1"' : '') + '>' + escHtml(x.a || '') + '</textarea></div>'
   ).join('');
-  if (!sealed) {
+  // Sealed answers stay read-only on the page; Edit unlocks them (imported history
+  // needs correcting), and every keystroke saves the same way an open page does.
+  {
     let dcT = null;
     el('dcQA').querySelectorAll('textarea').forEach(ta => {
       ta.addEventListener('input', () => {
@@ -5895,7 +5897,7 @@ function setDcEditing(on) {
   if (window.MyAlbum && userId && dcId !== null && el('dcAlbum')) MyAlbum.setEditing(el('dcAlbum'), !!on);
   el('dcEditWord').textContent = on ? 'Done' : 'Edit';
   const d = dcRow_(); const sealed = d && d.status === 'trail';
-  el('dcQA').querySelectorAll('textarea').forEach(ta => { ta.readOnly = sealed || !on; });
+  el('dcQA').querySelectorAll('textarea').forEach(ta => { ta.readOnly = !on; });   // DC-E: sealed answers unlock in Edit too
   el('dcStory').contentEditable = on ? 'true' : 'false';
   el('dcWin').classList.toggle('story-empty-read', !on && !dcText_(d && d.note_html));
   if (d && sealed) dcRatePaint_();
