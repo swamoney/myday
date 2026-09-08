@@ -141,6 +141,17 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-T4: Tidy mode on the index** (9 Sep 2026): Rahul had already
+imported the old sheet and needed to remove rows quickly. A 'Tidy'
+text toggle beside New decision (body.dc-tidy, reads 'Done
+tidying' when on): every desk tag and trail row shows a small
+ember x; tapping it removes with the page's exact wording and
+sweep (shared dcDeleteRow_(d, fromPage) - album + board go with
+it); in Tidy mode a row tap no longer opens the page. The page's
+own Remove button is untouched. Harness: x hidden off / shown on,
+row tap blocked, x deletes + repaints, desk tag carries x, toggle
+returns.
+
 **DC-T3: a past target is history** (9 Sep 2026): rows with no
 clear status but a Target Date already behind us were landing on
 the desk as pending. Rule: no status word + past target = sealed

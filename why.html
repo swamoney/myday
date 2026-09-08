@@ -653,6 +653,13 @@
   .dc-imp-row button.v { border:none; cursor:pointer; font-family:var(--mono); }
   .dc-import-file { display:inline-block; position:relative; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:#2f5187; border-radius:8px; padding:9px 12px; cursor:pointer; }
   .dc-import-or { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin:8px 0 6px; }
+  /* Tidy mode: an x on every row, the row no longer opens */
+  .dc-tidy { background:none; border:1px solid var(--rule); border-radius:10px; padding:8px 12px; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#68789a; cursor:pointer; margin-right:8px; }
+  body.dc-tidy .dc-tidy { background:#2f5187; color:#fff; border-color:#2f5187; }
+  .dc-x { display:none; background:rgba(122,47,56,0.9); color:#fff; border:none; border-radius:6px; width:22px; height:22px; font-size:0.9375rem; line-height:1; cursor:pointer; flex-shrink:0; }
+  body.dc-tidy .dc-x { display:inline-flex; align-items:center; justify-content:center; }
+  body.dc-tidy .dc-tag .dc-x { position:absolute; top:8px; left:8px; }
+  body.dc-tidy .dc-card.trail, body.dc-tidy .dc-tag { cursor:default; }
   .dc-imp-warn { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.08em; color:#8a6d1f; padding:4px 0; }
   .dc-meta { display:flex; flex-direction:column; gap:6px; align-items:flex-start; margin:14px 0 18px; }
   .dc-pill { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
@@ -1456,6 +1463,7 @@
     <div class="sec-panel hidden" id="secDecisions">
       <div><button class="dc-ptsbtn" id="dcPtsBtn" type="button">Edit the checklist</button></div>
       <div class="dc-addrow">
+        <button class="dc-tidy" id="dcTidyBtn" type="button">Tidy</button>
         <button class="pl-addbtn dc-rust" id="dcAddBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           <span>New decision</span>
@@ -5733,6 +5741,7 @@ function renderDecisions() {
         const late = d.target_on && d.target_on < today;
         return '<div class="dc-tag" data-dc="' + d.id + '"><span class="string"></span>' +
           '<div class="card"><span class="hole"></span><span class="stamp">DECISION PENDING</span>' +
+          '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>' +
           '<div class="t">' + escHtml(d.title) + '</div>' +
           '<div class="prog">' + n + ' / ' + total + '<i><b style="width:' + pct + '%;"></b></i></div>' +
           '<div class="chips">' + (d.target_on ? '<span class="chip' + (late ? ' late' : '') + '">BY ' + escHtml(String(dcFmt_(d.target_on)).toUpperCase()) + '</span>' : '') + '</div>' +
@@ -5744,13 +5753,17 @@ function renderDecisions() {
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
     + '<span class="t">' + escHtml(d.title) + '</span>'
     + '<span class="rowdeck">' + dcStarsRO_(d)
+    + '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>'
     + (d.qset === 'ten' ? '<span class="dc-pill wait">THE TEN</span>' : '')
     + '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
     + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
     + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span></div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
+  const tidy = document.body.classList.contains('dc-tidy');
   document.querySelectorAll('[data-dc]').forEach(c =>
-    c.addEventListener('click', () => openDecision(c.dataset.dc)));
+    c.addEventListener('click', (ev) => { if (tidy || ev.target.closest('[data-dc-x]')) return; openDecision(c.dataset.dc); }));
+  document.querySelectorAll('[data-dc-x]').forEach(b =>
+    b.addEventListener('click', (ev) => { ev.stopPropagation(); const d = dcRows.find(x => String(x.id) === String(b.dataset.dcX)); if (d) dcDeleteRow_(d, false); }));
 }
 function dcRow_() { return dcRows.find(x => String(x.id) === String(dcId)); }
 function openDecision(id) {
@@ -6323,8 +6336,9 @@ el('dcCatchYes').addEventListener('click', async () => {
 });
 // Deletion lives on the page, never the cards. The desk forgets lightly;
 // the trail is the historical record and says so before letting go.
-el('dcDelBtn').addEventListener('click', async () => {
-  const d = dcRow_(); if (!d) return;
+// One deletion, two doors: the page's button (kept as it is) and, in Tidy
+// mode, a small x on every index row - the same words, the same sweep.
+async function dcDeleteRow_(d, fromPage) {
   const sealed = d.status === 'trail';
   const msg = sealed
     ? ('This is the historical record. Removing "' + d.title + '" erases the sealed answers, the verdict ('
@@ -6332,14 +6346,24 @@ el('dcDelBtn').addEventListener('click', async () => {
        + (Number(d.satisfaction) ? ' and the ' + d.satisfaction + '-star rating' : '')
        + ' \u2014 forever. Remove it?')
     : ('Remove "' + d.title + '" from the desk? Its answers go with it.');
-  if (!confirm(msg)) return;
+  if (!confirm(msg)) return false;
   const { error } = await supa.from('why_decisions').delete().eq('id', d.id).eq('user_id', userId);
     if (!error && window.MyAlbum) MyAlbum.deleteAll('decision', d.id);
     if (!error && window.MyBoard) MyBoard.deleteScope('decision:' + d.id);   // the board goes with it
-  if (error) { console.error(error); toast('Could not remove it'); return; }
+  if (error) { console.error(error); toast('Could not remove it'); return false; }
   dcRows = dcRows.filter(x => String(x.id) !== String(d.id));
-  dcClose_();
+  if (fromPage) dcClose_(); else renderDecisions();
   toast(sealed ? 'Removed from the trail' : 'Removed \u2014 the desk forgets, the trail never knew');
+  return true;
+}
+el('dcDelBtn').addEventListener('click', async () => { const d = dcRow_(); if (d) dcDeleteRow_(d, true); });
+// Tidy mode on the index: a text toggle beside the shelves; while on, each row
+// wears an x and a tap on the x removes (the row itself no longer opens).
+el('dcTidyBtn').addEventListener('click', () => {
+  const on = !document.body.classList.contains('dc-tidy');
+  document.body.classList.toggle('dc-tidy', on);
+  el('dcTidyBtn').textContent = on ? 'Done tidying' : 'Tidy';
+  renderDecisions();
 });
 
 el('fDreamStat').addEventListener('click', e => {
