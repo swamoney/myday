@@ -141,6 +141,19 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-T3: a past target is history** (9 Sep 2026): rows with no
+clear status but a Target Date already behind us were landing on
+the desk as pending. Rule: no status word + past target = sealed
+as done on the target date (flagged 'PAST TARGET' in the preview,
+byRule); a written 'Pending / Open / In progress' still keeps the
+desk; every preview pill is a TAP-TO-FLIP between trail and desk
+(dcImportRepaint_ redraws without re-parsing). Also fixed on the
+way: header-row detection matched 'status'/'date' as substrings,
+so a decision titled '...no status' was swallowed as a header -
+header words now match the WHOLE cell. Isolated test: old target
++ no status -> sealed by rule; old target + 'Pending' -> desk;
+future target -> desk; 'Done' -> sealed; all four rows kept.
+
 **DC-T2: the import learns Rahul's real sheet** (9 Sep 2026):
 Book1.xlsx showed the true layout - a TWO-ROW header (row 1: the
 title 'One Life Checklist' merged over A:D + the ten questions in

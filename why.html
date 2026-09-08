@@ -650,6 +650,7 @@
   .dc-imp-row .v { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:3px 8px; color:#2f6146; background:#e4efe6; }
   .dc-imp-row .v.cancelled { color:#5f6b85; background:#eef1f6; }
   .dc-imp-row .v.desk { color:#9a4a2e; background:#f6e9e2; }
+  .dc-imp-row button.v { border:none; cursor:pointer; font-family:var(--mono); }
   .dc-import-file { display:inline-block; position:relative; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:#2f5187; border-radius:8px; padding:9px 12px; cursor:pointer; }
   .dc-import-or { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin:8px 0 6px; }
   .dc-imp-warn { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.08em; color:#8a6d1f; padding:4px 0; }
@@ -6147,7 +6148,8 @@ function dcParseGrid_(grid) {
   let hRows = 0;
   for (let i = 0; i < Math.min(3, clean.length); i++) {
     const r = clean[i].map(c => String(c).toLowerCase());
-    if (r.some(isQ) || r.some(c => /start date|target date|current status|^date$|decided|verdict|status/.test(c))) hRows = i + 1; else if (hRows) break;
+    // a header cell is the WHOLE cell (a decision named 'the status of x' must not read as a header)
+    if (r.some(isQ) || r.some(c => /^(start date|target date|current status|date|decided( on)?|verdict|status|decision|outcome)$/.test(c.trim()))) hRows = i + 1; else if (hRows) break;
   }
   if (!hRows) return { rows, problems: ['No header found \u2014 the ten questions (1/10 \u2026 10/10) or the date columns must be in the first rows'] };
   const width = Math.max.apply(null, clean.map(r => r.length));
@@ -6177,11 +6179,17 @@ function dcParseGrid_(grid) {
     const st = String((col.status > -1 ? c[col.status] : '') || (col.verdict > -1 ? c[col.verdict] : '') || '').toLowerCase();
     // status words: done/yes/completed/finalized -> sealed; cancelled/dropped/no -> sealed as cancelled; pending/open/in progress/blank -> still on the desk
     const cancelled = /cancel|drop|walk|^no\b/.test(st);
-    const sealed = cancelled || /done|yes|complete|final|closed|decided|taken|sealed/.test(st);
+    const said = /done|yes|complete|final|closed|decided|taken|sealed/.test(st);
+    const pendingWord = /pending|open|progress|wip|waiting/.test(st);
+    // A row with no clear status but a target already behind us is history, not a
+    // pending decision: it seals on its target date (the preview lets you flip it).
+    const today = new Date().toISOString().slice(0, 10);
+    const pastTarget = !!(target && target < today) && !pendingWord;
+    const sealed = cancelled || said || pastTarget;
     const made = cancelled ? 'cancelled' : /gut|quick/.test(st) ? 'quick' : 'thoughtful';
     const outcome = col.outcome > -1 ? String(c[col.outcome] || '').trim() : '';
     rows.push({ title, start, target, sealed, made, outcome, answers, answered: answers.filter(x => x.a).length,
-      when: sealed ? (target || start) : null });
+      when: sealed ? (target || start) : null, byRule: pastTarget && !said && !cancelled });
   });
   return { rows, problems };
 }
@@ -6212,12 +6220,35 @@ function dcImportPreviewGrid_(grid) {
   const fmtD = (iso) => iso ? dcFmt_(iso).toUpperCase() : 'NO DATE';
   const nSeal = rows.filter(r => r.sealed).length, nDesk = rows.length - nSeal;
   el('dcImportPrev').innerHTML = (rows.length ? '<div class="dc-imp-h">PREVIEW \u00B7 ' + rows.length + ' DECISION' + (rows.length === 1 ? '' : 'S') + ' READ \u00B7 ' + nSeal + ' TO THE TRAIL, ' + nDesk + ' TO THE DESK</div>' : '') +
-    rows.map(r => '<div class="dc-imp-row"><span class="t">' + escHtml(r.title) + '</span><span class="d">' +
-      (r.sealed ? fmtD(r.when) : (r.target ? 'BY ' + fmtD(r.target) : 'NO TARGET')) + ' \u00B7 ' + r.answered + ' / ' + dcTen.length + ' ANSWERED</span>' +
-      '<span class="v ' + (r.sealed ? r.made : 'desk') + '">' + (r.sealed ? (r.made === 'cancelled' ? '\u2715 NO' : '\u2713 DONE') : 'PENDING') + '</span></div>').join('') +
-    problems.map(p => '<div class="dc-imp-warn">' + escHtml(p) + '</div>').join('');
+    rows.map((r, i) => '<div class="dc-imp-row"><span class="t">' + escHtml(r.title) + '</span><span class="d">' +
+      (r.sealed ? fmtD(r.when) : (r.target ? 'BY ' + fmtD(r.target) : 'NO TARGET')) + ' \u00B7 ' + r.answered + ' / ' + dcTen.length + ' ANSWERED' + (r.byRule ? ' \u00B7 PAST TARGET' : '') + '</span>' +
+      '<button type="button" class="v ' + (r.sealed ? r.made : 'desk') + '" data-imp-flip="' + i + '" title="Tap to flip between the trail and the desk">' + (r.sealed ? (r.made === 'cancelled' ? '\u2715 NO' : '\u2713 DONE') : 'PENDING') + '</button></div>').join('') +
+    problems.map(p => '<div class="dc-imp-warn">' + escHtml(p) + '</div>').join('') +
+    (rows.some(r => r.byRule) ? '<div class="dc-imp-warn" style="color:#68789a;">Rows with a past target and no status are sealed as done on that date \u2014 tap a pill to flip any of them.</div>' : '');
+  el('dcImportPrev').querySelectorAll('[data-imp-flip]').forEach(b => b.addEventListener('click', () => {
+    const r = dcImportRows_[Number(b.dataset.impFlip)]; if (!r) return;
+    r.sealed = !r.sealed; r.byRule = false;
+    if (r.sealed && r.made === 'cancelled') r.made = 'thoughtful';
+    r.when = r.sealed ? (r.target || r.start || new Date().toISOString().slice(0, 10)) : null;
+    dcImportRepaint_();
+  }));
   el('dcImportSeal').disabled = !rows.length;
   el('dcImportSeal').textContent = rows.length ? 'Bring ' + rows.length + ' in' : 'Bring them in';
+}
+// repaint the preview from the (possibly flipped) rows without re-parsing
+function dcImportRepaint_() {
+  const rows = dcImportRows_;
+  const fmtD = (iso) => iso ? dcFmt_(iso).toUpperCase() : 'NO DATE';
+  const nSeal = rows.filter(r => r.sealed).length, nDesk = rows.length - nSeal;
+  const host = el('dcImportPrev');
+  host.querySelector('.dc-imp-h').textContent = 'PREVIEW \u00B7 ' + rows.length + ' DECISION' + (rows.length === 1 ? '' : 'S') + ' READ \u00B7 ' + nSeal + ' TO THE TRAIL, ' + nDesk + ' TO THE DESK';
+  host.querySelectorAll('.dc-imp-row').forEach((rowEl, i) => {
+    const r = rows[i]; if (!r) return;
+    rowEl.querySelector('.d').textContent = (r.sealed ? fmtD(r.when) : (r.target ? 'BY ' + fmtD(r.target) : 'NO TARGET')) + ' \u00B7 ' + r.answered + ' / ' + dcTen.length + ' ANSWERED';
+    const b = rowEl.querySelector('[data-imp-flip]');
+    b.className = 'v ' + (r.sealed ? r.made : 'desk');
+    b.textContent = r.sealed ? (r.made === 'cancelled' ? '\u2715 NO' : '\u2713 DONE') : 'PENDING';
+  });
 }
 el('dcImportBtn').addEventListener('click', () => {
   el('dcImportText').value = ''; el('dcImportPrev').innerHTML = ''; el('dcImportSeal').disabled = true;
