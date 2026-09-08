@@ -578,7 +578,9 @@
     .dc-card .rowdeck, .stamp .rowdeck { display:flex; flex-basis:100%; flex-wrap:wrap;
         gap:6px; align-items:center; }
     .dc-card .rowdeck { padding-left:47px; }         /* under the title, past the donut */
-    .dc-card.trail .rowdeck { padding-left:28px; }   /* past the small disc */
+    .dc-card.trail .rowdeck { padding-left:28px; }
+  .dc-card.trail .t { display:flex; flex-direction:column; gap:3px; }
+  .dc-rnote { font-family:var(--serif); font-style:italic; font-weight:400; font-size:0.8125rem; color:#5b5548; line-height:1.4; }   /* past the small disc */
     .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
     .stamp .rowdeck:empty { display:none; }
   }
@@ -5763,7 +5765,8 @@ function renderDecisions() {
   el('dcTrailList').innerHTML = trail.map(d =>
     '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + '" data-dc="' + d.id + '">'
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
-    + '<span class="t">' + escHtml(d.title) + '</span>'
+    + '<span class="t">' + escHtml(d.title)
+    + ((d.rating_note || '').trim() ? '<span class="dc-rnote">\u201C' + escHtml(d.rating_note.trim()) + '\u201D</span>' : '') + '</span>'
     + '<span class="rowdeck">' + dcStarsRO_(d)
     + '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>'
     + (d.qset === 'ten' ? '<span class="dc-pill wait">THE TEN</span>' : '')
