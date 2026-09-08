@@ -2685,7 +2685,7 @@ function printSection() {
   if (activeSec === 'decisions') {
     let body = '<div class="eyebrow">My Why</div><h1>My Decisions</h1>';
     const desk = dcRows.filter(d => d.status !== 'trail');
-    const trail = dcRows.filter(d => d.status === 'trail');
+    const trail = dcRows.filter(d => d.status === 'trail').sort(dcTrailSort_);
     if (desk.length) {
       body += '<h2>On the desk</h2><ul>' + desk.map(d => {
         const qa = Array.isArray(d.answers) ? d.answers : [];
@@ -5645,6 +5645,11 @@ const DC_TEN_POINTS = [
   "10/10: Is it easily \"UNDERSTANDABLE / EXPLAINABLE\" >"
 ];
 const DC_SET_LABEL = { both: 'BOTH', new: 'NEW SET', ten: 'THE TEN' };
+// The trail reads newest first: by the day it was decided, then by creation.
+function dcTrailSort_(a, b) {
+  const da = a.decided_on || String(a.created_at || '').slice(0, 10), db = b.decided_on || String(b.created_at || '').slice(0, 10);
+  return da < db ? 1 : da > db ? -1 : String(b.created_at || '').localeCompare(String(a.created_at || ''));
+}
 function dcSetPoints_(set) { return set === 'ten' ? dcTen.slice() : set === 'new' ? dcPoints.slice() : dcPoints.concat(dcTen); }
 const DC_DEFAULT_POINTS = [
   'What am I really deciding - in one sentence?',
@@ -5729,7 +5734,7 @@ function dcFmt_(d) {
 }
 function renderDecisions() {
   const desk = dcRows.filter(d => d.status !== 'trail');
-  const trail = dcRows.filter(d => d.status === 'trail');
+  const trail = dcRows.filter(d => d.status === 'trail').sort(dcTrailSort_);
   // DC-H (H1 + 1): open decisions HANG from a rail as parchment tags - the shape says pending.
   const today = new Date().toISOString().slice(0, 10);
   el('dcDeskList').innerHTML = desk.length
