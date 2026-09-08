@@ -141,6 +141,30 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-T: the Ten join the checklist; the old decisions join the
+trail (A2 + I1)** (8 Sep 2026): Rahul's ten pre-app questions
+live verbatim as DC_TEN_POINTS (his capitals, quotes and >>>);
+the bank (why_decision_points) keeps TWO SETS via a 'qset' column
+('new' | 'ten'; the editor shows two shelves, both editable,
+saved together with sort_order 0.. / 100..); the New-decision
+dialog gains a set row BOTH (default) / NEW SET / THE TEN with
+counts, freezing the chosen questions as today; decisions gain
+'qset' - the page eyebrow says THE TEN / BOTH and trail rows wear
+a THE TEN pill. IMPORT (I1): a dashed door under the trail opens
+a paste box; the header row is read (Decision / Date / n/10
+question columns by number / Verdict / Outcome, any order, tab or
+comma), dates read day-first in the common forms, a live preview
+lists each decision (date, answered / 10, YES or NO) and flags
+unreadable rows; SEAL inserts them as status 'trail' with
+made (yes -> thoughtful, gut -> quick, no/cancelled -> cancelled),
+decided_on, the ten {q, a} pairs, qset 'ten', outcome into
+note_html. A template .csv downloads. migrate_decision_sets.sql
+adds the two columns - PENDING Rahul runs it once. Harness: sets
+load (2 + 10, first verbatim), trail pill, dialog counts, new
+decision with the Ten (qset, 10 questions, eyebrow), import
+preview (2 rows + 1 warning, answered counts), seal (dates, made,
+answers, outcome), trail count. All green.
+
 **IV-1: four ways in, one way out (F2 + S2)** (4 Sep 2026): My
 Day's Investments gain Direct Equity (directEquity/direct_equity)
 and Global Investment (globalInvest/global_invest) between Top-Up

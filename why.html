@@ -632,6 +632,24 @@
   .dc-band .dt { font-family:var(--serif); font-size:1.25rem; font-weight:700; letter-spacing:-0.01em; }
   .dc-band.late { background:#a8323f; color:#fff; box-shadow:0 4px 10px rgba(168,50,63,0.35); }
   .dc-band:hover { filter:brightness(1.03); }
+  /* DC-T: the set row in the New-decision dialog, the two shelves in the bank, the import door */
+  .dc-setseg { display:flex; gap:6px; background:#ECF1F7; border-radius:10px; padding:4px; }
+  .dc-setseg button { flex:1; text-align:center; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.1em; padding:7px 6px; border-radius:7px; color:#3D4866; background:none; border:none; cursor:pointer; }
+  .dc-setseg button small { display:block; font-weight:400; font-size:0.4688rem; opacity:0.8; margin-top:2px; }
+  .dc-setseg button.on { background:#2f5187; color:#fff; }
+  .dc-setshelf { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.16em; color:#8a7a68; margin:12px 0 6px; }
+  .dc-import-door { display:block; width:100%; margin:10px 0 0; background:none; border:1.5px dashed #b9cfe0; border-radius:10px; padding:9px 12px;
+                    font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#8a97b3; cursor:pointer; text-align:center; }
+  .dc-import-door:hover { color:#2f5187; border-color:#2f5187; }
+  .dc-import-ta { width:100%; min-height:110px; border:1px solid var(--rule); border-radius:8px; padding:10px; font-family:var(--mono); font-size:0.6875rem; line-height:1.6; color:#28324B; background:#fff; resize:vertical; }
+  .dc-import-prev { margin-top:10px; }
+  .dc-imp-h { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.16em; color:#68789a; margin:0 0 6px; }
+  .dc-imp-row { display:grid; grid-template-columns:1fr auto auto; gap:12px; align-items:center; font-size:0.75rem; padding:6px 0; border-bottom:1px dotted #e3e8ef; }
+  .dc-imp-row .t { font-family:var(--serif); font-weight:600; }
+  .dc-imp-row .d { font-family:var(--mono); font-size:0.5313rem; color:#68789a; }
+  .dc-imp-row .v { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:3px 8px; color:#2f6146; background:#e4efe6; }
+  .dc-imp-row .v.cancelled { color:#5f6b85; background:#eef1f6; }
+  .dc-imp-warn { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.08em; color:#8a6d1f; padding:4px 0; }
   .dc-meta { display:flex; flex-direction:column; gap:6px; align-items:flex-start; margin:14px 0 18px; }
   .dc-pill { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
              text-transform:uppercase; border-radius:6px; padding:4px 10px; background:#eef1f6; color:#4A5570; }
@@ -1442,6 +1460,7 @@
       <div class="dc-list" id="dcDeskList"></div>
       <div><span class="dc-shelf trail">The trail</span></div>
       <div class="dc-list" id="dcTrailList"></div>
+      <button class="dc-import-door" id="dcImportBtn" type="button">&#8593; Import past decisions &mdash; paste from your sheet</button>
     </div>
   </div>
   <div class="foot-note">one life, live it well</div>
@@ -1717,6 +1736,12 @@
     <div class="modal-sub">walk the checklist before the leap</div>
     <div class="fld"><label>The decision</label><input id="dcFName" placeholder="e.g. Move to Bangalore for the new role?" maxlength="180"></div>
     <div class="fld"><label>Target date</label><input type="date" id="dcFTarget"></div>
+    <div class="fld"><label>The checklist</label>
+      <div class="dc-setseg" id="dcFSet">
+        <button type="button" data-set="both" class="on">BOTH<small id="dcFSetN0"></small></button>
+        <button type="button" data-set="new">NEW SET<small id="dcFSetN1"></small></button>
+        <button type="button" data-set="ten">THE TEN<small id="dcFSetN2"></small></button>
+      </div></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcFSave" type="button">Open it</button>
       <button class="btn-ghost" id="dcFCancel" type="button">Cancel</button>
@@ -1765,12 +1790,30 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="dcImportModal">
+  <div class="modal">
+    <div class="modal-title">Import past decisions</div>
+    <div class="modal-sub">copy the rows from your sheet, header row included, and paste &mdash; nothing is written until you seal</div>
+    <textarea id="dcImportText" class="dc-import-ta" placeholder="Decision&#9;Date&#9;1/10 WHY&#9;2/10 10 YR&#9;&hellip;&#9;Verdict"></textarea>
+    <div class="dc-import-prev" id="dcImportPrev"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="dcImportSeal" type="button" disabled>Seal into the trail</button>
+      <button class="btn-ghost" id="dcImportTpl" type="button">Template .csv</button>
+      <button class="btn-ghost" id="dcImportCancel" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="dcPtsModal">
   <div class="modal">
     <div class="modal-title">Your checklist</div>
     <div class="modal-sub">shapes future decisions &mdash; ones already open or sealed keep their own copy</div>
+    <div class="dc-setshelf">NEW SET</div>
     <div id="dcQList"></div>
     <div class="dc-qadd"><input id="dcQNew" placeholder="A new point for future decisions&hellip;" maxlength="200"><button id="dcQAddBtn" type="button">Add</button></div>
+    <div class="dc-setshelf">THE TEN</div>
+    <div id="dcQListTen"></div>
+    <div class="dc-qadd"><input id="dcQNewTen" placeholder="A new point for the Ten&hellip;" maxlength="200"><button id="dcQAddBtnTen" type="button">Add</button></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcPtsSave" type="button">Save the checklist</button>
       <button class="btn-ghost" id="dcPtsCancel" type="button">Cancel</button>
@@ -5575,7 +5618,22 @@ el('dreamAddBtn').addEventListener('click', openDreamModal_);
 // ----- My Decisions (N3, Aug 2026): the checklist before the leap -----
 // Each decision freezes its own {q, a} pairs at creation; the master
 // checklist (why_decision_points) shapes only what comes after.
-let dcRows = [], dcPoints = [], dcId = null;
+let dcRows = [], dcPoints = [], dcTen = [], dcId = null;
+// DC-T: the ten questions Rahul used before the app - his words, verbatim.
+const DC_TEN_POINTS = [
+  "1/10: 'WHY' do you want to do it >>>>",
+  "2/10: What will U think about this \"DECISION/EXPERIENCE\" after '10 YR' >>",
+  "3/10: Is it on 'RIGHT TIME' >>>",
+  "4/10: Is it related to your 'LIFE MOTIVE' >>>",
+  "5/10: Do you have a roadmap / plan for the same >>>",
+  "6/10: Have you done \"PROPER RESEARCH\" with '3S Option METHOD' >>",
+  "7/10: Have you taken \"SUFFICIENT TIME\" before 'FINALIZATION'",
+  "8/10: Whatever outcome; Can you \"SLEEP PEACEFULLY\"",
+  "9/10: How do you want to \"COMMUNICATE\" >>>",
+  "10/10: Is it easily \"UNDERSTANDABLE / EXPLAINABLE\" >"
+];
+const DC_SET_LABEL = { both: 'BOTH', new: 'NEW SET', ten: 'THE TEN' };
+function dcSetPoints_(set) { return set === 'ten' ? dcTen.slice() : set === 'new' ? dcPoints.slice() : dcPoints.concat(dcTen); }
 const DC_DEFAULT_POINTS = [
   'What am I really deciding - in one sentence?',
   'What happens if I do nothing for a year?',
@@ -5598,8 +5656,11 @@ async function loadDecisions() {
   ]);
   if (d.error) { console.error(d.error); return; }
   dcRows = d.data || [];
-  dcPoints = (p.data || []).map(r => r.text);
+  const prows = p.data || [];
+  dcPoints = prows.filter(r => r.qset !== 'ten').map(r => r.text);
+  dcTen = prows.filter(r => r.qset === 'ten').map(r => r.text);
   if (!dcPoints.length) dcPoints = DC_DEFAULT_POINTS.slice();
+  if (!dcTen.length) dcTen = DC_TEN_POINTS.slice();
   renderDecisions();
 }
 function dcAnswered_(d) {
@@ -5677,6 +5738,7 @@ function renderDecisions() {
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
     + '<span class="t">' + escHtml(d.title) + '</span>'
     + '<span class="rowdeck">' + dcStarsRO_(d)
+    + (d.qset === 'ten' ? '<span class="dc-pill wait">THE TEN</span>' : '')
     + '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
     + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
     + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span></div>'
@@ -5690,7 +5752,8 @@ function openDecision(id) {
   dcId = id;
   const sealed = d.status === 'trail';
   const qa = Array.isArray(d.answers) ? d.answers : [];
-  el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS';
+  el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS' +
+    (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : '');
   el('dcName').textContent = d.title;
   // DC-D (D1): on an open decision the target is a full-width gold band under the
   // heading, red once the date has passed; sealed pages keep their small pills.
@@ -5878,8 +5941,17 @@ el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
     d.satisfaction = next; dcRatePaint_();
     toast(next ? ('Satisfaction: ' + next + ' of 5') : 'Rating cleared');
   }));
+let dcFSetPick = 'both';
+el('dcFSet').querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
+  dcFSetPick = b.dataset.set;
+  el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x === b));
+}));
 el('dcAddBtn').addEventListener('click', () => {
   el('dcFName').value = ''; el('dcFTarget').value = '';
+  dcFSetPick = 'both';
+  el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'both'));
+  el('dcFSetN0').textContent = (dcPoints.length + dcTen.length) + ' questions';
+  el('dcFSetN1').textContent = dcPoints.length; el('dcFSetN2').textContent = dcTen.length;
   el('dcNewModal').classList.remove('hidden');
   el('dcFName').focus();
 });
@@ -5888,7 +5960,7 @@ el('dcFSave').addEventListener('click', async () => {
   const t = el('dcFName').value.trim();
   if (!t) { toast('Name the decision first'); el('dcFName').focus(); return; }
   const rec = { user_id: userId, title: t, target_on: el('dcFTarget').value || null,
-                status: 'open', answers: dcPoints.map(q => ({ q: q, a: '' })) };
+                status: 'open', qset: dcFSetPick, answers: dcSetPoints_(dcFSetPick).map(q => ({ q: q, a: '' })) };
   const { data, error } = await supa.from('why_decisions').insert(rec).select('*').single();
   if (error) { console.error(error); toast('Could not save'); return; }
   el('dcNewModal').classList.add('hidden');
@@ -5941,35 +6013,37 @@ el('dcMSave').addEventListener('click', async () => {
 // The manager edits a working copy as rows - rename, reorder, remove, add -
 // and only Save persists. Every operation shapes FUTURE decisions; open and
 // sealed decisions keep their frozen pairs (catch-up is offered separately).
-let dcWPts = [];
-function dcPtsRender_() {
-  el('dcQList').innerHTML = dcWPts.map((q, i) =>
+let dcWPts = [], dcWTen = [];
+function dcPtsRender_() { dcPtsRenderList_('dcQList', dcWPts); dcPtsRenderList_('dcQListTen', dcWTen); }
+function dcPtsRenderList_(hostId, list) {
+  const host = el(hostId); if (!host) return;
+  host.innerHTML = list.map((q, i) =>
     '<div class="dc-qrow"><span class="num">' + (i + 1) + '</span>'
     + '<input value="' + escHtml(q) + '" data-qi="' + i + '" maxlength="200">'
     + '<button class="mv" type="button" data-qup="' + i + '" title="Move up">&uarr;</button>'
     + '<button class="mv" type="button" data-qdn="' + i + '" title="Move down">&darr;</button>'
     + '<button class="rm" type="button" data-qrm="' + i + '" title="Remove (future decisions only)">&times;</button></div>'
   ).join('');
-  el('dcQList').querySelectorAll('input').forEach(inp =>
+  host.querySelectorAll('input').forEach(inp =>
     inp.addEventListener('change', () => {
       const v = inp.value.trim();
-      if (v) dcWPts[Number(inp.dataset.qi)] = v; else dcPtsRender_();
+      if (v) list[Number(inp.dataset.qi)] = v; else dcPtsRender_();
     }));
-  el('dcQList').querySelectorAll('[data-qup]').forEach(b =>
+  host.querySelectorAll('[data-qup]').forEach(b =>
     b.addEventListener('click', () => {
       const i = Number(b.dataset.qup); if (!i) return;
-      dcWPts.splice(i - 1, 0, dcWPts.splice(i, 1)[0]); dcPtsRender_();
+      list.splice(i - 1, 0, list.splice(i, 1)[0]); dcPtsRender_();
     }));
-  el('dcQList').querySelectorAll('[data-qdn]').forEach(b =>
+  host.querySelectorAll('[data-qdn]').forEach(b =>
     b.addEventListener('click', () => {
-      const i = Number(b.dataset.qdn); if (i >= dcWPts.length - 1) return;
-      dcWPts.splice(i + 1, 0, dcWPts.splice(i, 1)[0]); dcPtsRender_();
+      const i = Number(b.dataset.qdn); if (i >= list.length - 1) return;
+      list.splice(i + 1, 0, list.splice(i, 1)[0]); dcPtsRender_();
     }));
-  el('dcQList').querySelectorAll('[data-qrm]').forEach(b =>
+  host.querySelectorAll('[data-qrm]').forEach(b =>
     b.addEventListener('click', () => {
       const i = Number(b.dataset.qrm);
-      if (!confirm('Remove "' + dcWPts[i] + '" from the checklist? Decisions that already carry it keep their copy.')) return;
-      dcWPts.splice(i, 1); dcPtsRender_();
+      if (!confirm('Remove "' + list[i] + '" from the checklist? Decisions that already carry it keep their copy.')) return;
+      list.splice(i, 1); dcPtsRender_();
     }));
 }
 el('dcQAddBtn').addEventListener('click', () => {
@@ -5977,6 +6051,11 @@ el('dcQAddBtn').addEventListener('click', () => {
   dcWPts.push(v); el('dcQNew').value = ''; dcPtsRender_();
 });
 el('dcQNew').addEventListener('keydown', e => { if (e.key === 'Enter') el('dcQAddBtn').click(); });
+el('dcQAddBtnTen').addEventListener('click', () => {
+  const v = el('dcQNewTen').value.trim(); if (!v) return;
+  dcWTen.push(v); el('dcQNewTen').value = ''; dcPtsRender_();
+});
+el('dcQNewTen').addEventListener('keydown', e => { if (e.key === 'Enter') el('dcQAddBtnTen').click(); });
 // Edit: the facts of a decision can be corrected - name, dates, even the
 // verdict wording on a sealed one. The answers and the story have their own
 // doors; this modal touches only the frame around them.
@@ -6022,21 +6101,102 @@ el('dcESave').addEventListener('click', async () => {
   openDecision(d.id);   // the page repaints with its corrected frame
   toast('Saved');
 });
+// ---- DC-T (I1): the import - paste, preview, seal ----
+function dcParseDate_(s) {
+  s = String(s || '').trim(); if (!s) return null;
+  let m;
+  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
+  if ((m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/))) { const y = m[3].length === 2 ? '20' + m[3] : m[3]; return y + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0'); }
+  const MON = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, sept:9, oct:10, nov:11, dec:12 };
+  if ((m = s.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\.?,?\s+(\d{4})$/)) && MON[m[2].slice(0, 3).toLowerCase()]) return m[3] + '-' + String(MON[m[2].slice(0, 3).toLowerCase()]).padStart(2, '0') + '-' + m[1].padStart(2, '0');
+  if ((m = s.match(/^([A-Za-z]{3,9})\.?\s+(\d{1,2}),?\s+(\d{4})$/)) && MON[m[1].slice(0, 3).toLowerCase()]) return m[3] + '-' + String(MON[m[1].slice(0, 3).toLowerCase()]).padStart(2, '0') + '-' + m[2].padStart(2, '0');
+  const t = new Date(s); return isNaN(t) ? null : t.toISOString().slice(0, 10);
+}
+function dcParseImport_(text) {
+  const lines = String(text || '').replace(/\r/g, '').split('\n').filter(l => l.trim());
+  if (lines.length < 2) return { rows: [], problems: ['Paste the header row and at least one decision'] };
+  const sep = lines[0].indexOf('\t') > -1 ? '\t' : ',';
+  const split = (l) => l.split(sep).map(c => c.trim().replace(/^"|"$/g, ''));
+  const head = split(lines[0]).map(h => h.toLowerCase());
+  const col = { name: -1, date: -1, verdict: -1, outcome: -1, q: {} };
+  head.forEach((h, i) => {
+    let m = h.match(/(\d{1,2})\s*\/\s*10/);
+    if (m) { col.q[Number(m[1])] = i; return; }
+    if (col.name < 0 && /decision|title|what/.test(h)) col.name = i;
+    else if (col.date < 0 && /date|decided|when/.test(h)) col.date = i;
+    else if (col.verdict < 0 && /verdict|result|made/.test(h)) col.verdict = i;
+    else if (col.outcome < 0 && /outcome|happened|note/.test(h)) col.outcome = i;
+  });
+  if (col.name < 0) col.name = 0;
+  const rows = [], problems = [];
+  lines.slice(1).forEach((l, li) => {
+    const c = split(l);
+    const title = (c[col.name] || '').trim();
+    if (!title) { problems.push('row ' + (li + 2) + ' \u2014 no decision name, skipped'); return; }
+    const when = col.date > -1 ? dcParseDate_(c[col.date]) : null;
+    if (col.date > -1 && c[col.date] && !when) problems.push('row ' + (li + 2) + ' \u2014 date not read: "' + c[col.date] + '"');
+    const answers = dcTen.map((q, i) => ({ q: q, a: (col.q[i + 1] != null ? (c[col.q[i + 1]] || '') : '') }));
+    const v = ((col.verdict > -1 ? c[col.verdict] : '') || '').toLowerCase();
+    const made = /gut|quick/.test(v) ? 'quick' : /no\b|cancel|drop|walk/.test(v) ? 'cancelled' : 'thoughtful';
+    const outcome = col.outcome > -1 ? (c[col.outcome] || '').trim() : '';
+    rows.push({ title, when, answers, made, outcome, answered: answers.filter(x => x.a).length });
+  });
+  return { rows, problems };
+}
+let dcImportRows_ = [];
+function dcImportPreview_() {
+  const { rows, problems } = dcParseImport_(el('dcImportText').value);
+  dcImportRows_ = rows;
+  const fmtD = (iso) => iso ? dcFmt_(iso).toUpperCase() : 'NO DATE';
+  el('dcImportPrev').innerHTML = (rows.length ? '<div class="dc-imp-h">PREVIEW \u00B7 ' + rows.length + ' DECISION' + (rows.length === 1 ? '' : 'S') + ' READ</div>' : '') +
+    rows.map(r => '<div class="dc-imp-row"><span class="t">' + escHtml(r.title) + '</span><span class="d">' + fmtD(r.when) + ' \u00B7 ' + r.answered + ' / ' + dcTen.length + ' ANSWERED</span>' +
+      '<span class="v ' + r.made + '">' + (r.made === 'cancelled' ? '\u2715 NO' : '\u2713 YES') + '</span></div>').join('') +
+    problems.map(p => '<div class="dc-imp-warn">' + escHtml(p) + '</div>').join('');
+  el('dcImportSeal').disabled = !rows.length;
+  el('dcImportSeal').textContent = rows.length ? 'Seal ' + rows.length + ' into the trail' : 'Seal into the trail';
+}
+el('dcImportBtn').addEventListener('click', () => {
+  el('dcImportText').value = ''; el('dcImportPrev').innerHTML = ''; el('dcImportSeal').disabled = true;
+  el('dcImportModal').classList.remove('hidden'); el('dcImportText').focus();
+});
+el('dcImportCancel').addEventListener('click', () => el('dcImportModal').classList.add('hidden'));
+el('dcImportText').addEventListener('input', dcImportPreview_);
+el('dcImportTpl').addEventListener('click', () => {
+  const head = ['Decision', 'Date'].concat(dcTen.map((q, i) => (i + 1) + '/10')).concat(['Verdict', 'Outcome']);
+  const csv = head.map(h => '"' + h.replace(/"/g, '""') + '"').join(',') + '\n"Left the agency","12-03-2024",' + dcTen.map(() => '""').join(',') + ',"Yes",""\n';
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = 'past-decisions-template.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+});
+el('dcImportSeal').addEventListener('click', async () => {
+  if (!dcImportRows_.length) return;
+  if (!confirm('Seal ' + dcImportRows_.length + ' past decision(s) into the trail? They can be deleted like any decision.')) return;
+  const recs = dcImportRows_.map(r => ({ user_id: userId, title: r.title, status: 'trail', made: r.made,
+    decided_on: r.when || new Date().toISOString().slice(0, 10), target_on: null, qset: 'ten', answers: r.answers,
+    note_html: r.outcome ? '<p>' + escHtml(r.outcome) + '</p>' : '' }));
+  const { data, error } = await supa.from('why_decisions').insert(recs).select('*');
+  if (error) { console.error(error); toast('Could not seal them'); return; }
+  (data || []).forEach(x => dcRows.unshift(x));
+  renderDecisions();
+  el('dcImportModal').classList.add('hidden');
+  toast((data || []).length + ' sealed into the trail');
+});
 el('dcPtsBtn').addEventListener('click', () => {
-  dcWPts = dcPoints.slice();
+  dcWPts = dcPoints.slice(); dcWTen = dcTen.slice();
   dcPtsRender_();
   el('dcPtsModal').classList.remove('hidden');
 });
 el('dcPtsCancel').addEventListener('click', () => el('dcPtsModal').classList.add('hidden'));
 el('dcPtsSave').addEventListener('click', async () => {
   const pts = dcWPts.map(s => s.trim()).filter(Boolean);
-  if (!pts.length) { toast('The checklist needs at least one point'); return; }
+  const ten = dcWTen.map(s => s.trim()).filter(Boolean);
+  if (!pts.length && !ten.length) { toast('The checklist needs at least one point'); return; }
   const del = await supa.from('why_decision_points').delete().eq('user_id', userId);
   if (del.error) { console.error(del.error); toast('Could not save the checklist'); return; }
   const ins = await supa.from('why_decision_points')
-    .insert(pts.map((t, i) => ({ user_id: userId, text: t, sort_order: i })));
+    .insert(pts.map((t, i) => ({ user_id: userId, text: t, sort_order: i, qset: 'new' }))
+      .concat(ten.map((t, i) => ({ user_id: userId, text: t, sort_order: 100 + i, qset: 'ten' }))));
   if (ins.error) { console.error(ins.error); toast('Could not save the checklist'); return; }
-  dcPoints = pts;
+  dcPoints = pts; dcTen = ten;
   el('dcPtsModal').classList.add('hidden');
   toast('Checklist saved \u2014 future decisions will walk these ' + pts.length + ' points');
 });
