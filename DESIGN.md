@@ -141,10 +141,9 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
-**DC-T4: Tidy mode on the index** (9 Sep 2026): Rahul had already
-imported the old sheet and needed to remove rows quickly. A 'Tidy'
-text toggle beside New decision (body.dc-tidy, reads 'Done
-tidying' when on): every desk tag and trail row shows a small
+**DC-T4: Edit mode on the index** (9 Sep 2026, a separate Tidy
+button was built then RETIRED at Rahul's word - 'why one more
+button'): the foot's existing Edit (body.editing) now drives it: every desk tag and trail row shows a small
 ember x; tapping it removes with the page's exact wording and
 sweep (shared dcDeleteRow_(d, fromPage) - album + board go with
 it); in Tidy mode a row tap no longer opens the page. The page's

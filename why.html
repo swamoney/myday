@@ -653,13 +653,11 @@
   .dc-imp-row button.v { border:none; cursor:pointer; font-family:var(--mono); }
   .dc-import-file { display:inline-block; position:relative; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:#2f5187; border-radius:8px; padding:9px 12px; cursor:pointer; }
   .dc-import-or { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin:8px 0 6px; }
-  /* Tidy mode: an x on every row, the row no longer opens */
-  .dc-tidy { background:none; border:1px solid var(--rule); border-radius:10px; padding:8px 12px; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#68789a; cursor:pointer; margin-right:8px; }
-  body.dc-tidy .dc-tidy { background:#2f5187; color:#fff; border-color:#2f5187; }
+  /* Edit mode (the foot's Edit): an x on every decision row, the row no longer opens */
   .dc-x { display:none; background:rgba(122,47,56,0.9); color:#fff; border:none; border-radius:6px; width:22px; height:22px; font-size:0.9375rem; line-height:1; cursor:pointer; flex-shrink:0; }
-  body.dc-tidy .dc-x { display:inline-flex; align-items:center; justify-content:center; }
-  body.dc-tidy .dc-tag .dc-x { position:absolute; top:8px; left:8px; }
-  body.dc-tidy .dc-card.trail, body.dc-tidy .dc-tag { cursor:default; }
+  body.editing .dc-x { display:inline-flex; align-items:center; justify-content:center; }
+  body.editing .dc-tag .dc-x { position:absolute; top:8px; left:8px; }
+  body.editing .dc-card.trail, body.editing .dc-tag { cursor:default; }
   .dc-imp-warn { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.08em; color:#8a6d1f; padding:4px 0; }
   .dc-meta { display:flex; flex-direction:column; gap:6px; align-items:flex-start; margin:14px 0 18px; }
   .dc-pill { font-family:var(--mono); font-size:0.5313rem; font-weight:600; letter-spacing:0.12em;
@@ -1463,7 +1461,6 @@
     <div class="sec-panel hidden" id="secDecisions">
       <div><button class="dc-ptsbtn" id="dcPtsBtn" type="button">Edit the checklist</button></div>
       <div class="dc-addrow">
-        <button class="dc-tidy" id="dcTidyBtn" type="button">Tidy</button>
         <button class="pl-addbtn dc-rust" id="dcAddBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           <span>New decision</span>
@@ -2738,6 +2735,7 @@ function toggleEdit() {
   el('editWord').textContent = on ? 'Done' : 'Edit';
   btn.setAttribute('title', on ? 'Done' : 'Edit');
   if (typeof renderCircle === 'function') renderCircle();
+  if (typeof renderDecisions === 'function') renderDecisions();   // DC-T4: Edit shows the x on decision rows
 }
 
 // ===== MODAL =====
@@ -5759,7 +5757,7 @@ function renderDecisions() {
     + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
     + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span></div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
-  const tidy = document.body.classList.contains('dc-tidy');
+  const tidy = document.body.classList.contains('editing');
   document.querySelectorAll('[data-dc]').forEach(c =>
     c.addEventListener('click', (ev) => { if (tidy || ev.target.closest('[data-dc-x]')) return; openDecision(c.dataset.dc); }));
   document.querySelectorAll('[data-dc-x]').forEach(b =>
@@ -6357,14 +6355,8 @@ async function dcDeleteRow_(d, fromPage) {
   return true;
 }
 el('dcDelBtn').addEventListener('click', async () => { const d = dcRow_(); if (d) dcDeleteRow_(d, true); });
-// Tidy mode on the index: a text toggle beside the shelves; while on, each row
-// wears an x and a tap on the x removes (the row itself no longer opens).
-el('dcTidyBtn').addEventListener('click', () => {
-  const on = !document.body.classList.contains('dc-tidy');
-  document.body.classList.toggle('dc-tidy', on);
-  el('dcTidyBtn').textContent = on ? 'Done tidying' : 'Tidy';
-  renderDecisions();
-});
+// The foot's Edit button is the index's tidy mode: while editing, each row
+// wears an x and a tap on the x removes (the row itself no longer opens).;
 
 el('fDreamStat').addEventListener('click', e => {
   const s = e.target.closest('[data-st]'); if (!s) return;
