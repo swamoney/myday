@@ -579,7 +579,9 @@
         gap:6px; align-items:center; }
     .dc-card .rowdeck { padding-left:47px; }         /* under the title, past the donut */
     .dc-card.trail .rowdeck { padding-left:28px; }
-  .dc-card.trail .t { display:flex; flex-direction:column; gap:3px; }
+  .dc-card.trail { flex-wrap:wrap; }
+  .dc-rline { flex-basis:100%; display:flex; align-items:baseline; gap:8px; padding-left:28px; margin-top:2px; }
+  .dc-rline .dc-stars-ro b { font-size:0.75rem; }
   .dc-rnote { font-family:var(--serif); font-style:italic; font-weight:400; font-size:0.8125rem; color:#5b5548; line-height:1.4; }   /* past the small disc */
     .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
     .stamp .rowdeck:empty { display:none; }
@@ -5765,14 +5767,19 @@ function renderDecisions() {
   el('dcTrailList').innerHTML = trail.map(d =>
     '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + '" data-dc="' + d.id + '">'
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
-    + '<span class="t">' + escHtml(d.title)
-    + ((d.rating_note || '').trim() ? '<span class="dc-rnote">\u201C' + escHtml(d.rating_note.trim()) + '\u201D</span>' : '') + '</span>'
-    + '<span class="rowdeck">' + dcStarsRO_(d)
+    + '<span class="t">' + escHtml(d.title) + '</span>'
+    + '<span class="rowdeck">'
     + '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>'
     + (d.qset === 'ten' ? '<span class="dc-pill wait">THE TEN</span>' : '')
     + '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
     + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
-    + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span></div>'
+    + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span>'
+    // R3: the rating as a full-width verdict line beneath - stars leading, the comment following
+    + ((Number(d.satisfaction) || (d.rating_note || '').trim())
+        ? '<span class="dc-rline">' + dcStarsRO_(d)
+          + ((d.rating_note || '').trim() ? '<span class="dc-rnote">\u201C' + escHtml(d.rating_note.trim()) + '\u201D</span>' : '') + '</span>'
+        : '')
+    + '</div>'
   ).join('') || '<div class="dc-empty">no decisions sealed yet</div>';
   const tidy = document.body.classList.contains('editing');
   document.querySelectorAll('[data-dc]').forEach(c =>
