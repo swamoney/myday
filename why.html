@@ -588,6 +588,15 @@
   .dc-card.trail.r4 { background:linear-gradient(160deg,#f9fcf9,#edf3ee); border-left-color:#5F7355; }
   .dc-card.trail.r2 { background:linear-gradient(160deg,#fdf9f7,#f5ece8); border-left-color:#b57a6a; }
   .dc-card.trail.r1 { background:linear-gradient(160deg,#fcf6f6,#f3e5e5); border-left-color:#a8323f; }
+  /* D4: the three-stop timeline - opened, decided, lived, the gaps on the wire */
+  .dc-tl { flex-basis:100%; width:100%; display:flex; align-items:center; flex-wrap:wrap; gap:4px 0; margin-top:8px; padding-left:28px;
+           font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#68789a; }
+  .dc-tl .st { display:inline-flex; align-items:center; white-space:nowrap; }
+  .dc-tl i { display:inline-block; width:7px; height:7px; border-radius:50%; background:#8a97b3; margin-right:6px; }
+  .dc-tl i.d { background:#5b4a86; } .dc-tl i.h { background:#2f6a4a; }
+  .dc-tl s { flex:1 1 14px; height:1px; background:#cfd6e4; margin:0 8px; text-decoration:none; min-width:14px; }
+  .dc-tl b { font-weight:700; color:#182233; margin-left:4px; }
+  @media (max-width:520px) { .dc-tl { padding-left:0; } .dc-tl s { flex-basis:100%; height:0; margin:0; } }
   /* S1: the ledger line - a dotted hairline, LOOKING BACK, muted stars, the sentence (every screen) */
   .dc-card.trail { flex-wrap:wrap; }
   .dc-vl { flex-basis:100%; width:100%; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; border-top:1px dotted #d8dee8; margin-top:8px; padding-top:7px; }
@@ -5667,6 +5676,27 @@ const DC_TEN_POINTS = [
   "10/10: Is it easily \"UNDERSTANDABLE / EXPLAINABLE\" >"
 ];
 const DC_SET_LABEL = { both: 'BOTH', new: 'NEW SET', ten: 'THE TEN' };
+// D4: the three-stop timeline under a trail row - opened, decided, lived, gaps in months.
+function dcGap_(a, b) {
+  if (!a || !b) return '';
+  const x = new Date(String(a).slice(0, 10) + 'T00:00:00'), y = new Date(String(b).slice(0, 10) + 'T00:00:00');
+  if (isNaN(x) || isNaN(y)) return '';
+  const days = Math.round((y - x) / 86400000);
+  if (days <= 0) return '';                      // same day - no gap worth a word
+  if (days < 31) return days + ' D';
+  const mo = Math.round(days / 30.44);
+  if (mo < 24) return mo + ' MO';
+  return (Math.round(mo / 12 * 10) / 10) + ' Y';
+}
+function dcTimelineHtml_(d) {
+  const opened = d.created_at ? String(d.created_at).slice(0, 10) : null;
+  const g1 = dcGap_(opened, d.decided_on), g2 = dcGap_(d.decided_on, d.happened_on);
+  return '<span class="dc-tl">' +
+    (opened ? '<span class="st"><i></i>OPENED <b>' + escHtml(dcFmt_(opened).toUpperCase()) + '</b></span><s></s>' : '') +
+    '<span class="st"><i class="d"></i>DECIDED <b>' + escHtml(d.decided_on ? dcFmt_(d.decided_on).toUpperCase() : '\u2014') + '</b>' + (g1 ? ' \u00B7 ' + g1 : '') + '</span>' +
+    (d.happened_on ? '<s></s><span class="st"><i class="h"></i>LIVED <b>' + escHtml(dcFmt_(d.happened_on).toUpperCase()) + '</b>' + (g2 ? ' \u00B7 +' + g2 : '') + '</span>' : '') +
+    '</span>';
+}
 // The trail reads newest first: by the day it was decided, then by creation.
 function dcTrailSort_(a, b) {
   const da = a.decided_on || String(a.created_at || '').slice(0, 10), db = b.decided_on || String(b.created_at || '').slice(0, 10);
@@ -5783,6 +5813,7 @@ function renderDecisions() {
     + '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
     + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
     + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span></span>'
+    + dcTimelineHtml_(d)
     // S1: the ledger line - a dotted hairline, LOOKING BACK, muted stars, the sentence in quiet italic
     + ((Number(d.satisfaction) || (d.rating_note || '').trim())
         ? '<span class="dc-vl"><span class="lbl">LOOKING BACK</span>' + dcStarsRO_(d)
