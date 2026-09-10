@@ -411,6 +411,8 @@
   .ld-c { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:#7a5c2e; background:#f5eee0; border-radius:6px; padding:3px 8px; white-space:nowrap; }
   .ld-edit { position:static; opacity:0.5; }
   .ld-import { margin-top:8px; }
+  .ld-clear { margin-top:8px; color:#a8323f; border-color:#e0b8bc; }
+  .ld-clear:hover { color:#7A2F38; border-color:#a8323f; }
   .fr-learn { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0 10px; }
   .fr-learn.hidden { display:none; }
   .fr-lpill { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:6px; padding:4px 9px; border:none; cursor:pointer; }
@@ -419,6 +421,8 @@
   .fr-lcat-in { border:1px solid var(--rule); border-radius:8px; padding:6px 9px; font-size:0.8125rem; font-family:var(--sans); }
   .ld-file { display:inline-block; position:relative; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:#7a5c2e; border-radius:8px; padding:9px 12px; cursor:pointer; margin:6px 0 10px; }
   .modal-sub { font-size:0.75rem; color:var(--muted, #3D4866); margin:4px 0 8px; }
+  .ld-imp-note { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.08em; color:#8a97b3; margin:-4px 0 8px; }
+  .ld-cs { display:inline-flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
   .ld-imp-h { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.16em; color:#68789a; margin:0 0 6px; }
   .ld-imp-row { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:baseline; font-size:0.75rem; padding:6px 0; border-bottom:1px dotted #e3e8ef; }
   .ld-imp-row .d { font-family:var(--mono); font-size:0.5313rem; color:#68789a; white-space:nowrap; }
@@ -578,7 +582,7 @@
               <button type="button" class="fr-lpill dt" id="frLearnDate" title="Tap to change the date"></button>
               <input type="date" id="frLearnDateIn" class="hidden">
               <button type="button" class="fr-lpill ct" id="frLearnCat" title="Tap to change the category"></button>
-              <input type="text" id="frLearnCatIn" class="hidden fr-lcat-in" list="frLearnCats" placeholder="category" maxlength="40">
+              <input type="text" id="frLearnCatIn" class="hidden fr-lcat-in" list="frLearnCats" placeholder="category, another category" maxlength="120">
               <datalist id="frLearnCats"></datalist>
             </div>
             <div class="fr-srcline" id="frSrcline"></div>
@@ -759,13 +763,65 @@ function ldParseImport_(text) {
     if (!content) { problems.push('row ' + (li + 2) + ' \u2014 empty content, skipped'); return; }
     const when = col.date > -1 ? ldParseDate_(c[col.date]) : null;
     if (col.date > -1 && c[col.date] && !when) problems.push('row ' + (li + 2) + ' \u2014 date not read: "' + c[col.date] + '"');
-    const cat = col.cat > -1 ? (c[col.cat] || '').trim() : '';
+    const cat = ldCatsJoin_(col.cat > -1 ? (c[col.cat] || '').split(',') : []);   // Notion multi-select: 'A, B'
     const lines = content.split(/\n+/).map(s => s.trim()).filter(Boolean);
     const title = lines[0].slice(0, 160);
     const dup = have.has(title.toLowerCase() + '|' + (when || ''));
-    out.push({ title, content, lines, cat, when, dup });
+    const body = ldBodies_ ? ldBodyFor_(title) : '';   // the page's own words, from the zip's .md
+    out.push({ title, content, lines, cat, when, dup, body });
   });
   return { rows: out, problems };
+}
+// The zip: Notion writes the table as CSV and every page's words as a .md file
+// named '<title> <hash>.md' inside a folder. We keep both and marry them by title.
+let ldBodies_ = null;   // normalised title -> markdown body (from the zip), null when a bare csv was chosen
+function ldNorm_(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9\u0900-\u097f]+/g, '').slice(0, 60); }
+function ldBodyFor_(title) {
+  if (!ldBodies_) return '';
+  const k = ldNorm_(title);
+  if (ldBodies_[k]) return ldBodies_[k];
+  const hit = Object.keys(ldBodies_).find(x => x && (x.startsWith(k) || k.startsWith(x)));
+  return hit ? ldBodies_[hit] : '';
+}
+// Notion's .md page: '# Title', then 'Property: value' lines, a blank line, then the words.
+function ldMdBody_(md) {
+  const lines = String(md || '').replace(/\r/g, '').split('\n');
+  let i = 0;
+  if (lines[i] && /^#\s/.test(lines[i])) i++;
+  while (i < lines.length && (lines[i].trim() === '' || /^[A-Za-z][\w \/&-]{0,40}:\s/.test(lines[i]))) i++;
+  return lines.slice(i).join('\n').trim();
+}
+// Markdown, lightly: headings, lists, bold/italic, paragraphs - the editor's own tags.
+function ldMdToHtml_(md) {
+  const inline = (s) => escHtml(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*(?!\*)(.+?)\*(?!\*)/g, '$1<i>$2</i>').replace(/`(.+?)`/g, '$1');
+  const blocks = String(md || '').split(/\n{2,}/); let h = '';
+  blocks.forEach(b => {
+    const ls = b.split('\n').map(s => s.replace(/\s+$/, ''));
+    if (ls.every(l => /^\s*[-*+]\s+/.test(l) || !l.trim())) { h += '<ul>' + ls.filter(l => l.trim()).map(l => '<li>' + inline(l.replace(/^\s*[-*+]\s+/, '')) + '</li>').join('') + '</ul>'; return; }
+    if (ls.every(l => /^\s*\d+[.)]\s+/.test(l) || !l.trim())) { h += '<ol>' + ls.filter(l => l.trim()).map(l => '<li>' + inline(l.replace(/^\s*\d+[.)]\s+/, '')) + '</li>').join('') + '</ol>'; return; }
+    if (ls.length === 1 && /^#{1,3}\s/.test(ls[0])) { h += '<h3>' + inline(ls[0].replace(/^#{1,3}\s+/, '')) + '</h3>'; return; }
+    if (ls.every(l => /^>\s?/.test(l) || !l.trim())) { h += '<blockquote>' + inline(ls.map(l => l.replace(/^>\s?/, '')).join(' ')) + '</blockquote>'; return; }
+    h += '<p>' + ls.map(inline).join('<br>') + '</p>';
+  });
+  return h;
+}
+async function ldReadZip_(file) {
+  if (!window.JSZip) throw new Error('JSZip not loaded');
+  const zip = await JSZip.loadAsync(await file.arrayBuffer());
+  const names = Object.keys(zip.files).filter(n => !zip.files[n].dir);
+  const csvs = names.filter(n => /\.csv$/i.test(n));
+  if (!csvs.length) throw new Error('no csv');
+  // prefer the plain export over the _all twin (identical unless a view filters)
+  const csvName = csvs.find(n => !/_all\.csv$/i.test(n)) || csvs[0];
+  const csvText = await zip.files[csvName].async('string');
+  const bodies = {};
+  for (const n of names.filter(n => /\.md$/i.test(n))) {
+    const base = n.split('/').pop().replace(/\s+[0-9a-f]{32}\.md$/i, '').replace(/\.md$/i, '');
+    const md = await zip.files[n].async('string');
+    const body = ldMdBody_(md);
+    if (body) bodies[ldNorm_(base)] = body;
+  }
+  return { csvText, bodies, pages: Object.keys(bodies).length };
 }
 let ldImportRows_ = [];
 function ldImportOpen_() {
@@ -775,7 +831,8 @@ function ldImportOpen_() {
       '<div class="modal-overlay hidden" id="ldImportModal"><div class="modal">' +
       '<div class="modal-title">Import from Notion</div>' +
       '<div class="modal-sub">choose the .csv Notion exported \u2014 nothing is written until you bring them in</div>' +
-      '<label class="ld-file" for="ldImportFile">\u2191 Choose the .csv<input type="file" id="ldImportFile" accept=".csv,text/csv" style="position:absolute; left:-9999px;"></label>' +
+      '<label class="ld-file" for="ldImportFile">\u2191 Choose the Notion export (.zip) or its .csv<input type="file" id="ldImportFile" accept=".zip,.csv,text/csv,application/zip" style="position:absolute; left:-9999px;"></label>' +
+      '<div class="ld-imp-note">The .zip carries every page\u2019s words; a bare .csv carries only the table.</div>' +
       '<div class="ld-prev" id="ldImportPrev"></div>' +
       '<div class="modal-actions"><button class="btn-primary" id="ldImportGo" type="button" disabled>Bring them in</button><button class="btn-ghost" id="ldImportCancel" type="button">Cancel</button></div>' +
       '</div></div>');
@@ -784,19 +841,24 @@ function ldImportOpen_() {
     el('ldImportFile').addEventListener('change', async () => {
       const f = el('ldImportFile').files && el('ldImportFile').files[0]; el('ldImportFile').value = '';
       if (!f) return;
-      ldImportPreview_(await f.text());
+      try {
+        if (/\.zip$/i.test(f.name)) { const z = await ldReadZip_(f); ldBodies_ = z.bodies; ldImportPreview_(z.csvText, z.pages); }
+        else { ldBodies_ = null; ldImportPreview_(await f.text(), 0); }
+      } catch (e) { toast('Could not read that file'); }
     });
     el('ldImportGo').addEventListener('click', ldImportGo_);
   }
   el('ldImportPrev').innerHTML = ''; el('ldImportGo').disabled = true; ldImportRows_ = [];
   m.classList.remove('hidden');
 }
-function ldImportPreview_(text) {
+function ldImportPreview_(text, pages) {
   const { rows: r, problems } = ldParseImport_(text);
   ldImportRows_ = r;
   const fresh = r.filter(x => !x.dup).length;
-  el('ldImportPrev').innerHTML = (r.length ? '<div class="ld-imp-h">PREVIEW \u00B7 ' + r.length + ' READ \u00B7 ' + fresh + ' NEW' + (r.length - fresh ? ', ' + (r.length - fresh) + ' ALREADY HERE' : '') + '</div>' : '') +
-    r.map(x => '<div class="ld-imp-row' + (x.dup ? ' dup' : '') + '"><span class="d">' + (x.when ? escHtml(ldFmt_(x.when, true)) : 'NO DATE') + '</span><span class="t">' + escHtml(x.title) + '</span><span class="c">' + (x.dup ? 'ALREADY HERE' : escHtml(x.cat.toUpperCase() || '\u2014')) + '</span></div>').join('') +
+  const withBody = r.filter(x => x.body).length;
+  el('ldImportPrev').innerHTML = (r.length ? '<div class="ld-imp-h">PREVIEW \u00B7 ' + r.length + ' READ \u00B7 ' + fresh + ' NEW' + (r.length - fresh ? ', ' + (r.length - fresh) + ' ALREADY HERE' : '') +
+      (ldBodies_ ? ' \u00B7 ' + withBody + ' WITH PAGE WORDS' : ' \u00B7 TABLE ONLY (choose the .zip for the page words)') + '</div>' : '') +
+    r.map(x => '<div class="ld-imp-row' + (x.dup ? ' dup' : '') + '"><span class="d">' + (x.when ? escHtml(ldFmt_(x.when, true)) : 'NO DATE') + (x.body ? ' \u00B7 \u00B6' : '') + '</span><span class="t">' + escHtml(x.title) + '</span><span class="c">' + (x.dup ? 'ALREADY HERE' : escHtml(x.cat.toUpperCase() || '\u2014')) + '</span></div>').join('') +
     problems.map(p => '<div class="ld-imp-warn">' + escHtml(p) + '</div>').join('');
   el('ldImportGo').disabled = !fresh;
   el('ldImportGo').textContent = fresh ? 'Bring ' + fresh + ' in' : 'Bring them in';
@@ -805,7 +867,7 @@ async function ldImportGo_() {
   const fresh = ldImportRows_.filter(x => !x.dup);
   if (!fresh.length) return;
   const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: '', source_url: '', type: '', tags: [],
-    note: x.lines.map(l => '<p>' + escHtml(l) + '</p>').join(''), essence: '', category: x.cat || null, learned_on: x.when || null,
+    note: x.body ? ldMdToHtml_(x.body) : x.lines.slice(1).map(l => '<p>' + escHtml(l) + '</p>').join(''), essence: '', category: x.cat || null, learned_on: x.when || null,
     updated_at: new Date().toISOString() }));
   const { error } = await supa.from('bookmarks').insert(recs);
   if (error) { console.error(error); toast('Could not bring them in'); return; }
@@ -814,6 +876,9 @@ async function ldImportGo_() {
   await loadRows();
 }
 let ldCat_ = '';   // the chosen category filter ('' = all)
+// A row's categories: stored as one comma-joined string ('Finance, Mindset'), read as a list.
+function ldCats_(r) { return String(r.category || '').split(',').map(s => s.trim()).filter(Boolean); }
+function ldCatsJoin_(list) { const seen = []; list.forEach(c => { const t = c.trim(); if (t && !seen.some(x => x.toLowerCase() === t.toLowerCase())) seen.push(t); }); return seen.join(', '); }
 function ldDate_(r) { return r.learned_on || String(r.created_at || '').slice(0, 10); }
 function ldFmt_(iso, withYear) {
   const t = new Date(String(iso) + 'T00:00:00'); if (isNaN(t)) return '';
@@ -830,10 +895,10 @@ function ldFirstLine_(r) {
 }
 function renderLearning_(list, wrap, secTint) {
   const cats = {};
-  list.forEach(r => { const c = (r.category || '').trim(); if (c) cats[c] = (cats[c] || 0) + 1; });
+  list.forEach(r => ldCats_(r).forEach(c => { cats[c] = (cats[c] || 0) + 1; }));
   const catNames = Object.keys(cats).sort((a, b) => cats[b] - cats[a] || a.localeCompare(b));
   if (ldCat_ && !cats[ldCat_]) ldCat_ = '';
-  const shown = ldCat_ ? list.filter(r => (r.category || '').trim() === ldCat_) : list;
+  const shown = ldCat_ ? list.filter(r => ldCats_(r).some(c => c === ldCat_)) : list;
   shown.sort((a, b) => ldDate_(b).localeCompare(ldDate_(a)) || String(b.created_at).localeCompare(String(a.created_at)));
   let html = '<div class="ld-chips"><button type="button" class="ld-chip' + (ldCat_ ? '' : ' on') + '" data-ldcat="">ALL \u00B7 ' + list.length + '</button>' +
     catNames.map(c => '<button type="button" class="ld-chip' + (ldCat_ === c ? ' on' : '') + '" data-ldcat="' + escHtml(c) + '">' + escHtml(c.toUpperCase()) + ' \u00B7 ' + cats[c] + '</button>').join('') + '</div>';
@@ -847,7 +912,7 @@ function renderLearning_(list, wrap, secTint) {
     html += '<div class="ld-row' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '"' + secTint + '>' +
       '<span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' +
       '<span class="ld-t">' + escHtml(fl.first) + (fl.rest ? '<small>' + escHtml(fl.rest) + '</small>' : '') + '</span>' +
-      ((r.category || '').trim() ? '<span class="ld-c">' + escHtml(r.category.trim().toUpperCase()) + '</span>' : '<span></span>') +
+      (ldCats_(r).length ? '<span class="ld-cs">' + ldCats_(r).map(c => '<span class="ld-c">' + escHtml(c.toUpperCase()) + '</span>').join('') + '</span>' : '<span></span>') +
       '<button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
       '</div>';
   });
@@ -857,8 +922,26 @@ function renderLearning_(list, wrap, secTint) {
   wrap.querySelectorAll('.ld-row[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit]')) return; openReader(c.dataset.open); }));
   wrap.querySelectorAll('.ld-row .nedit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openReader(b.dataset.edit); setFrEditing(true); }));
   _appendShelfDoor(wrap);
-  wrap.insertAdjacentHTML('beforeend', '<button type="button" class="shelf-door ld-import" id="ldImportBtn"><span class="pl">\u2191</span> Import from Notion (.csv)</button>');
+  wrap.insertAdjacentHTML('beforeend', '<button type="button" class="shelf-door ld-import" id="ldImportBtn"><span class="pl">\u2191</span> Import from Notion (.zip / .csv)</button>' +
+    '<button type="button" class="shelf-door ld-clear" id="ldClearBtn"><span class="pl">\u2298</span> Clear the whole diary (' + list.length + ')</button>');
   el('ldImportBtn').addEventListener('click', ldImportOpen_);
+  el('ldClearBtn').addEventListener('click', () => ldClearAll_(list));
+}
+// Clear the shelf in one go - for a wrong import. Typed confirmation; photos and rows swept.
+async function ldClearAll_(list) {
+  const n = list.length; if (!n) return;
+  const word = prompt('This removes ALL ' + n + ' learnings on this shelf \u2014 every page and its photos \u2014 forever.\n\nType CLEAR to confirm:');
+  if (word !== 'CLEAR') { if (word !== null) toast('Not cleared'); return; }
+  try {
+    if (window.MyAlbum) for (const r of list) await MyAlbum.deleteAll('library', r.id);
+    const ids = list.map(r => r.id);
+    for (let i = 0; i < ids.length; i += 200) {
+      const { error } = await supa.from('bookmarks').delete().eq('user_id', userId).eq('section', 'learning').in('id', ids.slice(i, i + 200));
+      if (error) throw error;
+    }
+    toast(n + ' learnings cleared');
+    await loadRows();
+  } catch (e) { console.error(e); toast('Could not clear'); }
 }
 function _appendShelfDoor(wrap) {
   const label = SHELF_DOORS[activeSection] || 'New';
@@ -1415,9 +1498,9 @@ function openReader(id, keepNav, forcePage) {
   el('frLearn').classList.toggle('hidden', !sec.learning);
   if (sec.learning) {
     el('frLearnDate').textContent = 'LEARNED ' + (ldFmt_(ldDate_(r), true) || '\u2014');
-    el('frLearnCat').textContent = (r.category || '').trim() ? r.category.trim().toUpperCase() : 'CATEGORY?';
+    el('frLearnCat').textContent = ldCats_(r).length ? ldCats_(r).map(c => c.toUpperCase()).join(' \u00B7 ') : 'CATEGORY?';
     el('frLearnDateIn').classList.add('hidden'); el('frLearnCatIn').classList.add('hidden');
-    el('frLearnCats').innerHTML = [...new Set(rows.filter(x => secOf(x) === 'learning').map(x => (x.category || '').trim()).filter(Boolean))].map(c => '<option value="' + escHtml(c) + '">').join('');
+    el('frLearnCats').innerHTML = [...new Set([].concat(...rows.filter(x => secOf(x) === 'learning').map(ldCats_)))].map(c => '<option value="' + escHtml(c) + '">').join('');
   }
   frHasDoc = hasDoc;
   // The passage (essence) stands above the note as a quiet quotation - the
@@ -1717,10 +1800,10 @@ el('frLearnCat').addEventListener('click', () => {
 });
 async function frLearnCatSave_() {
   const r = rows.find(x => x.id === frId); if (!r) return;
-  const v = el('frLearnCatIn').value.trim();
+  const v = ldCatsJoin_(el('frLearnCatIn').value.split(','));   // several, comma-separated
   const { error } = await supa.from('bookmarks').update({ category: v || null }).eq('id', r.id).eq('user_id', userId);
   if (error) { toast('Could not save the category'); return; }
-  r.category = v || null; el('frLearnCatIn').classList.add('hidden'); el('frLearnCat').textContent = v ? v.toUpperCase() : 'CATEGORY?'; render();
+  r.category = v || null; el('frLearnCatIn').classList.add('hidden'); el('frLearnCat').textContent = v ? v.split(', ').map(c => c.toUpperCase()).join(' \u00B7 ') : 'CATEGORY?'; render();
 }
 el('frLearnCatIn').addEventListener('change', frLearnCatSave_);
 el('frLearnCatIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); frLearnCatSave_(); } if (e.key === 'Escape') el('frLearnCatIn').classList.add('hidden'); });
@@ -1731,7 +1814,7 @@ el('frPrint').addEventListener('click', () => {
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const src = (r.source_url || '').trim();
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-weight:600;font-size:1.875rem;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:0.8125rem;color:#5a6478;margin-bottom:20px}.body{font-size:1.125rem}.body h3{font-size:1.3125rem;margin:18px 0 6px}.body blockquote{border-left:3px solid #e0c98a;padding-left:16px;color:#5a6478;font-style:italic;margin:12px 0}.body ul{padding-left:24px}.body img{max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block}</style>" + '<style>' + NoteEditor.contentCSS('.body') + '</style>';
-  const meta = [sec.learning ? ('Learned ' + esc(ldFmt_(ldDate_(r), true))) : '', sec.learning && (r.category || '').trim() ? esc(r.category.trim()) : '', esc(r.type||''), src ? esc(normalizeUrl(src)) : ''].filter(Boolean).join(' &middot; ');
+  const meta = [sec.learning ? ('Learned ' + esc(ldFmt_(ldDate_(r), true))) : '', sec.learning && ldCats_(r).length ? esc(ldCats_(r).join(' \u00B7 ')) : '', esc(r.type||''), src ? esc(normalizeUrl(src)) : ''].filter(Boolean).join(' &middot; ');
   const body = '<div class="eyebrow">' + esc(sec.eyebrow || sec.lbl || '') + '</div><h1>' + esc(r.title||'') + '</h1>' +
     (meta ? '<div class="meta">' + meta + '</div>' : '') + '<div class="body">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.note)) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Note') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>');
