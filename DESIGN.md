@@ -141,6 +141,19 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**LD-5: the words in the title** (10 Sep 2026): most of Rahul's
+learnings live entirely in Notion's title cell, and the first
+import cut them at 160 chars. Now: the row's TITLE is a short cut
+of the content (~90 chars at a word boundary, an ellipsis) and
+the FULL text always lands in the body as paragraphs, ahead of
+any .md page words and the Also line. Re-import restores rows
+already held: dup matching accepts both the new short title and
+the old 160-char one (trimmed - a trailing space had defeated
+the match), and 'TEXT TO RESTORE' rewrites title + body in place
+(page words and Also kept); the button reads 'Restore n' / 'Bring
+n in + restore m'. Harness: short title, held row restored with
+its full text, new long row whole.
+
 **LD-4: the link (W1 + M2)** (10 Sep 2026): Notion's 'Link' (main)
 and old-habit 'Source link' columns fold into ONE source_url: Link
 wins, Source link promoted when alone, equal URLs fold (trailing

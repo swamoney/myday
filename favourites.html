@@ -761,6 +761,7 @@ function ldParseImport_(text) {
   if (col.content < 0) col.content = head.findIndex((h, i) => i !== col.date && i !== col.cat && i !== col.link && i !== col.src);
   const haveRows = rows.filter(x => secOf(x) === 'learning');
   const have = new Set(haveRows.map(x => (x.title || '').trim().toLowerCase() + '|' + ldDate_(x)));
+  const findHeld = (titles, when) => haveRows.find(x => titles.some(t => (x.title || '').trim().toLowerCase() === t.trim().toLowerCase()) && ldDate_(x) === (when || ''));
   const out = [], problems = [];
   grid.slice(1).forEach((c, li) => {
     const content = (c[col.content] || '').trim();
@@ -769,22 +770,35 @@ function ldParseImport_(text) {
     if (col.date > -1 && c[col.date] && !when) problems.push('row ' + (li + 2) + ' \u2014 date not read: "' + c[col.date] + '"');
     const cat = ldCatsJoin_(col.cat > -1 ? (c[col.cat] || '').split(',') : []);   // Notion multi-select: 'A, B'
     const lines = content.split(/\n+/).map(s => s.trim()).filter(Boolean);
-    const title = lines[0].slice(0, 160);
-    const dup = have.has(title.toLowerCase() + '|' + (when || ''));
-    const body = ldBodies_ ? ldBodyFor_(title) : '';   // the page's own words, from the zip's .md
+    const title = ldShortTitle_(content);
+    const oldTitle = lines[0].slice(0, 160).trim();     // how the first import named it (kept so re-imports still match)
+    const dup = have.has(title.toLowerCase() + '|' + (when || '')) || have.has(oldTitle.toLowerCase() + '|' + (when || ''));
+    const body = ldBodies_ ? (ldBodyFor_(oldTitle) || ldBodyFor_(title)) : '';   // the page's own words, from the zip's .md
     // LD-4: two link columns fold into one - Link wins, Source link is promoted when alone,
     // duplicates fold, a different second link is kept as the body's last line (M2)
     const l1 = col.link > -1 ? normalizeUrl(c[col.link] || '') : '';
     const l2 = col.src > -1 ? normalizeUrl(c[col.src] || '') : '';
     const link = l1 || l2;
     const also = (l1 && l2 && l1.replace(/\/+$/, '').toLowerCase() !== l2.replace(/\/+$/, '').toLowerCase()) ? l2 : '';
-    const heldId = dup ? (haveRows.find(x => (x.title || '').trim().toLowerCase() === title.toLowerCase() && ldDate_(x) === (when || '')) || {}).id : null;
-    const held = heldId != null ? haveRows.find(x => x.id === heldId) : null;
+    const held = dup ? (findHeld([title, oldTitle], when) || null) : null;
+    const heldId = held ? held.id : null;
     const fillLink = !!(dup && link && held && !(held.source_url || '').trim());   // already here, but without its link
-    out.push({ title, content, lines, cat, when, dup, body, link, also, heldId, fillLink });
+    // already here, but its words were cut (long title, thin body): restore title + full text in place
+    const heldPlain = held ? NoteEditor.toPlain(held.note || '').replace(/\s+/g, ' ').trim() : '';
+    const fillText = !!(held && ((held.title || '').length > title.length + 2 || heldPlain.indexOf(content.replace(/\s+/g, ' ').trim().slice(0, 60)) < 0));
+    out.push({ title, content, lines, cat, when, dup, body, link, also, heldId, fillLink, fillText });
   });
   return { rows: out, problems };
 }
+// LD-5: Notion's title cell often IS the whole learning. The row's title is a
+// short cut of it (word boundary, ~90 chars); the full text always lands in the body.
+function ldShortTitle_(text) {
+  const first = String(text || '').split(/\n+/).map(s => s.trim()).filter(Boolean)[0] || '';
+  if (first.length <= 90) return first;
+  const cut = first.slice(0, 90); const sp = cut.lastIndexOf(' ');
+  return (sp > 40 ? cut.slice(0, sp) : cut).replace(/[\s,;:\u2014-]+$/, '') + '\u2026';
+}
+function ldContentHtml_(content) { return String(content || '').split(/\n+/).map(s => s.trim()).filter(Boolean).map(l => '<p>' + escHtml(l) + '</p>').join(''); }
 // The zip: Notion writes the table as CSV and every page's words as a .md file
 // named '<title> <hash>.md' inside a folder. We keep both and marry them by title.
 let ldBodies_ = null;   // normalised title -> markdown body (from the zip), null when a bare csv was chosen
@@ -868,19 +882,19 @@ function ldImportPreview_(text, pages) {
   const { rows: r, problems } = ldParseImport_(text);
   ldImportRows_ = r;
   const fresh = r.filter(x => !x.dup).length;
-  const fills = r.filter(x => x.fillLink).length;
+  const fills = r.filter(x => x.fillLink || x.fillText).length;
   const withBody = r.filter(x => x.body).length;
   el('ldImportPrev').innerHTML = (r.length ? '<div class="ld-imp-h">PREVIEW \u00B7 ' + r.length + ' READ \u00B7 ' + fresh + ' NEW' + (r.length - fresh ? ', ' + (r.length - fresh) + ' ALREADY HERE' : '') +
-      (ldBodies_ ? ' \u00B7 ' + withBody + ' WITH PAGE WORDS' : ' \u00B7 TABLE ONLY (choose the .zip for the page words)') + (fills ? ' \u00B7 ' + fills + ' LINK' + (fills === 1 ? '' : 'S') + ' TO FILL' : '') + '</div>' : '') +
-    r.map(x => '<div class="ld-imp-row' + (x.dup && !x.fillLink ? ' dup' : '') + '"><span class="d">' + (x.when ? escHtml(ldFmt_(x.when, true)) : 'NO DATE') + (x.body ? ' \u00B7 \u00B6' : '') + (x.link ? ' \u00B7 \uD83D\uDD17' : '') + '</span><span class="t">' + escHtml(x.title) + '</span><span class="c">' + (x.fillLink ? 'LINK TO FILL' : x.dup ? 'ALREADY HERE' : escHtml(x.cat.toUpperCase() || '\u2014')) + '</span></div>').join('') +
+      (ldBodies_ ? ' \u00B7 ' + withBody + ' WITH PAGE WORDS' : ' \u00B7 TABLE ONLY (choose the .zip for the page words)') + (fills ? ' \u00B7 ' + fills + ' TO RESTORE' : '') + '</div>' : '') +
+    r.map(x => '<div class="ld-imp-row' + (x.dup && !x.fillLink && !x.fillText ? ' dup' : '') + '"><span class="d">' + (x.when ? escHtml(ldFmt_(x.when, true)) : 'NO DATE') + (x.body ? ' \u00B7 \u00B6' : '') + (x.link ? ' \u00B7 \uD83D\uDD17' : '') + '</span><span class="t">' + escHtml(x.title) + '</span><span class="c">' + (x.fillText && x.fillLink ? 'TEXT + LINK TO RESTORE' : x.fillText ? 'TEXT TO RESTORE' : x.fillLink ? 'LINK TO FILL' : x.dup ? 'ALREADY HERE' : escHtml(x.cat.toUpperCase() || '\u2014')) + '</span></div>').join('') +
     problems.map(p => '<div class="ld-imp-warn">' + escHtml(p) + '</div>').join('');
   el('ldImportGo').disabled = !(fresh || fills);
-  el('ldImportGo').textContent = fresh ? 'Bring ' + fresh + ' in' + (fills ? ' + fill ' + fills : '') : fills ? 'Fill ' + fills + ' link' + (fills === 1 ? '' : 's') : 'Bring them in';
+  el('ldImportGo').textContent = fresh ? 'Bring ' + fresh + ' in' + (fills ? ' + restore ' + fills : '') : fills ? 'Restore ' + fills : 'Bring them in';
 }
 const ldAlsoHtml_ = (u) => '<p><b>Also</b> \u00B7 <a href="' + escHtml(u) + '" target="_blank" rel="noopener noreferrer">' + escHtml(u) + '</a></p>';
 async function ldImportGo_() {
   const fresh = ldImportRows_.filter(x => !x.dup);
-  const fills = ldImportRows_.filter(x => x.fillLink);
+  const fills = ldImportRows_.filter(x => x.fillLink || x.fillText);
   if (!fresh.length && !fills.length) return;
   const btn = el('ldImportGo'); btn.disabled = true;
   const say = (t) => { btn.textContent = t; };
@@ -888,7 +902,7 @@ async function ldImportGo_() {
     if (fresh.length) {
       say('Bringing ' + fresh.length + ' in\u2026');
       const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: '', source_url: x.link || '', type: '', tags: [],
-        note: (x.body ? ldMdToHtml_(x.body) : x.lines.slice(1).map(l => '<p>' + escHtml(l) + '</p>').join('')) + (x.also ? ldAlsoHtml_(x.also) : ''),
+        note: ldContentHtml_(x.content) + (x.body ? ldMdToHtml_(x.body) : '') + (x.also ? ldAlsoHtml_(x.also) : ''),
         essence: '', category: x.cat || null, learned_on: x.when || null, updated_at: new Date().toISOString() }));
       for (let i = 0; i < recs.length; i += 100) {         // in slices - one giant insert can be refused
         const { error } = await supa.from('bookmarks').insert(recs.slice(i, i + 100));
@@ -901,15 +915,24 @@ async function ldImportGo_() {
     for (let i = 0; i < fills.length; i += 10) {
       await Promise.all(fills.slice(i, i + 10).map(async (x) => {
         const held = rows.find(r => r.id === x.heldId); if (!held) return;
-        const patch = { source_url: x.link };
-        if (x.also && String(held.note || '').indexOf(x.also) < 0) patch.note = String(held.note || '') + ldAlsoHtml_(x.also);
+        const patch = {};
+        if (x.fillLink) patch.source_url = x.link;
+        let note = String(held.note || '');
+        if (x.fillText) {   // the full words in front; the page's md words and any Also line stay
+          const keep = note.replace(/<p>(?:\s|&nbsp;)*<\/p>/g, '');
+          note = ldContentHtml_(x.content) + (x.body && keep.indexOf(x.body.slice(0, 40)) < 0 ? ldMdToHtml_(x.body) : '') + keep.replace(ldContentHtml_(x.content), '');
+          patch.title = x.title;
+        }
+        if (x.also && note.indexOf(x.also) < 0) note += ldAlsoHtml_(x.also);
+        if (note !== String(held.note || '')) patch.note = note;
+        if (!Object.keys(patch).length) return;
         const { error } = await supa.from('bookmarks').update(patch).eq('id', held.id).eq('user_id', userId);
         if (!error) filled++;
       }));
-      say('Filling links\u2026 ' + Math.min(i + 10, fills.length) + ' / ' + fills.length);
+      say('Restoring\u2026 ' + Math.min(i + 10, fills.length) + ' / ' + fills.length);
     }
     el('ldImportModal').classList.add('hidden');
-    toast((fresh.length ? fresh.length + ' brought in' : '') + (fresh.length && filled ? ', ' : '') + (filled ? filled + ' link' + (filled === 1 ? '' : 's') + ' filled' : '') || 'Nothing to do');
+    toast((fresh.length ? fresh.length + ' brought in' : '') + (fresh.length && filled ? ', ' : '') + (filled ? filled + ' restored' : '') || 'Nothing to do');
     await loadRows();
   } catch (e) {
     console.error(e);
