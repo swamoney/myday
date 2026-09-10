@@ -882,25 +882,39 @@ async function ldImportGo_() {
   const fresh = ldImportRows_.filter(x => !x.dup);
   const fills = ldImportRows_.filter(x => x.fillLink);
   if (!fresh.length && !fills.length) return;
-  if (fresh.length) {
-    const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: '', source_url: x.link || '', type: '', tags: [],
-      note: (x.body ? ldMdToHtml_(x.body) : x.lines.slice(1).map(l => '<p>' + escHtml(l) + '</p>').join('')) + (x.also ? ldAlsoHtml_(x.also) : ''),
-      essence: '', category: x.cat || null, learned_on: x.when || null, updated_at: new Date().toISOString() }));
-    const { error } = await supa.from('bookmarks').insert(recs);
-    if (error) { console.error(error); toast('Could not bring them in'); return; }
-  }
-  // rows already here but without their link: fill it (and the Also line) in place
-  let filled = 0;
-  for (const x of fills) {
-    const held = rows.find(r => r.id === x.heldId); if (!held) continue;
-    const patch = { source_url: x.link };
-    if (x.also && String(held.note || '').indexOf(x.also) < 0) patch.note = String(held.note || '') + ldAlsoHtml_(x.also);
-    const { error } = await supa.from('bookmarks').update(patch).eq('id', held.id).eq('user_id', userId);
-    if (!error) filled++;
-  }
-  el('ldImportModal').classList.add('hidden');
-  toast((fresh.length ? fresh.length + ' brought in' : '') + (fresh.length && filled ? ', ' : '') + (filled ? filled + ' link' + (filled === 1 ? '' : 's') + ' filled' : ''));
-  await loadRows();
+  const btn = el('ldImportGo'); btn.disabled = true;
+  const say = (t) => { btn.textContent = t; };
+  try {
+    if (fresh.length) {
+      say('Bringing ' + fresh.length + ' in\u2026');
+      const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: '', source_url: x.link || '', type: '', tags: [],
+        note: (x.body ? ldMdToHtml_(x.body) : x.lines.slice(1).map(l => '<p>' + escHtml(l) + '</p>').join('')) + (x.also ? ldAlsoHtml_(x.also) : ''),
+        essence: '', category: x.cat || null, learned_on: x.when || null, updated_at: new Date().toISOString() }));
+      for (let i = 0; i < recs.length; i += 100) {         // in slices - one giant insert can be refused
+        const { error } = await supa.from('bookmarks').insert(recs.slice(i, i + 100));
+        if (error) throw error;
+        say('Bringing in\u2026 ' + Math.min(i + 100, recs.length) + ' / ' + recs.length);
+      }
+    }
+    // rows already here but without their link: fill in place, ten at a time, with a counter
+    let filled = 0;
+    for (let i = 0; i < fills.length; i += 10) {
+      await Promise.all(fills.slice(i, i + 10).map(async (x) => {
+        const held = rows.find(r => r.id === x.heldId); if (!held) return;
+        const patch = { source_url: x.link };
+        if (x.also && String(held.note || '').indexOf(x.also) < 0) patch.note = String(held.note || '') + ldAlsoHtml_(x.also);
+        const { error } = await supa.from('bookmarks').update(patch).eq('id', held.id).eq('user_id', userId);
+        if (!error) filled++;
+      }));
+      say('Filling links\u2026 ' + Math.min(i + 10, fills.length) + ' / ' + fills.length);
+    }
+    el('ldImportModal').classList.add('hidden');
+    toast((fresh.length ? fresh.length + ' brought in' : '') + (fresh.length && filled ? ', ' : '') + (filled ? filled + ' link' + (filled === 1 ? '' : 's') + ' filled' : '') || 'Nothing to do');
+    await loadRows();
+  } catch (e) {
+    console.error(e);
+    alert('Could not finish the import.\n\n' + (e && (e.message || e.details) ? (e.message || e.details) : String(e)));
+  } finally { btn.disabled = false; }
 }
 let ldCat_ = '';   // the chosen category filter ('' = all)
 // A row's categories: stored as one comma-joined string ('Finance, Mindset'), read as a list.
