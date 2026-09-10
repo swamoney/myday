@@ -141,6 +141,10 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**IN-4: no live player while editing** (10 Sep 2026): a YouTube iframe inside a contenteditable repaints on every caret move (Chrome invalidates the editing host's layer), which read as flicker whenever Edit was on. attachments.js now dresses a video figure in EDIT mode as a still - the video's own poster (i.ytimg hqdefault) with a play mark (.mdf-still/.mdf-play, clothes in favourites/introspection/why) - and only READ mode carries the live iframe. Tools, caption, resize and align unchanged.
+
+**LD-6: the heading whole** (10 Sep 2026): the title is Notion's heading exactly, never cut (it wraps on the row and the page); the body is what follows the heading (further lines) plus the .md page words. Re-import restores held rows whose title was a cut (160-char or 90-char ellipsis): full title, the heading's copies stripped from the body, the rest kept. Harness: both cuts restored, new long heading whole.
+
 **LD-4b: M1 replaces M2** (10 Sep 2026): the second link now lives in the row's 'url' column (unused by notes shelves - no migration) and shows on the page's source line after the main one - two hosts, two taps; .md and print carry it as Also. Re-import settles rows already held: fills url, and lifts any earlier 'Also - url' paragraph out of the body onto the source line. Harness green.
 
 **LD-5: the words in the title** (10 Sep 2026): most of Rahul's

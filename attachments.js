@@ -156,9 +156,13 @@
     } else if (r.kind === 'youtube') {
       fig.classList.add('md-yt');
       const id = youtubeId(r.url);
+      // In edit mode the player is a still (the video's own poster with a play mark): a live
+      // iframe inside a contenteditable repaints on every caret move and flickers. Read mode plays.
       fig.innerHTML = (editing ? figTools_(st, r) : '') +
-        '<iframe class="mdf-frame" src="https://www.youtube-nocookie.com/embed/' + esc(id || '') +
-        '" allow="fullscreen; encrypted-media" allowfullscreen loading="lazy"></iframe>' +
+        (editing
+          ? '<div class="mdf-frame mdf-still" style="background-image:url(\'https://i.ytimg.com/vi/' + esc(id || '') + '/hqdefault.jpg\');"><span class="mdf-play">&#9654;</span></div>'
+          : '<iframe class="mdf-frame" src="https://www.youtube-nocookie.com/embed/' + esc(id || '') +
+            '" allow="fullscreen; encrypted-media" allowfullscreen loading="lazy"></iframe>') +
         (editing
           ? '<input class="mdf-capin" data-mdf-cap placeholder="caption\u2026" value="' + esc(r.caption || '') + '">'
           : (r.caption ? '<figcaption>' + esc(r.caption) + '</figcaption>' : ''));
