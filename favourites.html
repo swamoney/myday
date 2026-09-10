@@ -982,9 +982,10 @@ function renderLearning_(list, wrap, secTint) {
     const iso = ldDate_(r); const ym = iso.slice(0, 7);
     if (ym && ym !== lastYm) { const t = new Date(iso + 'T00:00:00'); html += '<div class="ld-month">' + (isNaN(t) ? escHtml(ym) : MONL[t.getMonth()] + ' ' + t.getFullYear()) + '</div>'; lastYm = ym; }
     const fl = ldFirstLine_(r);
+    // the row carries the heading alone, whole, as Notion shows it (no teaser from the body)
     html += '<div class="ld-row' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '"' + secTint + '>' +
       '<span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' +
-      '<span class="ld-t">' + escHtml(fl.first) + (fl.rest ? '<small>' + escHtml(fl.rest) + '</small>' : '') + '</span>' +
+      '<span class="ld-t">' + escHtml(fl.first) + '</span>' +
       (ldCats_(r).length ? '<span class="ld-cs">' + ldCats_(r).map(c => '<span class="ld-c">' + escHtml(c.toUpperCase()) + '</span>').join('') + '</span>' : '<span></span>') +
       '<button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
       '</div>';
