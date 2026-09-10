@@ -933,14 +933,27 @@ async function ldClearAll_(list) {
   const word = prompt('This removes ALL ' + n + ' learnings on this shelf \u2014 every page and its photos \u2014 forever.\n\nType CLEAR to confirm:');
   if (word === null) return;
   if (String(word).trim().toLowerCase() !== 'clear') { toast('Not cleared \u2014 type CLEAR'); return; }
+  const btn = el('ldClearBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Clearing\u2026'; }
+  toast('Clearing ' + n + ' learnings\u2026');
   try {
-    if (window.MyAlbum) for (const r of list) await MyAlbum.deleteAll('library', r.id);
+    // photos: ONE read of the shelf's attachments, one storage remove, a few row deletes -
+    // never one round trip per learning (hundreds of rows made the old way look frozen)
+    try {
+      const ids = new Set(list.map(r => String(r.id)));
+      const { data: att } = await supa.from('attachments').select('id, entry_id, path, thumb_path').eq('user_id', userId).eq('room', 'library');
+      const mine = (att || []).filter(a => ids.has(String(a.entry_id)));
+      const paths = []; mine.forEach(a => { if (a.path) paths.push(a.path); if (a.thumb_path) paths.push(a.thumb_path); });
+      for (let i = 0; i < paths.length; i += 100) await supa.storage.from('myday-album').remove(paths.slice(i, i + 100));
+      const aids = mine.map(a => a.id);
+      for (let i = 0; i < aids.length; i += 200) await supa.from('attachments').delete().eq('user_id', userId).in('id', aids.slice(i, i + 200));
+    } catch (e2) { console.warn('album sweep', e2); }   // the backup page's sweep catches strays
     // the whole shelf, in one statement - no id list to grow past a URL's length
     const { error } = await supa.from('bookmarks').delete().eq('user_id', userId).eq('section', 'learning');
     if (error) throw error;
     toast(n + ' learnings cleared');
     await loadRows();
   } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = '\u2298 Clear the whole diary (' + n + ')'; }
     console.error(e);
     alert('Could not clear the diary.\n\n' + (e && (e.message || e.details) ? (e.message || e.details) : String(e)));
   }
