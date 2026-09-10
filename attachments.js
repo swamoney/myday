@@ -280,6 +280,11 @@
     const host = st.host; if (!host) return;
     const placed = placedIds_(st);
     const un = st.rows.filter(r => !placed.has(String(r.id)));
+    // Every keystroke re-hydrates (the body watcher); rebuild the strip only when its
+    // contents actually changed - a rebuilt strip every keystroke is a flickering video.
+    const sig = (st.editing ? 'e:' : 'r:') + un.map(r => r.id + '/' + (r.quiet ? 1 : 0) + '/' + (r.caption || '')).join(',');
+    if (st._legacySig === sig) return;
+    st._legacySig = sig;
     if (!un.length) { host.innerHTML = ''; host.classList.add('at-empty'); return; }
     host.classList.remove('at-empty');
     urls(st).then(u => {
@@ -643,6 +648,7 @@
       hydrate(st);
     },
     unmount(host) {
+      { const k = host && host.id ? host.id : null; if (k && mounts[k]) mounts[k]._legacySig = null; }
       const key = host && host.id ? host.id : null;
       if (!key || !mounts[key]) return;
       const st = mounts[key];

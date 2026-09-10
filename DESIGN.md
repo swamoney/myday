@@ -141,6 +141,8 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**IN-4b: the real flicker** (10 Sep 2026): a video that is not yet placed in the body (a legacy row) lives in the host STRIP, and the body watcher re-hydrates on every keystroke - which rebuilt the strip (host.innerHTML) every keystroke: the thumbnail blinked whenever Edit was on. renderLegacy_ now signs its content (editing + ids/quiet/caption) and rebuilds only when the signature changes; unmount clears it. Harness: same strip node after ten keystrokes.
+
 **IN-4: no live player while editing** (10 Sep 2026): a YouTube iframe inside a contenteditable repaints on every caret move (Chrome invalidates the editing host's layer), which read as flicker whenever Edit was on. attachments.js now dresses a video figure in EDIT mode as a still - the video's own poster (i.ytimg hqdefault) with a play mark (.mdf-still/.mdf-play, clothes in favourites/introspection/why) - and only READ mode carries the live iframe. Tools, caption, resize and align unchanged.
 
 **LD-6: the heading whole** (10 Sep 2026): the title is Notion's heading exactly, never cut (it wraps on the row and the page); the body is what follows the heading (further lines) plus the .md page words. Re-import restores held rows whose title was a cut (160-char or 90-char ellipsis): full title, the heading's copies stripped from the body, the rest kept. Harness: both cuts restored, new long heading whole.
