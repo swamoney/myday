@@ -770,9 +770,10 @@ function ldParseImport_(text) {
     if (col.date > -1 && c[col.date] && !when) problems.push('row ' + (li + 2) + ' \u2014 date not read: "' + c[col.date] + '"');
     const cat = ldCatsJoin_(col.cat > -1 ? (c[col.cat] || '').split(',') : []);   // Notion multi-select: 'A, B'
     const lines = content.split(/\n+/).map(s => s.trim()).filter(Boolean);
-    const title = ldShortTitle_(content);
-    const oldTitle = lines[0].slice(0, 160).trim();     // how the first import named it (kept so re-imports still match)
-    const dup = have.has(title.toLowerCase() + '|' + (when || '')) || have.has(oldTitle.toLowerCase() + '|' + (when || ''));
+    const title = lines[0];                              // LD-6: Notion's heading, whole - never cut
+    const oldTitle = lines[0].slice(0, 160).trim();     // the first import's cut (kept so re-imports still match)
+    const shortTitle = ldShortTitle_(content);          // the second import's cut (same reason)
+    const dup = have.has(title.toLowerCase() + '|' + (when || '')) || have.has(oldTitle.toLowerCase() + '|' + (when || '')) || have.has(shortTitle.toLowerCase() + '|' + (when || ''));
     const body = ldBodies_ ? (ldBodyFor_(oldTitle) || ldBodyFor_(title)) : '';   // the page's own words, from the zip's .md
     // LD-4: two link columns fold into one - Link wins, Source link is promoted when alone,
     // duplicates fold, a different second link is kept as the body's last line (M2)
@@ -780,13 +781,15 @@ function ldParseImport_(text) {
     const l2 = col.src > -1 ? normalizeUrl(c[col.src] || '') : '';
     const link = l1 || l2;
     const also = (l1 && l2 && l1.replace(/\/+$/, '').toLowerCase() !== l2.replace(/\/+$/, '').toLowerCase()) ? l2 : '';
-    const held = dup ? (findHeld([title, oldTitle], when) || null) : null;
+    const held = dup ? (findHeld([title, oldTitle, shortTitle], when) || null) : null;
     const heldId = held ? held.id : null;
     const fillLink = !!(dup && held && ((link && !(held.source_url || '').trim()) || (also && !(held.url || '').trim()) || (held.note || '').indexOf('<b>Also</b>') > -1));   // already here, but a link (or the old Also line) to settle
     // already here, but its words were cut (long title, thin body): restore title + full text in place
+    const rest = lines.slice(1);                         // what follows the heading
     const heldPlain = held ? NoteEditor.toPlain(held.note || '').replace(/\s+/g, ' ').trim() : '';
-    const fillText = !!(held && ((held.title || '').length > title.length + 2 || heldPlain.indexOf(content.replace(/\s+/g, ' ').trim().slice(0, 60)) < 0));
-    out.push({ title, content, lines, cat, when, dup, body, link, also, heldId, fillLink, fillText });
+    // restore when the held title is a cut of the heading, or the heading was copied into the body, or the rest is missing
+    const fillText = !!(held && ((held.title || '').trim() !== title || heldPlain.startsWith(title.slice(0, 60)) || (rest.length && heldPlain.indexOf(rest[0].slice(0, 40)) < 0)));
+    out.push({ title, content, lines, rest, cat, when, dup, body, link, also, heldId, fillLink, fillText });
   });
   return { rows: out, problems };
 }
@@ -901,7 +904,7 @@ async function ldImportGo_() {
     if (fresh.length) {
       say('Bringing ' + fresh.length + ' in\u2026');
       const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: x.also || '', source_url: x.link || '', type: '', tags: [],
-        note: ldContentHtml_(x.content) + (x.body ? ldMdToHtml_(x.body) : ''),
+        note: ldContentHtml_(x.rest.join('\n')) + (x.body ? ldMdToHtml_(x.body) : ''),
         essence: '', category: x.cat || null, learned_on: x.when || null, updated_at: new Date().toISOString() }));
       for (let i = 0; i < recs.length; i += 100) {         // in slices - one giant insert can be refused
         const { error } = await supa.from('bookmarks').insert(recs.slice(i, i + 100));
@@ -921,9 +924,11 @@ async function ldImportGo_() {
         // an 'Also - url' paragraph from the earlier merge moves onto the source line
         const alsoP = note.match(/<p><b>Also<\/b>[^]*?<\/p>/);
         if (alsoP) { note = note.replace(alsoP[0], ''); const u = (alsoP[0].match(/href="([^"]+)"/) || [])[1]; if (u && !(held.url || '').trim() && !patch.url) patch.url = u; }
-        if (x.fillText) {   // the full words in front; the page's md words stay
-          const keep = note.replace(/<p>(?:\s|&nbsp;)*<\/p>/g, '');
-          note = ldContentHtml_(x.content) + (x.body && keep.indexOf(x.body.slice(0, 40)) < 0 ? ldMdToHtml_(x.body) : '') + keep.replace(ldContentHtml_(x.content), '');
+        if (x.fillText) {   // the heading whole on the title; the body = what follows it (+ the page's md words)
+          let keep = note.replace(/<p>(?:\s|&nbsp;)*<\/p>/g, '');
+          keep = keep.replace(ldContentHtml_(x.content), '').replace('<p>' + escHtml(x.title) + '</p>', '');   // the heading's copies leave the body
+          const restHtml = ldContentHtml_(x.rest.join('\n'));
+          note = restHtml + (x.body && keep.indexOf(x.body.slice(0, 40)) < 0 ? ldMdToHtml_(x.body) : '') + keep.replace(restHtml, '');
           patch.title = x.title;
         }
         if (note !== String(held.note || '')) patch.note = note;
@@ -954,7 +959,7 @@ function ldFmt_(iso, withYear) {
 function ldFirstLine_(r) {
   const plain = NoteEditor.toPlain(r.note || '').replace(/\s+/g, ' ').trim();
   const first = (r.title || '').trim() || plain.slice(0, 120);
-  // the body's first words after the title (the note usually repeats the title as its first line)
+  // the body's first words after the title (older rows repeat the title as their first line)
   let rest = plain.startsWith(first) ? plain.slice(first.length).trim() : plain;
   rest = rest.replace(/^[\s.:;\u2014-]+/, '');
   return { first, rest: rest.slice(0, 140) };
