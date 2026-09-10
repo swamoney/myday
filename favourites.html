@@ -317,6 +317,7 @@
   .fr-headtxt { flex:1; min-width:0; }
   .fr-headbtns { display:flex; gap:8px; flex-shrink:0; }
   .fr-sticky .fr-h1 { margin:3px 0 5px; }
+  body.fr-learning .fr-sticky { position:static; }   /* LD-8: the diary's long heading scrolls with the page */
   .fr-sticky .fr-srcline { margin-bottom:0; }
   .fr-in { padding-top:0; }
   .fr-body, .fr-body-inp { margin-top:20px; }
@@ -420,6 +421,9 @@
   .fr-lpill { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:6px; padding:4px 9px; border:none; cursor:pointer; }
   .fr-lpill.dt { background:#f4c430; color:#1d2d4d; }
   .fr-lpill.ct { background:#f5eee0; color:#7a5c2e; border:1px dotted #d9cfbd; }
+  .fr-lpill.lk { background:#eef3fa; color:#2f5187; border:1px dotted #b9cfe0; }
+  .fr-learn .edit-only { display:none; }
+  body.fr-editing .fr-learn .edit-only:not(.hidden) { display:inline-block; }
   .fr-lcat-in { border:1px solid var(--rule); border-radius:8px; padding:6px 9px; font-size:0.8125rem; font-family:var(--sans); }
   .ld-file { display:inline-block; position:relative; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:#7a5c2e; border-radius:8px; padding:9px 12px; cursor:pointer; margin:6px 0 10px; }
   .modal-sub { font-size:0.75rem; color:var(--muted, #3D4866); margin:4px 0 8px; }
@@ -586,6 +590,10 @@
               <button type="button" class="fr-lpill ct" id="frLearnCat" title="Tap to change the category"></button>
               <input type="text" id="frLearnCatIn" class="hidden fr-lcat-in" list="frLearnCats" placeholder="category, another category" maxlength="120">
               <datalist id="frLearnCats"></datalist>
+              <button type="button" class="fr-lpill lk edit-only" id="frLearnLink" title="The link (tap to change)"></button>
+              <input type="url" id="frLearnLinkIn" class="hidden fr-lcat-in" placeholder="https://\u2026" maxlength="500">
+              <button type="button" class="fr-lpill lk edit-only" id="frLearnLink2" title="A second link (tap to change)"></button>
+              <input type="url" id="frLearnLink2In" class="hidden fr-lcat-in" placeholder="https://\u2026 (a second link)" maxlength="500">
             </div>
             <div class="fr-srcline" id="frSrcline"></div>
             <div class="fr-passage hidden" id="frPassage"></div>
@@ -1585,7 +1593,9 @@ function openReader(id, keepNav, forcePage) {
   el('frH1').textContent = r.title || '';
   // LD-1: the learning page wears its date and category under the title
   el('frLearn').classList.toggle('hidden', !sec.learning);
+  document.body.classList.toggle('fr-learning', !!sec.learning);
   if (sec.learning) {
+    ldLinkPills_(r);
     el('frLearnDate').textContent = 'LEARNED ' + (ldFmt_(ldDate_(r), true) || '\u2014');
     el('frLearnCat').textContent = ldCats_(r).length ? ldCats_(r).map(c => c.toUpperCase()).join(' \u00B7 ') : 'CATEGORY?';
     el('frLearnDateIn').classList.add('hidden'); el('frLearnCatIn').classList.add('hidden');
@@ -1875,6 +1885,40 @@ el('frMd').addEventListener('click', () => {
   const a = document.createElement('a'); a.href = url; a.download = 'favourite-' + slug + '.md';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+// LD-8: the link pills (Edit only) - '+ LINK' when there is none; saved on change; the source line repaints
+function ldLinkPills_(r) {
+  const a = (r.source_url || '').trim(), b = (r.url || '').trim();
+  el('frLearnLink').textContent = a ? 'LINK \u00B7 ' + (hostOf(a) || 'link').toUpperCase() : '+ LINK';
+  el('frLearnLink2').textContent = b ? 'ALSO \u00B7 ' + (hostOf(b) || 'link').toUpperCase() : '+ ANOTHER LINK';
+  el('frLearnLink2').classList.toggle('hidden', !a && !b);   // a second link only once there is a first
+  el('frLearnLinkIn').classList.add('hidden'); el('frLearnLink2In').classList.add('hidden');
+}
+function ldLinkEdit_(which) {
+  const r = rows.find(x => x.id === frId); if (!r) return;
+  const inp = el(which === 2 ? 'frLearnLink2In' : 'frLearnLinkIn');
+  inp.value = which === 2 ? (r.url || '') : (r.source_url || ''); inp.classList.remove('hidden'); inp.focus();
+}
+async function ldLinkSave_(which) {
+  const r = rows.find(x => x.id === frId); if (!r) return;
+  const inp = el(which === 2 ? 'frLearnLink2In' : 'frLearnLinkIn');
+  const v = inp.value.trim() ? normalizeUrl(inp.value.trim()) : '';
+  const patch = which === 2 ? { url: v } : { source_url: v };
+  const { error } = await supa.from('bookmarks').update(patch).eq('id', r.id).eq('user_id', userId);
+  if (error) { toast('Could not save the link'); return; }
+  Object.assign(r, patch); ldLinkPills_(r);
+  // the source line under the title follows
+  const a = (r.source_url || '').trim(), b = (r.url || '').trim(); let sl = '';
+  if (a) sl += '<a href="' + escHtml(normalizeUrl(a)) + '" target="_blank" rel="noopener noreferrer">' + FR_LINK + escHtml(hostOf(a) || 'source') + '</a>';
+  if (b) sl += (sl ? '<span>&middot;</span>' : '') + '<a href="' + escHtml(normalizeUrl(b)) + '" target="_blank" rel="noopener noreferrer">' + FR_LINK + escHtml(hostOf(b) || 'also') + '</a>';
+  const dt = noteDatesHtml(r); if (dt) sl += (sl ? '<span>&middot;</span>' : '') + dt;
+  el('frSrcline').innerHTML = sl;
+  toast(v ? 'Link saved' : 'Link cleared');
+}
+el('frLearnLink').addEventListener('click', () => ldLinkEdit_(1));
+el('frLearnLink2').addEventListener('click', () => ldLinkEdit_(2));
+el('frLearnLinkIn').addEventListener('change', () => ldLinkSave_(1));
+el('frLearnLink2In').addEventListener('change', () => ldLinkSave_(2));
+[['frLearnLinkIn', 1], ['frLearnLink2In', 2]].forEach(([id, w]) => el(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el(id).blur(); } if (e.key === 'Escape') el(id).classList.add('hidden'); }));
 // LD-1: the two pills are doors - tap, an inline input appears, change saves.
 el('frLearnDate').addEventListener('click', () => {
   const r = rows.find(x => x.id === frId); if (!r) return;
