@@ -1179,7 +1179,13 @@ function render() {
     wrap.innerHTML = '<div class="empty"><div class="big">Nothing in ' + escHtml(label) + ' yet</div>' +
       '<div class="small">' + (activeType || activeTag || searchTerm ? 'Nothing under this filter or search.' : 'The door below adds your first.') + '</div>' +
       '</div>';
-    if (!(activeType || activeTag || searchTerm)) _appendShelfDoor(wrap);
+    if (!(activeType || activeTag || searchTerm)) {
+      _appendShelfDoor(wrap);
+      if (activeSection === 'learning') {   // LD-1: an empty diary is when the Notion door matters most
+        wrap.insertAdjacentHTML('beforeend', '<button type="button" class="shelf-door ld-import" id="ldImportBtn"><span class="pl">\u2191</span> Import from Notion (.csv)</button>');
+        el('ldImportBtn').addEventListener('click', ldImportOpen_);
+      }
+    }
     return;
   }
 
