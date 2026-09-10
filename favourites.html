@@ -931,17 +931,19 @@ function renderLearning_(list, wrap, secTint) {
 async function ldClearAll_(list) {
   const n = list.length; if (!n) return;
   const word = prompt('This removes ALL ' + n + ' learnings on this shelf \u2014 every page and its photos \u2014 forever.\n\nType CLEAR to confirm:');
-  if (word !== 'CLEAR') { if (word !== null) toast('Not cleared'); return; }
+  if (word === null) return;
+  if (String(word).trim().toLowerCase() !== 'clear') { toast('Not cleared \u2014 type CLEAR'); return; }
   try {
     if (window.MyAlbum) for (const r of list) await MyAlbum.deleteAll('library', r.id);
-    const ids = list.map(r => r.id);
-    for (let i = 0; i < ids.length; i += 200) {
-      const { error } = await supa.from('bookmarks').delete().eq('user_id', userId).eq('section', 'learning').in('id', ids.slice(i, i + 200));
-      if (error) throw error;
-    }
+    // the whole shelf, in one statement - no id list to grow past a URL's length
+    const { error } = await supa.from('bookmarks').delete().eq('user_id', userId).eq('section', 'learning');
+    if (error) throw error;
     toast(n + ' learnings cleared');
     await loadRows();
-  } catch (e) { console.error(e); toast('Could not clear'); }
+  } catch (e) {
+    console.error(e);
+    alert('Could not clear the diary.\n\n' + (e && (e.message || e.details) ? (e.message || e.details) : String(e)));
+  }
 }
 function _appendShelfDoor(wrap) {
   const label = SHELF_DOORS[activeSection] || 'New';
