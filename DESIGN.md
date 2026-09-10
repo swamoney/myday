@@ -141,6 +141,57 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**LD-1: the Learning Diary (L1)** (10 Sep 2026): Rahul's Notion
+table (Content details / Category / Learning date) becomes a new
+Library shelf, section key 'learning' (label 'Learning Diary',
+eyebrow 'Learning note', umber theme #7a5c2e), same bookmarks
+table + reader + editor + print + photos as every notes shelf;
+two columns via migrate_learning.sql: category text, learned_on
+date - PENDING Rahul runs it once. INDEX (L1): category chips
+with counts (tap = filter, ALL first), rows newest first grouped
+by month (learned_on, creation as fallback): date - title + the
+body's first words - category chip - pencil; the shelf door 'New
+learning' dates the row today; a second dashed door 'Import from
+Notion (.csv)'. PAGE: two pills under the title - LEARNED <date>
+(tap -> inline date input, saves on change) and the category
+(tap -> inline text with a datalist of the categories in use);
+print's meta line carries both. IMPORT: quote-aware CSV (Notion's
+export - multi-line content stays in quotes), header matched by
+words (content/detail/learning..., category/tag/type, date/
+learned), Notion dates 'September 8, 2026' + ISO + d Mon yyyy +
+dd/mm/yyyy, first line -> title, lines -> paragraphs, DUPLICATES
+(same title + date already held) previewed as ALREADY HERE and
+skipped so re-exports never double; unreadable dates flagged,
+rows still kept undated; 'Bring n in'. Harness: chips/months/rows/
+doors, filter, page pills, category save, preview (3 read, 2 new,
+1 dup, 2 warnings), insert 2 with paragraphs; teaser fixed (the
+note's first line repeats the title).
+
+**DC-C5: the cancelled row** (10 Sep 2026): ash paper (#f6f5f3 -> #eceae6), a DASHED ash rule (#8a8580), the title struck through in soft grey, a hollow ash tick, an ash pill - 'set down, not judged'; the old slate near-white retired.
+
+**DC-D2 (D4 built then CANCELLED by Rahul the same hour)** (9 Sep 2026): the trail row keeps the decided pill and gains a second: moss 'LIVED <date>' when it happened, grey 'NOT YET LIVED' otherwise; never on a cancelled decision. The timeline (dcGap_/dcTimelineHtml_/.dc-tl) retired to zero refs.
+
+**DC-D4 (retired)** (9 Sep 2026): under each trail row's title a tiny wire - OPENED (created_at; the Start Date on imports) - DECIDED (decided_on, with the deliberation gap: N D / N MO / N Y) - LIVED (happened_on, with '+gap'); the LIVED stop appears only when it happened; same-day gaps say nothing; on phones the wire breaks into stacked stops. The desk stays K1 (target only). Isolated test: gaps 4 MO / 3 MO / 3 Y / 9 D, three stops, two when unlived.
+
+**DC-W (T2): the trail's weather** (9 Sep 2026): trail rows wear a pale tint by rating - r5/r4 moss paper + moss rule, r3 today's white, r2/r1 rose paper + ember rule; unrated and cancelled rows untouched; the desk's tags untouched.
+
+**DC-E: sealed answers editable in Edit** (9 Sep 2026): trail pages kept their answers frozen (readonly) - right for the record, wrong for imported history that needs correcting. Now the sealed textareas carry data-sealed and unlock while the page is in Edit (setDcEditing), saving as an open page does (debounced + on blur); Done relocks them. Harness: readonly -> unlocked -> saved -> relocked.
+
+**S1 fix** (9 Sep 2026): the S1 clothes had been anchored INSIDE the 640px phone media query, so on desktop the ledger span sat inline on the title's row (title crunched, stars beside the heading). Moved to top level after the media block; the ledger line wraps to its own row on every screen and its sentence wraps beneath the stars when long.
+
+**DC-R2 -> S1, the ledger line** (9 Sep 2026, after R3 and R2 were both tried and turned down - 'should be subtle'): the first line is today's (title, THE TEN, date - the stars no longer ride the deck); a rated decision opens a dotted-hairline second line (.dc-vl): tiny grey LOOKING BACK, small muted stars, the sentence in quiet italic without quotes; unrated rows stay one line.
+
+**DC-R: a line under the stars** (9 Sep 2026): sealed decisions
+gain rating_note (text) beneath the satisfaction stars - read
+mode shows it as an italic serif line, edit mode a dashed input
+(save on change / Enter, cleared with empty); the rate box no
+longer hides when unrated if a note exists; page print, section
+print and the .md carry the line after the stars.
+migrate_rating_note.sql - PENDING Rahul runs it once. Harness:
+read line, save, repaint, print.
+
+**DC-T5** (9 Sep 2026): the trail reads NEWEST FIRST - dcTrailSort_ by decided_on desc (creation as fallback and tie-break) at both trail sites (index + section print); the desk keeps its order.
+
 **DC-T4: Edit mode on the index** (9 Sep 2026, a separate Tidy
 button was built then RETIRED at Rahul's word - 'why one more
 button'): the foot's existing Edit (body.editing) now drives it: every desk tag and trail row shows a small
