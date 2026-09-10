@@ -749,14 +749,18 @@ function ldParseImport_(text) {
   const grid = ldCsvGrid_(text).filter(r => r.some(c => c));
   if (grid.length < 2) return { rows: [], problems: ['The file needs a header row and at least one learning'] };
   const head = grid[0].map(h => h.toLowerCase());
-  const col = { content: -1, cat: -1, date: -1 };
+  const col = { content: -1, cat: -1, date: -1, link: -1, src: -1 };
   head.forEach((h, i) => {
     if (col.date < 0 && /date|learned|when/.test(h)) col.date = i;
     else if (col.cat < 0 && /categor|tag|type|topic/.test(h)) col.cat = i;
+    else if (col.src < 0 && /source/.test(h) && /link|url|source/.test(h)) col.src = i;     // the old-habit column
+    else if (col.link < 0 && /link|url|reference/.test(h)) col.link = i;                    // the main one
     else if (col.content < 0 && /content|detail|learning|note|what|name|title/.test(h)) col.content = i;
   });
-  if (col.content < 0) col.content = head.findIndex((h, i) => i !== col.date && i !== col.cat);
-  const have = new Set(rows.filter(x => secOf(x) === 'learning').map(x => (x.title || '').trim().toLowerCase() + '|' + ldDate_(x)));
+  if (col.link < 0 && col.src > -1) { col.link = col.src; col.src = -1; }   // only one link column - it is the main one
+  if (col.content < 0) col.content = head.findIndex((h, i) => i !== col.date && i !== col.cat && i !== col.link && i !== col.src);
+  const haveRows = rows.filter(x => secOf(x) === 'learning');
+  const have = new Set(haveRows.map(x => (x.title || '').trim().toLowerCase() + '|' + ldDate_(x)));
   const out = [], problems = [];
   grid.slice(1).forEach((c, li) => {
     const content = (c[col.content] || '').trim();
@@ -768,7 +772,16 @@ function ldParseImport_(text) {
     const title = lines[0].slice(0, 160);
     const dup = have.has(title.toLowerCase() + '|' + (when || ''));
     const body = ldBodies_ ? ldBodyFor_(title) : '';   // the page's own words, from the zip's .md
-    out.push({ title, content, lines, cat, when, dup, body });
+    // LD-4: two link columns fold into one - Link wins, Source link is promoted when alone,
+    // duplicates fold, a different second link is kept as the body's last line (M2)
+    const l1 = col.link > -1 ? normalizeUrl(c[col.link] || '') : '';
+    const l2 = col.src > -1 ? normalizeUrl(c[col.src] || '') : '';
+    const link = l1 || l2;
+    const also = (l1 && l2 && l1.replace(/\/+$/, '').toLowerCase() !== l2.replace(/\/+$/, '').toLowerCase()) ? l2 : '';
+    const heldId = dup ? (haveRows.find(x => (x.title || '').trim().toLowerCase() === title.toLowerCase() && ldDate_(x) === (when || '')) || {}).id : null;
+    const held = heldId != null ? haveRows.find(x => x.id === heldId) : null;
+    const fillLink = !!(dup && link && held && !(held.source_url || '').trim());   // already here, but without its link
+    out.push({ title, content, lines, cat, when, dup, body, link, also, heldId, fillLink });
   });
   return { rows: out, problems };
 }
@@ -855,24 +868,38 @@ function ldImportPreview_(text, pages) {
   const { rows: r, problems } = ldParseImport_(text);
   ldImportRows_ = r;
   const fresh = r.filter(x => !x.dup).length;
+  const fills = r.filter(x => x.fillLink).length;
   const withBody = r.filter(x => x.body).length;
   el('ldImportPrev').innerHTML = (r.length ? '<div class="ld-imp-h">PREVIEW \u00B7 ' + r.length + ' READ \u00B7 ' + fresh + ' NEW' + (r.length - fresh ? ', ' + (r.length - fresh) + ' ALREADY HERE' : '') +
-      (ldBodies_ ? ' \u00B7 ' + withBody + ' WITH PAGE WORDS' : ' \u00B7 TABLE ONLY (choose the .zip for the page words)') + '</div>' : '') +
-    r.map(x => '<div class="ld-imp-row' + (x.dup ? ' dup' : '') + '"><span class="d">' + (x.when ? escHtml(ldFmt_(x.when, true)) : 'NO DATE') + (x.body ? ' \u00B7 \u00B6' : '') + '</span><span class="t">' + escHtml(x.title) + '</span><span class="c">' + (x.dup ? 'ALREADY HERE' : escHtml(x.cat.toUpperCase() || '\u2014')) + '</span></div>').join('') +
+      (ldBodies_ ? ' \u00B7 ' + withBody + ' WITH PAGE WORDS' : ' \u00B7 TABLE ONLY (choose the .zip for the page words)') + (fills ? ' \u00B7 ' + fills + ' LINK' + (fills === 1 ? '' : 'S') + ' TO FILL' : '') + '</div>' : '') +
+    r.map(x => '<div class="ld-imp-row' + (x.dup && !x.fillLink ? ' dup' : '') + '"><span class="d">' + (x.when ? escHtml(ldFmt_(x.when, true)) : 'NO DATE') + (x.body ? ' \u00B7 \u00B6' : '') + (x.link ? ' \u00B7 \uD83D\uDD17' : '') + '</span><span class="t">' + escHtml(x.title) + '</span><span class="c">' + (x.fillLink ? 'LINK TO FILL' : x.dup ? 'ALREADY HERE' : escHtml(x.cat.toUpperCase() || '\u2014')) + '</span></div>').join('') +
     problems.map(p => '<div class="ld-imp-warn">' + escHtml(p) + '</div>').join('');
-  el('ldImportGo').disabled = !fresh;
-  el('ldImportGo').textContent = fresh ? 'Bring ' + fresh + ' in' : 'Bring them in';
+  el('ldImportGo').disabled = !(fresh || fills);
+  el('ldImportGo').textContent = fresh ? 'Bring ' + fresh + ' in' + (fills ? ' + fill ' + fills : '') : fills ? 'Fill ' + fills + ' link' + (fills === 1 ? '' : 's') : 'Bring them in';
 }
+const ldAlsoHtml_ = (u) => '<p><b>Also</b> \u00B7 <a href="' + escHtml(u) + '" target="_blank" rel="noopener noreferrer">' + escHtml(u) + '</a></p>';
 async function ldImportGo_() {
   const fresh = ldImportRows_.filter(x => !x.dup);
-  if (!fresh.length) return;
-  const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: '', source_url: '', type: '', tags: [],
-    note: x.body ? ldMdToHtml_(x.body) : x.lines.slice(1).map(l => '<p>' + escHtml(l) + '</p>').join(''), essence: '', category: x.cat || null, learned_on: x.when || null,
-    updated_at: new Date().toISOString() }));
-  const { error } = await supa.from('bookmarks').insert(recs);
-  if (error) { console.error(error); toast('Could not bring them in'); return; }
+  const fills = ldImportRows_.filter(x => x.fillLink);
+  if (!fresh.length && !fills.length) return;
+  if (fresh.length) {
+    const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: '', source_url: x.link || '', type: '', tags: [],
+      note: (x.body ? ldMdToHtml_(x.body) : x.lines.slice(1).map(l => '<p>' + escHtml(l) + '</p>').join('')) + (x.also ? ldAlsoHtml_(x.also) : ''),
+      essence: '', category: x.cat || null, learned_on: x.when || null, updated_at: new Date().toISOString() }));
+    const { error } = await supa.from('bookmarks').insert(recs);
+    if (error) { console.error(error); toast('Could not bring them in'); return; }
+  }
+  // rows already here but without their link: fill it (and the Also line) in place
+  let filled = 0;
+  for (const x of fills) {
+    const held = rows.find(r => r.id === x.heldId); if (!held) continue;
+    const patch = { source_url: x.link };
+    if (x.also && String(held.note || '').indexOf(x.also) < 0) patch.note = String(held.note || '') + ldAlsoHtml_(x.also);
+    const { error } = await supa.from('bookmarks').update(patch).eq('id', held.id).eq('user_id', userId);
+    if (!error) filled++;
+  }
   el('ldImportModal').classList.add('hidden');
-  toast(fresh.length + ' learning' + (fresh.length === 1 ? '' : 's') + ' brought in');
+  toast((fresh.length ? fresh.length + ' brought in' : '') + (fresh.length && filled ? ', ' : '') + (filled ? filled + ' link' + (filled === 1 ? '' : 's') + ' filled' : ''));
   await loadRows();
 }
 let ldCat_ = '';   // the chosen category filter ('' = all)

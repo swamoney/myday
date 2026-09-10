@@ -141,6 +141,36 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**LD-4: the link (W1 + M2)** (10 Sep 2026): Notion's 'Link' (main)
+and old-habit 'Source link' columns fold into ONE source_url: Link
+wins, Source link promoted when alone, equal URLs fold (trailing
+slash / case ignored), a DIFFERENT second link is kept as the
+body's last line 'Also - <url>' (M2). The page shows the link on
+its existing source line (W1; index rows unchanged). Rows already
+imported without a link are filled in place on the next import
+('LINK TO FILL' in the preview; the button says 'Bring n in +
+fill m' / 'Fill m links') - no clearing needed. Harness: four
+merge cases + one fill.
+
+**LD-3** (10 Sep 2026): a third door on the Learning shelf - 'Clear the whole diary (n)' in ember: typed CLEAR confirmation, every learning's photos swept (MyAlbum.deleteAll), rows deleted in batches of 200 scoped to section='learning'; other shelves untouched. Harness green.
+
+**LD-2: the page words + many categories** (10 Sep 2026): two
+truths from Rahul's real export. (1) Notion's CSV holds only the
+table; each page's WORDS live in the zip as '<title> <hash>.md'
+inside a folder. The import now takes THE ZIP itself (JSZip,
+already on the page): prefers the plain csv over its '_all' twin,
+reads every .md, strips the '# Title' + 'Property: value' lines,
+marries body to row by normalised title (exact, then prefix),
+converts markdown lightly (headings, ul/ol, blockquote, bold/
+italic, paragraphs) into the editor's tags; a bare .csv still
+works (table only, the preview says so; the paragraph mark shows
+which rows carry words). (2) Notion multi-select exports 'A, B':
+category is now a LIST stored comma-joined - chips count each
+category, the filter matches any, rows wear several small chips,
+the page shows 'A - B' and its input takes comma-separated
+values with a datalist. Isolated + zip end-to-end tests green
+(pages found, preview counts, bodies as html, categories joined).
+
 **LD-1: the Learning Diary (L1)** (10 Sep 2026): Rahul's Notion
 table (Content details / Category / Learning date) becomes a new
 Library shelf, section key 'learning' (label 'Learning Diary',
