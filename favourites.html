@@ -771,7 +771,10 @@ function ldParseImport_(text) {
   if (col.content < 0) col.content = head.findIndex((h, i) => i !== col.date && i !== col.cat && i !== col.link && i !== col.src);
   const haveRows = rows.filter(x => secOf(x) === 'learning');
   const have = new Set(haveRows.map(x => (x.title || '').trim().toLowerCase() + '|' + ldDate_(x)));
-  const findHeld = (titles, when) => haveRows.find(x => titles.some(t => (x.title || '').trim().toLowerCase() === t.trim().toLowerCase()) && ldDate_(x) === (when || ''));
+  // match by heading + date first; a heading alone when its date was changed in the app (only if that heading is held once)
+  const byTitle = (titles) => haveRows.filter(x => titles.some(t => (x.title || '').trim().toLowerCase() === t.trim().toLowerCase()));
+  const findHeld = (titles, when) => haveRows.find(x => titles.some(t => (x.title || '').trim().toLowerCase() === t.trim().toLowerCase()) && ldDate_(x) === (when || ''))
+    || (byTitle(titles).length === 1 ? byTitle(titles)[0] : null);
   const out = [], problems = [];
   grid.slice(1).forEach((c, li) => {
     const content = (c[col.content] || '').trim();
@@ -783,7 +786,8 @@ function ldParseImport_(text) {
     const title = lines[0];                              // LD-6: Notion's heading, whole - never cut
     const oldTitle = lines[0].slice(0, 160).trim();     // the first import's cut (kept so re-imports still match)
     const shortTitle = ldShortTitle_(content);          // the second import's cut (same reason)
-    const dup = have.has(title.toLowerCase() + '|' + (when || '')) || have.has(oldTitle.toLowerCase() + '|' + (when || '')) || have.has(shortTitle.toLowerCase() + '|' + (when || ''));
+    const dup = have.has(title.toLowerCase() + '|' + (when || '')) || have.has(oldTitle.toLowerCase() + '|' + (when || '')) || have.has(shortTitle.toLowerCase() + '|' + (when || ''))
+      || byTitle([title, oldTitle, shortTitle]).length === 1;   // its date changed in the app - still the same learning
     const body = ldBodies_ ? (ldBodyFor_(oldTitle) || ldBodyFor_(title)) : '';   // the page's own words, from the zip's .md
     // LD-4: two link columns fold into one - Link wins, Source link is promoted when alone,
     // duplicates fold, a different second link is kept as the body's last line (M2)
@@ -798,7 +802,8 @@ function ldParseImport_(text) {
     const rest = lines.slice(1);                         // what follows the heading
     const heldPlain = held ? NoteEditor.toPlain(held.note || '').replace(/\s+/g, ' ').trim() : '';
     // restore when the held title is a cut of the heading, or the heading was copied into the body, or the rest is missing
-    const fillText = !!(held && ((held.title || '').trim() !== title || heldPlain.startsWith(title.slice(0, 60)) || (rest.length && heldPlain.indexOf(rest[0].slice(0, 40)) < 0)));
+    const rawLinks = !!(held && /\]\(https?:\/\//.test(String(held.note || '')));   // a markdown link never made live
+    const fillText = !!(held && ((held.title || '').trim() !== title || heldPlain.startsWith(title.slice(0, 60)) || (rest.length && heldPlain.indexOf(rest[0].slice(0, 40)) < 0) || (rawLinks && (body || rest.length))));
     out.push({ title, content, lines, rest, cat, when, dup, body, link, also, heldId, fillLink, fillText });
   });
   return { rows: out, problems };
@@ -833,7 +838,11 @@ function ldMdBody_(md) {
 }
 // Markdown, lightly: headings, lists, bold/italic, paragraphs - the editor's own tags.
 function ldMdToHtml_(md) {
-  const inline = (s) => escHtml(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*(?!\*)(.+?)\*(?!\*)/g, '$1<i>$2</i>').replace(/`(.+?)`/g, '$1');
+  // links: [text](url) becomes a live link showing the text alone; bare urls become links too
+  const inline = (s) => escHtml(s)
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + t + '</a>')
+    .replace(/(^|[\s(])((?:https?:\/\/)[^\s<)]+)/g, (m, pre, u) => pre + '<a href="' + u + '" target="_blank" rel="noopener noreferrer">' + u + '</a>')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*(?!\*)(.+?)\*(?!\*)/g, '$1<i>$2</i>').replace(/`(.+?)`/g, '$1');
   const blocks = String(md || '').split(/\n{2,}/); let h = '';
   blocks.forEach(b => {
     const ls = b.split('\n').map(s => s.replace(/\s+$/, ''));
@@ -938,6 +947,7 @@ async function ldImportGo_() {
           let keep = note.replace(/<p>(?:\s|&nbsp;)*<\/p>/g, '');
           keep = keep.replace(ldContentHtml_(x.content), '').replace('<p>' + escHtml(x.title) + '</p>', '');   // the heading's copies leave the body
           const restHtml = ldContentHtml_(x.rest.join('\n'));
+          if (x.body && /\]\(https?:\/\//.test(keep)) keep = '';                      // raw markdown links: the page words are rebuilt from the .md
           note = restHtml + (x.body && keep.indexOf(x.body.slice(0, 40)) < 0 ? ldMdToHtml_(x.body) : '') + keep.replace(restHtml, '');
           patch.title = x.title;
         }
