@@ -141,6 +141,8 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**LD-4b: M1 replaces M2** (10 Sep 2026): the second link now lives in the row's 'url' column (unused by notes shelves - no migration) and shows on the page's source line after the main one - two hosts, two taps; .md and print carry it as Also. Re-import settles rows already held: fills url, and lifts any earlier 'Also - url' paragraph out of the body onto the source line. Harness green.
+
 **LD-5: the words in the title** (10 Sep 2026): most of Rahul's
 learnings live entirely in Notion's title cell, and the first
 import cut them at 160 chars. Now: the row's TITLE is a short cut

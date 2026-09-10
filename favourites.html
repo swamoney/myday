@@ -782,7 +782,7 @@ function ldParseImport_(text) {
     const also = (l1 && l2 && l1.replace(/\/+$/, '').toLowerCase() !== l2.replace(/\/+$/, '').toLowerCase()) ? l2 : '';
     const held = dup ? (findHeld([title, oldTitle], when) || null) : null;
     const heldId = held ? held.id : null;
-    const fillLink = !!(dup && link && held && !(held.source_url || '').trim());   // already here, but without its link
+    const fillLink = !!(dup && held && ((link && !(held.source_url || '').trim()) || (also && !(held.url || '').trim()) || (held.note || '').indexOf('<b>Also</b>') > -1));   // already here, but a link (or the old Also line) to settle
     // already here, but its words were cut (long title, thin body): restore title + full text in place
     const heldPlain = held ? NoteEditor.toPlain(held.note || '').replace(/\s+/g, ' ').trim() : '';
     const fillText = !!(held && ((held.title || '').length > title.length + 2 || heldPlain.indexOf(content.replace(/\s+/g, ' ').trim().slice(0, 60)) < 0));
@@ -891,7 +891,6 @@ function ldImportPreview_(text, pages) {
   el('ldImportGo').disabled = !(fresh || fills);
   el('ldImportGo').textContent = fresh ? 'Bring ' + fresh + ' in' + (fills ? ' + restore ' + fills : '') : fills ? 'Restore ' + fills : 'Bring them in';
 }
-const ldAlsoHtml_ = (u) => '<p><b>Also</b> \u00B7 <a href="' + escHtml(u) + '" target="_blank" rel="noopener noreferrer">' + escHtml(u) + '</a></p>';
 async function ldImportGo_() {
   const fresh = ldImportRows_.filter(x => !x.dup);
   const fills = ldImportRows_.filter(x => x.fillLink || x.fillText);
@@ -901,8 +900,8 @@ async function ldImportGo_() {
   try {
     if (fresh.length) {
       say('Bringing ' + fresh.length + ' in\u2026');
-      const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: '', source_url: x.link || '', type: '', tags: [],
-        note: ldContentHtml_(x.content) + (x.body ? ldMdToHtml_(x.body) : '') + (x.also ? ldAlsoHtml_(x.also) : ''),
+      const recs = fresh.map(x => ({ user_id: userId, title: x.title, section: 'learning', url: x.also || '', source_url: x.link || '', type: '', tags: [],
+        note: ldContentHtml_(x.content) + (x.body ? ldMdToHtml_(x.body) : ''),
         essence: '', category: x.cat || null, learned_on: x.when || null, updated_at: new Date().toISOString() }));
       for (let i = 0; i < recs.length; i += 100) {         // in slices - one giant insert can be refused
         const { error } = await supa.from('bookmarks').insert(recs.slice(i, i + 100));
@@ -916,14 +915,17 @@ async function ldImportGo_() {
       await Promise.all(fills.slice(i, i + 10).map(async (x) => {
         const held = rows.find(r => r.id === x.heldId); if (!held) return;
         const patch = {};
-        if (x.fillLink) patch.source_url = x.link;
+        if (x.link && !(held.source_url || '').trim()) patch.source_url = x.link;
+        if (x.also && !(held.url || '').trim()) patch.url = x.also;
         let note = String(held.note || '');
-        if (x.fillText) {   // the full words in front; the page's md words and any Also line stay
+        // an 'Also - url' paragraph from the earlier merge moves onto the source line
+        const alsoP = note.match(/<p><b>Also<\/b>[^]*?<\/p>/);
+        if (alsoP) { note = note.replace(alsoP[0], ''); const u = (alsoP[0].match(/href="([^"]+)"/) || [])[1]; if (u && !(held.url || '').trim() && !patch.url) patch.url = u; }
+        if (x.fillText) {   // the full words in front; the page's md words stay
           const keep = note.replace(/<p>(?:\s|&nbsp;)*<\/p>/g, '');
           note = ldContentHtml_(x.content) + (x.body && keep.indexOf(x.body.slice(0, 40)) < 0 ? ldMdToHtml_(x.body) : '') + keep.replace(ldContentHtml_(x.content), '');
           patch.title = x.title;
         }
-        if (x.also && note.indexOf(x.also) < 0) note += ldAlsoHtml_(x.also);
         if (note !== String(held.note || '')) patch.note = note;
         if (!Object.keys(patch).length) return;
         const { error } = await supa.from('bookmarks').update(patch).eq('id', held.id).eq('user_id', userId);
@@ -1615,6 +1617,9 @@ function openReader(id, keepNav, forcePage) {
   let sl = '';
   if (typ) sl += '<span>' + escHtml(typ) + '</span>';
   if (src) sl += (typ ? '<span>&middot;</span>' : '') + '<a href="' + escHtml(normalizeUrl(src)) + '" target="_blank" rel="noopener noreferrer">' + FR_LINK + escHtml(hostOf(src) || 'source') + '</a>';
+  // LD-4 (M1): a learning may carry a second link - main first, then the other; two hosts, two taps
+  const src2 = sec.learning ? (r.url || '').trim() : '';
+  if (src2) sl += (sl ? '<span>&middot;</span>' : '') + '<a href="' + escHtml(normalizeUrl(src2)) + '" target="_blank" rel="noopener noreferrer">' + FR_LINK + escHtml(hostOf(src2) || 'also') + '</a>';
   const dt = noteDatesHtml(r);
   if (dt) sl += (sl ? '<span>&middot;</span>' : '') + dt;
   el('frSrcline').innerHTML = sl;
@@ -1843,6 +1848,7 @@ function frMd_() {
   let md = '# ' + (r.title || '') + '\n\n';
   if (r.type) md += '- **' + (sec.eyebrow || 'Source') + ':** ' + r.type + '\n';
   if ((r.source_url || '').trim()) md += '- **Link:** ' + normalizeUrl(r.source_url) + '\n';
+  if (secOf(r) === 'learning' && (r.url || '').trim()) md += '- **Also:** ' + normalizeUrl(r.url) + '\n';
   md += '\n' + (NoteEditor.toMarkdown(r.note) || '_Nothing written yet._') + '\n';
   md += '\n---\n\n_Exported ' + new Date().toLocaleDateString(undefined, { day:'numeric', month:'long', year:'numeric' }) + '_\n';
   return md;
@@ -1893,7 +1899,7 @@ el('frPrint').addEventListener('click', () => {
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const src = (r.source_url || '').trim();
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-weight:600;font-size:1.875rem;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:0.8125rem;color:#5a6478;margin-bottom:20px}.body{font-size:1.125rem}.body h3{font-size:1.3125rem;margin:18px 0 6px}.body blockquote{border-left:3px solid #e0c98a;padding-left:16px;color:#5a6478;font-style:italic;margin:12px 0}.body ul{padding-left:24px}.body img{max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block}</style>" + '<style>' + NoteEditor.contentCSS('.body') + '</style>';
-  const meta = [sec.learning ? ('Learned ' + esc(ldFmt_(ldDate_(r), true))) : '', sec.learning && ldCats_(r).length ? esc(ldCats_(r).join(' \u00B7 ')) : '', esc(r.type||''), src ? esc(normalizeUrl(src)) : ''].filter(Boolean).join(' &middot; ');
+  const meta = [sec.learning ? ('Learned ' + esc(ldFmt_(ldDate_(r), true))) : '', sec.learning && ldCats_(r).length ? esc(ldCats_(r).join(' \u00B7 ')) : '', esc(r.type||''), src ? esc(normalizeUrl(src)) : '', sec.learning && (r.url || '').trim() ? esc(normalizeUrl(r.url)) : ''].filter(Boolean).join(' &middot; ');
   const body = '<div class="eyebrow">' + esc(sec.eyebrow || sec.lbl || '') + '</div><h1>' + esc(r.title||'') + '</h1>' +
     (meta ? '<div class="meta">' + meta + '</div>' : '') + '<div class="body">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.note)) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Note') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>');
