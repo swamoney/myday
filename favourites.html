@@ -403,18 +403,21 @@
   /* PH-1: the album strip and viewer */
   /* LD-1: the Learning Diary shelf */
   /* LD-13: today's three at the diary's head */
-  .ld-today { background:#f5f5f2; border:1px solid #e3e3dc; border-radius:12px; padding:10px 12px; margin:2px 0 12px; }   /* P4: ledger grey */
+  .ld-today { background:#fff; border:1px solid #dfe5ee; border-radius:14px; padding:12px 14px; margin:2px 0 12px; }   /* the door's block, on the shelf */
+  .ld-three { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
+  @media (max-width:560px) { .ld-three { grid-template-columns:1fr; } }
   .ld-today .h { display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
-  .ld-today .eb2 { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.18em; color:#8a8a80; flex:1; }
+  .ld-today .eb2 { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.18em; color:#8a97b3; flex:1; }
   .ld-today .sh { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#3D4866; background:none; border:none; cursor:pointer; }
   .ld-today .ld-c { color:#3D4866; background:#fff; border:1px solid #cfd0c8; }
-  /* the strip's rows - one shape on every screen: the chip, the heading beneath at full width, the ago line, the tick at the right */
-  .ld-tr { display:grid; grid-template-columns:1fr 26px; gap:4px 10px; align-items:start; padding:8px 0; border-top:1px dotted #e3e3dc; cursor:pointer; }
-  .ld-tr .ld-c { grid-column:1; grid-row:1; justify-self:start; }
-  .ld-tr .t { grid-column:1; grid-row:2; font-family:var(--serif); font-size:0.875rem; font-weight:600; color:#232f45; min-width:0; overflow-wrap:anywhere; }
-  .ld-tr .ago { grid-column:1; grid-row:3; font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
+  /* the door's card (P4 ledger grey): chip at the top, the heading takes the slack, the ago line + pill at the foot */
+  .ld-tr { background:#f5f5f2; border:1px solid #e3e3dc; border-radius:12px; padding:12px; display:grid; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; gap:6px 10px; cursor:pointer; }
+  .ld-tr .ld-c { grid-column:1; grid-row:1; justify-self:start; align-self:start; }
+  .ld-tr .t { grid-column:1 / span 2; grid-row:2; align-self:start; font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#232f45; min-width:0; overflow-wrap:anywhere; line-height:1.3; }
+  .ld-tr .ago { grid-column:1; grid-row:3; align-self:center; font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
   .ld-tr .ok { grid-column:2; grid-row:3; justify-self:end; align-self:center; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; }   /* K1: the door's pill */
-  .ld-tr.done { opacity:0.6; } .ld-tr.done .ok { background:#2f6146; color:#fff; }
+  @media (max-width:560px) { .ld-tr { padding:10px 12px; } .ld-tr .t { font-size:0.875rem; } }
+  .ld-tr.done { opacity:0.62; } .ld-tr.done .ok { background:#2f6146; color:#fff; cursor:default; }
   .ld-chips { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 8px; }
   .ld-chip { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:5px 10px; background:#fff; border:1px solid #c9d6ea; color:#2f5187; cursor:pointer; }
   .ld-chip.on { background:#2f5187; color:#fff; border-color:#2f5187; }
@@ -1010,11 +1013,12 @@ function ldTodaysHtml_(list) {
   const three = ldThree_;
   if (three.length < 3) return '';
   const today = MyRecall.today();
-  return '<div class="ld-today"><div class="h"><span class="eb2">TODAY\u2019S THREE</span><button type="button" class="sh" id="ldShuffle">\u21BB SHUFFLE</button></div>' +
+  return '<div class="ld-today"><div class="h"><span class="eb2">TODAY\u2019S THREE</span><button type="button" class="sh" id="ldShuffle">\u21BB SHUFFLE</button></div><div class="ld-three">' +
     three.map(r => { const done = String(r.recalled_on || '').slice(0, 10) === today;
+      // exactly the door's card: chip, heading, one quiet line, the pill
       return '<div class="ld-tr' + (done ? ' done' : '') + '" data-open="' + escHtml(r.id) + '"><span class="ld-c">' + escHtml(String(r.forCat || '').toUpperCase()) + '</span>' +
         '<span class="t">' + escHtml(r.title || '') + '</span><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' \u00B7 ' : '') + MyRecall.recalledLine(r) + '</span>' +
-        '<button type="button" class="ok" data-recall="' + escHtml(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713 RECALLED' + (done ? ' TODAY' : '') + '</button></div>'; }).join('') + '</div>';
+        '<button type="button" class="ok" data-recall="' + escHtml(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713 RECALLED' + (done ? ' TODAY' : '') + '</button></div>'; }).join('') + '</div></div>';
 }
 function ldTodaysWire_(wrap) {
   const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldThree_ = await MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
