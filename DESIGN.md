@@ -141,6 +141,33 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**LD-12 (E1) + LD-13 (R1): delete in Edit; the daily three**
+(11 Sep 2026). E1: while the Library's Edit is on, each diary row's
+pencil gives way to an ember x (confirm; photos swept; rows don't
+open while editing). R1: recall.js - ONE LAW shared by the front
+door and the diary: seeded by the date (same three all day, every
+device), three DIFFERENT categories weighted by size, within a
+category the learning least recently recalled (never-recalled
+first, then fewest recalls, seeded tie-break), retired rows out;
+today's picks kept on the device (localStorage myday_recall_today)
+so marking one Recalled does not swap it out; Shuffle draws three
+more excluding all shown today, wrapping to a fresh sweep. Proven
+at 1000 rows over 400 days: all shown, zero repeats within 30
+days, retired never shown. THE DOOR (index.html): 'TODAY'S THREE -
+FROM THE LEARNING DIARY' between the knock line and the spine -
+parchment cards (category, learned-on, heading linking to
+favourites.html?open=<id>, ago + recalled line, RECALLED button ->
+recall_count+1, recalled_on=today, card fades to moss); phones
+stack compact rows; hidden until three categories exist. THE DIARY
+HEAD: the same three as a compact strip above the chips (tick,
+shuffle). THE PAGE: recall line ('recalled 4 times - last May 2027'
+/ 'never recalled' / 'retired') + an Edit-only RETIRE / REJOIN
+toggle (recall_off). favourites.html honours ?open=<id> (opens the
+page after load). migrate_recall.sql: recall_count, recalled_on,
+recall_off on bookmarks - PENDING Rahul runs it once. Harness: door
+cards/cats/link/recall/shuffle; diary deep link, retire, head
+three, E1 delete.
+
 **LD-11 (U1) + LB-1 (B1)** (11 Sep 2026): the Learning Diary row
 is two rows - date + whole heading (+ pencil) on the first, the
 category chips on the second under the heading's left edge,

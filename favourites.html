@@ -402,6 +402,17 @@
   .md-gone { display:none; }
   /* PH-1: the album strip and viewer */
   /* LD-1: the Learning Diary shelf */
+  /* LD-13: today's three at the diary's head */
+  .ld-today { background:linear-gradient(160deg,#fbf8f1,#f2ece0); border:1px solid #e0d2ba; border-radius:12px; padding:10px 12px; margin:2px 0 12px; }
+  .ld-today .h { display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
+  .ld-today .eb2 { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.18em; color:#8a7a68; flex:1; }
+  .ld-today .sh { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#7a5c2e; background:none; border:none; cursor:pointer; }
+  .ld-tr { display:grid; grid-template-columns:auto 1fr auto 26px; gap:10px; align-items:center; padding:7px 0; border-top:1px dotted #e0d2ba; cursor:pointer; }
+  .ld-tr .t { font-family:var(--serif); font-size:0.875rem; font-weight:600; color:#232f45; min-width:0; overflow-wrap:anywhere; }
+  .ld-tr .ago { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#a49478; white-space:nowrap; }
+  .ld-tr .ok { width:26px; height:26px; border-radius:6px; border:none; background:#e4efe6; color:#2f6146; font-weight:700; cursor:pointer; }
+  .ld-tr.done { opacity:0.6; } .ld-tr.done .ok { background:#2f6146; color:#fff; }
+  @media (max-width:520px) { .ld-tr { grid-template-columns:1fr 26px; } .ld-tr .ld-c { grid-column:1; } .ld-tr .ago { display:none; } .ld-tr .ok { grid-row:1 / span 2; } }
   .ld-chips { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 8px; }
   .ld-chip { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:5px 10px; background:#fff; border:1px solid #d9cfbd; color:#7a5c2e; cursor:pointer; }
   .ld-chip.on { background:#7a5c2e; color:#fff; border-color:#7a5c2e; }
@@ -414,6 +425,11 @@
   .ld-t small { display:block; font-family:var(--sans); font-weight:400; font-size:0.75rem; color:#5b5548; margin-top:2px; }
   .ld-c { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:#7a5c2e; background:#f5eee0; border-radius:6px; padding:3px 8px; white-space:nowrap; }
   .ld-edit { position:static; opacity:0.5; }
+  /* E1: in Edit the pencil gives way to an ember x */
+  .ld-x { display:none; width:22px; height:22px; border-radius:6px; background:rgba(122,47,56,0.9); color:#fff; border:none; font-size:0.9375rem; line-height:1; cursor:pointer; }
+  body.editing .ld-row .ld-edit { display:none; }
+  body.editing .ld-row .ld-x { display:inline-flex; align-items:center; justify-content:center; }
+  body.editing .ld-row { cursor:default; }
   .ld-import { margin-top:8px; }
   /* LB-1: the shelf head with its round + */
   .shelf-head { display:flex; align-items:center; gap:10px; margin:2px 0 10px; }
@@ -430,6 +446,8 @@
   .fr-lpill.dt { background:#f4c430; color:#1d2d4d; }
   .fr-lpill.ct { background:#f5eee0; color:#7a5c2e; border:1px dotted #d9cfbd; }
   .fr-lpill.lk { background:#eef3fa; color:#2f5187; border:1px dotted #b9cfe0; }
+  .fr-lpill.rt { background:#f5eee0; color:#8a7a68; border:1px dotted #d9cfbd; }
+  .fr-recall { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#a49478; }
   .fr-learn .edit-only { display:none; }
   body.fr-editing .fr-learn .edit-only:not(.hidden) { display:inline-block; }
   .fr-lcat-in { border:1px solid var(--rule); border-radius:8px; padding:6px 9px; font-size:0.8125rem; font-family:var(--sans); }
@@ -498,6 +516,7 @@
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20260822a"></script>
 <script src="attachments.js?v=20260901a"></script>
+<script src="recall.js?v=20260911a"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -601,6 +620,8 @@
               <input type="url" id="frLearnLinkIn" class="hidden fr-lcat-in" placeholder="https://\u2026" maxlength="500">
               <button type="button" class="fr-lpill lk edit-only" id="frLearnLink2" title="A second link (tap to change)"></button>
               <input type="url" id="frLearnLink2In" class="hidden fr-lcat-in" placeholder="https://\u2026 (a second link)" maxlength="500">
+              <span class="fr-recall" id="frRecallLine"></span>
+              <button type="button" class="fr-lpill rt edit-only" id="frRecallOff" title="Leave or rejoin the daily three"></button>
             </div>
             <div class="fr-srcline" id="frSrcline"></div>
             <div class="fr-passage hidden" id="frPassage"></div>
@@ -973,6 +994,35 @@ async function ldImportGo_() {
     alert('Could not finish the import.\n\n' + (e && (e.message || e.details) ? (e.message || e.details) : String(e)));
   } finally { btn.disabled = false; }
 }
+// ---- LD-13 (R1): today's three at the diary's head - the same three as the door ----
+function ldTodaysHtml_(list) {
+  if (!window.MyRecall) return '';
+  const all = rows.filter(x => secOf(x) === 'learning');
+  const three = MyRecall.todays(all);
+  if (three.length < 3) return '';
+  const today = MyRecall.today();
+  return '<div class="ld-today"><div class="h"><span class="eb2">TODAY\u2019S THREE</span><button type="button" class="sh" id="ldShuffle">\u21BB SHUFFLE</button></div>' +
+    three.map(r => { const done = String(r.recalled_on || '').slice(0, 10) === today;
+      return '<div class="ld-tr' + (done ? ' done' : '') + '" data-open="' + escHtml(r.id) + '"><span class="ld-c">' + escHtml(String(r.forCat || '').toUpperCase()) + '</span>' +
+        '<span class="t">' + escHtml(r.title || '') + '</span><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) : '') + '</span>' +
+        '<button type="button" class="ok" data-recall="' + escHtml(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713</button></div>'; }).join('') + '</div>';
+}
+function ldTodaysWire_(wrap) {
+  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', () => { MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
+  wrap.querySelectorAll('.ld-tr[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-recall]')) return; openReader(c.dataset.open); }));
+  wrap.querySelectorAll('.ld-tr [data-recall]').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation(); const r = rows.find(x => String(x.id) === String(b.dataset.recall)); if (!r) return;
+    await ldMarkRecalled_(r); render();
+  }));
+}
+async function ldMarkRecalled_(r) {
+  const today = MyRecall.today();
+  if (String(r.recalled_on || '').slice(0, 10) === today) return;
+  const patch = { recall_count: (Number(r.recall_count) || 0) + 1, recalled_on: today };
+  const { error } = await supa.from('bookmarks').update(patch).eq('id', r.id).eq('user_id', userId);
+  if (error) { toast('Could not mark it'); return; }
+  Object.assign(r, patch);
+}
 let ldCat_ = '';   // the chosen category filter ('' = all)
 // A row's categories: stored as one comma-joined string ('Finance, Mindset'), read as a list.
 function ldCats_(r) { return String(r.category || '').split(',').map(s => s.trim()).filter(Boolean); }
@@ -998,7 +1048,8 @@ function renderLearning_(list, wrap, secTint) {
   if (ldCat_ && !cats[ldCat_]) ldCat_ = '';
   const shown = ldCat_ ? list.filter(r => ldCats_(r).some(c => c === ldCat_)) : list;
   shown.sort((a, b) => ldDate_(b).localeCompare(ldDate_(a)) || String(b.created_at).localeCompare(String(a.created_at)));
-  let html = '<div class="ld-chips"><button type="button" class="ld-chip' + (ldCat_ ? '' : ' on') + '" data-ldcat="">ALL \u00B7 ' + list.length + '</button>' +
+  let html = ldTodaysHtml_(list) +
+    '<div class="ld-chips"><button type="button" class="ld-chip' + (ldCat_ ? '' : ' on') + '" data-ldcat="">ALL \u00B7 ' + list.length + '</button>' +
     catNames.map(c => '<button type="button" class="ld-chip' + (ldCat_ === c ? ' on' : '') + '" data-ldcat="' + escHtml(c) + '">' + escHtml(c.toUpperCase()) + ' \u00B7 ' + cats[c] + '</button>').join('') + '</div>';
   const MONL = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   let lastYm = '';
@@ -1012,14 +1063,28 @@ function renderLearning_(list, wrap, secTint) {
       '<span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' +
       '<span class="ld-t">' + escHtml(fl.first) + '</span>' +
       '<button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
+      '<button class="ld-x" data-ldx="' + escHtml(r.id) + '" type="button" aria-label="Remove" title="Remove">\u00D7</button>' +
       (ldCats_(r).length ? '<span class="ld-cs">' + ldCats_(r).map(c => '<span class="ld-c">' + escHtml(c.toUpperCase()) + '</span>').join('') + '</span>' : '') +
       '</div>';
   });
   html += '</div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-ldcat]').forEach(b => b.addEventListener('click', () => { ldCat_ = b.dataset.ldcat; render(); }));
-  wrap.querySelectorAll('.ld-row[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit]')) return; openReader(c.dataset.open); }));
+  ldTodaysWire_(wrap);
+  wrap.querySelectorAll('.ld-row[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit],[data-ldx]') || document.body.classList.contains('editing')) return; openReader(c.dataset.open); }));
   wrap.querySelectorAll('.ld-row .nedit').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openReader(b.dataset.edit); setFrEditing(true); }));
+  // E1: the x removes with the page's own words and sweep
+  wrap.querySelectorAll('.ld-row [data-ldx]').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation();
+    const r = rows.find(x => String(x.id) === String(b.dataset.ldx)); if (!r) return;
+    if (!confirm('Remove "' + (r.title || 'this learning').slice(0, 80) + '" \u2014 its page and photos \u2014 forever?')) return;
+    try {
+      if (window.MyAlbum) await MyAlbum.deleteAll('library', r.id);
+      const { error } = await supa.from('bookmarks').delete().eq('id', r.id).eq('user_id', userId);
+      if (error) throw error;
+      rows = rows.filter(x => x.id !== r.id); render(); toast('Removed');
+    } catch (err) { console.error(err); toast('Could not remove'); }
+  }));
   _appendShelfDoor(wrap);
   wrap.insertAdjacentHTML('beforeend', '<button type="button" class="shelf-door ld-import" id="ldImportBtn"><span class="pl">\u2191</span> Import from Notion (.zip / .csv)</button>' +
     '<button type="button" class="shelf-door ld-clear" id="ldClearBtn"><span class="pl">\u2298</span> Clear the whole diary (' + list.length + ')</button>');
@@ -1268,12 +1333,15 @@ async function handleSignOut() {
 }
 
 // ===== DATA =====
+// LD-13: the door's cards open a page here - favourites.html?open=<id>
+let ldOpenAfterLoad_ = (() => { try { return new URLSearchParams(location.search).get('open'); } catch (e) { return null; } })();
 async function loadRows() {
   try {
     const { data, error } = await supa.from('bookmarks').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw error;
     rows = (data || []).map(r => ({ ...r, tags: parseTags(r.tags) }));
     render();
+  if (ldOpenAfterLoad_) { const id = ldOpenAfterLoad_; ldOpenAfterLoad_ = null; const r0 = rows.find(x => String(x.id) === String(id)); if (r0) { activeSection = secOf(r0); render(); openReader(r0.id); } }
   } catch (e) {
     el('rowsWrap').innerHTML = '<div class="empty"><div class="big">Couldn\'t load</div><div class="small">' + escHtml(e.message || 'Error') + '<br>If this is the first run, make sure the <code>bookmarks</code> table exists.</div></div>';
     console.error(e);
@@ -1641,6 +1709,7 @@ function openReader(id, keepNav, forcePage) {
   document.body.classList.toggle('fr-learning', !!sec.learning);
   if (sec.learning) {
     ldLinkPills_(r);
+    ldRecallPills_(r);
     el('frLearnDate').textContent = 'LEARNED ' + (ldFmt_(ldDate_(r), true) || '\u2014');
     el('frLearnCat').textContent = ldCats_(r).length ? ldCats_(r).map(c => c.toUpperCase()).join(' \u00B7 ') : 'CATEGORY?';
     el('frLearnDateIn').classList.add('hidden'); el('frLearnCatIn').classList.add('hidden');
@@ -1929,6 +1998,19 @@ el('frMd').addEventListener('click', () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'favourite-' + slug + '.md';
   document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+// LD-13: the recall line ('recalled 4 times - last May 2027') and the retire toggle (Edit only)
+function ldRecallPills_(r) {
+  if (!window.MyRecall) return;
+  el('frRecallLine').textContent = r.recall_off ? 'RETIRED FROM THE DAILY THREE' : MyRecall.recalledLine(r);
+  el('frRecallOff').textContent = r.recall_off ? '\u21BA REJOIN THE DAILY THREE' : '\u2298 RETIRE FROM THE DAILY THREE';
+}
+el('frRecallOff').addEventListener('click', async () => {
+  const r = rows.find(x => x.id === frId); if (!r) return;
+  const v = !r.recall_off;
+  const { error } = await supa.from('bookmarks').update({ recall_off: v }).eq('id', r.id).eq('user_id', userId);
+  if (error) { toast('Could not change that'); return; }
+  r.recall_off = v; ldRecallPills_(r); toast(v ? 'Retired from the daily three' : 'Back in the daily three');
 });
 // LD-8: the link pills (Edit only) - '+ LINK' when there is none; saved on change; the source line repaints
 function ldLinkPills_(r) {
