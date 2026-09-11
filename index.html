@@ -198,22 +198,14 @@
   .recall .sh { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.12em; color:#3D4866; background:none; border:none; cursor:pointer; }
   .recall .three { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
   /* P4: ledger grey - warm-neutral paper, an ink outline chip; nothing to tire of */
-  .rc { background:#f5f5f2; border:1px solid #e3e3dc; border-radius:12px; padding:12px; position:relative; }
-  .rc .c { position:absolute; right:10px; top:10px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:#3D4866; background:#fff; border:1px solid #cfd0c8; border-radius:6px; padding:3px 8px; }
-  .rc .when { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.14em; color:#8a8a80; }
-  .rc .t { display:block; font-family:'Fraunces',Georgia,serif; font-size:0.9375rem; font-weight:600; color:#232f45; margin:16px 0 8px; line-height:1.3; text-decoration:none; overflow-wrap:anywhere; }
+  .rc { background:#f5f5f2; border:1px solid #e3e3dc; border-radius:12px; padding:12px; display:grid; grid-template-columns:1fr auto; gap:6px 10px; }
+  .rc .c { grid-column:1; justify-self:start; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:#3D4866; background:#fff; border:1px solid #cfd0c8; border-radius:6px; padding:3px 8px; }
+  .rc .t { grid-column:1 / span 2; display:block; font-family:'Fraunces',Georgia,serif; font-size:0.9375rem; font-weight:600; color:#232f45; margin:0; line-height:1.3; text-decoration:none; overflow-wrap:anywhere; }
   .rc .t:hover { text-decoration:underline; text-decoration-color:#cfd0c8; text-underline-offset:3px; }
-  .rc .ago { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
-  .rc .ok { display:inline-block; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; }
+  .rc .ago { grid-column:1; align-self:center; font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
+  .rc .ok { grid-column:2; grid-row:3; justify-self:end; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; }
   .rc.done { opacity:0.62; } .rc.done .ok { background:#2f6146; color:#fff; cursor:default; }
-  @media (max-width:560px) {
-    .recall .three { grid-template-columns:1fr; }
-    .rc { display:grid; grid-template-columns:1fr auto; gap:4px 10px; padding:10px 12px; }
-    .rc .c { position:static; grid-column:2; grid-row:1; justify-self:end; }
-    .rc .t { margin:2px 0 4px; font-size:0.875rem; grid-column:1 / span 2; }
-    .rc .ok { margin:0; grid-column:2; grid-row:3; justify-self:end; }
-    .rc .ago { grid-column:1; grid-row:3; align-self:center; }
-  }
+  @media (max-width:560px) { .recall .three { grid-template-columns:1fr; } .rc { padding:10px 12px; } .rc .t { font-size:0.875rem; } }
   .spine { position:relative; padding-left:34px; margin-top:6px; }
   .spine::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:3px; border-radius:2px; background:linear-gradient(180deg,#7a63c6 0 var(--yr, 0%), #cfd6e4 var(--yr, 0%)); }
   .srow { display:block; position:relative; padding:14px 0 16px; border-bottom:1px dotted #cfd6e4; text-decoration:none; color:inherit; cursor:pointer; }
@@ -602,13 +594,11 @@ function paintRecall(three) {
   const box = el('hubRecall'); if (!box) return;
   if (!three || three.length < 3) { box.classList.add('hidden'); return; }
   box.classList.remove('hidden');
-  const M = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  const fmt = (iso) => { const t = iso ? new Date(String(iso).slice(0, 10) + 'T00:00:00') : null; return t && !isNaN(t) ? String(t.getDate()).padStart(2, '0') + ' ' + M[t.getMonth()] + ' ' + t.getFullYear() : ''; };
   const today = MyRecall.today();
   el('hubRecallCards').innerHTML = three.map(r => {
     const done = String(r.recalled_on || '').slice(0, 10) === today;
+    // chip first, then the words, then how far away and how often; the exact date lives on the page
     return '<div class="rc' + (done ? ' done' : '') + '" data-rid="' + _esc(r.id) + '"><span class="c">' + _esc(String(r.forCat || '').toUpperCase()) + '</span>' +
-      '<div class="when">' + (r.learned_on ? 'LEARNED ' + fmt(r.learned_on) : '') + '</div>' +
       '<a class="t" href="' + ROOMS.favourites + '?open=' + encodeURIComponent(r.id) + '">' + _esc(r.title || '') + '</a>' +
       '<div class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' \u00B7 ' : '') + MyRecall.recalledLine(r) + '</div>' +
       '<button type="button" class="ok" data-recall="' + _esc(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713 RECALLED' + (done ? ' TODAY' : '') + '</button></div>';
