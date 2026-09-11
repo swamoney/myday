@@ -413,7 +413,7 @@
   .ld-tr .ld-c { grid-column:1; grid-row:1; justify-self:start; }
   .ld-tr .t { grid-column:1; grid-row:2; font-family:var(--serif); font-size:0.875rem; font-weight:600; color:#232f45; min-width:0; overflow-wrap:anywhere; }
   .ld-tr .ago { grid-column:1; grid-row:3; font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
-  .ld-tr .ok { grid-column:2; grid-row:1 / span 3; align-self:center; width:26px; height:26px; border-radius:6px; border:none; background:#e4efe6; color:#2f6146; font-weight:700; cursor:pointer; }
+  .ld-tr .ok { grid-column:2; grid-row:3; justify-self:end; align-self:center; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; }   /* K1: the door's pill */
   .ld-tr.done { opacity:0.6; } .ld-tr.done .ok { background:#2f6146; color:#fff; }
   .ld-chips { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 8px; }
   .ld-chip { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:5px 10px; background:#fff; border:1px solid #c9d6ea; color:#2f5187; cursor:pointer; }
@@ -1014,7 +1014,7 @@ function ldTodaysHtml_(list) {
     three.map(r => { const done = String(r.recalled_on || '').slice(0, 10) === today;
       return '<div class="ld-tr' + (done ? ' done' : '') + '" data-open="' + escHtml(r.id) + '"><span class="ld-c">' + escHtml(String(r.forCat || '').toUpperCase()) + '</span>' +
         '<span class="t">' + escHtml(r.title || '') + '</span><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' \u00B7 ' : '') + MyRecall.recalledLine(r) + '</span>' +
-        '<button type="button" class="ok" data-recall="' + escHtml(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713</button></div>'; }).join('') + '</div>';
+        '<button type="button" class="ok" data-recall="' + escHtml(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713 RECALLED' + (done ? ' TODAY' : '') + '</button></div>'; }).join('') + '</div>';
 }
 function ldTodaysWire_(wrap) {
   const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldThree_ = await MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
