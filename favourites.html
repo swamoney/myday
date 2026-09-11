@@ -406,7 +406,8 @@
   .ld-chip { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:5px 10px; background:#fff; border:1px solid #d9cfbd; color:#7a5c2e; cursor:pointer; }
   .ld-chip.on { background:#7a5c2e; color:#fff; border-color:#7a5c2e; }
   .ld-month { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.16em; color:#8a7a68; margin:14px 0 6px; padding-top:8px; border-top:1px dotted #d8c9b3; }
-  .ld-row { display:grid; grid-template-columns:52px 1fr auto 28px; gap:10px; align-items:baseline; padding:9px 6px; border-bottom:1px dotted #e6dccb; cursor:pointer; border-radius:8px; }
+  .ld-row { display:grid; grid-template-columns:52px 1fr 28px; gap:4px 10px; align-items:baseline; padding:9px 6px; border-bottom:1px dotted #e6dccb; cursor:pointer; border-radius:8px; }
+  .ld-cs { grid-column:2 / span 2; display:flex; gap:4px; flex-wrap:wrap; }   /* U1: the tags on row two, under the heading */
   .ld-row:hover { background:#faf6ee; }
   .ld-d { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.1em; color:#8a7a68; }
   .ld-t { font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#232f45; min-width:0; overflow-wrap:anywhere; }
@@ -414,6 +415,13 @@
   .ld-c { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:#7a5c2e; background:#f5eee0; border-radius:6px; padding:3px 8px; white-space:nowrap; }
   .ld-edit { position:static; opacity:0.5; }
   .ld-import { margin-top:8px; }
+  /* LB-1: the shelf head with its round + */
+  .shelf-head { display:flex; align-items:center; gap:10px; margin:2px 0 10px; }
+  .sh-count { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.16em; color:#8a97b3; flex:1; }
+  .sh-plus { width:28px; height:28px; border-radius:50%; border:none; background:var(--accent, #2f5187); color:#fff; font-size:1.125rem; font-weight:600; line-height:1;
+             display:inline-flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 3px 8px rgba(47,81,135,0.3); padding:0 0 2px; }
+  .sh-plus:active { transform:scale(0.96); }
+  body[data-sec="learning"] .sh-plus { background:#7a5c2e; box-shadow:0 3px 8px rgba(122,92,46,0.3); }
   .ld-clear { margin-top:8px; color:#a8323f; border-color:#e0b8bc; }
   .ld-clear:hover { color:#7A2F38; border-color:#a8323f; }
   .fr-learn { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0 10px; }
@@ -428,7 +436,6 @@
   .ld-file { display:inline-block; position:relative; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:#7a5c2e; border-radius:8px; padding:9px 12px; cursor:pointer; margin:6px 0 10px; }
   .modal-sub { font-size:0.75rem; color:var(--muted, #3D4866); margin:4px 0 8px; }
   .ld-imp-note { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.08em; color:#8a97b3; margin:-4px 0 8px; }
-  .ld-cs { display:inline-flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
   .ld-imp-h { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.16em; color:#68789a; margin:0 0 6px; }
   .ld-imp-row { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:baseline; font-size:0.75rem; padding:6px 0; border-bottom:1px dotted #e3e8ef; }
   .ld-imp-row .d { font-family:var(--mono); font-size:0.5313rem; color:#68789a; white-space:nowrap; }
@@ -1004,8 +1011,8 @@ function renderLearning_(list, wrap, secTint) {
     html += '<div class="ld-row' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '"' + secTint + '>' +
       '<span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' +
       '<span class="ld-t">' + escHtml(fl.first) + '</span>' +
-      (ldCats_(r).length ? '<span class="ld-cs">' + ldCats_(r).map(c => '<span class="ld-c">' + escHtml(c.toUpperCase()) + '</span>').join('') + '</span>' : '<span></span>') +
       '<button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
+      (ldCats_(r).length ? '<span class="ld-cs">' + ldCats_(r).map(c => '<span class="ld-c">' + escHtml(c.toUpperCase()) + '</span>').join('') + '</span>' : '') +
       '</div>';
   });
   html += '</div>';
@@ -1353,6 +1360,29 @@ function renderTags() {
   });
 }
 function render() {
+  document.body.setAttribute('data-sec', activeSection);
+  render_();
+  const wrap = el('rowsWrap');
+  if (wrap && !wrap.querySelector('.shelf-head') && !wrap.querySelector('.empty')) {
+    const sec = SECTIONS[activeSection] || SECTIONS['all-time']; const n = filteredRows().length;
+    wrap.insertAdjacentHTML('afterbegin', '<div class="shelf-head"><span class="sh-count">' + n + ' ' + escHtml(_shelfNoun_(activeSection, n)) + '</span>' +
+      '<button type="button" class="sh-plus" id="shelfPlus" title="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '" aria-label="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '">+</button></div>');
+    _wirePlus_();
+  }
+}
+function _shelfNoun_(sec, n) {
+  const one = { 'all-time': 'link', books: 'book', podcasts: 'podcast', marathi: 'note', movies: 'note', music: 'track', wisdom: 'page', learning: 'learning' }[sec] || 'item';
+  return (n === 1 ? one : one + 's').toUpperCase();
+}
+function _wirePlus_() {
+  const b = el('shelfPlus'); if (!b) return;
+  b.addEventListener('click', () => {
+    const door = el('shelfDoor');
+    if (door) { door.click(); const f = el('doorForm'); if (f && !f.classList.contains('hidden')) f.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    else { _appendShelfDoor(el('rowsWrap')); el('shelfDoor').click(); }
+  });
+}
+function render_() {
   el('loadingState') && el('loadingState').remove();
   el('count').textContent = rows.length;
   renderSectionNav();
@@ -1363,6 +1393,10 @@ function render() {
   const th = SEC_THEMES[activeSection] || SEC_THEMES['all-time'];
   const secTint = ' style="--w1:' + th.w1 + ';--w2:' + th.w2 + ';--acc:' + th.acc + '"';
   const wrap = el('rowsWrap');
+  // LB-1 (B1): a shelf head above the list - the count at the left, a round + at the right
+  // (the shelf's own word in its tooltip); the same door as the foot's, without the scroll.
+  const headHtml = '<div class="shelf-head"><span class="sh-count">' + list.length + ' ' + escHtml(_shelfNoun_(activeSection, list.length)) + '</span>' +
+    '<button type="button" class="sh-plus" id="shelfPlus" title="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '" aria-label="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '">+</button></div>';
 
   if (list.length === 0) {
     const label = sec.lbl;
@@ -1370,6 +1404,7 @@ function render() {
       '<div class="small">' + (activeType || activeTag || searchTerm ? 'Nothing under this filter or search.' : 'The door below adds your first.') + '</div>' +
       '</div>';
     if (!(activeType || activeTag || searchTerm)) {
+      wrap.insertAdjacentHTML('afterbegin', headHtml); _wirePlus_();
       _appendShelfDoor(wrap);
       if (activeSection === 'learning') {   // LD-1: an empty diary is when the Notion door matters most
         wrap.insertAdjacentHTML('beforeend', '<button type="button" class="shelf-door ld-import" id="ldImportBtn"><span class="pl">\u2191</span> Import from Notion (.csv)</button>');

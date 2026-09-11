@@ -141,6 +141,28 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**LD-11 (U1) + LB-1 (B1)** (11 Sep 2026): the Learning Diary row
+is two rows - date + whole heading (+ pencil) on the first, the
+category chips on the second under the heading's left edge,
+wrapping - the same layout on desktop and phone (three tags no
+longer crush the heading). Every Library shelf gains a SHELF HEAD
+above its list: the count in mono at the left ('84 LEARNINGS',
+'14 BOOKS') and a round + at the right in the shelf's ink (umber
+on the diary via body[data-sec], Library blue elsewhere); the +
+is the foot door's twin - it opens the same door form and scrolls
+it into view (on the wisdom shelf it takes the file, as the door
+does). render() now sets body[data-sec] and paints the head after
+render_(); the empty state paints it too. Harness: heads on
+books/learning/podcasts, U1 chips on row two, + opens the door.
+
+**LD-10** (10 Sep 2026): re-import matches a held learning by heading + date first, and by heading ALONE when its date was changed in the app (only if that heading is held once - a heading held twice still needs the date); the restore never touches learned_on, so a changed date stays.
+
+**LD-9** (10 Sep 2026): markdown links '[text](url)' from Notion's .md become live links showing the text alone (bare urls become links too); pages already holding raw '[text](url)' are rebuilt from the .md on the next re-import (rawLinks -> TEXT TO RESTORE).
+
+**LD-8** (10 Sep 2026): (1) the learning page's heading block is NOT sticky (body.fr-learning .fr-sticky static) - a whole Notion heading would freeze half the screen; (2) links addable in Edit: two pills in the learn row, Edit only - '+ LINK' / 'LINK - host' and, once a first exists, '+ ANOTHER LINK' / 'ALSO - host'; tap -> inline url input, change saves source_url / url, the source line repaints, clearing empties.
+
+**LD-7** (10 Sep 2026): the Learning Diary row shows the heading alone, whole - no teaser line from the body.
+
 **IN-4b: the real flicker** (10 Sep 2026): a video that is not yet placed in the body (a legacy row) lives in the host STRIP, and the body watcher re-hydrates on every keystroke - which rebuilt the strip (host.innerHTML) every keystroke: the thumbnail blinked whenever Edit was on. renderLegacy_ now signs its content (editing + ids/quiet/caption) and rebuilds only when the signature changes; unmount clears it. Harness: same strip node after ten keystrokes.
 
 **IN-4: no live player while editing** (10 Sep 2026): a YouTube iframe inside a contenteditable repaints on every caret move (Chrome invalidates the editing host's layer), which read as flicker whenever Edit was on. attachments.js now dresses a video figure in EDIT mode as a still - the video's own poster (i.ytimg hqdefault) with a play mark (.mdf-still/.mdf-play, clothes in favourites/introspection/why) - and only READ mode carries the live iframe. Tools, caption, resize and align unchanged.
