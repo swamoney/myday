@@ -141,6 +141,10 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**LD-14 (P4): the diary's ink** (11 Sep 2026): the Learning Diary is a Library-blue shelf like its neighbours (theme, chips, month rails, rows, pills, import button, +) - the umber retired; TODAY'S THREE wear LEDGER GREY on the door and on the shelf's strip (#f5f5f2 paper, #e3e3dc rule, ink outline chips, grey meta) - 'fatigue is colour, not content': the most neutral paper, nothing to tire of over ten thousand mornings.
+
+**LD-13b** (11 Sep 2026): today's three are kept in the ACCOUNT (user_prefs.prefs.recall_today via MyRecall.prefsStore) with the device as a cache, so phone and desktop show the same three; todays/shuffle are async; the diary resolves them once per load (ldThree_) and after mark/shuffle. The phone strip places category / heading / tick explicitly (the heading had been squeezed into the tick column). Harness: desktop door -> phone diary, same three, marked one shown done.
+
 **LD-12 (E1) + LD-13 (R1): delete in Edit; the daily three**
 (11 Sep 2026). E1: while the Library's Edit is on, each diary row's
 pencil gives way to an ember x (confirm; photos swept; rows don't
