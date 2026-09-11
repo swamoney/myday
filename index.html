@@ -592,8 +592,9 @@ async function loadRecall() {
     }
     if (!q || q.error) { console.warn('recall: could not read the diary', q && q.error); return; }
     recallRows_ = q.data || [];
-    if (!window.MyRecall) console.warn('recall.js is not loaded');
-    paintRecall(MyRecall.todays(recallRows_));
+    if (!window.MyRecall) { console.warn('recall.js is not loaded'); return; }
+    MyRecall.setStore(MyRecall.prefsStore(supa, uid));   // the same three on every device
+    paintRecall(await MyRecall.todays(recallRows_));
   } catch (e) {}
 }
 function paintRecall(three) {
@@ -622,9 +623,9 @@ async function markRecalled(id) {
   const { error } = await supa.from('bookmarks').update(patch).eq('id', r.id).eq('user_id', uid);
   if (error) { console.error(error); return; }
   Object.assign(r, patch);
-  paintRecall(MyRecall.todays(recallRows_));
+  paintRecall(await MyRecall.todays(recallRows_));
 }
-document.addEventListener('DOMContentLoaded', () => { const b = el('hubRecallShuffle'); if (b) b.addEventListener('click', () => paintRecall(MyRecall.shuffle(recallRows_))); });
+document.addEventListener('DOMContentLoaded', () => { const b = el('hubRecallShuffle'); if (b) b.addEventListener('click', async () => paintRecall(await MyRecall.shuffle(recallRows_))); });
 
 async function refreshPulses() {
   try {

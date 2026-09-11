@@ -50,32 +50,56 @@
     return picked;
   }
 
-  function readToday() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); return s && s.date === today() ? s : null; } catch (e) { return null; } }
-  function writeToday(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
-
-  // The day's three: kept on the device once drawn; re-drawn only for ids that vanished (deleted / retired).
-  function todays(rows) {
+  // Where today's picks are kept: the ACCOUNT (user_prefs.prefs.recall_today) so phone and
+  // desktop show the same three; the device keeps a copy for the moment before prefs load.
+  let store = null;   // { load: async () => obj|null, save: async (obj) => {} } - set by the page
+  function setStore(s) { store = s; }
+  function readCache() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); return s && s.date === today() ? s : null; } catch (e) { return null; } }
+  function writeCache(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  async function readToday() {
+    let s = null;
+    if (store) { try { s = await store.load(); } catch (e) { s = null; } }
+    if (!(s && s.date === today())) s = readCache();
+    return s && s.date === today() ? s : null;
+  }
+  async function writeToday(s) { writeCache(s); if (store) { try { await store.save(s); } catch (e) {} } }
+  function fromState(rows, s) {
     const byId = {}; rows.forEach(r => { byId[String(r.id)] = r; });
-    let s = readToday();
-    if (s && s.ids && s.ids.length === 3 && s.ids.every(id => byId[id] && !byId[id].recall_off)) {
-      return s.ids.map((id, i) => Object.assign({}, byId[id], { forCat: (s.cats || [])[i] || cats(byId[id])[0] || '' }));
-    }
+    if (!(s && s.ids && s.ids.length === 3 && s.ids.every(id => byId[id] && !byId[id].recall_off))) return null;
+    return s.ids.map((id, i) => Object.assign({}, byId[id], { forCat: (s.cats || [])[i] || cats(byId[id])[0] || '' }));
+  }
+  // The day's three: kept once drawn; re-drawn only when a pick vanished (deleted / retired).
+  async function todays(rows) {
+    let s = await readToday();
+    const held = fromState(rows, s);
+    if (held) return held;
     const shown = s && s.shown ? s.shown : [];
     const picked = draw(rows, today() + '#' + (s ? (s.n || 0) : 0), shown);
     if (picked.length < 3) return [];
     s = { date: today(), n: s ? (s.n || 0) : 0, ids: picked.map(r => String(r.id)), cats: picked.map(r => r.forCat), shown: shown.concat(picked.map(r => String(r.id))) };
-    writeToday(s);
+    await writeToday(s);
     return picked;
   }
   // Shuffle: three more, none shown today; wraps to a fresh sweep when everything eligible was shown.
-  function shuffle(rows) {
-    const s = readToday() || { date: today(), n: 0, ids: [], cats: [], shown: [] };
+  async function shuffle(rows) {
+    const s = (await readToday()) || { date: today(), n: 0, ids: [], cats: [], shown: [] };
     let picked = draw(rows, today() + '#' + (s.n + 1), s.shown);
     let shown = s.shown;
     if (picked.length < 3) { shown = []; picked = draw(rows, today() + '#' + (s.n + 1), []); }
     if (picked.length < 3) return [];
-    writeToday({ date: today(), n: s.n + 1, ids: picked.map(r => String(r.id)), cats: picked.map(r => r.forCat), shown: shown.concat(picked.map(r => String(r.id))) });
+    await writeToday({ date: today(), n: s.n + 1, ids: picked.map(r => String(r.id)), cats: picked.map(r => r.forCat), shown: shown.concat(picked.map(r => String(r.id))) });
     return picked;
+  }
+  // a prefs-backed store any page can hand over: reads prefs.recall_today, writes it back merged
+  function prefsStore(supa, userId) {
+    return {
+      load: async () => { const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle(); return q && q.data && q.data.prefs ? (q.data.prefs.recall_today || null) : null; },
+      save: async (obj) => {
+        const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle();
+        const prefs = Object.assign({}, (q && q.data && q.data.prefs) || {}, { recall_today: obj });
+        await supa.from('user_prefs').upsert({ user_id: userId, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+      }
+    };
   }
   function ago(iso) {
     if (!iso) return '';
@@ -92,5 +116,5 @@
     const M = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     return (last === today() ? 'RECALLED TODAY' : 'RECALLED ' + (n === 1 ? 'ONCE' : n + ' TIMES') + (t && !isNaN(t) ? ' \u00B7 LAST ' + M[t.getMonth()] + ' ' + t.getFullYear() : ''));
   }
-  global.MyRecall = { draw, todays, shuffle, ago, recalledLine, cats, today, KEY };
+  global.MyRecall = { draw, todays, shuffle, ago, recalledLine, cats, today, KEY, setStore, prefsStore };
 })(window);

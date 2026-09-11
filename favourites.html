@@ -412,7 +412,13 @@
   .ld-tr .ago { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#a49478; white-space:nowrap; }
   .ld-tr .ok { width:26px; height:26px; border-radius:6px; border:none; background:#e4efe6; color:#2f6146; font-weight:700; cursor:pointer; }
   .ld-tr.done { opacity:0.6; } .ld-tr.done .ok { background:#2f6146; color:#fff; }
-  @media (max-width:520px) { .ld-tr { grid-template-columns:1fr 26px; } .ld-tr .ld-c { grid-column:1; } .ld-tr .ago { display:none; } .ld-tr .ok { grid-row:1 / span 2; } }
+  @media (max-width:520px) {
+    .ld-tr { grid-template-columns:1fr 26px; gap:4px 10px; align-items:start; }
+    .ld-tr .ld-c { grid-column:1; grid-row:1; justify-self:start; }
+    .ld-tr .t { grid-column:1; grid-row:2; }
+    .ld-tr .ago { display:none; }
+    .ld-tr .ok { grid-column:2; grid-row:1 / span 2; align-self:center; }
+  }
   .ld-chips { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 8px; }
   .ld-chip { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:5px 10px; background:#fff; border:1px solid #d9cfbd; color:#7a5c2e; cursor:pointer; }
   .ld-chip.on { background:#7a5c2e; color:#fff; border-color:#7a5c2e; }
@@ -995,10 +1001,17 @@ async function ldImportGo_() {
   } finally { btn.disabled = false; }
 }
 // ---- LD-13 (R1): today's three at the diary's head - the same three as the door ----
+let ldThree_ = null;   // today's three, resolved once per load (and after mark / shuffle)
+async function ldThreeRefresh_() {
+  if (!window.MyRecall || !userId) return;
+  MyRecall.setStore(MyRecall.prefsStore(supa, userId));
+  ldThree_ = await MyRecall.todays(rows.filter(x => secOf(x) === 'learning'));
+  if (activeSection === 'learning') render();
+}
 function ldTodaysHtml_(list) {
   if (!window.MyRecall) return '';
-  const all = rows.filter(x => secOf(x) === 'learning');
-  const three = MyRecall.todays(all);
+  if (!ldThree_) { ldThreeRefresh_(); return ''; }
+  const three = ldThree_;
   if (three.length < 3) return '';
   const today = MyRecall.today();
   return '<div class="ld-today"><div class="h"><span class="eb2">TODAY\u2019S THREE</span><button type="button" class="sh" id="ldShuffle">\u21BB SHUFFLE</button></div>' +
@@ -1008,11 +1021,11 @@ function ldTodaysHtml_(list) {
         '<button type="button" class="ok" data-recall="' + escHtml(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713</button></div>'; }).join('') + '</div>';
 }
 function ldTodaysWire_(wrap) {
-  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', () => { MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
+  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldThree_ = await MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
   wrap.querySelectorAll('.ld-tr[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-recall]')) return; openReader(c.dataset.open); }));
   wrap.querySelectorAll('.ld-tr [data-recall]').forEach(b => b.addEventListener('click', async e => {
     e.stopPropagation(); const r = rows.find(x => String(x.id) === String(b.dataset.recall)); if (!r) return;
-    await ldMarkRecalled_(r); render();
+    await ldMarkRecalled_(r); ldThree_ = await MyRecall.todays(rows.filter(x => secOf(x) === 'learning')); render();
   }));
 }
 async function ldMarkRecalled_(r) {
@@ -1336,6 +1349,7 @@ async function handleSignOut() {
 // LD-13: the door's cards open a page here - favourites.html?open=<id>
 let ldOpenAfterLoad_ = (() => { try { return new URLSearchParams(location.search).get('open'); } catch (e) { return null; } })();
 async function loadRows() {
+  ldThree_ = null;
   try {
     const { data, error } = await supa.from('bookmarks').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw error;
