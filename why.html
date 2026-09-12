@@ -5853,8 +5853,9 @@ function renderDecisions() {
   // a group with nothing in it shows no rail at all.
   {
     const groups = [desk.filter(dcIsWip_), desk.filter(x => !dcIsWip_(x) && !dcIsDream_(x)), desk.filter(x => !dcIsWip_(x) && dcIsDream_(x))];
+    // one rail only, above the first row; the other rows hang from the air beneath it
     const html = groups.filter(g => g.length)
-      .map(g => '<div class="dc-rail"></div><div class="dc-hang">' + g.map(dcTagHtml_).join('') + '</div>').join('');
+      .map((g, i) => (i === 0 ? '<div class="dc-rail"></div>' : '') + '<div class="dc-hang">' + g.map(dcTagHtml_).join('') + '</div>').join('');
     el('dcDeskList').innerHTML = html
       || '<div class="dc-empty">nothing on the rail \u2014 may it stay that way a while</div>';
   }
