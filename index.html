@@ -506,7 +506,8 @@ async function loadPulses(uid) {
   v.dayWritten = !!(e && e.data && e.data.length); v.dayAt = v.dayWritten ? (e.data[0].updated_at || '') : '';
   // why: decisions pending + nearest planned dream
   const dc = await q(() => supa.from('why_decisions').select('id, title, target_on, status').eq('user_id', uid).neq('status', 'trail'));
-  v.pending = dc ? (dc.data || []).length : null;
+  v.pending = dc ? (dc.data || []).filter(r => r.status !== 'wip').length : null;
+  v.living = dc ? (dc.data || []).filter(r => r.status === 'wip').length : null;
   v.decideBy = null;
   if (dc) (dc.data || []).forEach(r => { if (r.target_on && r.target_on >= today) { const dd = Math.round((new Date(r.target_on) - new Date(today)) / 86400000); if (dd <= 30 && (!v.decideBy || dd < v.decideBy.days)) v.decideBy = { days: dd, title: r.title, on: r.target_on }; } });
   const bk = await q(() => supa.from('bucket_items').select('planned_on, status').eq('user_id', uid).neq('status', 'done').not('planned_on', 'is', null).gte('planned_on', today).order('planned_on', { ascending: true }).limit(1));
@@ -541,6 +542,7 @@ function paintPulses(v, prefs) {
   const ask = el('dayAsk'); if (ask) ask.textContent = v.dayWritten ? '' : 'ENTRY NOT YET WRITTEN';
   // why
   let w = [];
+  if (v.living) w.push('<b>' + v.living + '</b> IN PROGRESS');
   if (v.pending != null) w.push('<b>' + v.pending + '</b> DECISION' + (v.pending === 1 ? '' : 'S') + ' PENDING');
   if (v.dream != null) w.push('<b>1</b> DREAM AHEAD \u00B7 ' + (v.dream === 0 ? 'TODAY' : v.dream === 1 ? 'TOMORROW' : v.dream + ' DAYS'));
   else if (v.pending != null) w.push('NO DREAM PLANNED');

@@ -141,6 +141,40 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**MW-A: a decision becomes WORK IN PROGRESS** (12 Sep 2026,
+release (a) of three; MW-3 + F1 + S1 locked, merged tab to be
+named 'My Dreams & Decisions'): a decision now has THREE states -
+'desk' (pending), 'wip' (finalized, being lived), 'trail' (it
+happened, or cancelled). 'I have decided' with care/gut lands on
+WIP unless a happened-on date was given (straight to the trail);
+CANCELLED always goes straight to the trail - nothing left to
+live. The page: the eyebrow says 'WORK IN PROGRESS - FINALIZED
+WITH CARE - <date>', the band turns sea glass and reads 'TO
+HAPPEN BY', the meta gains a sea WORK IN PROGRESS pill beside the
+verdict, and two doors replace 'I have decided': '&#10022; It
+happened' (asks the date, seals to the trail) and 'Back to
+pending' (clears made + decided_on). The rail: wip tags LEAD
+(then pending; nearest date first within each), wearing F1 sea
+glass paper with the S1 SOLID stamp - filled means started,
+outlined means waiting - plus a verdict line on the tag. The
+door's pulse says 'N IN PROGRESS' before 'N DECISIONS PENDING';
+section print gains a Work in progress group. No migration (the
+status column already takes any string). Harness: rail order,
+filled stamp, verdict line, decide -> wip, band + doors, it
+happened -> trail, back to pending. Next: (b) Explore promoted,
+then (c) the merge - and REMIND RAHUL to delete bucket_items
+once (c) is settled.
+
+**LD-18** (11 Sep 2026): the diary's strip IS the door's block now - white box, three ledger-grey cards in ONE row (stacked under 560px), each exactly the door's card (chip / heading / ago line + RECALLED pill); the row layout retired.
+
+**LD-17 (K1)** (11 Sep 2026): the diary strip's 26px tick square retired for the door's own pill - '✓ RECALLED' at the foot beside the ago line, solid moss + 'TODAY' once marked; door and strip are now the same card.
+
+**LD-16b** (11 Sep 2026): desktop cards are equal height in their row; the grid's auto rows had been stretching, leaving gaps between chip / heading / meta on the short cards. Now grid-template-rows auto 1fr auto - the heading row takes the slack, chip at the top, meta + tick at the foot.
+
+**LD-16** (11 Sep 2026): the door's three cards read like the strip - the chip first on its own line, the heading beneath at full width, one quiet line 'ago - recalled', the tick beside it; the exact learned-on date left the card (it lives on the page) - distance and count are what recall wants. Same card on desktop (three in a row) and phone (stacked).
+
+**LD-15** (11 Sep 2026): the diary's head strip uses ONE shape on every screen - the category chip on its own line, the whole heading beneath at full width, an 'ago - recalled' line, the tick at the right spanning the stack (the desktop's one-line row retired). The door's cards unchanged.
+
 **LD-14 (P4): the diary's ink** (11 Sep 2026): the Learning Diary is a Library-blue shelf like its neighbours (theme, chips, month rails, rows, pills, import button, +) - the umber retired; TODAY'S THREE wear LEDGER GREY on the door and on the shelf's strip (#f5f5f2 paper, #e3e3dc rule, ink outline chips, grey meta) - 'fatigue is colour, not content': the most neutral paper, nothing to tire of over ten thousand mornings.
 
 **LD-13b** (11 Sep 2026): today's three are kept in the ACCOUNT (user_prefs.prefs.recall_today via MyRecall.prefsStore) with the device as a cache, so phone and desktop show the same three; todays/shuffle are async; the diary resolves them once per load (ldThree_) and after mark/shuffle. The phone strip places category / heading / tick explicitly (the heading had been squeezed into the tick column). Harness: desktop door -> phone diary, same three, marked one shown done.

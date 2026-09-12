@@ -583,6 +583,20 @@
     .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
     .stamp .rowdeck:empty { display:none; }
   }
+  /* MW-A (F1 + S1): a decided decision hangs in sea glass with a SOLID stamp -
+     filled means started, outlined means waiting. */
+  .dc-tag.wip .card { background:linear-gradient(180deg,#e6f2f4,#d3e7ea); border-color:#aecfd4; }
+  .dc-tag.wip .stamp.wipd { background:#1F6E78; color:#fff; border-color:#1F6E78; box-shadow:0 2px 5px rgba(31,110,120,0.3); }
+  .dc-tag.wip .prog i { background:rgba(31,110,120,0.16); }
+  .dc-tag.wip .prog i b { background:#1F6E78; }
+  .dc-tag.wip .chip { background:#1F6E78; color:#fff; }
+  .dc-tag .made { display:block; margin-top:7px; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#4a6a6e; }
+  .dc-band.wip { background:#1F6E78; color:#fff; }
+  .dc-band.wip.late { background:#a8323f; }
+  .dc-pill.sea { background:#1F6E78; color:#fff; }
+  .dc-decide.lived { background:#2f6146; }
+  .dc-back.undo { display:inline-block; width:auto; margin-left:8px; background:none; border:1px solid var(--rule); color:#68789a; }
+  #dcLivedRow.hidden, #dcDecideRow.hidden { display:none; }
   /* T2: the row's weather - moss for a call that went well, ember for one that didn't; 3 = today's white; unrated/cancelled untouched */
   .dc-card.trail.r5 { background:linear-gradient(160deg,#f7fbf8,#e6f1ea); border-left-color:#2f6146; }
   .dc-card.trail.r4 { background:linear-gradient(160deg,#f9fcf9,#edf3ee); border-left-color:#5F7355; }
@@ -1745,6 +1759,10 @@
     </div>
     <div id="dcQA"></div>
     <div class="dc-decrow" id="dcDecideRow"><button class="dc-decide" id="dcDecideBtn" type="button">I have decided</button></div>
+    <div class="dc-decrow hidden" id="dcLivedRow">
+      <button class="dc-decide lived" id="dcLivedBtn" type="button">&#10022; It happened</button>
+      <button class="dc-back undo" id="dcUndecideBtn" type="button">Back to pending</button>
+    </div>
     <div class="dc-ratebox hidden" id="dcRateBox">
       <span class="rlbl">Looking back, how did it turn out?</span>
       <span class="rstars" id="dcRateStars"><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b></span>
@@ -1796,9 +1814,9 @@
     <div class="fld"><label>Decision finalized on</label><input type="date" id="dcMWhen">
       <div class="dc-hist" id="dcMHist"></div></div>
     <div class="fld" id="dcMHapFld"><label>Happened on</label><input type="date" id="dcMHap">
-      <div class="dc-sub">optional &mdash; leave blank if it hasn&rsquo;t come true yet</div></div>
+      <div class="dc-sub">optional &mdash; leave it blank and the decision hangs as <b>work in progress</b> until it does</div></div>
     <div class="modal-actions">
-      <button class="btn-primary" id="dcMSave" type="button">Seal it &rarr; the trail</button>
+      <button class="btn-primary" id="dcMSave" type="button">Save the verdict</button>
       <button class="btn-ghost" id="dcMCancel" type="button">Not yet</button>
     </div>
   </div>
@@ -2713,8 +2731,14 @@ function printSection() {
     let body = '<div class="eyebrow">My Why</div><h1>My Decisions</h1>';
     const desk = dcRows.filter(d => d.status !== 'trail');
     const trail = dcRows.filter(d => d.status === 'trail').sort(dcTrailSort_);
-    if (desk.length) {
-      body += '<h2>On the desk</h2><ul>' + desk.map(d => {
+    const living = desk.filter(dcIsWip_), pending = desk.filter(d => !dcIsWip_(d));
+    if (living.length) {
+      body += '<h2>Work in progress</h2><ul>' + living.map(d => '<li><strong>' + e(d.title) + '</strong>'
+        + ' <span class="meta">' + e(dcVerdictLong_(d)) + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '') + '</span>'
+        + (d.target_on ? ' <span class="meta">to happen by ' + e(dcFmt_(d.target_on)) + '</span>' : '') + '</li>').join('') + '</ul>';
+    }
+    if (pending.length) {
+      body += '<h2>On the desk</h2><ul>' + pending.map(d => {
         const qa = Array.isArray(d.answers) ? d.answers : [];
         return '<li><strong>' + e(d.title) + '</strong>'
           + (d.target_on ? ' <span class="meta">target ' + e(dcFmt_(d.target_on)) + '</span>' : '')
@@ -5672,6 +5696,13 @@ const DC_TEN_POINTS = [
   "10/10: Is it easily \"UNDERSTANDABLE / EXPLAINABLE\" >"
 ];
 const DC_SET_LABEL = { both: 'BOTH', new: 'NEW SET', ten: 'THE TEN' };
+// (a) MW-A: a decision has three states now -
+//   desk  = pending          (walking the points; a 'decide by' date)
+//   wip   = work in progress (finalized with care/gut; living it; a 'to happen by' date)
+//   trail = done             (it happened, or it was cancelled)
+// Cancelled skips wip entirely - there is nothing left to live.
+function dcIsWip_(d) { return d && d.status === 'wip'; }
+function dcOnRail_(d) { return d && (d.status === 'desk' || d.status === 'wip'); }
 // The trail reads newest first: by the day it was decided, then by creation.
 function dcTrailSort_(a, b) {
   const da = a.decided_on || String(a.created_at || '').slice(0, 10), db = b.decided_on || String(b.created_at || '').slice(0, 10);
@@ -5760,7 +5791,11 @@ function dcFmt_(d) {
   return String(x.getDate()).padStart(2, '0') + ' ' + BK_MON[x.getMonth()] + ' ' + x.getFullYear();
 }
 function renderDecisions() {
-  const desk = dcRows.filter(d => d.status !== 'trail');
+  // MW-A: the rail opens with what is being lived, then what is still pending;
+  // inside each group the nearest date leads, the undated last.
+  const rank = (d) => dcIsWip_(d) ? 0 : 1;
+  const desk = dcRows.filter(d => d.status !== 'trail').sort((a, b) =>
+    rank(a) - rank(b) || (a.target_on || '9999').localeCompare(b.target_on || '9999') || String(a.created_at).localeCompare(String(b.created_at)));
   const trail = dcRows.filter(d => d.status === 'trail').sort(dcTrailSort_);
   // DC-H (H1 + 1): open decisions HANG from a rail as parchment tags - the shape says pending.
   const today = new Date().toISOString().slice(0, 10);
@@ -5769,12 +5804,14 @@ function renderDecisions() {
         const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
         const pct = total ? Math.round(n / total * 100) : 0;
         const late = d.target_on && d.target_on < today;
-        return '<div class="dc-tag" data-dc="' + d.id + '"><span class="string"></span>' +
-          '<div class="card"><span class="hole"></span><span class="stamp">DECISION PENDING</span>' +
+        const wip = dcIsWip_(d);
+        return '<div class="dc-tag' + (wip ? ' wip' : '') + '" data-dc="' + d.id + '"><span class="string"></span>' +
+          '<div class="card"><span class="hole"></span><span class="stamp' + (wip ? ' wipd' : '') + '">' + (wip ? 'WORK IN PROGRESS' : 'DECISION PENDING') + '</span>' +
           '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>' +
           '<div class="t">' + escHtml(d.title) + '</div>' +
           '<div class="prog">' + n + ' / ' + total + '<i><b style="width:' + pct + '%;"></b></i></div>' +
           '<div class="chips">' + (d.target_on ? '<span class="chip' + (late ? ' late' : '') + '">BY ' + escHtml(String(dcFmt_(d.target_on)).toUpperCase()) + '</span>' : '') + '</div>' +
+          (wip ? '<span class="made">' + escHtml(dcVerdictLong_(d).toUpperCase()) + (d.decided_on ? ' \u00B7 ' + escHtml(String(dcFmt_(d.decided_on)).toUpperCase()) : '') + '</span>' : '') +
           '</div></div>';
       }).join('') + '</div>'
     : '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
@@ -5810,7 +5847,8 @@ function openDecision(id) {
   dcId = id;
   const sealed = d.status === 'trail';
   const qa = Array.isArray(d.answers) ? d.answers : [];
-  el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS' +
+  const wip = dcIsWip_(d);
+  el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : wip ? 'WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : '') : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS' +
     (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : '');
   el('dcName').textContent = d.title;
   // DC-D (D1): on an open decision the target is a full-width gold band under the
@@ -5818,9 +5856,10 @@ function openDecision(id) {
   const band = el('dcBand');
   if (!sealed && d.target_on) {
     const late = d.target_on < new Date().toISOString().slice(0, 10);
-    band.querySelector('.lbl').textContent = late ? 'PAST THE TARGET' : 'DECIDE BY';
+    band.querySelector('.lbl').textContent = late ? (wip ? 'PAST THE DATE' : 'PAST THE TARGET') : (wip ? 'TO HAPPEN BY' : 'DECIDE BY');
     band.querySelector('.dt').textContent = dcFmtLong_(d.target_on);
     band.classList.toggle('late', late);
+    band.classList.toggle('wip', wip);      // the live band wears sea glass
     band.classList.remove('hidden');
   } else band.classList.add('hidden');
   let meta = (sealed && d.target_on) ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
@@ -5831,10 +5870,15 @@ function openDecision(id) {
     if (!dcCanx_(d)) meta += d.happened_on
       ? '<span class="dc-pill hap"><span class="sym">\u2726</span>IT HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
       : '<span class="dc-pill wait">NOT YET LIVED</span>';
+  } else if (wip) {
+    meta += '<span class="dc-pill sea"><span class="sym">\u25D1</span>WORK IN PROGRESS</span>'
+         +  '<span class="dc-pill verdict"><span class="sym">\u2713</span>' + dcVerdict_(d) + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
   } else {
     meta += '<span class="dc-pill wait">NOT YET FINALIZED</span>';
   }
   el('dcMeta').innerHTML = meta;
+  el('dcDecideRow').classList.toggle('hidden', !!sealed || wip);
+  el('dcLivedRow').classList.toggle('hidden', !wip);
   el('dcQA').innerHTML = qa.map((x, i) =>
     '<div class="dc-qa' + (String(x.a || '').trim() ? ' answered' : '') + '">'
     + '<div class="q"><i>' + (i + 1) + '</i>' + escHtml(x.q || '') + '</div>'
@@ -6059,6 +6103,26 @@ el('dcDecideBtn').addEventListener('click', () => {
   dcHistCheck_();
   el('dcDecideModal').classList.remove('hidden');
 });
+// MW-A: a decided decision comes to pass - or the verdict is taken back.
+el('dcLivedBtn').addEventListener('click', async () => {
+  const d = dcRow_(); if (!d) return;
+  const when = prompt('When did it happen?  (YYYY-MM-DD, blank = today)', new Date().toISOString().slice(0, 10));
+  if (when === null) return;
+  const hap = (when || '').trim() ? dcParseDate_(when.trim()) : new Date().toISOString().slice(0, 10);
+  if (!hap) { toast('That date could not be read'); return; }
+  const { error } = await supa.from('why_decisions').update({ status: 'trail', happened_on: hap }).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save it'); return; }
+  d.status = 'trail'; d.happened_on = hap;
+  dcClose_(); toast('It happened \u2014 it walks to the trail');
+});
+el('dcUndecideBtn').addEventListener('click', async () => {
+  const d = dcRow_(); if (!d) return;
+  if (!confirm('Take the verdict back? "' + (d.title || '').slice(0, 60) + '" returns to the desk as pending; its answers stay.')) return;
+  const { error } = await supa.from('why_decisions').update({ status: 'desk', made: null, decided_on: null }).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not undo it'); return; }
+  d.status = 'desk'; d.made = null; d.decided_on = null;
+  openDecision(d.id); toast('Back on the desk');
+});
 el('dcMade').addEventListener('click', e => {
   const b = e.target.closest('[data-m]'); if (!b) return;
   dcMadePick = b.dataset.m;
@@ -6073,14 +6137,17 @@ el('dcMSave').addEventListener('click', async () => {
   const d = dcRow_(); if (!d) return;
   const when = el('dcMWhen').value || new Date().toISOString().slice(0, 10);
   const hap = el('dcMHap').value || null;
+  // cancelled has nothing left to live; a decision already lived goes straight to the trail;
+  // otherwise it becomes WORK IN PROGRESS and stays on the rail until it happens.
+  const next = (dcMadePick === 'cancelled' || hap) ? 'trail' : 'wip';
   const { error } = await supa.from('why_decisions')
-    .update({ status: 'trail', made: dcMadePick, decided_on: when, happened_on: hap, answers: d.answers })
+    .update({ status: next, made: dcMadePick, decided_on: when, happened_on: hap, answers: d.answers })
     .eq('id', d.id).eq('user_id', userId);
-  if (error) { console.error(error); toast('Could not seal it'); return; }
-  d.status = 'trail'; d.made = dcMadePick; d.decided_on = when; d.happened_on = hap;
+  if (error) { console.error(error); toast('Could not save it'); return; }
+  d.status = next; d.made = dcMadePick; d.decided_on = when; d.happened_on = hap;
   el('dcDecideModal').classList.add('hidden');
-  dcClose_();
-  toast('Sealed \u2014 it walks to the trail, answers frozen');
+  if (next === 'trail') { dcClose_(); toast(dcMadePick === 'cancelled' ? 'Walked away \u2014 it rests in the trail' : 'Sealed \u2014 it walks to the trail, answers frozen'); }
+  else { openDecision(d.id); toast('Decided \u2014 now the living of it'); }
 });
 // The manager edits a working copy as rows - rename, reorder, remove, add -
 // and only Save persists. Every operation shapes FUTURE decisions; open and
