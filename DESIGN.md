@@ -141,6 +141,34 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**MW-C: My Dreams & Decisions** (12 Sep 2026, release (c) of
+three - the merge): the room is renamed 'My Dreams & Decisions'
+(section key stays 'decisions' - labels are clothes, keys are
+law) and holds two KINDS via a new column `kind` ('decision' |
+'dream'; migrate_kind.sql - PENDING Rahul runs it once). The New
+dialog opens with 'Dream or decision?'; choosing a dream changes
+three words (prompt, date label 'Planned for', and a fourth
+checklist PREPARATION = an empty free list). A dream's tag wears
+mint paper + a teal DREAM AHEAD stamp + a PLANNED chip; a pending
+decision keeps rose + rust; both become sea glass with the solid
+stamp once decided (MW-A). Rail order: living, pending, dreaming
+- nearest date first inside each. Trail rows wear a DREAM /
+DECISION mark, and the trail now breaks by YEAR RAILS with a
+count. Three chips (ALL / DREAMS / DECISIONS) and a SEARCH box
+(title, answers, story, the looking-back line; debounced) sit
+above the rail. The bucket tab is RETIRED - no tab, showSection
+redirects 'bucket' to 'decisions', the panel is display:none -
+but its markup and code SLEEP in place rather than being cut
+out (a first attempt to excise 19 functions corrupted the file
+and was rolled back to the (b) build; the sweep will be a
+separate, quiet release once Rahul has re-entered his dreams).
+index.html's dream pulse now reads kind='dream' from the merged
+room; restore.html labels bucket_items '(retired)'. Harness: six
+tabs + the new name, rail order and stamps, dream chip, year
+rails, kind marks, filter, search, a new dream end to end,
+bucket unreachable. REMINDER OUTSTANDING: delete bucket_items
+once Rahul is happy.
+
 **MW-B: the Explore List takes its own tab** (12 Sep 2026,
 release (b) of three): 'My Explore List' leaves the Bucket
 List's back room and becomes section 'explore' in the bar

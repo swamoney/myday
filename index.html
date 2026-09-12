@@ -510,8 +510,9 @@ async function loadPulses(uid) {
   v.living = dc ? (dc.data || []).filter(r => r.status === 'wip').length : null;
   v.decideBy = null;
   if (dc) (dc.data || []).forEach(r => { if (r.target_on && r.target_on >= today) { const dd = Math.round((new Date(r.target_on) - new Date(today)) / 86400000); if (dd <= 30 && (!v.decideBy || dd < v.decideBy.days)) v.decideBy = { days: dd, title: r.title, on: r.target_on }; } });
-  const bk = await q(() => supa.from('bucket_items').select('planned_on, status').eq('user_id', uid).neq('status', 'done').not('planned_on', 'is', null).gte('planned_on', today).order('planned_on', { ascending: true }).limit(1));
-  v.dream = bk && bk.data && bk.data.length ? Math.round((new Date(bk.data[0].planned_on) - new Date(today)) / 86400000) : null;
+  // MW-C: dreams live in the decisions room now
+  const bk = await q(() => supa.from('why_decisions').select('target_on, status, kind').eq('user_id', uid).eq('kind', 'dream').neq('status', 'trail').not('target_on', 'is', null).gte('target_on', today).order('target_on', { ascending: true }).limit(1));
+  v.dream = bk && bk.data && bk.data.length ? Math.round((new Date(bk.data[0].target_on) - new Date(today)) / 86400000) : null;
   // inner life: last wrote, last trip
   const iw = await q(() => supa.from('iw_entries').select('updated_at').eq('user_id', uid).order('updated_at', { ascending: false }).limit(1));
   v.lastWrote = iw && iw.data && iw.data.length ? iw.data[0].updated_at : null;
