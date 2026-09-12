@@ -5835,8 +5835,7 @@ function renderDecisions() {
   const trail = dcRows.filter(d => d.status === 'trail' && dcKeep_(d)).sort(dcTrailSort_);
   // DC-H (H1 + 1): open decisions HANG from a rail as parchment tags - the shape says pending.
   const today = new Date().toISOString().slice(0, 10);
-  el('dcDeskList').innerHTML = desk.length
-    ? '<div class="dc-rail"></div><div class="dc-hang">' + desk.map(d => {
+  const dcTagHtml_ = (d) => {
         const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
         const pct = total ? Math.round(n / total * 100) : 0;
         const late = d.target_on && d.target_on < today;
@@ -5849,8 +5848,17 @@ function renderDecisions() {
           '<div class="chips">' + (d.target_on ? '<span class="chip' + (late ? ' late' : '') + '">' + (!wip && dream ? 'PLANNED ' : 'BY ') + escHtml(String(dcFmt_(d.target_on)).toUpperCase()) + '</span>' : '') + '</div>' +
           (wip ? '<span class="made">' + escHtml(dcVerdictLong_(d).toUpperCase()) + (d.decided_on ? ' \u00B7 ' + escHtml(String(dcFmt_(d.decided_on)).toUpperCase()) : '') + '</span>' : '') +
           '</div></div>';
-      }).join('') + '</div>'
-    : '<div class="dc-empty">nothing on the desk \u2014 may it stay that way a while</div>';
+      };
+  // MW-C (R2): each state begins its own bare rail - living, pending, dreaming;
+  // a group with nothing in it shows no rail at all.
+  {
+    const groups = [desk.filter(dcIsWip_), desk.filter(x => !dcIsWip_(x) && !dcIsDream_(x)), desk.filter(x => !dcIsWip_(x) && dcIsDream_(x))];
+    const html = groups.filter(g => g.length)
+      .map(g => '<div class="dc-rail"></div><div class="dc-hang">' + g.map(dcTagHtml_).join('') + '</div>').join('');
+    el('dcDeskList').innerHTML = html
+      || '<div class="dc-empty">nothing on the rail \u2014 may it stay that way a while</div>';
+  }
+
   const dcRowHtml_ = (d) =>
     '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + (Number(d.satisfaction) && !dcCanx_(d) ? ' r' + Number(d.satisfaction) : '') + '" data-dc="' + d.id + '">'
     + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
