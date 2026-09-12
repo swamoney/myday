@@ -141,6 +141,17 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**MW-B: the Explore List takes its own tab** (12 Sep 2026,
+release (b) of three): 'My Explore List' leaves the Bucket
+List's back room and becomes section 'explore' in the bar
+(ocean teal #1f6a63, between bucket and decisions) with its own
+panel #secExplore holding the whole places room unchanged (add,
+chips, count, list). The room door (bk-door / bkDoorLabel /
+showBkRoom / bkRoom) and its four CSS rules retire to zero
+references; #bkRoomDreams stays as the bucket's only room.
+Harness: seven tabs in order, explore panel shows its list and
+button, bucket panel still renders its dreams, no door.
+
 **MW-A: a decision becomes WORK IN PROGRESS** (12 Sep 2026,
 release (a) of three; MW-3 + F1 + S1 locked, merged tab to be
 named 'My Dreams & Decisions'): a decision now has THREE states -
