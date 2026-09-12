@@ -584,6 +584,15 @@
     .stamp .rowdeck { padding-left:24px; }           /* past ring, pulse, or tick */
     .stamp .rowdeck:empty { display:none; }
   }
+  /* A1: a dream that owes an answer - mint paper, rust stamp, a decide-by chip */
+  .dc-tag.dq .card { background:linear-gradient(180deg,#eff7f5,#e2efeb); border-color:#e5cdc0; }
+  .dc-tag.dq .stamp.drmq { color:#9a4a2e; border-color:#9a4a2e; }
+  .dc-tag.dq .prog i b { background:#9a4a2e; }
+  .dc-dstates { display:flex; gap:6px; flex-wrap:wrap; margin:6px 0 10px; }
+  .dc-dstates.hidden { display:none; }
+  .dc-dst { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; border-radius:8px; padding:7px 10px; background:#fff; border:1px solid var(--rule); color:var(--muted); cursor:pointer; }
+  .dc-dst.on { background:#2F6F6A; color:#fff; border-color:#2F6F6A; }
+  .dc-dst[data-dst="pending"].on { background:#9a4a2e; border-color:#9a4a2e; }
   /* MW-C: the kinds, the chips, the search, the year rails */
   .dc-tag.pend .card { background:linear-gradient(180deg,#fbf1ec,#f4e3da); border-color:#e5cdc0; }
   .dc-tag.dream .card { background:linear-gradient(180deg,#eff7f5,#e2efeb); border-color:#c9e0da; }
@@ -1771,6 +1780,10 @@
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span></div>
     <div class="dc-sig"></div>
+    <div class="dc-dstates hidden" id="dcDreamStates">
+      <button type="button" class="dc-dst" data-dst="ahead">&#9675; A DREAM AHEAD</button>
+      <button type="button" class="dc-dst" data-dst="pending">&#9679; NEEDS DECIDING</button>
+    </div>
     <button class="dc-band hidden" id="dcBand" type="button" title="Change the date"><span class="lbl"></span><span class="dt"></span></button>
     <div class="dc-meta" id="dcMeta"></div>
     <div class="tb-host" id="dcBoard"></div>
@@ -5720,7 +5733,10 @@ const DC_SET_LABEL = { both: 'BOTH', new: 'NEW SET', ten: 'THE TEN' };
 // this format; the kind changes three words - the stamp, the date's label, the trail mark.
 function dcIsDream_(d) { return d && d.kind === 'dream'; }
 function dcKindWord_(d) { return dcIsDream_(d) ? 'DREAM' : 'DECISION'; }
-function dcDateLbl_(d, wip) { return wip ? 'TO HAPPEN BY' : dcIsDream_(d) ? 'PLANNED FOR' : 'DECIDE BY'; }
+// A1: a dream can reach the moment of choice - then it owes an answer like any decision
+function dcDreamPending_(d) { return dcIsDream_(d) && !!d.pending; }
+function dcOwesAnswer_(d) { return !dcIsWip_(d) && (!dcIsDream_(d) || dcDreamPending_(d)); }
+function dcDateLbl_(d, wip) { return wip ? 'TO HAPPEN BY' : (dcIsDream_(d) && !dcDreamPending_(d)) ? 'PLANNED FOR' : 'DECIDE BY'; }
 // (a) MW-A: a decision has three states now -
 //   desk  = pending          (walking the points; a 'decide by' date)
 //   wip   = work in progress (finalized with care/gut; living it; a 'to happen by' date)
@@ -5829,7 +5845,7 @@ function dcKeep_(d) {
 function renderDecisions() {
   // MW-A: the rail opens with what is being lived, then what is still pending;
   // inside each group the nearest date leads, the undated last.
-  const rank = (d) => dcIsWip_(d) ? 0 : dcIsDream_(d) ? 2 : 1;   // living, then pending, then dreaming
+  const rank = (d) => dcIsWip_(d) ? 0 : dcOwesAnswer_(d) ? 1 : 2;   // living, then what owes an answer, then dreaming
   const desk = dcRows.filter(d => d.status !== 'trail' && dcKeep_(d)).sort((a, b) =>
     rank(a) - rank(b) || (a.target_on || '9999').localeCompare(b.target_on || '9999') || String(a.created_at).localeCompare(String(b.created_at)));
   const trail = dcRows.filter(d => d.status === 'trail' && dcKeep_(d)).sort(dcTrailSort_);
@@ -5839,20 +5855,20 @@ function renderDecisions() {
         const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
         const pct = total ? Math.round(n / total * 100) : 0;
         const late = d.target_on && d.target_on < today;
-        const wip = dcIsWip_(d), dream = dcIsDream_(d);
-        return '<div class="dc-tag' + (wip ? ' wip' : dream ? ' dream' : ' pend') + '" data-dc="' + d.id + '"><span class="string"></span>' +
-          '<div class="card"><span class="hole"></span><span class="stamp' + (wip ? ' wipd' : dream ? ' drm' : '') + '">' + (wip ? 'WORK IN PROGRESS' : dream ? 'DREAM AHEAD' : 'DECISION PENDING') + '</span>' +
+        const wip = dcIsWip_(d), dream = dcIsDream_(d), dq = dcDreamPending_(d);
+        return '<div class="dc-tag' + (wip ? ' wip' : dq ? ' dq' : dream ? ' dream' : ' pend') + '" data-dc="' + d.id + '"><span class="string"></span>' +
+          '<div class="card"><span class="hole"></span><span class="stamp' + (wip ? ' wipd' : dq ? ' drmq' : dream ? ' drm' : '') + '">' + (wip ? 'WORK IN PROGRESS' : dq ? 'DREAM \u00B7 DECISION PENDING' : dream ? 'DREAM AHEAD' : 'DECISION PENDING') + '</span>' +
           '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>' +
           '<div class="t">' + escHtml(d.title) + '</div>' +
           '<div class="prog">' + n + ' / ' + total + '<i><b style="width:' + pct + '%;"></b></i></div>' +
-          '<div class="chips">' + (d.target_on ? '<span class="chip' + (late ? ' late' : '') + '">' + (!wip && dream ? 'PLANNED ' : 'BY ') + escHtml(String(dcFmt_(d.target_on)).toUpperCase()) + '</span>' : '') + '</div>' +
+          '<div class="chips">' + (d.target_on ? '<span class="chip' + (late ? ' late' : '') + '">' + (!wip && dream && !dq ? 'PLANNED ' : 'BY ') + escHtml(String(dcFmt_(d.target_on)).toUpperCase()) + '</span>' : '') + '</div>' +
           (wip ? '<span class="made">' + escHtml(dcVerdictLong_(d).toUpperCase()) + (d.decided_on ? ' \u00B7 ' + escHtml(String(dcFmt_(d.decided_on)).toUpperCase()) : '') + '</span>' : '') +
           '</div></div>';
       };
   // MW-C (R2): each state begins its own bare rail - living, pending, dreaming;
   // a group with nothing in it shows no rail at all.
   {
-    const groups = [desk.filter(dcIsWip_), desk.filter(x => !dcIsWip_(x) && !dcIsDream_(x)), desk.filter(x => !dcIsWip_(x) && dcIsDream_(x))];
+    const groups = [desk.filter(dcIsWip_), desk.filter(dcOwesAnswer_), desk.filter(x => !dcIsWip_(x) && !dcOwesAnswer_(x))];
     // one rail only, above the first row; the other rows hang from the air beneath it
     const html = groups.filter(g => g.length)
       .map((g, i) => (i === 0 ? '<div class="dc-rail"></div>' : '') + '<div class="dc-hang">' + g.map(dcTagHtml_).join('') + '</div>').join('');
@@ -5913,6 +5929,10 @@ function openDecision(id) {
   el('dcName').textContent = d.title;
   // DC-D (D1): on an open decision the target is a full-width gold band under the
   // heading, red once the date has passed; sealed pages keep their small pills.
+  // A1: only a dream shows the ahead / needs-deciding row, and only while it is on the rail
+  const dstates = el('dcDreamStates');
+  dstates.classList.toggle('hidden', !(dcIsDream_(d) && !sealed && !wip));
+  dstates.querySelectorAll('[data-dst]').forEach(b => b.classList.toggle('on', (b.dataset.dst === 'pending') === !!dcDreamPending_(d)));
   const band = el('dcBand');
   if (!sealed && d.target_on) {
     const late = d.target_on < new Date().toISOString().slice(0, 10);
@@ -5935,7 +5955,7 @@ function openDecision(id) {
     meta += '<span class="dc-pill sea"><span class="sym">\u25D1</span>WORK IN PROGRESS</span>'
          +  '<span class="dc-pill verdict"><span class="sym">\u2713</span>' + dcVerdict_(d) + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
   } else {
-    meta += '<span class="dc-pill wait">' + (dcIsDream_(d) ? 'A DREAM AHEAD' : 'NOT YET FINALIZED') + '</span>';
+    meta += '<span class="dc-pill wait">' + (dcDreamPending_(d) ? 'A DREAM \u00B7 DECISION PENDING' : dcIsDream_(d) ? 'A DREAM AHEAD' : 'NOT YET FINALIZED') + '</span>';
   }
   el('dcMeta').innerHTML = meta;
   el('dcDecideRow').classList.toggle('hidden', !!sealed || wip);
@@ -6177,6 +6197,17 @@ el('dcDecideBtn').addEventListener('click', () => {
   el('dcDecideModal').classList.remove('hidden');
 });
 // MW-A: a decided decision comes to pass - or the verdict is taken back.
+// A1: a dream says whether it is waiting its turn or owes an answer now
+el('dcDreamStates').addEventListener('click', async e => {
+  const b = e.target.closest('[data-dst]'); if (!b) return;
+  const d = dcRow_(); if (!d) return;
+  const v = b.dataset.dst === 'pending';
+  if (!!d.pending === v) return;
+  const { error } = await supa.from('why_decisions').update({ pending: v }).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not change that'); return; }
+  d.pending = v; openDecision(d.id); renderDecisions();
+  toast(v ? 'A choice is owed \u2014 it hangs with the decisions' : 'Back among the dreams ahead');
+});
 el('dcLivedBtn').addEventListener('click', async () => {
   const d = dcRow_(); if (!d) return;
   const when = prompt('When did it happen?  (YYYY-MM-DD, blank = today)', new Date().toISOString().slice(0, 10));

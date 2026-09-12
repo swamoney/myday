@@ -141,6 +141,12 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**MW-C4 (A1): a dream can owe an answer** (12 Sep 2026): kind and state are separate - a dream whose moment of choice has come gets `pending` = true (migrate_dream_pending.sql - PENDING Rahul runs it once) and hangs in the DECISION PENDING row beside the decisions, keeping mint paper but taking a rust 'DREAM - DECISION PENDING' stamp, a rust bar and a 'BY <date>' chip; its page's band reads DECIDE BY. On a dream's page (rail only) a small row chooses 'A DREAM AHEAD' / 'NEEDS DECIDING'; decisions never show it. Rail grouping is now living / owes-an-answer / dreaming. Harness: rows, chip, state row on a dream, flip moves the tag and the band, hidden on a decision.
+
+**MW-C3 (R2)** (12 Sep 2026): the desk is three ROWS, each state on its own; ONE rail only, above the first row - the rows beneath hang from the air - work in progress, then decision pending, then dreams ahead; a group with nothing in it shows no rail at all (the stamps name the groups, so no headings). The single wrapping rail retires.
+
+**MW-C2 (W-B)** (12 Sep 2026): the work-in-progress tag hangs DOUBLE WIDTH (418px) on desktop with a larger title - the one state you act on gets the room; pending and dreaming tags keep 200px; phones stack all three at full width as before. Also: a dream's date chip wears the same gold as a pending decision's (the teal override retired).
+
 **MW-C: My Dreams & Decisions** (12 Sep 2026, release (c) of
 three - the merge): the room is renamed 'My Dreams & Decisions'
 (section key stays 'decisions' - labels are clothes, keys are
