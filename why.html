@@ -1040,13 +1040,16 @@
   .rm-div.short span { flex:none; width:110px; height:2px; border-radius:1px; background:#c6cfdd; }
   /* ===== The pillar passbook (pp-) — replaces the roadmap matrix (Aug 2026).
      Text wears the pillar's ink; solid draws only borders and bullets. */
-  .pp-standing { background:var(--pp-tint,#f5f7fb); border-left:3px solid var(--pp-sol,#8189a0);
+  /* G2: no ground - the pillar's edge alone holds the block, so the roadmap reads as one page */
+  .pp-standing { border-left:3px solid var(--pp-sol,#8189a0);
                  border-radius:0 10px 10px 0; padding:12px 14px 13px; margin-bottom:16px; }
   .pp-sec.pp-to { margin-top:11px; padding-top:10px; border-top:1px dashed var(--pp-sol,#8189a0); }
   .pp-hd { display:flex; align-items:baseline; gap:6px; }
+  /* C1: gold is 'now' everywhere in the app; the long game wears the pillar's own ink, outlined */
   .pp-lbl { display:inline-block; font-family:var(--mono); font-size:0.5625rem; font-weight:600;
             letter-spacing:0.14em; text-transform:uppercase; color:#4a3410; background:#f4c430;
             border-radius:6px; padding:3px 9px 4px; }
+  .pp-lbl.pp-far { background:#fff; color:var(--pp-ink,#28324B); border:1px solid var(--pp-sol,#8189a0); padding:2px 8px 3px; }
   .pp-pen { display:none; font-size:0.6563rem; color:#8B97AC; margin-left:2px; background:none;
             border:none; cursor:pointer; padding:0 2px; }
   body.rm-editing .pp-pen { display:inline-block; }
@@ -3145,7 +3148,7 @@ function renderPp() {
     + '<button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':1" aria-label="Move down">\u25BC</button></span>'
     + '</div>').join('');
   const hd = (sec, lbl, since) => '<span class="pp-hd">'
-    + '<span class="pp-lbl">' + escHtml(lbl) + '</span>'
+    + '<span class="pp-lbl' + (sec === 'toward' ? ' pp-far' : '') + '">' + escHtml(lbl) + '</span>'
     + '<button class="pp-pen" type="button" data-pprename="' + sec + '" aria-label="Rename heading">\u270E</button>'
     + (since ? '<span class="pp-since">since ' + ppMonth_(since) + '</span>' : '')
     + '</span>';
