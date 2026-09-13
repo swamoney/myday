@@ -6378,7 +6378,9 @@ el('dcPrintBtn').addEventListener('click', () => {
         + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
         + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
         + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : ''))
-      : ('On the desk' + (d.target_on ? ' \u00B7 decide by ' + e(dcFmtLong_(d.target_on)) : ''))) + '</p><ul>';
+      : ('On the desk' + (d.target_on ? ' \u00B7 decide by ' + e(dcFmtLong_(d.target_on)) : ''))) + '</p>'
+    + (dcCover_ && dcCover_.url && window.MyAlbum ? MyAlbum.printMat(dcCover_.url, dcCover_.caption) : '')   // the picture in the head prints in its mat
+    + '<ul>';
   const tbn = window.MyBoard ? MyBoard.notesFor('decision:' + d.id) : [];
   if (tbn.length) {
     body = body.replace(/<ul>$/, '') + '<h2>Thinking board</h2><ul>' +
@@ -6794,7 +6796,6 @@ el('dcImportSeal').addEventListener('click', async () => {
   const recs = dcImportRows_.map(r => {
     const rec = { user_id: userId, title: r.title, qset: 'ten', answers: r.answers, target_on: r.target || null,
       note_html: r.outcome ? '<p>' + escHtml(r.outcome) + '</p>' : '' };
-  if (dcCover_ && dcCover_.url && window.MyAlbum) body += MyAlbum.printMat(dcCover_.url, dcCover_.caption);
     if (r.sealed) { rec.status = 'trail'; rec.made = r.made; rec.decided_on = r.when || new Date().toISOString().slice(0, 10); }
     else rec.status = 'open';
     if (r.start) rec.created_at = r.start + 'T09:00:00';
