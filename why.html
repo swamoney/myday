@@ -169,7 +169,8 @@
              border-top:3px solid var(--rm-sol,#95a4bb); padding:16px 0 6px; }
   .rm-hero .rm-seal { position:absolute; right:0; top:14px; width:64px; height:64px; font-size:1.5rem; z-index:2; }
   .rm-hero-b { padding-right:84px; }
-  .rm-poster { position:relative; margin:18px 0 8px; background:#fff; border:1px solid #d9dfe8; padding:16px 16px 44px; box-shadow:0 14px 34px rgba(20,30,60,0.16); }
+  .rm-poster { position:relative; margin:18px 0 8px; background:#fff; border:1px solid #d9dfe8; padding:16px; box-shadow:0 14px 34px rgba(20,30,60,0.16); }
+  .rm-poster.hand { padding-bottom:44px; }   /* room for the hand-written line only when there is one */
   .rm-mural.empty .rm-poster { padding:0; background:none; border:none; box-shadow:none; }
   .rm-window { position:relative; }
   .rm-pic { display:block; width:100%; height:360px; border:none; border-radius:0; padding:0; cursor:zoom-in;
@@ -235,7 +236,7 @@
     .rm-pic { height:240px; } .rm-window[data-size="m"] .rm-pic { height:200px; } .rm-window[data-size="xl"] .rm-pic { height:320px; } .rm-pic-ask { height:120px; }
     .rm-hero .rm-seal { width:52px; height:52px; font-size:1.125rem; top:12px; }
     .rm-hero-b { padding-right:64px; }
-    .rm-poster { padding:10px 10px 38px; }
+    .rm-poster { padding:10px; } .rm-poster.hand { padding-bottom:38px; }
     .rm-num { font-size:2.25rem; }
   }
   .rm-sec { margin-bottom:30px; }
@@ -3712,7 +3713,7 @@ function renderRoadmapRead() {
 let rmCover_ = null;
 async function rmPaintCover_() {
   const win = el('rmWindow'), pic = el('rmPic'); if (!win || !pic) return;
-  rmCover_ = null; win.classList.add('empty'); el('rmMural').classList.add('empty'); pic.style.backgroundImage = ''; pic.setAttribute('data-cap', '');
+  rmCover_ = null; win.classList.add('empty'); el('rmMural').classList.add('empty'); el('rmPoster').classList.remove('hand'); pic.style.backgroundImage = ''; pic.setAttribute('data-cap', '');
   if (!(window.MyAlbum && window.MyAlbum.cover && userId && rmId !== null)) return;
   const id = rmId;
   try { rmCover_ = await MyAlbum.cover('roadmap', id); } catch (e) { rmCover_ = null; }
@@ -3721,6 +3722,7 @@ async function rmPaintCover_() {
   pic.style.backgroundImage = 'url("' + rmCover_.url + '")';
   pic.setAttribute('data-cap', String(rmCover_.caption || '').toUpperCase());
   el('rmHand').textContent = rmCover_.caption || '';
+  el('rmPoster').classList.toggle('hand', !!(rmCover_.caption || '').trim());
   win.classList.remove('empty'); el('rmMural').classList.remove('empty');
   rmPaintCoverFit_();
 }
