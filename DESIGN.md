@@ -141,6 +141,29 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**RM-V2: the vision-board head** (13 Sep 2026): each pillar's
+roadmap now opens with ONE PICTURE. The plate keeps its rule,
+eyebrow, name, signature bar, stand and status at the left; at
+the right sits a 240px rounded WINDOW holding the pillar's
+picture, with the gold seal pinned to its top-left corner like a
+wax stamp (phones: the window drops below the words at full
+width, seal top-right). A pillar without a picture shows a
+dashed '+ ADD THE PICTURE' window (live only in Edit). In Edit,
+three tools under the picture: CHANGE / REMOVE / CAPTION; in
+reading mode a tap opens it full-screen. Underneath: the cover
+is an album row (room 'roadmap', entry = pillar id) flagged
+`is_cover` (migrate_cover.sql - PENDING Rahul runs it once),
+shrunk on upload like every photo, quiet, sort_order -1; the
+body's album filters covers OUT so the picture never appears as
+a figure. attachments.js gains MyAlbum.cover / pickCover /
+removeCover / captionCover. Print carries the picture above the
+matrix. Harness: empty window + ask, cover paints, body album
+hides it, caption, remove.
+
+**PP-TASK** (12 Sep 2026): '+ Add Journey' shows only while Edit is on (.pp-top display:none, body.rm-editing shows it). And a task in the matrix is a LINE, not a page - tapping one opens the edit modal (rename / move / delete), as My Priority does; the pilcrow mark is gone from matrix rows. Journeys in the trail below keep their pages (ppOpenPage still serves data-pplog).
+
+**RM-M2b** (12 Sep 2026): the ruler is retired (removed markup, clothes and painter); and the phone head is fixed - a stale rule still set the hero to '56px 1fr' (the old seal-first order), and another hid the seal outright in the pinned head on <=640px, so the seal never showed on a phone. Now the plate keeps '1fr auto' at every width and the seal is visible on phones.
+
 **RM-M2 'the plate'** (12 Sep 2026): each roadmap's masthead rebuilt - a 3px rule of the PILLAR'S OWN colour above the head, the eyebrow reading 'Pillar <code> - Long-term roadmap' in the pillar's ink, the name at 3rem, the gold seal moved to the RIGHT where it balances, and beneath it a RULER: 'SINCE <month>' - a bar filled to kept/(kept+live) in the pillar's solid - '<n> KEPT - <pct>%'. Hidden when there is nothing to measure; repainted on open and on every passbook change. Colour stays hairline-thin (no field), so six pillars give six mastheads from one rule and nothing tires. Also: the Current-focus chip now carries a 1px outline in the pillar's solid, matching the long-game chip.
 
 **PP-INK2** (12 Sep 2026): the matrix's marker wash behind each line (--pp-sw) is set to transparent on the standing block only - the ledger below and the item page keep theirs; and the long-game chip takes the SAME gold fill as 'now', keeping only a hairline of the pillar's solid to part them.

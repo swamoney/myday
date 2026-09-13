@@ -83,7 +83,7 @@
       .select('*').eq('user_id', userId).eq('room', st.room).eq('entry_id', st.entryId)
       .order('sort_order', { ascending: true });
     if (error) throw error;
-    st.rows = data || [];
+    st.rows = (data || []).filter(r => !r.is_cover);   // the cover is the head's, not the body's
   }
   async function saveRow(st, id, patch) {
     const { error } = await supa.from('attachments').update(patch)
@@ -667,6 +667,59 @@
         await supa.from('attachments').delete().eq('user_id', userId)
           .eq('room', room).eq('entry_id', String(entryId));
       } catch (e) { /* the sweep on the backup page catches strays */ }
+    },
+    // ===== the cover (V2, Sep 2026): one photo that stands for the whole entry =====
+    // Stored in the cellar like any other photo, flagged is_cover, kept out of the body's figures.
+    async cover(room, entryId) {
+      const { data, error } = await supa.from('attachments').select('*').eq('user_id', userId)
+        .eq('room', room).eq('entry_id', String(entryId)).eq('is_cover', true).limit(1);
+      if (error || !data || !data.length) return null;
+      const r = data[0];
+      const paths = [r.path, r.thumb_path].filter(Boolean);
+      const { data: su } = await supa.storage.from(BUCKET).createSignedUrls(paths, SIGN_TTL);
+      const map = {}; (su || []).forEach(d => { if (d && d.path && d.signedUrl) map[d.path] = d.signedUrl; });
+      return { id: r.id, caption: r.caption || '', url: map[r.path] || '', thumb: map[r.thumb_path] || map[r.path] || '' };
+    },
+    // Ask for a file, keep it, and make it the cover (replacing any earlier one).
+    pickCover(room, entryId) {
+      return new Promise(resolve => {
+        const inp = ensureInput_();
+        inp.onchange = async () => {
+          const f = inp.files && inp.files[0]; inp.value = '';
+          if (!f) { resolve(null); return; }
+          try {
+            toast('Keeping the picture\u2026');
+            const big = await shrink(f, MAX_EDGE, QUALITY);
+            const th = await shrink(f, THUMB_EDGE, 0.7);
+            const st = { room, entryId: String(entryId), rows: [] };
+            const p = newPath(st, '.webp'), tp = p.replace('.webp', '_t.webp');
+            let up = await supa.storage.from(BUCKET).upload(p, big, { contentType: 'image/webp' });
+            if (up.error) throw up.error;
+            up = await supa.storage.from(BUCKET).upload(tp, th, { contentType: 'image/webp' });
+            if (up.error) throw up.error;
+            await window.MyAlbum.removeCover(room, entryId);
+            const rec = { user_id: userId, room, entry_id: String(entryId), day_index: null, kind: 'photo',
+              path: p, thumb_path: tp, caption: '', quiet: true, is_cover: true, sort_order: -1,
+              bytes: (big.size || 0) + (th.size || 0) };
+            const { error } = await supa.from('attachments').insert(rec);
+            if (error) throw error;
+            toast('Picture kept');
+            resolve(await window.MyAlbum.cover(room, entryId));
+          } catch (e) { toast('The picture could not be kept'); resolve(null); }
+        };
+        inp.click();
+      });
+    },
+    async removeCover(room, entryId) {
+      const { data } = await supa.from('attachments').select('id, path, thumb_path').eq('user_id', userId)
+        .eq('room', room).eq('entry_id', String(entryId)).eq('is_cover', true);
+      for (const r of (data || [])) { try { await removeRowAndFiles({ rows: [] }, r); } catch (e) {} }
+    },
+    async captionCover(room, entryId, text) {
+      const { data } = await supa.from('attachments').select('id').eq('user_id', userId)
+        .eq('room', room).eq('entry_id', String(entryId)).eq('is_cover', true).limit(1);
+      if (!data || !data.length) return;
+      await supa.from('attachments').update({ caption: text }).eq('id', data[0].id).eq('user_id', userId);
     },
     usage: usage_, usageLine: usageLine_, exportAlbum: exportAlbum_,
     sweepFrom: sweepFrom_, clearGhosts: clearGhosts_, fetchAllRows: fetchAllRows_,
