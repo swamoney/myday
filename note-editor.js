@@ -97,11 +97,19 @@
             /* IN-2: data-w (a whole percent, 10..100) is the one other thing a token keeps */
             var wv = parseInt(ch.getAttribute('data-w') || '', 10);
             var al = String(ch.getAttribute('data-al') || '').toLowerCase();   /* IN-3: l | r; absent = centre */
+            /* the print (Sep 2026): fit, size and the centre ride the token too */
+            var pf = String(ch.getAttribute('data-fit') || '').toLowerCase();
+            var ps = String(ch.getAttribute('data-sz') || '').toLowerCase();
+            var px = parseInt(ch.getAttribute('data-x') || '', 10), py = parseInt(ch.getAttribute('data-y') || '', 10);
             Array.prototype.slice.call(ch.attributes).forEach(function (a) {
               if (a.name.toLowerCase() !== 'data-at') ch.removeAttribute(a.name);
             });
             if (wv >= 10 && wv < 100) ch.setAttribute('data-w', String(wv));
             if ((al === 'l' || al === 'r') && wv >= 10 && wv < 100) ch.setAttribute('data-al', al);
+            if (pf === 'fit') ch.setAttribute('data-fit', 'fit');
+            if (ps === 'm' || ps === 'xl') ch.setAttribute('data-sz', ps);
+            if (px >= 0 && px <= 100 && px !== 50) ch.setAttribute('data-x', String(px));
+            if (py >= 0 && py <= 100 && py !== 50) ch.setAttribute('data-y', String(py));
             return;
           }
           while (ch.firstChild) node.insertBefore(ch.firstChild, ch);
@@ -860,7 +868,7 @@
       btn('act', 'check', '', 'Checklist', ICONS.check) +
       '<span class="nk-sep"></span>' +
       btn('act', 'link', '', 'Link', ICONS.link) +
-      btn('act', 'photos', '', 'Photo - lands at your cursor', ICONS.photo) +
+      btn('act', 'photos', '', 'Picture - a print lands at your cursor', ICONS.photo) +
       btn('act', 'video', '', 'Video link - plays at your cursor', ICONS.video) +
       btn('act', 'hr', '', 'Divider', ICONS.hr) +
       '<div class="nk-pop hidden" data-nk-swpop="text"></div>' +

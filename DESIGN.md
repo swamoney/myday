@@ -141,7 +141,40 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
-**RM-V2: the vision-board head** (13 Sep 2026): each pillar's
+**THE PRINT - a picture between two paragraphs, in every editor**
+(13 Sep 2026): the album's in-text photo figure (figure[data-at])
+is now dressed as a matted PRINT in every page that has the
+editor - white mat, shadow, a hand-written line beneath (the
+row's caption), full column width. Its settings ride the token:
+data-fit (fill|fit), data-sz (m|l|xl), data-x/data-y (the
+centre) - note-editor's sanitize keeps them; nothing else
+changes in storage. Edit tools in the mat's corner: FILL/FIT,
+SIZE, LINE (prompt), UP/DOWN (moves the print past the
+neighbouring block), REMOVE; a tap on the picture in fill mode
+sets the centre. Reading: a tap opens the viewer. Why the old
+flicker and the lost delete are gone: the picture is a
+background span, not an <img loading=lazy> (no reload flash on
+repaint); every tool swallows mousedown so the caret never
+jumps inside the contenteditable; a remove sweeps every copy of
+the token across the watched roots before dispatching input.
+The old width chip / drag handle / align / quiet veil retire
+for photos (video figures unchanged). CSS injected once from
+attachments.js so all pages match. Toolbar photo button reads
+'Picture - a print lands at your cursor'. Harness: dress, tools,
+line, no re-dress on typing, fit/size survive sanitize, move,
+remove.
+
+**RM-S4 'the plate and a poster' - the settled head** (13 Sep 2026): after V2/V3/V1/W1, Rahul chose heading and picture KEPT APART. The plate stands first exactly as before the picture arrived (rule in the pillar's colour, eyebrow, name 3rem, signature bar, stand, status, the gold seal top-right of the plate); beneath it the picture sits in a white MAT (16px sides, 44px foot) with a shadow, like a poster pinned to a wall, the caption rendered as a hand-written italic line in the mat's foot (the ::after caption on the picture retired). Sizes M 280 / L 360 / XL 480 (phones 200/240/320); FIT mode letterboxes on the mat's white. Empty pillars show the dashed ask band with no mat. All wall/mural rules retired to zero references.
+
+**RM-W1 'the wall' (superseded)** (13 Sep 2026): the mural grows to a board - the picture breaks out to the page's edges (negative margins against .rm-inner / .rm-scroll padding; the empty ask stays inset), stands 520px (M 420 / XL 72vh; phones 420/340/64vh), the name is 4.5rem black-weight with a 7px gold bar and a 1.5rem stand, the shade light at the top so the photo keeps its sky. Seal, tools and caption move in to 22-30px from the edges. Everything else as V1.
+
+**RM-V1 replaces V3** (13 Sep 2026): Rahul chose the MURAL - the whole head is the picture (L 360px; M 280 / XL 480; phones 220/280/360); name, signature bar (gold), stand and status ride a dark gradient at its foot in white; the gold seal sits top-right; the caption top-left; Edit tools top-left (the caption yields its corner), the centre hint bottom-right. FIT mode letterboxes on a dark ground (#0f172a) so the words still read. A pillar with no picture falls back to the plate under the dashed ask band, seal riding the join. #rmMural carries 'empty' in step with the window. Fill/fit, size and centre settings unchanged.
+
+**RM-V3b: the picture's own settings** (13 Sep 2026): the postcard grew (L = 320px default; M 230 / XL 440; phones 180/240/320) and the picture can be ADJUSTED in Edit - FILL (cropped, centred where you tap the picture; a hint reads 'tap the picture to set where it centres') or FIT (the whole photo, letterboxed on a quiet ground), and a SIZE cycle M/L/XL. Settings live in the roadmap JSON as rmData.cover {fit,size,x,y} (rmParse carries them through - norm() strips unknown keys), saved with the roadmap; no migration.
+
+**RM-V3 replaces V2** (13 Sep 2026): Rahul chose the POSTCARD - the picture runs WIDE across the top of the head (230px, rounded top corners; 170px on phones), the plate sits beneath under its rule, and the gold seal rides the join at the right (top:-38px). Edit tools sit in the picture's bottom-left, the caption bottom-right; the empty ask is a 150px dashed band. The cellar (cover / pickCover / removeCover / captionCover, is_cover flag) is unchanged from V2.
+
+**RM-V2 (superseded by V3)** (13 Sep 2026): each pillar's
 roadmap now opens with ONE PICTURE. The plate keeps its rule,
 eyebrow, name, signature bar, stand and status at the left; at
 the right sits a 240px rounded WINDOW holding the pillar's

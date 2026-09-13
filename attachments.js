@@ -138,21 +138,100 @@
       (r.kind === 'photo' ? '<button type="button" class="mdf-q' + (r.quiet ? ' on' : '') + '" data-mdf-q>QUIET</button>' : '') +
       '<button type="button" class="mdf-x" data-mdf-x title="Remove">&#10005;</button></span>';
   }
+  // ===== the print (Sep 2026): a photo between two paragraphs, dressed as a matted print =====
+  // The token carries its own settings - data-fit (fill|fit), data-sz (m|l|xl), data-x / data-y (the
+  // centre, whole percent). The picture is a background, not an <img>, so a repaint never flashes;
+  // the tools swallow mousedown so the caret never jumps and a tap is never lost.
+  function prCfg_(fig) {
+    const fit = fig.getAttribute('data-fit') === 'fit' ? 'fit' : 'fill';
+    const sz = ['m','l','xl'].includes(fig.getAttribute('data-sz')) ? fig.getAttribute('data-sz') : 'l';
+    const x = parseInt(fig.getAttribute('data-x') || '50', 10), y = parseInt(fig.getAttribute('data-y') || '50', 10);
+    return { fit, sz, x: isFinite(x) ? Math.min(100, Math.max(0, x)) : 50, y: isFinite(y) ? Math.min(100, Math.max(0, y)) : 50 };
+  }
+  function prApply_(fig) {
+    const c = prCfg_(fig);
+    fig.classList.toggle('pr-fit', c.fit === 'fit');
+    fig.classList.remove('pr-m', 'pr-l', 'pr-xl'); fig.classList.add('pr-' + c.sz);
+    const pic = fig.querySelector('.pr-pic'); if (pic) pic.style.backgroundPosition = c.fit === 'fill' ? c.x + '% ' + c.y + '%' : 'center';
+    const f = fig.querySelector('[data-pr-fit]'); if (f) f.innerHTML = c.fit === 'fill' ? '&#9635; FILL' : '&#9634; FIT';
+    const s = fig.querySelector('[data-pr-sz]'); if (s) s.innerHTML = '&#8597; SIZE ' + c.sz.toUpperCase();
+    const h = fig.querySelector('.pr-hint'); if (h) h.style.display = c.fit === 'fill' ? '' : 'none';
+  }
+  function prSet_(st, fig, patch) {
+    Object.keys(patch).forEach(k => { const v = patch[k]; if (v === null || v === undefined) fig.removeAttribute('data-' + k); else fig.setAttribute('data-' + k, String(v)); });
+    prApply_(fig);
+    const root = st.watch.find(x => x && x.contains(fig));
+    if (root) root.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function prMove_(st, fig, dir) {
+    const root = st.watch.find(x => x && x.contains(fig)); if (!root) return;
+    let node = fig; while (node.parentElement && node.parentElement !== root) node = node.parentElement;   // the block that holds the print
+    const sib = dir < 0 ? node.previousElementSibling : node.nextElementSibling;
+    if (!sib) return;
+    if (dir < 0) root.insertBefore(node, sib); else root.insertBefore(sib, node);
+    root.dispatchEvent(new Event('input', { bubbles: true }));
+    fig.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }
+  let prCssDone_ = false;
+  function prCss_() {
+    if (prCssDone_) return; prCssDone_ = true;
+    const s = document.createElement('style');
+    s.textContent = [
+      '.md-fig.md-print{position:relative;margin:18px 0 22px;background:#fff;border:1px solid #d9dfe8;padding:14px;box-shadow:0 12px 30px rgba(20,30,60,0.15);width:auto!important;float:none!important;border-radius:0}',
+      '.md-fig.md-print.pr-hand{padding-bottom:40px}',
+      '.md-fig.md-print .pr-pic{display:block;width:100%;height:300px;background-color:#fff;background-size:cover;background-position:center;background-repeat:no-repeat;cursor:zoom-in}',
+      '.md-fig.md-print.pr-fit .pr-pic{background-size:contain}',
+      '.md-fig.md-print.pr-m .pr-pic{height:220px}.md-fig.md-print.pr-xl .pr-pic{height:400px}',
+      '.md-fig.md-print .pr-line{position:absolute;left:16px;bottom:12px;font-family:"Fraunces",Georgia,serif;font-style:italic;font-size:0.9375rem;color:#5a6478}',
+      '.md-fig.md-print .pr-tools{position:absolute;left:12px;top:12px;display:flex;gap:5px;flex-wrap:wrap;z-index:2}',
+      '.md-fig.md-print .pr-tools button{font-family:"IBM Plex Mono",monospace;font-size:0.4688rem;font-weight:700;letter-spacing:0.1em;border-radius:6px;padding:5px 8px;background:rgba(255,255,255,0.94);border:1px solid #cfd6e4;color:#3D4866;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.08)}',
+      '.md-fig.md-print .pr-hint{position:absolute;right:14px;bottom:14px;font-family:"IBM Plex Mono",monospace;font-size:0.4375rem;letter-spacing:0.14em;color:rgba(255,255,255,0.92);text-shadow:0 1px 3px rgba(0,0,0,0.6);z-index:2;pointer-events:none}',
+      '.md-fig.md-print.pr-hand .pr-hint{bottom:48px}',
+      '.md-fig.md-print.pr-edit{outline:2px dashed #b9c3d4;outline-offset:4px}',
+      '.md-fig.md-print.pr-edit .pr-pic{cursor:crosshair}',
+      '@media (max-width:560px){.md-fig.md-print{padding:10px}.md-fig.md-print.pr-hand{padding-bottom:36px}.md-fig.md-print .pr-pic{height:220px}.md-fig.md-print.pr-m .pr-pic{height:170px}.md-fig.md-print.pr-xl .pr-pic{height:300px}}'
+    ].join('\n');
+    document.head.appendChild(s);
+  }
   function dressFig_(st, fig, r, u) {
     const editing = st.editing;
     fig.classList.add('md-fig');
     fig.setAttribute('contenteditable', 'false');
     if (r.kind === 'photo') {
-      fig.classList.add('md-ph');
-      fig.classList.toggle('quiet', !!r.quiet && !editing);
+      prCss_();
+      fig.classList.add('md-print'); fig.classList.remove('md-ph', 'quiet', 'al-l', 'al-r'); fig.style.width = '';
+      fig.classList.toggle('pr-edit', editing);
+      fig.classList.toggle('pr-hand', !!(r.caption || '').trim());
       const src = u[r.path] || u[r.thumb_path] || '';
-      fig.innerHTML = (editing ? figTools_(st, r) : '') +
-        '<img class="mdf-im" src="' + esc(src) + '" alt="" loading="lazy">' +
-        (editing ? '<span class="mdf-handle" data-mdf-handle contenteditable="false" title="Drag to resize"></span>' : '') +
-        (editing
-          ? '<input class="mdf-capin" data-mdf-cap placeholder="caption\u2026" value="' + esc(r.caption || '') + '">'
-          : (r.caption && !r.quiet ? '<figcaption>' + esc(r.caption) + '</figcaption>' : ''));
-      applyW_(fig);
+      fig.innerHTML =
+        (editing ? '<span class="pr-tools" contenteditable="false">' +
+          '<button type="button" data-pr-fit>&#9635; FILL</button>' +
+          '<button type="button" data-pr-sz>&#8597; SIZE L</button>' +
+          '<button type="button" data-pr-line>&#9998; LINE</button>' +
+          '<button type="button" data-pr-up>&#8593; UP</button>' +
+          '<button type="button" data-pr-down>&#8595; DOWN</button>' +
+          '<button type="button" data-mdf-x title="Remove">&#10005; REMOVE</button></span>' : '') +
+        '<span class="pr-pic" style="' + (src ? 'background-image:url(\'' + esc(src) + '\');' : '') + '"></span>' +
+        (editing ? '<span class="pr-hint">TAP THE PICTURE TO SET WHERE IT CENTRES</span>' : '') +
+        ((r.caption || '').trim() ? '<span class="pr-line">' + esc(r.caption) + '</span>' : '');
+      prApply_(fig);
+      if (editing) {
+        fig.querySelectorAll('.pr-tools button').forEach(b => b.addEventListener('mousedown', ev => { ev.preventDefault(); ev.stopPropagation(); }));
+        fig.querySelector('[data-pr-fit]').addEventListener('click', ev => { ev.stopPropagation(); prSet_(st, fig, { fit: prCfg_(fig).fit === 'fill' ? 'fit' : 'fill' }); });
+        fig.querySelector('[data-pr-sz]').addEventListener('click', ev => { ev.stopPropagation(); const o = ['m','l','xl'], c = prCfg_(fig); prSet_(st, fig, { sz: o[(o.indexOf(c.sz) + 1) % o.length] }); });
+        fig.querySelector('[data-pr-line]').addEventListener('click', async ev => { ev.stopPropagation();
+          const t = prompt('A few words under the picture:', r.caption || ''); if (t === null) return;
+          try { await saveRow(st, r.id, { caption: t.trim() }); r.caption = t.trim(); delete fig.dataset.mdfDressed; hydrate(st); } catch (e) { toast('Could not save the line'); } });
+        fig.querySelector('[data-pr-up]').addEventListener('click', ev => { ev.stopPropagation(); prMove_(st, fig, -1); });
+        fig.querySelector('[data-pr-down]').addEventListener('click', ev => { ev.stopPropagation(); prMove_(st, fig, 1); });
+        fig.querySelector('.pr-pic').addEventListener('click', ev => {
+          ev.stopPropagation(); if (prCfg_(fig).fit !== 'fill') return;
+          const rect = ev.currentTarget.getBoundingClientRect();
+          const x = Math.round(Math.min(100, Math.max(0, (ev.clientX - rect.left) / rect.width * 100)));
+          const y = Math.round(Math.min(100, Math.max(0, (ev.clientY - rect.top) / rect.height * 100)));
+          prSet_(st, fig, { x, y });
+        });
+      }
     } else if (r.kind === 'youtube') {
       fig.classList.add('md-yt');
       const id = youtubeId(r.url);
@@ -175,10 +254,7 @@
     fig.dataset.mdfDressed = editing ? 'edit' : 'read';
     // read-mode manners: a quiet photo reveals on the first tap; a photo opens the viewer
     if (!editing && r.kind === 'photo') {
-      fig.onclick = () => {
-        if (fig.classList.contains('quiet')) { fig.classList.remove('quiet'); return; }
-        openViewer(st, r.id);
-      };
+      fig.onclick = () => openViewer(st, r.id);
     } else fig.onclick = null;
     if (editing) {
       const cap = fig.querySelector('[data-mdf-cap]');
@@ -237,13 +313,16 @@
       if (q) q.addEventListener('click', () => saveRow(st, r.id, { quiet: !r.quiet })
         .then(() => { q.classList.toggle('on', r.quiet); }).catch(() => toast('Could not save')));
       const x = fig.querySelector('[data-mdf-x]');
+      if (x) x.addEventListener('mousedown', ev => { ev.preventDefault(); ev.stopPropagation(); });
       if (x) x.addEventListener('click', async () => {
         if (!confirm(r.kind === 'photo' ? 'Remove this photo from the page?' : 'Remove this from the page?')) return;
         try {
           await removeRowAndFiles(st, r);
           const root = st.watch.find(w => w && w.contains(fig));
-          fig.remove();
+          st.watch.forEach(w => { if (w) w.querySelectorAll('figure[data-at="' + String(r.id).replace(/"/g, '') + '"]').forEach(f => f.remove()); });
+          if (fig.isConnected) fig.remove();
           if (root) root.dispatchEvent(new Event('input', { bubbles: true }));
+          toast('Removed');
         } catch (e) { toast('Could not remove'); }
       });
     }
