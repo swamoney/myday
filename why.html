@@ -164,16 +164,7 @@
   /* M2: the plate - thin colour, big name, the seal balancing at the right */
   .rm-hero { display:grid; grid-template-columns:1fr auto; gap:20px; align-items:start;
              border-top:3px solid var(--rm-sol,#95a4bb); padding:14px 0 4px; }
-  .rm-ruler { display:flex; align-items:center; gap:10px; margin-top:14px; padding-top:12px; border-top:1px solid #e3e8ef; }
-  .rm-ruler.hidden { display:none; }
-  .rm-ruler .rr-l, .rm-ruler .rr-r { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--rm-ink,#5A6478); white-space:nowrap; }
-  .rm-ruler .rr-bar { flex:1; height:6px; border-radius:3px; background:#e3e8ef; overflow:hidden; }
-  .rm-ruler .rr-bar b { display:block; height:100%; border-radius:3px; background:var(--rm-sol,#95a4bb); }
-  @media (max-width:560px) {
-    .rm-hero { gap:14px; }
-    .rm-ruler { flex-wrap:wrap; gap:6px 10px; }
-    .rm-ruler .rr-bar { order:3; flex-basis:100%; }
-  }
+  @media (max-width:560px) { .rm-hero { gap:14px; } }
   .rm-seal { width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:1.4375rem; font-weight:600; color:#4a3410; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); }   /* overridden per pillar in openRoadmap */
   .rm-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--rm-ink,#a5702f); margin-bottom:8px; }
   .rm-num { font-family:var(--serif); font-size:3rem; font-weight:700; line-height:1.14;
@@ -205,7 +196,7 @@
   #rmEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) {
     .rm-scroll { padding-top:20px; } .rm-inner { padding:0 16px 30px; }
-    .rm-hero { grid-template-columns:56px 1fr; gap:14px; }
+    .rm-hero { grid-template-columns:1fr auto; gap:14px; }       /* the plate: name left, seal right */
     .rm-seal { width:56px; height:56px; font-size:1.125rem; }
     .rm-num { font-size:2.25rem; }
   }
@@ -1297,8 +1288,7 @@
     .rm-title, .ptitle { display:none; }              /* bar keeps buttons only */
     #rmHist, #pHist { margin-left:auto; }
     .p-sticky { top:-20px; padding-top:20px; margin-top:-20px; }
-    .rm-sticky .rm-seal, .rm-sticky .rm-rule { display:none; }   /* compact pinned unit */
-    .rm-sticky .rm-hero { display:block; }                        /* seal gone -> one full-width column */
+    .rm-sticky .rm-rule { display:none; }                        /* compact pinned unit - the seal stays */
     .p-sticky .pnote { display:none; }
   }
   .rm-wc { display:none; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; color:#9aa4ba; }
@@ -2073,11 +2063,6 @@
           <div class="rm-statusrow"><span class="rm-pill" id="rmStatus"><span class="pdot"></span><span id="rmStatusTxt"></span></span></div>
         </div>
         <div class="rm-seal" id="rmSeal"></div>
-      </div>
-      <div class="rm-ruler" id="rmRuler">
-        <span class="rr-l" id="rmRulerSince"></span>
-        <span class="rr-bar"><b id="rmRulerFill"></b></span>
-        <span class="rr-r" id="rmRulerKept"></span>
       </div>
       <div class="essay-date" id="rmDates"></div>
       </div>
@@ -3075,7 +3060,6 @@ function openRoadmap(id) {
     el('rmEyebrow').textContent = (p.code ? 'Pillar ' + p.code + ' \u00B7 ' : '') + 'Long-term roadmap';
   }
   el('rmNum').textContent = p.num || '';
-  rmPaintRuler_();
   el('rmEssay').innerHTML = NoteEditor.toHtml(rmData.essay || '');
   rmBaseline = NoteEditor.sanitize(el('rmEssay').innerHTML);
   { const lp = pillars.find(x => String(x.id) === String(rmId)); rmLoadedUpd = (lp && lp.updated_at) || null; }
@@ -3190,7 +3174,6 @@ function renderPp() {
     aj.style.setProperty('--aj-ink', hue.ink);
   }
   renderPpLedger();
-  rmPaintRuler_();
 }
 function ppShort_(m) {
   const p = String(m || '').split('-');
@@ -3655,17 +3638,6 @@ function ppPrintHtml_(esc) {
     '<li>' + (e.k === 'done' ? '\u2713 ' : '\u00B7 ') + esc(e.t) + (ppPages_.has(String(e.id)) ? ' \u00B6' : '')
     + '<span class="y">' + esc(ppWhen_(e)) + '</span></li>').join('') + '</ul>';
   return s;
-}
-// M2: how far this pillar has come - what it began, what it holds, what it has kept.
-function rmPaintRuler_() {
-  const pp = (rmData && rmData.pp) || {};
-  const log = pp.log || [], kept = log.filter(e => e.k === 'done').length;
-  const live = (pp.now || []).length + (pp.toward || []).length;
-  const total = kept + live;
-  el('rmRulerSince').textContent = pp.since ? 'SINCE ' + String(ppMonth_(pp.since)).toUpperCase() : '';
-  el('rmRulerKept').textContent = total ? (kept + ' KEPT \u00B7 ' + Math.round(kept / total * 100) + '%') : '';
-  el('rmRulerFill').style.width = (total ? Math.round(kept / total * 100) : 0) + '%';
-  el('rmRuler').classList.toggle('hidden', !total && !pp.since);
 }
 function renderRoadmapRead() {
   el('rmDates').textContent = essayDateFmt_(rmData.essay_edited);
