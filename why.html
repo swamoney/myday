@@ -161,27 +161,28 @@
   .rm-inner { max-width:1000px; margin:0 auto; padding:0 30px 34px; }
   /* The heading scrolls away with the page — the essay gets the whole screen. */
   .rm-sticky { padding:0 0 10px; margin:0 0 14px; border-bottom:1px solid rgba(20,30,60,0.08); }
-  /* M2 + V2: the plate with a window - thin colour, big name, the picture at the right */
-  .rm-hero { display:grid; grid-template-columns:1fr 240px; gap:20px; align-items:stretch;
-             border-top:3px solid var(--rm-sol,#95a4bb); padding:14px 0 4px; }
-  .rm-window { position:relative; min-height:190px; }
-  .rm-pic { display:block; width:100%; height:100%; min-height:190px; border:none; border-radius:12px; padding:0; cursor:zoom-in;
-            background-color:#eef1f6; background-size:cover; background-position:center; box-shadow:0 8px 20px rgba(20,30,60,0.14); }
-  .rm-pic::after { content:attr(data-cap); position:absolute; left:12px; bottom:10px; font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.14em;
+  /* V3 'the postcard': the picture wide across the top, the plate beneath, the seal riding the join */
+  .rm-window { position:relative; margin-bottom:0; }
+  .rm-pic { display:block; width:100%; height:230px; border:none; border-radius:14px 14px 0 0; padding:0; cursor:zoom-in;
+            background-color:#eef1f6; background-size:cover; background-position:center; }
+  .rm-hero { position:relative; display:grid; grid-template-columns:1fr; gap:0; align-items:start;
+             border-top:3px solid var(--rm-sol,#95a4bb); padding:16px 0 4px; }
+  .rm-hero .rm-seal { position:absolute; right:14px; top:-38px; width:64px; height:64px; font-size:1.5rem; z-index:2; }
+  .rm-window.empty + .rm-hero .rm-seal { top:-38px; }
+  .rm-pic::after { content:attr(data-cap); position:absolute; right:14px; bottom:10px; font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.14em;
                    color:rgba(255,255,255,0.9); text-shadow:0 1px 3px rgba(0,0,0,0.6); }
   .rm-pic[data-cap=""]::after { content:none; }
   .rm-window.empty .rm-pic { display:none; }
-  .rm-pic-ask { display:none; width:100%; min-height:190px; border:1.5px dashed #b9c3d4; border-radius:12px; background:#f1f4f9;
+  .rm-pic-ask { display:none; width:100%; height:150px; border:1.5px dashed #b9c3d4; border-radius:14px 14px 0 0; background:#f1f4f9;
                 font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.14em; color:#68789a; cursor:pointer; }
   .rm-window.empty .rm-pic-ask { display:block; }
   .rm-window.empty .rm-pic-ask { cursor:default; opacity:0.7; }
   body.rm-editing .rm-window.empty .rm-pic-ask { cursor:pointer; opacity:1; }
-  .rm-pic-tools { display:none; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .rm-pic-tools { display:none; gap:6px; position:absolute; left:12px; bottom:10px; flex-wrap:wrap; z-index:2; }
   body.rm-editing .rm-window:not(.empty) .rm-pic-tools { display:flex; }
   .rm-pic-tools button { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; border-radius:6px; padding:5px 9px;
                          background:#fff; border:1px solid #cfd6e4; color:#3D4866; cursor:pointer; }
-  .rm-window .rm-seal { position:absolute; left:-14px; top:-14px; width:52px; height:52px; font-size:1.125rem; z-index:2; }
-  .rm-window.empty .rm-seal { left:-14px; top:-14px; }
+
   @media (max-width:560px) { .rm-hero { gap:14px; } }
   .rm-seal { width:72px; height:72px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #ffdd6e, #f4c430 62%, #d9a922); display:flex; align-items:center; justify-content:center; font-family:var(--serif); font-size:1.4375rem; font-weight:600; color:#4a3410; box-shadow:0 6px 16px rgba(180,140,40,0.35), inset 0 -3px 6px rgba(120,90,10,0.25); }   /* overridden per pillar in openRoadmap */
   .rm-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--rm-ink,#a5702f); margin-bottom:8px; }
@@ -214,9 +215,8 @@
   #rmEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) {
     .rm-scroll { padding-top:20px; } .rm-inner { padding:0 16px 30px; }
-    .rm-hero { grid-template-columns:1fr; gap:14px; }             /* the window drops below the words */
-    .rm-window, .rm-pic, .rm-pic-ask { min-height:170px; }
-    .rm-window .rm-seal { left:auto; right:-6px; top:-14px; }
+    .rm-pic { height:170px; } .rm-pic-ask { height:120px; }
+    .rm-hero .rm-seal { width:56px; height:56px; font-size:1.125rem; top:-34px; right:10px; }
     .rm-num { font-size:2.25rem; }
   }
   .rm-sec { margin-bottom:30px; }
@@ -2074,24 +2074,24 @@
       <div class="rm-sticky">
       <!-- M2 'the plate': a rule of the pillar's colour above, the name large, the seal at the
            right where it balances, and a ruler beneath saying how far this pillar has come. -->
+      <!-- V3 'the postcard': the picture wide across the top, the plate beneath, the seal riding the join -->
+      <div class="rm-window" id="rmWindow">
+        <button type="button" class="rm-pic" id="rmPic" aria-label="The picture"></button>
+        <button type="button" class="rm-pic-ask" id="rmPicAsk">+ ADD THE PICTURE</button>
+        <div class="rm-pic-tools" id="rmPicTools">
+          <button type="button" data-cov="change">&#8635; CHANGE</button>
+          <button type="button" data-cov="remove">&#10005; REMOVE</button>
+          <button type="button" data-cov="caption">&#9998; CAPTION</button>
+        </div>
+      </div>
       <div class="rm-hero">
+        <div class="rm-seal" id="rmSeal"></div>
         <div class="rm-hero-b">
           <div class="rm-eyebrow" id="rmEyebrow">Long-term roadmap</div>
           <div><span class="rm-num" id="rmNum"></span></div>
           <div class="rm-sig" id="rmSig"></div>
           <div class="rm-stands" id="rmStands"></div>
           <div class="rm-statusrow"><span class="rm-pill" id="rmStatus"><span class="pdot"></span><span id="rmStatusTxt"></span></span></div>
-        </div>
-        <!-- V2: the window - one picture that stands for the pillar; the seal pinned to its corner -->
-        <div class="rm-window" id="rmWindow">
-          <button type="button" class="rm-pic" id="rmPic" aria-label="The picture"></button>
-          <button type="button" class="rm-pic-ask" id="rmPicAsk">+ ADD THE PICTURE</button>
-          <div class="rm-pic-tools" id="rmPicTools">
-            <button type="button" data-cov="change">&#8635; CHANGE</button>
-            <button type="button" data-cov="remove">&#10005; REMOVE</button>
-            <button type="button" data-cov="caption">&#9998; CAPTION</button>
-          </div>
-          <div class="rm-seal" id="rmSeal"></div>
         </div>
       </div>
       <div class="essay-date" id="rmDates"></div>
