@@ -6794,7 +6794,7 @@ el('dcImportSeal').addEventListener('click', async () => {
   const recs = dcImportRows_.map(r => {
     const rec = { user_id: userId, title: r.title, qset: 'ten', answers: r.answers, target_on: r.target || null,
       note_html: r.outcome ? '<p>' + escHtml(r.outcome) + '</p>' : '' };
-  if (dcCover_ && dcCover_.url) body += '<figure style="margin:0 0 22px"><img src="' + e(dcCover_.url) + '" alt="" style="width:100%;border-radius:10px">' + (dcCover_.caption ? '<figcaption style="font-family:\'IBM Plex Mono\',monospace;font-size:0.625rem;letter-spacing:.14em;color:#a5702f;margin-top:6px">' + e(dcCover_.caption.toUpperCase()) + '</figcaption>' : '') + '</figure>';
+  if (dcCover_ && dcCover_.url && window.MyAlbum) body += MyAlbum.printMat(dcCover_.url, dcCover_.caption);
     if (r.sealed) { rec.status = 'trail'; rec.made = r.made; rec.decided_on = r.when || new Date().toISOString().slice(0, 10); }
     else rec.status = 'open';
     if (r.start) rec.created_at = r.start + 'T09:00:00';
@@ -7203,7 +7203,7 @@ el('rmPrint').addEventListener('click', () => {
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.875rem;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:0.8125rem;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:1.125rem}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:0.9375rem;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;color:#a5702f;float:right}.noterule{width:110px;height:2px;background:#ccc;margin:30px auto 22px;border-radius:1px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
   const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || p.code || 'My Why') + '</h1>'
     + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
-    + (rmCover_ && rmCover_.url ? '<figure style="margin:0 0 22px"><img src="' + esc(rmCover_.url) + '" alt="" style="width:100%;border-radius:10px">' + (rmCover_.caption ? '<figcaption style="font-family:\'IBM Plex Mono\',monospace;font-size:0.625rem;letter-spacing:.14em;color:#a5702f;margin-top:6px">' + esc(rmCover_.caption.toUpperCase()) + '</figcaption>' : '') + '</figure>' : '')
+    + (rmCover_ && rmCover_.url && window.MyAlbum ? MyAlbum.printMat(rmCover_.url, rmCover_.caption) : '')
     + ppPrintHtml_(esc)
     + (function () {
         const note = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(rmData.essay || '')) || '');

@@ -649,10 +649,28 @@
     NoteEditor._atMdPatched = true;
   }
   // print: the window opens on the tap (pop-up rules), the dressed page arrives a beat later.
+  // The print, on paper: the same white mat as on screen (border, not shadow - shadows and
+  // backgrounds are off by default in print), the whole photo shown, the hand-written line beneath.
+  function printMat_(url, caption) {
+    const cap = String(caption || '').trim();
+    return '<figure style="page-break-inside:avoid; break-inside:avoid; margin:18px 0 22px; padding:14px 14px ' + (cap ? '40px' : '14px') + '; background:#fff; border:1px solid #d9dfe8; position:relative; -webkit-print-color-adjust:exact; print-color-adjust:exact;">' +
+      '<img src="' + esc(url || '') + '" alt="" style="width:100%; display:block;">' +
+      (cap ? '<figcaption style="position:absolute; left:16px; bottom:12px; font-family:Fraunces,Georgia,serif; font-style:italic; font-size:12px; color:#5a6478;">' + esc(cap) + '</figcaption>' : '') + '</figure>';
+  }
+  // Wait for every picture before the print dialog opens (a PDF made at 500ms has blank frames).
+  const PRINT_WAIT = '<scr' + 'ipt>(function(){window.onload=null;var go=function(){window.print();};' +
+    'var imgs=Array.prototype.slice.call(document.images);' +
+    'Promise.all(imgs.map(function(i){return i.complete?Promise.resolve():new Promise(function(r){i.onload=i.onerror=r;});}))' +
+    '.then(function(){setTimeout(go,300);});setTimeout(go,8000);})();</scr' + 'ipt>';
+  function printReady_(html) {
+    // retire the page's own early print trigger, then add the one that waits for the pictures
+    let s = String(html || '').replace(/<script>[^<]*window\.print\(\)[^<]*<\/script>/gi, '');
+    return s.indexOf('</body>') > -1 ? s.replace('</body>', PRINT_WAIT + '</body>') : s + PRINT_WAIT;
+  }
   async function dressForPrint_(html) {
     const box = document.createElement('div'); box.innerHTML = html;
     const figs = [...box.querySelectorAll('figure[data-at]')];
-    if (!figs.length) return html;
+    if (!figs.length) return printReady_(html);
     const rows = await rowsFor_([...new Set(figs.map(f => String(f.dataset.at)))]);
     const paths = [];
     Object.values(rows).forEach(r => { if (r.kind === 'photo' && r.path) paths.push(r.path); });
@@ -664,11 +682,7 @@
       const r = rows[String(f.dataset.at)];
       const w = document.createElement('div');
       if (r && r.kind === 'photo') {
-        const pw = figW_(f), pal = figAl_(f);
-        const fl = pal === 'l' ? ' float:left; margin:4px 18px 8px 0;' : pal === 'r' ? ' float:right; margin:4px 0 8px 18px;' : ' margin:14px auto;';
-        w.innerHTML = '<figure style="page-break-inside:avoid; break-inside:avoid;' + fl + (pw < 100 ? ' width:' + pw + '%;' : '') + '">' +
-          '<img src="' + esc(u[r.path] || '') + '" alt="" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;">' +
-          (r.caption ? '<figcaption style="font-style:italic; font-size:11px; color:#68789a; text-align:center; margin-top:5px;">' + esc(r.caption) + '</figcaption>' : '') + '</figure>';
+        w.innerHTML = printMat_(u[r.path] || '', r.caption);
       } else if (r) {
         w.innerHTML = '<div style="font-family:IBM Plex Mono,monospace; font-size:10px; letter-spacing:0.06em; color:#2F6B8A; border:1px dashed #b9cfe0; border-radius:8px; padding:8px 10px; margin:12px 0;">' +
           (r.kind === 'youtube' ? '&#9654; VIDEO' : '&#128247; ALBUM') + (r.caption ? ' \u00B7 ' + esc(r.caption) : '') + '<br>' + esc(r.url || '') + '</div>';
@@ -677,13 +691,13 @@
       }
       f.replaceWith(w.firstChild);
     });
-    return box.innerHTML;
+    return printReady_(box.innerHTML);
   }
   if (window.NoteEditor && NoteEditor.openPrint && !NoteEditor._atPrintPatched) {
     const origPrint = NoteEditor.openPrint;
     NoteEditor.openPrint = function (fullHtml) {
       const s = String(fullHtml || '');
-      if (s.indexOf('data-at=') < 0) return origPrint(fullHtml);
+      if (s.indexOf('data-at=') < 0 && s.indexOf('<img') < 0) return origPrint(fullHtml);
       let w = null;
       try { w = window.open('', '_blank'); } catch (e) {}
       if (!w) { alert('Allow pop-ups to print / save as PDF.'); return; }
@@ -809,6 +823,7 @@
       if (!data || !data.length) return;
       await supa.from('attachments').update({ caption: text }).eq('id', data[0].id).eq('user_id', userId);
     },
+    printMat: printMat_,
     usage: usage_, usageLine: usageLine_, exportAlbum: exportAlbum_,
     sweepFrom: sweepFrom_, clearGhosts: clearGhosts_, fetchAllRows: fetchAllRows_,
     _youtubeId: youtubeId, _isGPhotos: isGPhotos,
