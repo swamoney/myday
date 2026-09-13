@@ -163,8 +163,16 @@
   .rm-sticky { padding:0 0 10px; margin:0 0 14px; border-bottom:1px solid rgba(20,30,60,0.08); }
   /* V3 'the postcard': the picture wide across the top, the plate beneath, the seal riding the join */
   .rm-window { position:relative; margin-bottom:0; }
-  .rm-pic { display:block; width:100%; height:230px; border:none; border-radius:14px 14px 0 0; padding:0; cursor:zoom-in;
-            background-color:#eef1f6; background-size:cover; background-position:center; }
+  /* the picture's own settings live in the roadmap (rmData.cover): fill/fit, size, and the centre */
+  .rm-pic { display:block; width:100%; height:320px; border:none; border-radius:14px 14px 0 0; padding:0; cursor:zoom-in;
+            background-color:#eef1f6; background-size:cover; background-position:center; background-repeat:no-repeat; }
+  .rm-window[data-fit="fit"] .rm-pic { background-size:contain; background-color:#e6ebf2; }
+  .rm-window[data-size="m"] .rm-pic { height:230px; }
+  .rm-window[data-size="xl"] .rm-pic { height:440px; }
+  body.rm-editing .rm-window:not(.empty) .rm-pic { cursor:crosshair; }
+  .rm-pic-hint { display:none; position:absolute; right:14px; top:10px; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.14em;
+                 color:rgba(255,255,255,0.9); text-shadow:0 1px 3px rgba(0,0,0,0.6); z-index:2; }
+  body.rm-editing .rm-window:not(.empty)[data-fit="fill"] .rm-pic-hint { display:block; }
   .rm-hero { position:relative; display:grid; grid-template-columns:1fr; gap:0; align-items:start;
              border-top:3px solid var(--rm-sol,#95a4bb); padding:16px 0 4px; }
   .rm-hero .rm-seal { position:absolute; right:14px; top:-38px; width:64px; height:64px; font-size:1.5rem; z-index:2; }
@@ -215,7 +223,7 @@
   #rmEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) {
     .rm-scroll { padding-top:20px; } .rm-inner { padding:0 16px 30px; }
-    .rm-pic { height:170px; } .rm-pic-ask { height:120px; }
+    .rm-pic { height:240px; } .rm-window[data-size="m"] .rm-pic { height:180px; } .rm-window[data-size="xl"] .rm-pic { height:320px; } .rm-pic-ask { height:120px; }
     .rm-hero .rm-seal { width:56px; height:56px; font-size:1.125rem; top:-34px; right:10px; }
     .rm-num { font-size:2.25rem; }
   }
@@ -2080,9 +2088,12 @@
         <button type="button" class="rm-pic-ask" id="rmPicAsk">+ ADD THE PICTURE</button>
         <div class="rm-pic-tools" id="rmPicTools">
           <button type="button" data-cov="change">&#8635; CHANGE</button>
-          <button type="button" data-cov="remove">&#10005; REMOVE</button>
+          <button type="button" data-cov="fit" id="rmCovFit">&#9635; FILL</button>
+          <button type="button" data-cov="size" id="rmCovSize">&#8597; SIZE L</button>
           <button type="button" data-cov="caption">&#9998; CAPTION</button>
+          <button type="button" data-cov="remove">&#10005; REMOVE</button>
         </div>
+        <div class="rm-pic-hint" id="rmPicHint">TAP THE PICTURE TO SET WHERE IT CENTRES</div>
       </div>
       <div class="rm-hero">
         <div class="rm-seal" id="rmSeal"></div>
@@ -3027,6 +3038,7 @@ function rmParse(raw) {
     // be carried through explicitly or it would vanish on the next read.
     // Absent -> built once from the old quadrants, which stay untouched.
     r.pp = ppFrom_(o.pp, r.targets);
+    if (o.cover && typeof o.cover === 'object') r.cover = { fit: o.cover.fit, size: o.cover.size, x: o.cover.x, y: o.cover.y };   // how the picture sits (V3)
     return r;
   };
   if (!raw) return norm({});
@@ -3691,6 +3703,22 @@ async function rmPaintCover_() {
   pic.style.backgroundImage = 'url("' + rmCover_.url + '")';
   pic.setAttribute('data-cap', String(rmCover_.caption || '').toUpperCase());
   win.classList.remove('empty');
+  rmPaintCoverFit_();
+}
+// how the picture sits in its box - fill (cropped, centred where you tapped) or fit (whole photo); size M / L / XL
+function rmCoverCfg_() { const c = (rmData && rmData.cover) || {}; return { fit: c.fit === 'fit' ? 'fit' : 'fill', size: ['m','l','xl'].includes(c.size) ? c.size : 'l', x: Number.isFinite(c.x) ? c.x : 50, y: Number.isFinite(c.y) ? c.y : 50 }; }
+function rmPaintCoverFit_() {
+  const win = el('rmWindow'), pic = el('rmPic'); if (!win || !pic) return;
+  const c = rmCoverCfg_();
+  win.setAttribute('data-fit', c.fit); win.setAttribute('data-size', c.size);
+  pic.style.backgroundPosition = c.fit === 'fill' ? c.x + '% ' + c.y + '%' : 'center';
+  const f = el('rmCovFit'), s = el('rmCovSize');
+  if (f) f.innerHTML = c.fit === 'fill' ? '&#9635; FILL' : '&#9634; FIT';
+  if (s) s.innerHTML = '&#8597; SIZE ' + c.size.toUpperCase();
+}
+function rmCoverSet_(patch) {
+  rmData.cover = Object.assign({}, rmCoverCfg_(), patch);
+  rmPaintCoverFit_(); scheduleRoadmapSave();
 }
 async function rmCoverChange_() {
   if (!(window.MyAlbum && window.MyAlbum.pickCover)) return;
@@ -3701,6 +3729,8 @@ el('rmPicAsk').addEventListener('click', () => { if (document.body.classList.con
 el('rmPicTools').addEventListener('click', async e => {
   const b = e.target.closest('[data-cov]'); if (!b) return;
   if (b.dataset.cov === 'change') return rmCoverChange_();
+  if (b.dataset.cov === 'fit') return rmCoverSet_({ fit: rmCoverCfg_().fit === 'fill' ? 'fit' : 'fill' });
+  if (b.dataset.cov === 'size') { const o = ['m','l','xl'], c = rmCoverCfg_(); return rmCoverSet_({ size: o[(o.indexOf(c.size) + 1) % o.length] }); }
   if (b.dataset.cov === 'remove') {
     if (!confirm('Remove the picture from this roadmap?')) return;
     await MyAlbum.removeCover('roadmap', rmId); rmPaintCover_(); toast('Picture removed'); return;
@@ -3712,8 +3742,15 @@ el('rmPicTools').addEventListener('click', async e => {
   }
 });
 // reading mode: the picture opens full-screen
-el('rmPic').addEventListener('click', () => {
-  if (document.body.classList.contains('rm-editing') || !rmCover_ || !rmCover_.url) return;
+el('rmPic').addEventListener('click', (e) => {
+  if (!rmCover_ || !rmCover_.url) return;
+  if (document.body.classList.contains('rm-editing')) {
+    if (rmCoverCfg_().fit !== 'fill') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = Math.round(Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100)));
+    const y = Math.round(Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100)));
+    rmCoverSet_({ x, y }); return;
+  }
   let v = el('rmPicView');
   if (!v) {
     v = document.createElement('div'); v.id = 'rmPicView';
