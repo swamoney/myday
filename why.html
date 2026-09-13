@@ -1066,7 +1066,8 @@
              text-transform:uppercase; border:1px solid #dfe5ee; background:#fff; color:#5A6478;
              border-radius:999px; padding:6px 12px; cursor:pointer; }
   .pp-chip.sel { border-color:#8189a0; color:#0A1325; background:#f1f4f9; }
-  .pp-top { display:flex; justify-content:flex-end; margin-bottom:12px; }
+  .pp-top { display:none; justify-content:flex-end; margin-bottom:12px; }   /* a door for editing only */
+  body.rm-editing .pp-top { display:flex; }
   .pp-aj { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em;
            text-transform:uppercase; color:var(--aj-ink,#28324B); background:none;
            border:1px solid var(--aj-sol,#8189a0); border-radius:8px; padding:5px 10px; cursor:pointer; }
@@ -3151,8 +3152,7 @@ function renderPp() {
   if (lg2) lg2.style.setProperty('--pp-sw', hueA_(hue.solid, 0.30));
   const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow">'
     + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button>'
-    + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + escHtml(o.t)
-    + (ppPages_.has(String(o.id)) ? '<span class="pp-mark">\u00B6</span>' : '') + '</span></button>'
+    + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + escHtml(o.t) + '</span></button>'
     + '<span class="pp-arr"><button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':-1" aria-label="Move up">\u25B2</button>'
     + '<button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':1" aria-label="Move down">\u25BC</button></span>'
     + '</div>').join('');
@@ -3600,7 +3600,9 @@ el('ppStanding').addEventListener('click', e => {
   const dn = e.target.closest('[data-ppdone]');
   if (dn) { const p = dn.dataset.ppdone.split(':'); ppComplete_(p[0], Number(p[1])); return; }
   const it = e.target.closest('[data-ppitem]');
-  if (it) { ppOpenPage(it.dataset.ppitem); return; }
+  // A task in the matrix is a line, not a page - tapping it edits the line (as My Priority does).
+  // Journeys in the trail below keep their pages.
+  if (it) { const f = ppFindEntry_(it.dataset.ppitem); if (f && f.kind !== 'log') ppOpenItem(f.sec, f.idx); return; }
   const rn = e.target.closest('[data-pprename]');
   if (rn) ppOpenSec(rn.dataset.pprename);
 });
