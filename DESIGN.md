@@ -141,6 +141,16 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**RM-M2 'the plate'** (12 Sep 2026): each roadmap's masthead rebuilt - a 3px rule of the PILLAR'S OWN colour above the head, the eyebrow reading 'Pillar <code> - Long-term roadmap' in the pillar's ink, the name at 3rem, the gold seal moved to the RIGHT where it balances, and beneath it a RULER: 'SINCE <month>' - a bar filled to kept/(kept+live) in the pillar's solid - '<n> KEPT - <pct>%'. Hidden when there is nothing to measure; repainted on open and on every passbook change. Colour stays hairline-thin (no field), so six pillars give six mastheads from one rule and nothing tires. Also: the Current-focus chip now carries a 1px outline in the pillar's solid, matching the long-game chip.
+
+**PP-INK2** (12 Sep 2026): the matrix's marker wash behind each line (--pp-sw) is set to transparent on the standing block only - the ledger below and the item page keep theirs; and the long-game chip takes the SAME gold fill as 'now', keeping only a hairline of the pillar's solid to part them.
+
+**PP-INK (C1 + G2)** (12 Sep 2026): in a pillar's passbook the two headings no longer share the gold - 'now' keeps gold (the app's colour for what is live), the long game ('toward') wears .pp-far: white ground, the pillar's ink, a hairline of its solid. And the block's tinted ground (--pp-tint) is gone (G2) - the coloured left edge alone holds it, so the roadmap reads as one clean page.
+
+**MW-C6 (D1)** (12 Sep 2026): the 'Edit details - name, dates, verdict' door moved ABOVE the thinking board, directly under the meta pills - it had been placed after the board, so a board with a few stickies pushed it below the fold and it read as missing. Still Edit-only.
+
+**MW-C5 (K3)** (12 Sep 2026): on the trail the kind leaves the deck and becomes a quiet mono word BENEATH the title (teal for a dream, grey for a decision, ash on a cancelled row) - the dates keep the right of the row to themselves.
+
 **MW-C4 (A1): a dream can owe an answer** (12 Sep 2026): kind and state are separate - a dream whose moment of choice has come gets `pending` = true (migrate_dream_pending.sql - PENDING Rahul runs it once) and hangs in the DECISION PENDING row beside the decisions, keeping mint paper but taking a rust 'DREAM - DECISION PENDING' stamp, a rust bar and a 'BY <date>' chip; its page's band reads DECIDE BY. On a dream's page (rail only) a small row chooses 'A DREAM AHEAD' / 'NEEDS DECIDING'; decisions never show it. Rail grouping is now living / owes-an-answer / dreaming. Harness: rows, chip, state row on a dream, flip moves the tag and the band, hidden on a decision.
 
 **MW-C3 (R2)** (12 Sep 2026): the desk is three ROWS, each state on its own; ONE rail only, above the first row - the rows beneath hang from the air - work in progress, then decision pending, then dreams ahead; a group with nothing in it shows no rail at all (the stamps name the groups, so no headings). The single wrapping rail retires.
