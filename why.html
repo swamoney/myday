@@ -723,13 +723,50 @@
              cursor:pointer; }
   .dc-details { display:none; margin:0 0 12px; }
   #dcWin.dc-editing .dc-details { display:inline-block; }
-  .dc-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.18em;
-                text-transform:uppercase; color:#1d5666; }
-  .dc-name { font-family:var(--serif); font-size:2rem; font-weight:700; color:#20293c; margin:8px 0 2px;
-             line-height:1.28; letter-spacing:-0.02em; display:inline;
-             padding:0 10px 2px; margin-left:-10px;
-             background:linear-gradient(transparent 56%, #f0d9cc 56%); }
-  .dc-sig { width:88px; height:6px; border-radius:3px; background:#9a4a2e; margin:11px 0 2px; }
+  /* H1: the plate - the rule, eyebrow and bar read the item's STATE (--dc-sol / --dc-ink);
+     the seal at the right carries the KIND. */
+  .dc-plate { position:relative; border-top:3px solid var(--dc-sol,#9a4a2e); padding:16px 0 6px; }
+  .dc-plate-b { padding-right:84px; }
+  .dc-seal { position:absolute; right:0; top:14px; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+             font-family:var(--serif); font-size:1.5rem; font-weight:700; color:#fff; z-index:2;
+             background:radial-gradient(circle at 38% 34%, var(--dc-seal-hi,#d9856a), var(--dc-seal,#9a4a2e) 62%, var(--dc-seal-lo,#6e3220)); box-shadow:0 6px 16px rgba(20,30,60,0.28); }
+  .dc-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.2em;
+                text-transform:uppercase; color:var(--dc-ink,#1d5666); margin-bottom:8px; }
+  .dc-name { font-family:var(--serif); font-size:3rem; font-weight:700; color:#0A1325; margin:0;
+             line-height:1.14; letter-spacing:-0.02em; display:inline; }
+  .dc-sig { width:88px; height:6px; border-radius:3px; background:var(--dc-sol,#9a4a2e); margin:10px 0 4px; }
+  /* the poster beneath - the roadmap's exactly */
+  .dc-poster { position:relative; margin:18px 0 14px; background:#fff; border:1px solid #d9dfe8; padding:16px; box-shadow:0 14px 34px rgba(20,30,60,0.16); }
+  .dc-poster.hand { padding-bottom:44px; }
+  .dc-poster.empty { padding:0; background:none; border:none; box-shadow:none; margin:0; }
+  #dcWin.dc-editing .dc-poster.empty { margin:18px 0 14px; }
+  .dc-window { position:relative; }
+  .dc-pic { display:block; width:100%; height:360px; border:none; border-radius:0; padding:0; cursor:zoom-in;
+            background-color:#fff; background-size:cover; background-position:center; background-repeat:no-repeat; }
+  .dc-window[data-fit="fit"] .dc-pic { background-size:contain; background-color:#fff; }
+  .dc-window[data-size="m"] .dc-pic { height:280px; }
+  .dc-window[data-size="xl"] .dc-pic { height:480px; }
+  .dc-window.empty .dc-pic { display:none; }
+  .dc-pic-ask { display:none; width:100%; height:150px; border:1.5px dashed #b9c3d4; border-radius:12px; background:#f1f4f9;
+                font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.14em; color:#68789a; cursor:pointer; }
+  #dcWin.dc-editing .dc-window.empty .dc-pic-ask { display:block; }
+  .dc-pic-tools { display:none; gap:6px; position:absolute; left:12px; top:12px; flex-wrap:wrap; z-index:4; }
+  #dcWin.dc-editing .dc-window:not(.empty) .dc-pic-tools { display:flex; }
+  .dc-pic-tools button { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; border-radius:6px; padding:5px 9px;
+                         background:rgba(255,255,255,0.94); border:1px solid #cfd6e4; color:#3D4866; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+  #dcWin.dc-editing .dc-window:not(.empty) .dc-pic { cursor:crosshair; }
+  .dc-pic-hint { display:none; position:absolute; right:14px; bottom:10px; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.14em;
+                 color:rgba(255,255,255,0.9); text-shadow:0 1px 3px rgba(0,0,0,0.6); z-index:2; pointer-events:none; }
+  #dcWin.dc-editing .dc-window:not(.empty)[data-fit="fill"] .dc-pic-hint { display:block; }
+  .dc-hand { position:absolute; left:18px; bottom:14px; font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#5a6478; }
+  .dc-poster.empty .dc-hand { display:none; }
+  @media (max-width:560px) {
+    .dc-name { font-size:2.125rem; }
+    .dc-seal { width:52px; height:52px; font-size:1.125rem; top:12px; }
+    .dc-plate-b { padding-right:64px; }
+    .dc-pic { height:240px; } .dc-window[data-size="m"] .dc-pic { height:200px; } .dc-window[data-size="xl"] .dc-pic { height:320px; }
+    .dc-poster { padding:10px; } .dc-poster.hand { padding-bottom:38px; }
+  }
   /* DC-D (D1): the gold band - the target date as a sign, not a pill */
   .dc-band { display:flex; align-items:center; gap:14px; width:100%; text-align:left; background:#f4c430; color:#2a1d08; border:none;
              border-radius:10px; padding:10px 14px; margin:12px 0 4px; box-shadow:0 4px 10px rgba(244,196,48,0.35); cursor:pointer; }
@@ -1826,6 +1863,11 @@
     <span class="bt">My Dreams &amp; Decisions</span>
   </div>
   <div class="dc-pgwrap">
+    <!-- H1: the roadmap's plate for a dream or decision - the rule and bar in the STATE's ink,
+         the seal carrying the KIND (D / dream mark), the picture in its mat beneath -->
+    <div class="dc-plate" id="dcPlate">
+    <div class="dc-seal" id="dcSeal">D</div>
+    <div class="dc-plate-b">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span></div>
     <div class="dc-sig"></div>
@@ -1835,6 +1877,23 @@
     </div>
     <button class="dc-band hidden" id="dcBand" type="button" title="Change the date"><span class="lbl"></span><span class="dt"></span></button>
     <div class="dc-meta" id="dcMeta"></div>
+    </div>
+    </div>
+    <div class="dc-poster empty" id="dcPoster">
+      <div class="dc-window empty" id="dcWindow">
+        <button type="button" class="dc-pic" id="dcPic" aria-label="The picture"></button>
+        <button type="button" class="dc-pic-ask" id="dcPicAsk">+ ADD THE PICTURE</button>
+        <div class="dc-pic-tools" id="dcPicTools">
+          <button type="button" data-cov="change">&#8635; CHANGE</button>
+          <button type="button" data-cov="fit" id="dcCovFit">&#9635; FILL</button>
+          <button type="button" data-cov="size" id="dcCovSize">&#8597; SIZE L</button>
+          <button type="button" data-cov="caption">&#9998; CAPTION</button>
+          <button type="button" data-cov="remove">&#10005; REMOVE</button>
+        </div>
+        <div class="dc-pic-hint" id="dcPicHint">TAP THE PICTURE TO SET WHERE IT CENTRES</div>
+      </div>
+      <span class="dc-hand" id="dcHand"></span>
+    </div>
     <!-- D1: the details door sits under the things it edits, where no board can bury it -->
     <button class="dc-back dc-details" id="dcDetailsBtn" type="button">Edit details &mdash; name, dates, verdict</button>
     <div class="tb-host" id="dcBoard"></div>
@@ -6070,15 +6129,91 @@ function renderDecisions() {
     b.addEventListener('click', (ev) => { ev.stopPropagation(); const d = dcRows.find(x => String(x.id) === String(b.dataset.dcX)); if (d) dcDeleteRow_(d, false); }));
 }
 function dcRow_() { return dcRows.find(x => String(x.id) === String(dcId)); }
+// ===== H1: the picture that stands for a dream or decision - the roadmap's poster, room 'decision' =====
+let dcCover_ = null;
+function dcCoverCfg_() { const c = (dcCover_ && dcCover_.cfg) || {}; return { fit: c.fit === 'fit' ? 'fit' : 'fill', size: ['m','l','xl'].includes(c.size) ? c.size : 'l', x: Number.isFinite(c.x) ? c.x : 50, y: Number.isFinite(c.y) ? c.y : 50 }; }
+function dcPaintCoverFit_() {
+  const win = el('dcWindow'), pic = el('dcPic'); if (!win || !pic) return;
+  const c = dcCoverCfg_();
+  win.setAttribute('data-fit', c.fit); win.setAttribute('data-size', c.size);
+  pic.style.backgroundPosition = c.fit === 'fill' ? c.x + '% ' + c.y + '%' : 'center';
+  const f = el('dcCovFit'), s = el('dcCovSize');
+  if (f) f.innerHTML = c.fit === 'fill' ? '&#9635; FILL' : '&#9634; FIT';
+  if (s) s.innerHTML = '&#8597; SIZE ' + c.size.toUpperCase();
+}
+async function dcPaintCover_() {
+  const win = el('dcWindow'), pic = el('dcPic'), post = el('dcPoster'); if (!win || !pic) return;
+  dcCover_ = null; win.classList.add('empty'); post.classList.add('empty'); post.classList.remove('hand');
+  pic.style.backgroundImage = ''; el('dcHand').textContent = '';
+  if (!(window.MyAlbum && window.MyAlbum.cover && userId && dcId !== null)) return;
+  const id = dcId;
+  try { dcCover_ = await MyAlbum.cover('decision', id); } catch (e) { dcCover_ = null; }
+  if (String(id) !== String(dcId)) return;
+  if (!dcCover_ || !dcCover_.url) return;
+  pic.style.backgroundImage = 'url("' + dcCover_.url + '")';
+  el('dcHand').textContent = dcCover_.caption || '';
+  post.classList.toggle('hand', !!(dcCover_.caption || '').trim());
+  win.classList.remove('empty'); post.classList.remove('empty');
+  dcPaintCoverFit_();
+}
+async function dcCoverSet_(patch) {
+  const cfg = await MyAlbum.setCoverCfg('decision', dcId, Object.assign({}, dcCoverCfg_(), patch));
+  if (cfg && dcCover_) dcCover_.cfg = cfg;
+  dcPaintCoverFit_();
+}
+el('dcPicAsk').addEventListener('click', async () => {
+  if (!el('dcWin').classList.contains('dc-editing')) return;
+  const r = await MyAlbum.pickCover('decision', dcId); if (r) dcPaintCover_();
+});
+el('dcPicTools').addEventListener('click', async e => {
+  const b = e.target.closest('[data-cov]'); if (!b) return;
+  if (b.dataset.cov === 'change') { const r = await MyAlbum.pickCover('decision', dcId); if (r) dcPaintCover_(); return; }
+  if (b.dataset.cov === 'fit') return dcCoverSet_({ fit: dcCoverCfg_().fit === 'fill' ? 'fit' : 'fill' });
+  if (b.dataset.cov === 'size') { const o = ['m','l','xl'], c = dcCoverCfg_(); return dcCoverSet_({ size: o[(o.indexOf(c.size) + 1) % o.length] }); }
+  if (b.dataset.cov === 'remove') { if (!confirm('Remove the picture from this page?')) return; await MyAlbum.removeCover('decision', dcId); dcPaintCover_(); toast('Picture removed'); return; }
+  if (b.dataset.cov === 'caption') { const t = prompt('A few words under the picture:', (dcCover_ && dcCover_.caption) || ''); if (t === null) return; await MyAlbum.captionCover('decision', dcId, t.trim()); dcPaintCover_(); }
+});
+el('dcPic').addEventListener('click', (e) => {
+  if (!dcCover_ || !dcCover_.url) return;
+  if (el('dcWin').classList.contains('dc-editing')) {
+    if (dcCoverCfg_().fit !== 'fill') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    dcCoverSet_({ x: Math.round(Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100))), y: Math.round(Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100))) });
+    return;
+  }
+  let v = el('dcPicView');
+  if (!v) { v = document.createElement('div'); v.id = 'dcPicView';
+    v.style.cssText = 'position:fixed; inset:0; z-index:900; background:rgba(10,19,37,0.92); display:flex; align-items:center; justify-content:center; cursor:zoom-out;';
+    v.addEventListener('click', () => v.remove()); document.body.appendChild(v); }
+  v.innerHTML = '<img src="' + escHtml(dcCover_.url) + '" alt="" style="max-width:96vw; max-height:92vh; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.5);">';
+});
 function openDecision(id) {
   const d = dcRows.find(x => String(x.id) === String(id)); if (!d) return;
   dcId = id;
   const sealed = d.status === 'trail';
   const qa = Array.isArray(d.answers) ? d.answers : [];
   const wip = dcIsWip_(d);
-  el('dcEyebrow').textContent = (sealed ? 'THE TRAIL' : wip ? 'WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : '') : 'ON THE DESK') + ' \u00B7 ' + qa.length + ' POINTS' +
-    (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : '');
+  // H1: the plate reads the state - rust pending, teal dream ahead, sea glass in progress, moss lived, ash cancelled
+  { const dream = dcIsDream_(d), canx = dcCanx_(d);
+    const ink = sealed ? (canx ? { sol:'#8a8580', ink:'#6e6a64' } : { sol:'#2f6146', ink:'#2f6146' })
+              : wip ? { sol:'#1F6E78', ink:'#1F6E78' }
+              : (dream && !dcDreamPending_(d)) ? { sol:'#2F6F6A', ink:'#2F6F6A' } : { sol:'#9a4a2e', ink:'#9a4a2e' };
+    const plate = el('dcPlate');
+    plate.style.setProperty('--dc-sol', ink.sol); plate.style.setProperty('--dc-ink', ink.ink);
+    const seal = el('dcSeal');
+    seal.textContent = dream ? '\u2726' : 'D';
+    const sc = dream ? ['#6fb3ac', '#2F6F6A', '#1d5450'] : ['#d9856a', '#9a4a2e', '#6e3220'];
+    seal.style.setProperty('--dc-seal-hi', sc[0]); seal.style.setProperty('--dc-seal', sc[1]); seal.style.setProperty('--dc-seal-lo', sc[2]);
+    const kind = dream ? 'DREAM' : 'DECISION';
+    const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
+    el('dcEyebrow').textContent =
+      sealed ? (kind + ' \u00B7 THE TRAIL \u00B7 ' + (canx ? 'CANCELLED' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : ''))
+      : wip ? ('WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : ''))
+      : (kind + ' \u00B7 ' + ((dream && !dcDreamPending_(d)) ? 'AHEAD' : 'ON THE DESK') + ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what
+         + (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : ''));
+  }
   el('dcName').textContent = d.title;
+  dcPaintCover_();
   // DC-D (D1): on an open decision the target is a full-width gold band under the
   // heading, red once the date has passed; sealed pages keep their small pills.
   // A1: only a dream shows the ahead / needs-deciding row, and only while it is on the rail
@@ -6659,6 +6794,7 @@ el('dcImportSeal').addEventListener('click', async () => {
   const recs = dcImportRows_.map(r => {
     const rec = { user_id: userId, title: r.title, qset: 'ten', answers: r.answers, target_on: r.target || null,
       note_html: r.outcome ? '<p>' + escHtml(r.outcome) + '</p>' : '' };
+  if (dcCover_ && dcCover_.url) body += '<figure style="margin:0 0 22px"><img src="' + e(dcCover_.url) + '" alt="" style="width:100%;border-radius:10px">' + (dcCover_.caption ? '<figcaption style="font-family:\'IBM Plex Mono\',monospace;font-size:0.625rem;letter-spacing:.14em;color:#a5702f;margin-top:6px">' + e(dcCover_.caption.toUpperCase()) + '</figcaption>' : '') + '</figure>';
     if (r.sealed) { rec.status = 'trail'; rec.made = r.made; rec.decided_on = r.when || new Date().toISOString().slice(0, 10); }
     else rec.status = 'open';
     if (r.start) rec.created_at = r.start + 'T09:00:00';

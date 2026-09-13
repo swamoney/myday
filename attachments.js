@@ -757,7 +757,16 @@
       const paths = [r.path, r.thumb_path].filter(Boolean);
       const { data: su } = await supa.storage.from(BUCKET).createSignedUrls(paths, SIGN_TTL);
       const map = {}; (su || []).forEach(d => { if (d && d.path && d.signedUrl) map[d.path] = d.signedUrl; });
-      return { id: r.id, caption: r.caption || '', url: map[r.path] || '', thumb: map[r.thumb_path] || map[r.path] || '' };
+      return { id: r.id, caption: r.caption || '', url: map[r.path] || '', thumb: map[r.thumb_path] || map[r.path] || '', cfg: (r.cover_cfg && typeof r.cover_cfg === 'object') ? r.cover_cfg : {} };
+    },
+    // fit / size / centre for a cover, kept on the cover's own row (cover_cfg)
+    async setCoverCfg(room, entryId, patch) {
+      const { data } = await supa.from('attachments').select('id, cover_cfg').eq('user_id', userId)
+        .eq('room', room).eq('entry_id', String(entryId)).eq('is_cover', true).limit(1);
+      if (!data || !data.length) return null;
+      const cfg = Object.assign({}, (data[0].cover_cfg && typeof data[0].cover_cfg === 'object') ? data[0].cover_cfg : {}, patch);
+      const { error } = await supa.from('attachments').update({ cover_cfg: cfg }).eq('id', data[0].id).eq('user_id', userId);
+      return error ? null : cfg;
     },
     // Ask for a file, keep it, and make it the cover (replacing any earlier one).
     pickCover(room, entryId) {

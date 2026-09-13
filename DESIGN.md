@@ -141,6 +141,25 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-H1: a dream's / decision's page wears the roadmap's plate**
+(13 Sep 2026): #dcPlate - a 3px rule and signature bar in the
+STATE's ink (rust pending / dream-needs-deciding, teal dream
+ahead, sea glass in progress, moss lived, ash cancelled; set as
+--dc-sol / --dc-ink on open), the eyebrow in the mock's words
+('DECISION - ON THE DESK - n / N ANSWERED - THE TEN', 'DREAM -
+AHEAD - n / N PREPARED', 'WORK IN PROGRESS - verdict - date',
+'KIND - THE TRAIL - LIVED/CANCELLED date'), the name at 3rem
+(the marker wash retired), and a SEAL at the right carrying the
+KIND: a rust 'D' or a teal dream mark. Beneath the meta pills the
+picture sits in the roadmap's mat (#dcPoster / #dcWindow): one
+cover per item, room 'decision', with the same tools (change /
+fill-fit / size / caption / remove, centre tap, viewer); its
+fit/size/centre live on the cover's own row in a new
+`cover_cfg` jsonb (migrate_cover_cfg.sql - PENDING; needs
+migrate_cover.sql) via MyAlbum.setCoverCfg. Ask band shows in
+Edit only. Print carries the picture. Harness: all five states'
+ink/seal/eyebrow, poster + hand line + cfg.
+
 **THE PRINT - a picture between two paragraphs, in every editor**
 (13 Sep 2026): the album's in-text photo figure (figure[data-at])
 is now dressed as a matted PRINT in every page that has the
