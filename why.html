@@ -853,10 +853,14 @@
   .dc-qa .q i { font-style:normal; font-family:var(--mono); font-size:0.5625rem; font-weight:600; color:#fff;
                 background:#23677a; border-radius:50%; width:18px; height:18px; flex-shrink:0;
                 display:inline-flex; align-items:center; justify-content:center; }
-  /* A-1: the box grows to its text - one line for one line, six for six; no hidden scroll */
-  .dc-qa textarea { width:100%; border:none; border-top:1px dashed #e8ecf3; margin-top:8px; padding-top:8px;
-                    background:transparent; font-family:var(--sans); font-size:0.8125rem; line-height:1.55;
-                    color:#232f45; resize:none; overflow:hidden; min-height:36px; outline:none; display:block; }
+  /* A-1: the box grows to its text - one line for one line, six for six; no hidden scroll.
+     H1 + D: the answer in a hand (Caveat), blue-black pen ink, faint ruled lines set on the hand's line height. */
+  .dc-qa textarea { width:100%; border:none; border-top:1px dashed #e8ecf3; margin-top:8px; padding:8px 0 0;
+                    font-family:'Caveat',cursive; font-size:1.25rem; line-height:1.35; color:#1f3d7a;
+                    background:repeating-linear-gradient(transparent 0 calc(1.35em - 1px), #e6ebf3 calc(1.35em - 1px) 1.35em);
+                    background-origin:content-box; background-clip:content-box;
+                    resize:none; overflow:hidden; min-height:40px; outline:none; display:block; }
+  .dc-qa textarea::placeholder { font-family:var(--sans); font-size:0.75rem; color:#9aa5b8; }
   .dc-qa.answered { border-color:#8fb5c0; }
   .dc-banner { display:flex; align-items:center; gap:10px; background:#f3ecfb; border:1px solid #d9c9ef;
                border-radius:11px; padding:10px 13px; margin-bottom:12px; }
@@ -6360,7 +6364,7 @@ function openDecision(id) {
     + (sealed ? ' readonly data-sealed="1"' : '') + '>' + escHtml(x.a || '') + '</textarea></div>'
   ).join('');
   // A-1: size every answer to its text now, and again on every keystroke
-  const dcGrow_ = (ta) => { ta.style.height = 'auto'; ta.style.height = Math.max(36, ta.scrollHeight) + 'px'; };
+  const dcGrow_ = (ta) => { ta.style.height = 'auto'; ta.style.height = Math.max(40, ta.scrollHeight) + 'px'; };
   el('dcQA').querySelectorAll('textarea').forEach(ta => { dcGrow_(ta); ta.addEventListener('input', () => dcGrow_(ta)); });
   requestAnimationFrame(() => el('dcQA').querySelectorAll('textarea').forEach(dcGrow_));   // fonts may land a beat later
   // Sealed answers stay read-only on the page; Edit unlocks them (imported history
