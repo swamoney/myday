@@ -721,8 +721,9 @@
   .dc-back { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; text-transform:uppercase;
              background:none; border:1px solid #dce3ee; border-radius:999px; padding:7px 14px; color:#5A6478;
              cursor:pointer; }
-  .dc-details { display:none; margin:0 0 12px; }
+  .dc-details { display:none; margin:8px 0 4px; }
   #dcWin.dc-editing .dc-details { display:inline-block; }
+  #dcWin.dc-editing .dc-name { cursor:text; text-decoration:underline dotted #b9c3d4; text-underline-offset:6px; }   /* in Edit the name itself opens the details */
   /* H1: the plate - the rule, eyebrow and bar read the item's STATE (--dc-sol / --dc-ink);
      the seal at the right carries the KIND. */
   /* R1: the journey row */
@@ -1915,6 +1916,8 @@
     <!-- R1: the journey on one row - where you stand is lit, the next step is a tap -->
     <div class="dc-journey" id="dcJourney"></div>
     <div class="dc-meta" id="dcMeta"></div>
+    <!-- D1: the details door sits right under the things it edits - above the picture, the board, everything -->
+    <button class="dc-back dc-details" id="dcDetailsBtn" type="button">&#9998; Edit details &mdash; name, dates, verdict</button>
     </div>
     <!-- T1: the marks - the stamp (in progress), the seal, and the date stacked beneath it -->
     <div class="dc-plate-side">
@@ -1947,8 +1950,7 @@
       </div>
       <span class="dc-hand" id="dcHand"></span>
     </div>
-    <!-- D1: the details door sits under the things it edits, where no board can bury it -->
-    <button class="dc-back dc-details" id="dcDetailsBtn" type="button">Edit details &mdash; name, dates, verdict</button>
+
     <div class="tb-host" id="dcBoard"></div>
     <div class="dc-banner hidden" id="dcCatch">
       <span class="b-t" id="dcCatchTxt"></span>
@@ -6729,6 +6731,7 @@ el('dcQNewTen').addEventListener('keydown', e => { if (e.key === 'Enter') el('dc
 let dcEMadePick = null;
 el('dcBand').addEventListener('click', () => el('dcDetailsBtn').click());
 el('dcEUndecide').addEventListener('click', () => { el('dcEditModal').classList.add('hidden'); el('dcUndecideBtn').click(); });
+el('dcName').addEventListener('click', () => { if (el('dcWin').classList.contains('dc-editing')) el('dcDetailsBtn').click(); });
 el('dcDetailsBtn').addEventListener('click', () => {
   const d = dcRow_(); if (!d) return;
   el('dcEUndecide').classList.toggle('hidden', !dcIsWip_(d));
