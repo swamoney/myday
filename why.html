@@ -6206,14 +6206,20 @@ el('dcJourney').addEventListener('click', e => {
   else if (a === 'lived') el('dcLivedBtn').click();
   else if (a === 'pending' || a === 'ahead') dcDreamStateSet_(a === 'pending');
 });
-// S-b: the box stamp in stamp-pad blue - a real rubber stamp, drawn so it prints crisp
-function dcStampSvg_() {
-  const b = '#2B4C9B';
+// S-b: the box stamp - one rubber, several pads. The words and the ink follow the state.
+function dcStampSvg_(l1, l2, ink, small) {
+  const t = (y, txt, sz) => '<text x="60" y="' + y + '" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="' + sz + '" font-weight="700" letter-spacing="' + (sz >= 11 ? 2 : 1.5) + '" fill="' + ink + '" opacity="0.92">' + txt + '</text>';
   return '<svg viewBox="0 0 120 70" aria-hidden="true">' +
-    '<rect x="4" y="4" width="112" height="62" rx="4" fill="none" stroke="' + b + '" stroke-width="3.5" stroke-dasharray="60 2 40 3 80 2" opacity="0.9"/>' +
-    '<rect x="10" y="10" width="100" height="50" rx="2" fill="none" stroke="' + b + '" stroke-width="1.2" opacity="0.85"/>' +
-    '<text x="60" y="34" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700" letter-spacing="2" fill="' + b + '" opacity="0.92">WORK IN</text>' +
-    '<text x="60" y="50" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700" letter-spacing="2" fill="' + b + '" opacity="0.92">PROGRESS</text></svg>';
+    '<rect x="4" y="4" width="112" height="62" rx="4" fill="none" stroke="' + ink + '" stroke-width="3.5" stroke-dasharray="60 2 40 3 80 2" opacity="0.9"/>' +
+    '<rect x="10" y="10" width="100" height="50" rx="2" fill="none" stroke="' + ink + '" stroke-width="1.2" opacity="0.85"/>' +
+    t(34, l1, 11) + t(50, l2, small ? 9 : 11) + '</svg>';
+}
+function dcStampFor_(d, sealed, wip) {
+  const dream = dcIsDream_(d), canx = dcCanx_(d);
+  if (sealed) return canx ? dcStampSvg_('WALKED', 'AWAY', '#8a8580') : dcStampSvg_('\u2726 LIVED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', '#2f6146', true);
+  if (wip) return dcStampSvg_('WORK IN', 'PROGRESS', '#2B4C9B');
+  if (dream && !dcDreamPending_(d)) return dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A');
+  return dcStampSvg_('DECISION', 'PENDING', '#9a4a2e');
 }
 // ===== H1: the picture that stands for a dream or decision - the roadmap's poster, room 'decision' =====
 let dcCover_ = null;
@@ -6288,7 +6294,7 @@ function openDecision(id) {
     plate.style.setProperty('--dc-sol', ink.sol); plate.style.setProperty('--dc-ink', ink.ink);
     plate.classList.toggle('wash', !!wip);                                   // B4-1: the plate goes sea glass while it is being lived
     plate.classList.toggle('moss', !!sealed && !canx);
-    const stamp = el('dcStamp'); stamp.classList.toggle('hidden', !wip); if (wip && !stamp.innerHTML) stamp.innerHTML = dcStampSvg_();
+    const stamp = el('dcStamp'); stamp.classList.remove('hidden'); stamp.innerHTML = dcStampFor_(d, sealed, wip);   // B: every page stamped, in its state's ink
     const seal = el('dcSeal');
     seal.textContent = dream ? '\u2726' : 'D';
     // the seal wears the state's ink, whatever its mark: rust owes an answer, sea glass in progress, moss lived, ash cancelled, teal a dream ahead
