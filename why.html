@@ -6210,7 +6210,10 @@ function openDecision(id) {
     plate.style.setProperty('--dc-sol', ink.sol); plate.style.setProperty('--dc-ink', ink.ink);
     const seal = el('dcSeal');
     seal.textContent = dream ? '\u2726' : 'D';
-    const sc = dream ? ['#6fb3ac', '#2F6F6A', '#1d5450'] : ['#d9856a', '#9a4a2e', '#6e3220'];
+    // the seal wears the state's ink, whatever its mark: rust owes an answer, sea glass in progress, moss lived, ash cancelled, teal a dream ahead
+    const sc = sealed ? (canx ? ['#b3aea6', '#8a8580', '#605c57'] : ['#6f9f82', '#2f6146', '#1f4330'])
+             : wip ? ['#5fb4bf', '#1F6E78', '#124850']
+             : (dream && !dcDreamPending_(d)) ? ['#6fb3ac', '#2F6F6A', '#1d5450'] : ['#d9856a', '#9a4a2e', '#6e3220'];
     seal.style.setProperty('--dc-seal-hi', sc[0]); seal.style.setProperty('--dc-seal', sc[1]); seal.style.setProperty('--dc-seal-lo', sc[2]);
     const kind = dream ? 'DREAM' : 'DECISION';
     const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
@@ -6236,7 +6239,7 @@ function openDecision(id) {
     band.querySelector('.dt').textContent = dcFmt_(d.target_on);
     band.classList.toggle('late', late);
     band.classList.toggle('wip', wip);      // the live band wears sea glass
-    band.classList.toggle('dream', !wip && dcIsDream_(d));
+    band.classList.toggle('dream', !wip && dcIsDream_(d) && !dcDreamPending_(d));   // teal only for PLANNED FOR; DECIDE BY is gold
     band.classList.remove('hidden');
   } else band.classList.add('hidden');
   let meta = (sealed && d.target_on) ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
