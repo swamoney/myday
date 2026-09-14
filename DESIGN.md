@@ -141,6 +141,51 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**DC-R1 + B4-1 + R-a + S-b: the journey row, the wash, the stamp**
+(14 Sep 2026): a dream's or decision's page carries its whole
+journey on ONE ROW under the signature bar (#dcJourney): a dream
+'A DREAM AHEAD -> NEEDS DECIDING -> I HAVE DECIDED... -> IT
+HAPPENED', a decision the same without the first. Passed
+segments grey; the one you stand in lit in the state's ink;
+the next offered in ink and tappable (ahead/pending flip the
+dream's flag in Edit; decide opens the verdict dialog; lived
+asks the date). Once decided the lit segment reads 'DECIDED -
+WITH CARE|WITH MY GUT - date' in the deepest sea (#124850).
+Lived: '... LIVED - date' lit moss; cancelled: 'WALKED AWAY -
+date' lit ash. The old foot buttons (I have decided / It
+happened) are hidden - the row is the door; 'Back to pending'
+moved into the Edit-details dialog (shown only while in
+progress). B4-1 THE WASH: while in progress the whole plate
+goes sea glass (the rail's paper), moss once lived. S-b THE
+STAMP: a box rubber stamp in stamp-pad blue (#2B4C9B) - double
+border, broken ink, WORK IN / PROGRESS, tilted -10deg, SVG so
+it prints crisp - sits at the left of the marks column beside
+the seal. The dream-state switch and the wip/verdict meta pills
+retire (the row and stamp say it). Harness: all five states'
+rows, tap-to-flip, decide -> wip, lived, cancelled.
+
+**DC-SEAL** (14 Sep 2026): the seal wears the STATE's ink whatever its mark (D or the dream mark) - rust while an answer is owed (incl. a dream that needs deciding), sea glass in progress, moss lived, ash cancelled, teal only for a dream ahead; and the date chip is teal only for PLANNED FOR - a dream that needs deciding shows DECIDE BY in gold like a decision. The whole plate wears one theme.
+
+**DC-E1** (14 Sep 2026): a dream on the rail no longer echoes its state as a grey pill under the switch - the AHEAD / NEEDS DECIDING switch is the state. A decision keeps NOT YET FINALIZED (it has no switch); decided / lived pills unchanged.
+
+**DC-T1: long titles on the plate** (14 Sep 2026): the plate is two columns - words left (eyebrow, name, bar, dream-state row, meta), marks right (.dc-plate-side: the seal, and beneath it the date as a compact chip - label above, short date beneath, right-aligned; still tappable, still red when late). The name sizes to its length: <= 40 chars keeps 3rem (.short), longer steps down to 2.125rem to hold in two lines. Phones: one column with the marks in a row above the words.
+
+**PRINT-PICS - one rule for every page** (13 Sep 2026): a
+picture prints wherever it is on screen, in the same white mat
+(border rather than shadow - print engines drop shadows and
+backgrounds by default; print-color-adjust:exact), the whole
+photo shown, the hand-written line beneath. attachments.js:
+printMat_(url, caption) (public as MyAlbum.printMat) dresses
+every photo token in dressForPrint_ and the roadmap / decision
+covers use it too. The likely cause of 'no pics in the PDF': the
+pages fired window.print() 500ms after load, before the signed
+pictures arrived - printReady_() now strips every page's own
+early trigger and waits for document.images (8s cap) before
+printing; openPrint routes any page with a token OR an <img>
+through it, so every section's print behaves the same.
+Harness: mat + line printed, early trigger gone, wait present on
+token pages and cover-only pages.
+
 **DC-H1: a dream's / decision's page wears the roadmap's plate**
 (13 Sep 2026): #dcPlate - a 3px rule and signature bar in the
 STATE's ink (rust pending / dream-needs-deciding, teal dream
