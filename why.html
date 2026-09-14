@@ -725,15 +725,18 @@
   #dcWin.dc-editing .dc-details { display:inline-block; }
   /* H1: the plate - the rule, eyebrow and bar read the item's STATE (--dc-sol / --dc-ink);
      the seal at the right carries the KIND. */
-  .dc-plate { position:relative; border-top:3px solid var(--dc-sol,#9a4a2e); padding:16px 0 6px; }
-  .dc-plate-b { padding-right:84px; }
-  .dc-seal { position:absolute; right:0; top:14px; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  /* T1: words on the left, marks on the right; the title sized to its length */
+  .dc-plate { position:relative; display:grid; grid-template-columns:1fr auto; gap:18px; align-items:start; border-top:3px solid var(--dc-sol,#9a4a2e); padding:16px 0 6px; }
+  .dc-plate-b { min-width:0; }
+  .dc-plate-side { display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+  .dc-seal { width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
              font-family:var(--serif); font-size:1.5rem; font-weight:700; color:#fff; z-index:2;
              background:radial-gradient(circle at 38% 34%, var(--dc-seal-hi,#d9856a), var(--dc-seal,#9a4a2e) 62%, var(--dc-seal-lo,#6e3220)); box-shadow:0 6px 16px rgba(20,30,60,0.28); }
   .dc-eyebrow { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.2em;
                 text-transform:uppercase; color:var(--dc-ink,#1d5666); margin-bottom:8px; }
-  .dc-name { font-family:var(--serif); font-size:3rem; font-weight:700; color:#0A1325; margin:0;
-             line-height:1.14; letter-spacing:-0.02em; display:inline; }
+  .dc-name { font-family:var(--serif); font-size:2.125rem; font-weight:700; color:#0A1325; margin:0;
+             line-height:1.2; letter-spacing:-0.02em; display:inline; overflow-wrap:anywhere; }
+  .dc-name.short { font-size:3rem; line-height:1.14; }
   .dc-sig { width:88px; height:6px; border-radius:3px; background:var(--dc-sol,#9a4a2e); margin:10px 0 4px; }
   /* the poster beneath - the roadmap's exactly */
   .dc-poster { position:relative; margin:18px 0 14px; background:#fff; border:1px solid #d9dfe8; padding:16px; box-shadow:0 14px 34px rgba(20,30,60,0.16); }
@@ -761,18 +764,20 @@
   .dc-hand { position:absolute; left:18px; bottom:14px; font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#5a6478; }
   .dc-poster.empty .dc-hand { display:none; }
   @media (max-width:560px) {
-    .dc-name { font-size:2.125rem; }
-    .dc-seal { width:52px; height:52px; font-size:1.125rem; top:12px; }
-    .dc-plate-b { padding-right:64px; }
+    .dc-plate { grid-template-columns:1fr; gap:10px; }
+    .dc-plate-side { flex-direction:row; align-items:center; justify-content:space-between; order:-1; }
+    .dc-name, .dc-name.short { font-size:1.75rem; line-height:1.22; }
+    .dc-seal { width:52px; height:52px; font-size:1.125rem; }
     .dc-pic { height:240px; } .dc-window[data-size="m"] .dc-pic { height:200px; } .dc-window[data-size="xl"] .dc-pic { height:320px; }
     .dc-poster { padding:10px; } .dc-poster.hand { padding-bottom:38px; }
   }
   /* DC-D (D1): the gold band - the target date as a sign, not a pill */
-  .dc-band { display:flex; align-items:center; gap:14px; width:100%; text-align:left; background:#f4c430; color:#2a1d08; border:none;
-             border-radius:10px; padding:10px 14px; margin:12px 0 4px; box-shadow:0 4px 10px rgba(244,196,48,0.35); cursor:pointer; }
+  /* T1: the date is a compact chip under the seal - label above, date beneath, right-aligned */
+  .dc-band { display:flex; flex-direction:column; align-items:flex-end; gap:2px; width:auto; text-align:right; background:#f4c430; color:#2a1d08; border:none;
+             border-radius:8px; padding:6px 10px; margin:0; box-shadow:0 4px 10px rgba(244,196,48,0.35); cursor:pointer; }
   .dc-band.hidden { display:none; }
-  .dc-band .lbl { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.16em; flex-shrink:0; }
-  .dc-band .dt { font-family:var(--serif); font-size:1.25rem; font-weight:700; letter-spacing:-0.01em; }
+  .dc-band .lbl { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.14em; }
+  .dc-band .dt { font-family:var(--serif); font-size:0.9375rem; font-weight:700; letter-spacing:0; white-space:nowrap; }
   .dc-band.late { background:#a8323f; color:#fff; box-shadow:0 4px 10px rgba(168,50,63,0.35); }
   .dc-band:hover { filter:brightness(1.03); }
   /* DC-T: the set row in the New-decision dialog, the two shelves in the bank, the import door */
@@ -1866,7 +1871,6 @@
     <!-- H1: the roadmap's plate for a dream or decision - the rule and bar in the STATE's ink,
          the seal carrying the KIND (D / dream mark), the picture in its mat beneath -->
     <div class="dc-plate" id="dcPlate">
-    <div class="dc-seal" id="dcSeal">D</div>
     <div class="dc-plate-b">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span></div>
@@ -1875,8 +1879,12 @@
       <button type="button" class="dc-dst" data-dst="ahead">&#9675; A DREAM AHEAD</button>
       <button type="button" class="dc-dst" data-dst="pending">&#9679; NEEDS DECIDING</button>
     </div>
-    <button class="dc-band hidden" id="dcBand" type="button" title="Change the date"><span class="lbl"></span><span class="dt"></span></button>
     <div class="dc-meta" id="dcMeta"></div>
+    </div>
+    <!-- T1: the marks - the seal, and the date stacked beneath it as a chip -->
+    <div class="dc-plate-side">
+      <div class="dc-seal" id="dcSeal">D</div>
+      <button class="dc-band hidden" id="dcBand" type="button" title="Change the date"><span class="lbl"></span><span class="dt"></span></button>
     </div>
     </div>
     <div class="dc-poster empty" id="dcPoster">
@@ -6213,6 +6221,7 @@ function openDecision(id) {
          + (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : ''));
   }
   el('dcName').textContent = d.title;
+  el('dcName').classList.toggle('short', String(d.title || '').length <= 40);   // T1: a short title keeps the big size
   dcPaintCover_();
   // DC-D (D1): on an open decision the target is a full-width gold band under the
   // heading, red once the date has passed; sealed pages keep their small pills.
@@ -6224,7 +6233,7 @@ function openDecision(id) {
   if (!sealed && d.target_on) {
     const late = d.target_on < new Date().toISOString().slice(0, 10);
     band.querySelector('.lbl').textContent = late ? (wip ? 'PAST THE DATE' : 'PAST THE TARGET') : dcDateLbl_(d, wip);
-    band.querySelector('.dt').textContent = dcFmtLong_(d.target_on);
+    band.querySelector('.dt').textContent = dcFmt_(d.target_on);
     band.classList.toggle('late', late);
     band.classList.toggle('wip', wip);      // the live band wears sea glass
     band.classList.toggle('dream', !wip && dcIsDream_(d));
