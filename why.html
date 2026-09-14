@@ -853,6 +853,13 @@
   .dc-qa .q i { font-style:normal; font-family:var(--mono); font-size:0.5625rem; font-weight:600; color:#fff;
                 background:#23677a; border-radius:50%; width:18px; height:18px; flex-shrink:0;
                 display:inline-flex; align-items:center; justify-content:center; }
+  /* Q1: the two shelves on the page */
+  .dc-shelf { display:flex; align-items:center; gap:10px; margin:18px 0 6px; }
+  .dc-shelf b { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; }
+  .dc-shelf i { flex:1; height:1px; background:#d8dee8; }
+  .dc-shelf span { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.14em; color:#9aa5b8; }
+  .dc-shelf.now b { color:#23677a; } .dc-shelf.first b { color:#7a5c2e; }
+  .dc-qa.old .q i { background:#7a5c2e; }
   /* A-1: the box grows to its text - one line for one line, six for six; no hidden scroll.
      H1 + D: the answer in a hand (Caveat), blue-black pen ink, faint ruled lines set on the hand's line height. */
   .dc-qa textarea { width:100%; border:none; border-top:1px dashed #e8ecf3; margin-top:8px; padding:8px 0 0;
@@ -1982,12 +1989,12 @@
       </div></div>
     <div class="fld"><label id="dcFNameLbl">The decision</label><input id="dcFName" placeholder="e.g. Move to Bangalore for the new role?" maxlength="180"></div>
     <div class="fld"><label id="dcFTargetLbl">Decide by (optional)</label><input type="date" id="dcFTarget"></div>
-    <div class="fld"><label>The checklist</label>
+    <div class="fld hidden" id="dcFSetFld"><label>The list</label>
       <div class="dc-setseg" id="dcFSet">
-        <button type="button" data-set="both" class="on">BOTH<small id="dcFSetN0"></small></button>
-        <button type="button" data-set="new">NEW SET<small id="dcFSetN1"></small></button>
-        <button type="button" data-set="ten">THE TEN<small id="dcFSetN2"></small></button>
-        <button type="button" data-set="prep" id="dcFSetPrep" class="hidden">PREPARATION<small>a free list</small></button>
+        <button type="button" data-set="new" class="on">THE QUESTIONS<small id="dcFSetN1"></small></button>
+        <button type="button" data-set="prep" id="dcFSetPrep">PREPARATION<small>a free list</small></button>
+        <button type="button" data-set="both" class="hidden"><small id="dcFSetN0"></small></button>
+        <button type="button" data-set="ten" class="hidden"><small id="dcFSetN2"></small></button>
       </div></div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcFSave" type="button">Open it</button>
@@ -6357,12 +6364,29 @@ function openDecision(id) {
   el('dcMeta').innerHTML = meta;
   el('dcDecideRow').classList.add('hidden'); el('dcLivedRow').classList.add('hidden');   // R1: the row is the door
   dcPaintJourney_(d, sealed, wip);
-  el('dcQA').innerHTML = qa.map((x, i) =>
-    '<div class="dc-qa' + (String(x.a || '').trim() ? ' answered' : '') + '">'
-    + '<div class="q"><i>' + (i + 1) + '</i>' + escHtml(x.q || '') + '</div>'
-    + '<textarea data-dcq="' + i + '" placeholder="' + (sealed ? '(unanswered at the time)' : 'your answer\u2026') + '"'
-    + (sealed ? ' readonly data-sealed="1"' : '') + '>' + escHtml(x.a || '') + '</textarea></div>'
-  ).join('');
+  // Q1: the checklist is drawn as two shelves - 'The questions now' first, 'The first ten' beneath -
+  // when a page holds both; a page with one set shows just that set, no heading. Nothing is re-stored:
+  // the ten are the fixed list, so each answer keeps its index (data-dcq) exactly as before.
+  {
+    const isTen = (q) => dcTen.includes(String(q || ''));
+    const card = (x, i, n, old) => '<div class="dc-qa' + (String(x.a || '').trim() ? ' answered' : '') + (old ? ' old' : '') + '">'
+      + '<div class="q"><i>' + n + '</i>' + escHtml(x.q || '') + '</div>'
+      + '<textarea data-dcq="' + i + '" placeholder="' + (sealed ? '(unanswered at the time)' : 'your answer\u2026') + '"'
+      + (sealed ? ' readonly data-sealed="1"' : '') + '>' + escHtml(x.a || '') + '</textarea></div>';
+    const now = [], ten = [];
+    qa.forEach((x, i) => (isTen(x.q) ? ten : now).push([x, i]));
+    const cnt = (arr) => arr.filter(([x]) => String(x.a || '').trim()).length + ' / ' + arr.length + ' ANSWERED';
+    const shelf = (cls, name, arr) => '<div class="dc-shelf ' + cls + '"><b>' + name + '</b><i></i><span>' + cnt(arr) + '</span></div>';
+    let h = '';
+    if (now.length && ten.length) {
+      h += shelf('now', 'The questions now', now) + now.map(([x, i], k) => card(x, i, k + 1, false)).join('');
+      h += shelf('first', 'The first ten', ten) + ten.map(([x, i], k) => card(x, i, k + 1, true)).join('');
+    } else {
+      const arr = now.length ? now : ten, old = !now.length;
+      h += arr.map(([x, i], k) => card(x, i, k + 1, old)).join('');
+    }
+    el('dcQA').innerHTML = h;
+  }
   // A-1: size every answer to its text now, and again on every keystroke
   const dcGrow_ = (ta) => { ta.style.height = 'auto'; ta.style.height = Math.max(40, ta.scrollHeight) + 'px'; };
   el('dcQA').querySelectorAll('textarea').forEach(ta => { dcGrow_(ta); ta.addEventListener('input', () => dcGrow_(ta)); });
@@ -6543,7 +6567,7 @@ el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
     dcPaintPlate_(d);   // the plate's weather follows the stars
     toast(next ? ('Satisfaction: ' + next + ' of 5') : 'Rating cleared');
   }));
-let dcFSetPick = 'both', dcFKindPick = 'decision';
+let dcFSetPick = 'new', dcFKindPick = 'decision';
 function dcFKindPaint_() {
   const dream = dcFKindPick === 'dream';
   el('dcFKind').querySelectorAll('[data-kind]').forEach(b => b.classList.toggle('on', b.dataset.kind === dcFKindPick));
@@ -6552,8 +6576,8 @@ function dcFKindPaint_() {
   el('dcFNameLbl').textContent = dream ? 'What do you want to live?' : 'The decision';
   el('dcFName').placeholder = dream ? 'e.g. Walk the Kailash kora' : 'e.g. Move to Bangalore for the new role?';
   el('dcFTargetLbl').textContent = dream ? 'Planned for (optional)' : 'Decide by (optional)';
-  el('dcFSetPrep').classList.toggle('hidden', !dream);
-  if (!dream && dcFSetPick === 'prep') { dcFSetPick = 'both'; el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'both')); }
+  el('dcFSetFld').classList.toggle('hidden', !dream);            // only a dream chooses: the questions, or a preparation list
+  if (!dream) { dcFSetPick = 'new'; el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'new')); }
 }
 el('dcFKind').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; dcFKindPick = b.dataset.kind; dcFKindPaint_(); });
 el('dcFSet').querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
@@ -6562,8 +6586,8 @@ el('dcFSet').querySelectorAll('[data-set]').forEach(b => b.addEventListener('cli
 }));
 el('dcAddBtn').addEventListener('click', () => {
   el('dcFName').value = ''; el('dcFTarget').value = '';
-  dcFSetPick = 'both'; dcFKindPick = 'decision'; dcFKindPaint_();
-  el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'both'));
+  dcFSetPick = 'new'; dcFKindPick = 'decision'; dcFKindPaint_();
+  el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'new'));
   el('dcFSetN0').textContent = (dcPoints.length + dcTen.length) + ' questions';
   el('dcFSetN1').textContent = dcPoints.length; el('dcFSetN2').textContent = dcTen.length;
   el('dcNewModal').classList.remove('hidden');
