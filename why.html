@@ -853,13 +853,9 @@
   .dc-qa .q i { font-style:normal; font-family:var(--mono); font-size:0.5625rem; font-weight:600; color:#fff;
                 background:#23677a; border-radius:50%; width:18px; height:18px; flex-shrink:0;
                 display:inline-flex; align-items:center; justify-content:center; }
-  /* Q1 (B2): the two shelves on the page - solid bands in the two inks, spanning the checklist's full row */
-  .dc-qshelf { grid-column:1 / -1; display:flex; align-items:center; gap:12px; border-radius:10px; padding:10px 14px; margin-top:6px; }
-  .dc-qshelf b { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#fff; }
-  .dc-qshelf i { flex:1; }
-  .dc-qshelf span { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.14em; color:rgba(255,255,255,0.85); }
-  .dc-qshelf.now { background:#23677a; }
-  .dc-qshelf.first { background:#7a5c2e; }
+  /* Q1 (P1): the first ten begin under the trail's pill, in the archive's umber; the new set has no heading */
+  .dc-qshelf { grid-column:1 / -1; margin-top:8px; }
+  .dc-shelf.first { background:#7a5c2e; color:#fff; }
   .dc-qa.old .q i { background:#7a5c2e; }
   /* A-1: the box grows to its text - one line for one line, six for six; no hidden scroll.
      H1 + D: the answer in a hand (Caveat), blue-black pen ink, faint ruled lines set on the hand's line height. */
@@ -6376,12 +6372,11 @@ function openDecision(id) {
       + (sealed ? ' readonly data-sealed="1"' : '') + '>' + escHtml(x.a || '') + '</textarea></div>';
     const now = [], ten = [];
     qa.forEach((x, i) => (isTen(x.q) ? ten : now).push([x, i]));
-    const cnt = (arr) => arr.filter(([x]) => String(x.a || '').trim()).length + ' / ' + arr.length + ' ANSWERED';
-    const shelf = (cls, name, arr) => '<div class="dc-qshelf ' + cls + '"><b>' + name + '</b><i></i><span>' + cnt(arr) + '</span></div>';
+    // P1: the new set is simply the checklist - no heading; the first ten begin under a small umber pill (the trail's idiom)
     let h = '';
     if (now.length && ten.length) {
-      h += shelf('now', 'The questions now', now) + now.map(([x, i], k) => card(x, i, k + 1, false)).join('');
-      h += shelf('first', 'The first ten', ten) + ten.map(([x, i], k) => card(x, i, k + 1, true)).join('');
+      h += now.map(([x, i], k) => card(x, i, k + 1, false)).join('');
+      h += '<div class="dc-qshelf"><span class="dc-shelf first">The first ten</span></div>' + ten.map(([x, i], k) => card(x, i, k + 1, true)).join('');
     } else {
       const arr = now.length ? now : ten, old = !now.length;
       h += arr.map(([x, i], k) => card(x, i, k + 1, old)).join('');
