@@ -744,7 +744,7 @@
   .dc-plate.wash .dc-name { color:#0f3a40; }
   .dc-plate.wash .dc-journey { border-color:#aecfd4; }
   .dc-plate.wash .dc-jseg { border-right-color:#aecfd4; }
-  .dc-plate.moss { background:linear-gradient(180deg,#f2f8f4,#e4efe6); border:1px solid #cfe0d4; border-top:3px solid #2f6146; border-radius:0 0 14px 14px; padding:14px 18px 16px; margin:0 -18px; }
+  .dc-plate.moss { background:var(--dc-paper, linear-gradient(180deg,#f2f8f4,#e4efe6)); border:1px solid var(--dc-edge,#cfe0d4); border-top:3px solid var(--dc-sol,#2f6146); border-radius:0 0 14px 14px; padding:14px 18px 16px; margin:0 -18px; }
   /* S-b: the box stamp in stamp-pad blue */
   .dc-plate-side { display:flex; flex-direction:row; align-items:flex-start; gap:12px; }
   .dc-plate-marks { display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
@@ -6168,6 +6168,44 @@ function renderDecisions() {
     b.addEventListener('click', (ev) => { ev.stopPropagation(); const d = dcRows.find(x => String(x.id) === String(b.dataset.dcX)); if (d) dcDeleteRow_(d, false); }));
 }
 function dcRow_() { return dcRows.find(x => String(x.id) === String(dcId)); }
+function dcPaintPlate_(d) {
+  const sealed = d.status === 'trail', wip = dcIsWip_(d);
+  const qa = Array.isArray(d.answers) ? d.answers : [];
+  // H1: the plate reads the state - rust pending, teal dream ahead, sea glass in progress, moss lived, ash cancelled
+  { const dream = dcIsDream_(d), canx = dcCanx_(d);
+    // the lived plate wears the row's weather: 5 deep moss, 4 soft moss, 3 ink-teal on white, 2 dusk rose, 1 ember; unrated moss
+    const W = { 5:{ sol:'#2f6146', ink:'#2f6146', hi:'#6f9f82', lo:'#1f4330', paper:'linear-gradient(160deg,#f7fbf8,#e6f1ea)', edge:'#cfe0d4' },
+                4:{ sol:'#5F7355', ink:'#5F7355', hi:'#8fa686', lo:'#3e4f38', paper:'linear-gradient(160deg,#f9fcf9,#edf3ee)', edge:'#d5e0d3' },
+                3:{ sol:'#144552', ink:'#144552', hi:'#4e8a97', lo:'#0c2f38', paper:'#fff', edge:'#dfe5ee' },
+                2:{ sol:'#b57a6a', ink:'#9a5f50', hi:'#d7a596', lo:'#7d4c3f', paper:'linear-gradient(160deg,#fdf9f7,#f5ece8)', edge:'#e7d6d0' },
+                1:{ sol:'#a8323f', ink:'#a8323f', hi:'#cf6a74', lo:'#6f1f27', paper:'linear-gradient(160deg,#fcf6f6,#f3e5e5)', edge:'#e6cfd0' } };
+    const wx = (sealed && !canx && W[Number(d.satisfaction)]) || null;
+    const ink = sealed ? (canx ? { sol:'#8a8580', ink:'#6e6a64' } : wx ? { sol:wx.sol, ink:wx.ink } : { sol:'#2f6146', ink:'#2f6146' })
+              : wip ? { sol:'#1F6E78', ink:'#1F6E78' }
+              : (dream && !dcDreamPending_(d)) ? { sol:'#2F6F6A', ink:'#2F6F6A' } : { sol:'#9a4a2e', ink:'#9a4a2e' };
+    const plate = el('dcPlate');
+    plate.style.setProperty('--dc-sol', ink.sol); plate.style.setProperty('--dc-ink', ink.ink);
+    plate.classList.toggle('wash', !!wip);                                   // B4-1: the plate goes sea glass while it is being lived
+    plate.classList.toggle('moss', !!sealed && !canx);
+    plate.style.setProperty('--dc-paper', wx ? wx.paper : ''); plate.style.setProperty('--dc-edge', wx ? wx.edge : '');
+    const stamp = el('dcStamp'); stamp.classList.remove('hidden'); stamp.innerHTML = dcStampFor_(d, sealed, wip, wx ? wx.sol : null);   // B: every page stamped, in its state's ink
+    const seal = el('dcSeal');
+    seal.textContent = dream ? '\u2726' : 'D';
+    // the seal wears the state's ink, whatever its mark: rust owes an answer, sea glass in progress, moss lived, ash cancelled, teal a dream ahead
+    const sc = sealed ? (canx ? ['#b3aea6', '#8a8580', '#605c57'] : wx ? [wx.hi, wx.sol, wx.lo] : ['#6f9f82', '#2f6146', '#1f4330'])
+             : wip ? ['#5fb4bf', '#1F6E78', '#124850']
+             : (dream && !dcDreamPending_(d)) ? ['#6fb3ac', '#2F6F6A', '#1d5450'] : ['#d9856a', '#9a4a2e', '#6e3220'];
+    seal.style.setProperty('--dc-seal-hi', sc[0]); seal.style.setProperty('--dc-seal', sc[1]); seal.style.setProperty('--dc-seal-lo', sc[2]);
+    const kind = dream ? 'DREAM' : 'DECISION';
+    const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
+    el('dcEyebrow').textContent =
+      sealed ? (kind + ' \u00B7 THE TRAIL \u00B7 ' + (canx ? 'CANCELLED' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : '')
+                + (d.target_on ? ' \u00B7 TARGET WAS ' + dcFmt_(d.target_on).toUpperCase() : ''))   // O4: the original target, folded in as a reference
+      : wip ? ('WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : ''))
+      : (kind + ' \u00B7 ' + ((dream && !dcDreamPending_(d)) ? 'AHEAD' : 'ON THE DESK') + ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what
+         + (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : ''));
+  }
+}
 // ===== R1: the journey on one row =====
 // A dream: A DREAM AHEAD -> NEEDS DECIDING -> I HAVE DECIDED... -> IT HAPPENED
 // A decision: NEEDS DECIDING -> I HAVE DECIDED... -> IT HAPPENED
@@ -6214,9 +6252,9 @@ function dcStampSvg_(l1, l2, ink, small) {
     '<rect x="10" y="10" width="100" height="50" rx="2" fill="none" stroke="' + ink + '" stroke-width="1.2" opacity="0.85"/>' +
     t(34, l1, 11) + t(50, l2, small ? 9 : 11) + '</svg>';
 }
-function dcStampFor_(d, sealed, wip) {
+function dcStampFor_(d, sealed, wip, ink) {
   const dream = dcIsDream_(d), canx = dcCanx_(d);
-  if (sealed) return canx ? dcStampSvg_('WALKED', 'AWAY', '#8a8580') : dcStampSvg_('\u2726 LIVED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', '#2f6146', true);
+  if (sealed) return canx ? dcStampSvg_('WALKED', 'AWAY', '#8a8580') : dcStampSvg_('\u2726 LIVED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#2f6146', true);
   if (wip) return dcStampSvg_('WORK IN', 'PROGRESS', '#2B4C9B');
   if (dream && !dcDreamPending_(d)) return dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A');
   return dcStampSvg_('DECISION', 'PENDING', '#9a4a2e');
@@ -6285,32 +6323,7 @@ function openDecision(id) {
   const sealed = d.status === 'trail';
   const qa = Array.isArray(d.answers) ? d.answers : [];
   const wip = dcIsWip_(d);
-  // H1: the plate reads the state - rust pending, teal dream ahead, sea glass in progress, moss lived, ash cancelled
-  { const dream = dcIsDream_(d), canx = dcCanx_(d);
-    const ink = sealed ? (canx ? { sol:'#8a8580', ink:'#6e6a64' } : { sol:'#2f6146', ink:'#2f6146' })
-              : wip ? { sol:'#1F6E78', ink:'#1F6E78' }
-              : (dream && !dcDreamPending_(d)) ? { sol:'#2F6F6A', ink:'#2F6F6A' } : { sol:'#9a4a2e', ink:'#9a4a2e' };
-    const plate = el('dcPlate');
-    plate.style.setProperty('--dc-sol', ink.sol); plate.style.setProperty('--dc-ink', ink.ink);
-    plate.classList.toggle('wash', !!wip);                                   // B4-1: the plate goes sea glass while it is being lived
-    plate.classList.toggle('moss', !!sealed && !canx);
-    const stamp = el('dcStamp'); stamp.classList.remove('hidden'); stamp.innerHTML = dcStampFor_(d, sealed, wip);   // B: every page stamped, in its state's ink
-    const seal = el('dcSeal');
-    seal.textContent = dream ? '\u2726' : 'D';
-    // the seal wears the state's ink, whatever its mark: rust owes an answer, sea glass in progress, moss lived, ash cancelled, teal a dream ahead
-    const sc = sealed ? (canx ? ['#b3aea6', '#8a8580', '#605c57'] : ['#6f9f82', '#2f6146', '#1f4330'])
-             : wip ? ['#5fb4bf', '#1F6E78', '#124850']
-             : (dream && !dcDreamPending_(d)) ? ['#6fb3ac', '#2F6F6A', '#1d5450'] : ['#d9856a', '#9a4a2e', '#6e3220'];
-    seal.style.setProperty('--dc-seal-hi', sc[0]); seal.style.setProperty('--dc-seal', sc[1]); seal.style.setProperty('--dc-seal-lo', sc[2]);
-    const kind = dream ? 'DREAM' : 'DECISION';
-    const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
-    el('dcEyebrow').textContent =
-      sealed ? (kind + ' \u00B7 THE TRAIL \u00B7 ' + (canx ? 'CANCELLED' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : '')
-                + (d.target_on ? ' \u00B7 TARGET WAS ' + dcFmt_(d.target_on).toUpperCase() : ''))   // O4: the original target, folded in as a reference
-      : wip ? ('WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : ''))
-      : (kind + ' \u00B7 ' + ((dream && !dcDreamPending_(d)) ? 'AHEAD' : 'ON THE DESK') + ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what
-         + (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : ''));
-  }
+  dcPaintPlate_(d);
   el('dcName').textContent = d.title;
   el('dcName').classList.toggle('short', String(d.title || '').length <= 40);   // T1: a short title keeps the big size
   dcPaintCover_();
@@ -6490,6 +6503,7 @@ el('dcPrintBtn').addEventListener('click', () => {
 });
 el('dcBack').addEventListener('click', dcClose_);
 function dcRatePaint_() {
+  { const d0 = dcRow_(); if (d0 && d0.status === 'trail' && el('dcPlate').classList.contains('moss')) setTimeout(() => { if (dcId === d0.id) openDecision(d0.id); }, 0); }
   const d = dcRow_(); if (!d) return;
   const r = Number(d.satisfaction) || 0;
   el('dcRateStars').querySelectorAll('b').forEach((s, i) => s.classList.toggle('on', i < r));
@@ -6518,6 +6532,7 @@ el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
       .eq('id', d.id).eq('user_id', userId);
     if (error) { console.error(error); toast('Could not save the rating'); return; }
     d.satisfaction = next; dcRatePaint_();
+    dcPaintPlate_(d);   // the plate's weather follows the stars
     toast(next ? ('Satisfaction: ' + next + ' of 5') : 'Rating cleared');
   }));
 let dcFSetPick = 'both', dcFKindPick = 'decision';
