@@ -6251,7 +6251,7 @@ function openDecision(id) {
     meta += '<span class="dc-pill sea"><span class="sym">\u25D1</span>WORK IN PROGRESS</span>'
          +  '<span class="dc-pill verdict"><span class="sym">\u2713</span>' + dcVerdict_(d) + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
   } else {
-    meta += '<span class="dc-pill wait">' + (dcDreamPending_(d) ? 'A DREAM \u00B7 DECISION PENDING' : dcIsDream_(d) ? 'A DREAM AHEAD' : 'NOT YET FINALIZED') + '</span>';
+    if (!dcIsDream_(d)) meta += '<span class="dc-pill wait">NOT YET FINALIZED</span>';   // E1: a dream's switch says its state; no echo
   }
   el('dcMeta').innerHTML = meta;
   el('dcDecideRow').classList.toggle('hidden', !!sealed || wip);
