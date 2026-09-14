@@ -6299,7 +6299,8 @@ function openDecision(id) {
     const kind = dream ? 'DREAM' : 'DECISION';
     const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
     el('dcEyebrow').textContent =
-      sealed ? (kind + ' \u00B7 THE TRAIL \u00B7 ' + (canx ? 'CANCELLED' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : ''))
+      sealed ? (kind + ' \u00B7 THE TRAIL \u00B7 ' + (canx ? 'CANCELLED' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : '')
+                + (d.target_on ? ' \u00B7 TARGET WAS ' + dcFmt_(d.target_on).toUpperCase() : ''))   // O4: the original target, folded in as a reference
       : wip ? ('WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : ''))
       : (kind + ' \u00B7 ' + ((dream && !dcDreamPending_(d)) ? 'AHEAD' : 'ON THE DESK') + ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what
          + (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : ''));
