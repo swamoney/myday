@@ -1990,9 +1990,9 @@
     <div class="fld"><label id="dcFTargetLbl">Decide by (optional)</label><input type="date" id="dcFTarget"></div>
     <div class="fld hidden" id="dcFSetFld"><label>The list</label>
       <div class="dc-setseg" id="dcFSet">
-        <button type="button" data-set="new" class="on">THE QUESTIONS<small id="dcFSetN1"></small></button>
+        <button type="button" data-set="both" class="on">THE QUESTIONS<small id="dcFSetN0"></small></button>
         <button type="button" data-set="prep" id="dcFSetPrep">PREPARATION<small>a free list</small></button>
-        <button type="button" data-set="both" class="hidden"><small id="dcFSetN0"></small></button>
+        <button type="button" data-set="new" class="hidden"><small id="dcFSetN1"></small></button>
         <button type="button" data-set="ten" class="hidden"><small id="dcFSetN2"></small></button>
       </div></div>
     <div class="modal-actions">
@@ -6566,7 +6566,7 @@ el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
     dcPaintPlate_(d);   // the plate's weather follows the stars
     toast(next ? ('Satisfaction: ' + next + ' of 5') : 'Rating cleared');
   }));
-let dcFSetPick = 'new', dcFKindPick = 'decision';
+let dcFSetPick = 'both', dcFKindPick = 'decision';
 function dcFKindPaint_() {
   const dream = dcFKindPick === 'dream';
   el('dcFKind').querySelectorAll('[data-kind]').forEach(b => b.classList.toggle('on', b.dataset.kind === dcFKindPick));
@@ -6576,7 +6576,7 @@ function dcFKindPaint_() {
   el('dcFName').placeholder = dream ? 'e.g. Walk the Kailash kora' : 'e.g. Move to Bangalore for the new role?';
   el('dcFTargetLbl').textContent = dream ? 'Planned for (optional)' : 'Decide by (optional)';
   el('dcFSetFld').classList.toggle('hidden', !dream);            // only a dream chooses: the questions, or a preparation list
-  if (!dream) { dcFSetPick = 'new'; el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'new')); }
+  if (!dream) { dcFSetPick = 'both'; el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'both')); }
 }
 el('dcFKind').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; dcFKindPick = b.dataset.kind; dcFKindPaint_(); });
 el('dcFSet').querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
@@ -6585,8 +6585,8 @@ el('dcFSet').querySelectorAll('[data-set]').forEach(b => b.addEventListener('cli
 }));
 el('dcAddBtn').addEventListener('click', () => {
   el('dcFName').value = ''; el('dcFTarget').value = '';
-  dcFSetPick = 'new'; dcFKindPick = 'decision'; dcFKindPaint_();
-  el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'new'));
+  dcFSetPick = 'both'; dcFKindPick = 'decision'; dcFKindPaint_();
+  el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'both'));
   el('dcFSetN0').textContent = (dcPoints.length + dcTen.length) + ' questions';
   el('dcFSetN1').textContent = dcPoints.length; el('dcFSetN2').textContent = dcTen.length;
   el('dcNewModal').classList.remove('hidden');
