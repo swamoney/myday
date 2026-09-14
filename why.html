@@ -6321,14 +6321,11 @@ function openDecision(id) {
     band.classList.toggle('dream', !wip && dcIsDream_(d) && !dcDreamPending_(d));   // teal only for PLANNED FOR; DECIDE BY is gold
     band.classList.remove('hidden');
   } else band.classList.add('hidden');
-  let meta = (sealed && d.target_on) ? '<span class="dc-pill gold">TARGET \u00B7 ' + dcFmt_(d.target_on) + '</span>' : '';
+  // The journey row and the eyebrow now say everything the old pills said (target, verdict, lived);
+  // only one exception remains worth a pill: sealed by verdict but not yet lived (legacy rows).
+  let meta = '';
   if (sealed) {
-    meta += '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
-      + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>' + dcVerdict_(d)
-      + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on) : '') + '</span>';
-    if (!dcCanx_(d)) meta += d.happened_on
-      ? '<span class="dc-pill hap"><span class="sym">\u2726</span>IT HAPPENED \u00B7 ' + dcFmt_(d.happened_on) + '</span>'
-      : '<span class="dc-pill wait">NOT YET LIVED</span>';
+    if (!dcCanx_(d) && !d.happened_on) meta += '<span class="dc-pill wait">NOT YET LIVED</span>';
   } else if (wip) {
     // R1 + B4-1: the row and the stamp carry the state
   } else {
