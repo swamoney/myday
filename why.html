@@ -6427,7 +6427,7 @@ function openDecision(id) {
   el('dcDelBtn').textContent = sealed ? 'Remove from the trail' : 'Remove this decision';
   el('dcStory').innerHTML = NoteEditor.toHtml(d.note_html || '');
   dcNoteBase = NoteEditor.sanitize(el('dcStory').innerHTML);
-  if (window.MyBoard && userId) MyBoard.mount({ host: el('dcBoard'), scope: 'decision:' + id, title: 'THINKING BOARD', readOnly: (dcRows.find(x => x.id === id) || {}).status === 'trail' });
+  if (window.MyBoard && userId) MyBoard.mount({ host: el('dcBoard'), scope: 'decision:' + id, title: 'THINKING BOARD', readOnly: true });   // the board wakes with Edit
   if (window.MyAlbum && userId) MyAlbum.mount({ host: el('dcAlbum'), room: 'decision', entryId: id,
     watch: [el('dcStory')], editing: false });
   setDcEditing(false);   // every page opens reading; the pen waits in the footer
@@ -6460,6 +6460,7 @@ function dcStoryFlush_() {
 function setDcEditing(on) {
   el('dcWin').classList.toggle('dc-editing', !!on);
   if (window.MyAlbum && userId && dcId !== null && el('dcAlbum')) MyAlbum.setEditing(el('dcAlbum'), !!on);
+  if (window.MyBoard && userId && dcId !== null && el('dcBoard')) MyBoard.setReadOnly(el('dcBoard'), !on);   // PIN A NOTE and the board's tools show only in Edit
   el('dcEditWord').textContent = on ? 'Done' : 'Edit';
   const d = dcRow_(); const sealed = d && d.status === 'trail';
   el('dcQA').querySelectorAll('textarea').forEach(ta => { ta.readOnly = !on; });   // DC-E: sealed answers unlock in Edit too
