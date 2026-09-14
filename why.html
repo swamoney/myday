@@ -853,9 +853,10 @@
   .dc-qa .q i { font-style:normal; font-family:var(--mono); font-size:0.5625rem; font-weight:600; color:#fff;
                 background:#23677a; border-radius:50%; width:18px; height:18px; flex-shrink:0;
                 display:inline-flex; align-items:center; justify-content:center; }
+  /* A-1: the box grows to its text - one line for one line, six for six; no hidden scroll */
   .dc-qa textarea { width:100%; border:none; border-top:1px dashed #e8ecf3; margin-top:8px; padding-top:8px;
                     background:transparent; font-family:var(--sans); font-size:0.8125rem; line-height:1.55;
-                    color:#232f45; resize:vertical; min-height:36px; outline:none; }
+                    color:#232f45; resize:none; overflow:hidden; min-height:36px; outline:none; display:block; }
   .dc-qa.answered { border-color:#8fb5c0; }
   .dc-banner { display:flex; align-items:center; gap:10px; background:#f3ecfb; border:1px solid #d9c9ef;
                border-radius:11px; padding:10px 13px; margin-bottom:12px; }
@@ -891,32 +892,26 @@
   #dcWin:not(.dc-editing) .dc-delrow { display:none; }
   #dcWin:not(.dc-editing) #dcDecideRow { display:none !important; }
   #dcWin:not(.dc-editing) .dc-banner { display:none; }
-  #dcWin:not(.dc-editing) .dc-ratebox .rlbl { display:none; }
-  #dcWin:not(.dc-editing) .dc-ratebox .rcap.hint { display:none; }
-  #dcWin:not(.dc-editing) .dc-ratebox { border-color:transparent; background:transparent; padding:0; margin-top:8px; }
-  #dcWin:not(.dc-editing) .dc-ratebox .rstars b { cursor:default; pointer-events:none; font-size:1.125rem; }
-  #dcWin:not(.dc-editing) .dc-ratebox.unrated { display:none; }
-  /* the comment under the stars */
-  .dc-ratebox .rnote { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#3b3629; margin-top:8px; line-height:1.5; }
-  .dc-ratebox .rnote.hidden { display:none; }
-  .dc-ratebox .rnote-in { display:none; width:100%; margin-top:8px; border:1px dashed #d8c78f; border-radius:8px; padding:8px 10px;
-                          font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#3b3629; background:#fff; }
-  #dcWin.dc-editing .dc-ratebox .rnote-in { display:block; }
-  #dcWin.dc-editing .dc-ratebox .rnote { display:none; }
-  .dc-decrow { display:flex; gap:8px; margin:16px 0 8px; }
-  .dc-decide { background:#23677a; border:1px solid #23677a; color:#fff; border-radius:9px;
-               padding:10px 16px; font-weight:600; font-size:0.8125rem; cursor:pointer; }
-  .dc-ratebox { margin-top:18px; border:1px solid #e0cf9c; background:#fffbea; border-radius:14px;
-                padding:14px 18px; display:flex; flex-direction:column; gap:7px; width:fit-content; }
-  .dc-ratebox.hidden { display:none; }
-  .dc-ratebox .rlbl { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.16em;
-                      text-transform:uppercase; color:#8a6d1a; }
-  .dc-ratebox .rstars { display:flex; gap:6px; }
-  .dc-ratebox .rstars b { font-size:1.5rem; line-height:1; color:#dccfa8; cursor:pointer; font-weight:400;
-                          transition:transform .1s; }
-  .dc-ratebox .rstars b.on { color:#e0a81c; }
-  .dc-ratebox .rstars b:hover { transform:scale(1.2); }
-  .dc-ratebox .rcap { font-size:0.6875rem; color:#6e6650; font-style:italic; font-family:var(--serif); min-height:1em; }
+  /* S-1: the looking-back line under the name; the stars under the stamp */
+  .dc-epi { margin:6px 0 2px; }
+  .dc-epi.hidden { display:none; }
+  #dcWin:not(.dc-editing) .dc-epi.unrated { display:none; }
+  .dc-epi .rnote { font-family:var(--serif); font-style:italic; font-size:1.0625rem; color:#4b5646; line-height:1.45; }
+  .dc-epi .rnote.hidden { display:none; }
+  .dc-epi .rnote-in { display:none; width:100%; border:1px dashed #d8c78f; border-radius:8px; padding:8px 10px; font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#3b3629; background:#fffdf5; outline:none; }
+  #dcWin.dc-editing .dc-epi .rnote-in { display:block; }
+  #dcWin.dc-editing .dc-epi .rnote { display:none; }
+  .dc-stack { display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .dc-headstars { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .dc-headstars.hidden { display:none; }
+  .dc-headstars .rstars { display:flex; gap:3px; }
+  .dc-headstars .rstars b { font-size:1rem; line-height:1; color:#dccfa8; font-weight:400; cursor:default; transition:transform .1s; }
+  .dc-headstars .rstars b.on { color:#e0a81c; }
+  #dcWin.dc-editing .dc-headstars .rstars b { cursor:pointer; }
+  #dcWin.dc-editing .dc-headstars .rstars b:hover { transform:scale(1.2); }
+  .dc-headstars .rcap { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--dc-ink,#2f6146); text-align:center; }
+  .dc-headstars .rcap.hint { color:#9aa5b8; }
+  #dcWin:not(.dc-editing) .dc-headstars .rcap.hint { display:none; }
   .dc-hist { font-size:0.6875rem; color:#8a6d1a; background:#fdf8e8; border-radius:7px; padding:6px 10px;
              margin-top:8px; display:none; }
   .dc-hist.on { display:block; }
@@ -1903,6 +1898,11 @@
     <div class="dc-plate-b">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span></div>
+    <!-- S-1: the line looking back sits under the name as the page's epigraph (lived pages) -->
+    <div class="dc-ratebox dc-epi hidden" id="dcRateBox">
+      <div class="rnote" id="dcRateNoteRO"></div>
+      <input class="rnote-in" id="dcRateNote" maxlength="240" placeholder="A line looking back \u2014 what the years taught (optional)">
+    </div>
     <div class="dc-sig"></div>
     <!-- R1: the journey on one row - where you stand is lit, the next step is a tap -->
     <div class="dc-journey" id="dcJourney"></div>
@@ -1910,7 +1910,14 @@
     </div>
     <!-- T1: the marks - the stamp (in progress), the seal, and the date stacked beneath it -->
     <div class="dc-plate-side">
-      <div class="dc-stamp hidden" id="dcStamp"></div>
+      <div class="dc-stack">
+        <div class="dc-stamp hidden" id="dcStamp"></div>
+        <!-- S-1: the stars and their caption under the stamp (lived pages) -->
+        <div class="dc-headstars hidden" id="dcHeadStars">
+          <span class="rstars" id="dcRateStars"><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b></span>
+          <span class="rcap" id="dcRateCap"></span>
+        </div>
+      </div>
       <div class="dc-plate-marks">
         <div class="dc-seal" id="dcSeal">D</div>
         <button class="dc-band hidden" id="dcBand" type="button" title="Change the date"><span class="lbl"></span><span class="dt"></span></button>
@@ -1945,13 +1952,6 @@
     <div class="dc-decrow hidden" id="dcLivedRow">
       <button class="dc-decide lived" id="dcLivedBtn" type="button">&#10022; It happened</button>
       <button class="dc-back undo" id="dcUndecideBtn" type="button">Back to pending</button>
-    </div>
-    <div class="dc-ratebox hidden" id="dcRateBox">
-      <span class="rlbl">Looking back, how did it turn out?</span>
-      <span class="rstars" id="dcRateStars"><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b><b>&#9733;</b></span>
-      <span class="rcap" id="dcRateCap"></span>
-      <div class="rnote" id="dcRateNoteRO"></div>
-      <input class="rnote-in" id="dcRateNote" maxlength="240" placeholder="A line looking back \u2014 what the years taught (optional)">
     </div>
     <span class="dc-storyshelf">The story</span>
     <div class="rd-album" id="dcAlbum"></div>
@@ -6359,6 +6359,10 @@ function openDecision(id) {
     + '<textarea data-dcq="' + i + '" placeholder="' + (sealed ? '(unanswered at the time)' : 'your answer\u2026') + '"'
     + (sealed ? ' readonly data-sealed="1"' : '') + '>' + escHtml(x.a || '') + '</textarea></div>'
   ).join('');
+  // A-1: size every answer to its text now, and again on every keystroke
+  const dcGrow_ = (ta) => { ta.style.height = 'auto'; ta.style.height = Math.max(36, ta.scrollHeight) + 'px'; };
+  el('dcQA').querySelectorAll('textarea').forEach(ta => { dcGrow_(ta); ta.addEventListener('input', () => dcGrow_(ta)); });
+  requestAnimationFrame(() => el('dcQA').querySelectorAll('textarea').forEach(dcGrow_));   // fonts may land a beat later
   // Sealed answers stay read-only on the page; Edit unlocks them (imported history
   // needs correcting), and every keystroke saves the same way an open page does.
   {
@@ -6383,7 +6387,8 @@ function openDecision(id) {
     });
   }
   el('dcDecideRow').style.display = 'none';   // R1: the journey row holds the doors
-  el('dcRateBox').classList.toggle('hidden', !sealed);
+  el('dcRateBox').classList.toggle('hidden', !(sealed && !dcCanx_(d)));
+  el('dcHeadStars').classList.toggle('hidden', !(sealed && !dcCanx_(d)));
   if (sealed) dcRatePaint_();
   const miss = sealed ? [] : dcMissing_(d);
   el('dcCatch').classList.toggle('hidden', !miss.length);
@@ -6506,7 +6511,7 @@ function dcRatePaint_() {
   const d = dcRow_(); if (!d) return;
   const r = Number(d.satisfaction) || 0;
   el('dcRateStars').querySelectorAll('b').forEach((s, i) => s.classList.toggle('on', i < r));
-  el('dcRateCap').textContent = r ? DC_RATE_CAP[r] : 'tap a star when the years have spoken';
+  el('dcRateCap').textContent = r ? DC_RATE_CAP[r] : 'tap a star';
   el('dcRateCap').classList.toggle('hint', !r);
   el('dcRateBox').classList.toggle('unrated', !r && !(d.rating_note || '').trim());
   const note = (d.rating_note || '').trim();
