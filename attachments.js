@@ -189,6 +189,9 @@
       '.md-fig.md-print.pr-hand .pr-hint{bottom:48px}',
       '.md-fig.md-print.pr-edit{outline:2px dashed #b9c3d4;outline-offset:4px}',
       '.md-fig.md-print.pr-edit .pr-pic{cursor:crosshair}',
+      '.md-fig.md-print .pr-still{cursor:default;position:relative;display:flex;align-items:center;justify-content:center}',
+      '.md-fig.md-print .pr-still .mdf-play{font-size:2rem;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.6)}',
+      '.md-fig.md-print iframe.mdf-frame{display:block;width:100%;aspect-ratio:16/9;height:auto;border:none;background:#000}',
       '@media (max-width:560px){.md-fig.md-print{padding:10px}.md-fig.md-print.pr-hand{padding-bottom:36px}.md-fig.md-print .pr-pic{height:220px}.md-fig.md-print.pr-m .pr-pic{height:170px}.md-fig.md-print.pr-xl .pr-pic{height:300px}}'
     ].join('\n');
     document.head.appendChild(s);
@@ -233,18 +236,34 @@
         });
       }
     } else if (r.kind === 'youtube') {
-      fig.classList.add('md-yt');
+      // The video takes the print's discipline (Sep 2026): in Edit it is a sealed block with NO input
+      // inside the editable (an input in a contenteditable fights the caret and flickers), a still that
+      // is a background (never reloads), tools that swallow mousedown, the caption through LINE, and
+      // UP / DOWN to move it. Read mode plays the real player.
+      prCss_();
+      fig.classList.add('md-yt', 'md-print'); fig.classList.remove('md-ph');
+      fig.classList.toggle('pr-edit', editing);
+      fig.classList.toggle('pr-hand', !!(r.caption || '').trim());
       const id = youtubeId(r.url);
-      // In edit mode the player is a still (the video's own poster with a play mark): a live
-      // iframe inside a contenteditable repaints on every caret move and flickers. Read mode plays.
-      fig.innerHTML = (editing ? figTools_(st, r) : '') +
+      fig.innerHTML =
+        (editing ? '<span class="pr-tools" contenteditable="false">' +
+          '<button type="button" data-pr-line>&#9998; LINE</button>' +
+          '<button type="button" data-pr-up>&#8593; UP</button>' +
+          '<button type="button" data-pr-down>&#8595; DOWN</button>' +
+          '<button type="button" data-mdf-x title="Remove">&#10005; REMOVE</button></span>' : '') +
         (editing
-          ? '<div class="mdf-frame mdf-still" style="background-image:url(\'https://i.ytimg.com/vi/' + esc(id || '') + '/hqdefault.jpg\');"><span class="mdf-play">&#9654;</span></div>'
+          ? '<span class="pr-pic pr-still" style="background-image:url(\'https://i.ytimg.com/vi/' + esc(id || '') + '/hqdefault.jpg\');"><span class="mdf-play">&#9654;</span></span>'
           : '<iframe class="mdf-frame" src="https://www.youtube-nocookie.com/embed/' + esc(id || '') +
             '" allow="fullscreen; encrypted-media" allowfullscreen loading="lazy"></iframe>') +
-        (editing
-          ? '<input class="mdf-capin" data-mdf-cap placeholder="caption\u2026" value="' + esc(r.caption || '') + '">'
-          : (r.caption ? '<figcaption>' + esc(r.caption) + '</figcaption>' : ''));
+        ((r.caption || '').trim() ? '<span class="pr-line">' + esc(r.caption) + '</span>' : '');
+      if (editing) {
+        fig.querySelectorAll('.pr-tools button').forEach(b => b.addEventListener('mousedown', ev => { ev.preventDefault(); ev.stopPropagation(); }));
+        fig.querySelector('[data-pr-line]').addEventListener('click', async ev => { ev.stopPropagation();
+          const t = prompt('A few words under the video:', r.caption || ''); if (t === null) return;
+          try { await saveRow(st, r.id, { caption: t.trim() }); r.caption = t.trim(); delete fig.dataset.mdfDressed; hydrate(st); } catch (e) { toast('Could not save the line'); } });
+        fig.querySelector('[data-pr-up]').addEventListener('click', ev => { ev.stopPropagation(); prMove_(st, fig, -1); });
+        fig.querySelector('[data-pr-down]').addEventListener('click', ev => { ev.stopPropagation(); prMove_(st, fig, 1); });
+      }
     } else {
       fig.classList.add('md-alb');
       fig.innerHTML = (editing ? figTools_(st, r) : '') +
