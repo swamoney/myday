@@ -172,6 +172,13 @@
     root.dispatchEvent(new Event('input', { bubbles: true }));
     fig.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
+  // the print's tools: never focusable, and pointerdown (mouse or touch) never reaches the editable
+  function prArm_(fig) {
+    fig.querySelectorAll('.pr-tools button').forEach(b => {
+      b.setAttribute('tabindex', '-1');
+      ['pointerdown', 'mousedown', 'touchstart'].forEach(t => b.addEventListener(t, ev => { ev.preventDefault(); ev.stopPropagation(); }, { passive: false }));
+    });
+  }
   let prCssDone_ = false;
   function prCss_() {
     if (prCssDone_) return; prCssDone_ = true;
@@ -219,7 +226,7 @@
         ((r.caption || '').trim() ? '<span class="pr-line">' + esc(r.caption) + '</span>' : '');
       prApply_(fig);
       if (editing) {
-        fig.querySelectorAll('.pr-tools button').forEach(b => b.addEventListener('mousedown', ev => { ev.preventDefault(); ev.stopPropagation(); }));
+        prArm_(fig);
         fig.querySelector('[data-pr-fit]').addEventListener('click', ev => { ev.stopPropagation(); prSet_(st, fig, { fit: prCfg_(fig).fit === 'fill' ? 'fit' : 'fill' }); });
         fig.querySelector('[data-pr-sz]').addEventListener('click', ev => { ev.stopPropagation(); const o = ['m','l','xl'], c = prCfg_(fig); prSet_(st, fig, { sz: o[(o.indexOf(c.sz) + 1) % o.length] }); });
         fig.querySelector('[data-pr-line]').addEventListener('click', async ev => { ev.stopPropagation();
@@ -257,7 +264,7 @@
             '" allow="fullscreen; encrypted-media" allowfullscreen loading="lazy"></iframe>') +
         ((r.caption || '').trim() ? '<span class="pr-line">' + esc(r.caption) + '</span>' : '');
       if (editing) {
-        fig.querySelectorAll('.pr-tools button').forEach(b => b.addEventListener('mousedown', ev => { ev.preventDefault(); ev.stopPropagation(); }));
+        prArm_(fig);
         fig.querySelector('[data-pr-line]').addEventListener('click', async ev => { ev.stopPropagation();
           const t = prompt('A few words under the video:', r.caption || ''); if (t === null) return;
           try { await saveRow(st, r.id, { caption: t.trim() }); r.caption = t.trim(); delete fig.dataset.mdfDressed; hydrate(st); } catch (e) { toast('Could not save the line'); } });
@@ -332,7 +339,7 @@
       if (q) q.addEventListener('click', () => saveRow(st, r.id, { quiet: !r.quiet })
         .then(() => { q.classList.toggle('on', r.quiet); }).catch(() => toast('Could not save')));
       const x = fig.querySelector('[data-mdf-x]');
-      if (x) x.addEventListener('mousedown', ev => { ev.preventDefault(); ev.stopPropagation(); });
+      if (x) { x.setAttribute('tabindex', '-1'); ['pointerdown', 'mousedown', 'touchstart'].forEach(t => x.addEventListener(t, ev => { ev.preventDefault(); ev.stopPropagation(); }, { passive: false })); }
       if (x) x.addEventListener('click', async () => {
         if (!confirm(r.kind === 'photo' ? 'Remove this photo from the page?' : 'Remove this from the page?')) return;
         try {
@@ -742,7 +749,10 @@
       st._loaded = true;
       // the watcher: any repaint of the body re-dresses its figures
       if (st.watch.length && window.MutationObserver) {
-        st._obs = new MutationObserver(() => {
+        st._obs = new MutationObserver((ms) => {
+          // only the text around the figures matters; a change inside a figure (a tool tap, a repaint,
+          // a caption) must never re-run the dresser - that is the loop that flickers
+          if (!ms.some(m => !(m.target && m.target.closest && m.target.closest('figure[data-at]')))) return;
           clearTimeout(st._obsT);
           st._obsT = setTimeout(() => hydrate(st), 60);
         });
