@@ -161,7 +161,9 @@
   .dayn .big em { font-style:normal; color:#5b4a86; }
   /* S2: the ring keeps the number and the year; days-left steps out beneath */
   .dayn .ringwrap { text-align:center; flex-shrink:0; }
-  .dayn .rcap { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#182233; margin-top:8px; font-weight:700; }   /* C2: ink - the ring's second fact */
+  /* F5: the ring's second fact as a filled chip in the ring's violet, the number set large */
+  .dayn .rcap { display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.16em; color:#fff; background:#7a63c6; border-radius:8px; padding:5px 12px; margin-top:8px; font-weight:700; }
+  .dayn .rcap b { font-family:'IBM Plex Sans',system-ui,sans-serif; font-size:0.75rem; font-weight:800; letter-spacing:0; margin-right:5px; }
   .dayn .ask { display:block; margin-top:7px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.12em; color:#8a6d1f; font-weight:700; }
   .dayn .ask:empty { display:none; }
   .dayn .ask::before { content:'\25CF'; color:#f4c430; margin-right:6px; }
@@ -464,7 +466,7 @@ function paintDayCard() {
   const dc = el('dayCount'); if (dc) dc.innerHTML = 'Day ' + dayOfYear + ' of ' + total + '<span class="rm"> \u00B7 ' + remain + (remain === 1 ? ' remains' : ' remain') + '</span>';
   set('yearPct', pct + '%');
   set('yearOf', 'OF ' + y);
-  set('yearLeft', remain + (remain === 1 ? ' DAY LEFT' : ' DAYS LEFT'));
+  el('yearLeft').innerHTML = '<b>' + remain + '</b>' + (remain === 1 ? 'DAY LEFT' : 'DAYS LEFT');
   document.documentElement.style.setProperty('--yr', pct + '%');
   // W1: twelve month cells - past filled, the current part-filled by the day, the rest waiting
   const mg = el('dayMonthsGrid');
