@@ -141,6 +141,72 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**TODAY'S TO-DO (T1a + T3 + ASK)** (22 Sep 2026): each morning
+Rahul picks tasks from the priority matrix for today.
+- Data: why_priority.today_on (date, IST calendar day) + mornings
+  (int). 'In Today' = today_on == istToday(). Midnight needs no
+  job - the date stops matching. Closing NEVER clears today_on
+  (What I closed shows a gold '☀ TODAY' / '☀ A MORNING PICK'
+  chip where today_on == closed_on). migrate_today.sql - PENDING.
+- istToday()/istNowHm(): Intl Asia/Kolkata (the rest of the app
+  still uses UTC dates - known, separate fix later).
+- The band (#priToday, drawn inside renderPriority so every
+  redraw redraws it): gold; 'TUE 22 SEP - n OF m DONE - CLEARS
+  AT MIDNIGHT'; rust + 'TOO MANY?' at 4+ picks; empty state 'one
+  to three, with care'. T1a: rows picked today stay whatever
+  happened - a closed one is struck with 'CLOSED hh:mm'
+  (closed_hm, in memory for the session). 'nTH MORNING' on
+  rows picked 2+ mornings.
+- The sun (.pr-sun) on every matrix task, always visible (not
+  behind Edit); tap = pick (today_on=today, mornings+1),
+  tap again = un-pick (today_on=null, mornings-1) - a same-day
+  re-pick does not double count. Picked rows wear a gold wash.
+- ASK: the band's tick opens the close window dressed for the
+  morning - title '☀ Done today?', DONE pre-chosen, today's
+  date, line optional, button '✓ Done', Remove disabled. The
+  matrix circle keeps the full window as before.
+- T3: the hub's My Why door shows a gold '☀ n FOR TODAY' link
+  (open picks left; '- ALL DONE' at zero) -> why.html?sec=priority
+  (new deep link; ?sec= accepts any section). A once-a-minute
+  check redraws the room when the IST date turns.
+- Export carries today_on + mornings; print lists today's picks
+  first under '☀ Today's to-do'.
+Harness: deep link, band, suns, pick/un-pick/re-pick counts,
+ASK window fields, close keeps today_on, band struck line,
+matrix drops the row, archive marks.
+
+**HUB-F5** (20 Sep 2026): the year ring's second fact on the hub ('102 DAYS LEFT') is a filled chip in the ring's violet (#7a63c6), white mono caps with the number set large in sans 800.
+
+**FIGURE-STEADY** (15 Sep 2026): three guards for every print/video in every editor - (1) the album's MutationObserver ignores any mutation whose target sits inside a figure[data-at] (a tool tap, a repaint, a caption change can never re-run the dresser - the loop that flickers); (2) the tools are unfocusable (tabindex -1) and swallow pointerdown / mousedown / touchstart, so a tap never moves the caret or, on a phone, the keyboard; (3) REMOVE resolves by id and sweeps every copy. prArm_(fig) applies (2).
+
+**VIDEO-PRINT** (15 Sep 2026): the YouTube figure in every editor takes the print's discipline - in Edit it is a sealed block in the same white mat with NO <input> inside the editable (the caption input was the likely cause of the flicker and the lost delete: an input inside a contenteditable fights the caret), a poster still as a background span, tools that swallow mousedown (LINE via prompt, UP / DOWN, REMOVE with the sweep); reading plays the real player at 16:9 inside the mat with the hand-written line beneath. Harness: read/edit dress, no input, same still after typing, move, remove.
+
+**DC-TOPEDIT** (15 Sep 2026): a dream's / decision's page bar gains an Edit door at the top right (#dcEditTop, the roadmap's .eb pencil button; gold-hot and 'Done' while editing) - a twin of the foot's toggle, wired through it.
+
+**DC-BOTH** (14 Sep 2026): a new dream or decision takes ALL the questions (qset 'both' - the questions now, then the first ten under their pill); a dream's dialog still offers THE QUESTIONS (= both) or PREPARATION. No set to choose for a decision.
+
+**DC-D1b** (14 Sep 2026): the 'Edit details - name, dates, verdict' door had slipped below the picture (the poster was inserted above it in H1) - it now lives inside the plate's words column, right under the meta, and in Edit the NAME itself is tappable (dotted underline) to open the same dialog.
+
+**DC-Q1c (P1)** (14 Sep 2026): the new set is simply the checklist - no heading; on a page that also holds the first ten they begin under a small umber pill (.dc-shelf.first, the trail's idiom) spanning the grid row, then their umber-badged cards. One-set pages show no pill.
+
+**DC-BOARD-EDIT** (14 Sep 2026): the thinking board on a dream's / decision's page mounts read-only and wakes with Edit (MyBoard.setReadOnly in setDcEditing) - PIN A NOTE, the note inputs and the x's show only while editing; notes still read in reading mode.
+
+**DC-Q1b (B2)** (14 Sep 2026): the page's two shelf headings are .dc-qshelf (their own class - the earlier .dc-shelf collided with the trail's pill on the index and stretched it into a band), span the checklist grid's full row (grid-column 1/-1), and are SOLID bands with white type - ink-teal for THE QUESTIONS NOW, umber for THE FIRST TEN.
+
+**DC-Q1: two shelves on the page** (14 Sep 2026): when a page holds both sets the checklist is drawn as two shelves with ruled headings and counts - 'THE QUESTIONS NOW' (ink-teal) then 'THE FIRST TEN' (umber, umber number badges); a page with one set shows just that set, no heading. Nothing re-stored - the ten are the fixed list; each textarea keeps its data-dcq index. And the New dialog no longer asks which set: a decision takes the questions now (qset 'new'); only a dream sees 'The list' - THE QUESTIONS or PREPARATION. BOTH / THE TEN buttons stay in the markup hidden (their counters are still painted). Index and trail untouched. Harness: shelves, counts, indices, one-set pages, dialog rows, a new decision's qset + questions.
+
+**DC-HAND (H1 + D)** (14 Sep 2026): checklist answers are written in a HAND - Caveat (already loaded on the page), 1.25rem, blue-black pen ink (#1f3d7a), faint ruled lines drawn on the hand's line height (a repeating gradient on the textarea, content-box) - the same in reading and in Edit; the placeholder stays in the sans. Questions stay in the serif so the two voices never blur.
+
+**DC-S1 + A1** (14 Sep 2026): on a lived page the rating leaves the foot - the STARS and their caption sit under the STAMP in the marks column (#dcHeadStars, tapped in Edit; a tap repaints the plate's weather), and the looking-back LINE sits under the name as the page's epigraph (#dcRateBox now .dc-epi: italic serif in reading, a dashed input in Edit). Hidden on cancelled and un-sealed pages. And A-1: every checklist answer box grows to its text (dcGrow_ on render, on input, and a frame later for fonts), resize:none, overflow hidden - long answers show in full.
+
+**DC-WEATHER** (14 Sep 2026): the lived plate wears the row's WEATHER (T2): 5 deep moss, 4 soft moss, 3 ink-teal on white, 2 dusk rose, 1 ember - paper, edge, rule, eyebrow, bar, seal and stamp all take the weather's ink (--dc-paper / --dc-edge on the plate); unrated stays the default moss, cancelled ash. The plate painter is its own function (dcPaintPlate_) so a star tap repaints the head at once.
+
+**DC-STAMPS (B)** (14 Sep 2026): every dream's / decision's page carries the box stamp, in its state's ink and words - DECISION PENDING rust (a decision, or a dream that needs deciding), A DREAM AHEAD teal, WORK IN PROGRESS stamp-pad blue, LIVED moss with the date, WALKED AWAY ash. dcStampSvg_(l1, l2, ink) + dcStampFor_(d, sealed, wip); repainted on every open.
+
+**DC-META** (14 Sep 2026): the three old pills on a lived page (TARGET / FINALIZED WITH CARE - date / IT HAPPENED - date) retire - the journey row and the eyebrow say all of it; the only pill left is NOT YET LIVED for a legacy row sealed without a happened date.
+
+**DC-O4** (14 Sep 2026): on a lived or cancelled page the target date is a reference, not a call - the gold chip stays hidden and the eyebrow ends '... - TARGET WAS 31 DEC 2026'.
+
 **DC-R1 + B4-1 + R-a + S-b: the journey row, the wash, the stamp**
 (14 Sep 2026): a dream's or decision's page carries its whole
 journey on ONE ROW under the signature bar (#dcJourney): a dream

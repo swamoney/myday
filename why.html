@@ -1098,6 +1098,35 @@
   /* The section's own controls: add is the daily action and keeps its words;
      edit is a pencil, the same mark used on mantra and circle cards. */
   .pr-tb { display:flex; justify-content:flex-end; gap:7px; margin-bottom:13px; }
+  /* TODAY'S TO-DO (T1a): the morning band in gold; rust when it grows past three */
+  .pr-today { border:1.5px solid #e6d28a; background:linear-gradient(160deg,#fffbea,#fdf4d0); border-radius:14px; padding:14px 16px; margin-bottom:14px; }
+  .pr-today.rust { border-color:#e0b9a8; background:linear-gradient(160deg,#fff4ee,#fbe6db); }
+  .pr-today .hd { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .pr-today .hd b { font-family:var(--mono); font-size:0.5938rem; font-weight:700; letter-spacing:0.16em; color:#8a6d1f; }
+  .pr-today.rust .hd b, .pr-today.rust .hd span { color:#9a4a2e; }
+  .pr-today .hd i { flex:1; }
+  .pr-today .hd span { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.14em; color:#9a7d4d; text-align:right; }
+  .pr-td { display:flex; align-items:flex-start; gap:10px; padding:7px 8px; border-radius:8px; background:rgba(255,255,255,0.6); margin-bottom:5px; }
+  .pr-td.done { opacity:0.7; }
+  .pr-tdbox { width:24px; height:24px; border-radius:50%; border:2px solid #8a6d1f; background:none; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; padding:0; }
+  .pr-tdbox svg { width:14px; height:14px; }
+  .pr-td.done .pr-tdbox { background:#2E6640; border-color:#2E6640; cursor:default; }
+  .pr-td .t { flex:1; font-size:0.8125rem; font-weight:600; color:#232f45; line-height:1.35; background:none; border:none; text-align:left; padding:2px 0; cursor:pointer; font-family:var(--sans); }
+  .pr-td.done .t { text-decoration:line-through; color:#8a97b3; cursor:default; }
+  .pr-td .q { font-family:var(--mono); font-size:0.4375rem; font-weight:700; letter-spacing:0.12em; border-radius:5px; padding:3px 6px; color:#fff; flex-shrink:0; margin-top:3px; }
+  .pr-td .w { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#b0894a; flex-shrink:0; margin-top:5px; white-space:nowrap; }
+  .pr-td .x { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#9aa5b8; flex-shrink:0; margin-top:5px; white-space:nowrap; }
+  .pr-tdempty { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#8a6d1f; padding:4px 4px 2px; }
+  /* the sun on each task in the matrix - a daily act, never behind Edit */
+  .pr-sun { flex-shrink:0; width:26px; height:26px; margin-top:1px; padding:0; border:none; background:none; cursor:pointer; font-size:0.9375rem; color:#c9c2ad; line-height:1; }
+  .pr-sun.on { color:#8a6d1f; }
+  .pr-tkrow.picked { background:rgba(244,196,48,0.18); }
+  .pr-tkrow.picked:hover { background:rgba(244,196,48,0.28); }
+  /* the morning mark in What I closed */
+  .pr-chip.sun { background:#f4c430 !important; color:#2a1d08 !important; }
+  /* ASK: the close window dressed for the morning */
+  .modal.morning .modal-title { color:#8a6d1f; }
+  .modal.morning .modal-title::before { content:'\2600  '; }
   .pr-tbtn { display:inline-flex; align-items:center; gap:6px; font-family:inherit; font-size:0.7188rem;
              font-weight:600; border-radius:9px; padding:7px 12px; cursor:pointer;
              border:1px solid #dfe5ee; background:#fff; color:#4A5570; transition:border-color .14s, color .14s; }
@@ -1607,6 +1636,8 @@
           <span>Add a task</span>
         </button>
       </div>
+      <!-- TODAY (T1a): the morning's picks - a view of the same rows whose today_on is today (IST) -->
+      <div class="pr-today" id="priToday"></div>
       <div class="pr-axtop"><span>URGENT</span><span>NOT URGENT</span></div>
       <div class="pr-axrow">
         <div class="pr-axleft"><span>IMPORTANT</span><span>NOT IMPORTANT</span></div>
@@ -2485,6 +2516,9 @@ async function loadPillars() {
   // A dot on the hub can point here: ?rm=<id> opens that roadmap on arrival.
   const rmQ = new URLSearchParams(location.search).get('rm');
   if (rmQ && pillars.some(p => String(p.id) === String(rmQ))) openRoadmap(rmQ);
+  // ...and ?sec=priority lands on the morning band (T3's pulse on the hub)
+  const secQ = new URLSearchParams(location.search).get('sec');
+  if (secQ && ['pillars','mantra','circle','explore','priority','decisions'].includes(secQ)) showSection(secQ);
   const sd = el('soulDots');
   if (sd) {
     sd.innerHTML = pillars.map((p, i) => {
@@ -2625,7 +2659,8 @@ async function exportWhy() {
     zip.file('priority.json', JSON.stringify(priority.map(t => ({
       title: t.title, quadrant: t.quadrant, note: t.note, status: t.status,
       outcome_note: t.outcome_note, delegated_to: t.delegated_to,
-      closed_on: t.closed_on, moves: t.moves, created_at: t.created_at
+      closed_on: t.closed_on, moves: t.moves, created_at: t.created_at,
+      today_on: t.today_on || null, mornings: t.mornings || 0
     })), null, 2));
     zip.file('explore-list.json', JSON.stringify(places.map(p => ({
       name: p.name, city: p.city, kind: p.kind, note: p.note,
@@ -2911,6 +2946,9 @@ function printSection() {
   if (activeSec === 'priority') {
     const open = priority.filter(t => (t.status || 'open') === 'open');
     let body = '<div class="eyebrow">My Why</div><h1>My Priority</h1>';
+    const picks = priority.filter(priIsToday_);
+    if (picks.length) body += '<h2>\u2600 Today\u2019s to-do <span class="meta">(' + e(priFmt(istToday())) + ')</span></h2><ul>'
+      + picks.map(t => '<li>' + ((t.status || 'open') !== 'open' ? '\u2713 ' : '') + e(t.title || '') + ' <span class="meta">' + e((PRI_Q[t.quadrant || 'q2'] || {}).code || '') + '</span></li>').join('') + '</ul>';
     ['q1','q2','q3','q4'].forEach(k => {
       const rows = open.filter(t => (t.quadrant || 'q2') === k); if (!rows.length) return;
       const q = PRI_Q[k];
@@ -3993,6 +4031,7 @@ let mantras = [], circle = [], places = [], placeCity = 'All', editingPlace = nu
 let activeSec = 'priority';
 function showSection(sec) {
   if (sec === 'bucket') sec = 'decisions';     // MW-C: the bucket's dreams live in My Dreams & Decisions now
+  if (sec === 'priority' && el('priToday')) setTimeout(() => { const b = el('priToday'); if (b && new URLSearchParams(location.search).get('sec') === 'priority') b.scrollIntoView({ block: 'start' }); }, 50);
   activeSec = sec;
   // Arriving at a partial list with no memory of why is worse than one more tap.
   if (sec !== 'circle') circleTag = '';
@@ -5141,21 +5180,79 @@ async function loadPriority() {
   priority = data || [];
   renderPriority();
 }
+// TODAY'S TO-DO: 'today' is the Indian calendar day, whatever the phone's zone (finding 1)
+function istToday() {
+  try { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+  catch (e) { return new Date().toISOString().slice(0, 10); }
+}
+function istNowHm() {
+  try { return new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()); }
+  catch (e) { const n = new Date(); return String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); }
+}
+function priIsToday_(t) { return !!t.today_on && String(t.today_on).slice(0, 10) === istToday(); }
+// the band: every row picked this morning, whatever became of it since (T1a)
+function renderPriToday() {
+  const box = el('priToday'); if (!box) return;
+  const today = istToday();
+  const picks = priority.filter(priIsToday_);
+  const done = picks.filter(t => (t.status || 'open') !== 'open');
+  const dt = new Date(today + 'T00:00:00');
+  const MON = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'], WD = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const day = isNaN(dt) ? today : WD[dt.getDay()] + ' ' + dt.getDate() + ' ' + MON[dt.getMonth()];
+  const many = picks.length >= 4;
+  box.classList.toggle('rust', many);
+  const hd = '<div class="hd"><b>\u2600 TODAY\u2019S TO-DO</b><i></i><span>' + escHtml(day) + ' \u00B7 '
+    + (picks.length ? done.length + ' OF ' + picks.length + ' DONE \u00B7 ' : '') + (many ? 'TOO MANY?' : 'CLEARS AT MIDNIGHT') + '</span></div>';
+  if (!picks.length) { box.innerHTML = hd + '<div class="pr-tdempty">Nothing chosen yet \u2014 tap the \u2600 on a task below. One to three, with care.</div>'; return; }
+  box.innerHTML = hd + picks.map(t => {
+    const q = PRI_Q[t.quadrant || 'q2'] || PRI_Q.q2, isDone = (t.status || 'open') !== 'open';
+    const m = Number(t.mornings) || 0;
+    const nth = m >= 2 ? (m === 2 ? '2ND' : m === 3 ? '3RD' : m + 'TH') + ' MORNING' : '';
+    return '<div class="pr-td' + (isDone ? ' done' : '') + '">'
+      + '<button type="button" class="pr-tdbox" data-tdclose="' + t.id + '" title="' + (isDone ? 'Closed' : 'Done today?') + '"' + (isDone ? ' disabled' : '') + '>'
+      + (isDone ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</button>'
+      + '<button type="button" class="t" data-tdedit="' + t.id + '"' + (isDone ? ' disabled' : '') + '>' + escHtml(t.title || '') + '</button>'
+      + '<span class="q" style="background:' + q.acc + '">' + q.code + '</span>'
+      + (isDone ? '<span class="x">CLOSED' + (t.closed_hm ? ' ' + escHtml(t.closed_hm) : '') + '</span>' : (nth ? '<span class="w">' + nth + '</span>' : ''))
+      + '</div>';
+  }).join('');
+}
+// a tap on the sun: pick for today / un-pick; the mornings count follows the days, not the taps (finding 7)
+async function priSun_(id) {
+  const t = priority.find(x => String(x.id) === String(id)); if (!t) return;
+  const today = istToday();
+  const picked = priIsToday_(t);
+  const wasEver = !!t.today_on;
+  const rec = picked
+    ? { today_on: null, mornings: Math.max(0, (Number(t.mornings) || 0) - 1) }
+    : { today_on: today, mornings: (Number(t.mornings) || 0) + 1 };
+  if (!picked && wasEver && String(t.today_on) === today) rec.mornings = Number(t.mornings) || 0;   // same-day re-pick after an un-pick: no double count
+  rec.updated_at = new Date().toISOString();
+  const { error } = await supa.from('why_priority').update(rec).eq('id', id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not change today'); return; }
+  Object.assign(t, rec); renderPriority();
+  toast(picked ? 'Off today\u2019s list' : 'On today\u2019s list');
+}
+// a page left open overnight: when the Indian date turns, the room redraws (finding 8)
+let priLastDay_ = istToday();
+setInterval(() => { const n = istToday(); if (n !== priLastDay_) { priLastDay_ = n; renderPriority(); } }, 60000);
 function renderPriority() {
   const mx = el('priMatrix'); if (!mx) return;
   const open = priority.filter(t => (t.status || 'open') === 'open');
+  renderPriToday();
 
   mx.innerHTML = PRI_GRID.map(key => {
     const q = PRI_Q[key];
     const rows = open.filter(t => (t.quadrant || 'q2') === key);
     const items = rows.length
-      ? rows.map(t => '<div class="pr-tkrow">'
+      ? rows.map(t => '<div class="pr-tkrow' + (priIsToday_(t) ? ' picked' : '') + '">'
           + '<button class="pr-tkbox" type="button" data-priclose="' + t.id + '" title="Close this task" aria-label="Close this task">'
           + '<i style="border-color:' + q.acc + ';color:' + q.acc + '">'
           + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
           + '</i></button>'
           + '<button class="pr-tk" type="button" data-pri="' + t.id + '" title="Edit">'
-          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button></div>').join('')
+          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button>'
+          + '<button class="pr-sun' + (priIsToday_(t) ? ' on' : '') + '" type="button" data-prisun="' + t.id + '" title="' + (priIsToday_(t) ? 'Take off today\u2019s list' : 'Do this today') + '">\u2600</button></div>').join('')
       : '<div class="pr-qempty">nothing here</div>';
     return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
       + '<div class="pr-qc" style="color:' + q.acc + '">' + q.code + ' \u00B7 ' + q.verb + '</div>'
@@ -5198,6 +5295,7 @@ function renderPriArchive() {
         + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
         + '<span class="pr-pair">'
           + '<i class="pr-chip" style="background:' + ci + '1f;color:' + ci + '">' + q.code + '</i>'
+          + (t.today_on && t.closed_on && String(t.today_on).slice(0, 10) === String(t.closed_on).slice(0, 10) ? '<i class="pr-chip sun">\u2600 ' + (String(t.closed_on).slice(0, 10) === istToday() ? 'TODAY' : 'A MORNING PICK') + '</i>' : '')
           + '<i class="pr-chip neutral">' + escHtml(priFmt(t.closed_on)) + '</i>'
         + '</span></span></div>';
     }).join('');
@@ -5283,18 +5381,26 @@ async function deletePri() {
   if (error) { console.error(error); toast('Could not delete'); return; }
   closePriModal(); await loadPriority(); toast('Removed');
 }
-function openPriClose(id) {
-  closingPri = id;
+function openPriClose(id, morning) {
+  closingPri = id; priMorningClose_ = !!morning;
   const t = priority.find(x => String(x.id) === String(id)); if (!t) return;
   el('priCloseTitle').textContent = t.title || '';
-  el('fPriOutcome').value = (t.status && t.status !== 'open') ? t.status : (t.quadrant === 'q4' ? 'deleted' : 'done');
+  // ASK: from the band the window arrives ready - DONE chosen, today's date, the line optional
+  el('fPriOutcome').value = morning ? 'done' : ((t.status && t.status !== 'open') ? t.status : (t.quadrant === 'q4' ? 'deleted' : 'done'));
   el('priCloseSave').classList.remove('is-danger');
   el('fPriWho').value = t.delegated_to || '';
   el('fPriWhy').value = t.outcome_note || '';
-  el('fPriOn').value = t.closed_on || new Date().toISOString().slice(0, 10);
+  el('fPriOn').value = t.closed_on || istToday();
+  const box = el('priCloseModal').querySelector('.modal');
+  box.classList.toggle('morning', !!morning);
+  box.querySelector('.modal-title').textContent = morning ? 'Done today?' : 'How did this end?';
+  el('fPriOutcome').querySelector('[value="remove"]').disabled = !!morning;   // a morning tick is never 'delete with no record'
   priOutcomeUi_();
+  if (morning) { el('priCloseSave').textContent = '\u2713 Done'; el('fPriWhy').placeholder = 'a line about it (optional)'; }
+  else el('fPriWhy').placeholder = 'one line you will want to read in ten years';
   el('priCloseModal').classList.remove('hidden');
 }
+let priMorningClose_ = false;
 function priOutcomeUi_() {
   const v = el('fPriOutcome').value;
   const gone = v === 'remove';
@@ -5303,7 +5409,7 @@ function priOutcomeUi_() {
   el('fPriWhyWrap').classList.toggle('hidden', gone);
   el('fPriOnWrap').classList.toggle('hidden', gone);
   el('priRemoveWarn').classList.toggle('hidden', !gone);
-  el('priCloseSave').textContent = gone ? 'Remove it' : 'Close the task';
+  el('priCloseSave').textContent = gone ? 'Remove it' : (priMorningClose_ ? '\u2713 Done' : 'Close the task');
   el('priCloseSave').classList.toggle('is-danger', gone);
   el('fPriWhyLabel').textContent = v === 'deleted' ? 'Why you decided against it'
     : (v === 'delegated' ? 'What you handed over' : 'What happened');
@@ -5323,14 +5429,23 @@ async function savePriClose() {
   }
   const rec = { status: v, outcome_note: el('fPriWhy').value.trim(),
                 delegated_to: v === 'delegated' ? el('fPriWho').value.trim() : '',
-                closed_on: el('fPriOn').value || new Date().toISOString().slice(0, 10),
+                closed_on: el('fPriOn').value || istToday(),
                 updated_at: new Date().toISOString() };
+  { const t = priority.find(x => String(x.id) === String(closingPri)); if (t && priIsToday_(t)) t.closed_hm = istNowHm(); }   // the band's struck line shows the time
   const { error } = await supa.from('why_priority').update(rec).eq('id', closingPri).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
   el('priCloseModal').classList.add('hidden'); closingPri = null;
   await loadPriority(); toast('Recorded');
 }
+el('priToday').addEventListener('click', e => {
+  const c = e.target.closest('[data-tdclose]');
+  if (c) { openPriClose(c.dataset.tdclose, true); return; }
+  const t = e.target.closest('[data-tdedit]');
+  if (t) openPriModal(t.dataset.tdedit);
+});
 el('priMatrix').addEventListener('click', e => {
+  const s = e.target.closest('[data-prisun]');
+  if (s) { priSun_(s.dataset.prisun); return; }
   const c = e.target.closest('[data-priclose]');
   if (c) { openPriClose(c.dataset.priclose); return; }
   const t = e.target.closest('[data-pri]');

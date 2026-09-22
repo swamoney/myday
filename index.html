@@ -218,6 +218,8 @@
   .srow .p { font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; letter-spacing:0.1em; margin-top:6px; min-height:0; opacity:0.82; }
   .srow .p:empty { display:none; }
   .srow .p b { font-weight:700; opacity:1; }
+  /* TODAY'S TO-DO (T3): the gold pulse on the My Why door - its own link inside the door */
+  .srow .p a.gold { display:inline-block; background:#f4c430; color:#2a1d08; border-radius:6px; padding:3px 7px; text-decoration:none; opacity:1; font-weight:700; }
   .srow.keeprow .n { font-size:1rem; color:#68789a; }
   .srow:hover .n { text-decoration:underline; text-decoration-color:#cfd6e4; text-underline-offset:4px; }
   @media (max-width:560px) {
@@ -509,6 +511,11 @@ async function loadPulses(uid) {
   // why: decisions pending + nearest planned dream
   const dc = await q(() => supa.from('why_decisions').select('id, title, target_on, status').eq('user_id', uid).neq('status', 'trail'));
   v.pending = dc ? (dc.data || []).filter(r => r.status !== 'wip').length : null;
+  // TODAY'S TO-DO (T3): open picks left this morning, on the Indian calendar day
+  { let ist = today; try { ist = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); } catch (e) {}
+    const td = await q(() => supa.from('why_priority').select('id, status').eq('user_id', uid).eq('today_on', ist));
+    v.todayPicks = td ? (td.data || []).length : null;
+    v.todayLeft = td ? (td.data || []).filter(r => (r.status || 'open') === 'open').length : null; }
   v.living = dc ? (dc.data || []).filter(r => r.status === 'wip').length : null;
   v.decideBy = null;
   if (dc) (dc.data || []).forEach(r => { if (r.target_on && r.target_on >= today) { const dd = Math.round((new Date(r.target_on) - new Date(today)) / 86400000); if (dd <= 30 && (!v.decideBy || dd < v.decideBy.days)) v.decideBy = { days: dd, title: r.title, on: r.target_on }; } });
@@ -545,6 +552,7 @@ function paintPulses(v, prefs) {
   const ask = el('dayAsk'); if (ask) ask.textContent = v.dayWritten ? '' : 'ENTRY NOT YET WRITTEN';
   // why
   let w = [];
+  if (v.todayPicks) w.push('<a class="gold" href="' + ROOMS.why + '?sec=priority">\u2600 <b>' + v.todayLeft + '</b> FOR TODAY' + (v.todayLeft === 0 ? ' \u00B7 ALL DONE' : '') + '</a>');
   if (v.living) w.push('<b>' + v.living + '</b> IN PROGRESS');
   if (v.pending != null) w.push('<b>' + v.pending + '</b> DECISION' + (v.pending === 1 ? '' : 'S') + ' PENDING');
   if (v.dream != null) w.push('<b>1</b> DREAM AHEAD \u00B7 ' + (v.dream === 0 ? 'TODAY' : v.dream === 1 ? 'TOMORROW' : v.dream + ' DAYS'));
