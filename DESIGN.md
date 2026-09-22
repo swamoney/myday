@@ -141,6 +141,10 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**EXPORT GAP CLOSED** (22 Sep 2026): found while cutting the bucket - the (c) export zip had never carried My Dreams & Decisions. It now writes dreams-and-decisions.json (title, kind, status, pending, qset, answers, dates, verdict, stars, story) and the READ-ME names it.
+
+**BUCKET DROPPED** (22 Sep 2026): bucket_items is retired for good - why.html no longer loads it on arrival, the export no longer writes bucket-list.json (the dreams count in my-why.html comes from why_decisions kind='dream'), restore.html no longer lists the table. drop_bucket_items.sql drops it (PENDING - run once, after an export). The bucket code still sleeps in why.html, never called.
+
 **TODAY'S TO-DO (T1a + T3 + ASK)** (22 Sep 2026): each morning
 Rahul picks tasks from the priority matrix for today.
 - Data: why_priority.today_on (date, IST calendar day) + mornings

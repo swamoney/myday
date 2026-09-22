@@ -2540,7 +2540,7 @@ async function loadPillars() {
   if (typeof loadPlaces === 'function') loadPlaces();
   if (typeof loadDecisions === 'function') loadDecisions();
   if (typeof loadPriority === 'function') loadPriority();
-  if (typeof loadBuckets === 'function') loadBuckets();
+  // bucket_items is dropped (Sep 2026) - the dreams live in My Dreams & Decisions; the bucket code sleeps in the file, never called
 }
 
 // Seven colours, spread across however many pillars there are — four whys take
@@ -2662,14 +2662,14 @@ async function exportWhy() {
       closed_on: t.closed_on, moves: t.moves, created_at: t.created_at,
       today_on: t.today_on || null, mornings: t.mornings || 0
     })), null, 2));
+    zip.file('dreams-and-decisions.json', JSON.stringify(dcRows.map(r => ({
+      title: r.title, kind: r.kind || 'decision', status: r.status, pending: !!r.pending, qset: r.qset,
+      answers: r.answers, target_on: r.target_on, made: r.made, decided_on: r.decided_on, happened_on: r.happened_on,
+      satisfaction: r.satisfaction, rating_note: r.rating_note, note_html: r.note_html, created_at: r.created_at
+    })), null, 2));
     zip.file('explore-list.json', JSON.stringify(places.map(p => ({
       name: p.name, city: p.city, kind: p.kind, note: p.note,
       status: p.status, last_on: p.last_on, created_at: p.created_at
-    })), null, 2));
-    zip.file('bucket-list.json', JSON.stringify(buckets.map(b => ({
-      title: b.title, status: b.status, dreamed_on: b.dreamed_on,
-      planned_on: b.planned_on, lived_on: b.lived_on, why_html: b.why_html,
-      created_at: b.created_at
     })), null, 2));
 
     // --- a readable book of the whole room ---
@@ -2853,7 +2853,7 @@ async function exportWhy() {
       + '<style>' + NoteEditor.contentCSS('body') + '</style>'
       + '</head><body><h1>My Why</h1><p class="meta">Exported ' + today + ' \u00B7 '
       + pillars.length + ' pillars \u00B7 ' + mantras.length + ' mantras \u00B7 '
-      + circle.length + ' people \u00B7 ' + buckets.length + ' dreams \u00B7 ' + places.length + ' places</p>' + body + '</body></html>';
+      + circle.length + ' people \u00B7 ' + dcRows.filter(r => dcIsDream_(r)).length + ' dreams \u00B7 ' + places.length + ' places</p>' + body + '</body></html>';
     zip.file('my-why.html', doc);
 
     zip.file('READ-ME-FIRST.txt',
@@ -2862,7 +2862,7 @@ async function exportWhy() {
       + 'pillars.json   The four pillars, their notes and long-term roadmaps.\n'
       + 'mantras.json   Every mantra, in both plain text and formatted form.\n'
       + 'circle.json    The people, by band.\n'
-      + 'bucket-list.json  Every dream, with its status and dates.\n'
+      + 'dreams-and-decisions.json  Every dream and decision: the checklist answers, the verdict, the dates, the stars.\n'
       + 'explore-list.json Places worth going, by city.\n'
       + 'priority.json     The four quadrants, open and closed, with outcomes.\n\n'
       + 'The .json files are the raw records \u2014 keep them even if you never open them.\n'
