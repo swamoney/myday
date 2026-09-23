@@ -1113,6 +1113,7 @@
   .pr-td.done .pr-tdbox { background:#2E6640; border-color:#2E6640; cursor:default; }
   .pr-td .t { flex:1; font-size:0.8125rem; font-weight:600; color:#232f45; line-height:1.35; background:none; border:none; text-align:left; padding:2px 0; cursor:pointer; font-family:var(--sans); }
   .pr-td.done .t { text-decoration:line-through; color:#8a97b3; cursor:default; }
+  .pr-td.done .t .pr-tag { text-decoration:none; color:#9aa5b8; }
   .pr-td .q { font-family:var(--mono); font-size:0.4375rem; font-weight:700; letter-spacing:0.12em; border-radius:5px; padding:3px 6px; color:#fff; flex-shrink:0; margin-top:3px; }
   .pr-td .w { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#b0894a; flex-shrink:0; margin-top:5px; white-space:nowrap; }
   .pr-td .x { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#9aa5b8; flex-shrink:0; margin-top:5px; white-space:nowrap; }
@@ -1160,9 +1161,8 @@
   .pr-od { flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
   .pr-od b { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.13em; }
   /* The quadrant keeps its own colour; the date stays neutral beside it. */
-  /* TAGS: a small mono word in an outline - never a fill; the quadrant keeps the colour */
-  .pr-tag { font-family:var(--mono); font-size:0.4375rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#5f6a80; border:1px solid #cfd6e4; border-radius:5px; padding:2px 6px; white-space:nowrap; flex-shrink:0; align-self:center; }
-  .pr-tag.ink { color:#144552; border-color:#a9c0c8; }
+  /* TAGS (A): the tag is an EYEBROW above the title - the first thing the eye reads; deep ink, never a fill */
+  .pr-tag { display:block; font-family:var(--mono); font-size:0.4375rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#144552; margin-bottom:2px; line-height:1.3; }
   .pr-taghint { font-weight:400; opacity:0.7; letter-spacing:0.08em; }
   .pr-tags { display:flex; gap:5px; flex-wrap:wrap; }
   .pr-tags button { font-family:var(--mono); font-size:0.4688rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#5f6a80; border:1px solid #cfd6e4; border-radius:999px; padding:5px 10px; background:#fff; cursor:pointer; }
@@ -5216,7 +5216,7 @@ async function savePriTags() {
   const { error } = await supa.from('user_prefs').upsert({ user_id: userId, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
   if (error) throw error;
 }
-function priTagHtml_(t, ink) { return t && t.tag ? '<span class="pr-tag' + (ink ? ' ink' : '') + '">' + escHtml(t.tag) + '</span>' : ''; }
+function priTagHtml_(t) { return t && t.tag ? '<span class="pr-tag">' + escHtml(t.tag) + '</span>' : ''; }
 function paintPriTagPills_() {
   const box = el('priCloseModal') && !el('priCloseModal').classList.contains('hidden') ? el('fPriCloseTags') : el('fPriTags'); if (!box) return;
   box.innerHTML = priTags.map(w => '<button type="button" data-tag="' + escHtml(w) + '"' + (w === priTagPick ? ' class="on"' : '') + '>' + escHtml(w) + '</button>').join('')
@@ -5314,7 +5314,7 @@ function renderPriToday() {
     return '<div class="pr-td' + (isDone ? ' done' : '') + '">'
       + '<button type="button" class="pr-tdbox" data-tdclose="' + t.id + '" title="' + (isDone ? 'Closed' : 'Done today?') + '"' + (isDone ? ' disabled' : '') + '>'
       + (isDone ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</button>'
-      + '<button type="button" class="t" data-tdedit="' + t.id + '"' + (isDone ? ' disabled' : '') + '>' + escHtml(t.title || '') + '</button>' + priTagHtml_(t)
+      + '<button type="button" class="t" data-tdedit="' + t.id + '"' + (isDone ? ' disabled' : '') + '>' + priTagHtml_(t) + escHtml(t.title || '') + '</button>'
       + '<span class="q" style="background:' + q.acc + '">' + q.code + '</span>'
       + (isDone ? '<span class="x">CLOSED' + (t.closed_hm ? ' ' + escHtml(t.closed_hm) : '') + '</span>' : (nth ? '<span class="w">' + nth + '</span>' : ''))
       + '</div>';
@@ -5354,7 +5354,7 @@ function renderPriority() {
           + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
           + '</i></button>'
           + '<button class="pr-tk" type="button" data-pri="' + t.id + '" title="Edit">'
-          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button>' + priTagHtml_(t)
+          + '<span class="pr-tkt">' + priTagHtml_(t) + escHtml(t.title || '') + '</span></button>'
           + '<button class="pr-sun' + (priIsToday_(t) ? ' on' : '') + '" type="button" data-prisun="' + t.id + '" title="' + (priIsToday_(t) ? 'Take off today\u2019s list' : 'Do this today') + '">\u2600</button></div>').join('')
       : '<div class="pr-qempty">nothing here</div>';
     return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
@@ -5393,11 +5393,11 @@ function renderPriArchive() {
       const ci = PRI_CHIP[t.quadrant || 'q2'];
       return '<div class="pr-ou" data-pri="' + t.id + '">'
         + '<span class="pr-os" style="background:' + o.col + '1f;color:' + o.col + '">' + o.sym + '</span>'
-        + '<span class="pr-om"><div class="pr-ot">' + escHtml(t.title || '') + '</div>'
+        + '<span class="pr-om">' + priTagHtml_(t) + '<div class="pr-ot">' + escHtml(t.title || '') + '</div>'
         + (t.outcome_note ? '<div class="pr-on">' + escHtml(t.outcome_note) + '</div>' : '')
         + '</span>'
         + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
-        + '<span class="pr-pair">' + priTagHtml_(t, true)
+        + '<span class="pr-pair">'
           + '<i class="pr-chip" style="background:' + ci + '1f;color:' + ci + '">' + q.code + '</i>'
           + (t.today_on && t.closed_on && String(t.today_on).slice(0, 10) === String(t.closed_on).slice(0, 10) ? '<i class="pr-chip sun">\u2600 ' + (String(t.closed_on).slice(0, 10) === istToday() ? 'TODAY' : 'A MORNING PICK') + '</i>' : '')
           + '<i class="pr-chip neutral">' + escHtml(priFmt(t.closed_on)) + '</i>'
