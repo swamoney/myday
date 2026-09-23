@@ -141,6 +141,24 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**PRIORITY TAGS** (23 Sep 2026): one word per task saying what it
+is about, from a list Rahul makes himself (no defaults).
+- Data: why_priority.tag text (migrate_tag.sql - PENDING); the
+  word list in user_prefs.prefs.pri_tags (shared across devices).
+- Dialog: an 'About (optional)' row of pills under the task -
+  tap to choose, tap again to clear, '+ tag' prompts a word and
+  adds it to the list on the spot. Same dialog from any old task.
+- Rows: a small mono outline word after the title (never a
+  fill) in the matrix, Today's band, and What I closed (ink
+  variant there, leading the chip pair). Untagged shows nothing.
+- Archive: a tag row (ALL - n, each word - n) narrows What I
+  closed; '✎ TAGS' renames (flows to every task wearing the word)
+  or removes (asks; leaves tasks untagged). Words seen only on
+  closed tasks still appear in the row.
+- Export carries tag; print shows [tag] after the title.
+Harness: row from closed tasks, + tag with empty list, save,
+matrix mark, filter, rename.
+
 **EXPORT GAP CLOSED** (22 Sep 2026): found while cutting the bucket - the (c) export zip had never carried My Dreams & Decisions. It now writes dreams-and-decisions.json (title, kind, status, pending, qset, answers, dates, verdict, stars, story) and the READ-ME names it.
 
 **BUCKET DROPPED** (22 Sep 2026): bucket_items is retired for good - why.html no longer loads it on arrival, the export no longer writes bucket-list.json (the dreams count in my-why.html comes from why_decisions kind='dream'), restore.html no longer lists the table. drop_bucket_items.sql drops it (PENDING - run once, after an export). The bucket code still sleeps in why.html, never called.

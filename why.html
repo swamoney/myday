@@ -1160,6 +1160,19 @@
   .pr-od { flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
   .pr-od b { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.13em; }
   /* The quadrant keeps its own colour; the date stays neutral beside it. */
+  /* TAGS: a small mono word in an outline - never a fill; the quadrant keeps the colour */
+  .pr-tag { font-family:var(--mono); font-size:0.4375rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#5f6a80; border:1px solid #cfd6e4; border-radius:5px; padding:2px 6px; white-space:nowrap; flex-shrink:0; align-self:center; }
+  .pr-tag.ink { color:#144552; border-color:#a9c0c8; }
+  .pr-taghint { font-weight:400; opacity:0.7; letter-spacing:0.08em; }
+  .pr-tags { display:flex; gap:5px; flex-wrap:wrap; }
+  .pr-tags button { font-family:var(--mono); font-size:0.4688rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#5f6a80; border:1px solid #cfd6e4; border-radius:999px; padding:5px 10px; background:#fff; cursor:pointer; }
+  .pr-tags button.on { background:#144552; color:#fff; border-color:#144552; }
+  .pr-tags button.add { border-style:dashed; color:#8a97b3; }
+  .pr-tagrow { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 10px; }
+  .pr-tagrow:empty { display:none; }
+  .pr-tagrow button { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; border-radius:999px; padding:5px 10px; background:#fff; border:1px solid #c9d6ea; color:#2f5187; cursor:pointer; }
+  .pr-tagrow button.on { background:#2f5187; color:#fff; border-color:#2f5187; }
+  .pr-tagrow button.mg { margin-left:auto; border-style:dashed; color:#8a97b3; }
   .pr-pair { display:flex; gap:4px; }
   .pr-chip { font-family:var(--mono); font-size:0.5312rem; font-style:normal; font-weight:600;
              letter-spacing:0.06em; padding:3px 7px; border-radius:5px; white-space:nowrap; }
@@ -1649,6 +1662,7 @@
           <span class="pr-archt">What I closed</span>
           <span class="pr-archn" id="priArchCount"></span>
         </div>
+        <div class="pr-tagrow" id="priTagRow"></div>
         <div id="priArchive"></div>
       </div>
       <div class="pr-balance" id="priBalance"></div>
@@ -1875,6 +1889,8 @@
     <div class="modal-title" id="priModalTitle">Add a task</div>
     <div class="modal-sub" id="priModalSub">what it is, and where it belongs</div>
     <div class="fld"><label>The task</label><input id="fPriTitle" placeholder="e.g. Draft the will"></div>
+    <!-- TAGS: one word per task, from a list you make yourself; tap to choose, tap again to clear, + tag to add a word -->
+    <div class="fld"><label>About <span class="pr-taghint">(optional)</span></label><div class="pr-tags" id="fPriTags"></div></div>
     <div class="fld"><label>Note (optional)</label><input id="fPriNote" placeholder="e.g. no deadline, matters most"></div>
     <div class="fld"><label>Where it belongs</label>
       <select id="fPriQ">
@@ -2660,7 +2676,7 @@ async function exportWhy() {
       title: t.title, quadrant: t.quadrant, note: t.note, status: t.status,
       outcome_note: t.outcome_note, delegated_to: t.delegated_to,
       closed_on: t.closed_on, moves: t.moves, created_at: t.created_at,
-      today_on: t.today_on || null, mornings: t.mornings || 0
+      today_on: t.today_on || null, mornings: t.mornings || 0, tag: t.tag || null
     })), null, 2));
     zip.file('dreams-and-decisions.json', JSON.stringify(dcRows.map(r => ({
       title: r.title, kind: r.kind || 'decision', status: r.status, pending: !!r.pending, qset: r.qset,
@@ -2954,14 +2970,14 @@ function printSection() {
       const q = PRI_Q[k];
       body += '<h2>' + e(q.code + ' \u00B7 ' + q.verb) + ' <span class="meta">('
             + e(String(q.sub).replace(/&amp;/g, '&')) + ')</span></h2><ul>'
-            + rows.map(t => '<li>' + e(t.title || '') + (t.note ? ' <span class="meta">' + e(t.note) + '</span>' : '') + '</li>').join('') + '</ul>';
+            + rows.map(t => '<li>' + e(t.title || '') + (t.tag ? ' <span class="meta">[' + e(t.tag) + ']</span>' : '') + (t.note ? ' <span class="meta">' + e(t.note) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
     const closed = priority.filter(t => (t.status || 'open') !== 'open')
       .sort((a, b) => String(b.closed_on || '').localeCompare(String(a.closed_on || '')));
     if (closed.length) {
       body += '<h2>What I closed</h2><ul>' + closed.map(t => {
         const o = PRI_OUT[t.status] || PRI_OUT.done;
-        return '<li><strong>' + e(t.title || '') + '</strong> \u2014 ' + e(o.lbl)
+        return '<li><strong>' + e(t.title || '') + '</strong>' + (t.tag ? ' <span class="meta">[' + e(t.tag) + ']</span>' : '') + ' \u2014 ' + e(o.lbl)
           + (t.delegated_to ? ' to ' + e(t.delegated_to) : '')
           + ' \u00B7 ' + e((PRI_Q[t.quadrant || 'q2'] || {}).code || '') + ' \u00B7 ' + e(priFmt(t.closed_on))
           + (t.outcome_note ? '<br><span class="meta">' + e(t.outcome_note) + '</span>' : '') + '</li>';
@@ -5178,6 +5194,89 @@ async function loadPriority() {
     .order('created_at', { ascending: true });
   if (error) { console.error(error); return; }
   priority = data || [];
+  await loadPriTags();
+  renderPriority();
+}
+// ===== TAGS: your own words, kept in the account so every device shares them =====
+let priTags = [];                 // ['Practice', 'Family', ...] - in the order you made them
+let priTagPick = '';              // the word chosen in the open dialog
+let priTagFilter = '';            // the word the archive is narrowed to ('' = all)
+async function loadPriTags() {
+  try {
+    const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle();
+    const p = q && q.data && q.data.prefs;
+    priTags = Array.isArray(p && p.pri_tags) ? p.pri_tags.filter(Boolean) : [];
+  } catch (e) { priTags = []; }
+}
+async function savePriTags() {
+  const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle();
+  const prefs = Object.assign({}, (q && q.data && q.data.prefs) || {}, { pri_tags: priTags });
+  const { error } = await supa.from('user_prefs').upsert({ user_id: userId, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+function priTagHtml_(t, ink) { return t && t.tag ? '<span class="pr-tag' + (ink ? ' ink' : '') + '">' + escHtml(t.tag) + '</span>' : ''; }
+function paintPriTagPills_() {
+  const box = el('fPriTags'); if (!box) return;
+  box.innerHTML = priTags.map(w => '<button type="button" data-tag="' + escHtml(w) + '"' + (w === priTagPick ? ' class="on"' : '') + '>' + escHtml(w) + '</button>').join('')
+    + '<button type="button" class="add" data-tagadd>+ tag</button>';
+}
+el('fPriTags').addEventListener('click', async e => {
+  const a = e.target.closest('[data-tagadd]');
+  if (a) {
+    const w = (prompt('A word for what this task is about:', '') || '').trim();
+    if (!w) return;
+    const have = priTags.find(x => x.toLowerCase() === w.toLowerCase());
+    if (!have) { priTags.push(w); try { await savePriTags(); } catch (err) { console.error(err); toast('Could not save the tag'); priTags.pop(); return; } }
+    priTagPick = have || w; paintPriTagPills_(); return;
+  }
+  const b = e.target.closest('[data-tag]'); if (!b) return;
+  priTagPick = priTagPick === b.dataset.tag ? '' : b.dataset.tag; paintPriTagPills_();
+});
+// the tag row over What I closed: your words with counts; tap to narrow; the dashed door manages the list
+function renderPriTagRow() {
+  const row = el('priTagRow'); if (!row) return;
+  const closed = priority.filter(t => (t.status || 'open') !== 'open');
+  if (!priTags.length && !closed.some(t => t.tag)) { row.innerHTML = ''; return; }
+  const words = priTags.slice(); closed.forEach(t => { if (t.tag && !words.includes(t.tag)) words.push(t.tag); });
+  if (priTagFilter && !words.includes(priTagFilter)) priTagFilter = '';
+  row.innerHTML = '<button type="button" data-tagf=""' + (!priTagFilter ? ' class="on"' : '') + '>ALL \u00B7 ' + closed.length + '</button>'
+    + words.map(w => { const n = closed.filter(t => t.tag === w).length; return '<button type="button" data-tagf="' + escHtml(w) + '"' + (priTagFilter === w ? ' class="on"' : '') + '>' + escHtml(w) + ' \u00B7 ' + n + '</button>'; }).join('')
+    + '<button type="button" class="mg" data-tagmanage title="Rename or remove a tag">\u270E TAGS</button>';
+}
+el('priTagRow').addEventListener('click', async e => {
+  const m = e.target.closest('[data-tagmanage]');
+  if (m) { priManageTags_(); return; }
+  const f = e.target.closest('[data-tagf]'); if (!f) return;
+  priTagFilter = f.dataset.tagf; renderPriArchive(); renderPriTagRow();
+});
+// rename flows to every task wearing the word; remove leaves those tasks untagged (asks first)
+async function priManageTags_() {
+  if (!priTags.length) { toast('No tags yet \u2014 add one from a task'); return; }
+  const list = priTags.map((w, i) => (i + 1) + '. ' + w).join('\n');
+  const pick = prompt('Which tag? (number)\n' + list, '');
+  if (pick === null) return;
+  const i = Number(pick) - 1; if (!(i >= 0 && i < priTags.length)) return;
+  const old = priTags[i];
+  const nw = prompt('Rename "' + old + '" to (leave blank to remove it):', old);
+  if (nw === null) return;
+  const word = nw.trim();
+  if (word && word !== old) {
+    if (priTags.some((x, k) => k !== i && x.toLowerCase() === word.toLowerCase())) { toast('That word is already a tag'); return; }
+    priTags[i] = word;
+    const { error } = await supa.from('why_priority').update({ tag: word }).eq('user_id', userId).eq('tag', old);
+    if (error) { console.error(error); toast('Could not rename'); priTags[i] = old; return; }
+    priority.forEach(t => { if (t.tag === old) t.tag = word; });
+    if (priTagFilter === old) priTagFilter = word;
+  } else if (!word) {
+    const n = priority.filter(t => t.tag === old).length;
+    if (!confirm('Remove the tag "' + old + '"?' + (n ? ' ' + n + ' task(s) will be left untagged.' : ''))) return;
+    priTags.splice(i, 1);
+    const { error } = await supa.from('why_priority').update({ tag: null }).eq('user_id', userId).eq('tag', old);
+    if (error) { console.error(error); toast('Could not remove'); priTags.splice(i, 0, old); return; }
+    priority.forEach(t => { if (t.tag === old) t.tag = null; });
+    if (priTagFilter === old) priTagFilter = '';
+  } else return;
+  try { await savePriTags(); } catch (err) { console.error(err); toast('Could not save the tags'); return; }
   renderPriority();
 }
 // TODAY'S TO-DO: 'today' is the Indian calendar day, whatever the phone's zone (finding 1)
@@ -5211,7 +5310,7 @@ function renderPriToday() {
     return '<div class="pr-td' + (isDone ? ' done' : '') + '">'
       + '<button type="button" class="pr-tdbox" data-tdclose="' + t.id + '" title="' + (isDone ? 'Closed' : 'Done today?') + '"' + (isDone ? ' disabled' : '') + '>'
       + (isDone ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</button>'
-      + '<button type="button" class="t" data-tdedit="' + t.id + '"' + (isDone ? ' disabled' : '') + '>' + escHtml(t.title || '') + '</button>'
+      + '<button type="button" class="t" data-tdedit="' + t.id + '"' + (isDone ? ' disabled' : '') + '>' + escHtml(t.title || '') + '</button>' + priTagHtml_(t)
       + '<span class="q" style="background:' + q.acc + '">' + q.code + '</span>'
       + (isDone ? '<span class="x">CLOSED' + (t.closed_hm ? ' ' + escHtml(t.closed_hm) : '') + '</span>' : (nth ? '<span class="w">' + nth + '</span>' : ''))
       + '</div>';
@@ -5251,7 +5350,7 @@ function renderPriority() {
           + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
           + '</i></button>'
           + '<button class="pr-tk" type="button" data-pri="' + t.id + '" title="Edit">'
-          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button>'
+          + '<span class="pr-tkt">' + escHtml(t.title || '') + '</span></button>' + priTagHtml_(t)
           + '<button class="pr-sun' + (priIsToday_(t) ? ' on' : '') + '" type="button" data-prisun="' + t.id + '" title="' + (priIsToday_(t) ? 'Take off today\u2019s list' : 'Do this today') + '">\u2600</button></div>').join('')
       : '<div class="pr-qempty">nothing here</div>';
     return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
@@ -5266,11 +5365,12 @@ function renderPriority() {
 }
 function renderPriArchive() {
   const wrap = el('priArchive'); if (!wrap) return;
-  const closed = priority.filter(t => (t.status || 'open') !== 'open')
+  renderPriTagRow();
+  const closed = priority.filter(t => (t.status || 'open') !== 'open' && (!priTagFilter || t.tag === priTagFilter))
     .sort((a, b) => String(b.closed_on || '').localeCompare(String(a.closed_on || '')));
   const cnt = el('priArchCount');
-  if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' TASK' : ' TASKS')) : '';
-  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">Nothing closed yet.</div>'; return; }
+  if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' TASK' : ' TASKS') + (priTagFilter ? ' \u00B7 ' + priTagFilter.toUpperCase() : '')) : '';
+  if (!closed.length) { wrap.innerHTML = '<div class="pr-empty">' + (priTagFilter ? 'Nothing closed under ' + escHtml(priTagFilter) + ' yet.' : 'Nothing closed yet.') + '</div>'; return; }
 
   // This year stays open; earlier years fold away, so thirty years of records
   // never turn into thirty years of scrolling.
@@ -5293,7 +5393,7 @@ function renderPriArchive() {
         + (t.outcome_note ? '<div class="pr-on">' + escHtml(t.outcome_note) + '</div>' : '')
         + '</span>'
         + '<span class="pr-od"><b style="color:' + o.col + '">' + o.lbl + who + '</b>'
-        + '<span class="pr-pair">'
+        + '<span class="pr-pair">' + priTagHtml_(t, true)
           + '<i class="pr-chip" style="background:' + ci + '1f;color:' + ci + '">' + q.code + '</i>'
           + (t.today_on && t.closed_on && String(t.today_on).slice(0, 10) === String(t.closed_on).slice(0, 10) ? '<i class="pr-chip sun">\u2600 ' + (String(t.closed_on).slice(0, 10) === istToday() ? 'TODAY' : 'A MORNING PICK') + '</i>' : '')
           + '<i class="pr-chip neutral">' + escHtml(priFmt(t.closed_on)) + '</i>'
@@ -5332,6 +5432,7 @@ function openPriModal(id) {
   el('priModalTitle').textContent = t ? 'Edit task' : 'Add a task';
   el('fPriTitle').value = t ? (t.title || '') : '';
   el('fPriNote').value = t ? (t.note || '') : '';
+  priTagPick = t ? (t.tag || '') : ''; paintPriTagPills_();
   el('fPriQ').value = t ? (t.quadrant || 'q2') : 'q2';
   el('fPriMoveWhy').value = '';
   el('fPriMoveWrap').classList.add('hidden');
@@ -5351,7 +5452,7 @@ async function savePri() {
   const title = el('fPriTitle').value.trim();
   if (!title) { toast('Add a task first'); return; }
   const q = el('fPriQ').value;
-  const rec = { title, note: el('fPriNote').value.trim(), quadrant: q,
+  const rec = { title, note: el('fPriNote').value.trim(), quadrant: q, tag: priTagPick || null,
                 user_id: userId, updated_at: new Date().toISOString() };
   try {
     if (editingPri) {
