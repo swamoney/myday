@@ -1932,6 +1932,8 @@
       <input id="fPriWhy" placeholder="one line you will want to read in ten years">
     </div>
     <div class="fld" id="fPriOnWrap"><label>On</label><input type="date" id="fPriOn"></div>
+    <!-- TAGS: a closed task is tagged from here - the same pills as the task dialog -->
+    <div class="fld" id="fPriCloseTagWrap"><label>About <span class="pr-taghint">(optional)</span></label><div class="pr-tags" id="fPriCloseTags"></div></div>
     <div class="pr-warn hidden" id="priRemoveWarn">
       This deletes the task outright &mdash; it will not appear in the archive and cannot be recovered.
       If you simply decided against it, choose <b>Cancelled</b> instead so the decision is kept.
@@ -5216,11 +5218,11 @@ async function savePriTags() {
 }
 function priTagHtml_(t, ink) { return t && t.tag ? '<span class="pr-tag' + (ink ? ' ink' : '') + '">' + escHtml(t.tag) + '</span>' : ''; }
 function paintPriTagPills_() {
-  const box = el('fPriTags'); if (!box) return;
+  const box = el('priCloseModal') && !el('priCloseModal').classList.contains('hidden') ? el('fPriCloseTags') : el('fPriTags'); if (!box) return;
   box.innerHTML = priTags.map(w => '<button type="button" data-tag="' + escHtml(w) + '"' + (w === priTagPick ? ' class="on"' : '') + '>' + escHtml(w) + '</button>').join('')
     + '<button type="button" class="add" data-tagadd>+ tag</button>';
 }
-el('fPriTags').addEventListener('click', async e => {
+async function priTagPillsClick_(e) {
   const a = e.target.closest('[data-tagadd]');
   if (a) {
     const w = (prompt('A word for what this task is about:', '') || '').trim();
@@ -5231,7 +5233,9 @@ el('fPriTags').addEventListener('click', async e => {
   }
   const b = e.target.closest('[data-tag]'); if (!b) return;
   priTagPick = priTagPick === b.dataset.tag ? '' : b.dataset.tag; paintPriTagPills_();
-});
+}
+el('fPriTags').addEventListener('click', priTagPillsClick_);
+el('fPriCloseTags').addEventListener('click', priTagPillsClick_);
 // the tag row over What I closed: your words with counts; tap to narrow; the dashed door manages the list
 function renderPriTagRow() {
   const row = el('priTagRow'); if (!row) return;
@@ -5492,6 +5496,7 @@ function openPriClose(id, morning) {
   el('fPriWho').value = t.delegated_to || '';
   el('fPriWhy').value = t.outcome_note || '';
   el('fPriOn').value = t.closed_on || istToday();
+  el('priCloseModal').classList.remove('hidden'); priTagPick = t.tag || ''; paintPriTagPills_();
   const box = el('priCloseModal').querySelector('.modal');
   box.classList.toggle('morning', !!morning);
   box.querySelector('.modal-title').textContent = morning ? 'Done today?' : 'How did this end?';
@@ -5531,6 +5536,7 @@ async function savePriClose() {
   const rec = { status: v, outcome_note: el('fPriWhy').value.trim(),
                 delegated_to: v === 'delegated' ? el('fPriWho').value.trim() : '',
                 closed_on: el('fPriOn').value || istToday(),
+                tag: priTagPick || null,
                 updated_at: new Date().toISOString() };
   { const t = priority.find(x => String(x.id) === String(closingPri)); if (t && priIsToday_(t)) t.closed_hm = istNowHm(); }   // the band's struck line shows the time
   const { error } = await supa.from('why_priority').update(rec).eq('id', closingPri).eq('user_id', userId);
