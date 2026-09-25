@@ -779,6 +779,7 @@
   .hm-dcap { font-size:0.6875rem; color:#3a4560; min-height:1.2em; }
   .hm-dzero { margin-top:7px; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; text-transform:uppercase; color:#8a97b3; border:1px solid #dfe5ee; border-radius:5px; padding:3px 7px; background:#fff; cursor:pointer; }
   .hm-dzero.on { background:var(--c); color:#fff; border-color:var(--c); }
+  .hm-dzero.gone { display:none; }   /* once a real number is in, the 'none today' offer steps aside */
   .hm-dial .toggle-tint-wrap { margin:10px auto 6px; }
   .hm-dial .reading-note-wrap { width:100%; margin-top:8px; }
   .hm-week { display:grid; grid-template-columns:64px repeat(7, 1fr); gap:6px; margin-top:14px; padding-top:12px; border-top:1px dashed #dcebe2; align-items:center; }
@@ -6455,16 +6456,6 @@
           <div class="hub-btn-title">Investments &amp; Expenses</div>
           <div class="hub-btn-preview" data-hub-preview="s-expenses">no entries yet</div>
         </button>
-        <button type="button" class="hub-btn" data-hub-section="s-health">
-          <div class="hub-btn-head">
-            <div class="hub-btn-icon-wrap">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 0 1 0-6.364z"/></svg>
-            </div>
-            <span class="hub-btn-status empty" data-hub-status="s-health" aria-label="status"></span>
-          </div>
-          <div class="hub-btn-title">Health &amp; Mind</div>
-          <div class="hub-btn-preview" data-hub-preview="s-health">no activity</div>
-        </button>
         <button type="button" class="hub-btn" data-hub-section="s-time">
           <div class="hub-btn-head">
             <div class="hub-btn-icon-wrap">
@@ -6484,6 +6475,16 @@
           </div>
           <div class="hub-btn-title">Food Journal</div>
           <div class="hub-btn-preview" data-hub-preview="s-food">no meals yet</div>
+        </button>
+        <button type="button" class="hub-btn" data-hub-section="s-health">
+          <div class="hub-btn-head">
+            <div class="hub-btn-icon-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.318 6.318a4.5 4.5 0 0 1 6.364 0L12 7.636l1.318-1.318a4.5 4.5 0 1 1 6.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 0 1 0-6.364z"/></svg>
+            </div>
+            <span class="hub-btn-status empty" data-hub-status="s-health" aria-label="status"></span>
+          </div>
+          <div class="hub-btn-title">Health &amp; Mind</div>
+          <div class="hub-btn-preview" data-hub-preview="s-health">no activity</div>
         </button>
         <button type="button" class="hub-btn" data-hub-section="s-night">
           <div class="hub-btn-head">
@@ -6881,6 +6882,120 @@
     </div>
 
     <!-- HEALTH & MIND -->
+    <div class="section s-time">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 60" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="40" y1="6" x2="70" y2="6"/>
+          <line x1="40" y1="54" x2="70" y2="54"/>
+          <path d="M40 6 Q40 22 55 30 Q70 22 70 6"/>
+          <path d="M40 54 Q40 38 55 30 Q70 38 70 54"/>
+          <path d="M48 12 Q48 22 55 28 Q62 22 62 12 Z" fill="currentColor" fill-opacity="0.25" stroke="none"/>
+          <line x1="55" y1="30" x2="55" y2="44" stroke-dasharray="0,3.5"/>
+          <ellipse cx="55" cy="48" rx="5" ry="2" fill="currentColor" fill-opacity="0.25" stroke="none"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 2"/>
+        </svg>
+        <h2>The Hours</h2>
+        <span class="rule-fill"></span>
+        <span class="num">ii.</span>
+      </div>
+      <div class="chips" style="margin-bottom: 14px;">
+        <button class="chip bulk" id="bulkSleep">Fill 12–8 AM with 'Sleep'</button>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">12 AM — 3 AM</span><span class="slot-period">small hours</span></div>
+        <textarea class="textarea" id="f_slot1" placeholder="Sleep / activity..."></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="1"></button>
+          <button class="chip" data-fill="f_slot1" data-text="Sleep">Sleep</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">3 AM — 8 AM</span><span class="slot-period">dawn</span></div>
+        <textarea class="textarea" id="f_slot2" placeholder="Sleep / activity..."></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="2"></button>
+          <button class="chip" data-fill="f_slot2" data-text="Sleep">Sleep</button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">8 AM — 12 PM</span><span class="slot-period">morning</span></div>
+        <textarea class="textarea" id="f_slot3" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="3"></button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">12 PM — 4 PM</span><span class="slot-period">afternoon</span></div>
+        <textarea class="textarea" id="f_slot4" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="4"></button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">4 PM — 8 PM</span><span class="slot-period">evening</span></div>
+        <textarea class="textarea" id="f_slot5" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="5"></button>
+        </div>
+      </div>
+      <div class="slot">
+        <div class="slot-head"><span class="slot-time">8 PM — 12 AM</span><span class="slot-period">night</span></div>
+        <textarea class="textarea" id="f_slot6" placeholder="What did you do?"></textarea>
+        <div class="chips">
+          <button class="chip suggest hidden" data-suggest-slot="6"></button>
+        </div>
+      </div>
+      <!-- Introspection moved to the end of The Day's Verdict (closing
+           reflection after rating the day). See the .s-verdict section. -->
+    </div>
+
+    <!-- FOOD JOURNAL -->
+    <div class="section s-food">
+      <div class="section-illustration">
+        <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M48 14 Q46 11 48 8 Q50 5 48 2"/>
+          <path d="M55 14 Q53 11 55 8 Q57 5 55 2"/>
+          <path d="M62 14 Q60 11 62 8 Q64 5 62 2"/>
+          <line x1="35" y1="22" x2="75" y2="22"/>
+          <path d="M33 22 a22 14 0 0 0 44 0"/>
+          <line x1="28" y1="44" x2="82" y2="44"/>
+          <line x1="32" y1="44" x2="29" y2="48"/>
+          <line x1="78" y1="44" x2="81" y2="48"/>
+        </svg>
+      </div>
+      <div class="section-head">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 0 0 18 0z"/>
+          <path d="M2 12h20"/>
+          <path d="M9 6c0-1.5 1.5-2 3-2s3 0.5 3 2"/>
+        </svg>
+        <h2>Food Journal</h2>
+        <span class="rule-fill"></span>
+        <span class="num">iii.</span>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Breakfast</span><span class="time">first meal</span></div>
+        <textarea class="textarea" id="f_breakfast" placeholder="9.30: poha + coffee"></textarea>
+        <div class="chips"><button class="chip" data-fill="f_breakfast" data-text="NA">NA</button></div>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Lunch</span><span class="time">midday</span></div>
+        <textarea class="textarea" id="f_lunch" placeholder="2.00: ..."></textarea>
+        <div class="chips"><button class="chip" data-fill="f_lunch" data-text="NA">NA</button></div>
+      </div>
+      <div class="meal">
+        <div class="meal-label"><span class="name">Dinner</span><span class="time">evening</span></div>
+        <textarea class="textarea" id="f_dinner" placeholder="9.00: ..."></textarea>
+        <div class="chips"><button class="chip" data-fill="f_dinner" data-text="NA">NA</button></div>
+      </div>
+    </div>
+
+    <!-- NIGHT STAY -->
     <div class="section s-health">
       <div class="section-illustration">
         <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -6903,7 +7018,7 @@
         <h2>Health &amp; Mind</h2>
         <span class="rule-fill"></span>
         <span class="hm-badge" id="hmBadge"></span>
-        <span class="num">ii.</span>
+        <span class="num">iv.</span>
       </div>
 
       <!-- A+ (Sep 2026): THE TRIAD - three dials always open, nothing hidden. Drag a ring or tap its
@@ -7033,120 +7148,6 @@
     </div>
 
     <!-- TIME SLOTS -->
-    <div class="section s-time">
-      <div class="section-illustration">
-        <svg viewBox="0 0 110 60" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="40" y1="6" x2="70" y2="6"/>
-          <line x1="40" y1="54" x2="70" y2="54"/>
-          <path d="M40 6 Q40 22 55 30 Q70 22 70 6"/>
-          <path d="M40 54 Q40 38 55 30 Q70 38 70 54"/>
-          <path d="M48 12 Q48 22 55 28 Q62 22 62 12 Z" fill="currentColor" fill-opacity="0.25" stroke="none"/>
-          <line x1="55" y1="30" x2="55" y2="44" stroke-dasharray="0,3.5"/>
-          <ellipse cx="55" cy="48" rx="5" ry="2" fill="currentColor" fill-opacity="0.25" stroke="none"/>
-        </svg>
-      </div>
-      <div class="section-head">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"/>
-          <path d="M12 7v5l3 2"/>
-        </svg>
-        <h2>The Hours</h2>
-        <span class="rule-fill"></span>
-        <span class="num">iii.</span>
-      </div>
-      <div class="chips" style="margin-bottom: 14px;">
-        <button class="chip bulk" id="bulkSleep">Fill 12–8 AM with 'Sleep'</button>
-      </div>
-      <div class="slot">
-        <div class="slot-head"><span class="slot-time">12 AM — 3 AM</span><span class="slot-period">small hours</span></div>
-        <textarea class="textarea" id="f_slot1" placeholder="Sleep / activity..."></textarea>
-        <div class="chips">
-          <button class="chip suggest hidden" data-suggest-slot="1"></button>
-          <button class="chip" data-fill="f_slot1" data-text="Sleep">Sleep</button>
-        </div>
-      </div>
-      <div class="slot">
-        <div class="slot-head"><span class="slot-time">3 AM — 8 AM</span><span class="slot-period">dawn</span></div>
-        <textarea class="textarea" id="f_slot2" placeholder="Sleep / activity..."></textarea>
-        <div class="chips">
-          <button class="chip suggest hidden" data-suggest-slot="2"></button>
-          <button class="chip" data-fill="f_slot2" data-text="Sleep">Sleep</button>
-        </div>
-      </div>
-      <div class="slot">
-        <div class="slot-head"><span class="slot-time">8 AM — 12 PM</span><span class="slot-period">morning</span></div>
-        <textarea class="textarea" id="f_slot3" placeholder="What did you do?"></textarea>
-        <div class="chips">
-          <button class="chip suggest hidden" data-suggest-slot="3"></button>
-        </div>
-      </div>
-      <div class="slot">
-        <div class="slot-head"><span class="slot-time">12 PM — 4 PM</span><span class="slot-period">afternoon</span></div>
-        <textarea class="textarea" id="f_slot4" placeholder="What did you do?"></textarea>
-        <div class="chips">
-          <button class="chip suggest hidden" data-suggest-slot="4"></button>
-        </div>
-      </div>
-      <div class="slot">
-        <div class="slot-head"><span class="slot-time">4 PM — 8 PM</span><span class="slot-period">evening</span></div>
-        <textarea class="textarea" id="f_slot5" placeholder="What did you do?"></textarea>
-        <div class="chips">
-          <button class="chip suggest hidden" data-suggest-slot="5"></button>
-        </div>
-      </div>
-      <div class="slot">
-        <div class="slot-head"><span class="slot-time">8 PM — 12 AM</span><span class="slot-period">night</span></div>
-        <textarea class="textarea" id="f_slot6" placeholder="What did you do?"></textarea>
-        <div class="chips">
-          <button class="chip suggest hidden" data-suggest-slot="6"></button>
-        </div>
-      </div>
-      <!-- Introspection moved to the end of The Day's Verdict (closing
-           reflection after rating the day). See the .s-verdict section. -->
-    </div>
-
-    <!-- FOOD JOURNAL -->
-    <div class="section s-food">
-      <div class="section-illustration">
-        <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M48 14 Q46 11 48 8 Q50 5 48 2"/>
-          <path d="M55 14 Q53 11 55 8 Q57 5 55 2"/>
-          <path d="M62 14 Q60 11 62 8 Q64 5 62 2"/>
-          <line x1="35" y1="22" x2="75" y2="22"/>
-          <path d="M33 22 a22 14 0 0 0 44 0"/>
-          <line x1="28" y1="44" x2="82" y2="44"/>
-          <line x1="32" y1="44" x2="29" y2="48"/>
-          <line x1="78" y1="44" x2="81" y2="48"/>
-        </svg>
-      </div>
-      <div class="section-head">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M3 12a9 9 0 0 0 18 0z"/>
-          <path d="M2 12h20"/>
-          <path d="M9 6c0-1.5 1.5-2 3-2s3 0.5 3 2"/>
-        </svg>
-        <h2>Food Journal</h2>
-        <span class="rule-fill"></span>
-        <span class="num">iv.</span>
-      </div>
-      <div class="meal">
-        <div class="meal-label"><span class="name">Breakfast</span><span class="time">first meal</span></div>
-        <textarea class="textarea" id="f_breakfast" placeholder="9.30: poha + coffee"></textarea>
-        <div class="chips"><button class="chip" data-fill="f_breakfast" data-text="NA">NA</button></div>
-      </div>
-      <div class="meal">
-        <div class="meal-label"><span class="name">Lunch</span><span class="time">midday</span></div>
-        <textarea class="textarea" id="f_lunch" placeholder="2.00: ..."></textarea>
-        <div class="chips"><button class="chip" data-fill="f_lunch" data-text="NA">NA</button></div>
-      </div>
-      <div class="meal">
-        <div class="meal-label"><span class="name">Dinner</span><span class="time">evening</span></div>
-        <textarea class="textarea" id="f_dinner" placeholder="9.00: ..."></textarea>
-        <div class="chips"><button class="chip" data-fill="f_dinner" data-text="NA">NA</button></div>
-      </div>
-    </div>
-
-    <!-- NIGHT STAY -->
     <div class="section s-night">
       <div class="section-illustration">
         <svg viewBox="0 0 110 50" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -9695,12 +9696,12 @@ function toast(msg) {
 const TODAY_SECTIONS = [
   { cls: 's-expenses', label: 'Investments & Expenses',
     fields: ['regularInvestment','topUp','directEquity','globalInvest','food','dmart','dailyTransport','aiUsage','shopping','hotelStay','hotelStayNote','travel','travelNote','other','otherNote'] },
-  { cls: 's-health', label: 'Health & Mind',
-    fields: ['walk','heart','reading'] },
   { cls: 's-time', label: 'The Hours',
     fields: ['slot1','slot2','slot3','slot4','slot5','slot6'] },
   { cls: 's-food', label: 'Food Journal',
     fields: ['breakfast','lunch','dinner'] },
+  { cls: 's-health', label: 'Health & Mind',
+    fields: ['walk','heart','reading'] },
   { cls: 's-night', label: 'Night Stay',
     fields: ['nightCity','nightStay','stayedWith'] },
   { cls: 's-verdict', label: "The Day's Verdict",
@@ -10625,9 +10626,9 @@ function setupTodayHub() {
 // Payments is not its own step — it's shown alongside Expenses.
 const HUB_SECTION_ORDER = [
   { cls: 's-expenses', label: 'Investments & Expenses' },
-  { cls: 's-health',   label: 'Health & Mind' },
   { cls: 's-time',     label: 'The Hours' },
   { cls: 's-food',     label: 'Food Journal' },
+  { cls: 's-health',   label: 'Health & Mind' },   // moved after Food (25 Sep 2026): its three answers are evening facts
   { cls: 's-night',    label: 'Night Stay' },
   { cls: 's-verdict',  label: "The Day's Verdict" },
 ];
@@ -13706,7 +13707,7 @@ function renderHMTriad() {
     ring.setAttribute('aria-valuenow', st.logged ? st.v : 0);
     val.textContent = st.logged ? st.v : '?';
     unit.textContent = st.logged ? cfg.unit : 'NOT YET';
-    if (zero) zero.classList.toggle('on', st.logged && st.v === 0);
+    if (zero) { zero.classList.toggle('on', st.logged && st.v === 0); zero.classList.toggle('gone', st.logged && st.v > 0); }
     dial.querySelector('.hm-dcap').textContent = cap;
   };
   paint('walk', w, !w.logged ? 'drag the ring · tap the number to type' : w.v > 0 ? ((typeof walkBucket === 'function' && walkBucket(w.v).label) || 'Walked') : 'Rest day');
