@@ -5207,21 +5207,32 @@ let priTagPick = '';              // the word chosen in the open dialog
 let priTagFilter = '';            // the word the archive is narrowed to ('' = all)
 async function loadPriTags() {
   try {
-    const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle();
-    const p = q && q.data && q.data.prefs;
+    const { data: rows, error } = await supa.from('user_prefs').select('prefs').eq('user_id', userId).limit(1);
+    if (error) throw error;
+    const p = rows && rows.length ? rows[0].prefs : null;
     priTags = Array.isArray(p && p.pri_tags) ? p.pri_tags.filter(Boolean) : [];
-  } catch (e) { priTags = []; }
+  } catch (e) { console.error('tags:', e); priTags = []; }
 }
 async function savePriTags() {
-  const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle();
-  const prefs = Object.assign({}, (q && q.data && q.data.prefs) || {}, { pri_tags: priTags });
-  const { error } = await supa.from('user_prefs').upsert({ user_id: userId, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
-  if (error) throw error;
+  const { data: rows } = await supa.from('user_prefs').select('prefs').eq('user_id', userId).limit(1);
+  const have = rows && rows.length ? rows[0] : null;
+  const prefs = Object.assign({}, (have && have.prefs) || {}, { pri_tags: priTags });
+  const stamp = new Date().toISOString();
+  const r = have
+    ? await supa.from('user_prefs').update({ prefs, updated_at: stamp }).eq('user_id', userId)
+    : await supa.from('user_prefs').insert({ user_id: userId, prefs, updated_at: stamp });
+  if (r.error) throw r.error;
 }
 function priTagHtml_(t) { return t && t.tag ? '<span class="pr-tag">' + escHtml(t.tag) + '</span>' : ''; }
+// every word you have used: the saved list, plus any tag already on a task - so the pills never go missing
+function priAllTags_() {
+  const words = priTags.slice();
+  priority.forEach(t => { if (t.tag && !words.some(w => w.toLowerCase() === String(t.tag).toLowerCase())) words.push(t.tag); });
+  return words;
+}
 function paintPriTagPills_() {
   const box = el('priCloseModal') && !el('priCloseModal').classList.contains('hidden') ? el('fPriCloseTags') : el('fPriTags'); if (!box) return;
-  box.innerHTML = priTags.map(w => '<button type="button" data-tag="' + escHtml(w) + '"' + (w === priTagPick ? ' class="on"' : '') + '>' + escHtml(w) + '</button>').join('')
+  box.innerHTML = priAllTags_().map(w => '<button type="button" data-tag="' + escHtml(w) + '"' + (w === priTagPick ? ' class="on"' : '') + '>' + escHtml(w) + '</button>').join('')
     + '<button type="button" class="add" data-tagadd>+ tag</button>';
 }
 async function priTagPillsClick_(e) {
@@ -5243,7 +5254,7 @@ function renderPriTagRow() {
   const row = el('priTagRow'); if (!row) return;
   const closed = priority.filter(t => (t.status || 'open') !== 'open');
   if (!priTags.length && !closed.some(t => t.tag)) { row.innerHTML = ''; return; }
-  const words = priTags.slice(); closed.forEach(t => { if (t.tag && !words.includes(t.tag)) words.push(t.tag); });
+  const words = priAllTags_();
   if (priTagFilter && !words.includes(priTagFilter)) priTagFilter = '';
   row.innerHTML = '<button type="button" data-tagf=""' + (!priTagFilter ? ' class="on"' : '') + '>ALL \u00B7 ' + closed.length + '</button>'
     + words.map(w => { const n = closed.filter(t => t.tag === w).length; return '<button type="button" data-tagf="' + escHtml(w) + '"' + (priTagFilter === w ? ' class="on"' : '') + '>' + escHtml(w) + ' \u00B7 ' + n + '</button>'; }).join('')
@@ -5439,6 +5450,7 @@ function openPriModal(id) {
   el('fPriTitle').value = t ? (t.title || '') : '';
   el('fPriNote').value = t ? (t.note || '') : '';
   priTagPick = t ? (t.tag || '') : ''; paintPriTagPills_();
+  if (!priTags.length && userId) loadPriTags().then(() => { if (!el('priModal').classList.contains('hidden')) paintPriTagPills_(); });
   el('fPriQ').value = t ? (t.quadrant || 'q2') : 'q2';
   el('fPriMoveWhy').value = '';
   el('fPriMoveWrap').classList.add('hidden');
