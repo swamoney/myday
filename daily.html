@@ -9968,9 +9968,16 @@ function refreshReadingTintState() {
   const isYes = active && active.dataset.val === 'Yes';
   wrap.classList.toggle('filled', hasAnswer);
   check.classList.toggle('hidden', !hasAnswer);
-  // Phase 11+ R5: show note input only when Reading = Yes
-  if (noteWrap) noteWrap.classList.toggle('hidden', !isYes);
+  // Phase 11+ R5: show the takeaway when Reading = Yes - and (Sep 2026) whenever it already holds text,
+  // so a line written earlier is never hidden behind the toggle
+  const ta = document.getElementById('f_readingTakeaway');
+  const hasText = !!(ta && String(ta.value || '').trim());
+  if (noteWrap) noteWrap.classList.toggle('hidden', !(isYes || hasText));
 }
+// This function lives inside a setup closure; renderEntry and the triad painter call it from the
+// outside through a typeof guard - which silently skipped it on every page load (the takeaway stayed
+// hidden until a toggle was tapped). Exposed on window so those calls reach it (Sep 2026).
+window.refreshReadingTintState = refreshReadingTintState;
   document.querySelectorAll('.chip[data-fill]').forEach(c => {
     c.addEventListener('click', () => {
       const target = document.getElementById(c.dataset.fill);
@@ -13705,6 +13712,7 @@ function renderHMTriad() {
   paint('walk', w, !w.logged ? 'drag the ring · tap the number to type' : w.v > 0 ? ((typeof walkBucket === 'function' && walkBucket(w.v).label) || 'Walked') : 'Rest day');
   paint('heart', h, !h.logged ? 'Google Fit’s number' : h.v > 0 ? h.v + ' heart points' : 'None today');
   const bd = document.getElementById('hmDialBrain'); if (bd) bd.classList.toggle('ask', !rd);
+  if (typeof refreshReadingTintState === 'function') refreshReadingTintState();   // the takeaway shows whenever it holds text
   // G1: the badge - loud, not locked. Today counts down; a past day is quiet grey.
   const a = _hmAnswered();
   const badge = document.getElementById('hmBadge');
