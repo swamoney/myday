@@ -756,6 +756,42 @@
   .heart-composite input[type="range"].walk-slider::-moz-range-thumb { background: #c2415c; }
   .heart-composite .walk-figure svg { animation: none; }
 
+  /* === A+ (Sep 2026): the triad, the week, the badge === */
+  .hm-legacy { display:none; }
+  .hm-badge { font-family:var(--mono); font-size:0.4688rem; font-weight:700; letter-spacing:0.14em; border-radius:6px; padding:3px 8px; margin-right:8px; }
+  .hm-badge:empty { display:none; }
+  .hm-badge.miss { background:#fbe6e6; color:#8A1F1A; }
+  .hm-badge.done { background:#e4efe6; color:#1f4330; }
+  .hm-badge.past { background:#eef1f6; color:#68789a; }
+  .hm-triad { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  @media (max-width:640px) { .hm-triad { grid-template-columns:1fr; } }
+  .hm-dial { border:1px solid #dcebe2; border-radius:12px; padding:12px 10px 10px; text-align:center; background:linear-gradient(180deg,#fff,#f6faf7); display:flex; flex-direction:column; align-items:center; }
+  .hm-dial.ask { border:1.5px dashed #d9b5b5; background:#fff8f8; }
+  .hm-dlab { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--c); }
+  .hm-dring { width:92px; height:92px; margin:8px auto; border-radius:50%; background:conic-gradient(var(--c) 0 var(--p,0%), #e6ede8 var(--p,0%) 100%); position:relative; display:flex; align-items:center; justify-content:center; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .hm-dring:active { cursor:grabbing; }
+  .hm-dring::before { content:''; position:absolute; inset:10px; border-radius:50%; background:#fff; }
+  .hm-dial.ask .hm-dring { background:#f3dede; }
+  .hm-dtxt { position:relative; text-align:center; cursor:text; }
+  .hm-dtxt b { font-family:var(--serif); font-size:1.625rem; font-weight:700; line-height:1; color:var(--ink); }
+  .hm-dial.ask .hm-dtxt b { color:#8A1F1A; font-size:1.375rem; }
+  .hm-dtxt small { display:block; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#8a97b3; margin-top:3px; }
+  .hm-dcap { font-size:0.6875rem; color:#3a4560; min-height:1.2em; }
+  .hm-dzero { margin-top:7px; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; text-transform:uppercase; color:#8a97b3; border:1px solid #dfe5ee; border-radius:5px; padding:3px 7px; background:#fff; cursor:pointer; }
+  .hm-dzero.on { background:var(--c); color:#fff; border-color:var(--c); }
+  .hm-dial .toggle-tint-wrap { margin:10px auto 6px; }
+  .hm-dial .reading-note-wrap { width:100%; margin-top:8px; }
+  .hm-week { display:grid; grid-template-columns:64px repeat(7, 1fr); gap:6px; margin-top:14px; padding-top:12px; border-top:1px dashed #dcebe2; align-items:center; }
+  .hm-week:empty { display:none; }
+  .hm-week .rl { font-family:var(--mono); font-size:0.4375rem; font-weight:700; letter-spacing:0.12em; }
+  .hm-week .o { display:block; width:16px; height:16px; border-radius:50%; margin:0 auto; background:#e6ede8; border:2px solid transparent; box-sizing:border-box; }
+  .hm-week .o.on { background:var(--c); } .hm-week .o.lo { background:var(--c); opacity:0.45; }
+  .hm-week .o.no { background:#fff; border-color:var(--c); opacity:0.6; }
+  .hm-week .o.ask { background:#fff; border-color:#e2b8b8; }
+  .hm-week .o.today { box-shadow:0 0 0 2px #fff, 0 0 0 4px #a5702f; }
+  .hm-week .dl { font-family:var(--mono); font-size:0.4rem; letter-spacing:0.1em; color:#9aa5b8; text-align:center; }
+  .hm-week .dl.t { color:#a5702f; font-weight:700; }
+  .hub-btn-preview.hm-miss { color:#8A1F1A; font-weight:700; }
   /* === D2 Health & Mind pulse rows (Jul 2026) === */
   .hm-row { background: #fff; border: 1px solid #dcebe2; border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
   .hm-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px;
@@ -6866,27 +6902,53 @@
         </svg>
         <h2>Health &amp; Mind</h2>
         <span class="rule-fill"></span>
+        <span class="hm-badge" id="hmBadge"></span>
         <span class="num">ii.</span>
       </div>
 
-      <!-- D2 (Jul 2026): pulse rows — mini-ring + value + 7-day spark. Tap a
-           row to reveal the ORIGINAL controls, unchanged, inside .hm-body. -->
-      <div class="hm-row" id="hmRowWalk">
-        <button class="hm-head" type="button" data-hm="walk" aria-expanded="false">
-          <span class="hm-ring" id="hmRingWalk" style="--c:#3d7a5c"><span id="hmRingWalkTxt">&mdash;</span></span>
-          <span class="hm-main"><span class="hm-lab">Walk</span><span class="hm-val dim" id="hmValWalk">not logged &mdash; tap</span></span>
-          <span class="hm-spark" id="hmSparkWalk"></span>
-        </button>
-        <div class="hm-body">
-      <!-- Phase 11+: Walk slider with animated walking figure (W4).
-           A horizontal slider drives the value (0-120 min, step 1). Above the
-           track, a small walking-figure SVG bobs in place at the thumb's x
-           position when value > 0. Below: big readout (32 min) + bucket
-           caption ("Good walk"). The readout is tappable to switch to
-           direct number input for precision values. Hidden #f_walk number
-           input mirrors the slider value so all other code (save/load/charts)
-           reads from f_walk unchanged. -->
-      <div class="field">
+      <!-- A+ (Sep 2026): THE TRIAD - three dials always open, nothing hidden. Drag a ring or tap its
+           number; 'none today' is a real answer (0 / No), blank is not. The week of circles beneath.
+           The old slider composites sleep in .hm-legacy so their ids (and the save path) stay intact. -->
+      <div class="hm-triad" id="hmTriad">
+        <div class="hm-dial" id="hmDialWalk" data-dial="walk" style="--c:#3d7a5c">
+          <div class="hm-dlab">Walk</div>
+          <div class="hm-dring" id="hmDialWalkRing" role="slider" aria-label="Walk minutes" tabindex="0"><div class="hm-dtxt"><b id="hmDialWalkVal">?</b><small id="hmDialWalkUnit">NOT YET</small></div></div>
+          <div class="hm-dcap" id="hmDialWalkCap">drag the ring &middot; tap the number to type</div>
+          <button type="button" class="hm-dzero" data-dzero="walk">none today &middot; 0 min</button>
+        </div>
+        <div class="hm-dial" id="hmDialHeart" data-dial="heart" style="--c:#c2415c">
+          <div class="hm-dlab">Heart points</div>
+          <div class="hm-dring" id="hmDialHeartRing" role="slider" aria-label="Heart points" tabindex="0"><div class="hm-dtxt"><b id="hmDialHeartVal">?</b><small id="hmDialHeartUnit">NOT YET</small></div></div>
+          <div class="hm-dcap" id="hmDialHeartCap">Google Fit&rsquo;s number</div>
+          <button type="button" class="hm-dzero" data-dzero="heart">none today &middot; 0 pts</button>
+        </div>
+        <div class="hm-dial" id="hmDialBrain" data-dial="brain" style="--c:#a5702f">
+          <div class="hm-dlab">Brain food <span class="reading-check hidden" id="readingCheck">&#10003;</span></div>
+<div class="toggle-tint-wrap" id="readingTintWrap">
+          <!-- Simple Yes/No buttons. Both buttons keep data-toggle/data-val
+               so the existing save flow + refreshReadingTintState() work
+               unchanged. Active state uses solid moss (Yes) or solid muted
+               (No) with white text — high contrast, no blending. -->
+          <div class="reading-simple-row">
+            <button class="toggle-btn yes reading-simple-btn reading-simple-yes" data-toggle="f_reading" data-val="Yes" type="button">Yes</button>
+            <button class="toggle-btn no reading-simple-btn reading-simple-no" data-toggle="f_reading" data-val="No" type="button">No</button>
+          </div>
+        </div>
+          <div class="hm-dcap">reading &middot; podcasts &middot; audio</div>
+<div class="reading-note-wrap hidden" id="readingNoteWrap">
+          <div class="reading-field-row reading-takeaway-row">
+            <svg class="reading-field-icon takeaway" viewBox="0 0 24 24" fill="none" stroke="#356B4E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3 Q7 8 9 14 Q11 17 12 21 Q13 17 15 14 Q17 8 12 3 Z"/>
+              <line x1="12" y1="10" x2="12" y2="21"/>
+            </svg>
+            <textarea class="input reading-takeaway-input" id="f_readingTakeaway" placeholder="Key takeaway (optional) — the one idea worth remembering" rows="2"></textarea>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="hm-week" id="hmWeek"></div>
+      <div class="hm-legacy" aria-hidden="true">
+<div class="field">
         <label>Walk <span class="sub">(minutes)</span></label>
         <div class="walk-composite" id="walkComposite">
           <!-- Phase 11+: Walk lock chrome. On past dates, the slider is
@@ -6939,17 +7001,7 @@
           <input type="number" id="f_walk" class="hidden" value="" aria-hidden="true">
         </div>
       </div>
-        </div>
-      </div>
-
-      <div class="hm-row" id="hmRowHeart">
-        <button class="hm-head" type="button" data-hm="heart" aria-expanded="false">
-          <span class="hm-ring" id="hmRingHeart" style="--c:#c2415c"><span id="hmRingHeartTxt">&#9825;</span></span>
-          <span class="hm-main"><span class="hm-lab">Heart</span><span class="hm-val dim" id="hmValHeart">tap to set</span></span>
-          <span class="hm-spark" id="hmSparkHeart"></span>
-        </button>
-        <div class="hm-body">
-      <div class="field">
+<div class="field">
         <label>Google Heart Points</label>
         <div class="walk-composite heart-composite" id="heartComposite">
           <div class="walk-figure-stage">
@@ -6977,46 +7029,6 @@
           <input class="hidden" type="number" id="f_heart" value="" aria-hidden="true">
         </div>
       </div>
-        </div>
-      </div>
-
-      <div class="hm-row" id="hmRowReading">
-        <button class="hm-head" type="button" data-hm="reading" aria-expanded="false">
-          <span class="hm-ring" id="hmRingReading" style="--c:#a5702f"><span id="hmRingReadingTxt">&mdash;</span></span>
-          <span class="hm-main"><span class="hm-lab">Brain Food</span><span class="hm-val dim" id="hmValReading">not answered &mdash; tap</span></span>
-          <span class="hm-spark" id="hmSparkReading"></span>
-        </button>
-        <div class="hm-body">
-      <!-- Phase 11+: Reading toggle has 3 hidden states (Yes/No/not-answered).
-           To make the not-answered state visually distinct, wrap the buttons in
-           a tinted .toggle-tint-wrap. Empty: amber-dashed ("needs your input").
-           Filled: moss-tinted bordered + ✓ next to label. JS in
-           refreshReadingTintState() updates wrap class + checkmark visibility. -->
-      <div class="field">
-        <label>Brain Food <span class="sub">&mdash; reading / podcasts / audible today?</span><span class="reading-check hidden" id="readingCheck">✓</span></label>
-        <div class="toggle-tint-wrap" id="readingTintWrap">
-          <!-- Simple Yes/No buttons. Both buttons keep data-toggle/data-val
-               so the existing save flow + refreshReadingTintState() work
-               unchanged. Active state uses solid moss (Yes) or solid muted
-               (No) with white text — high contrast, no blending. -->
-          <div class="reading-simple-row">
-            <button class="toggle-btn yes reading-simple-btn reading-simple-yes" data-toggle="f_reading" data-val="Yes" type="button">Yes</button>
-            <button class="toggle-btn no reading-simple-btn reading-simple-no" data-toggle="f_reading" data-val="No" type="button">No</button>
-          </div>
-        </div>
-        <!-- Reading Takeaway — optional textarea, only visible when
-             Reading=Yes. Saved to reading_takeaway TEXT column. -->
-        <div class="reading-note-wrap hidden" id="readingNoteWrap">
-          <div class="reading-field-row reading-takeaway-row">
-            <svg class="reading-field-icon takeaway" viewBox="0 0 24 24" fill="none" stroke="#356B4E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 3 Q7 8 9 14 Q11 17 12 21 Q13 17 15 14 Q17 8 12 3 Z"/>
-              <line x1="12" y1="10" x2="12" y2="21"/>
-            </svg>
-            <textarea class="input reading-takeaway-input" id="f_readingTakeaway" placeholder="Key takeaway (optional) — the one idea worth remembering" rows="2"></textarea>
-          </div>
-        </div>
-      </div>
-        </div>
       </div>
     </div>
 
@@ -10463,6 +10475,11 @@ function computeHubPreview(cls) {
     if (walk > 0) parts.push(walk + ' min walk');
     if (heart > 0) parts.push(heart + ' hp');
     if (reading === 'Yes' || reading === 'yes' || reading === true) parts.push('read');
+    // G1 (Sep 2026): on today, say what is still unanswered - loud, not locked
+    if (typeof _hmAnswered === 'function' && typeof isPastDate === 'function' && !isPastDate()) {
+      const a = _hmAnswered();
+      if (a.n < 3) return (3 - a.n) + ' of 3 missing' + (parts.length ? ' \u00B7 ' + parts.join(' \u00B7 ') : '');
+    }
     return parts.join(' · ');
   }
   if (cls === 's-time') {
@@ -10524,6 +10541,7 @@ function refreshHubButtonPreviews() {
         el.textContent = preview;
       }
       el.classList.remove('is-empty');
+      el.classList.toggle('hm-miss', cls === 's-health' && /missing/.test(preview));
     } else {
       // Empty state — restore the placeholder text from the initial HTML.
       // Since we don't want to hard-code that here, use a per-section map.
@@ -13634,8 +13652,132 @@ function renderHM() {
       return e.reading === 'Yes' ? 1 : 0.18;
     }), '#a5702f');
   }
+  renderHMTriad();
+}
+// ---- A+ (Sep 2026): the triad - three dials always open, the week beneath, the badge (G1) ----
+const HM_DIALS = { walk: { max: 120, unit: 'MIN', hidden: 'f_walk' }, heart: { max: 100, unit: 'PTS', hidden: 'f_heart' } };
+function _hmVal(kind) {
+  const h = document.getElementById(HM_DIALS[kind].hidden);
+  const raw = h ? String(h.value ?? '').trim() : '';
+  return { logged: raw !== '', v: raw !== '' ? (Number(raw) || 0) : 0 };
+}
+// the three answers as the page holds them now: '' = never answered, 0 / No = answered
+function _hmAnswered() {
+  const w = _hmVal('walk'), h = _hmVal('heart'), r = _hmReadingState();
+  const miss = [];
+  if (!w.logged) miss.push('walk');
+  if (!h.logged) miss.push('heart');
+  if (!r) miss.push('brain');
+  return { n: 3 - miss.length, miss };
+}
+function _hmSet(kind, v) {
+  const cfg = HM_DIALS[kind]; if (!cfg) return;
+  const hidden = document.getElementById(cfg.hidden); if (!hidden) return;
+  const n = Math.max(0, Math.min(999, Math.round(Number(v) || 0)));
+  hidden.value = String(n);
+  if (kind === 'walk') { if (typeof renderWalkComposite === 'function') renderWalkComposite(n); walkUserHasInteractedToday = true; }
+  else if (typeof renderHeartComposite === 'function') renderHeartComposite(n);
+  hidden.dispatchEvent(new Event('input', { bubbles: true }));
+  hidden.dispatchEvent(new Event('change', { bubbles: true }));
+}
+let _hmPastOk = false;   // a past day asks once before its dials move
+function _hmMayEdit() {
+  if (typeof isPastDate === 'function' && isPastDate() && !_hmPastOk) {
+    if (!confirm('Change a past day’s Health & Mind?')) return false;
+    _hmPastOk = true;
+  }
+  return true;
+}
+function renderHMTriad() {
+  const w = _hmVal('walk'), h = _hmVal('heart'), rd = _hmReadingState();
+  const paint = (kind, st, cap) => {
+    const dial = document.getElementById(kind === 'walk' ? 'hmDialWalk' : 'hmDialHeart'); if (!dial) return;
+    const cfg = HM_DIALS[kind];
+    const ring = dial.querySelector('.hm-dring'), val = dial.querySelector('.hm-dtxt b'), unit = dial.querySelector('.hm-dtxt small'), zero = dial.querySelector('.hm-dzero');
+    dial.classList.toggle('ask', !st.logged);
+    ring.style.setProperty('--p', st.logged ? Math.min(100, Math.round(st.v / cfg.max * 100)) + '%' : '0%');
+    ring.setAttribute('aria-valuenow', st.logged ? st.v : 0);
+    val.textContent = st.logged ? st.v : '?';
+    unit.textContent = st.logged ? cfg.unit : 'NOT YET';
+    if (zero) zero.classList.toggle('on', st.logged && st.v === 0);
+    dial.querySelector('.hm-dcap').textContent = cap;
+  };
+  paint('walk', w, !w.logged ? 'drag the ring · tap the number to type' : w.v > 0 ? ((typeof walkBucket === 'function' && walkBucket(w.v).label) || 'Walked') : 'Rest day');
+  paint('heart', h, !h.logged ? 'Google Fit’s number' : h.v > 0 ? h.v + ' heart points' : 'None today');
+  const bd = document.getElementById('hmDialBrain'); if (bd) bd.classList.toggle('ask', !rd);
+  // G1: the badge - loud, not locked. Today counts down; a past day is quiet grey.
+  const a = _hmAnswered();
+  const badge = document.getElementById('hmBadge');
+  if (badge) {
+    const past = typeof isPastDate === 'function' && isPastDate();
+    badge.className = 'hm-badge ' + (a.n === 3 ? 'done' : past ? 'past' : 'miss');
+    badge.textContent = a.n === 3 ? '3 OF 3 ANSWERED' : (3 - a.n) + ' OF 3 MISSING';
+  }
+  // the week beneath: a row of circles per activity, in its colour; today's column haloed
+  const wk = document.getElementById('hmWeek');
+  const end = (typeof currentDate === 'string' && currentDate) ? currentDate : (typeof isoToday === 'function' ? isoToday() : null);
+  if (wk && end && typeof allEntries === 'object') {
+    const days = []; const d0 = new Date(end + 'T00:00:00');
+    for (let i = 6; i >= 0; i--) { const dd = new Date(d0); dd.setDate(d0.getDate() - i); days.push(dd.getFullYear() + '-' + String(dd.getMonth() + 1).padStart(2, '0') + '-' + String(dd.getDate()).padStart(2, '0')); }
+    const live = { walk: w, heart: h, brain: rd };
+    const lowAt = { walk: 30, heart: 25 };
+    const cell = (kind, iso, isEnd) => {
+      let st;   // 'on' | 'lo' | 'no' | 'ask' | ''
+      if (isEnd) {
+        if (kind === 'brain') st = live.brain === 'Yes' ? 'on' : live.brain === 'No' ? 'no' : 'ask';
+        else st = !live[kind].logged ? 'ask' : live[kind].v === 0 ? 'no' : (live[kind].v < lowAt[kind] ? 'lo' : 'on');
+      } else {
+        const e = allEntries[iso];
+        if (kind === 'brain') st = !e || !e.reading ? '' : e.reading === 'Yes' ? 'on' : 'no';
+        else { const raw = e ? e[kind] : null; const n = Number(raw) || 0; st = raw === null || raw === undefined || raw === '' ? '' : n === 0 ? 'no' : (n < lowAt[kind] ? 'lo' : 'on'); }
+      }
+      return '<span class="o ' + st + (isEnd ? ' today' : '') + '"></span>';
+    };
+    const row = (kind, name, c) => '<span class="rl" style="color:' + c + '">' + name + '</span>' + days.map((iso, k) => '<span style="--c:' + c + '">' + cell(kind, iso, k === 6) + '</span>').join('');
+    const WD = ['S','M','T','W','T','F','S'];
+    wk.innerHTML = row('walk', 'WALK', '#3d7a5c') + row('heart', 'HEART', '#c2415c') + row('brain', 'BRAIN', '#a5702f')
+      + '<span></span>' + days.map((iso, k) => '<span class="dl' + (k === 6 ? ' t' : '') + '">' + WD[new Date(iso + 'T00:00:00').getDay()] + '</span>').join('');
+  }
+}
+function initHMTriad() {
+  // a ring is a dial: drag (or arrow keys) sets the value by angle; the number is tap-to-type
+  Object.keys(HM_DIALS).forEach(kind => {
+    const dial = document.getElementById(kind === 'walk' ? 'hmDialWalk' : 'hmDialHeart'); if (!dial) return;
+    const ring = dial.querySelector('.hm-dring'), cfg = HM_DIALS[kind];
+    let dragging = false;
+    const fromEvent = (ev) => {
+      const r = ring.getBoundingClientRect();
+      const x = ev.clientX - (r.left + r.width / 2), y = ev.clientY - (r.top + r.height / 2);
+      let deg = Math.atan2(x, -y) * 180 / Math.PI; if (deg < 0) deg += 360;
+      return Math.round(deg / 360 * cfg.max);
+    };
+    ring.addEventListener('pointerdown', ev => {
+      if (ev.target.closest('.hm-dtxt')) return;   // the number is tap-to-type, not a drag start
+      if (!_hmMayEdit()) return;
+      dragging = true; try { ring.setPointerCapture(ev.pointerId); } catch (e) {} ev.preventDefault();
+      _hmSet(kind, fromEvent(ev));
+    });
+    ring.addEventListener('pointermove', ev => { if (!dragging) return; _hmSet(kind, fromEvent(ev)); });
+    const end = ev => { if (!dragging) return; dragging = false; try { ring.releasePointerCapture(ev.pointerId); } catch (e) {} };
+    ring.addEventListener('pointerup', end); ring.addEventListener('pointercancel', end);
+    ring.addEventListener('keydown', ev => {
+      const st = _hmVal(kind); let v = st.logged ? st.v : 0;
+      if (ev.key === 'ArrowUp' || ev.key === 'ArrowRight') v += 1; else if (ev.key === 'ArrowDown' || ev.key === 'ArrowLeft') v -= 1; else return;
+      ev.preventDefault(); if (_hmMayEdit()) _hmSet(kind, v);
+    });
+    dial.querySelector('.hm-dtxt').addEventListener('click', () => {
+      if (!_hmMayEdit()) return;
+      const st = _hmVal(kind);
+      const t = prompt(kind === 'walk' ? 'Walk today, in minutes:' : 'Heart points today:', st.logged ? String(st.v) : '');
+      if (t === null) return;
+      const n = parseInt(t, 10); if (isNaN(n)) return;
+      _hmSet(kind, n);
+    });
+    dial.querySelector('.hm-dzero').addEventListener('click', () => { if (_hmMayEdit()) _hmSet(kind, 0); });
+  });
 }
 function initHMRows() {
+  if (document.getElementById('hmTriad')) initHMTriad();
   document.querySelectorAll('.hm-head').forEach(hd => {
     hd.addEventListener('click', () => {
       const row = hd.parentElement;
