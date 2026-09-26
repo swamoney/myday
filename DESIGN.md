@@ -141,6 +141,40 @@ Arrange retired to zero refs (markup, wiring, css); the end-actions
 foot button before Edit is the only trigger. Section-leave disarm
 kept.
 
+**Q4 = PARK** (23 Sep 2026): the fourth quadrant is 'Park - not as of now' (was 'Delete - not important & not urgent'): Rahul rarely deletes; those tasks are on hold for a later matrix. Stored key stays q4; PRI_Q verb/sub, the task dialog's option, and the print follow. Closing a parked task no longer presumes 'cancelled' - the window opens on 'done' like any other.
+
+**FEELINGS IN THE VERDICT (S1-A2E)** (26 Sep 2026, daily.html): the Day's Verdict now carries feelings. Six everyday words with emoji (Calm, Happy, Grateful, Tired, Stressed, Sad) sit ABOVE Overall Satisfaction; 'Anything more?' sits below it with a dashed '+ another feeling' door that opens a grouped tray of 27 more (PLEASANT 10 / MIXED 5 / UNPLEASANT 12 - our own grouping, no research label; count = the length of the list). Data: `entries.emotions` text = JSON array string of words, same shape as recurring_log/other_log (migrate_emotions.sql); parseEmotions(entry) is the one reader; entryHasContent counts it; s-verdict is 'full' with a score AND a feeling. The hub preview appends up to four emoji (+n); CSV gains a last column 'Feelings' (pipe-joined); the day-ledger PDF prints 'Feelings' as words (Helvetica has no emoji). THE LOCK: the verdict locks once WRITTEN (any feeling or a touched slider) on any day, not only past days - locked = no crosses, no doors, slider disabled, .emo-locked on the section; EDIT (existing #verdictEditBtn, top right) unlocks the six, the extras and the %; DONE or leaving the day re-locks. A fresh day is open with no button; the FIRST tap (pill or slider) starts an editing session so the second feeling never needs EDIT - this deviates from the mock's 'lock arrives at the first pick', on purpose. A past day asks 'Change a past day's verdict?' once. Folded rows: while editing, a six row with a choice shows chosen pills (with x) + '+ feeling' door (emoSixOpen brings the rest back, chosen first); locked with no extras hides the 'Anything more?' row entirely; locked with no feeling reads NO FEELING NOTED. State lives in emoState/emoTrayOpen/emoSixOpen; renderEntry resets them; refreshVerdictLockState() is the single painter (calls emoRender). Trap accepted: fixing a wrong feeling is two taps (EDIT, x).
+
+**HEALTH MOVED + CHIP** (25 Sep 2026): Health & Mind now sits AFTER Food, BEFORE Night Stay (section block, roman numerals i-vi, hub button, TODAY_SECTIONS and the hub focus order all moved) - its three answers are evening facts. The 'none today' chip steps aside (.gone) once a real number is in; it stays lit as the confirmation of an explicit 0.
+
+**TAKEAWAY SHOWS** (25 Sep 2026): ROOT CAUSE - refreshReadingTintState() was closure-scoped, so renderEntry's `typeof` guard silently skipped it on every load: the takeaway stayed hidden until a toggle was tapped. Now exposed on window; and the line is visible whenever Reading = Yes OR the field already holds text (re-run from renderHMTriad after every paint).
+
+**HEALTH & MIND - THE TRIAD (A+ with G1)** (25 Sep 2026, daily.html):
+the three collapsed pulse rows are replaced by three dials always
+open (.hm-triad / .hm-dial): WALK (0-120 min) and HEART POINTS
+(0-100) are conic rings you DRAG (angle -> value; arrow keys too)
+or tap the number to type (prompt); BRAIN FOOD keeps the YES / NO
+toggle and the takeaway line inside its dial. 'None today' is a
+real answer: a .hm-dzero chip writes an explicit 0 (walk/heart);
+NO for brain. Blank ('') is 'not yet' - the dial wears a dashed
+ember frame with '?' / NOT YET. The old slider composites sleep
+unchanged in .hm-legacy (display:none) so #f_walk / #f_heart and
+every save/load/chart path are untouched; _hmSet() writes the
+hidden input + fires input/change, and calls the old composite
+painters. A past day asks once (confirm) before its dials move.
+THE WEEK (#hmWeek): a 3x7 grid of circles beneath, each row in its
+activity colour (moss / rose / amber): on, lo (< 30 min / < 25 pts),
+no (explicit 0 / No: outlined), ask (today blank: rose ring), grey
+(never answered); today's column haloed amber; reads allEntries
+for past days and the live form for today. G1 - LOUD, NOT LOCKED:
+#hmBadge in the section head ('n OF 3 MISSING' ember / '3 OF 3
+ANSWERED' moss / grey on past days) and the hub tile's preview
+reads 'n of 3 missing - ...' in ember on today. No migration.
+Harness: fresh today 3 missing, drag -> 30, type -> 55, YES ->
+3 of 3, none-today -> 0 'Rest day', week states, autosave payload.
+
+**TAGS SELF-HEALING** (25 Sep 2026): the tag pills (both dialogs) and the archive's tag row are drawn from priAllTags_() = the saved list in user_prefs PLUS every tag already on any task - so the words never go missing even if the prefs read fails. Prefs read/write no longer rely on maybeSingle / upsert(onConflict user_id) (fails on a project without a unique key on user_id): read with limit(1), write as update-if-exists else insert. The task dialog re-reads the list once if it is empty.
+
 **PRIORITY TAGS** (23 Sep 2026): one word per task saying what it
 is about, from a list Rahul makes himself (no defaults).
 - Data: why_priority.tag text (migrate_tag.sql - PENDING); the
@@ -148,13 +182,16 @@ is about, from a list Rahul makes himself (no defaults).
 - Dialog: an 'About (optional)' row of pills under the task -
   tap to choose, tap again to clear, '+ tag' prompts a word and
   adds it to the list on the spot. Same dialog from any old task.
-- Rows: a small mono outline word after the title (never a
-  fill) in the matrix, Today's band, and What I closed (ink
-  variant there, leading the chip pair). Untagged shows nothing.
+- Rows (A, 23 Sep): the tag is an EYEBROW ABOVE THE TITLE - deep-ink
+  mono caps, wide tracking, in the earlier WHITE OUTLINE BOX (display:table so it holds its own line; S2: 0.5625rem / 9px caps, 0.12em tracking - one size for phone and desktop) - so it is the first
+  thing read; the same block in the matrix, Today's band (not struck
+  when the line is done) and What I closed. Untagged shows nothing.
 - Archive: a tag row (ALL - n, each word - n) narrows What I
-  closed; '✎ TAGS' renames (flows to every task wearing the word)
+  closed - every chip in it, and the pills in both dialogs, wear the
+  same S2 box (ink on white; the chosen one filled ink); '✎ TAGS' renames (flows to every task wearing the word)
   or removes (asks; leaves tasks untagged). Words seen only on
   closed tasks still appear in the row.
+- A CLOSED task is tagged from What I closed: tapping its row opens the close dialog, which now carries the same About pills (#fPriCloseTags); Save keeps the tag with the outcome.
 - Export carries tag; print shows [tag] after the title.
 Harness: row from closed tasks, + tag with empty list, save,
 matrix mark, filter, rename.

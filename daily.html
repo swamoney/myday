@@ -2750,6 +2750,44 @@
   .yesterday-ghost span { font-weight: 600; }
   .yesterday-ghost.hidden { display: none; }
 
+  /* FEELINGS (A2E): six everyday pills above the score, "Anything more?"
+     beneath it with a folding tray of 27. Both rows fold to the chosen
+     pills once the verdict is locked; EDIT brings back the crosses, the
+     doors and the slider knob. Rose ink = the Verdict's own accent. */
+  .emo-field label { display:flex; align-items:baseline; gap:10px; }
+  .emo-cnt { font-family:var(--mono); font-size:0.4688rem; font-weight:700; letter-spacing:0.14em;
+    text-transform:uppercase; color:#9c445e; background:#f7e6ec; border-radius:6px; padding:3px 8px; }
+  .emo-cnt.none, .emo-cnt.more { color:#5f6a80; background:#eef1f6; }
+  .emo-row { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-height:34px; }
+  .emo-pill { display:inline-flex; align-items:center; gap:7px; border:1px solid #e0d4d9; background:#fff;
+    border-radius:999px; padding:8px 13px 8px 9px; font-family:var(--sans); font-size:0.8125rem; font-weight:600;
+    color:var(--ink-soft); cursor:pointer; line-height:1; user-select:none; -webkit-tap-highlight-color:transparent; }
+  .emo-pill em { font-style:normal; font-size:1.0625rem; line-height:1; }
+  .emo-pill.on { background:#9c445e; color:#fff; border-color:#9c445e; }
+  .emo-pill.extra { background:#f7e6ec; color:#5C2E40; border-color:#e8c9d5; }
+  .emo-pill .emo-x { font-family:var(--mono); font-size:0.5rem; opacity:0.7; margin-left:2px; }
+  .emo-pill.door { border-style:dashed; color:#8a97b3; font-weight:500; background:transparent; }
+  .emo-pill.door.faint { opacity:0.55; }
+  .emo-none { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#b9a3ab; }
+  .emo-tray { margin-top:10px; border:1px solid #e8d6dd; border-radius:12px; background:#fbf1f4; padding:12px 12px 8px; }
+  .emo-tray.hidden { display:none; }
+  .emo-tray .emo-th { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .emo-tray .emo-th b { font-family:var(--mono); font-size:0.4688rem; font-weight:700; letter-spacing:0.16em; color:#9c445e; }
+  .emo-tray .emo-th i { flex:1; height:1px; background:#e8d6dd; }
+  .emo-tray .emo-th span { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#8a97b3; cursor:pointer; }
+  .emo-tray .emo-grp { font-family:var(--mono); font-size:0.4375rem; font-weight:700; letter-spacing:0.14em; color:#8a97b3; margin:8px 0 5px; }
+  .emo-chips { display:flex; gap:5px; flex-wrap:wrap; }
+  .emo-chip { display:inline-flex; align-items:center; gap:5px; border:1px solid #e8d6dd; background:#fff; border-radius:7px;
+    padding:5px 9px 5px 7px; font-family:var(--sans); font-size:0.75rem; color:var(--ink-soft); cursor:pointer; user-select:none; }
+  .emo-chip em { font-style:normal; font-size:0.9375rem; line-height:1; }
+  .emo-chip.on { background:#9c445e; color:#fff; border-color:#9c445e; }
+  .emo-tray.has .emo-chip:not(.on) { opacity:0.22; }
+  .emo-tray.has .emo-chip:not(.on):hover { opacity:0.7; }
+  /* locked face: nothing tappable */
+  .s-verdict.emo-locked .emo-pill { pointer-events:none; }
+  .s-verdict.emo-locked .emo-cnt { opacity:0.85; }
+  .verdict-preview-emo { margin-left:6px; letter-spacing:0.04em; }
+
   /* CHIPS */
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .chip {
@@ -7242,6 +7280,11 @@
         <span class="rule-fill"></span>
         <span class="num">vi.</span>
       </div>
+      <!-- FEELINGS (A2E): the six everyday words, before the score. -->
+      <div class="field emo-field" id="emoSixField">
+        <label>What did today feel like? <span class="emo-cnt none" id="emoCnt">none yet</span></label>
+        <div class="emo-row" id="emoSix"></div>
+      </div>
       <div class="field">
         <label>Overall Satisfaction</label>
         <div class="slider-wrap">
@@ -7271,6 +7314,13 @@
           </div>
           <div class="yesterday-ghost hidden" id="yesterdayGhost">yesterday: <span></span></div>
         </div>
+      </div>
+
+      <!-- FEELINGS (A2E): anything more? — the 27 behind a door, grouped. -->
+      <div class="field emo-field" id="emoMoreField">
+        <label>Anything more? <span class="emo-cnt more" id="emoMoreCnt">0 more</span></label>
+        <div class="emo-row" id="emoMore"></div>
+        <div class="emo-tray hidden" id="emoTray"></div>
       </div>
 
       <!-- Introspection — the closing reflection of the day, now living at the
@@ -7649,7 +7699,8 @@ const FIELD_TO_COL = {
   slot1:'slot1', slot2:'slot2', slot3:'slot3', slot4:'slot4', slot5:'slot5', slot6:'slot6',
   breakfast:'breakfast', lunch:'lunch', dinner:'dinner', nightCity:'night_city', nightStay:'night_stay', stayedWith:'stayed_with',
   recurringLog:'recurring_log',
-  otherLog:'other_log'
+  otherLog:'other_log',
+  emotions:'emotions'        /* FEELINGS: JSON array string of words */
 };
 const COL_TO_FIELD = Object.fromEntries(Object.entries(FIELD_TO_COL).map(([k,v]) => [v,k]));
 
@@ -8398,6 +8449,8 @@ function blankEntry() {
   // Phase 12+: otherLog mirrors recurringLog for itemized Other Expenses.
   // Same JSON-array-string shape. Default empty array.
   e.otherLog = '[]';
+  // FEELINGS: JSON array string of chosen words. Same shape as the logs.
+  e.emotions = '[]';
   // Ship 3b: initialize virtual derived properties from (empty) otherLog.
   // Sets e.aiUsage = '', e.other = '', e.otherNote = ''.
   deriveOtherFields(e);
@@ -8813,6 +8866,7 @@ function rowToEntry(row) {
   if (!e.recurringLog || e.recurringLog === '' || e.recurringLog === 'null') e.recurringLog = '[]';
   // Phase 12+: ensure otherLog is always a valid JSON-array string.
   if (!e.otherLog || e.otherLog === '' || e.otherLog === 'null') e.otherLog = '[]';
+  if (!e.emotions || e.emotions === '' || e.emotions === 'null') e.emotions = '[]';
   // Ship 3b: AFTER loading from DB, derive virtual aiUsage / other / otherNote
   // fields from the otherLog items. The old ai_usage / other_exp / other_note
   // columns are no longer authoritative — items in otherLog are the source
@@ -8827,7 +8881,7 @@ function entryToRow(entry, dateIso) {
     let v = entry[field];
     if (v === undefined || v === null) v = '';
     // recurringLog / otherLog may be arrays in memory; persist as JSON strings.
-    if (field === 'recurringLog' || field === 'otherLog') {
+    if (field === 'recurringLog' || field === 'otherLog' || field === 'emotions') {
       if (Array.isArray(v)) v = JSON.stringify(v);
       else if (v === '' ) v = '[]';
     }
@@ -8847,6 +8901,8 @@ function entryHasContent(e) {
   }
   // Phase 11+: a non-empty recurring payment log counts as content.
   if (recurringSum(e) > 0) return true;
+  // FEELINGS: a chosen word counts as content.
+  if (parseEmotions(e).length > 0) return true;
   return false;
 }
 
@@ -9184,6 +9240,9 @@ function renderEntry() {
   document.getElementById('satVal').textContent = (sat * 100).toFixed(0) + '%';
   // Render the new readout (bucket label + percent) and tick highlighting
   satRenderReadout(isUntouched ? null : sat);
+  // FEELINGS: load the day's words; the lock refresh below repaints the rows.
+  emoState = parseEmotions(currentEntry);
+  emoTrayOpen = false; emoSixOpen = false;
   TOGGLE_FIELDS.forEach(f => {
     const val = currentEntry[f];
     document.querySelectorAll(`[data-toggle="f_${f}"]`).forEach(b => {
@@ -9552,6 +9611,8 @@ function readEntryFromForm() {
   // bug that became real once Other Expenses moved to itemized storage.
   e.recurringLog = (currentEntry && currentEntry.recurringLog) || '[]';
   e.otherLog = (currentEntry && currentEntry.otherLog) || '[]';
+  // FEELINGS: the chosen words live in emoState, not in an input.
+  e.emotions = JSON.stringify(emoState.slice());
   // Derive the virtual aiUsage / other / otherNote properties from items.
   deriveOtherFields(e);
   return e;
@@ -9705,7 +9766,7 @@ const TODAY_SECTIONS = [
   { cls: 's-night', label: 'Night Stay',
     fields: ['nightCity','nightStay','stayedWith'] },
   { cls: 's-verdict', label: "The Day's Verdict",
-    fields: ['satisfaction'] },
+    fields: ['satisfaction','emotions'] },
 ];
 
 // Returns array of booleans, one per section in TODAY_SECTIONS, indicating
@@ -9722,6 +9783,7 @@ function computeTodaySectionState() {
         // Slider — only counts if user has moved it, i.e., not the default 0.
         return Number(v) > 0;
       }
+      if (f === 'emotions') return parseEmotions(currentEntry).length > 0;
       if (typeof v === 'number') return v > 0;
       // String 'No' for toggles still counts as having an answer
       return String(v).trim().length > 0;
@@ -9747,6 +9809,7 @@ function computeTodaySectionStateDetailed() {
         if (Number(v) > 0) filled++;
         return;
       }
+      if (f === 'emotions') { if (parseEmotions(currentEntry).length > 0) filled++; return; }
       if (typeof v === 'number') { if (v > 0) filled++; return; }
       if (String(v).trim().length > 0) filled++;
     });
@@ -10511,7 +10574,8 @@ function computeHubPreview(cls) {
   }
   if (cls === 's-verdict') {
     const sat = num(e.satisfaction);
-    if (sat <= 0) return '';
+    const emo = emoPreview(e);
+    if (sat <= 0) return emo ? `<span class="verdict-preview-emo">${emo}</span>` : '';
     // satisfaction is 0-1 range; show as X.X / 10
     const outOfTen = (sat * 10).toFixed(1);
     // E3.4: Color-code + short adjective by score
@@ -10523,7 +10587,8 @@ function computeHubPreview(cls) {
     // Return a marker string that CSS can style — we pass via a data attr
     // rather than embedding classes in the text. Encode as HTML span so the
     // caller can just innerHTML it.
-    return `<span class="verdict-preview-${tone}">${outOfTen} / 10 · ${label}</span>`;
+    return `<span class="verdict-preview-${tone}">${outOfTen} / 10 · ${label}</span>`
+      + (emo ? `<span class="verdict-preview-emo">${emo}</span>` : '');
   }
   return '';
 }
@@ -15581,7 +15646,7 @@ const CSV_HEADERS = [
   'Other Expenses Total','Other Expenses Details',
   'Recurring Expenses Total','Recurring Expenses Details',
   'Credit Card Bill Payment','Credit Card Bill Note',
-  'Overall Satisfaction','Introspection: Learning /Any regrets / New Ideas'
+  'Overall Satisfaction','Introspection: Learning /Any regrets / New Ideas','Feelings'
 ];
 // Path 2: aiUsage / other / otherNote stay out of the daily CSV as individual
 // columns. Instead, the daily CSV gets summary columns "Other Total" and
@@ -15593,7 +15658,7 @@ const CSV_HEADERS = [
 // Final two columns: Overall Satisfaction + Introspection — moved to the
 // end so reflective/qualitative fields read as the closing summary of each
 // day's row.
-const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection'];
+const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection','__emotions'];
 
 // Ship 4: headers for the second CSV (one row per Other item).
 const CSV_OTHER_ITEMS_HEADERS = ['Date','Item Name','Amount'];
@@ -15634,6 +15699,10 @@ function buildCsv(filterPrefix) {
         const items = parseRecurring(e);
         if (items.length === 0) return '';
         return csvEscape(items.map(it => it.name + ': ' + it.amt).join(' | '));
+      }
+      if (f === '__emotions') {
+        const w = parseEmotions(e);
+        return w.length ? csvEscape(w.join(' | ')) : '';
       }
       if (f === '__creditCardBill') {
         // CC tracking: evaluate calc expression but never aggregate elsewhere.
@@ -16972,8 +17041,10 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     const intro = (entry.introspection && entry.introspection !== 'Yes'
       && entry.introspection !== 'No' && String(entry.introspection).trim())
       ? String(entry.introspection).trim() : null;
-    if (satOk || intro) {
+    const feel = parseEmotions(entry);
+    if (satOk || intro || feel.length) {
       bkStart("The Day's Verdict", C_VERDICT, '');
+      if (feel.length) fieldLine('Feelings', feel.join(' · '));
       if (satOk) fieldLine('Satisfaction', (Number(entry.satisfaction) * 100).toFixed(0) + '%', { bold: true });
       if (intro) fieldLine('Introspection', intro);
       bkEnd();
@@ -17375,32 +17446,181 @@ function isPastDate() {
   } catch { return false; }
 }
 
+// FEELINGS (A2E) — the verdict locks once it is WRITTEN (a feeling or a
+// score), on any day. Locked = no crosses, no doors, slider fixed. EDIT
+// unlocks the six, the extras and the %; DONE (or leaving the day) re-locks.
+// A fresh day is open with no button; the first tap starts an editing
+// session (button reads DONE) so a second feeling never needs EDIT.
+const EMO_SIX = [
+  ['Calm','\u{1F60C}'], ['Happy','\u{1F60A}'], ['Grateful','\u{1F64F}'],
+  ['Tired','\u{1F634}'], ['Stressed','\u{1F62B}'], ['Sad','\u{1F622}']
+];
+const EMO_MORE = [
+  ['Pleasant', [['Content','\u{1F642}'],['Proud','\u{1F929}'],['Hopeful','\u{1F331}'],['Excited','\u{1F973}'],['Amused','\u{1F606}'],
+                ['Loved','\u{1F970}'],['Relieved','\u{1F62E}‍\u{1F4A8}'],['Inspired','✨'],['Confident','\u{1F4AA}'],['Tender','\u{1F979}']]],
+  ['Mixed',    [['Surprise','\u{1F62E}'],['Curious','\u{1F914}'],['Nostalgic','\u{1F342}'],['Awe','\u{1F92F}'],['Restless','\u{1F62C}']]],
+  ['Unpleasant',[['Anger','\u{1F621}'],['Fear','\u{1F628}'],['Disgust','\u{1F922}'],['Anxious','\u{1F630}'],['Overwhelmed','\u{1FAE0}'],
+                ['Lonely','\u{1FAE5}'],['Bored','\u{1F611}'],['Frustrated','\u{1F624}'],['Guilty','\u{1F614}'],['Ashamed','\u{1FAE3}'],
+                ['Embarrassed','\u{1F633}'],['Confused','\u{1F615}']]]
+];
+const EMO_EMOJI = {};
+EMO_SIX.forEach(([w,e]) => EMO_EMOJI[w] = e);
+EMO_MORE.forEach(([, list]) => list.forEach(([w,e]) => EMO_EMOJI[w] = e));
+const EMO_SIX_WORDS = EMO_SIX.map(x => x[0]);
+let emoState = [];        // chosen words for the day being viewed, in tap order
+let emoTrayOpen = false;  // the 27 tray
+let emoSixOpen = false;   // the six row's door (folded → all six)
+
+function parseEmotions(entry) {
+  if (!entry) return [];
+  let raw = entry.emotions;
+  if (Array.isArray(raw)) return raw.filter(w => EMO_EMOJI[w]);
+  if (!raw || raw === '[]' || raw === 'null') return [];
+  try { const a = JSON.parse(raw); return Array.isArray(a) ? a.filter(w => EMO_EMOJI[w]) : []; } catch (e) { return []; }
+}
+function emoPreview(entry) {
+  const w = parseEmotions(entry);
+  if (!w.length) return '';
+  const shown = w.slice(0, 4).map(x => EMO_EMOJI[x]).join('');
+  return w.length > 4 ? shown + ' +' + (w.length - 4) : shown;
+}
+function verdictWritten() {
+  if (emoState.length) return true;
+  const slider = document.getElementById('f_satisfaction');
+  return !!(slider && !slider.classList.contains('untouched'));
+}
+function emoEsc(t) { return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function emoPill(word, cls, withX) {
+  return '<span class="emo-pill ' + cls + '" data-emo="' + emoEsc(word) + '"><em>' + EMO_EMOJI[word] + '</em>' + emoEsc(word)
+    + (withX ? ' <span class="emo-x">✕</span>' : '') + '</span>';
+}
+function emoRender(locked) {
+  const six = document.getElementById('emoSix');
+  const more = document.getElementById('emoMore');
+  const tray = document.getElementById('emoTray');
+  const cnt = document.getElementById('emoCnt');
+  const mcnt = document.getElementById('emoMoreCnt');
+  if (!six || !more || !tray) return;
+  const chosenSix = EMO_SIX_WORDS.filter(w => emoState.includes(w));
+  const extras = emoState.filter(w => !EMO_SIX_WORDS.includes(w));
+  // six row
+  let h = '';
+  if (locked) {
+    h = chosenSix.length ? chosenSix.map(w => emoPill(w, 'on', false)).join('')
+                         : '<span class="emo-none">NO FEELING NOTED</span>';
+  } else if (!chosenSix.length || emoSixOpen) {
+    h = chosenSix.map(w => emoPill(w, 'on', true)).join('')
+      + EMO_SIX_WORDS.filter(w => !emoState.includes(w)).map(w => emoPill(w, '', false)).join('');
+  } else {
+    h = chosenSix.map(w => emoPill(w, 'on', true)).join('') + '<span class="emo-pill door" data-door="six">+ feeling</span>';
+  }
+  six.innerHTML = h;
+  // extras row
+  let m = '';
+  if (locked) {
+    m = extras.length ? extras.map(w => emoPill(w, 'extra', false)).join('') : '<span class="emo-none">—</span>';
+  } else {
+    m = extras.map(w => emoPill(w, 'extra', true)).join('')
+      + '<span class="emo-pill door' + (extras.length ? ' faint' : '') + '" data-door="more">+ another feeling</span>';
+  }
+  more.innerHTML = m;
+  // a locked day with no extras hides the row altogether — nothing to read there
+  const moreField = document.getElementById('emoMoreField');
+  if (moreField) moreField.style.display = (locked && !extras.length) ? 'none' : '';
+  // tray
+  const showTray = !locked && emoTrayOpen;
+  tray.classList.toggle('hidden', !showTray);
+  if (showTray) {
+    let t = '<div class="emo-th"><b>ANOTHER FEELING</b><i></i><span data-door="close">CLOSE</span></div>';
+    EMO_MORE.forEach(([grp, list]) => {
+      t += '<div class="emo-grp">' + grp.toUpperCase() + '</div><div class="emo-chips">'
+        + list.map(([w]) => '<span class="emo-chip' + (emoState.includes(w) ? ' on' : '') + '" data-emo="' + emoEsc(w) + '"><em>' + EMO_EMOJI[w] + '</em>' + emoEsc(w) + '</span>').join('')
+        + '</div>';
+    });
+    tray.innerHTML = t;
+    tray.classList.toggle('has', extras.length > 0);
+  }
+  // counts
+  if (cnt) {
+    const n = emoState.length;
+    cnt.textContent = n ? (n + (n === 1 ? ' feeling' : ' feelings')) : 'none yet';
+    cnt.classList.toggle('none', n === 0);
+  }
+  if (mcnt) mcnt.textContent = extras.length + ' more';
+}
+function emoBeginEditIfFresh() {
+  // First interaction on an open (unwritten) day starts an editing session so
+  // the face stays open until DONE. Past days are already explicit.
+  if (!verdictUnlockedThisRender && !isPastDate()) verdictUnlockedThisRender = true;
+}
+function emoToggle(word) {
+  if (!EMO_EMOJI[word]) return;
+  emoBeginEditIfFresh();
+  const i = emoState.indexOf(word);
+  if (i >= 0) emoState.splice(i, 1); else emoState.push(word);
+  refreshVerdictLockState();
+  scheduleSave();
+}
+function setupEmotions() {
+  const six = document.getElementById('emoSix');
+  const more = document.getElementById('emoMore');
+  const tray = document.getElementById('emoTray');
+  if (!six || !more || !tray) return;
+  six.addEventListener('click', ev => {
+    const d = ev.target.closest('[data-door]');
+    if (d) { emoSixOpen = true; emoBeginEditIfFresh(); refreshVerdictLockState(); return; }
+    const p = ev.target.closest('[data-emo]');
+    if (p) { emoSixOpen = false; emoToggle(p.dataset.emo); }
+  });
+  more.addEventListener('click', ev => {
+    const d = ev.target.closest('[data-door]');
+    if (d) { emoTrayOpen = !emoTrayOpen; emoBeginEditIfFresh(); refreshVerdictLockState(); return; }
+    const p = ev.target.closest('[data-emo]');
+    if (p) emoToggle(p.dataset.emo);
+  });
+  tray.addEventListener('click', ev => {
+    const d = ev.target.closest('[data-door]');
+    if (d) { emoTrayOpen = false; refreshVerdictLockState(); return; }
+    const p = ev.target.closest('[data-emo]');
+    if (p) emoToggle(p.dataset.emo);
+  });
+  // the slider is the other thing the lock guards — a first drag on a fresh
+  // day also opens the editing session
+  const slider = document.getElementById('f_satisfaction');
+  if (slider) slider.addEventListener('input', () => {
+    if (!verdictUnlockedThisRender && !isPastDate()) { verdictUnlockedThisRender = true; refreshVerdictLockState(); }
+  });
+}
+
 function refreshVerdictLockState() {
   const slider = document.getElementById('f_satisfaction');
   const sliderWrap = slider ? slider.closest('.slider-wrap') : null;
   const badge = document.getElementById('verdictLockBadge');
   const editBtn = document.getElementById('verdictEditBtn');
+  const section = document.querySelector('.section.s-verdict');
   if (!slider || !sliderWrap || !badge || !editBtn) return;
 
   const past = isPastDate();
-  const locked = past && !verdictUnlockedThisRender;
+  // A2E: lockable once written (any day) or on a past day.
+  const lockable = past || verdictWritten();
+  const locked = lockable && !verdictUnlockedThisRender;
 
-  // Show/hide chrome based on whether this is a past date
-  badge.classList.toggle('hidden', !past);
-  editBtn.classList.toggle('hidden', !past);
+  // Chrome shows whenever the verdict can be locked; a fresh day has none.
+  badge.classList.toggle('hidden', !lockable);
+  editBtn.classList.toggle('hidden', !lockable);
 
-  // Apply locked state to slider + wrap
   slider.disabled = locked;
   sliderWrap.classList.toggle('is-locked', locked);
+  if (section) section.classList.toggle('emo-locked', locked);
 
-  // Update chrome state (locked vs editing)
-  badge.classList.toggle('editing', past && !locked);
-  editBtn.classList.toggle('editing', past && !locked);
-  // Update visible label spans inside badge + button
+  badge.classList.toggle('editing', lockable && !locked);
+  editBtn.classList.toggle('editing', lockable && !locked);
   const badgeLabel = document.getElementById('verdictLockBadgeLabel');
   const btnLabel = document.getElementById('verdictEditBtnLabel');
   if (badgeLabel) badgeLabel.textContent = locked ? 'locked' : 'editing';
   if (btnLabel) btnLabel.textContent = locked ? 'Edit' : 'Done';
+  if (locked) { emoTrayOpen = false; emoSixOpen = false; }
+  emoRender(locked);
 }
 
 // ============================================================
@@ -19214,9 +19434,14 @@ function setupVerdictLock() {
   editBtn.addEventListener('click', () => {
     // Toggle unlock state for this render. If currently locked, unlock;
     // if currently unlocked (in editing mode), re-lock.
+    // A2E: a past day asks once before it opens.
+    if (!verdictUnlockedThisRender && isPastDate()) {
+      if (!confirm("Change a past day's verdict?")) return;
+    }
     verdictUnlockedThisRender = !verdictUnlockedThisRender;
     refreshVerdictLockState();
   });
+  setupEmotions();
 }
 
 async function init() {
