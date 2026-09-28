@@ -5233,9 +5233,11 @@ function priAllTags_() {
 function paintPriTagPills_() {
   const box = el('priCloseModal') && !el('priCloseModal').classList.contains('hidden') ? el('fPriCloseTags') : el('fPriTags'); if (!box) return;
   box.innerHTML = priAllTags_().map(w => '<button type="button" data-tag="' + escHtml(w) + '"' + (w === priTagPick ? ' class="on"' : '') + '>' + escHtml(w) + '</button>').join('')
-    + '<button type="button" class="add" data-tagadd>+ tag</button>';
+    + '<button type="button" class="add" data-tagadd>+ tag</button>'
+    + (priAllTags_().length ? '<button type="button" class="add" data-tagmanage title="Rename or remove a tag">\u270E tags</button>' : '');
 }
 async function priTagPillsClick_(e) {
+  if (e.target.closest('[data-tagmanage]')) { await priManageTags_(); return; }
   const a = e.target.closest('[data-tagadd]');
   if (a) {
     const w = (prompt('A word for what this task is about:', '') || '').trim();
@@ -5267,34 +5269,42 @@ el('priTagRow').addEventListener('click', async e => {
   priTagFilter = f.dataset.tagf; renderPriArchive(); renderPriTagRow();
 });
 // rename flows to every task wearing the word; remove leaves those tasks untagged (asks first)
+// FIX (28 Sep 2026): works over EVERY word in use (priAllTags_), not only the saved list -
+// a tag that lived only on tasks (saved list lost or never written) could not be renamed.
 async function priManageTags_() {
-  if (!priTags.length) { toast('No tags yet \u2014 add one from a task'); return; }
-  const list = priTags.map((w, i) => (i + 1) + '. ' + w).join('\n');
+  const words = priAllTags_();
+  if (!words.length) { toast('No tags yet \u2014 add one from a task'); return; }
+  const list = words.map((w, i) => (i + 1) + '. ' + w).join('\n');
   const pick = prompt('Which tag? (number)\n' + list, '');
   if (pick === null) return;
-  const i = Number(pick) - 1; if (!(i >= 0 && i < priTags.length)) return;
-  const old = priTags[i];
+  const i = Number(pick) - 1; if (!(i >= 0 && i < words.length)) return;
+  const old = words[i];
   const nw = prompt('Rename "' + old + '" to (leave blank to remove it):', old);
   if (nw === null) return;
   const word = nw.trim();
+  const before = priTags.slice();
+  const si = priTags.findIndex(x => x.toLowerCase() === old.toLowerCase());
   if (word && word !== old) {
-    if (priTags.some((x, k) => k !== i && x.toLowerCase() === word.toLowerCase())) { toast('That word is already a tag'); return; }
-    priTags[i] = word;
+    if (words.some(x => x !== old && x.toLowerCase() === word.toLowerCase())) { toast('That word is already a tag'); return; }
+    if (si >= 0) priTags[si] = word; else priTags.push(word);
     const { error } = await supa.from('why_priority').update({ tag: word }).eq('user_id', userId).eq('tag', old);
-    if (error) { console.error(error); toast('Could not rename'); priTags[i] = old; return; }
+    if (error) { console.error(error); toast('Could not rename'); priTags = before; return; }
     priority.forEach(t => { if (t.tag === old) t.tag = word; });
     if (priTagFilter === old) priTagFilter = word;
+    if (priTagPick === old) priTagPick = word;
   } else if (!word) {
     const n = priority.filter(t => t.tag === old).length;
     if (!confirm('Remove the tag "' + old + '"?' + (n ? ' ' + n + ' task(s) will be left untagged.' : ''))) return;
-    priTags.splice(i, 1);
+    if (si >= 0) priTags.splice(si, 1);
     const { error } = await supa.from('why_priority').update({ tag: null }).eq('user_id', userId).eq('tag', old);
-    if (error) { console.error(error); toast('Could not remove'); priTags.splice(i, 0, old); return; }
+    if (error) { console.error(error); toast('Could not remove'); priTags = before; return; }
     priority.forEach(t => { if (t.tag === old) t.tag = null; });
     if (priTagFilter === old) priTagFilter = '';
+    if (priTagPick === old) priTagPick = '';
   } else return;
   try { await savePriTags(); } catch (err) { console.error(err); toast('Could not save the tags'); return; }
   renderPriority();
+  paintPriTagPills_();
 }
 // TODAY'S TO-DO: 'today' is the Indian calendar day, whatever the phone's zone (finding 1)
 function istToday() {
