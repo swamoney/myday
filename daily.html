@@ -5610,6 +5610,9 @@
     display: flex; flex-direction: column; align-items: stretch; gap: 0;
     max-width: 320px; margin: 0 auto;
   }
+  .pdf-kind { display:inline-flex; border:1px solid var(--rule); border-radius:999px; overflow:hidden; margin:0 auto 12px; }
+  .pdf-kind-btn { background:transparent; border:0; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; padding:7px 14px; color:var(--muted); cursor:pointer; }
+  .pdf-kind-btn.active { background:var(--rs-brand, #0b4f6c); color:#fff; }
   .pdf-year-label {
     font-family: var(--mono); font-size:0.625rem; letter-spacing: 0.16em;
     text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px;
@@ -7607,7 +7610,12 @@
       </div>
       <p class="quiet" style="margin-bottom: 14px;">A printable, bound-volume version of your year — every day, every field, with monthly chapter dividers.</p>
       <div class="pdf-controls">
-        <label class="pdf-year-label">Year</label>
+        <!-- X2 (28 Sep 2026): CALENDAR | FINANCIAL switch; one list, one button -->
+        <div class="pdf-kind" id="pdfKind" role="tablist" aria-label="Which year">
+          <button type="button" class="pdf-kind-btn active" data-pdf-kind="cal">Calendar</button>
+          <button type="button" class="pdf-kind-btn" data-pdf-kind="fy">Financial</button>
+        </div>
+        <label class="pdf-year-label" id="pdfYearLabel">Year</label>
         <select class="pdf-year-select" id="pdfYearSelect"></select>
         <button class="big-btn" id="generatePdfBtn" style="margin-top: 10px;">⇣ Generate PDF</button>
       </div>
@@ -15975,15 +15983,25 @@ const PDF_COLORS = {
 const MONTH_NAMES_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // Populate the year-picker dropdown with years for which we have entries.
+let pdfKind = 'cal';   // X2: which volume the Export card makes ('cal' | 'fy')
 function populatePdfYearOptions() {
   const select = document.getElementById('pdfYearSelect');
   if (!select) return;
   const years = new Set();
   Object.keys(allEntries).forEach(iso => {
     const y = iso.slice(0, 4);
-    if (/^\d{4}$/.test(y)) years.add(y);
+    if (!/^\d{4}$/.test(y)) return;
+    if (pdfKind === 'fy') {
+      // an FY is named by the April that starts it: Jan-Mar belong to last year's
+      const m = Number(iso.slice(5, 7));
+      years.add(String(m >= 4 ? Number(y) : Number(y) - 1));
+    } else years.add(y);
   });
   const sorted = Array.from(years).sort((a, b) => b.localeCompare(a)); // newest first
+  const lbl = document.getElementById('pdfYearLabel');
+  if (lbl) lbl.textContent = pdfKind === 'fy' ? 'Financial year' : 'Year';
+  const gbtn = document.getElementById('generatePdfBtn');
+  if (gbtn) gbtn.textContent = pdfKind === 'fy' ? '⇣ Generate FY PDF' : '⇣ Generate PDF';
   select.innerHTML = '';
   if (sorted.length === 0) {
     const opt = document.createElement('option');
@@ -15997,9 +16015,10 @@ function populatePdfYearOptions() {
   for (const y of sorted) {
     const opt = document.createElement('option');
     opt.value = y;
-    // Count entries this year for context
-    const yearCount = Object.keys(allEntries).filter(iso => iso.startsWith(y)).length;
-    opt.textContent = `${y}  ·  ${yearCount} ${yearCount === 1 ? 'entry' : 'entries'}`;
+    // Count entries in this window for context
+    const W = yearWindow_(pdfKind, y);
+    const yearCount = Object.keys(allEntries).filter(iso => W.inWindow(iso)).length;
+    opt.textContent = `${W.title}  ·  ${yearCount} ${yearCount === 1 ? 'entry' : 'entries'}`;
     select.appendChild(opt);
   }
 }
@@ -16066,6 +16085,8 @@ function pdfWrapText(doc, text, maxWidth) {
 
 // =========== PAGE 1: COVER ===========
 function pdfDrawCoverPage(doc, year, entryCount) {
+  // year may be a window (FY volumes) or a 'YYYY' string (old callers)
+  const W = (typeof year === 'object') ? year : yearWindow_('cal', year);
   pdfSetFill(doc, PDF_COLORS.page);
   doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
 
@@ -16086,9 +16107,15 @@ function pdfDrawCoverPage(doc, year, entryCount) {
 
   // Year — large Times Roman
   doc.setFont('times', 'normal');
-  doc.setFontSize(72);
+  doc.setFontSize(W.kind === 'fy' ? 56 : 72);
   pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(String(year), PDF_PAGE.width / 2, composeY + 30, { align: 'center' });
+  doc.text(W.title, PDF_PAGE.width / 2, composeY + 30, { align: 'center' });
+  if (W.sub) {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.4);
+    doc.text(W.sub, PDF_PAGE.width / 2, composeY + 40, { align: 'center' });
+    doc.setCharSpace(0);
+  }
 
   // Footer: just "printed [Month Year]"
   const footerY = PDF_PAGE.height - 18;
@@ -16101,7 +16128,7 @@ function pdfDrawCoverPage(doc, year, entryCount) {
 }
 
 // =========== MONTH DIVIDER PAGE ===========
-function pdfDrawMonthDivider(doc, year, monthIdx, monthEntries) {
+function pdfDrawMonthDivider(doc, year, monthIdx, monthEntries, W) {
   pdfSetFill(doc, PDF_COLORS.page);
   doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
 
@@ -16112,7 +16139,10 @@ function pdfDrawMonthDivider(doc, year, monthIdx, monthEntries) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   pdfSetText(doc, PDF_COLORS.muted);
-  doc.text(`${monthName.toUpperCase()}  \u00B7  ${year}`, PDF_PAGE.width / 2, cy - 56, { align: 'center' });
+  const kicker = (W && W.kind === 'fy')
+    ? `${monthName.toUpperCase()} ${year}  \u00B7  Q${Math.floor(W.months.indexOf(year + '-' + String(monthIdx + 1).padStart(2, '0')) / 3) + 1} OF ${W.title}`
+    : `${monthName.toUpperCase()}  \u00B7  ${year}`;
+  doc.text(kicker, PDF_PAGE.width / 2, cy - 56, { align: 'center' });
   doc.setCharSpace(0);
 
   // Top rule
@@ -16194,7 +16224,9 @@ function computeMonthStats(entries) {
 // inference, trip grouping). Inputs: yearStr + already-grouped byMonth dict.
 // Returns: { totalInvest, totalSpend, totalRecurring, awayNights, awayTrips,
 //   longWalks, noSleepNights, top3Months, monthlySpend, daysLogged }.
-function computePdfYearSummary(yearStr, byMonth) {
+function computePdfYearSummary(W, byMonth) {
+  // byMonth is keyed by POSITION in the window (0 = January or April)
+  if (typeof W !== 'object') W = yearWindow_('cal', W);
   const yearEntries = [];
   for (let m = 0; m < 12; m++) {
     for (const item of byMonth[m]) yearEntries.push(item);
@@ -16212,7 +16244,8 @@ function computePdfYearSummary(yearStr, byMonth) {
   for (const item of yearEntries) {
     const e = item.entry;
     if (!e) continue;
-    const m = parseInt(item.date.slice(5, 7), 10) - 1;
+    const m = W.months.indexOf(item.date.slice(0, 7));
+    if (m < 0) continue;
     monthlySpend[m].days++;
     const ri = evalExpr(e.regularInvestment);
     const tu = evalExpr(e.topUp);
@@ -16240,7 +16273,7 @@ function computePdfYearSummary(yearStr, byMonth) {
   // Recurring totals — sum across all 12 months (already pre-fetched at this point)
   let totalRecurring = 0;
   for (let m = 0; m < 12; m++) {
-    const ym = yearStr + '-' + String(m + 1).padStart(2, '0');
+    const ym = W.months[m];
     const recT = getRecurringTotalsForMonth(ym);
     monthlySpend[m].recurring = recT.logged || 0;
     totalRecurring += recT.logged || 0;
@@ -16313,6 +16346,9 @@ function computePdfYearSummary(yearStr, byMonth) {
 // Single page laying out the same data as the Year tab in a compact form:
 // cash flow comparison, year stats, top 3 spend months, 12-month spend grid.
 function pdfDrawYearSummary(doc, year, summary) {
+  const W = (typeof year === 'object') ? year : yearWindow_('cal', year);
+  const monthNameAt = (i) => MONTH_NAMES_FULL[Number(W.months[i].slice(5, 7)) - 1];
+  const monthTagAt = (i) => monthNameAt(i).toUpperCase().slice(0, 3) + (W.kind === 'fy' && i >= 9 ? " '" + W.months[i].slice(2, 4) : '');
   pdfSetFill(doc, PDF_COLORS.page);
   doc.rect(0, 0, PDF_PAGE.width, PDF_PAGE.height, 'F');
 
@@ -16336,7 +16372,7 @@ function pdfDrawYearSummary(doc, year, summary) {
   doc.setFont('times', 'italic');
   doc.setFontSize(28);
   pdfSetText(doc, PDF_COLORS.ink);
-  doc.text(`${year} in review`, cx, PDF_PAGE.marginTop + 16, { align: 'center' });
+  doc.text(`${W.title} in review`, cx, PDF_PAGE.marginTop + 16, { align: 'center' });
 
   // Subtitle
   doc.setFont('helvetica', 'normal');
@@ -16517,7 +16553,7 @@ function pdfDrawYearSummary(doc, year, summary) {
     const rowH = 12;
     for (let i = 0; i < summary.top3.length; i++) {
       const t = summary.top3[i];
-      const monthName = MONTH_NAMES_FULL[t.m];
+      const monthName = monthNameAt(t.m) + (W.kind === 'fy' ? ' ' + W.months[t.m].slice(0, 4) : '');
       const avg = t.days > 0 ? Math.round(t.total / t.days) : 0;
       // Vertical center of this row (used to anchor multi-line text consistently)
       const rowMidY = y + 1;
@@ -16583,7 +16619,7 @@ function pdfDrawYearSummary(doc, year, summary) {
     doc.setFontSize(7);
     pdfSetText(doc, PDF_COLORS.muted);
     doc.setCharSpace(0.3);
-    doc.text(MONTH_NAMES_FULL[m].toUpperCase().slice(0, 3), cellX + 2, cellY + 3.5);
+    doc.text(monthTagAt(m), cellX + 2, cellY + 3.5);
     doc.setCharSpace(0);
     // Total or em-dash
     doc.setFont('helvetica', 'bold');
@@ -16599,6 +16635,24 @@ function pdfDrawYearSummary(doc, year, summary) {
       doc.rect(cellX + 2, cellY + cellH - 4, barFullW, 1.2, 'F');
       pdfSetFill(doc, PDF_COLORS.ember);
       doc.rect(cellX + 2, cellY + cellH - 4, Math.max(0.5, barW), 1.2, 'F');
+    }
+  }
+
+  // FY: the grid's three rows ARE the quarters; say their totals beneath (Q-a)
+  if (W.kind === 'fy') {
+    const qy = y + 3 * (cellH + gridGap) + 4;
+    const qw = PDF_PAGE.contentWidth / 4;
+    const qn = ['Q1  APR\u2013JUN', 'Q2  JUL\u2013SEP', 'Q3  OCT\u2013DEC', 'Q4  JAN\u2013MAR'];
+    pdfSetDraw(doc, PDF_COLORS.rule); doc.setLineWidth(0.2);
+    doc.line(PDF_PAGE.marginX, qy - 3, PDF_PAGE.width - PDF_PAGE.marginX, qy - 3);
+    for (let q = 0; q < 4; q++) {
+      let tot = 0, days = 0;
+      for (let k = 0; k < 3; k++) { const ms = summary.monthlySpend[q * 3 + k]; tot += ms.daily + ms.recurring; days += ms.days; }
+      const qx = PDF_PAGE.marginX + q * qw;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(6); pdfSetText(doc, PDF_COLORS.muted); doc.setCharSpace(0.3);
+      doc.text(qn[q], qx, qy); doc.setCharSpace(0);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); pdfSetText(doc, PDF_COLORS.ink);
+      doc.text(days > 0 ? `Rs. ${Math.round(tot).toLocaleString('en-IN')}` : '\u2014', qx, qy + 4.5);
     }
   }
 
@@ -16755,7 +16809,7 @@ function pdfDrawEnvelopeOutflow(doc, kicker, title, subtitle, entriesBare) {
 
 
 // =========== DAILY ENTRY PAGE (one day per page) ===========
-function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
+function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
   // PDL-2 B (+B2+B3+B4), Aug 2026: the printed day becomes a sibling of the
   // app's Budget/Outflow/Trends anatomy - every section a rail-block (2px
   // family-colour rail, small mono head, contents beneath), Invested and
@@ -16906,15 +16960,27 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   let pagesUsed = 1;
   const drawFooter = (pageNum) => {
     const fy = PDF_PAGE.height - 8;
-    const soy = new Date(Date.UTC(y, 0, 1));
-    const du = new Date(Date.UTC(y, m - 1, d));
-    const doy = Math.floor((du - soy) / 86400000) + 1;
-    const leap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+    let doy, total, tag = '', vol = String(y);
+    if (W && W.kind === 'fy') {
+      // D-a: the volume's own clock - Day n counted from 1 April
+      const [sy, sm, sd] = W.start.split('-').map(Number);
+      const [ey, em, ed] = W.end.split('-').map(Number);
+      const du = Date.UTC(y, m - 1, d);
+      doy = Math.floor((du - Date.UTC(sy, sm - 1, sd)) / 86400000) + 1;
+      total = Math.floor((Date.UTC(ey, em - 1, 31) - Date.UTC(sy, sm - 1, sd)) / 86400000) + 1;
+      tag = ' \u00b7 FY'; vol = W.title;
+    } else {
+      const soy = new Date(Date.UTC(y, 0, 1));
+      const du = new Date(Date.UTC(y, m - 1, d));
+      doy = Math.floor((du - soy) / 86400000) + 1;
+      const leap = (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+      total = leap ? 366 : 365;
+    }
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
     pdfSetText(doc, PDF_COLORS.muted);
-    doc.text(`Day ${doy} / ${leap ? 366 : 365}`, PDF_PAGE.marginX, fy);
+    doc.text(`Day ${doy} / ${total}${tag}`, PDF_PAGE.marginX, fy);
     doc.text(String(pageNum), PDF_PAGE.width / 2, fy, { align: 'center' });
-    doc.text(`My Day \u00b7 ${y}`, PDF_PAGE.width - PDF_PAGE.marginX, fy, { align: 'right' });
+    doc.text(`My Day \u00b7 ${vol}`, PDF_PAGE.width - PDF_PAGE.marginX, fy, { align: 'right' });
   };
   const pageBreak = () => {
     if (railColor) {
@@ -17171,12 +17237,18 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
 }
 
 // =========== ORCHESTRATOR ===========
-async function generateAnnualPdf(year) {
-  const yearStr = String(year);
-  // Gather entries for this year, sorted by date
+// One orchestrator, two windows (X2 D-a, 28 Sep 2026): generateAnnualPdf('cal','2026')
+// or generateAnnualPdf('fy','2026'); the old one-argument call still means a
+// calendar year. Every page takes its dates and titles from the window.
+async function generateAnnualPdf(kindOrYear, cursor) {
+  const kind = (cursor === undefined) ? 'cal' : (kindOrYear === 'fy' ? 'fy' : 'cal');
+  const W = yearWindow_(kind, cursor === undefined ? kindOrYear : cursor);
+  const year = W.cursor;
+  const yearStr = W.title;
+  // Gather entries inside the window, sorted by date
   const yearEntries = [];
   Object.keys(allEntries)
-    .filter(iso => iso.startsWith(yearStr + '-'))
+    .filter(iso => W.inWindow(iso))
     .sort()
     .forEach(iso => yearEntries.push({ date: iso, entry: allEntries[iso] }));
 
@@ -17185,12 +17257,12 @@ async function generateAnnualPdf(year) {
     return;
   }
 
-  // Group entries by month index (0-11)
+  // Group entries by POSITION in the window (0-11; April first for an FY)
   const byMonth = {};
   for (let i = 0; i < 12; i++) byMonth[i] = [];
   for (const item of yearEntries) {
-    const m = parseInt(item.date.slice(5, 7), 10) - 1;
-    byMonth[m].push(item);
+    const m = W.months.indexOf(item.date.slice(0, 7));
+    if (m >= 0) byMonth[m].push(item);
   }
 
   // Wait for jsPDF
@@ -17224,7 +17296,7 @@ async function generateAnnualPdf(year) {
   // ===== COVER =====
   setPdfStatus('Drawing cover…', 'working');
   setPdfProgress(4);
-  pdfDrawCoverPage(doc, year, yearEntries.length);
+  pdfDrawCoverPage(doc, W, yearEntries.length);
   runningPage++;
   await yieldToUi();
 
@@ -17233,8 +17305,8 @@ async function generateAnnualPdf(year) {
   setPdfStatus('Drawing year summary…', 'working');
   setPdfProgress(6);
   doc.addPage();
-  const yearSummaryData = computePdfYearSummary(yearStr, byMonth);
-  pdfDrawYearSummary(doc, year, yearSummaryData);
+  const yearSummaryData = computePdfYearSummary(W, byMonth);
+  pdfDrawYearSummary(doc, W, yearSummaryData);
   runningPage++;
   await yieldToUi();
 
@@ -17275,12 +17347,14 @@ async function generateAnnualPdf(year) {
       continue;
     }
 
-    // Month divider page
+    // Month divider page (the month's own calendar year and index, from the window)
+    const mYear = W.months[m].slice(0, 4);
+    const mIdx = Number(W.months[m].slice(5, 7)) - 1;
     doc.addPage();
-    pdfDrawMonthDivider(doc, year, m, monthEntries);
+    pdfDrawMonthDivider(doc, mYear, mIdx, monthEntries, W);
     runningPage++;
     unitsDone++;
-    setPdfStatus(`Drawing ${MONTH_NAMES_FULL[m]} ${yearStr}…`, 'working');
+    setPdfStatus(`Drawing ${MONTH_NAMES_FULL[mIdx]} ${mYear}…`, 'working');
     setPdfProgress(6 + (unitsDone / totalUnits) * 90);
     await yieldToUi();
 
@@ -17288,13 +17362,13 @@ async function generateAnnualPdf(year) {
     // "Monthly bills" recurring page). Aggregates the 9 daily expense
     // categories + recurring payments into a single sorted view with bars,
     // amounts, and share percentages. Skipped if the month has zero outflow.
-    const monthYM = yearStr + '-' + String(m + 1).padStart(2, '0');
+    const monthYM = W.months[m];
     if (monthEntries.length > 0) {
       doc.addPage();
-      const monthName = MONTH_NAMES_FULL[m];
+      const monthName = MONTH_NAMES_FULL[mIdx];
       pdfDrawEnvelopeOutflow(
         doc,
-        `OUTFLOW  \u00B7  ${monthName.toUpperCase()} ${yearStr}`,
+        `OUTFLOW  \u00B7  ${monthName.toUpperCase()} ${mYear}`,
         'Where the money went',
         `${monthEntries.length} ${monthEntries.length === 1 ? 'day' : 'days'} logged  \u00B7  by envelope`,
         monthEntries.map(it => it.entry));
@@ -17306,11 +17380,11 @@ async function generateAnnualPdf(year) {
     for (let i = 0; i < monthEntries.length; i++) {
       const item = monthEntries[i];
       doc.addPage();
-      runningPage += pdfDrawDailyEntry(doc, item.date, item.entry, runningPage);
+      runningPage += pdfDrawDailyEntry(doc, item.date, item.entry, runningPage, W);
       unitsDone++;
       // Yield every 10 pages so the UI stays responsive
       if ((i & 7) === 0) {
-        setPdfStatus(`Drawing ${MONTH_NAMES_FULL[m]} ${yearStr} · day ${i + 1} of ${monthEntries.length}…`, 'working');
+        setPdfStatus(`Drawing ${MONTH_NAMES_FULL[mIdx]} ${mYear} · day ${i + 1} of ${monthEntries.length}…`, 'working');
         setPdfProgress(6 + (unitsDone / totalUnits) * 90);
         await yieldToUi();
       }
@@ -19786,6 +19860,11 @@ async function init() {
 
   // Annual PDF wiring
   populatePdfYearOptions();
+  document.querySelectorAll('.pdf-kind-btn').forEach(b => b.addEventListener('click', () => {
+    pdfKind = b.dataset.pdfKind === 'fy' ? 'fy' : 'cal';
+    document.querySelectorAll('.pdf-kind-btn').forEach(x => x.classList.toggle('active', x === b));
+    populatePdfYearOptions();
+  }));
   const generatePdfBtn = document.getElementById('generatePdfBtn');
   if (generatePdfBtn) {
     generatePdfBtn.addEventListener('click', async () => {
@@ -19794,7 +19873,7 @@ async function init() {
       if (!year) { setPdfStatus('No year selected', 'failed'); return; }
       generatePdfBtn.disabled = true;
       try {
-        await generateAnnualPdf(year);
+        await generateAnnualPdf(pdfKind, year);
       } catch (err) {
         console.error('PDF generation failed:', err);
         setPdfStatus('Generation failed: ' + (err && err.message ? err.message : 'unknown error'), 'failed');
