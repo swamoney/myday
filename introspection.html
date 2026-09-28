@@ -131,6 +131,40 @@
   .ix-fav { color:#c9a227; font-size:0.6875rem; flex-shrink:0; }
   .ix-more { margin-left:auto; font-family:var(--mono); font-size:0.75rem;
              color:#3E5C76; flex-shrink:0; }
+  /* MUS-2 (29 Sep 2026, P2 O-b N-a): the index in the mantras' type - a dusk
+     plate for today's line, bold serif numerals in your order, an ORDER pill
+     that reveals the arrows. */
+  .mus-plate { position:relative; border-radius:14px; padding:18px 20px 14px; margin-bottom:14px; cursor:pointer;
+               background:linear-gradient(160deg,#f6f8fb,#e9eef5); color:#182233; border:1px solid #cfd8e6; border-left:4px solid #3E5C76; }
+  .mus-plate .cap { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.18em; color:#3E5C76; }
+  .mus-plate .big { font-family:var(--serif); font-size:1.5rem; font-weight:500; line-height:1.3; letter-spacing:-0.01em; margin:4px 0 8px; }
+  .mus-plate .meta { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#3E5C76; }
+  .mus-plate .mk { position:absolute; right:16px; top:12px; font-family:var(--serif); font-size:2.6rem; line-height:1; opacity:0.1; }
+  .mus-eb { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.18em; color:#8a97b3; margin:0 0 8px; display:flex; align-items:center; gap:8px; }
+  .mus-eb .pill { margin-left:auto; border:1px dashed #b7c5dc; border-radius:999px; padding:3px 9px; color:#3E5C76; font-weight:700; background:transparent; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.18em; cursor:pointer; }
+  .mus-eb .pill.on { background:#3E5C76; color:#fff; border-style:solid; }
+  .mus-lg { border-top:2px solid #3E5C76; margin-bottom:14px; }
+  .mus-ln { display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:baseline; padding:13px 4px 12px; border-bottom:1px solid #d9e1ea; cursor:pointer; border-radius:6px; }
+  .mus-ln:hover { background:#FBFCFE; }
+  .mus-no { font-family:var(--serif); font-weight:700; font-size:1.5rem; line-height:1.08; letter-spacing:-0.02em; color:#3E5C76; min-width:34px; }
+  .mus-t { font-family:var(--serif); font-size:1.25rem; font-weight:500; line-height:1.35; color:#182233; letter-spacing:-0.01em; }
+  .mus-ln.fav .mus-t { font-weight:600; } .mus-ln.fav .mus-no { color:#c9a227; }
+  .mus-tag { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#3E5C76; border:1px solid #c5d2de; border-radius:4px; padding:2px 6px; }
+  .mus-mv { display:flex; flex-direction:column; gap:2px; align-self:center; }
+  .mus-mv button { width:26px; height:20px; border:1px solid #c5d2de; border-radius:4px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:0.5625rem; color:#3E5C76; cursor:pointer; padding:0; }
+  .mus-mv button:disabled { opacity:0.3; cursor:default; }
+  .mus-ln.new { background:linear-gradient(90deg,#eef2f7,transparent); }
+  .mus-lg.ordering .mus-ln { cursor:default; } .mus-lg.ordering .mus-ln:hover { background:transparent; }
+  .mus-lg.ordering .mus-no { cursor:grab; touch-action:none; } .mus-ln.mus-drag { opacity:0.45; }
+  .mus-q { display:flex; gap:14px; align-items:baseline; padding:10px 4px; border-bottom:1px dashed #c5d2de; }
+  .mus-q .mus-no { color:#c5d2de; }
+  .mus-q.typing .mus-no { color:#3E5C76; }
+  .mus-q input { flex:1; border:0; background:transparent; font-family:var(--serif); font-style:italic; font-size:1.0625rem; color:#182233; padding:2px 0; outline:none; }
+  .mus-q input::placeholder { color:#9aa5bd; }
+  .mus-q.typing input { font-style:normal; }
+  .mus-empty { text-align:center; padding:22px 0 10px; font-family:var(--serif); }
+  .mus-empty .b { font-size:1.125rem; } .mus-empty .s { font-size:0.8125rem; color:#8a97b3; font-style:italic; margin-top:4px; }
+  @media (max-width:520px) { .mus-no { font-size:1.25rem; min-width:28px; } .mus-t { font-size:1.125rem; } .mus-plate .big { font-size:1.3125rem; } }
   /* Room 2: the chapter spine */
   .tdots { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 20px 2px; }
   .tdot { width:16px; height:16px; border-radius:4px; transform:rotate(45deg); border:none; padding:0;
@@ -1015,7 +1049,7 @@ function viewRows() {
   else if (activeView === 'experience') out = rows.filter(r => r.kind === 'experience');
   else if (activeView === 'trip') out = rows.filter(r => r.kind === 'trip');
   else if (activeView === 'writing') out = rows.filter(r => displayKind(r.kind) === 'writing');
-  else out = rows.filter(r => displayKind(r.kind) === 'introspection');
+  else return musSorted_(rows.filter(r => displayKind(r.kind) === 'introspection'));   // MUS-2: your order
   return favFirst(out);
 }
 function filteredRows() {
@@ -1062,35 +1096,122 @@ async function quickInsert(kind, title, extra) {
 }
 
 // ---- Room 1: My Musings & Learnings - the index (timeless, no dates) ----
+// MUS-2 (29 Sep 2026, P2 O-b N-a): the mantras' type in the room's navy. A dusk
+// plate carries today's line (position NN OF n, rotating daily); the ledger
+// wears bold serif numerals in YOUR order (iw_entries.sort_order; blank rows
+// fall back to newest-first, so nothing moves until you move it); ORDER
+// reveals up/down arrows and drag-by-numeral; a new line lands at the top.
+let musOrdering = false;
+function musSorted_(list) {
+  return list.slice().sort((a, b) => {
+    const ao = a.sort_order, bo = b.sort_order;
+    const an = ao !== null && ao !== undefined, bn = bo !== null && bo !== undefined;
+    if (an && bn && ao !== bo) return ao - bo;
+    if (an && !bn) return -1;
+    if (!an && bn) return 1;
+    return String(b.created_at).localeCompare(String(a.created_at));
+  });
+}
+function musNum_(i) { return String(i + 1).padStart(2, '0'); }
 function renderMusings(list, wrap) {
   let html = '';
-  if (list.length) {
+  if (!list.length) musOrdering = false;
+  if (list.length && !musOrdering) {
     const dayN = Math.floor(Date.now() / 86400000);
-    const pick = list[dayN % list.length];
-    html += '<div class="todays"><div class="td-cap">TODAY\u2019S REMINDER</div>' +
-      '<div class="td-line" data-open="' + escHtml(pick.id) + '">\u2767&nbsp; ' + escHtml(pick.title) + '</div></div>';
+    const pi = dayN % list.length, pick = list[pi];
+    const hasNote = NoteEditor.toPlain(pick.body || '').trim().length > 0;
+    const meta = [pick.favourite ? 'STARRED' : '', hasNote ? 'HAS A NOTE' : '', 'TAP TO OPEN'].filter(Boolean).join(' · ');
+    html += '<div class="mus-plate" data-open="' + escHtml(pick.id) + '"><span class="mk">❧</span>' +
+      '<div class="cap">TODAY’S REMINDER · ' + musNum_(pi) + ' OF ' + list.length + '</div>' +
+      '<div class="big">' + escHtml(pick.title) + '</div><div class="meta">' + meta + '</div></div>';
   }
-  if (!list.length) html += '<div class="empty"><div class="big">The index is empty</div><div class="small">Write the first line below.</div></div>';
-  html += list.map(r => {
+  html += '<div class="mus-eb">' + (list.length ? list.length + (list.length === 1 ? ' LINE' : ' LINES') + (musOrdering ? ' · MOVE A LINE, THEN DONE' : ' · YOUR ORDER') : '0 LINES') +
+    (list.length >= 2 ? '<button type="button" class="pill' + (musOrdering ? ' on' : '') + '" id="musOrderBtn">' + (musOrdering ? '✓ DONE' : '↕ ORDER') + '</button>' : '') + '</div>';
+  html += '<div class="mus-lg' + (musOrdering ? ' ordering' : '') + '" id="musLg">';
+  if (!musOrdering) html += '<div class="mus-q" id="musQ"><span class="mus-no">' + (list.length ? '—' : '01') + '</span><input id="qAddMus" type="text" placeholder="' + (list.length ? 'write a learning… Enter saves it' : 'write your first learning… Enter saves it') + '"></div>';
+  html += list.map((r, i) => {
     const hasNote = NoteEditor.toPlain(r.body || '').trim().length > 0;
-    return '<div class="ix" data-open="' + escHtml(r.id) + '">' +
-      (r.favourite ? '<span class="ix-fav">\u2605</span>' : '') +
-      '<span class="ix-t">' + escHtml(r.title) + '</span>' +
-      (hasNote ? '<span class="ix-more" title="has a note">\u2767</span>' : '') +
-      '</div>';
+    const right = musOrdering
+      ? '<span class="mus-mv"><button type="button" data-mv="up" data-id="' + escHtml(r.id) + '"' + (i === 0 ? ' disabled' : '') + '>▲</button><button type="button" data-mv="down" data-id="' + escHtml(r.id) + '"' + (i === list.length - 1 ? ' disabled' : '') + '>▼</button></span>'
+      : (hasNote ? '<span class="mus-tag" title="has a note">NOTE</span>' : '<span></span>');
+    return '<div class="mus-ln' + (r.favourite ? ' fav' : '') + (r._new ? ' new' : '') + '" data-id="' + escHtml(r.id) + '"' + (musOrdering ? '' : ' data-open="' + escHtml(r.id) + '"') + '>' +
+      '<span class="mus-no" data-grip="' + escHtml(r.id) + '">' + musNum_(i) + '</span>' +
+      '<span class="mus-t">' + escHtml(r.title) + '</span>' + right + '</div>';
   }).join('');
-  html += '<div class="qadd"><input id="qAddMus" type="text" placeholder="\uFF0B  write a learning\u2026 Enter saves it"></div>';
+  html += '</div>';
+  if (!list.length) html += '<div class="mus-empty"><div class="b">The index is empty.</div><div class="s">The first line you keep becomes 01.</div></div>';
   wrap.innerHTML = html;
+  list.forEach(r => { delete r._new; });
   wrap.querySelectorAll('[data-open]').forEach(x =>
     x.addEventListener('click', () => openReader(x.dataset.open)));
+  const ob = el('musOrderBtn');
+  if (ob) ob.addEventListener('click', () => { musOrdering = !musOrdering; render(); });
+  wrap.querySelectorAll('[data-mv]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation(); musMove_(b.dataset.id, b.dataset.mv === 'up' ? -1 : 1);
+  }));
+  if (musOrdering) musWireDrag_(wrap, list);
   const q = el('qAddMus');
-  if (q) q.addEventListener('keydown', async e => {
-    if (e.key !== 'Enter') return;
-    const t = q.value.trim(); if (!t) return;
-    q.disabled = true;
-    const id = await quickInsert('introspection', t);
-    if (id) toast('Added to the index');
+  if (q) {
+    const qw = el('musQ');
+    q.addEventListener('input', () => { qw.classList.toggle('typing', !!q.value.trim()); qw.querySelector('.mus-no').textContent = q.value.trim() ? '01' : (list.length ? '—' : '01'); });
+    q.addEventListener('keydown', async e => {
+      if (e.key !== 'Enter') return;
+      const t = q.value.trim(); if (!t) return;
+      q.disabled = true;
+      // N-a: the new line lands at the top - one below the smallest position in use
+      const used = list.map(r => r.sort_order).filter(v => v !== null && v !== undefined);
+      const extra = used.length ? { sort_order: Math.min.apply(null, used) - 1 } : {};
+      const id = await quickInsert('introspection', t, extra);
+      if (id) { const nr = rows.find(x => x.id === id); if (nr) { nr._new = true; render(); } toast('Kept as 01'); }
+      else q.disabled = false;
+    });
+  }
+}
+// one step up or down; the whole index takes positions the first time you move
+async function musMove_(id, dir) {
+  const list = musSorted_(rows.filter(r => displayKind(r.kind) === 'introspection'));
+  const i = list.findIndex(r => String(r.id) === String(id)); if (i < 0) return;
+  const j = i + dir; if (j < 0 || j >= list.length) return;
+  const [it] = list.splice(i, 1); list.splice(j, 0, it);
+  await musPersist_(list);
+}
+async function musPersist_(list) {
+  const changed = [];
+  list.forEach((r, i) => { if (r.sort_order !== i + 1) { r.sort_order = i + 1; changed.push(r); } });
+  render();
+  try {
+    const results = await Promise.all(changed.map(r => supa.from('iw_entries').update({ sort_order: r.sort_order }).eq('id', r.id).eq('user_id', userId)));
+    const bad = results.find(x => x && x.error);
+    if (bad) throw bad.error;
+  } catch (e) { console.error(e); toast('Could not save the order'); }
+}
+// drag a line by its numeral (desktop); the arrows remain the sure way on a phone
+function musWireDrag_(wrap, list) {
+  const lg = el('musLg'); if (!lg) return;
+  let drag = null;
+  lg.addEventListener('pointerdown', e => {
+    const g = e.target.closest('[data-grip]'); if (!g) return;
+    e.preventDefault();
+    const card = g.closest('.mus-ln'); drag = { id: g.dataset.grip, card }; card.classList.add('mus-drag');
+    try { g.setPointerCapture(e.pointerId); } catch (x) {}
   });
+  lg.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const over = document.elementFromPoint(e.clientX, e.clientY);
+    const tgt = over && over.closest ? over.closest('.mus-ln') : null;
+    if (!tgt || tgt === drag.card) return;
+    const r = tgt.getBoundingClientRect();
+    if (e.clientY < r.top + r.height / 2) lg.insertBefore(drag.card, tgt); else lg.insertBefore(drag.card, tgt.nextSibling);
+  });
+  const end = async () => {
+    if (!drag) return;
+    drag.card.classList.remove('mus-drag'); drag = null;
+    const order = Array.from(lg.querySelectorAll('.mus-ln')).map(x => x.dataset.id);
+    const byId = {}; list.forEach(r => byId[String(r.id)] = r);
+    const next = order.map(id => byId[id]).filter(Boolean);
+    if (next.length === list.length) await musPersist_(next);
+  };
+  lg.addEventListener('pointerup', end); lg.addEventListener('pointercancel', end);
 }
 
 // ---- Room 2: My Life Timeline - the chapter spine ----
@@ -2498,7 +2619,7 @@ el('readerBack').addEventListener('click', closeReader);
 el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
 // Bind to the tab spans only — clicking the inner label span has no data-view
 // and would set activeView to undefined.
-el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { activeView = s.dataset.view; render(); }));
+el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { activeView = s.dataset.view; musOrdering = false; render(); }));
 
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
