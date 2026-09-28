@@ -9614,7 +9614,10 @@ function readEntryFromForm() {
     const v = document.getElementById('f_' + f).value;
     e[f] = v === '' ? '' : Number(v);
   });
-  e.satisfaction = Number(document.getElementById('f_satisfaction').value);
+  // AUDIT FIX (28 Sep 2026): an unrated day saves BLANK, not the slider's
+  // resting 0.5. Before this, any save on an unrated day wrote 50%.
+  const _satEl = document.getElementById('f_satisfaction');
+  e.satisfaction = _satEl.classList.contains('untouched') ? '' : Number(_satEl.value);
   TEXT_FIELDS.forEach(f => { e[f] = document.getElementById('f_' + f).value; });
   ['reading'].forEach(f => {
     const active = document.querySelector(`[data-toggle="f_${f}"].active`);
@@ -15724,14 +15727,14 @@ function _yearShortDate(iso) {
   }
 }
 const CSV_HEADERS = [
-  'Date','Regular Investment','Top-Up Investment','Investment Redemption','Food Expence [Dineout /Swiggy/Zomato]','Food Note','Dmart / Instamart / Zepto / Blinkit','Groceries Note',
+  'Date','Regular Investment','Top-Up Investment','Direct Equity','Global Investment','Investment Redemption','Food Expence [Dineout /Swiggy/Zomato]','Food Note','Dmart / Instamart / Zepto / Blinkit','Groceries Note',
   'Daily Transport (Cab / Petrol / Metro / Parking)','Transport Note','Shopping','Shopping Note','Hotel Stay','Hotel Stay Note','Travel Booking','Travel Note','Entertainment','Entertainment Note','Taxes','Taxes Note','Walk','Google Heart Points',
   'Reading /Podcasts/ /Audible','Reading Takeaway',
   '12 AM - 3 AM','3 AM - 8 AM','8 AM - 12 PM','12 PM - 4 PM','4 PM - 8 PM','8 PM - 12 PM',
-  'Food Journal: Breakfast','Food Journal: Lunch','Food Journal: Dinner','Night Stay Information','Stayed With',
+  'Food Journal: Breakfast','Food Journal: Lunch','Food Journal: Dinner','Night City','Night Stay Information','Stayed With',
   'Other Expenses Total','Other Expenses Details',
   'Recurring Expenses Total','Recurring Expenses Details',
-  'Credit Card Bill Payment','Credit Card Bill Note',
+  'Credit Card Bill Payment','Credit Card Bill Note','GST Payment','GST Payment Note',
   'Overall Satisfaction','Introspection: Learning /Any regrets / New Ideas','Feelings'
 ];
 // Path 2: aiUsage / other / otherNote stay out of the daily CSV as individual
@@ -15744,7 +15747,7 @@ const CSV_HEADERS = [
 // Final two columns: Overall Satisfaction + Introspection — moved to the
 // end so reflective/qualitative fields read as the closing summary of each
 // day's row.
-const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','satisfaction','introspection','__emotions'];
+const CSV_FIELD_ORDER = ['__date','regularInvestment','topUp','directEquity','globalInvest','investmentRedemption','food','foodNote','dmart','dmartNote','dailyTransport','dailyTransportNote','shopping','shoppingNote','hotelStay','hotelStayNote','travel','travelNote','entertainment','entertainmentNote','taxes','taxesNote','walk','heart','reading','readingTakeaway','slot1','slot2','slot3','slot4','slot5','slot6','breakfast','lunch','dinner','nightCity','nightStay','stayedWith','__otherTotal','__otherDetail','__recurringTotal','__recurringDetail','__creditCardBill','creditCardBillNote','__gstPayment','gstPaymentNote','satisfaction','introspection','__emotions'];
 
 // Ship 4: headers for the second CSV (one row per Other item).
 const CSV_OTHER_ITEMS_HEADERS = ['Date','Item Name','Amount'];
@@ -15758,6 +15761,13 @@ function csvEscape(v) {
   return s;
 }
 function buildCsv(filterPrefix) {
+  // AUDIT FIX 6 (28 Sep 2026): the header row and the field order MUST be the
+  // same length - they had drifted by three columns (Direct Equity, Global
+  // Investment, Night City) and every export mislabelled columns 4 onward.
+  if (CSV_HEADERS.length !== CSV_FIELD_ORDER.length) {
+    console.error('CSV header/field mismatch', CSV_HEADERS.length, CSV_FIELD_ORDER.length);
+    if (typeof toast === 'function') toast('CSV columns out of step - tell Claude');
+  }
   const dates = Object.keys(allEntries).filter(d => !filterPrefix || d.startsWith(filterPrefix)).sort();
   const rows = [CSV_HEADERS.join(',')];
   for (const d of dates) {
@@ -15785,6 +15795,10 @@ function buildCsv(filterPrefix) {
         const items = parseRecurring(e);
         if (items.length === 0) return '';
         return csvEscape(items.map(it => it.name + ': ' + it.amt).join(' | '));
+      }
+      if (f === '__gstPayment') {
+        const n = evalExpr(e.gstPayment);
+        return (n !== null && n > 0) ? csvEscape(n) : '';
       }
       if (f === '__emotions') {
         const w = parseEmotions(e);
@@ -16783,11 +16797,12 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   });
   const redeem = evx('investmentRedemption');
   const spRows = [];
+  const noteOf = (k) => { const n = entry[k + 'Note']; return (n && String(n).trim()) ? String(n).trim() : ''; };
   [['food','Food'],['dmart','Groceries'],['dailyTransport','Transport'],['shopping','Shopping'],
    ['entertainment','Entertainment'],['hotelStay','Hotel Stay'],['travel','Travel Booking'],
    ['taxes','Taxes']].forEach(([k, l]) => {
     const v = evx(k);
-    if (v > 0) spRows.push({ label: l, amt: v, tag: FIELD_ENV_TAG[k] || '' });
+    if (v > 0) spRows.push({ label: l, amt: v, tag: FIELD_ENV_TAG[k] || '', note: noteOf(k) });
   });
   ((typeof parseOtherItems === 'function') ? parseOtherItems(entry) : []).forEach(it => {
     const amt = Number(it.amt) || 0;
@@ -16804,6 +16819,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
                   tag: (g === 'office' ? 'P0' : 'P1') + ' \u00b7 recurring' });
   });
   const ccVal = evx('creditCardBill');
+  const gstVal = evx('gstPayment');   // AUDIT FIX 2: tracking-only, but it is an entry
   const spendTotal = spRows.reduce((s, r) => s + r.amt, 0);
   const investTotal = invRows.reduce((s, r) => s + r.amt, 0);
 
@@ -16838,10 +16854,9 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   if (propNow && bandKind !== 'home') {
     let streak = 1;
     if (typeof allEntries === 'object' && allEntries) {
-      let dt2 = new Date(isoDate + 'T00:00:00');
+      let iso2 = isoDate;
       for (;;) {
-        dt2.setDate(dt2.getDate() - 1);
-        const iso2 = dt2.toISOString().slice(0, 10);
+        iso2 = shiftDate(iso2, -1);   // AUDIT FIX 5: local calendar day, never UTC
         const prev = allEntries[iso2];
         const pv = prev ? String(prev.nightStay || '').trim() : '';
         if (pv && placeKindOn(pv, iso2) === bandKind) streak++; else break;
@@ -16966,6 +16981,15 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
     pdfSetText(doc, opts.muted ? PDF_COLORS.muted : PDF_COLORS.ink);
     doc.text(money(amt), innerR, cursorY, { align: 'right' });
     cursorY += 4.6;
+    // AUDIT FIX 1: the row's note, muted italic beneath it (wrapped)
+    if (opts.note) {
+      doc.setFont('times', 'italic'); doc.setFontSize(7.5);
+      const nl = pdfWrapText(doc, opts.note, innerR - bx - 6);
+      ensure(nl.length * 3.3 + 1);
+      pdfSetText(doc, PDF_COLORS.muted);
+      nl.forEach(ln => { doc.text(ln, bx + 3, cursorY - 1.2); cursorY += 3.3; });
+      cursorY += 0.6;
+    }
   };
   const fieldPair = (lLabel, lVal, rLabel, rVal) => {
     // One content voice: label and value identical (8.5 ink 400); the fixed
@@ -17019,13 +17043,17 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum) {
   }
 
   // ---- Spent (recurring folded in with its P-tags; CC muted at the tail) ----
-  if (spRows.length || ccVal > 0) {
+  if (spRows.length || ccVal > 0 || gstVal > 0) {
     bkStart('Spent', EPS.spend, spendTotal > 0 ? money(spendTotal) : '');
-    spRows.forEach(r => row(r.label, r.amt, r.tag));
-    if (ccVal > 0) row('Credit Card Bill', ccVal, 'not in total', { muted: true });
+    spRows.forEach(r => row(r.label, r.amt, r.tag, { note: r.note }));
+    if (ccVal > 0) row('Credit Card Bill', ccVal, 'not in total', { muted: true, note: noteOf('creditCardBill') });
+    if (gstVal > 0) row('GST Payment', gstVal, 'not in total', { muted: true, note: noteOf('gstPayment') });
     bkEnd();
   }
-  if (!invRows.length && !spRows.length && redeem <= 0 && ccVal <= 0) {
+  // AUDIT FIX 4: say "nothing logged" only when the whole day is empty,
+  // not merely its money.
+  if (typeof entryHasContent === 'function' ? !entryHasContent(entry)
+      : (!invRows.length && !spRows.length && redeem <= 0 && ccVal <= 0 && gstVal <= 0)) {
     cursorY += 2;
     doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); pdfSetText(doc, PDF_COLORS.muted);
     doc.text('Nothing logged for this day.', PDF_PAGE.marginX, cursorY);
