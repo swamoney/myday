@@ -3768,6 +3768,15 @@
     background: transparent; border: none; cursor: pointer; padding: 6px 0;
   }
   .year-title:hover { color: var(--accent-ink); }
+  /* FY: the months whispered under the title (T1) */
+  .year-title small { display:block; font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.16em; color:var(--muted); margin-top:2px; }
+  /* FY (Q-a): the month where the calendar year turns gets a dashed left edge + a tiny year tag */
+  .mb-col.fy-turn { border-left:1px dashed #9aa5b8; margin-left:2px; padding-left:4px; position:relative; }
+  .mb-col.fy-turn::before { content:attr(data-fy-year) ' \2192'; position:absolute; top:-12px; left:4px; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#8a97b3; white-space:nowrap; }
+  .month-bars-wrap.fy { padding-top:16px; }
+  .fy-q { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; padding:8px 4px 0; }
+  .fy-q span { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:var(--muted); border-top:1px solid var(--rule); padding-top:5px; text-align:center; }
+  .fy-q span b { display:block; font-family:var(--sans); font-size:0.75rem; font-weight:700; color:var(--ink); margin-top:2px; }
   .year-arrow {
     background: var(--paper); border: 1px solid var(--rule);
     border-radius: 8px; width: 36px; height: 36px;
@@ -6330,7 +6339,8 @@
     <button class="rs-navi tab active" data-tab="today" type="button" title="Today"><i class="ti ti-calendar-time" aria-hidden="true"></i><span>Today</span></button>
     <button class="rs-navi rs-subview" data-subview="week-view" type="button" title="Week"><i class="ti ti-calendar-week" aria-hidden="true"></i><span>Week</span></button>
     <button class="rs-navi rs-subview" data-subview="month-view" type="button" title="Month"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>Month</span></button>
-    <button class="rs-navi rs-subview" data-subview="year-view" type="button" title="Year"><i class="ti ti-calendar-stats" aria-hidden="true"></i><span>Year</span></button>
+    <button class="rs-navi rs-subview" data-subview="year-view" type="button" title="Calendar Year"><i class="ti ti-calendar-stats" aria-hidden="true"></i><span>Calendar Year</span></button>
+    <button class="rs-navi rs-subview" data-subview="fy-view" type="button" title="Financial Year"><i class="ti ti-receipt-rupee" aria-hidden="true"></i><span>Financial Year</span></button>
 
     <!-- Trends is analysis (not a time-scoped view) so it lives in TOOLS
          alongside Search and Export. Same pattern: clicks into the Calendar
@@ -7358,7 +7368,8 @@
     <div class="subtabs">
       <button class="subtab active" data-subtab="week-view">Week</button>
       <button class="subtab" data-subtab="month-view">Month</button>
-      <button class="subtab" data-subtab="year-view">Year</button>
+      <button class="subtab" data-subtab="year-view">Calendar Year</button>
+      <button class="subtab" data-subtab="fy-view">Financial Year</button>
       <button class="subtab" data-subtab="trends-view">Trends</button>
     </div>
 
@@ -7510,6 +7521,21 @@
         <button class="year-quick-btn" id="yearThisBtn" type="button">This year</button>
       </div>
       <div id="yearContent"></div>
+    </div>
+
+    <!-- FINANCIAL YEAR SUB-VIEW (F1 T1 Q-a): the same cards as the Calendar
+         Year, drawn by the same renderer over an April-to-March window. Its
+         own ids so the two pages never draw into each other. -->
+    <div id="subview-fy-view" class="hidden">
+      <div class="year-head">
+        <button class="year-arrow" id="fyPrev" type="button" aria-label="Previous financial year">‹</button>
+        <button class="year-title" id="fyTitle" type="button">—</button>
+        <button class="year-arrow" id="fyNext" type="button" aria-label="Next financial year">›</button>
+      </div>
+      <div class="year-quickjump">
+        <button class="year-quick-btn" id="fyThisBtn" type="button">This FY</button>
+      </div>
+      <div id="fyContent"></div>
     </div>
 
     <!-- TRENDS SUB-VIEW -->
@@ -10259,7 +10285,8 @@ function updateRsHero(viewKey) {
     today: 'Today',
     'week-view': 'Week',
     'month-view': 'Month',
-    'year-view': 'Year',
+    'year-view': 'Calendar Year',
+    'fy-view': 'Financial Year',
     'trends-view': 'Trends',
     export: 'Export'
   };
@@ -10267,7 +10294,8 @@ function updateRsHero(viewKey) {
     today: 'Log expenses, vitals, time, food, and reflection · one life, live it well',
     'week-view': 'Browse the current week day-by-day',
     'month-view': 'Overview of the month with expense breakdowns',
-    'year-view': 'Annual summary across all categories',
+    'year-view': 'January to December · annual summary across all categories',
+    'fy-view': 'April to March · the tax year',
     'trends-view': 'Patterns and long-term trends over months',
     export: 'Download CSVs and PDFs of your entries'
   };
@@ -10301,6 +10329,23 @@ function updateRsHero(viewKey) {
 // Calendar top-tab nav). Ensures the Calendar tab is active, hides all
 // other sub-views, shows and renders the target one. Reuses existing
 // render* functions so no duplicated logic.
+// The one list of Calendar sub-views (audit 7): every place that shows one
+// and hides the rest goes through these two helpers.
+const SUBVIEWS = ['week-view','month-view','year-view','fy-view','trends-view'];
+function showSubviewOnly_(subview) {
+  SUBVIEWS.forEach(v => {
+    const el = document.getElementById('subview-' + v);
+    if (el) el.classList.toggle('hidden', v !== subview);
+  });
+  document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.subtab === subview));
+}
+function renderSubview_(subview) {
+  if (subview === 'week-view') renderWeek();
+  else if (subview === 'month-view') renderMonth();
+  else if (subview === 'year-view') renderYear();
+  else if (subview === 'fy-view') renderFy();
+  else if (subview === 'trends-view') renderTrends();
+}
 function switchToSubview(subview) {
   // First activate the Calendar tab (subviews live in #tab-month)
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'month'));
@@ -10311,15 +10356,9 @@ function switchToSubview(subview) {
   // Sync sub-tab active state (in case the sub-tab bar is visible on mobile)
   document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.subtab === subview));
   // Hide all sub-views, show the target
-  ['week-view','month-view','year-view','trends-view'].forEach(v => {
-    const el = document.getElementById('subview-' + v);
-    if (el) el.classList.toggle('hidden', v !== subview);
-  });
+  showSubviewOnly_(subview);
   // Trigger the appropriate render
-  if (subview === 'week-view') renderWeek();
-  else if (subview === 'month-view') renderMonth();
-  else if (subview === 'year-view') renderYear();
-  else if (subview === 'trends-view') renderTrends();
+  renderSubview_(subview);
   // Update hero + sidebar active state
   if (typeof updateRsHero === 'function') updateRsHero(subview);
   refreshRsNavActive(subview);
@@ -11414,11 +11453,7 @@ async function renderTrends() {
   wrap.querySelectorAll('[data-jump-ym]').forEach(el => {
     el.addEventListener('click', () => {
       monthCursor = el.dataset.jumpYm;
-      document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.subtab === 'month-view'));
-      document.getElementById('subview-month-view').classList.remove('hidden');
-      document.getElementById('subview-week-view').classList.add('hidden');
-      document.getElementById('subview-year-view').classList.add('hidden');
-      document.getElementById('subview-trends-view').classList.add('hidden');
+      showSubviewOnly_('month-view');
       renderMonth();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -11427,11 +11462,7 @@ async function renderTrends() {
   wrap.querySelectorAll('[data-jump-year]').forEach(el => {
     el.addEventListener('click', () => {
       yearCursor = el.dataset.jumpYear;
-      document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.subtab === 'year-view'));
-      document.getElementById('subview-month-view').classList.add('hidden');
-      document.getElementById('subview-week-view').classList.add('hidden');
-      document.getElementById('subview-year-view').classList.remove('hidden');
-      document.getElementById('subview-trends-view').classList.add('hidden');
+      showSubviewOnly_('year-view');   // jump-to-year links mean a calendar year (audit 8)
       renderYear();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
@@ -12935,13 +12966,16 @@ function _trailing6MonthAvg(cursorYM) {
 // Same idea for year scope — compare current YTD against the same period
 // last year. Returns null if last year has no data, or daysSoFar would
 // require a partial-year measure that can't be normalized.
-function _priorYearTotal(yearStr) {
-  const prevYear = String(Number(yearStr) - 1);
+function _priorYearTotal(yearStrOrWindow) {
+  // Accepts a calendar year string (old callers) or a window (audit 4): the
+  // comparison is always against the PREVIOUS WINDOW of the same kind.
+  const W = (typeof yearStrOrWindow === 'object') ? yearStrOrWindow : yearWindow_('cal', yearStrOrWindow);
+  const P = W.prev();
   let daily = 0;
   const fields = ['food','dmart','dailyTransport','aiUsage','shopping','hotelStay','travel','entertainment','taxes','other'];
   let hasAny = false;
   Object.keys(allEntries).forEach(d => {
-    if (!d.startsWith(prevYear + '-')) return;
+    if (!P.inWindow(d)) return;
     hasAny = true;
     const e = allEntries[d];
     fields.forEach(f => {
@@ -12950,13 +12984,10 @@ function _priorYearTotal(yearStr) {
     });
   });
   if (!hasAny) return null;
-  // Add recurring across all 12 months of prev year
+  // Add recurring across the 12 months of the previous window
   let recur = 0;
-  for (let mm = 1; mm <= 12; mm++) {
-    const ym = `${prevYear}-${String(mm).padStart(2, '0')}`;
-    recur += (getRecurringTotalsForMonth(ym).logged || 0);
-  }
-  return { total: daily + recur, label: prevYear };
+  P.months.forEach(ym => { recur += (getRecurringTotalsForMonth(ym).logged || 0); });
+  return { total: daily + recur, label: P.title };
 }
 
 // renderOutflowBreakdown — signature extended (backward-compatible): an
@@ -13050,7 +13081,7 @@ function renderOutflowBreakdown(containerId, scopeLabel, totals, recT, compariso
         comparisonLine = `<div class="outflow-bd-compare">${pct}% ${dir} your ${monthsWord} avg of ${fmt(cmp.avg)}</div>`;
       }
     } else if (comparison.type === 'year') {
-      const cmp = _priorYearTotal(comparison.cursor);
+      const cmp = _priorYearTotal(comparison.window || comparison.cursor);
       if (cmp && cmp.total > 0) {
         const delta = grandTotal - cmp.total;
         const pct = Math.round(Math.abs(delta) / cmp.total * 100);
@@ -15020,6 +15051,41 @@ function renderMonth() {
 // total recurring across the year, so they update progressively.
 
 let yearCursor = null;  // 'YYYY' string. Defaults to current year via init.
+let fyCursor = null;    // 'YYYY' = the April that starts the financial year (FY 2026-27 -> '2026').
+
+// The financial year we are in: April onwards belongs to this year's FY,
+// January to March to last year's.
+function fyCurrentStart() {
+  const d = new Date();
+  return String(d.getMonth() >= 3 ? d.getFullYear() : d.getFullYear() - 1);
+}
+// A year window (audit 1): everything the Year renderer needs to know about
+// the twelve months it is drawing, for either kind. kind = 'cal' | 'fy'.
+function yearWindow_(kind, cursor) {
+  const y = Number(cursor);
+  const pad = m => String(m).padStart(2, '0');
+  const months = [];
+  if (kind === 'fy') {
+    for (let m = 4; m <= 12; m++) months.push(`${y}-${pad(m)}`);
+    for (let m = 1; m <= 3; m++) months.push(`${y + 1}-${pad(m)}`);
+  } else {
+    for (let m = 1; m <= 12; m++) months.push(`${y}-${pad(m)}`);
+  }
+  const start = months[0] + '-01';
+  const end = months[11] + '-31';
+  const yy = String(y + 1).slice(2);
+  return {
+    kind, cursor: String(y), months, start, end,
+    title: kind === 'fy' ? `FY ${y}-${yy}` : String(y),
+    sub: kind === 'fy' ? `1 APR ${y} – 31 MAR ${y + 1}` : '',
+    scope: kind === 'fy' ? 'this FY' : 'this year',
+    totalWord: kind === 'fy' ? 'FY total' : 'YTD total',
+    pfx: kind === 'fy' ? 'fy' : 'year',
+    inWindow(iso) { return iso >= start && iso <= end; },
+    isCurrent: kind === 'fy' ? String(y) === fyCurrentStart() : y === new Date().getFullYear(),
+    prev() { return yearWindow_(kind, y - 1); }
+  };
+}
 
 // Helper: detect if a slot field value indicates "I slept" (case-insensitive
 // substring match). Used by the no-sleep heuristic.
@@ -15138,7 +15204,8 @@ const _yearAccExpanded = { away: false, sleep: false, otherBreakdown: false, rec
 // .mb-bar.empty class (dotted baseline) so the gap-vs-low distinction
 // is visually clear ("did I travel in July?" vs "I traveled cheaply").
 // The bottom strip shows YTD total + months-active count (e.g. "5 of 12").
-function _renderYearCategoryMonthlyBars(yearStr, yearEntries, categoryKey, label, color) {
+function _renderYearCategoryMonthlyBars(W, yearEntries, categoryKey, label, color) {
+  if (typeof W !== 'object') W = yearWindow_('cal', W);   // old callers pass 'YYYY'
   const fmt = n => '₹' + Math.round(n).toLocaleString('en-IN');
   // Compact display for the per-bar number labels: ₹14k vs ₹14,500
   // (14,500 is too wide for a 12-column row at the typical 380px viewport).
@@ -15150,10 +15217,11 @@ function _renderYearCategoryMonthlyBars(yearStr, yearEntries, categoryKey, label
     return '₹' + v;
   };
 
-  // 12 buckets: month index 0..11
+  // 12 buckets: position in the window (audit 2) — April is slot 0 in an FY
   const monthly = new Array(12).fill(0);
   yearEntries.forEach(({ date, entry }) => {
-    const monthIdx = parseInt(date.slice(5, 7), 10) - 1;
+    const monthIdx = W.months.indexOf(date.slice(0, 7));
+    if (monthIdx < 0) return;
     const v = evalExpr(entry[categoryKey]);
     if (v !== null && v > 0) monthly[monthIdx] += v;
   });
@@ -15163,28 +15231,41 @@ function _renderYearCategoryMonthlyBars(yearStr, yearEntries, categoryKey, label
 
   const monthsActive = monthly.filter(v => v > 0).length;
   const maxVal = Math.max(...monthly);
-  const monthInitials = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const allInitials = ['J','F','M','A','M','J','J','A','S','O','N','D'];
+  const monthInitials = W.months.map(ym => allInitials[Number(ym.slice(5, 7)) - 1]);
 
-  // Hilite the current month's axis label if year matches today's year
-  const today = new Date();
-  const isCurrentYear = yearStr === String(today.getFullYear());
-  const currentMonthIdx = isCurrentYear ? today.getMonth() : -1;
+  // Hilite the current month's axis label if it falls inside this window
+  const currentMonthIdx = W.months.indexOf(isoToday().slice(0, 7));
+  // FY (Q-a): the slot where the calendar year turns gets a dashed edge + year tag
+  const turnIdx = W.kind === 'fy' ? 9 : -1;
+  const turnYear = W.months[9].slice(0, 4);
 
   let bars = '';
   for (let i = 0; i < 12; i++) {
     const v = monthly[i];
+    const colCls = i === turnIdx ? ' fy-turn' : '';
+    const colAttr = i === turnIdx ? ` data-fy-year="${turnYear}"` : '';
     if (v === 0) {
-      bars += `<div class="mb-col">
+      bars += `<div class="mb-col${colCls}"${colAttr}>
         <span class="mb-amt zero">—</span>
         <div class="mb-bar empty"></div>
       </div>`;
     } else {
       const heightPct = Math.max(4, (v / maxVal) * 100);
-      bars += `<div class="mb-col">
+      bars += `<div class="mb-col${colCls}"${colAttr}>
         <span class="mb-amt" style="color:${color};">${fmtCompact(v)}</span>
         <div class="mb-bar" style="height: ${heightPct.toFixed(1)}%; background: ${color};"></div>
       </div>`;
     }
+  }
+  // FY (Q-a): Indian quarters beneath the axis
+  let quarters = '';
+  if (W.kind === 'fy') {
+    const qn = ['Q1 · APR–JUN', 'Q2 · JUL–SEP', 'Q3 · OCT–DEC', 'Q4 · JAN–MAR'];
+    quarters = '<div class="fy-q">' + qn.map((q, qi) => {
+      const t = monthly[qi*3] + monthly[qi*3+1] + monthly[qi*3+2];
+      return `<span>${q}<b>${t > 0 ? fmt(t) : '—'}</b></span>`;
+    }).join('') + '</div>';
   }
 
   let axis = '';
@@ -15195,39 +15276,46 @@ function _renderYearCategoryMonthlyBars(yearStr, yearEntries, categoryKey, label
 
   return `<div class="year-card">
     <div class="year-card-head">
-      <span class="year-card-title">${escHtml(label)} across ${escHtml(yearStr)}</span>
+      <span class="year-card-title">${escHtml(label)} across ${escHtml(W.title)}</span>
       <span class="year-card-meta">monthly trend</span>
     </div>
-    <div class="month-bars-wrap">
+    <div class="month-bars-wrap${W.kind === 'fy' ? ' fy' : ''}">
       <div class="month-bars-row">${bars}</div>
       <div class="month-bars-axis">${axis}</div>
+      ${quarters}
     </div>
     <div class="year-meta-strip">
-      <span>YTD total: <strong style="color:${color};">${fmt(ytdTotal)}</strong></span>
+      <span>${W.totalWord}: <strong style="color:${color};">${fmt(ytdTotal)}</strong></span>
       <span>Months active: <strong style="color:${color};">${monthsActive} of 12</strong></span>
     </div>
   </div>`;
 }
 
-function renderYear() {
+function renderYear() { renderYearWindow('cal'); }
+function renderFy()   { renderYearWindow('fy'); }
+// One renderer, two windows (F1 T1 Q-a). kind = 'cal' (Jan–Dec, #yearContent)
+// or 'fy' (Apr–Mar, #fyContent). Every id inside the cards is prefixed with
+// the window's kind so the two pages never draw into each other (audit 3).
+function renderYearWindow(kind) {
   if (!yearCursor) yearCursor = String(new Date().getFullYear());
-  const titleEl = document.getElementById('yearTitle');
-  if (titleEl) titleEl.textContent = yearCursor;
-  const wrap = document.getElementById('yearContent');
+  if (!fyCursor) fyCursor = fyCurrentStart();
+  const W = yearWindow_(kind, kind === 'fy' ? fyCursor : yearCursor);
+  const titleEl = document.getElementById(W.pfx + 'Title');
+  if (titleEl) titleEl.innerHTML = escHtml(W.title) + (W.sub ? `<small>${escHtml(W.sub)}</small>` : '');
+  const wrap = document.getElementById(W.pfx + 'Content');
   if (!wrap) return;
 
-  // Disable next-year arrow if cursor is at the latest year with data
-  const todayYear = new Date().getFullYear();
-  const yearNum = Number(yearCursor);
-  const yearNextBtn = document.getElementById('yearNext');
-  if (yearNextBtn) yearNextBtn.disabled = yearNum >= todayYear;
+  // Disable next arrow when this is the current window (audit 5): calendar =
+  // today's year; FY = the one that started last April.
+  const yearNextBtn = document.getElementById(W.pfx + 'Next');
+  if (yearNextBtn) yearNextBtn.disabled = W.isCurrent || Number(W.cursor) > Number(kind === 'fy' ? fyCurrentStart() : new Date().getFullYear());
 
-  // Pull all entries for this year, sorted ascending by date
-  const yearDates = Object.keys(allEntries).filter(d => d.startsWith(yearCursor + '-')).sort();
+  // Pull all entries inside the window, sorted ascending by date
+  const yearDates = Object.keys(allEntries).filter(d => W.inWindow(d)).sort();
   const yearEntries = yearDates.map(d => ({ date: d, entry: allEntries[d] }));
 
   if (yearEntries.length === 0) {
-    wrap.innerHTML = `<div class="year-card"><div class="year-empty">No entries logged for ${escHtml(yearCursor)}.</div></div>`;
+    wrap.innerHTML = `<div class="year-card"><div class="year-empty">No entries logged for ${escHtml(W.title)}.</div></div>`;
     return;
   }
 
@@ -15370,7 +15458,7 @@ function renderYear() {
     const subRowHtml = cfLedgerHtml_({ regularInvestment: yearTotalRegular, topUp: yearTotalTopUp, directEquity: yearTotalEquity, globalInvest: yearTotalGlobal, investmentRedemption: yearTotalRedemption }, fmt);
     html += `<div class="year-card">
       <div class="year-card-head">
-        <span class="year-card-title">${escHtml(yearCursor)} cash flow</span>
+        <span class="year-card-title">${escHtml(W.title)} cash flow</span>
         <span class="year-card-meta">${dayLabel}</span>
       </div>
       <div class="year-cf-bars">
@@ -15426,15 +15514,15 @@ function renderYear() {
   // across loaded months). Sits between Year stats and the per-category
   // monthly bars to mirror the Month sub-view's structure (stats → breakdown
   // → category-level detail).
-  html += `<div id="yearOutflowBreakdown"></div>`;
+  html += `<div id="${W.pfx}OutflowBreakdown"></div>`;
   // Year Other breakdown — top 10 items + rollup. Now collapsible, matching
   // Month's pattern (default closed, state in _yearAccExpanded.otherBreakdown).
   // Built inline (not via a placeholder div) since yearEntries is already available.
-  html += _renderOtherBreakdownHtml('this year', yearEntries, {
+  html += _renderOtherBreakdownHtml(W.scope, yearEntries, {
     mode: 'topN', topN: 10,
     collapsible: true,
     defaultOpen: !!_yearAccExpanded.otherBreakdown,
-    accId: 'year-other-breakdown'
+    accId: W.pfx + '-other-breakdown'
   });
   // Year Recurring sub-group breakdowns — Home, Office, Subscriptions cards.
   // Year-scope: top 10 items + rollup. Now collapsible, default closed.
@@ -15448,7 +15536,7 @@ function renderYear() {
       mode: 'topN', topN: 10,
       collapsible: true,
       defaultOpen: !!_yearAccExpanded[g.stateKey],
-      accId: 'year-rg-' + g.key
+      accId: W.pfx + '-rg-' + g.key
     });
   });
 
@@ -15459,12 +15547,12 @@ function renderYear() {
   // bars) so seasonality/gap months are visually obvious. Within-card
   // normalization: tallest month fills 100%, others scale proportionally.
   // Used yearStr = parsed year; entries already filtered to that year.
-  html += _renderYearCategoryMonthlyBars(yearCursor, yearEntries, 'hotelStay', 'Hotel stay', '#6B4A5C');
-  html += _renderYearCategoryMonthlyBars(yearCursor, yearEntries, 'shopping',  'Shopping',  '#8B5A4A');
+  html += _renderYearCategoryMonthlyBars(W, yearEntries, 'hotelStay', 'Hotel stay', '#6B4A5C');
+  html += _renderYearCategoryMonthlyBars(W, yearEntries, 'shopping',  'Shopping',  '#8B5A4A');
   // CC tracking: monthly bar chart for credit card bill payments across
   // the year. NOT included in any total. Uses the slate-grey palette to
   // signal "not a spend category". Hides if no CC payments this year.
-  html += _renderYearCategoryMonthlyBars(yearCursor, yearEntries, 'creditCardBill', 'Credit card bill payments', '#6E7A86');
+  html += _renderYearCategoryMonthlyBars(W, yearEntries, 'creditCardBill', 'Credit card bill payments', '#6E7A86');
 
   // 3. Top 3 highest-spend months
   if (monthRanking.length > 0) {
@@ -15493,7 +15581,7 @@ function renderYear() {
   const awayExpCls = _yearAccExpanded.away ? ' expanded' : '';
   let awayBodyHtml = '';
   if (awayEntries.length === 0) {
-    awayBodyHtml = '<div class="year-acc-empty">No away-from-home nights logged this year.</div>';
+    awayBodyHtml = `<div class="year-acc-empty">No away-from-home nights logged ${W.scope}.</div>`;
   } else {
     // Render newest → oldest (reverse chronological)
     const reversed = [...awayEntries].reverse();
@@ -15530,7 +15618,7 @@ function renderYear() {
   const sleepExpCls = _yearAccExpanded.sleep ? ' expanded' : '';
   let sleepBodyHtml = '';
   if (noSleepEntries.length === 0) {
-    sleepBodyHtml = '<div class="year-acc-empty">No no-sleep nights logged this year.</div>';
+    sleepBodyHtml = `<div class="year-acc-empty">No no-sleep nights logged ${W.scope}.</div>`;
   } else {
     const reversed = [...noSleepEntries].reverse();
     sleepBodyHtml = reversed.map(({ date, entry }) => {
@@ -15551,7 +15639,7 @@ function renderYear() {
       <span class="year-acc-icon">${sleepIcon}</span>
       <div class="year-acc-info">
         <span class="year-acc-name">No-sleep nights</span>
-        <span class="year-acc-count">${noSleepEntries.length} this year</span>
+        <span class="year-acc-count">${noSleepEntries.length} ${W.scope}</span>
       </div>
       <span class="year-acc-total">${noSleepEntries.length}</span>
       ${sleepChev}
@@ -15567,7 +15655,7 @@ function renderYear() {
   // so the same renderer handles both. When async recurring fetches land
   // for any uncached month, renderYear() runs again and this card refreshes
   // with the updated yearRecT automatically.
-  renderOutflowBreakdown('yearOutflowBreakdown', 'this year', yearTotals, yearRecT, { type: 'year', cursor: yearCursor }, yearEntries);
+  renderOutflowBreakdown(W.pfx + 'OutflowBreakdown', W.scope, yearTotals, yearRecT, { type: 'year', cursor: W.cursor, window: W }, yearEntries);
 
   // Wire accordion toggles
   wrap.querySelectorAll('[data-year-acc-head]').forEach(head => {
@@ -15583,9 +15671,9 @@ function renderYear() {
   // cards use the .other-breakdown-card-v2.is-collapsible pattern; toggle
   // flips .is-expanded on the card and persists state in _yearAccExpanded.
   const _yearBdToggles = [
-    { accId: 'year-other-breakdown', stateKey: 'otherBreakdown' },
-    { accId: 'year-rg-home',         stateKey: 'recurringHome' },
-    { accId: 'year-rg-office',       stateKey: 'recurringOffice' },
+    { accId: W.pfx + '-other-breakdown', stateKey: 'otherBreakdown' },
+    { accId: W.pfx + '-rg-home',         stateKey: 'recurringHome' },
+    { accId: W.pfx + '-rg-office',       stateKey: 'recurringOffice' },
   ];
   _yearBdToggles.forEach(t => {
     const head = wrap.querySelector(`[data-ob-toggle="${t.accId}"]`);
@@ -19545,15 +19633,8 @@ async function init() {
   // Sub-tabs (Calendar -> Month / Week / Year / Trends)
   document.querySelectorAll('.subtab').forEach(t => t.addEventListener('click', () => {
     const which = t.dataset.subtab;
-    document.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s === t));
-    document.getElementById('subview-month-view').classList.toggle('hidden', which !== 'month-view');
-    document.getElementById('subview-week-view').classList.toggle('hidden', which !== 'week-view');
-    document.getElementById('subview-year-view').classList.toggle('hidden', which !== 'year-view');
-    document.getElementById('subview-trends-view').classList.toggle('hidden', which !== 'trends-view');
-    if (which === 'trends-view') renderTrends();
-    if (which === 'month-view') renderMonth();
-    if (which === 'week-view') renderWeek();
-    if (which === 'year-view') renderYear();
+    showSubviewOnly_(which);
+    renderSubview_(which);
     // Keep sidebar + hero in sync when the internal sub-tab bar is used
     // (only visible on mobile since sidebar is preferred nav on desktop).
     if (typeof refreshRsNavActive === 'function') refreshRsNavActive(which);
@@ -19586,6 +19667,25 @@ async function init() {
   if (yearThisBtn) yearThisBtn.addEventListener('click', () => {
     yearCursor = String(new Date().getFullYear());
     renderYear();
+  });
+  // Financial Year nav — same three, on the FY cursor
+  const fyPrev = document.getElementById('fyPrev');
+  const fyNext = document.getElementById('fyNext');
+  const fyThisBtn = document.getElementById('fyThisBtn');
+  if (fyPrev) fyPrev.addEventListener('click', () => {
+    if (!fyCursor) fyCursor = fyCurrentStart();
+    fyCursor = String(Number(fyCursor) - 1);
+    renderFy();
+  });
+  if (fyNext) fyNext.addEventListener('click', () => {
+    if (!fyCursor) fyCursor = fyCurrentStart();
+    if (Number(fyCursor) >= Number(fyCurrentStart())) return;  // not past the current FY
+    fyCursor = String(Number(fyCursor) + 1);
+    renderFy();
+  });
+  if (fyThisBtn) fyThisBtn.addEventListener('click', () => {
+    fyCursor = fyCurrentStart();
+    renderFy();
   });
   // [I] Heatmap toggle
   const heatmapToggle = document.getElementById('heatmapToggle');
