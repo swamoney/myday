@@ -1116,15 +1116,7 @@ function musNum_(i) { return String(i + 1).padStart(2, '0'); }
 function renderMusings(list, wrap) {
   let html = '';
   if (!list.length) musOrdering = false;
-  if (list.length && !musOrdering) {
-    const dayN = Math.floor(Date.now() / 86400000);
-    const pi = dayN % list.length, pick = list[pi];
-    const hasNote = NoteEditor.toPlain(pick.body || '').trim().length > 0;
-    const meta = [pick.favourite ? 'STARRED' : '', hasNote ? 'HAS A NOTE' : '', 'TAP TO OPEN'].filter(Boolean).join(' · ');
-    html += '<div class="mus-plate" data-open="' + escHtml(pick.id) + '"><span class="mk">❧</span>' +
-      '<div class="cap">TODAY’S REMINDER · ' + musNum_(pi) + ' OF ' + list.length + '</div>' +
-      '<div class="big">' + escHtml(pick.title) + '</div><div class="meta">' + meta + '</div></div>';
-  }
+  // (the daily reminder plate was removed on 29 Sep 2026 - the ledger alone)
   html += '<div class="mus-eb">' + (list.length ? list.length + (list.length === 1 ? ' LINE' : ' LINES') + (musOrdering ? ' · MOVE A LINE, THEN DONE' : ' · YOUR ORDER') : '0 LINES') +
     (list.length >= 2 ? '<button type="button" class="pill' + (musOrdering ? ' on' : '') + '" id="musOrderBtn">' + (musOrdering ? '✓ DONE' : '↕ ORDER') + '</button>' : '') + '</div>';
   html += '<div class="mus-lg' + (musOrdering ? ' ordering' : '') + '" id="musLg">';
