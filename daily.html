@@ -3232,6 +3232,13 @@
   .eps-amt.invest { color: #1f5c3a; }
   .eps-amt.spend { color: var(--ember); }
   .eps-amt.tracking { color: #8a8172; font-weight: 500; }
+  /* REDEEM (30 Sep 2026): money that came back - amber, a true minus, a chip */
+  .eps-amt.redeem { color: #BA7517; }
+  .eps-tag.redeem { background: #fbf1dc; color: #BA7517; }
+  .eps-foot-val.redeem { color: #BA7517; }
+  .eps-foot-sub { display:block; font-family: var(--mono); font-size:0.5625rem; color:#8a8172; margin-top:2px; }
+  .exp-footer-redemption.chip { font-style: normal; font-family: var(--mono); font-size:0.5312rem; letter-spacing:0.03em; background:#fbf1dc; color:#BA7517; border-radius:4px; padding:1px 6px; display:inline-block; margin-top:3px; }
+  .exp-footer-val.redeem { color: #BA7517; }
   .eps-foot {
     display: flex; margin-top: 14px; padding-top: 12px;
     border-top: 1px solid #f0ece6;
@@ -10859,7 +10866,8 @@ function updateExpenseFooter() {
 
   spentEl.textContent = fmtINR(spent);
   // IV-1 (F2): on a redemption day the footer says the net, with in/out beneath.
-  investedEl.textContent = fmtINR(redemption > 0 ? invested - redemption : invested);
+  investedEl.textContent = signedINR(redemption > 0 ? invested - redemption : invested);
+  investedEl.classList.toggle('redeem', redemption > 0 && invested - redemption < 0);
   const investedLabelEl = investedEl.parentElement ? investedEl.parentElement.querySelector('.exp-footer-label') : null;
   if (investedLabelEl) investedLabelEl.textContent = redemption > 0 ? 'Net invested' : 'Invested';
   // S1: the section header whispers today's spend (hidden at zero).
@@ -10872,11 +10880,11 @@ function updateExpenseFooter() {
   if (redemption > 0) {
     if (!redNote && investedItem) {
       redNote = document.createElement('span');
-      redNote.className = 'exp-footer-redemption';
+      redNote.className = 'exp-footer-redemption chip';
       redNote.id = 'expFooterRedemption';
       investedItem.appendChild(redNote);
     }
-    if (redNote) redNote.textContent = 'IN ' + fmtINR(invested) + ' \u00B7 OUT ' + fmtINR(redemption);
+    if (redNote) redNote.textContent = fmtINR(invested) + ' in \u00B7 ' + fmtINR(redemption) + ' back';
   } else if (redNote) {
     redNote.remove();
   }
@@ -11005,9 +11013,9 @@ function renderExpensePastSummary(panel) {
     html += '<div class="eps-subh inv">Invested</div>';
     investRows.forEach(r => { html += rowHtml(r, 'invest'); });
     if (redemption > 0) {
-      html += '<div class="eps-row"><span class="eps-name">Investment Redemption ' +
-        '<span class="eps-note">\u00B7 credited back</span></span>' +
-        '<span class="eps-amt invest">' + fmtINR(redemption) + '</span></div>';
+      html += '<div class="eps-row"><span class="eps-name">Investment Redemption' +
+        '<span class="eps-tag redeem">credited back</span></span>' +
+        '<span class="eps-amt redeem">\u2212 ' + fmtINR(redemption) + '</span></div>';
     }
   }
 
@@ -11034,8 +11042,10 @@ function renderExpensePastSummary(panel) {
   html += '<div class="eps-foot">' +
     '<div class="eps-foot-item"><div class="eps-foot-lbl">Spent</div>' +
       '<div class="eps-foot-val spend">' + fmtINR(spendTotal) + '</div></div>' +
-    '<div class="eps-foot-item"><div class="eps-foot-lbl">Invested</div>' +
-      '<div class="eps-foot-val invest">' + fmtINR(investTotal) + '</div></div>' +
+    '<div class="eps-foot-item"><div class="eps-foot-lbl">' + (redemption > 0 ? 'Net invested' : 'Invested') + '</div>' +
+      '<div class="eps-foot-val ' + (investTotal - redemption < 0 ? 'redeem' : 'invest') + '">' + signedINR(investTotal - redemption) +
+      (redemption > 0 ? '<span class="eps-foot-sub">' + fmtINR(investTotal) + ' in \u00B7 ' + fmtINR(redemption) + ' back</span>' : '') +
+      '</div></div>' +
   '</div>';
 
   html += '<button type="button" class="eps-showall" id="expShowAllBtn">' +
@@ -11237,6 +11247,13 @@ function nicemax(v) {
   return m * exp;
 }
 function fmtINR(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+// REDEEM (30 Sep 2026): a net that can go below zero. fmtINR itself never sees
+// a negative (it would print '₹-5,000', and -0 would print '₹-0'); this puts a
+// true minus and a space in front of the absolute figure: '− ₹5,000'.
+function signedINR(n) {
+  const r = Math.round(Number(n) || 0);
+  return r < 0 ? '\u2212 ' + fmtINR(-r) : fmtINR(Math.abs(r));
+}
 
 
 // Shared chart-card builder. Returns the wrapping HTML around an SVG body.
@@ -16876,6 +16893,9 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
   const gstVal = evx('gstPayment');   // AUDIT FIX 2: tracking-only, but it is an entry
   const spendTotal = spRows.reduce((s, r) => s + r.amt, 0);
   const investTotal = invRows.reduce((s, r) => s + r.amt, 0);
+  // REDEEM: the day's net; paper gets the same true minus as the screen
+  const netInvest = investTotal - redeem;
+  const moneyS = (n) => { const r = Math.round(n); return r < 0 ? '\u2212 ' + money(-r) : money(Math.abs(r)); };
 
   // ---- date band (B4 away chip rides it) ----
   const BAND = [244, 238, 227];
@@ -16935,7 +16955,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
       && entry.satisfaction !== null && !isNaN(Number(entry.satisfaction));
     const vitals = [
       ['OUTFLOW', spendTotal > 0 ? money(spendTotal) : '\u2014'],
-      ['INVESTED', investTotal > 0 ? money(investTotal) : '\u2014'],
+      ['INVESTED', (investTotal > 0 || redeem > 0) ? moneyS(netInvest) : '\u2014'],
       ['WALK', !isBlank(entry.walk) ? entry.walk + ' min' : '\u2014'],
       ['DAY', satOk ? (Number(entry.satisfaction) * 100).toFixed(0) + '%' : '\u2014'],
     ];
@@ -17012,7 +17032,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
   const bx = PDF_PAGE.marginX + INDENT;
   const innerR = PDF_PAGE.width - PDF_PAGE.marginX;
   let railTop = 0, railColor = null;
-  const bkStart = (label, colorRGB, totalStr) => {
+  const bkStart = (label, colorRGB, totalStr, totalColor) => {
     ensure(16);
     cursorY += 4;
     railTop = cursorY - 3;
@@ -17022,7 +17042,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
     doc.text(label.toUpperCase(), bx, cursorY); doc.setCharSpace(0);
     if (totalStr) {
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-      pdfSetText(doc, PDF_COLORS.ink);
+      pdfSetText(doc, totalColor || PDF_COLORS.ink);
       doc.text(totalStr, innerR, cursorY, { align: 'right' });
     }
     cursorY += 4.4;
@@ -17035,7 +17055,7 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
     opts = opts || {};
     ensure(6);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-    pdfSetText(doc, opts.muted ? PDF_COLORS.muted : PDF_COLORS.ink);
+    pdfSetText(doc, opts.color ? opts.color : (opts.muted ? PDF_COLORS.muted : PDF_COLORS.ink));
     doc.text(label, bx, cursorY);
     if (tag) {
       const lw = doc.getTextWidth(label);
@@ -17044,8 +17064,8 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
       doc.text(tag, bx + lw + 2, cursorY);
     }
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-    pdfSetText(doc, opts.muted ? PDF_COLORS.muted : PDF_COLORS.ink);
-    doc.text(money(amt), innerR, cursorY, { align: 'right' });
+    pdfSetText(doc, opts.color ? opts.color : (opts.muted ? PDF_COLORS.muted : PDF_COLORS.ink));
+    doc.text(opts.neg ? '\u2212 ' + money(amt) : money(amt), innerR, cursorY, { align: 'right' });
     cursorY += 4.6;
     // AUDIT FIX 1: the row's note, muted italic beneath it (wrapped)
     if (opts.note) {
@@ -17102,9 +17122,11 @@ function pdfDrawDailyEntry(doc, isoDate, entry, runningPageNum, W) {
 
   // ---- Invested ----
   if (invRows.length || redeem > 0) {
-    bkStart('Invested', EPS.inv, investTotal > 0 ? money(investTotal) : '');
+    const AMBER = [186, 117, 23];
+    bkStart(redeem > 0 ? 'Net invested' : 'Invested', EPS.inv,
+      (investTotal > 0 || redeem > 0) ? moneyS(netInvest) : '', netInvest < 0 ? AMBER : null);
     invRows.forEach(r => row(r.label, r.amt, ''));
-    if (redeem > 0) row('Investment Redemption', redeem, 'credited back');
+    if (redeem > 0) row('Investment Redemption', redeem, 'credited back', { color: AMBER, neg: true });
     bkEnd();
   }
 
