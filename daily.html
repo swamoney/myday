@@ -18070,7 +18070,7 @@ function refreshRecHint(history) {
     return;
   }
   // Pretty names: take the cased name from lastByName when available
-  const prettied = pending.slice(0, 5).map(n => {
+  const prettied = pending.map(n => {   // every pending name (was capped at 5 while the strip existed)
     const e = history.lastByName.get(n);
     return e ? e.name : n;
   });
@@ -18597,10 +18597,21 @@ async function _adConfirm(dateIso, name, amt, grp) {
   renderRecDueStrip();
   return true;
 }
+// 30 Sep 2026: the reminder machinery (DUE TODAY cards, the 'looks monthly -
+// remind you?' asks, the bell sheet) is switched OFF. The one voice left is
+// the 'Usually paid - not yet' hint (refreshRecHint) and the door's unpaid
+// line. Answers already given (yes/no/stopped) stay in prefs and the hint
+// still honours a 'no'. Flip to true to bring the strip back.
+const REC_REMINDERS = false;
 function renderRecDueStrip() {
   const strip = document.getElementById('recDueStrip');
   const tag = document.getElementById('recDueTag');
   if (!strip) return;
+  if (!REC_REMINDERS) {
+    strip.classList.add('hidden'); strip.innerHTML = '';
+    if (tag) { tag.classList.add('hidden'); tag.textContent = ''; }
+    return;
+  }
   // RB-8: missed bills stay visible from their due day onward, all month.
   // On today: the full strip (dues + asks), logging to today. On a PAST day
   // of the current month: a 'still unpaid' strip anchored to that day, and
@@ -18739,7 +18750,9 @@ function renderRecDueStrip() {
 }
 (function wireRbBell() {
   const b = document.getElementById('rbBellBtn');
-  if (b) b.addEventListener('click', e => { e.stopPropagation(); openReminderSheet(); });
+  if (!b) return;
+  if (!REC_REMINDERS) { b.remove(); return; }   // no reminders, no bell
+  b.addEventListener('click', e => { e.stopPropagation(); openReminderSheet(); });
 })();
 function ordSuffix(n) {
   const v = n % 100;
