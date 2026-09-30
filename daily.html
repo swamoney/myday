@@ -76,7 +76,7 @@
     --rs-line: #e3e7ec;
     --rs-brand: #0b4f6c;
     --rs-brand2: #1a7fa8;
-    --rs-accent: #e8853a;
+    --rs-accent: #f4c430;   /* S1 (30 Sep 2026): gold, the reflection link's warm - was orange #e8853a */
   }
 
   /* Hero header — full-width navy gradient across the very top.
@@ -143,6 +143,12 @@
     border-bottom: 1px solid rgba(255,255,255,0.14);
     position: sticky; top: 0; background: transparent;
   }
+  /* S1 (30 Sep 2026): the collapse toggle lives in the top-right corner of the
+     head instead of beside the date; the brand block takes the full width. */
+  .rs-side-head { position: relative; }
+  .rs-side-head button#rsCollapseBtn { position: absolute; top: 8px; right: 8px; opacity: 0.6; }
+  .rs-side-head button#rsCollapseBtn:hover { opacity: 1; }
+  .rs-side-head .rs-side-brand { flex: 1; }
   .rs-side-head button {
     background: none; border: none; color: #ffffff;
     cursor: pointer; font-size:1.1875rem; padding: 2px 3px;
@@ -226,6 +232,10 @@
   /* Date + day-progress lines under the title (moved out of the old hero). */
   .rs-side-date { font-size:0.6562rem; color: rgba(255,255,255,0.82); margin-top: 6px; line-height: 1.3; }
   .rs-side-day { font-size:0.625rem; color: rgba(255,255,255,0.5); margin-top: 2px; line-height: 1.3; }
+  /* S1: the year's progress as a thin gold bar under the day count (was ' - 75%') */
+  .rs-side-bar { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.14); margin-top: 7px; overflow: hidden; }
+  .rs-side-bar i { display: block; height: 100%; width: 0; background: #f4c430; border-radius: 2px; transition: width .4s; }
+  .rs-side.rs-collapsed .rs-side-bar { display: none; }
   /* Brand block is a button that opens the day's reflection pop-up. */
   .rs-side-brand { cursor: pointer; border-radius: 9px; padding: 6px 8px; margin: -6px -8px; transition: background 0.15s; }
   .rs-side-brand:hover { background: rgba(255,255,255,0.07); }
@@ -305,6 +315,7 @@
     .rs-side .rs-side-subtitle,
     .rs-side .rs-side-date,
     .rs-side .rs-side-day,
+    .rs-side .rs-side-bar,
     .rs-side .rs-side-reflect-cue,
     .rs-side .rs-hub-top span { display: none; }
     .rs-side #rsCollapseBtn { display: none; }
@@ -6341,15 +6352,16 @@
       <div class="rs-side-subtitle">daily tracker</div>
       <div class="rs-side-date" id="rsSideDate">—</div>
       <div class="rs-side-day" id="rsSideDay">—</div>
+      <div class="rs-side-bar" aria-hidden="true"><i id="rsSideBar"></i></div>
       <div class="rs-side-reflect-cue"><span>Today's reflection</span><span aria-hidden="true">&rsaquo;</span></div>
     </div>
   </div>
   <div class="rs-sidenav">
     <div class="rs-grp">VIEW</div>
-    <button class="rs-navi tab active" data-tab="today" type="button" title="Today"><i class="ti ti-calendar-time" aria-hidden="true"></i><span>Today</span></button>
+    <button class="rs-navi tab active" data-tab="today" type="button" title="Today"><i class="ti ti-sun" aria-hidden="true"></i><span>Today</span></button>
     <button class="rs-navi rs-subview" data-subview="week-view" type="button" title="Week"><i class="ti ti-calendar-week" aria-hidden="true"></i><span>Week</span></button>
-    <button class="rs-navi rs-subview" data-subview="month-view" type="button" title="Month"><i class="ti ti-calendar-month" aria-hidden="true"></i><span>Month</span></button>
-    <button class="rs-navi rs-subview" data-subview="year-view" type="button" title="Calendar Year"><i class="ti ti-calendar-stats" aria-hidden="true"></i><span>Calendar Year</span></button>
+    <button class="rs-navi rs-subview" data-subview="month-view" type="button" title="Month"><i class="ti ti-layout-grid" aria-hidden="true"></i><span>Month</span></button>
+    <button class="rs-navi rs-subview" data-subview="year-view" type="button" title="Calendar Year"><i class="ti ti-calendar" aria-hidden="true"></i><span>Calendar Year</span></button>
     <button class="rs-navi rs-subview" data-subview="fy-view" type="button" title="Financial Year"><i class="ti ti-receipt-rupee" aria-hidden="true"></i><span>Financial Year</span></button>
 
     <!-- Trends is analysis (not a time-scoped view) so it lives in TOOLS
@@ -10337,7 +10349,9 @@ function updateRsHero(viewKey) {
     const totalDays = isLeap ? 366 : 365;
     const pct = Math.round((dayOfYear / totalDays) * 100);
     if (chipDay) chipDay.textContent = 'Day ' + dayOfYear + ' of ' + totalDays + ' · ' + pct + '%';
-    if (sideDay) sideDay.textContent = 'Day ' + dayOfYear + ' of ' + totalDays + ' · ' + pct + '%';
+    if (sideDay) sideDay.textContent = 'Day ' + dayOfYear + ' of ' + totalDays;
+    const sideBar = document.getElementById('rsSideBar');
+    if (sideBar) sideBar.style.width = Math.max(0, Math.min(100, pct)) + '%';
   } catch (e) {
     // Non-fatal — leave chips as-is
   }
