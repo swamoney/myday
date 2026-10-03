@@ -183,7 +183,20 @@
   .hist-h { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; }
   .hist-t { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.2em;
             text-transform:uppercase; color:var(--faint); }
-  .hist-svg { width:100%; height:86px; display:block; overflow:visible; }
+  .hist-svg { width:100%; height:160px; display:block; overflow:visible; }
+  /* G1+A1 (Oct 2026): the climb - stacked by kind, the figure on the card, flags at each milestone */
+  .hist-big { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:6px; }
+  .hist-v { font-family:var(--sans); font-variant-numeric:tabular-nums; font-feature-settings:'tnum' 1;
+            font-size:1.75rem; font-weight:500; letter-spacing:-0.01em; color:var(--ink); }
+  .hist-d { font-family:var(--mono); font-size:0.625rem; font-weight:600; color:#5b6b2e; }
+  .hist-d.down { color:#BA7517; }
+  .hist-leg { display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-family:var(--mono);
+              font-size:0.5625rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--mut); }
+  .hist-leg i { display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+  .hist-ms { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .hist-ms span { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; border:1px solid #d9cfae;
+                  border-radius:999px; padding:3px 9px; color:var(--mut); background:#fff; }
+  @media (max-width:520px) { .hist-v { font-size:1.5rem; } }
   .hist-x { display:flex; justify-content:space-between; gap:12px; font-family:var(--mono);
             font-size:0.53125rem; color:var(--faint); margin-top:8px; }
   .hist-one { font-family:var(--sans); font-variant-numeric:tabular-nums; font-weight:500;
@@ -524,19 +537,52 @@ function totalsByMonth() {
     .filter(s => live[String(s.holding_id)])
     .sort((a, b) => String(a.on_date).localeCompare(String(b.on_date)));
   const latest = {};          // holding -> its most recent value so far
-  const byMonth = {};         // month  -> the total at the end of that month
+  const byMonth = {};         // month  -> { mf, etf, eq, v } at the end of that month
   rows.forEach(s => {
     latest[s.holding_id] = { v: Number(s.invested) || 0, kind: s.kind };
-    let t = 0;
+    const k3 = { mf: 0, etf: 0, eq: 0 };
     Object.keys(latest).forEach(k => {
-      t += latest[k].v * (latest[k].kind === 'etf' ? rate : 1);
+      const x = latest[k];
+      k3[x.kind === 'etf' ? 'etf' : x.kind === 'eq' ? 'eq' : 'mf'] += x.v * (x.kind === 'etf' ? rate : 1);
     });
-    byMonth[String(s.on_date).slice(0, 7)] = t;   // last write in a month wins
+    byMonth[String(s.on_date).slice(0, 7)] = k3;   // last write in a month wins
   });
-  const out = Object.keys(byMonth).sort().map(m => ({ m, v: byMonth[m] }));
+  const keys = Object.keys(byMonth).sort();
+  if (!keys.length) return [];
+  // A month with no change writes no snapshot. Carry the last total forward
+  // month by month, so a quiet quarter reads as three flat points, not a gap.
+  const out = [];
+  let cur = keys[0], last = null;
+  const endM = keys[keys.length - 1];
+  while (cur <= endM) {
+    if (byMonth[cur]) last = byMonth[cur];
+    out.push({ m: cur, mf: last.mf, etf: last.etf, eq: last.eq, v: last.mf + last.etf + last.eq });
+    const y = Number(cur.slice(0, 4)), mo = Number(cur.slice(5, 7));
+    cur = mo === 12 ? (y + 1) + '-01' : y + '-' + String(mo + 1).padStart(2, '0');
+  }
   // The most recent point is today's total, whatever the snapshots say — so the
   // end of the line always agrees with the figure on the card above it.
-  if (out.length) out[out.length - 1].v = grandTotal();
+  const e = out[out.length - 1];
+  e.mf = totalOf('mf'); e.etf = totalOf('etf') * rate; e.eq = totalOf('eq'); e.v = grandTotal();
+  return out;
+}
+// Milestones: the smallest round step that keeps the flags to a handful.
+const HIST_STEPS = [1000000, 2500000, 5000000, 10000000, 25000000, 50000000, 100000000];
+function histLakh_(n) {
+  if (n >= 10000000) { const c = n / 10000000; return '\u20B9' + (Number.isInteger(c) ? c : c.toFixed(1)) + 'Cr'; }
+  const l = n / 100000; return '\u20B9' + (Number.isInteger(l) ? l : l.toFixed(1)) + 'L';
+}
+function histMilestones_(pts) {
+  const mx = Math.max.apply(null, pts.map(p => p.v));
+  let step = HIST_STEPS[HIST_STEPS.length - 1];
+  for (const st of HIST_STEPS) { if (Math.floor(mx / st) <= 8) { step = st; break; } }
+  // A flag marks a crossing, so whatever the record already stood at on its
+  // first month is the opening, not a milestone.
+  const out = []; let next = (Math.floor(pts[0].v / step) + 1) * step;
+  pts.forEach((p, i) => {
+    if (!i) return;
+    while (p.v >= next) { out.push({ i, amt: next }); next += step; }
+  });
   return out;
 }
 function monthLabel(m) {
@@ -553,32 +599,61 @@ function renderHistory() {
   }
   const head = '<div class="hist-h"><span class="hist-t">How it grew</span>'
     + '<span class="hist-t">' + pts.length + (pts.length === 1 ? ' MONTH' : ' MONTHS') + '</span></div>';
-  // A single month still draws — a short flat line reading as "this is where it
+  const first = pts[0], lastP = pts[pts.length - 1];
+  const delta = lastP.v - first.v;
+  const big = '<div class="hist-big"><span class="hist-v">' + inr(lastP.v) + '</span>'
+    + (pts.length > 1 ? '<span class="hist-d' + (delta < 0 ? ' down' : '') + '">'
+        + (delta < 0 ? '\u2212 ' + inr(-delta) : '+' + inr(delta)) + ' since ' + monthLabel(first.m) + '</span>' : '')
+    + '</div>';
+  // A single month still draws — a short flat band reading as "this is where it
   // begins" rather than a message explaining why there is no chart.
-  if (pts.length === 1) pts = [{ m: pts[0].m, v: pts[0].v }, pts[0]];
-  // A line rather than bars: thirty years fits the same card as two, because
-  // adding points makes it longer, not thinner.
-  const W = 300, H = 76, mx = Math.max.apply(null, pts.map(p => p.v)) || 1;
-  const xy = pts.map((p, i) => [
-    (i * (W / (pts.length - 1))),
-    H - (p.v / mx) * (H - 6)
-  ]);
-  const line = xy.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  const area = line + ' ' + W + ',' + H + ' 0,' + H;
-  const last = xy[xy.length - 1];
-  card.innerHTML = head
-    + '<svg class="hist-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img"'
-      + ' aria-label="Total invested by month">'
-      + '<defs><linearGradient id="histFill" x1="0" y1="0" x2="0" y2="1">'
-        + '<stop offset="0" stop-color="#2a2519" stop-opacity="0.22"/>'
-        + '<stop offset="1" stop-color="#2a2519" stop-opacity="0"/></linearGradient></defs>'
-      + '<polygon points="' + area + '" fill="url(#histFill)"/>'
-      + '<polyline points="' + line + '" fill="none" stroke="#2a2519" stroke-width="1.8"'
-        + ' stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'
-      + '<circle cx="' + last[0].toFixed(1) + '" cy="' + last[1].toFixed(1) + '" r="2.6" fill="#2a2519"/>'
-    + '</svg>'
-    + '<div class="hist-x"><span>' + monthLabel(pts[0].m) + ' \u00B7 ' + inr(pts[0].v) + '</span>'
-      + '<span>' + monthLabel(pts[pts.length - 1].m) + ' \u00B7 ' + inr(pts[pts.length - 1].v) + '</span></div>';
+  if (pts.length === 1) pts = [Object.assign({}, pts[0]), pts[0]];
+  // G1 (Oct 2026): the climb. Three stacked bands in the room's kind colours
+  // (the crown bar's), the ink line on top, a faint rule at each January, and
+  // A1: a gold flag wherever a round milestone was crossed.
+  // The viewBox takes the card's real width, so flags and year tags never stretch.
+  const W = Math.max(280, (card.clientWidth || 360) - 40), H = 160, PAD = 8, TOP = 34;
+  const mx = Math.max.apply(null, pts.map(p => p.v)) || 1;
+  const n = pts.length;
+  const X = i => PAD + i * ((W - 2 * PAD) / (n - 1));
+  const Y = v => (H - 6) - (v / mx) * (H - 6 - TOP);
+  const band = (top, bot) => top.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')
+    + ' ' + bot.slice().reverse().map((v, j) => X(n - 1 - j).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ');
+  const l1 = pts.map(p => p.mf), l2 = pts.map(p => p.mf + p.etf), l3 = pts.map(p => p.v), l0 = pts.map(() => 0);
+  let svg = '<svg class="hist-svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img"'
+    + ' aria-label="Total invested by month, by kind">';
+  pts.forEach((p, i) => {   // January rules
+    if (i > 0 && p.m.slice(5, 7) === '01') {
+      const x = X(i).toFixed(1);
+      svg += '<line x1="' + x + '" y1="4" x2="' + x + '" y2="' + (H - 4) + '" stroke="#d9cfae" stroke-dasharray="2 3"/>'
+        + '<text x="' + (X(i) + 4).toFixed(1) + '" y="12" font-family="IBM Plex Mono,monospace" font-size="7" fill="#9b937e">' + p.m.slice(0, 4) + '</text>';
+    }
+  });
+  svg += '<polygon points="' + band(l1, l0) + '" fill="#8d9858" opacity="0.85"/>'
+    + '<polygon points="' + band(l2, l1) + '" fill="#bd9153" opacity="0.85"/>'
+    + '<polygon points="' + band(l3, l2) + '" fill="#b1725f" opacity="0.85"/>'
+    + '<polyline points="' + l3.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ') + '" fill="none" stroke="#23201a" stroke-width="1.8"'
+      + ' stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+  const ms = pts.length > 1 ? histMilestones_(pts) : [];
+  ms.forEach(f => {
+    const cx = X(f.i), cy = Y(pts[f.i].v);
+    const lbl = histLakh_(f.amt), bw = 6 + lbl.length * 4.6;
+    const bx = Math.min(cx - 1, W - bw - 2);
+    svg += '<line x1="' + cx.toFixed(1) + '" y1="' + cy.toFixed(1) + '" x2="' + cx.toFixed(1) + '" y2="' + (cy - 18).toFixed(1) + '" stroke="#23201a"/>'
+      + '<rect x="' + bx.toFixed(1) + '" y="' + (cy - 30).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="13" rx="3" fill="#f4c430"/>'
+      + '<text x="' + (bx + 3).toFixed(1) + '" y="' + (cy - 20.5).toFixed(1) + '" font-family="IBM Plex Mono,monospace" font-size="7.5" font-weight="600" fill="#4a3410">' + lbl + '</text>'
+      + '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="3" fill="#fefdf8" stroke="#23201a" stroke-width="1.8"/>';
+  });
+  svg += '<circle cx="' + X(n - 1).toFixed(1) + '" cy="' + Y(lastP.v).toFixed(1) + '" r="3" fill="#23201a"/></svg>';
+  const leg = '<div class="hist-leg"><span><i style="background:#8d9858"></i>Mutual funds</span>'
+    + '<span><i style="background:#bd9153"></i>Global Investment</span>'
+    + '<span><i style="background:#b1725f"></i>Direct equity</span></div>';
+  const pills = ms.length ? '<div class="hist-ms">' + ms.map(f =>
+    '<span>' + histLakh_(f.amt) + ' \u00B7 ' + monthLabel(pts[f.i].m) + '</span>').join('') + '</div>' : '';
+  card.innerHTML = head + big + svg
+    + '<div class="hist-x"><span>' + monthLabel(first.m) + ' \u00B7 ' + inr(first.v) + '</span>'
+      + '<span>' + monthLabel(lastP.m) + ' \u00B7 ' + inr(lastP.v) + '</span></div>'
+    + leg + pills;
 }
 
 /* ---------- load ---------- */
@@ -797,6 +872,11 @@ document.addEventListener('click', e => {
     renderHistory();
     el('histCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
   }
+});
+let histRz_ = null;
+window.addEventListener('resize', () => {   // the climb is drawn to the card's width
+  if (!histOpen) return;
+  clearTimeout(histRz_); histRz_ = setTimeout(renderHistory, 150);
 });
 
 /* ---------- print ----------
