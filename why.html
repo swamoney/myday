@@ -1372,6 +1372,32 @@
          font-size:0.8125rem; line-height:1; cursor:pointer; flex-shrink:0; }
   body.editing .p-x { display:block; }
   .pl-empty { font-size:0.7812rem; color:#8B97AC; padding:16px 2px; }
+  /* PL-FAVE (E1 R1, Oct 2026): a Keeper is a favourite - it shows what's good there and how often you've been */
+  .p-fave { font-size:0.75rem; color:#28324B; margin-top:3px; display:flex; align-items:baseline; gap:6px; overflow-wrap:anywhere; }
+  .p-fave i { font-style:normal; color:#c89b1a; font-size:0.6875rem; flex-shrink:0; }
+  .p-fave em { font-style:italic; font-family:var(--serif); }
+  .p-stat { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; min-width:52px; }
+  .p-stat b { font-family:var(--sans); font-size:1.0625rem; font-weight:600; color:#1d2d4d; font-variant-numeric:tabular-nums; line-height:1; }
+  .p-stat b small { font-size:0.5625rem; font-weight:600; color:#8a6f2f; margin-left:2px; }
+  .p-stat b.none { color:#aab3c2; }
+  .p-stat span { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.08em; color:#8B97AC; white-space:nowrap; }
+  .p-went { display:none; font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+            color:#8a6f2f; background:#fff; border:1px dashed #d9c58a; border-radius:8px; padding:5px 9px; white-space:nowrap; cursor:pointer; flex-shrink:0; }
+  body.editing .p-went { display:inline-block; }
+  .p-went:hover { background:#fffdf3; }
+  @media (max-width:640px) {
+    /* phone: the pill (and the delete cross) stay top-right; the count and the went-today door take a second line under the name */
+    .prow.keeper { flex-wrap:wrap; }
+    .prow.keeper .p-pill { order:2; }
+    .prow.keeper .p-x { order:2; }
+    .prow.keeper .p-stat { order:3; flex:1 1 calc(100% - 160px); flex-direction:row; align-items:baseline; gap:8px;
+                           margin-left:46px; margin-top:2px; min-width:0; }
+    .prow.keeper .p-went { order:4; margin-top:2px; }
+  }
+  .fld.pl-gold input { border-color:#e6d59a; background:#fffdf3; }
+  .pl-step { display:flex; align-items:center; gap:8px; }
+  .pl-step input { flex:1; text-align:center; }
+  .pl-step button { width:34px; height:34px; border:1px solid #dfe5ee; background:#fff; border-radius:8px; font-size:0.95rem; color:#28324B; cursor:pointer; flex-shrink:0; }
   /* ===== My Mantra — a page per mantra ===== */
   #mtWin .pin { max-width:820px; }
   .mt-hero { padding-bottom:4px; }
@@ -2196,6 +2222,10 @@
         <option value="keeper">Keeper &mdash; worth returning to</option>
       </select>
     </div>
+    <div class="fld pl-gold" id="fFaveWrap"><label>&#9733; What's good there</label><input id="fFave" placeholder="e.g. the cheese omelette, nothing else"></div>
+    <div class="fld pl-gold" id="fVisitsWrap"><label>Times been</label>
+      <div class="pl-step"><button type="button" id="fVisitsDn" aria-label="One fewer">&minus;</button><input type="number" id="fVisits" min="0" step="1" inputmode="numeric" placeholder="&mdash;"><button type="button" id="fVisitsUp" aria-label="One more">+</button></div>
+    </div>
     <div class="fld" id="fLastWrap"><label>Last went</label><input type="date" id="fLastOn"></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="placeDel" type="button">Delete</button>
@@ -2708,7 +2738,8 @@ async function exportWhy() {
     })), null, 2));
     zip.file('explore-list.json', JSON.stringify(places.map(p => ({
       name: p.name, city: p.city, kind: p.kind, note: p.note,
-      status: p.status, last_on: p.last_on, created_at: p.created_at
+      status: p.status, last_on: p.last_on, fave: p.fave || null, visits: p.visits == null ? null : p.visits,
+      created_at: p.created_at
     })), null, 2));
 
     // --- a readable book of the whole room ---
@@ -2878,7 +2909,9 @@ async function exportWhy() {
         const k = (PL_KINDS[p.kind] || PL_KINDS.eat).lbl;
         body += '<li><strong>' + xEsc_(p.name) + '</strong> \u2014 ' + xEsc_(k)
               + ' \u00B7 ' + xEsc_(PL_STATUS[p.status || 'not_yet'])
+              + (p.visits != null && p.status === 'keeper' ? ' \u00B7 ' + p.visits + '\u00D7' : '')
               + (p.last_on ? ' \u00B7 last went ' + xEsc_(plFmt(p.last_on)) : '')
+              + (p.fave && p.status === 'keeper' ? '<br><span class="meta">\u2605 ' + xEsc_(p.fave) + '</span>' : '')
               + (p.note ? '<br><span class="meta">' + xEsc_(p.note) + '</span>' : '')
               + '</li>';
       });
@@ -3026,6 +3059,9 @@ function printSection() {
       body += '<h2>' + e(city) + '</h2><ul>' + byCity[city].map(p =>
         '<li><strong>' + e(p.name || '') + '</strong> \u2014 ' + e((PL_KINDS[p.kind] || PL_KINDS.eat).lbl)
         + ' \u00B7 ' + e(PL_STATUS[p.status || 'not_yet'])
+        + (p.status === 'keeper' && p.visits != null ? ' \u00B7 ' + p.visits + '\u00D7' : '')
+        + (p.status === 'keeper' && p.last_on ? ' \u00B7 last ' + e(plFmt(p.last_on)) : '')
+        + (p.status === 'keeper' && p.fave ? '<br><span class="meta">\u2605 ' + e(p.fave) + '</span>' : '')
         + (p.note ? '<br><span class="meta">' + e(p.note) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
     prOpen_('My Bucket List', body); return;
@@ -5730,14 +5766,23 @@ function renderPlaces() {
     const when = st !== 'not_yet' && p.last_on ? plFmt(p.last_on) : '';
     const noteBits = [];
     if (p.note && p.note.trim()) noteBits.push(escHtml(p.note.trim()));
-    if (when) noteBits.push('<span class="p-when">' + (st === 'keeper' ? 'LAST WENT ' : '') + when + '</span>');
+    // PL-FAVE: a Keeper carries its date in the count block on the right, not the note line.
+    if (when && st !== 'keeper') noteBits.push('<span class="p-when">' + when + '</span>');
+    const keeper = st === 'keeper';
+    const fave = keeper && p.fave && p.fave.trim() ? '<div class="p-fave"><i>\u2605</i><em>' + escHtml(p.fave.trim()) + '</em></div>' : '';
+    const stat = keeper ? '<span class="p-stat"><b' + (p.visits == null ? ' class="none"' : '') + '>'
+        + (p.visits == null ? '\u2014' : p.visits) + '<small>\u00D7</small></b>'
+        + (when ? '<span>LAST ' + when + '</span>' : '') + '</span>'
+      + '<button class="p-went" type="button" data-pwent="' + p.id + '">+ Went today</button>' : '';
     return '<div class="prow ' + st + '" data-place="' + p.id + '" style="' + plVars(plHue(p.city)) + '">'
       + '<span class="p-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + k.icon + '</svg></span>'
       + '<span class="p-mid">'
         + '<span class="p-kind">' + escHtml(head) + '</span>'
         + '<div class="p-name">' + escHtml(p.name || '') + '</div>'
+        + fave
         + (noteBits.length ? '<div class="p-note">' + noteBits.join(' \u00B7 ') + '</div>' : '')
       + '</span>'
+      + stat
       + '<span class="p-pill ' + st + '">' + PL_STATUS[st] + '</span>'
       + '<button class="p-x" data-px="' + p.id + '" type="button" aria-label="Delete">&times;</button>'
       + '</div>';
@@ -5760,6 +5805,8 @@ function openPlaceModal(id) {
   el('fPlaceNote').value = p ? (p.note || '') : '';
   el('fPlaceStatus').value = p ? (p.status || 'not_yet') : 'not_yet';
   el('fLastOn').value = p ? (p.last_on || '') : '';
+  el('fFave').value = p ? (p.fave || '') : '';
+  el('fVisits').value = p && p.visits != null ? p.visits : '';
   el('plCityList').innerHTML = plCities().map(c => '<option value="' + escHtml(c) + '"></option>').join('');
   el('placeDel').classList.toggle('hidden', !p);
   plToggleDate_();
@@ -5767,8 +5814,25 @@ function openPlaceModal(id) {
 }
 function closePlaceModal() { el('placeModal').classList.add('hidden'); editingPlace = null; }
 function plToggleDate_() {
-  // A date only means something once you have actually been.
-  el('fLastWrap').style.display = el('fPlaceStatus').value === 'not_yet' ? 'none' : '';
+  // A date only means something once you have actually been; the gold fields only for a Keeper.
+  const st = el('fPlaceStatus').value;
+  el('fLastWrap').style.display = st === 'not_yet' ? 'none' : '';
+  el('fFaveWrap').style.display = st === 'keeper' ? '' : 'none';
+  el('fVisitsWrap').style.display = st === 'keeper' ? '' : 'none';
+}
+function plVisitsStep_(d) {
+  const i = el('fVisits'); const v = Math.max(0, (parseInt(i.value, 10) || 0) + d);
+  i.value = v;
+}
+// One tap on a Keeper while editing: one more visit, last went today.
+async function plWentToday_(id) {
+  const p = places.find(x => String(x.id) === String(id)); if (!p) return;
+  const visits = (parseInt(p.visits, 10) || 0) + 1, last_on = istToday();
+  const { error } = await supa.from('why_places').update({ visits, last_on, updated_at: new Date().toISOString() })
+    .eq('id', p.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  p.visits = visits; p.last_on = last_on; renderPlaces();
+  toast(visits + '\u00D7 \u00B7 ' + (p.name || ''));
 }
 async function savePlace() {
   const name = el('fPlace').value.trim();
@@ -5778,6 +5842,8 @@ async function savePlace() {
     name, city: el('fCity').value.trim(), kind: el('fKind').value,
     note: el('fPlaceNote').value.trim(), status,
     last_on: status === 'not_yet' ? null : (el('fLastOn').value || null),
+    fave: el('fFave').value.trim() || null,
+    visits: el('fVisits').value === '' ? null : Math.max(0, parseInt(el('fVisits').value, 10) || 0),
     user_id: userId, updated_at: new Date().toISOString()
   };
   try {
@@ -5817,10 +5883,14 @@ el('placeList').addEventListener('click', e => {
     });
     return;
   }
+  const wt = e.target.closest('[data-pwent]');
+  if (wt) { e.stopPropagation(); plWentToday_(wt.dataset.pwent); return; }
   const row = e.target.closest('[data-place]');
   if (row) openPlaceModal(row.dataset.place);
 });
 el('fPlaceStatus').addEventListener('change', plToggleDate_);
+el('fVisitsDn').addEventListener('click', () => plVisitsStep_(-1));
+el('fVisitsUp').addEventListener('click', () => plVisitsStep_(1));
 el('placeSave').addEventListener('click', savePlace);
 el('placeCancel').addEventListener('click', closePlaceModal);
 el('placeDel').addEventListener('click', deletePlace);
