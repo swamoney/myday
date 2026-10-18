@@ -1355,6 +1355,13 @@
   .p-av { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
           flex-shrink:0; background:var(--cav,#eef1f6); color:var(--cacc,#5A6478); }
   .p-av svg { width:17px; height:17px; }
+  /* PL-MAP (M3 P1b, Oct 2026): the avatar is the door to the map - a navy pin badge on its corner; the kind icon stays */
+  button.p-av { border:none; cursor:pointer; position:relative; padding:0; font:inherit; }
+  button.p-av:hover { filter:brightness(0.95); }
+  .p-av .p-pin { position:absolute; right:-4px; bottom:-4px; width:16px; height:16px; border-radius:50%;
+                 background:#1d2d4d; color:#fff; display:flex; align-items:center; justify-content:center; border:2px solid #fff; }
+  .p-av .p-pin svg { width:8px; height:8px; }
+  .p-av .p-pin.auto { background:#8B97AC; }
   .p-mid { flex:1; min-width:0; }
   .p-kind { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--cacc,#5A6478); margin-bottom:2px; }
   .p-name { font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#28324B; }
@@ -1395,6 +1402,7 @@
     .prow.keeper .p-went { order:4; margin-top:2px; }
   }
   .fld.pl-gold input { border-color:#e6d59a; background:#fffdf3; }
+  .fld-hint { font-size:0.6875rem; color:#8B97AC; margin-top:4px; }
   .pl-step { display:flex; align-items:center; gap:8px; }
   .pl-step input { flex:1; text-align:center; }
   .pl-step button { width:34px; height:34px; border:1px solid #dfe5ee; background:#fff; border-radius:8px; font-size:0.95rem; color:#28324B; cursor:pointer; flex-shrink:0; }
@@ -2214,7 +2222,9 @@
         <option value="event">Event</option>
       </select>
     </div>
-    <div class="fld"><label>Note (optional)</label><input id="fPlaceNote" placeholder="e.g. the cheese omelette, nothing else"></div>
+    <div class="fld"><label>Note (optional)</label><input id="fPlaceNote" placeholder="e.g. go before 9, no parking"></div>
+    <div class="fld"><label>Map link (optional)</label><input id="fMapUrl" type="url" inputmode="url" placeholder="paste from Google Maps &rarr; Share">
+      <div class="fld-hint" id="fMapHint">Leave empty and the pin searches the name and city.</div></div>
     <div class="fld"><label>Where it stands</label>
       <select id="fPlaceStatus">
         <option value="not_yet">Not yet &mdash; still to try</option>
@@ -2739,6 +2749,7 @@ async function exportWhy() {
     zip.file('explore-list.json', JSON.stringify(places.map(p => ({
       name: p.name, city: p.city, kind: p.kind, note: p.note,
       status: p.status, last_on: p.last_on, fave: p.fave || null, visits: p.visits == null ? null : p.visits,
+      map_url: p.map_url || null,
       created_at: p.created_at
     })), null, 2));
 
@@ -2912,6 +2923,7 @@ async function exportWhy() {
               + (p.visits != null && p.status === 'keeper' ? ' \u00B7 ' + p.visits + '\u00D7' : '')
               + (p.last_on ? ' \u00B7 last went ' + xEsc_(plFmt(p.last_on)) : '')
               + (p.fave && p.status === 'keeper' ? '<br><span class="meta">\u2605 ' + xEsc_(p.fave) + '</span>' : '')
+              + (p.map_url ? '<br><span class="meta"><a href="' + xEsc_(p.map_url) + '">map</a></span>' : '')
               + (p.note ? '<br><span class="meta">' + xEsc_(p.note) + '</span>' : '')
               + '</li>';
       });
@@ -5705,6 +5717,13 @@ function plVars(hue) { return '--c1:' + hue.c1 + ';--c2:' + hue.c2 + ';--cb:' + 
 // What is left to do leads; then the places you would go back to; then the rest.
 const PL_RANK = { not_yet:0, keeper:1, been:2 };
 
+// The map door: a pasted link wins; otherwise Google Maps searches the name and city.
+function plMapUrl_(p) {
+  const u = (p.map_url || '').trim();
+  if (/^https?:\/\//i.test(u)) return u;
+  const q = [p.name || '', p.city || ''].map(x => x.trim()).filter(Boolean).join(', ');
+  return q ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q) : '';
+}
 function plFmt(d) {
   if (!d) return '';
   const dt = new Date(String(d) + 'T00:00:00');
@@ -5775,7 +5794,10 @@ function renderPlaces() {
         + (when ? '<span>LAST ' + when + '</span>' : '') + '</span>'
       + '<button class="p-went" type="button" data-pwent="' + p.id + '">+ Went today</button>' : '';
     return '<div class="prow ' + st + '" data-place="' + p.id + '" style="' + plVars(plHue(p.city)) + '">'
-      + '<span class="p-av"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + k.icon + '</svg></span>'
+      + '<button class="p-av" type="button" data-pmap="' + p.id + '" title="Open on the map" aria-label="Open on the map">'
+        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + k.icon + '</svg>'
+        + '<span class="p-pin' + (/^https?:\/\//i.test(p.map_url || '') ? '' : ' auto') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg></span>'
+        + '</button>'
       + '<span class="p-mid">'
         + '<span class="p-kind">' + escHtml(head) + '</span>'
         + '<div class="p-name">' + escHtml(p.name || '') + '</div>'
@@ -5806,6 +5828,7 @@ function openPlaceModal(id) {
   el('fPlaceStatus').value = p ? (p.status || 'not_yet') : 'not_yet';
   el('fLastOn').value = p ? (p.last_on || '') : '';
   el('fFave').value = p ? (p.fave || '') : '';
+  el('fMapUrl').value = p ? (p.map_url || '') : '';
   el('fVisits').value = p && p.visits != null ? p.visits : '';
   el('plCityList').innerHTML = plCities().map(c => '<option value="' + escHtml(c) + '"></option>').join('');
   el('placeDel').classList.toggle('hidden', !p);
@@ -5838,11 +5861,14 @@ async function savePlace() {
   const name = el('fPlace').value.trim();
   if (!name) { toast('Add a name first'); return; }
   const status = el('fPlaceStatus').value;
+  const mapIn = el('fMapUrl').value.trim();
+  if (mapIn && !/^https?:\/\//i.test(mapIn)) { toast('The map link should start with https://'); return; }
   const rec = {
     name, city: el('fCity').value.trim(), kind: el('fKind').value,
     note: el('fPlaceNote').value.trim(), status,
     last_on: status === 'not_yet' ? null : (el('fLastOn').value || null),
     fave: el('fFave').value.trim() || null,
+    map_url: el('fMapUrl').value.trim() || null,
     visits: el('fVisits').value === '' ? null : Math.max(0, parseInt(el('fVisits').value, 10) || 0),
     user_id: userId, updated_at: new Date().toISOString()
   };
@@ -5881,6 +5907,14 @@ el('placeList').addEventListener('click', e => {
       if (error) { console.error(error); toast('Could not delete'); return; }
       await loadPlaces(); toast('Deleted');
     });
+    return;
+  }
+  const mp = e.target.closest('[data-pmap]');
+  if (mp) {
+    e.stopPropagation();
+    const p = places.find(v => String(v.id) === String(mp.dataset.pmap));
+    const u = p ? plMapUrl_(p) : '';
+    if (u) window.open(u, '_blank', 'noopener');
     return;
   }
   const wt = e.target.closest('[data-pwent]');
