@@ -259,6 +259,7 @@
   .fld input:focus, .fld textarea:focus, .fld select:focus { outline:none; border-color:#c9a94a; background:#fff; }
   .fld textarea { min-height:72px; resize:vertical; font-family:var(--sans); line-height:1.5; }
   .fld .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .modal > .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .fld .row2.code-head { grid-template-columns:88px 1fr; }
   .modal-actions { display:flex; align-items:center; gap:8px; margin-top:20px; }
   .btn-primary { background:#1e2740; color:#fff; border:none; border-radius:9px; padding:11px 18px; font-weight:600; font-size:0.8125rem; cursor:pointer; }
@@ -1397,11 +1398,52 @@
     .prow.keeper { flex-wrap:wrap; }
     .prow.keeper .p-pill { order:2; }
     .prow.keeper .p-x { order:2; }
+    .prow.keeper .p-arrow { order:2; }
     .prow.keeper .p-stat { order:3; flex:1 1 calc(100% - 160px); flex-direction:row; align-items:baseline; gap:8px;
                            margin-left:46px; margin-top:2px; min-width:0; }
     .prow.keeper .p-went { order:4; margin-top:2px; }
   }
   .fld.pl-gold input { border-color:#e6d59a; background:#fffdf3; }
+  /* PL-STAY (L1 S1 F1, Oct 2026): a place is a page, a visit is a line */
+  .prow .p-arrow { color:#aab3c2; font-size:0.9rem; flex-shrink:0; }
+  .p-stat b small.w { letter-spacing:0.04em; }
+  .pl-stay-chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .pl-stay-chips button { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; text-transform:uppercase;
+       border:1px solid #dfe5ee; background:#fff; border-radius:999px; padding:6px 11px; color:#5A6478; cursor:pointer; }
+  .pl-stay-chips button.on { background:#1d2d4d; color:#fff; border-color:#1d2d4d; }
+  #plPage .pp-pgt { display:inline; }
+  .plp-map { display:inline-flex; width:26px; height:26px; border-radius:50%; background:#1d2d4d; color:#fff; border:none;
+             align-items:center; justify-content:center; vertical-align:middle; margin-left:8px; cursor:pointer; padding:0; }
+  .plp-map svg { width:12px; height:12px; }
+  .plp-fave { font-family:var(--serif); font-style:italic; font-size:0.9375rem; margin-top:10px; color:#28324B; }
+  .plp-fave i { font-style:normal; color:#c89b1a; margin-right:6px; }
+  .plp-vitals { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; }
+  .plp-vit { background:#fff; border:1px solid rgba(0,0,0,0.07); border-radius:10px; padding:8px 10px; min-width:0; }
+  .plp-vit b { display:block; font-size:1rem; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .plp-vit span { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; text-transform:uppercase; color:#8B97AC; }
+  @media (max-width:520px) { .plp-vitals { grid-template-columns:repeat(2,1fr); } }
+  .plv-yr { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.2em; color:#8a6f2f; margin:16px 0 8px; display:flex; align-items:center; gap:8px; }
+  .plv-yr:after { content:''; flex:1; height:1px; background:#eadfbf; }
+  .plv { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid #eef1f6; cursor:pointer; border-radius:6px; }
+  .plv:hover { background:#fafbfd; }
+  .plv:last-child { border-bottom:none; }
+  .plv.earlier { cursor:default; }
+  .plv-date { font-family:var(--mono); font-size:0.5938rem; font-weight:600; color:var(--pgs,#3f6560); width:92px; flex-shrink:0; line-height:1.5; }
+  .plv-date small { display:block; color:#8B97AC; font-weight:400; font-size:0.5312rem; letter-spacing:0.08em; }
+  .plv-mid { flex:1; min-width:0; }
+  .plv-what { font-family:var(--serif); font-size:0.9375rem; color:#28324B; overflow-wrap:anywhere; }
+  .plv-what.empty { color:#aab3c2; font-style:italic; }
+  .plv-note { font-size:0.75rem; color:#5A6478; margin-top:2px; line-height:1.5; overflow-wrap:anywhere; }
+  .plv-tags { display:flex; gap:6px; margin-top:5px; flex-wrap:wrap; }
+  .plv-tag { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; border:1px solid #dfe5ee; border-radius:999px; padding:2px 7px; color:#5A6478; }
+  .plv-tag.good { border-color:#e6d59a; color:#8a6f2f; background:#fffdf3; text-transform:none; letter-spacing:0.02em; }
+  .plv-tag.who { border-color:#d6e7e4; color:#3f6560; }
+  .plv-add { display:block; width:100%; text-align:center; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.14em; text-transform:uppercase;
+             color:#5A6478; background:none; border:1px dashed #c6cfdd; border-radius:10px; padding:11px; margin-top:14px; cursor:pointer; }
+  .plv-add:hover { border-color:#8a97b3; }
+  .plv-empty { font-size:0.7812rem; color:#8B97AC; padding:14px 2px 2px; }
+  .plp-del { border:none; background:none; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.1em; color:#c9b3a6; cursor:pointer; margin-top:30px; }
+  .plp-del:hover { color:#8A1F1A; }
   .fld-hint { font-size:0.6875rem; color:#8B97AC; margin-top:4px; }
   .pl-step { display:flex; align-items:center; gap:8px; }
   .pl-step input { flex:1; text-align:center; }
@@ -2206,6 +2248,53 @@
   </div>
 </div>
 
+<div class="pp-page" id="plPage">
+  <div class="pp-pgwrap"><div class="pp-pgcard">
+    <div class="pp-pghead" id="plPageHead">
+      <div class="pp-pgtop">
+        <button class="pp-pgback" id="plPageBack" type="button">&larr; My Explore List</button>
+        <div class="pp-pgacts">
+          <button class="pp-pgpen" id="plPagePen" type="button" title="Edit place" aria-label="Edit place">&#9998; Edit</button>
+        </div>
+      </div>
+      <div class="pp-pgwhy" id="plPageWhy"></div>
+      <div class="pp-pgtw"><span class="pp-pgt" id="plPageT"></span><button class="plp-map" id="plPageMap" type="button" title="Open on the map" aria-label="Open on the map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg></button></div>
+      <div class="pp-pgm" id="plPageM"></div>
+      <div class="plp-fave hidden" id="plPageFave"></div>
+      <div class="plp-vitals" id="plVitals"></div>
+    </div>
+    <div class="pp-pgbody">
+      <div id="plLedger"></div>
+      <button class="plv-add" id="plAddVisit" type="button">+ Add a visit</button>
+      <button class="plp-del" id="plPageDel" type="button">DELETE THIS PLACE</button>
+    </div>
+  </div></div>
+</div>
+
+<div class="modal-overlay hidden" id="plVisitModal">
+  <div class="modal">
+    <div class="modal-title" id="plVisitTitle">Add a visit</div>
+    <div class="modal-sub" id="plVisitSub"></div>
+    <div class="row2">
+      <div class="fld"><label id="fVisOnLbl">When</label><input type="date" id="fVisOn"></div>
+      <div class="fld" id="fVisUntilWrap"><label>To</label><input type="date" id="fVisUntil"></div>
+    </div>
+    <div class="fld"><label>In a line</label><input id="fVisLine" placeholder="e.g. Upper cottage again. Rain the whole first day."></div>
+    <div class="fld pl-gold"><label>&#9733; What was good this time</label><input id="fVisGood" placeholder="e.g. pandi curry, night 2"></div>
+    <div class="row2">
+      <div class="fld"><label>Who with</label><input id="fVisWho" placeholder="e.g. family"></div>
+      <div class="fld" id="fVisPerWrap"><label>Per night (&#8377;)</label><input type="number" id="fVisPer" min="0" step="1" inputmode="numeric" placeholder="4200"></div>
+    </div>
+    <div class="fld"><label>Note (optional)</label><input id="fVisNote" placeholder="anything to remember next time"></div>
+    <div class="modal-actions">
+      <button class="btn-danger hidden" id="plVisDel" type="button">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn-ghost" id="plVisCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="plVisSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="placeModal">
   <div class="modal">
     <div class="modal-title" id="placeModalTitle">Add a place</div>
@@ -2218,10 +2307,12 @@
       <select id="fKind">
         <option value="eat">Restaurant</option>
         <option value="pub">Pub &amp; bar</option>
+        <option value="stay">Stay</option>
         <option value="see">Sight</option>
         <option value="event">Event</option>
       </select>
     </div>
+    <div class="fld" id="fStayWrap"><label>Stay type</label><div class="pl-stay-chips" id="fStayChips"></div></div>
     <div class="fld"><label>Note (optional)</label><input id="fPlaceNote" placeholder="e.g. go before 9, no parking"></div>
     <div class="fld"><label>Map link (optional)</label><input id="fMapUrl" type="url" inputmode="url" placeholder="paste from Google Maps &rarr; Share">
       <div class="fld-hint" id="fMapHint">Leave empty and the pin searches the name and city.</div></div>
@@ -2233,10 +2324,11 @@
       </select>
     </div>
     <div class="fld pl-gold" id="fFaveWrap"><label>&#9733; What's good there</label><input id="fFave" placeholder="e.g. the cheese omelette, nothing else"></div>
-    <div class="fld pl-gold" id="fVisitsWrap"><label>Times been</label>
+    <div class="fld pl-gold" id="fVisitsWrap"><label>Earlier visits, undated</label>
       <div class="pl-step"><button type="button" id="fVisitsDn" aria-label="One fewer">&minus;</button><input type="number" id="fVisits" min="0" step="1" inputmode="numeric" placeholder="&mdash;"><button type="button" id="fVisitsUp" aria-label="One more">+</button></div>
     </div>
-    <div class="fld" id="fLastWrap"><label>Last went</label><input type="date" id="fLastOn"></div>
+    <div class="fld" id="fLastWrap"><label>Last went</label><input type="date" id="fLastOn">
+      <div class="fld-hint">A new date here becomes a visit line on the place's page.</div></div>
     <div class="modal-actions">
       <button class="btn-danger hidden" id="placeDel" type="button">Delete</button>
       <span style="flex:1"></span>
@@ -2749,8 +2841,13 @@ async function exportWhy() {
     zip.file('explore-list.json', JSON.stringify(places.map(p => ({
       name: p.name, city: p.city, kind: p.kind, note: p.note,
       status: p.status, last_on: p.last_on, fave: p.fave || null, visits: p.visits == null ? null : p.visits,
-      map_url: p.map_url || null,
+      map_url: p.map_url || null, stay_type: p.stay_type || null, visits_before: p.visits_before == null ? null : p.visits_before,
       created_at: p.created_at
+    })), null, 2));
+    zip.file('explore-visits.json', JSON.stringify(plVisits.map(v => ({
+      place: (places.find(p => String(p.id) === String(v.place_id)) || {}).name || null, place_id: String(v.place_id),
+      on_date: v.on_date, until_date: v.until_date, line: v.line, good: v.good, who: v.who, per_night: v.per_night,
+      note: v.note, created_at: v.created_at
     })), null, 2));
 
     // --- a readable book of the whole room ---
@@ -2920,10 +3017,13 @@ async function exportWhy() {
         const k = (PL_KINDS[p.kind] || PL_KINDS.eat).lbl;
         body += '<li><strong>' + xEsc_(p.name) + '</strong> \u2014 ' + xEsc_(k)
               + ' \u00B7 ' + xEsc_(PL_STATUS[p.status || 'not_yet'])
-              + (p.visits != null && p.status === 'keeper' ? ' \u00B7 ' + p.visits + '\u00D7' : '')
-              + (p.last_on ? ' \u00B7 last went ' + xEsc_(plFmt(p.last_on)) : '')
+              + (plStats_(p).times ? ' \u00B7 ' + plStats_(p).times + '\u00D7' : '')
+              + (plStats_(p).last ? ' \u00B7 last went ' + xEsc_(plFmt(plStats_(p).last)) : '')
               + (p.fave && p.status === 'keeper' ? '<br><span class="meta">\u2605 ' + xEsc_(p.fave) + '</span>' : '')
               + (p.map_url ? '<br><span class="meta"><a href="' + xEsc_(p.map_url) + '">map</a></span>' : '')
+              + (plVisitsOf(p).length ? '<ul>' + plVisitsOf(p).map(v => '<li>' + xEsc_(plVisWhen_(v)) + (v.line ? ' \u2014 ' + xEsc_(v.line) : '')
+                  + (v.good ? ' \u00B7 \u2605 ' + xEsc_(v.good) : '') + (v.who ? ' \u00B7 with ' + xEsc_(v.who) : '')
+                  + (v.note ? '<br><span class="meta">' + xEsc_(v.note) + '</span>' : '') + '</li>').join('') + '</ul>' : '')
               + (p.note ? '<br><span class="meta">' + xEsc_(p.note) + '</span>' : '')
               + '</li>';
       });
@@ -3071,8 +3171,8 @@ function printSection() {
       body += '<h2>' + e(city) + '</h2><ul>' + byCity[city].map(p =>
         '<li><strong>' + e(p.name || '') + '</strong> \u2014 ' + e((PL_KINDS[p.kind] || PL_KINDS.eat).lbl)
         + ' \u00B7 ' + e(PL_STATUS[p.status || 'not_yet'])
-        + (p.status === 'keeper' && p.visits != null ? ' \u00B7 ' + p.visits + '\u00D7' : '')
-        + (p.status === 'keeper' && p.last_on ? ' \u00B7 last ' + e(plFmt(p.last_on)) : '')
+        + (plStats_(p).times ? ' \u00B7 ' + plStats_(p).times + (p.kind === 'stay' ? ' stays \u00B7 ' + plStats_(p).nights + ' nights' : '\u00D7') : '')
+        + (plStats_(p).last ? ' \u00B7 last ' + e(plFmt(plStats_(p).last)) : '')
         + (p.status === 'keeper' && p.fave ? '<br><span class="meta">\u2605 ' + e(p.fave) + '</span>' : '')
         + (p.note ? '<br><span class="meta">' + e(p.note) + '</span>' : '') + '</li>').join('') + '</ul>';
     });
@@ -5690,10 +5790,49 @@ el('priCloseCancel').addEventListener('click', () => { el('priCloseModal').class
 const PL_KINDS = {
   eat:   { lbl:'Restaurant', icon:'<path d="M6 3v8a2.5 2.5 0 0 0 5 0V3"/><path d="M8.5 11v10"/><path d="M17 3c-1.4 1.4-2 3.2-2 5.2 0 1.6.7 2.8 2 3.3V21"/>' },
   pub:   { lbl:'Pub & bar',  icon:'<path d="M7.6 3.6h8.8c0 4.6-1.9 7.1-4.4 7.1S7.6 8.2 7.6 3.6z"/><path d="M12 10.7V20"/><path d="M8.4 20h7.2"/>' },
+  stay:  { lbl:'Stay',       icon:'<path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 18h18"/><path d="M5 9V6a1 1 0 0 1 1-1h5v4"/><path d="M3 21v-3M21 21v-3"/>' },
   see:   { lbl:'Sight',      icon:'<path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/>' },
   event: { lbl:'Event',      icon:'<rect x="3.5" y="5" width="17" height="15" rx="2.4"/><path d="M3.5 10h17"/><path d="M8 3v4"/><path d="M16 3v4"/>' }
 };
 const PL_STATUS = { not_yet:'Not yet', been:'Been', keeper:'Keeper' };
+// PL-STAY: one kind with a flavour.
+const PL_STAY_TYPES = { hotel:'Hotel', airbnb:'Airbnb', homestay:'Homestay', hostel:'Hostel', friends:"Friends' place" };
+let plVisits = [], plPageId_ = null, plVisEditing_ = null, plStayType_ = null;
+function plById_(id) { return places.find(x => String(x.id) === String(id)); }
+function plVisitsOf(p) {
+  return plVisits.filter(v => String(v.place_id) === String(p.id))
+    .sort((a, b) => String(b.on_date || '').localeCompare(String(a.on_date || '')) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
+}
+function plNights_(v) {
+  if (!v.on_date) return 0;
+  if (!v.until_date) return 1;
+  const d = (new Date(v.until_date + 'T00:00:00') - new Date(v.on_date + 'T00:00:00')) / 86400000;
+  return isNaN(d) || d < 1 ? 1 : Math.round(d);
+}
+// Numbers are counted, never typed: times = earlier undated + lines; last = newest line.
+function plStats_(p) {
+  const lines = plVisitsOf(p);
+  const before = parseInt(p.visits_before, 10) || 0;
+  const dated = lines.filter(v => v.on_date);
+  return {
+    lines, before,
+    times: before + lines.length,
+    last: dated.length ? dated[0].on_date : (p.last_on || null),
+    first: dated.length ? dated[dated.length - 1].on_date : null,
+    nights: p.kind === 'stay' ? lines.reduce((a, v) => a + plNights_(v), 0) : 0,
+    perNight: (lines.find(v => v.per_night != null) || {}).per_night
+  };
+}
+function plVisWhen_(v) {
+  if (!v.on_date) return 'undated';
+  const d1 = new Date(v.on_date + 'T00:00:00');
+  const dd = d => d.toLocaleDateString('en-GB', { day:'numeric', month:'short' }).toUpperCase();
+  if (v.until_date && v.until_date > v.on_date) {
+    const d2 = new Date(v.until_date + 'T00:00:00');
+    return (d1.getMonth() === d2.getMonth() ? d1.getDate() + '\u2013' + dd(d2) : dd(d1) + ' \u2013 ' + dd(d2)) + ' ' + d2.getFullYear();
+  }
+  return dd(d1) + ' ' + d1.getFullYear();
+}
 // A colour per city, handed out in the order cities first appear. Add a new one
 // and it takes the next unused hue — nothing to configure.
 const PL_CITY_HUES = [
@@ -5736,7 +5875,13 @@ async function loadPlaces() {
     .order('created_at', { ascending: true });
   if (error) { console.error(error); return; }
   places = data || [];
+  try {
+    const r2 = await supa.from('why_place_visits').select('*').eq('user_id', userId).order('on_date', { ascending: false });
+    if (r2.error) throw r2.error;
+    plVisits = r2.data || [];
+  } catch (e) { console.error('visits', e); plVisits = plVisits || []; }
   renderPlaces();
+  if (plPageId_) renderPlPage_();
 }
 function plCities() {
   const seen = [];
@@ -5781,17 +5926,20 @@ function renderPlaces() {
     const st = p.status || 'not_yet';
     const k = PL_KINDS[p.kind] || PL_KINDS.eat;
     // With a city selected you already know where you are — show only the kind.
-    const head = k.lbl + (placeCity === 'All' && (p.city || '').trim() ? ' \u00B7 ' + escHtml(p.city.trim()) : '');
-    const when = st !== 'not_yet' && p.last_on ? plFmt(p.last_on) : '';
+    const head = k.lbl + (p.kind === 'stay' && PL_STAY_TYPES[p.stay_type] ? ' \u00B7 ' + PL_STAY_TYPES[p.stay_type] : '')
+      + (placeCity === 'All' && (p.city || '').trim() ? ' \u00B7 ' + escHtml(p.city.trim()) : '');
+    const S = plStats_(p);
+    const when = st !== 'not_yet' && S.last ? plFmt(S.last) : '';
     const noteBits = [];
     if (p.note && p.note.trim()) noteBits.push(escHtml(p.note.trim()));
     // PL-FAVE: a Keeper carries its date in the count block on the right, not the note line.
     if (when && st !== 'keeper') noteBits.push('<span class="p-when">' + when + '</span>');
     const keeper = st === 'keeper';
     const fave = keeper && p.fave && p.fave.trim() ? '<div class="p-fave"><i>\u2605</i><em>' + escHtml(p.fave.trim()) + '</em></div>' : '';
-    const stat = keeper ? '<span class="p-stat"><b' + (p.visits == null ? ' class="none"' : '') + '>'
-        + (p.visits == null ? '\u2014' : p.visits) + '<small>\u00D7</small></b>'
-        + (when ? '<span>LAST ' + when + '</span>' : '') + '</span>'
+    // The count block: counted from the ledger. A stay says 'n stays' over 'k nights'.
+    const stat = keeper ? '<span class="p-stat"><b' + (!S.times ? ' class="none"' : '') + '>'
+        + (S.times || '\u2014') + (p.kind === 'stay' ? '<small class="w">' + (S.times === 1 ? 'stay' : 'stays') + '</small>' : '<small>\u00D7</small>') + '</b>'
+        + '<span>' + (p.kind === 'stay' && S.nights ? S.nights + ' NIGHT' + (S.nights === 1 ? '' : 'S') + (when ? ' \u00B7 ' : '') : '') + (when ? 'LAST ' + when : '') + '</span></span>'
       + '<button class="p-went" type="button" data-pwent="' + p.id + '">+ Went today</button>' : '';
     return '<div class="prow ' + st + '" data-place="' + p.id + '" style="' + plVars(plHue(p.city)) + '">'
       + '<button class="p-av" type="button" data-pmap="' + p.id + '" title="Open on the map" aria-label="Open on the map">'
@@ -5806,6 +5954,7 @@ function renderPlaces() {
       + '</span>'
       + stat
       + '<span class="p-pill ' + st + '">' + PL_STATUS[st] + '</span>'
+      + '<span class="p-arrow">\u203A</span>'
       + '<button class="p-x" data-px="' + p.id + '" type="button" aria-label="Delete">&times;</button>'
       + '</div>';
   }).join('');
@@ -5824,38 +5973,46 @@ function openPlaceModal(id) {
   el('fPlace').value = p ? (p.name || '') : '';
   el('fCity').value = p ? (p.city || '') : (placeCity === 'All' ? '' : placeCity);
   el('fKind').value = p ? (p.kind || 'eat') : 'eat';
+  plStayType_ = p ? (p.stay_type || null) : null;
   el('fPlaceNote').value = p ? (p.note || '') : '';
   el('fPlaceStatus').value = p ? (p.status || 'not_yet') : 'not_yet';
-  el('fLastOn').value = p ? (p.last_on || '') : '';
+  el('fLastOn').value = p ? (plStats_(p).last || '') : '';
   el('fFave').value = p ? (p.fave || '') : '';
   el('fMapUrl').value = p ? (p.map_url || '') : '';
-  el('fVisits').value = p && p.visits != null ? p.visits : '';
+  el('fVisits').value = p && p.visits_before != null ? p.visits_before : '';
   el('plCityList').innerHTML = plCities().map(c => '<option value="' + escHtml(c) + '"></option>').join('');
   el('placeDel').classList.toggle('hidden', !p);
+  plPaintStay_();
   plToggleDate_();
   el('placeModal').classList.remove('hidden');
 }
 function closePlaceModal() { el('placeModal').classList.add('hidden'); editingPlace = null; }
+function plPaintStay_() {
+  const isStay = el('fKind').value === 'stay';
+  el('fStayWrap').style.display = isStay ? '' : 'none';
+  el('fStayChips').innerHTML = Object.keys(PL_STAY_TYPES).map(k =>
+    '<button type="button" data-stay="' + k + '" class="' + (plStayType_ === k ? 'on' : '') + '">' + escHtml(PL_STAY_TYPES[k]) + '</button>').join('');
+}
 function plToggleDate_() {
   // A date only means something once you have actually been; the gold fields only for a Keeper.
   const st = el('fPlaceStatus').value;
   el('fLastWrap').style.display = st === 'not_yet' ? 'none' : '';
   el('fFaveWrap').style.display = st === 'keeper' ? '' : 'none';
-  el('fVisitsWrap').style.display = st === 'keeper' ? '' : 'none';
+  el('fVisitsWrap').style.display = st === 'not_yet' ? 'none' : '';
 }
 function plVisitsStep_(d) {
   const i = el('fVisits'); const v = Math.max(0, (parseInt(i.value, 10) || 0) + d);
   i.value = v;
 }
-// One tap on a Keeper while editing: one more visit, last went today.
+// One tap on a Keeper while editing: a visit line dated today, to fill in later.
 async function plWentToday_(id) {
   const p = places.find(x => String(x.id) === String(id)); if (!p) return;
-  const visits = (parseInt(p.visits, 10) || 0) + 1, last_on = istToday();
-  const { error } = await supa.from('why_places').update({ visits, last_on, updated_at: new Date().toISOString() })
-    .eq('id', p.id).eq('user_id', userId);
+  const rec = { user_id: userId, place_id: String(p.id), on_date: istToday(), until_date: null, line: '', good: null, who: null, per_night: null, note: null };
+  const { data, error } = await supa.from('why_place_visits').insert(rec).select();
   if (error) { console.error(error); toast('Could not save'); return; }
-  p.visits = visits; p.last_on = last_on; renderPlaces();
-  toast(visits + '\u00D7 \u00B7 ' + (p.name || ''));
+  plVisits.push((data && data[0]) || Object.assign({ id: 'tmp' + Date.now(), created_at: new Date().toISOString() }, rec));
+  renderPlaces(); if (plPageId_) renderPlPage_();
+  toast(plStats_(p).times + (p.kind === 'stay' ? ' stays' : '×') + ' · ' + (p.name || ''));
 }
 async function savePlace() {
   const name = el('fPlace').value.trim();
@@ -5863,32 +6020,172 @@ async function savePlace() {
   const status = el('fPlaceStatus').value;
   const mapIn = el('fMapUrl').value.trim();
   if (mapIn && !/^https?:\/\//i.test(mapIn)) { toast('The map link should start with https://'); return; }
+  const kind = el('fKind').value;
   const rec = {
-    name, city: el('fCity').value.trim(), kind: el('fKind').value,
+    name, city: el('fCity').value.trim(), kind,
+    stay_type: kind === 'stay' ? plStayType_ : null,
     note: el('fPlaceNote').value.trim(), status,
     last_on: status === 'not_yet' ? null : (el('fLastOn').value || null),
     fave: el('fFave').value.trim() || null,
-    map_url: el('fMapUrl').value.trim() || null,
-    visits: el('fVisits').value === '' ? null : Math.max(0, parseInt(el('fVisits').value, 10) || 0),
+    map_url: mapIn || null,
+    visits_before: status === 'not_yet' || el('fVisits').value === '' ? null : Math.max(0, parseInt(el('fVisits').value, 10) || 0),
     user_id: userId, updated_at: new Date().toISOString()
   };
   try {
+    let pid = editingPlace;
     if (editingPlace) {
       const { error } = await supa.from('why_places').update(rec).eq('id', editingPlace).eq('user_id', userId);
       if (error) throw error;
     } else {
-      const { error } = await supa.from('why_places').insert(rec);
+      const { data, error } = await supa.from('why_places').insert(rec).select();
       if (error) throw error;
+      pid = data && data[0] ? data[0].id : null;
+    }
+    // A date typed in the door becomes a visit line unless one already stands on that day.
+    if (rec.last_on && pid != null && !plVisits.some(v => String(v.place_id) === String(pid) && v.on_date === rec.last_on)) {
+      const { error: e2 } = await supa.from('why_place_visits').insert({ user_id: userId, place_id: String(pid), on_date: rec.last_on, line: '' });
+      if (e2) console.error(e2);
     }
     closePlaceModal(); await loadPlaces(); toast('Saved');
   } catch (e) { console.error(e); toast('Could not save'); }
 }
+// A place with history is kept unless you type its name; the ledger goes with it.
+async function plDeletePlace_(id) {
+  const p = places.find(x => String(x.id) === String(id)); if (!p) return false;
+  const n = plVisitsOf(p).length;
+  if (n) {
+    const typed = prompt('This place has ' + n + ' visit' + (n === 1 ? '' : 's') + ' recorded. They go with it.\nType its name to delete:');
+    if (typed == null) return false;
+    if (typed.trim().toLowerCase() !== (p.name || '').trim().toLowerCase()) { toast('Name did not match — kept'); return false; }
+  } else if (!confirm('Delete “' + (p.name || 'this place') + '”? This cannot be undone.')) return false;
+  try {
+    await supa.from('why_place_visits').delete().eq('user_id', userId).eq('place_id', String(p.id));
+    const { error } = await supa.from('why_places').delete().eq('id', p.id).eq('user_id', userId);
+    if (error) throw error;
+  } catch (e) { console.error(e); toast('Could not delete'); return false; }
+  if (String(plPageId_) === String(id)) closePlPage_();
+  await loadPlaces(); toast('Deleted');
+  return true;
+}
 async function deletePlace() {
   if (!editingPlace) return;
-  if (!confirm('Delete this place? This cannot be undone.')) return;
-  const { error } = await supa.from('why_places').delete().eq('id', editingPlace).eq('user_id', userId);
+  const id = editingPlace;
+  if (await plDeletePlace_(id)) closePlaceModal();
+}
+/* ---- the place page ---- */
+function openPlPage(id) {
+  const p = places.find(x => String(x.id) === String(id)); if (!p) return;
+  plPageId_ = id;
+  renderPlPage_();
+  el('plPage').classList.add('on');
+  try { el('plPage').scrollTop = 0; } catch (e) {}
+}
+function closePlPage_() { el('plPage').classList.remove('on'); plPageId_ = null; }
+function renderPlPage_() {
+  const p = places.find(x => String(x.id) === String(plPageId_));
+  if (!p) { closePlPage_(); return; }
+  const hue = plHue(p.city), k = PL_KINDS[p.kind] || PL_KINDS.eat, S = plStats_(p), st = p.status || 'not_yet';
+  const pg = el('plPage');
+  pg.style.setProperty('--pgt', hue.c2); pg.style.setProperty('--pgs', hue.acc); pg.style.setProperty('--pgi', '#28324B');
+  el('plPageWhy').textContent = k.lbl + (p.kind === 'stay' && PL_STAY_TYPES[p.stay_type] ? ' · ' + PL_STAY_TYPES[p.stay_type] : '')
+    + ((p.city || '').trim() ? ' · ' + p.city.trim() : '');
+  el('plPageT').textContent = p.name || '';
+  const meta = [PL_STATUS[st]];
+  if (S.first) meta.push('first went ' + plFmt(S.first).toLowerCase().replace(/^\w/, c => c.toUpperCase()));
+  if (p.note && p.note.trim()) meta.push(p.note.trim());
+  el('plPageM').textContent = meta.join(' · ');
+  const fv = el('plPageFave');
+  fv.classList.toggle('hidden', !(p.fave && p.fave.trim()));
+  fv.innerHTML = p.fave ? '<i>★</i>' + escHtml(p.fave.trim()) : '';
+  const vit = (v, l) => '<div class="plp-vit"><b>' + v + '</b><span>' + l + '</span></div>';
+  let vits = '';
+  if (p.kind === 'stay') {
+    vits = vit(S.times || '—', S.times === 1 ? 'Stay' : 'Stays') + vit(S.nights || '—', 'Nights')
+      + vit(S.last ? plShortMY_(S.last) : '—', 'Last')
+      + vit(S.perNight != null ? '₹' + Number(S.perNight).toLocaleString('en-IN') : '—', 'Per night, last');
+  } else {
+    vits = vit(S.times || '—', 'Times') + vit(S.last ? plShortMY_(S.last) : '—', 'Last')
+      + vit(S.first ? plShortMY_(S.first) : '—', 'First') + vit(S.lines.length, S.lines.length === 1 ? 'Line' : 'Lines');
+  }
+  el('plVitals').innerHTML = vits;
+  // The ledger: newest first, a gold line per year, EARLIER for the undated count.
+  const byYear = {};
+  S.lines.forEach(v => { const y = v.on_date ? v.on_date.slice(0, 4) : 'UNDATED'; (byYear[y] = byYear[y] || []).push(v); });
+  const years = Object.keys(byYear).sort((a, b) => b.localeCompare(a));
+  let html = years.map(y => '<div class="plv-yr">' + y + '</div>' + byYear[y].map(v => {
+    const tags = [];
+    if (v.good) tags.push('<span class="plv-tag good">★ ' + escHtml(v.good) + '</span>');
+    if (v.who) tags.push('<span class="plv-tag who">with ' + escHtml(v.who) + '</span>');
+    const nights = p.kind === 'stay' && v.on_date ? '<small>' + plNights_(v) + ' NIGHT' + (plNights_(v) === 1 ? '' : 'S') + (v.per_night != null ? ' · ₹' + Number(v.per_night).toLocaleString('en-IN') : '') + '</small>' : '';
+    return '<div class="plv" data-visit="' + escHtml(String(v.id)) + '">'
+      + '<div class="plv-date">' + escHtml(plVisWhen_(v)) + nights + '</div>'
+      + '<div class="plv-mid"><div class="plv-what' + (v.line ? '' : ' empty') + '">' + (v.line ? escHtml(v.line) : 'tap to write a line') + '</div>'
+      + (v.note ? '<div class="plv-note">' + escHtml(v.note) + '</div>' : '')
+      + (tags.length ? '<div class="plv-tags">' + tags.join('') + '</div>' : '') + '</div></div>';
+  }).join('')).join('');
+  if (S.before) html += '<div class="plv-yr">EARLIER</div><div class="plv earlier"><div class="plv-date">—<small>UNDATED</small></div>'
+    + '<div class="plv-mid"><div class="plv-note">' + S.before + ' earlier visit' + (S.before === 1 ? '' : 's') + ', carried in from the old count.</div></div></div>';
+  if (!html) html = '<div class="plv-empty">' + (st === 'not_yet' ? 'Not been yet. The first visit starts the ledger.' : 'No visits written yet.') + '</div>';
+  el('plLedger').innerHTML = html;
+}
+function plShortMY_(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return isNaN(d) ? iso : d.toLocaleDateString('en-GB', { month:'short', year:'2-digit' });
+}
+/* ---- the visit door ---- */
+function openVisitModal_(placeId, visitId) {
+  const p = places.find(x => String(x.id) === String(placeId)); if (!p) return;
+  const v = visitId ? plVisits.find(x => String(x.id) === String(visitId)) : null;
+  plVisEditing_ = { placeId: p.id, visitId: v ? v.id : null };
+  const isStay = p.kind === 'stay';
+  el('plVisitTitle').textContent = v ? 'Edit visit' : (isStay ? 'Add a stay' : 'Add a visit');
+  el('plVisitSub').textContent = p.name || '';
+  el('fVisOnLbl').textContent = isStay ? 'From' : 'When';
+  el('fVisUntilWrap').style.display = isStay ? '' : 'none';
+  el('fVisPerWrap').style.display = isStay ? '' : 'none';
+  el('fVisOn').value = v ? (v.on_date || '') : istToday();
+  el('fVisUntil').value = v ? (v.until_date || '') : '';
+  el('fVisLine').value = v ? (v.line || '') : '';
+  el('fVisGood').value = v ? (v.good || '') : '';
+  el('fVisWho').value = v ? (v.who || '') : '';
+  el('fVisPer').value = v && v.per_night != null ? v.per_night : '';
+  el('fVisNote').value = v ? (v.note || '') : '';
+  el('plVisDel').classList.toggle('hidden', !v);
+  el('plVisitModal').classList.remove('hidden');
+  setTimeout(() => { try { el('fVisLine').focus(); } catch (e) {} }, 30);
+}
+function closeVisitModal_() { el('plVisitModal').classList.add('hidden'); plVisEditing_ = null; }
+async function saveVisit_() {
+  if (!plVisEditing_) return;
+  const p = places.find(x => String(x.id) === String(plVisEditing_.placeId)); if (!p) return;
+  const on = el('fVisOn').value, until = p.kind === 'stay' ? el('fVisUntil').value : '';
+  if (!on) { toast('When did you go?'); return; }
+  if (until && until < on) { toast('"To" should be after "From"'); return; }
+  const per = el('fVisPer').value;
+  const rec = {
+    user_id: userId, place_id: String(p.id), on_date: on, until_date: until || null,
+    line: el('fVisLine').value.trim(), good: el('fVisGood').value.trim() || null,
+    who: el('fVisWho').value.trim() || null,
+    per_night: p.kind === 'stay' && per !== '' ? Math.max(0, Number(per) || 0) : null,
+    note: el('fVisNote').value.trim() || null
+  };
+  try {
+    if (plVisEditing_.visitId) {
+      const { error } = await supa.from('why_place_visits').update(rec).eq('id', plVisEditing_.visitId).eq('user_id', userId);
+      if (error) throw error;
+    } else {
+      const { error } = await supa.from('why_place_visits').insert(rec);
+      if (error) throw error;
+    }
+    closeVisitModal_(); await loadPlaces(); toast('Saved');
+  } catch (e) { console.error(e); toast('Could not save'); }
+}
+async function deleteVisit_() {
+  if (!plVisEditing_ || !plVisEditing_.visitId) return;
+  if (!confirm('Delete this visit? This cannot be undone.')) return;
+  const { error } = await supa.from('why_place_visits').delete().eq('id', plVisEditing_.visitId).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not delete'); return; }
-  closePlaceModal(); await loadPlaces(); toast('Deleted');
+  closeVisitModal_(); await loadPlaces(); toast('Deleted');
 }
 el('placeAddBtn').addEventListener('click', () => openPlaceModal(null));
 el('plChips').addEventListener('click', e => {
@@ -5898,17 +6195,7 @@ el('plChips').addEventListener('click', e => {
 });
 el('placeList').addEventListener('click', e => {
   const x = e.target.closest('[data-px]');
-  if (x) {
-    e.stopPropagation();
-    const p = places.find(v => String(v.id) === String(x.dataset.px));
-    if (!p) return;
-    if (!confirm('Delete \u201C' + (p.name || 'this place') + '\u201D? This cannot be undone.')) return;
-    supa.from('why_places').delete().eq('id', p.id).eq('user_id', userId).then(async ({ error }) => {
-      if (error) { console.error(error); toast('Could not delete'); return; }
-      await loadPlaces(); toast('Deleted');
-    });
-    return;
-  }
+  if (x) { e.stopPropagation(); plDeletePlace_(x.dataset.px); return; }
   const mp = e.target.closest('[data-pmap]');
   if (mp) {
     e.stopPropagation();
@@ -5919,9 +6206,31 @@ el('placeList').addEventListener('click', e => {
   }
   const wt = e.target.closest('[data-pwent]');
   if (wt) { e.stopPropagation(); plWentToday_(wt.dataset.pwent); return; }
+  // A row opens the place's page; the pencil on the page opens the edit door.
   const row = e.target.closest('[data-place]');
-  if (row) openPlaceModal(row.dataset.place);
+  if (row) openPlPage(row.dataset.place);
 });
+el('plPageBack').addEventListener('click', closePlPage_);
+el('plPagePen').addEventListener('click', () => { if (plPageId_ != null) openPlaceModal(plPageId_); });
+el('plPageMap').addEventListener('click', () => {
+  const p = places.find(x => String(x.id) === String(plPageId_));
+  const u = p ? plMapUrl_(p) : ''; if (u) window.open(u, '_blank', 'noopener');
+});
+el('plAddVisit').addEventListener('click', () => { if (plPageId_ != null) openVisitModal_(plPageId_, null); });
+el('plPageDel').addEventListener('click', () => { if (plPageId_ != null) plDeletePlace_(plPageId_); });
+el('plLedger').addEventListener('click', e => {
+  const v = e.target.closest('[data-visit]');
+  if (v && plPageId_ != null) openVisitModal_(plPageId_, v.dataset.visit);
+});
+el('plVisSave').addEventListener('click', saveVisit_);
+el('plVisCancel').addEventListener('click', closeVisitModal_);
+el('plVisDel').addEventListener('click', deleteVisit_);
+el('fStayChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-stay]'); if (!b) return;
+  plStayType_ = plStayType_ === b.dataset.stay ? null : b.dataset.stay;
+  plPaintStay_();
+});
+el('fKind').addEventListener('change', plPaintStay_);
 el('fPlaceStatus').addEventListener('change', plToggleDate_);
 el('fVisitsDn').addEventListener('click', () => plVisitsStep_(-1));
 el('fVisitsUp').addEventListener('click', () => plVisitsStep_(1));
