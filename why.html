@@ -1339,12 +1339,16 @@
                background:#2c5f96; border:1px solid #2c5f96; transition:filter .14s; }
   .pl-addbtn svg { width:12px; height:12px; flex-shrink:0; }
   .pl-addbtn:hover { filter:brightness(0.92); }
-  .pl-chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:11px; }
+  /* K2: one line that scrolls sideways; the fade at the right edge says there is more */
+  .pl-chips { display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; margin-bottom:11px; padding-bottom:4px;
+              scrollbar-width:thin; -webkit-overflow-scrolling:touch;
+              -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent); }
+  .pl-chip { flex-shrink:0; white-space:nowrap; }
   .pl-chip { font-size:0.6875rem; font-weight:600; padding:6px 12px; border-radius:20px; cursor:pointer;
              background:var(--c1,#fff); border:1px solid var(--cb,#dfe5ee); color:var(--cacc,#4A5570);
              transition:filter .12s; }
   .pl-chip:hover { filter:brightness(0.97); }
-  .pl-chip.on { background:var(--cacc,#3f6560); border-color:var(--cacc,#3f6560); color:#fff; }
+  .pl-chip.on { background:#1d2d4d; border-color:#1d2d4d; color:#fff; }   /* C3: chips are neutral, the chosen one goes ink */
   .pl-chip .n { opacity:0.62; margin-left:5px; font-family:var(--mono); font-size:0.5625rem; }
   .pl-count { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.14em; color:#8B97AC; margin-bottom:10px; }
   .pl-list { display:flex; flex-direction:column; }
@@ -5833,25 +5837,18 @@ function plVisWhen_(v) {
   }
   return dd(d1) + ' ' + d1.getFullYear();
 }
-// A colour per city, handed out in the order cities first appear. Add a new one
-// and it takes the next unused hue — nothing to configure.
-const PL_CITY_HUES = [
-  { c1:'#ffffff', c2:'#f1f8f7', acc:'#3f6560' },   // teal
-  { c1:'#ffffff', c2:'#fdf3f4', acc:'#9c4f5e' },   // rose
-  { c1:'#ffffff', c2:'#f2f6fd', acc:'#41599a' },   // blue
-  { c1:'#ffffff', c2:'#f8f3fa', acc:'#77518a' },   // plum
-  { c1:'#ffffff', c2:'#f2f8f4', acc:'#47795a' },   // moss
-  { c1:'#ffffff', c2:'#f5f7fa', acc:'#4e5f75' },   // slate
-  { c1:'#ffffff', c2:'#f4f4fb', acc:'#4a44a0' }    // indigo
-];
+// PL-KINDHUE (C3, Oct 2026): colour by KIND, not by city. Five hues the eye can
+// learn and that never run out; a place looks the same in 2056. Cities were
+// coloured by alphabetical position before, so a new city moved the others.
+const PL_KIND_HUES = {
+  eat:   { c1:'#ffffff', c2:'#f1f8f7', acc:'#3f6560' },   // teal
+  pub:   { c1:'#ffffff', c2:'#fbf5ec', acc:'#9c6b2e' },   // amber
+  stay:  { c1:'#ffffff', c2:'#f8f3fa', acc:'#77518a' },   // plum
+  see:   { c1:'#ffffff', c2:'#f2f6fd', acc:'#41599a' },   // blue
+  event: { c1:'#ffffff', c2:'#fdf3f4', acc:'#9c4f5e' }    // rose
+};
 const PL_NEUTRAL = { c1:'#ffffff', c2:'#f7f9fc', acc:'#5A6478' };
-function plHue(city) {
-  const c = (city || '').trim();
-  if (!c) return PL_NEUTRAL;
-  const list = plCities();
-  const i = list.findIndex(x => x.toLowerCase() === c.toLowerCase());
-  return i < 0 ? PL_NEUTRAL : PL_CITY_HUES[i % PL_CITY_HUES.length];
-}
+function plHue(p) { return (p && PL_KIND_HUES[p.kind]) || PL_KIND_HUES.eat; }
 function plVars(hue) { return '--c1:' + hue.c1 + ';--c2:' + hue.c2 + ';--cb:' + hue.acc + '3d;--cav:' + hue.acc + '1f;--cacc:' + hue.acc; }
 // What is left to do leads; then the places you would go back to; then the rest.
 const PL_RANK = { not_yet:0, keeper:1, been:2 };
@@ -5902,12 +5899,14 @@ function renderPlaces() {
   if (chipWrap) {
     const counts = { All: places.length };
     cities.forEach(c => { counts[c] = places.filter(p => (p.city || '').trim() === c).length; });
-    chipWrap.innerHTML = ['All'].concat(cities).map(c => {
-      const hue = c === 'All' ? PL_NEUTRAL : plHue(c);
-      return '<button class="pl-chip' + (c === placeCity ? ' on' : '') + '" type="button"'
-        + ' data-city="' + escHtml(c) + '" style="' + plVars(hue) + '">'
-        + escHtml(c) + '<span class="n">' + (counts[c] || 0) + '</span></button>';
-    }).join('');
+    // K2: one scrolling strip, your real cities first (by count, then name); chips are neutral now
+    const order = cities.slice().sort((a, b) => (counts[b] - counts[a]) || a.localeCompare(b));
+    chipWrap.innerHTML = ['All'].concat(order).map(c =>
+      '<button class="pl-chip' + (c === placeCity ? ' on' : '') + '" type="button"'
+        + ' data-city="' + escHtml(c) + '" style="' + plVars(PL_NEUTRAL) + '">'
+        + escHtml(c) + '<span class="n">' + (counts[c] || 0) + '</span></button>').join('');
+    const onChip = chipWrap.querySelector('.pl-chip.on');
+    if (onChip && onChip.scrollIntoView) { try { onChip.scrollIntoView({ block:'nearest', inline:'nearest' }); } catch (e) {} }
   }
 
   const shown = places.filter(p => placeCity === 'All' || (p.city || '').trim() === placeCity)
@@ -5941,7 +5940,7 @@ function renderPlaces() {
         + (S.times || '\u2014') + (p.kind === 'stay' ? '<small class="w">' + (S.times === 1 ? 'stay' : 'stays') + '</small>' : '<small>\u00D7</small>') + '</b>'
         + '<span>' + (p.kind === 'stay' && S.nights ? S.nights + ' NIGHT' + (S.nights === 1 ? '' : 'S') + (when ? ' \u00B7 ' : '') : '') + (when ? 'LAST ' + when : '') + '</span></span>'
       + '<button class="p-went" type="button" data-pwent="' + p.id + '">+ Went today</button>' : '';
-    return '<div class="prow ' + st + '" data-place="' + p.id + '" style="' + plVars(plHue(p.city)) + '">'
+    return '<div class="prow ' + st + '" data-place="' + p.id + '" style="' + plVars(plHue(p)) + '">'
       + '<button class="p-av" type="button" data-pmap="' + p.id + '" title="Open on the map" aria-label="Open on the map">'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + k.icon + '</svg>'
         + '<span class="p-pin' + (/^https?:\/\//i.test(p.map_url || '') ? '' : ' auto') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg></span>'
@@ -6084,7 +6083,7 @@ function closePlPage_() { el('plPage').classList.remove('on'); plPageId_ = null;
 function renderPlPage_() {
   const p = places.find(x => String(x.id) === String(plPageId_));
   if (!p) { closePlPage_(); return; }
-  const hue = plHue(p.city), k = PL_KINDS[p.kind] || PL_KINDS.eat, S = plStats_(p), st = p.status || 'not_yet';
+  const hue = plHue(p), k = PL_KINDS[p.kind] || PL_KINDS.eat, S = plStats_(p), st = p.status || 'not_yet';
   const pg = el('plPage');
   pg.style.setProperty('--pgt', hue.c2); pg.style.setProperty('--pgs', hue.acc); pg.style.setProperty('--pgi', '#28324B');
   el('plPageWhy').textContent = k.lbl + (p.kind === 'stay' && PL_STAY_TYPES[p.stay_type] ? ' · ' + PL_STAY_TYPES[p.stay_type] : '')
