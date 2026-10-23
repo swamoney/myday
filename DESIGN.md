@@ -143,6 +143,8 @@ kept.
 
 **Q4 = PARK** (23 Sep 2026): the fourth quadrant is 'Park - not as of now' (was 'Delete - not important & not urgent'): Rahul rarely deletes; those tasks are on hold for a later matrix. Stored key stays q4; PRI_Q verb/sub, the task dialog's option, and the print follow. Closing a parked task no longer presumes 'cancelled' - the window opens on 'done' like any other.
 
+**MY MIND: THE DOOR WORDS UNDERLINED, THE DOOR'S LABELS BOLD** (23 Oct 2026, why.html): ANXIETY / INSECURITY / OBSTACLE / CHALLENGE on the 2x2 and in the sixty-second picker carry a 2px rule beneath the word in the door's own darker shade (--ad: #2f4478 / #7c3a48 / #7a5222 / #2c4a46); on the picker the word is display:table so the rule shrink-wraps it and the sentence still drops to its own line. Field labels in the knot door and the settle door (#mmKnotModal / #mmSettleModal .fld label) go bold, ink #5A6478 - the other rooms' doors keep their lighter labels.
+
 **EXPLORE: ADD BUTTON WEARS THE CHIP'S TEAL** (22 Oct 2026, why.html): .pl-addbtn was a leftover library blue #2c5f96 from the bucket-list days; it now matches the My Explore List chip, ocean teal #1f6a63.
 
 **MY MIND'S CHIP GOES GRAPHITE (M1)** (22 Oct 2026, why.html): the tab's dusk violet #4a4470 was the Priority amethyst #5b4a86's twin in the bar. Now graphite ink #2b3242 on cool grey paper #e2e5ea - the one chip with no hue, the room behind the others. Clay and forest were mocked and declined (warm side already bronze+rose; green seats already olive+teal). Only the chip; the four door hues inside the room are the doors'.
