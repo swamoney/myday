@@ -291,11 +291,15 @@
   /* ===== My Mind (MM, Oct 2026) — four doors, one desk, one trail ===== */
   #secMind { padding:0 38px 30px; }
   @media (max-width:640px) { #secMind { padding:0 20px 26px; } }
-  .mm-A { --a:#41599a; --ad:#2f4478; --w:#f2f6fd; --b:#c9d4ec; } .mm-I { --a:#9c4f5e; --ad:#7c3a48; --w:#fdf3f4; --b:#ecc9d0; }
-  .mm-O { --a:#9c6b2e; --ad:#7a5222; --w:#fbf5ec; --b:#ead8bd; } .mm-C { --a:#3f6560; --ad:#2c4a46; --w:#f1f8f7; --b:#c6dbd8; }
-  .mm-L { --a:#4a5260; --ad:#2f3542; --w:#f4f5f8; --b:#d5d9e0; }   /* loss - the quiet door (2A) */
-  .mm-V { --a:#4e5f75; --ad:#38475a; --w:#f3f5f8; --b:#d3d9e3; }   /* overload - slate (2B) */
-  .mm-F { --a:#a0583c; --ad:#7d4029; --w:#fbf3ef; --b:#ead0c5; }   /* conflict - rust (2B) */
+  /* K2 O1 (23 Oct 2026): seven hues re-tuned to My Priority's set, each a full step from its neighbours;
+     --a is the one colour per door (pill, count, row bar, page head), --w the faint wash, --b the 20% hairline. */
+  .mm-A { --a:#2f5187; --ad:#2f5187; --w:#f2f6fd; --b:#2f518733; }   /* anxiety - library blue */
+  .mm-I { --a:#9c3f4a; --ad:#9c3f4a; --w:#fdf3f4; --b:#9c3f4a33; }   /* insecurity - Priority's Q1 red-rose */
+  .mm-V { --a:#6a4c93; --ad:#6a4c93; --w:#f6f3fa; --b:#6a4c9333; }   /* overload - plum, the one purple */
+  .mm-O { --a:#a06a2c; --ad:#a06a2c; --w:#fdf8f0; --b:#a06a2c33; }   /* obstacle - Priority's Q3 amber */
+  .mm-C { --a:#2E6640; --ad:#2E6640; --w:#f2f8f4; --b:#2E664033; }   /* challenge - Priority's Q2 green */
+  .mm-F { --a:#b5533a; --ad:#b5533a; --w:#fdf4f0; --b:#b5533a33; }   /* conflict - terracotta */
+  .mm-L { --a:#3a3f4b; --ad:#3a3f4b; --w:#f4f5f7; --b:#3a3f4b33; }   /* loss - near-black graphite */
   /* X1 + S1: the doors on two family shelves, the shelf heading a serif question in ink with its open count */
   .mm-shelf-h { display:flex; align-items:center; gap:8px; margin:14px 0 8px; }
   .mm-shelf-h:first-child { margin-top:0; }
@@ -328,7 +332,7 @@
   #mmPage.mm-editing .mm-whoedit { display:flex; flex-wrap:wrap; }
   .mm-whoedit select, .mm-whoedit input { border:1px solid #dfe5ee; border-radius:9px; padding:7px 10px; font-family:inherit; font-size:0.8125rem; }
   /* the ego row pinned and tinted on a conflict */
-  .mm-crow.mm-pin { background:#fbf3ef; box-shadow:inset 3px 0 0 #a0583c; }   /* inset so the row keeps its width and the buttons never wrap */
+  .mm-crow.mm-pin { background:#fdf4f0; box-shadow:inset 3px 0 0 #b5533a; }   /* inset so the row keeps its width and the buttons never wrap */
   .mm-door.wide { grid-column:1 / -1; }
   .mm-knot .mm-nx.sit { color:#4a5260; font-style:italic; }
   .mm-next.sit { border-color:#d5d9e0; border-left-color:#4a5260; }
@@ -365,8 +369,8 @@
   /* D1 (23 Oct 2026): the word in a solid pill of the door's darker shade; the question larger, serif italic, in that shade */
   .mm-door .mm-t { display:inline-block; font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
                    color:#fff; background:var(--ad,#28324B); border-radius:6px; padding:4px 9px; }
-  .mm-door .mm-q { font-family:var(--serif); font-style:italic; font-size:0.9375rem; font-weight:500; color:var(--ad,#28324B); margin-top:6px; line-height:1.3; }
-  .mm-door b { font-family:var(--sans); font-size:1.25rem; font-weight:600; color:var(--a); }
+  .mm-door .mm-q { font-family:var(--serif); font-style:italic; font-size:0.9375rem; font-weight:500; color:#28324B; margin-top:6px; line-height:1.3; }   /* K2: the question in ink */
+  .mm-door b { font-family:var(--serif); font-size:1.25rem; font-weight:700; color:var(--a); opacity:0.9; }
   .mm-door.sel { box-shadow:0 0 0 2px var(--a); }
   @media (max-width:420px) { .mm-door .mm-q { font-size:0.8125rem; } }
   .mm-knot { display:flex; align-items:center; gap:12px; padding:12px 14px; margin-bottom:8px; border-radius:14px; border:1px solid var(--b);
@@ -6283,7 +6287,7 @@ function closeMmPage_() { el('mmPage').classList.remove('on'); el('mmPage').clas
 function renderMmPage_() {
   const k = mmById_(mmPageId_); if (!k) { closeMmPage_(); return; }
   const D = MM_DOORS[k.door] || MM_DOORS.anx, pg = el('mmPage');
-  const HUE = { 'mm-A':['#41599a','#f2f6fd','#c9d4ec'], 'mm-I':['#9c4f5e','#fdf3f4','#ecc9d0'], 'mm-O':['#9c6b2e','#fbf5ec','#ead8bd'], 'mm-C':['#3f6560','#f1f8f7','#c6dbd8'], 'mm-L':['#4a5260','#f4f5f8','#d5d9e0'], 'mm-V':['#4e5f75','#f3f5f8','#d3d9e3'], 'mm-F':['#a0583c','#fbf3ef','#ead0c5'] }[D.cls] || ['#4a4470','#f4f3f8','#dcd8e6'];
+  const HUE = { 'mm-A':['#2f5187','#f2f6fd'], 'mm-I':['#9c3f4a','#fdf3f4'], 'mm-V':['#6a4c93','#f6f3fa'], 'mm-O':['#a06a2c','#fdf8f0'], 'mm-C':['#2E6640','#f2f8f4'], 'mm-F':['#b5533a','#fdf4f0'], 'mm-L':['#3a3f4b','#f4f5f7'] }[D.cls] || ['#4a4470','#f4f3f8'];
   pg.style.setProperty('--pgs', HUE[0]); pg.style.setProperty('--pgt', HUE[1]); pg.style.setProperty('--pgi', '#28324B');
   const pn = mmPillarName_(k.pillar_id);
   el('mmPageWhy').textContent = D.lbl + (k.door2 && MM_DOORS[k.door2] ? ' + ' + MM_DOORS[k.door2].lbl : '') + (pn ? ' · ' + pn : '');
