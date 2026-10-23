@@ -331,8 +331,81 @@
   .mm-whoedit { display:none; gap:6px; margin-top:6px; }
   #mmPage.mm-editing .mm-whoedit { display:flex; flex-wrap:wrap; }
   .mm-whoedit select, .mm-whoedit input { border:1px solid #dfe5ee; border-radius:9px; padding:7px 10px; font-family:inherit; font-size:0.8125rem; }
-  /* the ego row pinned and tinted on a conflict */
-  .mm-crow.mm-pin { background:#fdf4f0; box-shadow:inset 3px 0 0 #b5533a; }   /* inset so the row keeps its width and the buttons never wrap */
+  /* F3 C3 (24 Oct 2026): the knot page is a PATH. One stop open at a time; on a wide screen a map of the
+     stops sits on the left; on a phone the stops run down one line. Same DOM, two layouts. */
+  .mm-prog { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.12em; color:#5A6478; margin:0 0 14px; }
+  .mm-prog i { flex:1; height:4px; background:#e2e7ef; border-radius:2px; overflow:hidden; display:block; }
+  .mm-prog i b { display:block; height:100%; background:var(--pgs,#2f5187); transition:width .25s; }
+  .mm-flow { display:grid; grid-template-columns:190px 1fr; gap:16px; }
+  .mm-map { border-right:1px solid #e6eaf1; padding-right:12px; align-self:start; }
+  .mm-map .mm-mh { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.16em; text-transform:uppercase; color:#aab3c2; padding:10px 0 4px; }
+  .mm-map .mm-mh:first-child { padding-top:0; }
+  .mm-map button { display:flex; gap:8px; align-items:center; width:100%; text-align:left; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.1em; text-transform:uppercase;
+                   padding:7px 0; border:none; border-bottom:1px dashed #eef1f6; background:none; color:#aab3c2; cursor:pointer; }
+  .mm-map button i { width:14px; height:14px; border-radius:50%; border:2px solid #c9d2e0; flex-shrink:0; display:inline-block; }
+  .mm-map button.done { color:var(--pgs,#2f5187); } .mm-map button.done i { background:var(--pgs,#2f5187); border-color:var(--pgs,#2f5187); }
+  .mm-map button.now { color:#28324B; font-weight:700; } .mm-map button.now i { border-color:var(--pgs,#2f5187); box-shadow:0 0 0 3px color-mix(in srgb, var(--pgs,#2f5187) 15%, transparent); }
+  .mm-map button.ck { color:#b9b3d1; } .mm-map button.ck.done { color:#4a4470; } .mm-map button.ck.done i { background:#4a4470; border-color:#4a4470; }
+  .mm-map button.ck.now { color:#28324B; } .mm-map button.ck.now i { border-color:#4a4470; box-shadow:0 0 0 3px #ebe8f3; }
+  .mm-stops { position:relative; min-width:0; }
+  .mm-stop { position:relative; margin-bottom:14px; }
+  .mm-stop .mm-sdot { display:none; }
+  .mm-stop .mm-st { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--pgs,#2f5187); }
+  .mm-stop.ck .mm-st { color:#4a4470; }
+  .mm-stop.later .mm-st { color:#aab3c2; font-weight:600; }
+  .mm-stop .mm-sa { font-family:var(--serif); font-size:0.9375rem; line-height:1.5; color:#28324B; margin-top:4px; overflow-wrap:anywhere; white-space:pre-wrap; cursor:pointer; }
+  .mm-stop .mm-sa .mm-sh { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#8B97AC; margin-right:6px; white-space:normal; }
+  .mm-stop.now .mm-sc { background:#fff; border:1px solid color-mix(in srgb, var(--pgs,#2f5187) 35%, #fff); border-radius:12px; padding:12px 14px; box-shadow:0 8px 22px rgba(30,47,82,0.06); }
+  .mm-stop.ck.now .mm-sc { border-color:#b9b3d1; }
+  .mm-sq { font-family:var(--serif); font-style:italic; font-size:0.875rem; color:#5A6478; margin:4px 0 10px; }
+  .mm-sq.big { font-style:normal; font-weight:600; font-size:1.0625rem; color:#28324B; }
+  .mm-sc textarea { width:100%; min-height:72px; font-family:var(--serif); font-size:0.9375rem; line-height:1.5; color:#28324B; border:1px solid #dfe5ee; border-radius:9px; padding:9px 11px; resize:vertical; background:#fff; outline:none; }
+  .mm-sc textarea:focus { border-color:var(--pgs,#2f5187); }
+  .mm-sc input[type=text], .mm-sc input[type=date], .mm-sc select { width:100%; font-family:inherit; font-size:0.875rem; color:#28324B; border:1px solid #dfe5ee; border-radius:9px; padding:9px 11px; background:#fff; outline:none; }
+  .mm-sc input:focus { border-color:var(--pgs,#2f5187); }
+  .mm-sbtn { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+  .mm-sbtn .go { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--pgs,#2f5187); border:none; border-radius:8px; padding:9px 14px; cursor:pointer; }
+  .mm-stop.ck .mm-sbtn .go { background:#4a4470; }
+  .mm-sbtn .ghost { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; text-transform:uppercase; color:#5A6478; background:#fff; border:1px solid #dfe5ee; border-radius:8px; padding:9px 12px; cursor:pointer; }
+  .mm-sbtn .skip { margin-left:auto; font-family:var(--mono); font-size:0.5312rem; color:#8B97AC; background:none; border:none; cursor:pointer; }
+  .mm-sbtn .skip:hover { color:#5A6478; }
+  .mm-shint { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; color:#8a6f2f; margin-top:2px; }
+  .mm-sub { font-size:0.75rem; color:#5A6478; line-height:1.5; margin-top:10px; }
+  .mm-sub label { display:flex; gap:8px; align-items:baseline; padding:4px 0; border-top:1px dashed #eef1f6; cursor:pointer; }
+  .mm-sub label b { font-family:var(--mono); font-size:0.5rem; color:#8B97AC; margin-left:auto; font-weight:400; white-space:nowrap; }
+  .mm-tri { display:flex; gap:3px; flex-wrap:wrap; }
+  .mm-tri button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; border:1px solid #dfe5ee; border-radius:999px; padding:5px 9px; color:#8B97AC; background:#fff; cursor:pointer; white-space:nowrap; }
+  .mm-tri button.on { background:#4a4470; color:#fff; border-color:#4a4470; }
+  .mm-tri button.on.win { background:#3f6560; border-color:#3f6560; }
+  .mm-ckans { display:inline-block; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; border:1px solid #dfe5ee; border-radius:999px; padding:2px 8px; color:#5A6478; margin-top:4px; }
+  .mm-ckans.win { background:#3f6560; color:#fff; border-color:#3f6560; }
+  .mm-ckans.on { background:#4a4470; color:#fff; border-color:#4a4470; }
+  .mm-snext { margin-top:4px; background:#fff; border:1px solid #e6d59a; border-left:4px solid #f4c430; border-radius:9px; padding:8px 11px; font-family:var(--serif); font-size:1rem; cursor:pointer; }
+  .mm-snext.sit { border-color:#d5d9e0; border-left-color:#4a5260; color:#4a5260; font-style:italic; }
+  .mm-snext small { display:block; font-family:var(--mono); font-size:0.5312rem; color:#8B97AC; margin-top:3px; font-style:normal; }
+  .mm-sgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; } .mm-sgrid.three { grid-template-columns:1fr 1fr 1fr; }
+  .mm-sgrid .mm-h { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#8B97AC; margin-bottom:3px; }
+  .mm-rdhint { font-size:0.75rem; color:#8B97AC; margin:0 0 10px; }
+  /* wide: map + the open stop only */
+  @media (min-width:720px) {
+    .mm-stops .mm-stop.done, .mm-stops .mm-stop.later { display:none; }
+    .mm-page-read .mm-stops .mm-stop.done { display:block; }   /* reading view: every stop folded, no map needed */
+    .mm-page-read .mm-flow { grid-template-columns:1fr; } .mm-page-read .mm-map { display:none; }
+  }
+  /* phone: the path, one line of stops */
+  @media (max-width:719px) {
+    .mm-flow { grid-template-columns:1fr; } .mm-map { display:none; }
+    .mm-stops { padding-left:34px; }
+    .mm-stops:before { content:''; position:absolute; left:11px; top:12px; bottom:12px; width:2px; background:#dfe5ee; }
+    .mm-stop .mm-sdot { display:flex; position:absolute; left:-34px; top:2px; width:24px; height:24px; border-radius:50%; background:#fff; border:2px solid #c9d2e0; color:#8B97AC;
+                        font-family:var(--mono); font-size:0.5625rem; font-weight:700; align-items:center; justify-content:center; }
+    .mm-stop.done .mm-sdot { background:var(--pgs,#2f5187); border-color:var(--pgs,#2f5187); color:#fff; }
+    .mm-stop.ck.done .mm-sdot { background:#4a4470; border-color:#4a4470; }
+    .mm-stop.now .mm-sdot { border-color:var(--pgs,#2f5187); color:var(--pgs,#2f5187); box-shadow:0 0 0 4px #e6edf8; }
+    .mm-stop.later .mm-st { cursor:pointer; }
+    .mm-sgrid.three { grid-template-columns:1fr; }
+  }
+  .mm-stop.later .mm-st { cursor:pointer; }
   .mm-door.wide { grid-column:1 / -1; }
   .mm-knot .mm-nx.sit { color:#4a5260; font-style:italic; }
   .mm-next.sit { border-color:#d5d9e0; border-left-color:#4a5260; }
@@ -2448,7 +2521,6 @@
         <button class="pp-pgback" id="mmPageBack" type="button">&larr; My Mind</button>
         <div class="pp-pgacts">
           <button class="pp-pgpen" id="mmPageHead" type="button" title="Edit title, door, next step">&#9998; Knot</button>
-          <button class="pp-pgpen" id="mmPagePen" type="button" title="Edit the desk">&#9998; Desk</button>
         </div>
       </div>
       <div class="pp-pgwhy" id="mmPageWhy"></div>
@@ -2458,8 +2530,8 @@
       <div class="mm-next" id="mmNext"></div>
     </div>
     <div class="pp-pgbody">
-      <div id="mmDesk"></div>
-      <div class="mm-check" id="mmCheck"></div>
+      <div class="mm-prog" id="mmProg"></div>
+      <div class="mm-flow"><div class="mm-map" id="mmMap"></div><div class="mm-stops" id="mmStops"></div></div>
       <div class="mm-qa"><div class="mm-q">What helped so far</div><div class="mm-helped" id="mmHelped"></div></div>
       <div id="mmSettledBox"></div>
       <button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button>
@@ -6129,7 +6201,7 @@ const MM_DESK = {
          { k:'talk',  q:'The conversation to have, and when' } ]
 };
 const MM_HELP_SEED = ['a walk', 'sleep on it', 'wrote it out', 'ran the numbers', 'spoke to someone', 'a mantra', 'time'];
-let mind = [], mmDoor = 'all', mmPageId_ = null, mmKnotEditing_ = null, mmPickDoors_ = [], mmSettleOut_ = null, mmSettleHelped_ = [], mmCheckOpen_ = null;
+let mind = [], mmDoor = 'all', mmPageId_ = null, mmKnotEditing_ = null, mmPickDoors_ = [], mmSettleOut_ = null, mmSettleHelped_ = [], mmOpen_ = null;
 function mmFmt_(d) {
   if (!d) return '';
   const dt = new Date(String(d) + 'T00:00:00');
@@ -6277,13 +6349,12 @@ async function saveMmKnot_() {
 /* ---- the knot page ---- */
 function openMmPage(id) {
   if (!mmById_(id)) return;
-  mmPageId_ = id;
-  el('mmPage').classList.remove('mm-editing');
+  mmPageId_ = id; mmOpen_ = null;
   renderMmPage_();
   el('mmPage').classList.add('on');
   try { el('mmPage').scrollTop = 0; } catch (e) {}
 }
-function closeMmPage_() { el('mmPage').classList.remove('on'); el('mmPage').classList.remove('mm-editing'); mmPageId_ = null; }
+function closeMmPage_() { el('mmPage').classList.remove('on'); mmPageId_ = null; mmOpen_ = null; }
 function renderMmPage_() {
   const k = mmById_(mmPageId_); if (!k) { closeMmPage_(); return; }
   const D = MM_DOORS[k.door] || MM_DOORS.anx, pg = el('mmPage');
@@ -6313,58 +6384,8 @@ function renderMmPage_() {
   nx.className = 'mm-next' + (k.next_step ? (sitting ? ' sit' : '') : (sitting ? ' sit' : ' none'));
   nx.innerHTML = '<div class="mm-l">Next step</div><div class="mm-v">' + (k.next_step ? escHtml(k.next_step) : (sitting ? 'sitting with it \u2014 a step can wait' : 'no next step yet \u2014 tap to add one')) + '</div>'
     + '<div class="mm-w">' + (k.next_by ? 'BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + ' · ' : '') + 'tap to change</div>';
-  // the desk
-  const desk = k.desk || {};
-  const ta = (key) => '<textarea data-mmdesk="' + key + '">' + escHtml(desk[key] || '') + '</textarea>';
-  const ans = (key) => '<div class="mm-a' + (desk[key] ? '' : ' empty') + '">' + (desk[key] ? escHtml(desk[key]) : 'not written yet') + '</div>' + ta(key);
-  let html = '';
-  const loadsHtml = () => {
-    const loads = Array.isArray(desk.loads) ? desk.loads : [];
-    const sum = {}; loads.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
-    return loads.map((l, i) => '<div class="mm-lr"><span class="mm-lt' + ((l.v || 'keep') !== 'keep' ? ' dim' : '') + '">' + escHtml(l.t || '') + '</span>'
-        + '<span class="mm-lc">' + Object.keys(MM_LOAD_VERBS).map(v => '<button type="button" data-mmlv="' + i + ':' + v + '" class="' + ((l.v || 'keep') === v ? 'on' : '') + '" style="--c:' + MM_LOAD_VERBS[v][1] + '">' + MM_LOAD_VERBS[v][0] + '</button>').join('') + '</span>'
-        + '<button class="mm-lx" type="button" data-mmlx="' + i + '" aria-label="Remove">&times;</button></div>').join('')
-      + (loads.length ? '<div class="mm-lsum">' + Object.keys(MM_LOAD_VERBS).map(v => '<span><b>' + (sum[v] || 0) + '</b> ' + MM_LOAD_VERBS[v][0] + '</span>').join('') + '</div>'
-                      : '<div class="mm-a empty">nothing listed yet \u2014 \u270E Desk, then add a line per load</div>')
-      + (loads.length < MM_LOAD_CAP ? '<div class="mm-ladd"><input id="fMmLoad" placeholder="one load, in a few words"><button type="button" data-mmladd="1">+ Add</button></div>'
-                                    : '<div class="mm-lcap">Twelve is the cap \u2014 a list longer than that is itself a load.</div>');
-  };
-  const whoHtml = () => {
-    const w = desk.who || null;
-    const c = w && w.id ? circle.find(x => String(x.id) === String(w.id)) : null;
-    const name = c ? c.name : (w && w.name) || '';
-    const band = c ? (BANDS.find(b => b.key === c.band) || {}).lbl : '';
-    const chip = name ? '<span class="mm-who"><i>' + escHtml(name.trim().charAt(0).toUpperCase()) + '</i>' + escHtml(name) + (band ? ' \u00B7 ' + escHtml(band) : '') + '</span>'
-                      : '<span class="mm-who none">no one named yet</span>';
-    return chip + '<div class="mm-whoedit"><select id="fMmWho"><option value="">\u2014 from My Circle</option>' + circle.map(x => '<option value="' + escHtml(String(x.id)) + '"' + (c && String(c.id) === String(x.id) ? ' selected' : '') + '>' + escHtml(x.name || '') + '</option>').join('') + '</select>'
-      + '<input id="fMmWhoName" placeholder="or a name" value="' + escHtml(c ? '' : name) + '"></div>';
-  };
-  const deskRows = (door, pfx) => {
-    (MM_DESK[door] || MM_DESK.anx).forEach(row => {
-      if (row.loads) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + loadsHtml() + '</div>';
-      else if (row.who) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + whoHtml() + '</div>';
-      else if (row.split) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div><div class="mm-split' + (row.split.length === 3 ? ' three' : '') + '">'
-        + row.split.map(sp => '<div><div class="mm-h">' + sp[1] + '</div>' + ans(pfx + sp[0]) + '</div>').join('') + '</div></div>';
-      else html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + ans(pfx + row.k) + '</div>';
-    });
-  };
-  deskRows(k.door, '');
-  if (k.door2 && MM_DESK[k.door2]) {
-    html += '<div class="mm-qa"><div class="mm-q">' + MM_DOORS[k.door2].lbl + ' \u00B7 the second door</div></div>';
-    deskRows(k.door2, k.door2 + '_');
-  }
-  el('mmDesk').innerHTML = html;
-  // step 2: the check
-  const ck = (k.desk && k.desk.check) || {};
-  const pn2 = mmPillarName_(k.pillar_id);
-  const isConf = k.door === 'conf' || k.door2 === 'conf';
-  el('mmCheck').innerHTML = '<div class="mm-check-h">The check <span>step 2 \u00B7 thirty seconds' + (isConf ? ' \u00B7 ego first on a conflict' : '') + '</span></div>' + MM_CHECK.map(C => {
-    const q = C.k === 'values' && pn2 ? 'Does my response honour the ' + escHtml(pn2) + ' pillar?' : (C.k === 'ego' && isConf ? 'Am I trying to be right, or to understand?' : C.q);
-    const subs = C.sub ? '<div class="mm-csub' + (mmCheckOpen_ === C.k ? ' open' : '') + '">' + C.sub.map((sq, i) =>
-      '<label><input type="checkbox" data-mmcq="' + C.k + ':' + i + '"' + ((ck[C.k + '_q'] || [])[i] ? ' checked' : '') + '> ' + escHtml(sq[0]) + '<b>' + escHtml(sq[1]) + '</b></label>').join('') + '</div>' : '';
-    return '<div class="mm-crow' + (C.k === 'ego' && isConf ? ' mm-pin' : '') + '"><button class="mm-cw" type="button" data-mmcopen="' + C.k + '">' + C.lbl + (C.sub ? ' \u25BE' : '') + '</button><span class="mm-cq">' + q + '</span>'
-      + '<span class="mm-tri">' + MM_CHECK_ANS.map(a => '<button type="button" data-mmck="' + C.k + ':' + a[0] + '" class="' + (ck[C.k] === a[0] ? 'on' + (a[0] === 'caught' ? ' win' : '') : '') + '">' + a[1] + '</button>').join('') + '</span></div>' + subs;
-  }).join('');
+  // the path: a map of stops and the one open stop
+  renderMmFlow_(k);
   const helped = Array.isArray(k.helped) ? k.helped : [];
   el('mmHelped').innerHTML = mmHelpWords_().map(h => '<button type="button" data-mmhelp="' + escHtml(h) + '" class="' + (helped.includes(h) ? 'on' : '') + '">' + escHtml(h) + '</button>').join('')
     + '<button type="button" class="add" data-mmhelpadd="1">+ add</button>';
@@ -6374,35 +6395,172 @@ function renderMmPage_() {
   const btn = el('mmSettleBtn');
   btn.textContent = settled ? 'Reopen this knot' : 'Settle this knot';
   btn.classList.toggle('reopen', settled);
-  el('mmPagePen').textContent = pg.classList.contains('mm-editing') ? '✓ Done' : '✎ Desk';
 }
-async function mmSaveDesk_() {
-  const k = mmById_(mmPageId_); if (!k) return;
-  const desk = Object.assign({}, k.desk || {});
-  el('mmDesk').querySelectorAll('textarea[data-mmdesk]').forEach(t => { const v = t.value.trim(); if (v) desk[t.dataset.mmdesk] = v; else delete desk[t.dataset.mmdesk]; });
-  const ws = el('fMmWho'), wn = el('fMmWhoName');
-  if (ws || wn) {
-    const id = ws && ws.value ? ws.value : '', nm = wn ? wn.value.trim() : '';
-    if (id) desk.who = { id }; else if (nm) desk.who = { name: nm }; else delete desk.who;
+/* ---- the path (F3 C3): stops, cursor, map ---- */
+function mmStops_(k) {
+  const out = [];
+  const deskRows = (door, pfx, sec) => (MM_DESK[door] || MM_DESK.anx).forEach((row, i) => {
+    const id = sec + ':' + i;
+    if (row.loads) out.push({ id, sec, kind:'loads', title: row.q });
+    else if (row.who) out.push({ id, sec, kind:'who', title: row.q });
+    else if (row.split) out.push({ id, sec, kind:'split', title: row.q, keys: row.split.map(sp => [pfx + sp[0], sp[1]]) });
+    else out.push({ id, sec, kind:'line', title: row.q, key: pfx + row.k });
+  });
+  deskRows(k.door, '', 'desk');
+  if (k.door2 && MM_DESK[k.door2]) deskRows(k.door2, k.door2 + '_', 'desk2');
+  MM_CHECK.forEach(C => out.push({ id: 'check:' + C.k, sec:'check', kind:'check', ck: C.k, title: C.lbl, q: C.q, sub: C.sub || null }));
+  out.push({ id:'then:next', sec:'then', kind:'next', title:'The next step' });
+  return out;
+}
+function mmAnswered_(k, st) {
+  const d = k.desk || {};
+  if (st.kind === 'line') return !!(d[st.key] && String(d[st.key]).trim());
+  if (st.kind === 'split') return st.keys.some(x => d[x[0]] && String(d[x[0]]).trim());
+  if (st.kind === 'loads') return Array.isArray(d.loads) && d.loads.length > 0;
+  if (st.kind === 'who') return !!(d.who && (d.who.id || d.who.name));
+  if (st.kind === 'check') return !!(d.check && d.check[st.ck]);
+  if (st.kind === 'next') return !!k.next_step;
+  return false;
+}
+function mmCursor_(k, stops) {
+  const d = k.desk || {};
+  if (d._at && stops.some(x => x.id === d._at)) return d._at;
+  const first = stops.find(x => !mmAnswered_(k, x));
+  return first ? first.id : null;
+}
+function mmWhoLabel_(k) {
+  const w = k.desk && k.desk.who; if (!w) return '';
+  const c = w.id ? circle.find(x => String(x.id) === String(w.id)) : null;
+  const name = c ? c.name : (w.name || ''); const band = c ? (BANDS.find(b => b.key === c.band) || {}).lbl : '';
+  return name ? '<span class="mm-who"><i>' + escHtml(name.trim().charAt(0).toUpperCase()) + '</i>' + escHtml(name) + (band ? ' \u00B7 ' + escHtml(band) : '') + '</span>' : '';
+}
+function mmSummary_(k, st) {
+  const d = k.desk || {};
+  if (st.kind === 'line') return escHtml(d[st.key] || '');
+  if (st.kind === 'split') return st.keys.filter(x => d[x[0]]).map(x => '<span class="mm-sh">' + x[1] + '</span>' + escHtml(d[x[0]])).join('<br>');
+  if (st.kind === 'loads') { const L = d.loads || []; const sum = {}; L.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
+    return L.length + (L.length === 1 ? ' load' : ' loads') + ' \u00B7 ' + Object.keys(MM_LOAD_VERBS).filter(v => sum[v]).map(v => sum[v] + ' ' + MM_LOAD_VERBS[v][0].toLowerCase()).join(', '); }
+  if (st.kind === 'who') return mmWhoLabel_(k);
+  if (st.kind === 'check') { const a = d.check && d.check[st.ck]; const A = MM_CHECK_ANS.find(x => x[0] === a); return A ? '<span class="mm-ckans ' + (a === 'caught' ? 'win' : 'on') + '">' + A[1] + '</span>' : ''; }
+  if (st.kind === 'next') { const sitting = k.door === 'loss' && MM_SIT.test(k.next_step || '');
+    return '<div class="mm-snext' + (sitting ? ' sit' : '') + '">' + escHtml(k.next_step || '') + (k.next_by ? '<small>BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + '</small>' : '') + '</div>'; }
+  return '';
+}
+function mmOpenStop_(k, st) {
+  const d = k.desk || {}; let h = '';
+  const ta = (key, ph) => '<textarea data-mmf="' + key + '" placeholder="' + escHtml(ph || '') + '">' + escHtml(d[key] || '') + '</textarea>';
+  if (st.kind === 'line') h = '<div class="mm-sq">In your own words.</div>' + ta(st.key);
+  else if (st.kind === 'split') h = '<div class="mm-sq">' + (st.keys.length === 3 ? 'Three lines. The likely one honest.' : 'Two lists, short.') + '</div><div class="mm-sgrid' + (st.keys.length === 3 ? ' three' : '') + '">'
+    + st.keys.map(x => '<div><div class="mm-h">' + x[1] + '</div>' + ta(x[0]) + '</div>').join('') + '</div>';
+  else if (st.kind === 'loads') {
+    const loads = Array.isArray(d.loads) ? d.loads : []; const sum = {}; loads.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
+    h = '<div class="mm-sq">One line per load, then a verb for each.</div>' + loads.map((l, i) => '<div class="mm-lr"><span class="mm-lt' + ((l.v || 'keep') !== 'keep' ? ' dim' : '') + '">' + escHtml(l.t || '') + '</span>'
+        + '<span class="mm-lc">' + Object.keys(MM_LOAD_VERBS).map(v => '<button type="button" data-mmlv="' + i + ':' + v + '" class="' + ((l.v || 'keep') === v ? 'on' : '') + '" style="--c:' + MM_LOAD_VERBS[v][1] + '">' + MM_LOAD_VERBS[v][0] + '</button>').join('') + '</span>'
+        + '<button class="mm-lx" type="button" data-mmlx="' + i + '" aria-label="Remove" style="display:inline-block">&times;</button></div>').join('')
+      + (loads.length ? '<div class="mm-lsum">' + Object.keys(MM_LOAD_VERBS).map(v => '<span><b>' + (sum[v] || 0) + '</b> ' + MM_LOAD_VERBS[v][0] + '</span>').join('') + '</div>' : '')
+      + (loads.length < MM_LOAD_CAP ? '<div class="mm-ladd" style="display:flex"><input id="fMmLoad" placeholder="one load, in a few words"><button type="button" data-mmladd="1">+ Add</button></div>'
+                                    : '<div class="mm-lcap">Twelve is the cap \u2014 a list longer than that is itself a load.</div>');
+  } else if (st.kind === 'who') {
+    const w = d.who || {}; const c = w.id ? circle.find(x => String(x.id) === String(w.id)) : null;
+    h = '<div class="mm-sq">From My Circle, or a name.</div>' + (mmWhoLabel_(k) ? mmWhoLabel_(k) + '<div style="height:8px"></div>' : '')
+      + '<div class="mm-sgrid"><select data-mmf="who_id"><option value="">\u2014 from My Circle</option>' + circle.map(x => '<option value="' + escHtml(String(x.id)) + '"' + (c && String(c.id) === String(x.id) ? ' selected' : '') + '>' + escHtml(x.name || '') + '</option>').join('') + '</select>'
+      + '<input type="text" data-mmf="who_name" placeholder="or a name" value="' + escHtml(c ? '' : (w.name || '')) + '"></div>';
+  } else if (st.kind === 'check') {
+    const ck = d.check || {}; const isConf = k.door === 'conf' || k.door2 === 'conf'; const pn = mmPillarName_(k.pillar_id);
+    const q = st.ck === 'values' && pn ? 'Does my response honour the ' + escHtml(pn) + ' pillar?' : (st.ck === 'ego' && isConf ? 'Am I trying to be right, or to understand?' : st.q);
+    h = '<div class="mm-sq big">' + q + '</div><div class="mm-tri">' + MM_CHECK_ANS.map(a => '<button type="button" data-mmck="' + st.ck + ':' + a[0] + '" class="' + (ck[st.ck] === a[0] ? 'on' + (a[0] === 'caught' ? ' win' : '') : '') + '">' + a[1] + '</button>').join('') + '</div>'
+      + (st.sub ? '<div class="mm-sub">' + st.sub.map((sq, i) => '<label><input type="checkbox" data-mmcq="' + st.ck + ':' + i + '"' + ((ck[st.ck + '_q'] || [])[i] ? ' checked' : '') + '> ' + escHtml(sq[0]) + '<b>' + escHtml(sq[1]) + '</b></label>').join('') + '</div>' : '');
+  } else if (st.kind === 'next') {
+    const loss = k.door === 'loss' || k.door2 === 'loss';
+    h = '<div class="mm-sq">One thing, however small' + (loss ? ' \u2014 or sitting with it' : '') + '.</div>'
+      + '<input type="text" data-mmf="next_step" placeholder="the next step" value="' + escHtml(k.next_step || '') + '">'
+      + '<div style="height:8px"></div><input type="date" data-mmf="next_by" value="' + escHtml(k.next_by || '') + '">'
+      + (loss ? '<div class="mm-quick" style="display:flex">' + MM_LOSS_QUICK.map(t => '<button type="button" data-mmsquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') + '</div>' : '')
+      + '<div class="mm-shint">the one required field</div>';
   }
-  const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
+  return h;
+}
+function renderMmFlow_(k) {
+  const stops = mmStops_(k), cur = mmCursor_(k, stops), settled = k.status === 'settled';
+  const allDone = stops.every(st => mmAnswered_(k, st));
+  // mmOpen_: null = wherever the path is (first unanswered), false = the reading view, else a stop id.
+  // The first render pins it, so a tap that answers the open stop never slides the page forward.
+  if (mmOpen_ == null) mmOpen_ = (allDone || settled) ? false : cur;
+  const at = mmOpen_ === false ? null : mmOpen_;
+  const idx = Math.max(0, stops.findIndex(x => x.id === at));
+  const pg = el('mmPage');
+  pg.classList.toggle('mm-page-read', at == null);
+  const doneN = stops.filter(st => mmAnswered_(k, st)).length;
+  el('mmProg').innerHTML = '<span>' + (at == null ? doneN + ' OF ' + stops.length + ' ANSWERED' : (idx + 1) + ' OF ' + stops.length) + '</span><i><b style="width:' + Math.round((at == null ? doneN : idx + 1) / stops.length * 100) + '%"></b></i>'
+    + '<span>' + (at == null ? 'THE WHOLE PATH' : (stops[idx].sec === 'check' ? 'THE CHECK \u00B7 ' + stops[idx].title.toUpperCase() : stops[idx].sec === 'then' ? 'THEN' : 'THE DESK')) + '</span>';
+  // the map
+  const secName = { desk: 'The desk', desk2: (MM_DOORS[k.door2] || {}).lbl ? MM_DOORS[k.door2].lbl + ' \u00B7 the second door' : 'The second door', check: 'The check', then: 'Then' };
+  let map = '', lastSec = '';
+  stops.forEach(st => {
+    if (st.sec !== lastSec) { map += '<div class="mm-mh">' + secName[st.sec] + '</div>'; lastSec = st.sec; }
+    const state = st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : 'later');
+    map += '<button type="button" class="' + state + (st.sec === 'check' ? ' ck' : '') + '" data-mmgo="' + st.id + '"><i></i>' + escHtml(st.title) + '</button>';
+  });
+  el('mmMap').innerHTML = map;
+  // the stops
+  let html = '', n = 0;
+  stops.forEach(st => {
+    n++;
+    const state = st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : 'later');
+    const ck = st.sec === 'check' ? ' ck' : '';
+    const title = st.sec === 'check' ? st.title : st.title;
+    if (state === 'now') {
+      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st">' + escHtml(title) + '</div>' + mmOpenStop_(k, st)
+        + '<div class="mm-sbtn">' + (idx > 0 ? '<button class="ghost" type="button" data-mmnav="back">\u2190 Back</button>' : '')
+        + '<button class="go" type="button" data-mmnav="next">' + (idx === stops.length - 1 ? 'Done \u2713' : 'Next \u2192') + '</button>'
+        + (idx < stops.length - 1 ? '<button class="skip" type="button" data-mmnav="skip">skip for now</button>' : '') + '</div></div></div>';
+    } else if (state === 'done') {
+      html += '<div class="mm-stop done' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">\u2713</div><div class="mm-sc"><div class="mm-st">' + escHtml(title) + '</div><div class="mm-sa" data-mmgo="' + st.id + '">' + mmSummary_(k, st) + '</div></div></div>';
+    } else {
+      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + escHtml(title) + (st.kind === 'next' ? '<div class="mm-shint">the one required field</div>' : '') + '</div></div></div>';
+    }
+  });
+  if (at == null && !settled && !allDone) html = '<div class="mm-rdhint">Tap any stop to open it.</div>' + html;
+  el('mmStops').innerHTML = html;
+}
+// Reads the open stop's boxes into a record; saves; moves the cursor.
+function mmCollect_(k) {
+  const desk = Object.assign({}, k.desk || {}); const rec = {};
+  const box = el('mmStops').querySelector('.mm-stop.now'); if (!box) return { desk, rec };
+  box.querySelectorAll('[data-mmf]').forEach(f => {
+    const key = f.dataset.mmf, v = (f.value || '').trim();
+    if (key === 'next_step') rec.next_step = v || null;
+    else if (key === 'next_by') rec.next_by = v || null;
+    else if (key === 'who_id' || key === 'who_name') { /* handled below */ }
+    else { if (v) desk[key] = v; else delete desk[key]; }
+  });
+  const wi = box.querySelector('[data-mmf="who_id"]'), wn = box.querySelector('[data-mmf="who_name"]');
+  if (wi || wn) { const id = wi && wi.value ? wi.value : '', nm = wn ? wn.value.trim() : ''; if (id) desk.who = { id }; else if (nm) desk.who = { name: nm }; else delete desk.who; }
+  if ('next_step' in rec) { if (!rec.next_step) rec.next_by = null; rec.status = k.status === 'settled' ? 'settled' : (rec.next_step ? 'working' : 'open'); }
+  return { desk, rec };
+}
+async function mmGo_(where) {
+  const k = mmById_(mmPageId_); if (!k) return;
+  const stops = mmStops_(k); const cur = (mmOpen_ != null && mmOpen_ !== false) ? mmOpen_ : mmCursor_(k, stops);
+  const idx = stops.findIndex(x => x.id === cur);
+  const { desk, rec } = mmCollect_(k);
+  let next = null;
+  if (where === 'next' || where === 'skip') next = idx >= 0 && idx < stops.length - 1 ? stops[idx + 1].id : null;
+  else if (where === 'back') next = idx > 0 ? stops[idx - 1].id : cur;
+  else next = where;   // a stop id from the map or a folded line
+  if (next) desk._at = next; else delete desk._at;
+  const upd = Object.assign({ desk, updated_at: new Date().toISOString() }, rec);
+  const { error } = await supa.from('why_mind').update(upd).eq('id', k.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
-  k.desk = desk; renderMmPage_(); toast('Saved');
+  Object.assign(k, upd);
+  mmOpen_ = next || false;
+  renderMind(); renderMmPage_();
+  if (!next) toast('The path is written');
+  const t = el('mmStops').querySelector('.mm-stop.now textarea, .mm-stop.now input[type=text]'); if (t) setTimeout(() => { try { t.focus(); } catch (e) {} }, 30);
 }
-// W1: the load list is saved line by line, verbs default to KEEP. Anything typed in the
-// desk's boxes rides along, so a verb tap in Edit never loses unsaved words.
-function mmDeskFromPage_(k) {
-  const desk = Object.assign({}, k.desk || {});
-  if (el('mmPage').classList.contains('mm-editing')) {
-    el('mmDesk').querySelectorAll('textarea[data-mmdesk]').forEach(t => { const v = t.value.trim(); if (v) desk[t.dataset.mmdesk] = v; else delete desk[t.dataset.mmdesk]; });
-    const ws = el('fMmWho'), wn = el('fMmWhoName');
-    if (ws || wn) { const id = ws && ws.value ? ws.value : '', nm = wn ? wn.value.trim() : ''; if (id) desk.who = { id }; else if (nm) desk.who = { name: nm }; else delete desk.who; }
-  }
-  return desk;
-}
-async function mmSaveLoads_(loads) {
+async function mmSaveLoadsNow_(loads) {
   const k = mmById_(mmPageId_); if (!k) return;
-  const desk = Object.assign(mmDeskFromPage_(k), { loads });
+  const { desk } = mmCollect_(k); desk.loads = loads;
   const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
   k.desk = desk; renderMmPage_();
@@ -6505,34 +6663,35 @@ el('mmKnotSave').addEventListener('click', saveMmKnot_);
 el('mmKnotCancel').addEventListener('click', closeMmKnot_);
 el('mmPageBack').addEventListener('click', closeMmPage_);
 el('mmPageHead').addEventListener('click', () => { if (mmPageId_ != null) openMmKnot_(mmPageId_); });
-el('mmNext').addEventListener('click', () => { if (mmPageId_ != null) openMmKnot_(mmPageId_); });
-el('mmPagePen').addEventListener('click', async () => {
-  const pg = el('mmPage');
-  if (pg.classList.contains('mm-editing')) { await mmSaveDesk_(); pg.classList.remove('mm-editing'); renderMmPage_(); }
-  else { pg.classList.add('mm-editing'); renderMmPage_(); const t = el('mmDesk').querySelector('textarea'); if (t) setTimeout(() => { try { t.focus(); } catch (e) {} }, 30); }
-});
-el('mmDesk').addEventListener('click', e => {
+el('mmNext').addEventListener('click', () => { if (mmPageId_ != null) mmGo_('then:next'); });
+el('mmMap').addEventListener('click', e => { const b = e.target.closest('[data-mmgo]'); if (b) mmGo_(b.dataset.mmgo); });
+el('mmStops').addEventListener('click', e => {
   const k = mmById_(mmPageId_); if (!k) return;
+  const nav = e.target.closest('[data-mmnav]');
+  if (nav) { mmGo_(nav.dataset.mmnav); return; }
+  const go = e.target.closest('[data-mmgo]');
+  if (go) { mmGo_(go.dataset.mmgo); return; }
+  const ckb = e.target.closest('[data-mmck]');
+  if (ckb) { const [key, val] = ckb.dataset.mmck.split(':'); const cur = k.desk && k.desk.check ? k.desk.check[key] : null; mmSetCheck_(key, cur === val ? null : val); return; }
+  const qk = e.target.closest('[data-mmsquick]');
+  if (qk) { const t = qk.dataset.mmsquick, ns = el('mmStops').querySelector('[data-mmf="next_step"]'), nb = el('mmStops').querySelector('[data-mmf="next_by"]');
+    if (!ns) return;
+    if (/^No step yet/.test(t)) { ns.value = ''; nb.value = ''; return; }
+    ns.value = t.replace(/\s*\u2026$/, ' ');
+    if (/^Sit with it/.test(t)) { const d = new Date(istToday() + 'T00:00:00'); d.setDate(d.getDate() + 30); nb.value = d.toISOString().slice(0, 10); ns.value = 'Sit with it until ' + mmFmt_(nb.value); }
+    return; }
   const loads = (k.desk && Array.isArray(k.desk.loads) ? k.desk.loads : []).map(l => Object.assign({}, l));
   const v = e.target.closest('[data-mmlv]');
-  if (v) { const [i, verb] = v.dataset.mmlv.split(':'); if (loads[Number(i)]) { loads[Number(i)].v = verb; mmSaveLoads_(loads); } return; }
+  if (v) { const [i, verb] = v.dataset.mmlv.split(':'); if (loads[Number(i)]) { loads[Number(i)].v = verb; mmSaveLoadsNow_(loads); } return; }
   const x = e.target.closest('[data-mmlx]');
-  if (x) { loads.splice(Number(x.dataset.mmlx), 1); mmSaveLoads_(loads); return; }
+  if (x) { loads.splice(Number(x.dataset.mmlx), 1); mmSaveLoadsNow_(loads); return; }
   const a = e.target.closest('[data-mmladd]');
   if (a) { const inp = el('fMmLoad'); const t = inp ? inp.value.trim() : ''; if (!t) { toast('Name the load first'); return; }
     if (loads.length >= MM_LOAD_CAP) { toast('Twelve is the cap'); return; }
-    loads.push({ t, v: 'keep' }); mmSaveLoads_(loads); return; }
+    loads.push({ t, v: 'keep' }); mmSaveLoadsNow_(loads); return; }
 });
-el('mmDesk').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.id === 'fMmLoad') { e.preventDefault(); const b = el('mmDesk').querySelector('[data-mmladd]'); if (b) b.click(); } });
-el('mmCheck').addEventListener('click', e => {
-  const o = e.target.closest('[data-mmcopen]');
-  if (o) { mmCheckOpen_ = mmCheckOpen_ === o.dataset.mmcopen ? null : o.dataset.mmcopen; renderMmPage_(); return; }
-  const b = e.target.closest('[data-mmck]'); if (!b) return;
-  const [key, val] = b.dataset.mmck.split(':');
-  const k = mmById_(mmPageId_); const cur = k && k.desk && k.desk.check ? k.desk.check[key] : null;
-  mmSetCheck_(key, cur === val ? null : val);
-});
-el('mmCheck').addEventListener('change', e => {
+el('mmStops').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.id === 'fMmLoad') { e.preventDefault(); const b = el('mmStops').querySelector('[data-mmladd]'); if (b) b.click(); } });
+el('mmStops').addEventListener('change', e => {
   const c = e.target.closest('[data-mmcq]'); if (!c) return;
   const [key, i] = c.dataset.mmcq.split(':');
   const k = mmById_(mmPageId_); if (!k) return;
