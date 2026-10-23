@@ -293,6 +293,33 @@
   @media (max-width:640px) { #secMind { padding:0 20px 26px; } }
   .mm-A { --a:#41599a; --ad:#2f4478; --w:#f2f6fd; --b:#c9d4ec; } .mm-I { --a:#9c4f5e; --ad:#7c3a48; --w:#fdf3f4; --b:#ecc9d0; }
   .mm-O { --a:#9c6b2e; --ad:#7a5222; --w:#fbf5ec; --b:#ead8bd; } .mm-C { --a:#3f6560; --ad:#2c4a46; --w:#f1f8f7; --b:#c6dbd8; }
+  .mm-L { --a:#4a5260; --ad:#2f3542; --w:#f4f5f8; --b:#d5d9e0; }   /* loss - the quiet door (2A) */
+  /* X1: the doors on two family shelves */
+  .mm-shelf-h { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.18em; color:#8B97AC; margin:12px 0 7px; display:flex; align-items:center; gap:8px; }
+  .mm-shelf-h:first-child { margin-top:0; }
+  .mm-shelf-h:after { content:''; flex:1; height:1px; background:#e6eaf1; }
+  .mm-door.wide { grid-column:1 / -1; }
+  .mm-knot .mm-nx.sit { color:#4a5260; font-style:italic; }
+  .mm-next.sit { border-color:#d5d9e0; border-left-color:#4a5260; }
+  .mm-next.sit .mm-l { color:#4a5260; } .mm-next.sit .mm-v { color:#4a5260; font-style:italic; }
+  .mm-quick { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .mm-quick button { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.08em; border:1px dashed #c6cfdd; border-radius:999px; padding:4px 9px; color:#5A6478; background:#fff; cursor:pointer; }
+  /* the check layer: ego - reality - values, one tap each */
+  .mm-check { margin-top:16px; border:1px solid #e6eaf1; border-radius:12px; overflow:hidden; }
+  .mm-check-h { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.18em; text-transform:uppercase; color:#4a4470; background:#f4f3f8; padding:8px 12px; display:flex; justify-content:space-between; }
+  .mm-check-h span { font-weight:400; color:#8B97AC; letter-spacing:0.08em; text-transform:none; }
+  .mm-crow { display:flex; align-items:center; gap:10px; padding:10px 12px; border-top:1px solid #eef1f6; flex-wrap:wrap; }
+  .mm-cw { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#4a4470; width:58px; flex-shrink:0; background:none; border:none; text-align:left; cursor:pointer; padding:0; font-family:var(--mono); }
+  .mm-cq { flex:1; min-width:160px; font-family:var(--serif); font-style:italic; font-size:0.8438rem; color:#28324B; }
+  .mm-tri { display:flex; gap:3px; flex-shrink:0; }
+  .mm-tri button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; border:1px solid #dfe5ee; border-radius:999px; padding:4px 8px; color:#8B97AC; background:#fff; cursor:pointer; white-space:nowrap; }
+  .mm-tri button.on { background:#4a4470; color:#fff; border-color:#4a4470; }
+  .mm-tri button.on.win { background:#3f6560; border-color:#3f6560; }
+  .mm-csub { display:none; padding:0 12px 10px 80px; font-size:0.75rem; color:#5A6478; line-height:1.5; }
+  .mm-csub.open { display:block; }
+  .mm-csub label { display:flex; gap:8px; align-items:baseline; padding:4px 0; border-top:1px dashed #eef1f6; cursor:pointer; }
+  .mm-csub label b { font-family:var(--mono); font-size:0.5rem; color:#8B97AC; font-weight:400; margin-left:auto; white-space:nowrap; }
+  @media (max-width:560px) { .mm-csub { padding-left:12px; } .mm-tri button { padding:4px 6px; } }
   .mm-top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
   .mm-cnt { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.14em; color:#8B97AC; }
   .mm-add { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:#fff;
@@ -1892,7 +1919,7 @@
     <div class="sec-panel hidden" id="secMind">
       <div class="mm-top"><span class="mm-cnt" id="mmCount"></span><button class="mm-add" id="mmAddBtn" type="button">+ Something's on my mind</button></div>
       <div id="mmAid"></div>
-      <div class="mm-doors" id="mmDoors"></div>
+      <div id="mmDoors" style="margin-bottom:14px"></div>
       <div class="mm-cnt" id="mmOpenCnt"></div>
       <div id="mmList"></div>
     </div>
@@ -2397,6 +2424,7 @@
     </div>
     <div class="pp-pgbody">
       <div id="mmDesk"></div>
+      <div class="mm-check" id="mmCheck"></div>
       <div class="mm-qa"><div class="mm-q">What helped so far</div><div class="mm-helped" id="mmHelped"></div></div>
       <div id="mmSettledBox"></div>
       <button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button>
@@ -2413,7 +2441,8 @@
     <div class="fld"><label>In a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div>
     <div class="fld"><label>Pillar (optional)</label><select id="fMmPillar"><option value="">&mdash;</option></select></div>
     <div class="fld"><label>Next step (optional tonight)</label><input id="fMmNext" placeholder="one thing, however small">
-      <div class="fld-hint">Empty, the knot opens as Open; with a step it is Working.</div></div>
+      <div class="fld-hint">Empty, the knot opens as Open; with a step it is Working.</div>
+      <div class="mm-quick" id="mmQuick" style="display:none"></div></div>
     <div class="fld" id="fMmByWrap"><label>By</label><input type="date" id="fMmBy"></div>
     <div class="modal-actions">
       <span style="flex:1"></span>
@@ -5984,13 +6013,31 @@ const MM_DOORS = {
   anx: { lbl:'Anxiety',    cls:'mm-A', q:'what if something bad happens?',      pick:"I'm worried something bad will happen" },
   ins: { lbl:'Insecurity', cls:'mm-I', q:'am I good enough?',                   pick:"I'm doubting my worth or ability" },
   obs: { lbl:'Obstacle',   cls:'mm-O', q:'something is in the way',             pick:'Something specific is blocking me' },
-  cha: { lbl:'Challenge',  cls:'mm-C', q:'this is hard, I can work at it',      pick:"It's hard, but I can work toward it" }
+  cha: { lbl:'Challenge',  cls:'mm-C', q:'this is hard, I can work at it',      pick:"It's hard, but I can work toward it" },
+  loss:{ lbl:'Loss',       cls:'mm-L', q:'something is gone',                   pick:'Something important has gone wrong or is lost' }
 };
+// X1: the doors on two family shelves. 'wide' spans the row while a shelf has an odd count.
+const MM_FAMILIES = [ { h:'What am I feeling?', doors:['anx','ins'] }, { h:'What am I facing?', doors:['obs','cha','loss'] } ];
+// Loss is the one door where "sit with it" is an honest next step.
+const MM_SIT = /^sit with it/i;
+const MM_LOSS_QUICK = ['Sit with it until \u2026', 'Tell one person', 'No step yet, and that\u2019s fine'];
+// The check layer: three rows, one tap each; ego's five prompts unfold beneath.
+const MM_CHECK = [
+  { k:'ego',     lbl:'Ego',     q:'Am I defending my pride, or seeing it straight?',
+    sub:[['Am I trying to be right rather than understand what is true?','truth vs pride'],['Am I reacting because my image or reputation feels threatened?','image vs reality'],
+         ['Can I take valid criticism without immediately defending myself?','learning vs defensiveness'],['Am I making this decision to impress others?','values vs approval'],
+         ['Can I admit a mistake, apologise, or ask for help?','humility vs pride']] },
+  { k:'reality', lbl:'Reality', q:'Are these the facts, or the story I\u2019m telling?' },
+  { k:'values',  lbl:'Values',  q:'Does my response honour what matters to me?' }
+];
+const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught myself']];
 const MM_OUTS = {
   never:    { lbl:'Never happened', cls:'never' },
   resolved: { lbl:'Resolved',       cls:'' },
   faded:    { lbl:'Faded',          cls:'faded' },
   accepted: { lbl:'Accepted',       cls:'accepted' },
+  recovered:{ lbl:'Recovered',      cls:'' },
+  rebuilt:  { lbl:'Rebuilt',        cls:'' },
   plan:     { lbl:'Became a plan',  cls:'plan' }
 };
 // The desks. kind 'line' = one answer; 'split' = two or three side by side.
@@ -6012,10 +6059,15 @@ const MM_DESK = {
   cha: [ { k:'goal',  q:'The thing to accomplish, in one line' },
          { k:'skill', q:'The skill or habit it needs' },
          { k:'steps', q:'Three to five steps' },
-         { k:'first', q:'The first small step' } ]
+         { k:'first', q:'The first small step' } ],
+  loss:[ { k:'lost',     q:'What was lost, named plainly' },
+         { k:'remains',  q:'What remains' },
+         { k:'recovery', q:'What recovery looks like in a year' },
+         { k:'notrush',  q:'What I will not rush' },
+         { k:'tell',     q:'Who I will tell' } ]
 };
 const MM_HELP_SEED = ['a walk', 'sleep on it', 'wrote it out', 'ran the numbers', 'spoke to someone', 'a mantra', 'time'];
-let mind = [], mmDoor = 'all', mmPageId_ = null, mmKnotEditing_ = null, mmPickDoors_ = [], mmSettleOut_ = null, mmSettleHelped_ = [];
+let mind = [], mmDoor = 'all', mmPageId_ = null, mmKnotEditing_ = null, mmPickDoors_ = [], mmSettleOut_ = null, mmSettleHelped_ = [], mmCheckOpen_ = null;
 function mmFmt_(d) {
   if (!d) return '';
   const dt = new Date(String(d) + 'T00:00:00');
@@ -6045,7 +6097,8 @@ function mmEvidence_(door) {
   const helpCount = {};
   done.forEach(k => (Array.isArray(k.helped) ? k.helped : []).forEach(h => { helpCount[h] = (helpCount[h] || 0) + 1; }));
   const top = Object.keys(helpCount).sort((a, b) => helpCount[b] - helpCount[a]).slice(0, 3);
-  return { n: done.length, by, top };
+  const caught = done.filter(k => k.desk && k.desk.check && Object.keys(k.desk.check).some(x => k.desk.check[x] === 'caught')).length;
+  return { n: done.length, by, top, caught };
 }
 async function loadMind() {
   try {
@@ -6071,11 +6124,12 @@ function renderMind() {
     + (ev.top.length ? '<div class="mm-h"><i>★</i> what helps you most: ' + ev.top.map((h, i) => (i ? escHtml(h) : '<b>' + escHtml(h) + '</b>')).join(' · ') + '</div>' : '')
     + '</div>' : '';
   // the four doors, open counts
-  el('mmDoors').innerHTML = Object.keys(MM_DOORS).map(d => {
+  el('mmDoors').innerHTML = MM_FAMILIES.map(F => '<div class="mm-shelf-h">' + F.h.toUpperCase() + '</div><div class="mm-doors">' + F.doors.map((d, i) => {
     const D = MM_DOORS[d], n = open.filter(k => k.door === d || k.door2 === d).length;
-    return '<button class="mm-door ' + D.cls + (mmDoor === d ? ' sel' : '') + '" type="button" data-mmdoor="' + d + '">'
+    const wide = F.doors.length % 2 === 1 && i === F.doors.length - 1;
+    return '<button class="mm-door ' + D.cls + (mmDoor === d ? ' sel' : '') + (wide ? ' wide' : '') + '" type="button" data-mmdoor="' + d + '">'
       + '<span><span class="mm-t">' + D.lbl + '</span><div class="mm-q">' + D.q + '</div></span><b>' + n + '</b></button>';
-  }).join('');
+  }).join('') + '</div>').join('');
   const shown = open.filter(k => mmDoor === 'all' || k.door === mmDoor || k.door2 === mmDoor)
     .sort((a, b) => String(b.opened_on || '').localeCompare(String(a.opened_on || '')) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
   el('mmOpenCnt').textContent = shown.length ? 'OPEN · ' + shown.length + (mmDoor !== 'all' ? ' · ' + MM_DOORS[mmDoor].lbl.toUpperCase() : '') + ' · NEWEST FIRST' : '';
@@ -6086,7 +6140,8 @@ function renderMind() {
       + '<div class="mm-eb">' + D.lbl + (k.door2 && MM_DOORS[k.door2] ? ' + ' + MM_DOORS[k.door2].lbl : '') + (pn ? ' <span>· ' + escHtml(pn) + '</span>' : '') + '</div>'
       + '<div class="mm-t">' + escHtml(k.title || '') + '</div>'
       + (k.next_step ? '<div class="mm-nx"><i>NEXT</i><span>' + escHtml(k.next_step) + (k.next_by ? ' · by ' + escHtml(mmFmt_(k.next_by)) : '') + '</span></div>'
-                     : '<div class="mm-nx none"><i>NEXT</i><span>no next step yet</span></div>')
+                     : (k.door === 'loss' ? '<div class="mm-nx sit"><i>NEXT</i><span>sitting with it</span></div>'
+                                          : '<div class="mm-nx none"><i>NEXT</i><span>no next step yet</span></div>'))
       + '</span><span class="mm-days"><b>' + mmDays_(k.opened_on) + '</b>' + (mmDays_(k.opened_on) === 1 ? 'DAY' : 'DAYS') + '</span>'
       + '<span class="mm-st ' + (k.next_step ? 'working' : 'open') + '">' + (k.next_step ? 'Working' : 'Open') + '</span>'
       + '<button class="mm-x" type="button" data-mmx="' + escHtml(String(k.id)) + '" aria-label="Delete">&times;</button></div>';
@@ -6102,7 +6157,14 @@ function renderMind() {
 }
 /* ---- the sixty-second door (also the knot's head editor) ---- */
 function mmPaintPick_() {
-  el('mmPick').innerHTML = Object.keys(MM_DOORS).map(d => '<button type="button" class="' + MM_DOORS[d].cls + (mmPickDoors_.includes(d) ? ' on' : '') + '" data-mmpick="' + d + '"><b>' + MM_DOORS[d].lbl + '</b>' + MM_DOORS[d].pick + '</button>').join('');
+  el('mmPick').innerHTML = MM_FAMILIES.map(F => '<div class="mm-shelf-h" style="grid-column:1 / -1">' + F.h.toUpperCase() + '</div>' + F.doors.map(d =>
+    '<button type="button" class="' + MM_DOORS[d].cls + (mmPickDoors_.includes(d) ? ' on' : '') + '" data-mmpick="' + d + '"><b>' + MM_DOORS[d].lbl + '</b>' + MM_DOORS[d].pick + '</button>').join('')).join('');
+  const qk = el('mmQuick');
+  if (qk) {
+    const loss = mmPickDoors_.includes('loss');
+    qk.style.display = loss ? '' : 'none';
+    qk.innerHTML = loss ? MM_LOSS_QUICK.map(t => '<button type="button" data-mmquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') : '';
+  }
 }
 function openMmKnot_(id) {
   const k = id ? mmById_(id) : null;
@@ -6161,7 +6223,7 @@ function closeMmPage_() { el('mmPage').classList.remove('on'); el('mmPage').clas
 function renderMmPage_() {
   const k = mmById_(mmPageId_); if (!k) { closeMmPage_(); return; }
   const D = MM_DOORS[k.door] || MM_DOORS.anx, pg = el('mmPage');
-  const HUE = { 'mm-A':['#41599a','#f2f6fd','#c9d4ec'], 'mm-I':['#9c4f5e','#fdf3f4','#ecc9d0'], 'mm-O':['#9c6b2e','#fbf5ec','#ead8bd'], 'mm-C':['#3f6560','#f1f8f7','#c6dbd8'] }[D.cls];
+  const HUE = { 'mm-A':['#41599a','#f2f6fd','#c9d4ec'], 'mm-I':['#9c4f5e','#fdf3f4','#ecc9d0'], 'mm-O':['#9c6b2e','#fbf5ec','#ead8bd'], 'mm-C':['#3f6560','#f1f8f7','#c6dbd8'], 'mm-L':['#4a5260','#f4f5f8','#d5d9e0'] }[D.cls] || ['#4a4470','#f4f3f8','#dcd8e6'];
   pg.style.setProperty('--pgs', HUE[0]); pg.style.setProperty('--pgt', HUE[1]); pg.style.setProperty('--pgi', '#28324B');
   const pn = mmPillarName_(k.pillar_id);
   el('mmPageWhy').textContent = D.lbl + (k.door2 && MM_DOORS[k.door2] ? ' + ' + MM_DOORS[k.door2].lbl : '') + (pn ? ' · ' + pn : '');
@@ -6177,13 +6239,15 @@ function renderMmPage_() {
   if (!settled && ev.n) {
     const parts = Object.keys(ev.by).map(o => ev.by[o] + ' ' + (MM_OUTS[o] ? MM_OUTS[o].lbl.toLowerCase() : o));
     echo.innerHTML = '<b>You have been here before.</b> ' + ev.n + ' ' + (ev.n === 1 ? 'knot' : 'knots') + ' settled at this door — ' + escHtml(parts.join(', ')) + '.'
-      + (ev.top.length ? ' What helped: ' + escHtml(ev.top.join(', ')) + '.' : '');
+      + (ev.top.length ? ' What helped: ' + escHtml(ev.top.join(', ')) + '.' : '')
+      + (ev.caught ? ' You caught yourself ' + ev.caught + (ev.caught === 1 ? ' time' : ' times') + ' here.' : '');
     echo.classList.remove('hidden');
   } else echo.classList.add('hidden');
   void others;
   const nx = el('mmNext');
-  nx.className = 'mm-next' + (k.next_step ? '' : ' none');
-  nx.innerHTML = '<div class="mm-l">Next step</div><div class="mm-v">' + (k.next_step ? escHtml(k.next_step) : 'no next step yet — tap to add one') + '</div>'
+  const sitting = k.door === 'loss' && (!k.next_step || MM_SIT.test(k.next_step));
+  nx.className = 'mm-next' + (k.next_step ? (sitting ? ' sit' : '') : (sitting ? ' sit' : ' none'));
+  nx.innerHTML = '<div class="mm-l">Next step</div><div class="mm-v">' + (k.next_step ? escHtml(k.next_step) : (sitting ? 'sitting with it \u2014 a step can wait' : 'no next step yet \u2014 tap to add one')) + '</div>'
     + '<div class="mm-w">' + (k.next_by ? 'BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + ' · ' : '') + 'tap to change</div>';
   // the desk
   const desk = k.desk || {};
@@ -6204,6 +6268,16 @@ function renderMmPage_() {
     });
   }
   el('mmDesk').innerHTML = html;
+  // step 2: the check
+  const ck = (k.desk && k.desk.check) || {};
+  const pn2 = mmPillarName_(k.pillar_id);
+  el('mmCheck').innerHTML = '<div class="mm-check-h">The check <span>step 2 \u00B7 thirty seconds</span></div>' + MM_CHECK.map(C => {
+    const q = C.k === 'values' && pn2 ? 'Does my response honour the ' + escHtml(pn2) + ' pillar?' : C.q;
+    const subs = C.sub ? '<div class="mm-csub' + (mmCheckOpen_ === C.k ? ' open' : '') + '">' + C.sub.map((sq, i) =>
+      '<label><input type="checkbox" data-mmcq="' + C.k + ':' + i + '"' + ((ck[C.k + '_q'] || [])[i] ? ' checked' : '') + '> ' + escHtml(sq[0]) + '<b>' + escHtml(sq[1]) + '</b></label>').join('') + '</div>' : '';
+    return '<div class="mm-crow"><button class="mm-cw" type="button" data-mmcopen="' + C.k + '">' + C.lbl + (C.sub ? ' \u25BE' : '') + '</button><span class="mm-cq">' + q + '</span>'
+      + '<span class="mm-tri">' + MM_CHECK_ANS.map(a => '<button type="button" data-mmck="' + C.k + ':' + a[0] + '" class="' + (ck[C.k] === a[0] ? 'on' + (a[0] === 'caught' ? ' win' : '') : '') + '">' + a[1] + '</button>').join('') + '</span></div>' + subs;
+  }).join('');
   const helped = Array.isArray(k.helped) ? k.helped : [];
   el('mmHelped').innerHTML = mmHelpWords_().map(h => '<button type="button" data-mmhelp="' + escHtml(h) + '" class="' + (helped.includes(h) ? 'on' : '') + '">' + escHtml(h) + '</button>').join('')
     + '<button type="button" class="add" data-mmhelpadd="1">+ add</button>';
@@ -6222,6 +6296,15 @@ async function mmSaveDesk_() {
   const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
   k.desk = desk; renderMmPage_(); toast('Saved');
+}
+async function mmSetCheck_(key, val) {
+  const k = mmById_(mmPageId_); if (!k) return;
+  const desk = Object.assign({}, k.desk || {}); const ck = Object.assign({}, desk.check || {});
+  if (val === null) delete ck[key]; else ck[key] = val;
+  desk.check = ck;
+  const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  k.desk = desk; renderMmPage_();
 }
 async function mmToggleHelp_(word) {
   const k = mmById_(mmPageId_); if (!k) return;
@@ -6308,6 +6391,30 @@ el('mmPagePen').addEventListener('click', async () => {
   const pg = el('mmPage');
   if (pg.classList.contains('mm-editing')) { await mmSaveDesk_(); pg.classList.remove('mm-editing'); renderMmPage_(); }
   else { pg.classList.add('mm-editing'); renderMmPage_(); const t = el('mmDesk').querySelector('textarea'); if (t) setTimeout(() => { try { t.focus(); } catch (e) {} }, 30); }
+});
+el('mmCheck').addEventListener('click', e => {
+  const o = e.target.closest('[data-mmcopen]');
+  if (o) { mmCheckOpen_ = mmCheckOpen_ === o.dataset.mmcopen ? null : o.dataset.mmcopen; renderMmPage_(); return; }
+  const b = e.target.closest('[data-mmck]'); if (!b) return;
+  const [key, val] = b.dataset.mmck.split(':');
+  const k = mmById_(mmPageId_); const cur = k && k.desk && k.desk.check ? k.desk.check[key] : null;
+  mmSetCheck_(key, cur === val ? null : val);
+});
+el('mmCheck').addEventListener('change', e => {
+  const c = e.target.closest('[data-mmcq]'); if (!c) return;
+  const [key, i] = c.dataset.mmcq.split(':');
+  const k = mmById_(mmPageId_); if (!k) return;
+  const arr = ((k.desk && k.desk.check && k.desk.check[key + '_q']) || []).slice();
+  arr[Number(i)] = c.checked;
+  mmSetCheck_(key + '_q', arr);
+});
+el('mmQuick').addEventListener('click', e => {
+  const b = e.target.closest('[data-mmquick]'); if (!b) return;
+  const t = b.dataset.mmquick;
+  if (/^No step yet/.test(t)) { el('fMmNext').value = ''; el('fMmBy').value = ''; return; }
+  el('fMmNext').value = t.replace(/\s*\u2026$/, ' ');
+  if (/^Sit with it/.test(t)) { const d = new Date(istToday() + 'T00:00:00'); d.setDate(d.getDate() + 30); el('fMmBy').value = d.toISOString().slice(0, 10); el('fMmNext').value = 'Sit with it until ' + mmFmt_(el('fMmBy').value); }
+  try { el('fMmNext').focus(); } catch (x) {}
 });
 el('mmHelped').addEventListener('click', e => {
   const a = e.target.closest('[data-mmhelpadd]');
