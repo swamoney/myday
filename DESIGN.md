@@ -143,6 +143,8 @@ kept.
 
 **Q4 = PARK** (23 Sep 2026): the fourth quadrant is 'Park - not as of now' (was 'Delete - not important & not urgent'): Rahul rarely deletes; those tasks are on hold for a later matrix. Stored key stays q4; PRI_Q verb/sub, the task dialog's option, and the print follow. Closing a parked task no longer presumes 'cancelled' - the window opens on 'done' like any other.
 
+**MY MIND: THE DOORS, LOUDER (D1)** (23 Oct 2026, why.html): an hour after the underline, Rahul chose the pill. On the 2x2 and in the picker the door word is a solid pill in the door's darker shade (--ad, white mono caps); the QUESTION grows to serif italic 0.9375rem in that shade (0.8125rem under 420px - it no longer hides on a phone, it is the thing to read). D2 (Priority's grammar, the question as the filled block) and D2+underline were mocked side by side and declined. The underline rule is gone.
+
 **MY MIND: THE DOOR WORDS UNDERLINED, THE DOOR'S LABELS BOLD** (23 Oct 2026, why.html): ANXIETY / INSECURITY / OBSTACLE / CHALLENGE on the 2x2 and in the sixty-second picker carry a 2px rule beneath the word in the door's own darker shade (--ad: #2f4478 / #7c3a48 / #7a5222 / #2c4a46); on the picker the word is display:table so the rule shrink-wraps it and the sentence still drops to its own line. Field labels in the knot door and the settle door (#mmKnotModal / #mmSettleModal .fld label) go bold, ink #5A6478 - the other rooms' doors keep their lighter labels.
 
 **EXPLORE: ADD BUTTON WEARS THE CHIP'S TEAL** (22 Oct 2026, why.html): .pl-addbtn was a leftover library blue #2c5f96 from the bucket-list days; it now matches the My Explore List chip, ocean teal #1f6a63.
