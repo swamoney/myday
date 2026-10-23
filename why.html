@@ -294,10 +294,41 @@
   .mm-A { --a:#41599a; --ad:#2f4478; --w:#f2f6fd; --b:#c9d4ec; } .mm-I { --a:#9c4f5e; --ad:#7c3a48; --w:#fdf3f4; --b:#ecc9d0; }
   .mm-O { --a:#9c6b2e; --ad:#7a5222; --w:#fbf5ec; --b:#ead8bd; } .mm-C { --a:#3f6560; --ad:#2c4a46; --w:#f1f8f7; --b:#c6dbd8; }
   .mm-L { --a:#4a5260; --ad:#2f3542; --w:#f4f5f8; --b:#d5d9e0; }   /* loss - the quiet door (2A) */
-  /* X1: the doors on two family shelves */
-  .mm-shelf-h { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.18em; color:#8B97AC; margin:12px 0 7px; display:flex; align-items:center; gap:8px; }
+  .mm-V { --a:#4e5f75; --ad:#38475a; --w:#f3f5f8; --b:#d3d9e3; }   /* overload - slate (2B) */
+  .mm-F { --a:#a0583c; --ad:#7d4029; --w:#fbf3ef; --b:#ead0c5; }   /* conflict - rust (2B) */
+  /* X1 + S1: the doors on two family shelves, the shelf heading a serif question in ink with its open count */
+  .mm-shelf-h { display:flex; align-items:center; gap:8px; margin:14px 0 8px; }
   .mm-shelf-h:first-child { margin-top:0; }
-  .mm-shelf-h:after { content:''; flex:1; height:1px; background:#e6eaf1; }
+  .mm-shelf-h .mm-sq { font-family:var(--serif); font-size:1.0625rem; font-weight:600; color:#28324B; }
+  .mm-shelf-h .mm-sn { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.12em; text-transform:uppercase; color:#8B97AC; }
+  .mm-shelf-h:after { content:''; flex:1; height:1px; background:#d9dee8; }
+  .mm-pick .mm-shelf-h .mm-sq { font-size:0.9375rem; }
+  /* W1: the overload desk's load list */
+  .mm-lr { display:flex; align-items:center; gap:10px; padding:6px 0; border-top:1px dashed #eef1f6; flex-wrap:wrap; }
+  .mm-lr:first-child { border-top:none; }
+  .mm-lt { flex:1; min-width:140px; font-family:var(--serif); font-size:0.9375rem; color:#28324B; overflow-wrap:anywhere; }
+  .mm-lt.dim { color:#8B97AC; text-decoration:line-through; text-decoration-color:#c6cfdd; }
+  .mm-lc { display:flex; gap:3px; flex-shrink:0; }
+  .mm-lc button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; border:1px solid #dfe5ee; border-radius:999px; padding:3px 7px; color:#aab3c2; background:#fff; cursor:pointer; }
+  .mm-lc button.on { background:var(--c); border-color:var(--c); color:#fff; }
+  .mm-lx { display:none; border:none; background:none; color:#c9b3a6; cursor:pointer; font-size:0.9rem; padding:0 4px; }
+  #mmPage.mm-editing .mm-lx { display:inline-block; }
+  .mm-ladd { display:none; margin-top:8px; }
+  #mmPage.mm-editing .mm-ladd { display:flex; gap:6px; }
+  .mm-ladd input { flex:1; border:1px solid #dfe5ee; border-radius:9px; padding:7px 10px; font-family:var(--serif); font-size:0.9375rem; outline:none; }
+  .mm-ladd button { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase; border:1px solid #dfe5ee; background:#fff; border-radius:8px; padding:0 10px; cursor:pointer; color:#5A6478; }
+  .mm-lsum { display:flex; gap:12px; flex-wrap:wrap; margin-top:8px; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.1em; color:#5A6478; }
+  .mm-lsum b { color:#28324B; }
+  .mm-lcap { font-size:0.6875rem; color:#8B97AC; margin-top:6px; }
+  /* P1: the person on a conflict knot */
+  .mm-who { display:inline-flex; align-items:center; gap:7px; border:1px solid #ecc9d0; background:#fdf3f4; border-radius:999px; padding:4px 10px 4px 4px; font-size:0.8125rem; color:#28324B; }
+  .mm-who i { width:22px; height:22px; border-radius:50%; background:#98455a; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-style:normal; font-size:0.6rem; font-weight:700; }
+  .mm-who.none { border-style:dashed; color:#aab3c2; background:#fff; }
+  .mm-whoedit { display:none; gap:6px; margin-top:6px; }
+  #mmPage.mm-editing .mm-whoedit { display:flex; flex-wrap:wrap; }
+  .mm-whoedit select, .mm-whoedit input { border:1px solid #dfe5ee; border-radius:9px; padding:7px 10px; font-family:inherit; font-size:0.8125rem; }
+  /* the ego row pinned and tinted on a conflict */
+  .mm-crow.mm-pin { background:#fbf3ef; box-shadow:inset 3px 0 0 #a0583c; }   /* inset so the row keeps its width and the buttons never wrap */
   .mm-door.wide { grid-column:1 / -1; }
   .mm-knot .mm-nx.sit { color:#4a5260; font-style:italic; }
   .mm-next.sit { border-color:#d5d9e0; border-left-color:#4a5260; }
@@ -2460,7 +2491,7 @@
     <div class="fld"><label>What helped</label><div class="mm-helped" id="mmSettleHelped" style="margin-top:0"></div></div>
     <div class="fld"><label>In a line, for the record (optional)</label><input id="fMmLine" placeholder="what actually happened"></div>
     <div class="fld"><label>Settled on</label><input type="date" id="fMmSettledOn"></div>
-    <div class="fld-hint" id="mmPlanHint" style="display:none">"Became a plan" also writes a Q2 task in My Priority with the next step as its note.</div>
+    <div class="fld-hint" id="mmPlanHint" style="display:none">"Became a plan" writes into My Priority: a Q2 task with the next step as its note \u2014 or, on an Overload knot, a Q3 task per DELEGATE line and a Q4 task per DEFER line.</div>
     <div class="modal-actions">
       <span style="flex:1"></span>
       <button class="btn-ghost" id="mmSettleCancel" type="button">Cancel</button>
@@ -6014,10 +6045,15 @@ const MM_DOORS = {
   ins: { lbl:'Insecurity', cls:'mm-I', q:'am I good enough?',                   pick:"I'm doubting my worth or ability" },
   obs: { lbl:'Obstacle',   cls:'mm-O', q:'something is in the way',             pick:'Something specific is blocking me' },
   cha: { lbl:'Challenge',  cls:'mm-C', q:'this is hard, I can work at it',      pick:"It's hard, but I can work toward it" },
-  loss:{ lbl:'Loss',       cls:'mm-L', q:'something is gone',                   pick:'Something important has gone wrong or is lost' }
+  loss:{ lbl:'Loss',       cls:'mm-L', q:'something is gone',                   pick:'Something important has gone wrong or is lost' },
+  over:{ lbl:'Overload',   cls:'mm-V', q:'too much, all at once',               pick:"There's too much on me right now" },
+  conf:{ lbl:'Conflict',   cls:'mm-F', q:'we want different things',           pick:'Someone and I want different things' }
 };
 // X1: the doors on two family shelves. 'wide' spans the row while a shelf has an odd count.
-const MM_FAMILIES = [ { h:'What am I feeling?', doors:['anx','ins'] }, { h:'What am I facing?', doors:['obs','cha','loss'] } ];
+const MM_FAMILIES = [ { h:'What am I feeling?', doors:['anx','ins','over'] }, { h:'What am I facing?', doors:['obs','cha','conf','loss'] } ];
+// W1: the overload desk's verbs - the Priority matrix's own.
+const MM_LOAD_VERBS = { keep:['KEEP','#3f6560'], drop:['DROP','#8f4f40'], delegate:['DELEGATE','#a06a2c'], defer:['DEFER','#5f6b85'] };
+const MM_LOAD_CAP = 12;
 // Loss is the one door where "sit with it" is an honest next step.
 const MM_SIT = /^sit with it/i;
 const MM_LOSS_QUICK = ['Sit with it until \u2026', 'Tell one person', 'No step yet, and that\u2019s fine'];
@@ -6038,8 +6074,22 @@ const MM_OUTS = {
   accepted: { lbl:'Accepted',       cls:'accepted' },
   recovered:{ lbl:'Recovered',      cls:'' },
   rebuilt:  { lbl:'Rebuilt',        cls:'' },
+  talked:   { lbl:'Talked it through', cls:'' },
+  line:     { lbl:'Drew a line',    cls:'accepted' },
   plan:     { lbl:'Became a plan',  cls:'plan' }
 };
+// E2: each door shows only the endings that fit it.
+const MM_OUTS_BY_DOOR = {
+  anx: ['never','resolved','faded','accepted','plan'], ins: ['resolved','faded','accepted','plan'],
+  over:['resolved','faded','plan'], obs: ['resolved','faded','accepted','plan'], cha: ['resolved','faded','accepted','plan'],
+  conf:['talked','line','resolved','faded','accepted','plan'], loss:['recovered','rebuilt','accepted','faded','plan']
+};
+function mmOutsFor_(k) {
+  const a = MM_OUTS_BY_DOOR[k.door] || Object.keys(MM_OUTS), b = k.door2 ? (MM_OUTS_BY_DOOR[k.door2] || []) : [];
+  const seen = []; a.concat(b).forEach(o => { if (!seen.includes(o)) seen.push(o); });
+  if (k.outcome && !seen.includes(k.outcome)) seen.push(k.outcome);
+  return seen;
+}
 // The desks. kind 'line' = one answer; 'split' = two or three side by side.
 const MM_DESK = {
   anx: [ { k:'fear',   q:'The fear, in one line' },
@@ -6064,7 +6114,15 @@ const MM_DESK = {
          { k:'remains',  q:'What remains' },
          { k:'recovery', q:'What recovery looks like in a year' },
          { k:'notrush',  q:'What I will not rush' },
-         { k:'tell',     q:'Who I will tell' } ]
+         { k:'tell',     q:'Who I will tell' } ],
+  over:[ { loads:true, q:'Everything on me right now \u00B7 a verb per line' },
+         { k:'stop',  q:'What I will stop doing, from today' },
+         { k:'one',   q:'The one thing for tomorrow' } ],
+  conf:[ { who:true, q:'Who' },
+         { k:'they',  q:'What they want, in their words, fairly' },
+         { k:'need',  q:'What I actually want \u2014 the need under the position' },
+         { q:'Negotiable \u00B7 not negotiable', split:[['nego','NEGOTIABLE'],['not','NOT']] },
+         { k:'talk',  q:'The conversation to have, and when' } ]
 };
 const MM_HELP_SEED = ['a walk', 'sleep on it', 'wrote it out', 'ran the numbers', 'spoke to someone', 'a mantra', 'time'];
 let mind = [], mmDoor = 'all', mmPageId_ = null, mmKnotEditing_ = null, mmPickDoors_ = [], mmSettleOut_ = null, mmSettleHelped_ = [], mmCheckOpen_ = null;
@@ -6124,12 +6182,14 @@ function renderMind() {
     + (ev.top.length ? '<div class="mm-h"><i>★</i> what helps you most: ' + ev.top.map((h, i) => (i ? escHtml(h) : '<b>' + escHtml(h) + '</b>')).join(' · ') + '</div>' : '')
     + '</div>' : '';
   // the four doors, open counts
-  el('mmDoors').innerHTML = MM_FAMILIES.map(F => '<div class="mm-shelf-h">' + F.h.toUpperCase() + '</div><div class="mm-doors">' + F.doors.map((d, i) => {
+  el('mmDoors').innerHTML = MM_FAMILIES.map(F => {
+    const fo = open.filter(k => F.doors.includes(k.door) || F.doors.includes(k.door2)).length;
+    return '<div class="mm-shelf-h"><span class="mm-sq">' + F.h + '</span><span class="mm-sn">' + fo + ' open</span></div><div class="mm-doors">' + F.doors.map((d, i) => {
     const D = MM_DOORS[d], n = open.filter(k => k.door === d || k.door2 === d).length;
     const wide = F.doors.length % 2 === 1 && i === F.doors.length - 1;
     return '<button class="mm-door ' + D.cls + (mmDoor === d ? ' sel' : '') + (wide ? ' wide' : '') + '" type="button" data-mmdoor="' + d + '">'
       + '<span><span class="mm-t">' + D.lbl + '</span><div class="mm-q">' + D.q + '</div></span><b>' + n + '</b></button>';
-  }).join('') + '</div>').join('');
+  }).join('') + '</div>'; }).join('');
   const shown = open.filter(k => mmDoor === 'all' || k.door === mmDoor || k.door2 === mmDoor)
     .sort((a, b) => String(b.opened_on || '').localeCompare(String(a.opened_on || '')) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
   el('mmOpenCnt').textContent = shown.length ? 'OPEN · ' + shown.length + (mmDoor !== 'all' ? ' · ' + MM_DOORS[mmDoor].lbl.toUpperCase() : '') + ' · NEWEST FIRST' : '';
@@ -6157,7 +6217,7 @@ function renderMind() {
 }
 /* ---- the sixty-second door (also the knot's head editor) ---- */
 function mmPaintPick_() {
-  el('mmPick').innerHTML = MM_FAMILIES.map(F => '<div class="mm-shelf-h" style="grid-column:1 / -1">' + F.h.toUpperCase() + '</div>' + F.doors.map(d =>
+  el('mmPick').innerHTML = MM_FAMILIES.map(F => '<div class="mm-shelf-h" style="grid-column:1 / -1"><span class="mm-sq">' + F.h + '</span></div>' + F.doors.map(d =>
     '<button type="button" class="' + MM_DOORS[d].cls + (mmPickDoors_.includes(d) ? ' on' : '') + '" data-mmpick="' + d + '"><b>' + MM_DOORS[d].lbl + '</b>' + MM_DOORS[d].pick + '</button>').join('')).join('');
   const qk = el('mmQuick');
   if (qk) {
@@ -6223,7 +6283,7 @@ function closeMmPage_() { el('mmPage').classList.remove('on'); el('mmPage').clas
 function renderMmPage_() {
   const k = mmById_(mmPageId_); if (!k) { closeMmPage_(); return; }
   const D = MM_DOORS[k.door] || MM_DOORS.anx, pg = el('mmPage');
-  const HUE = { 'mm-A':['#41599a','#f2f6fd','#c9d4ec'], 'mm-I':['#9c4f5e','#fdf3f4','#ecc9d0'], 'mm-O':['#9c6b2e','#fbf5ec','#ead8bd'], 'mm-C':['#3f6560','#f1f8f7','#c6dbd8'], 'mm-L':['#4a5260','#f4f5f8','#d5d9e0'] }[D.cls] || ['#4a4470','#f4f3f8','#dcd8e6'];
+  const HUE = { 'mm-A':['#41599a','#f2f6fd','#c9d4ec'], 'mm-I':['#9c4f5e','#fdf3f4','#ecc9d0'], 'mm-O':['#9c6b2e','#fbf5ec','#ead8bd'], 'mm-C':['#3f6560','#f1f8f7','#c6dbd8'], 'mm-L':['#4a5260','#f4f5f8','#d5d9e0'], 'mm-V':['#4e5f75','#f3f5f8','#d3d9e3'], 'mm-F':['#a0583c','#fbf3ef','#ead0c5'] }[D.cls] || ['#4a4470','#f4f3f8','#dcd8e6'];
   pg.style.setProperty('--pgs', HUE[0]); pg.style.setProperty('--pgt', HUE[1]); pg.style.setProperty('--pgi', '#28324B');
   const pn = mmPillarName_(k.pillar_id);
   el('mmPageWhy').textContent = D.lbl + (k.door2 && MM_DOORS[k.door2] ? ' + ' + MM_DOORS[k.door2].lbl : '') + (pn ? ' · ' + pn : '');
@@ -6254,28 +6314,51 @@ function renderMmPage_() {
   const ta = (key) => '<textarea data-mmdesk="' + key + '">' + escHtml(desk[key] || '') + '</textarea>';
   const ans = (key) => '<div class="mm-a' + (desk[key] ? '' : ' empty') + '">' + (desk[key] ? escHtml(desk[key]) : 'not written yet') + '</div>' + ta(key);
   let html = '';
-  (MM_DESK[k.door] || MM_DESK.anx).forEach(row => {
-    if (row.split) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div><div class="mm-split' + (row.split.length === 3 ? ' three' : '') + '">'
-      + row.split.map(sp => '<div><div class="mm-h">' + sp[1] + '</div>' + ans(sp[0]) + '</div>').join('') + '</div></div>';
-    else html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + ans(row.k) + '</div>';
-  });
-  if (k.door2 && MM_DESK[k.door2]) {
-    html += '<div class="mm-qa"><div class="mm-q">' + MM_DOORS[k.door2].lbl + ' · the second door</div></div>';
-    MM_DESK[k.door2].forEach(row => {
-      if (row.split) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div><div class="mm-split' + (row.split.length === 3 ? ' three' : '') + '">'
-        + row.split.map(sp => '<div><div class="mm-h">' + sp[1] + '</div>' + ans(k.door2 + '_' + sp[0]) + '</div>').join('') + '</div></div>';
-      else html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + ans(k.door2 + '_' + row.k) + '</div>';
+  const loadsHtml = () => {
+    const loads = Array.isArray(desk.loads) ? desk.loads : [];
+    const sum = {}; loads.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
+    return loads.map((l, i) => '<div class="mm-lr"><span class="mm-lt' + ((l.v || 'keep') !== 'keep' ? ' dim' : '') + '">' + escHtml(l.t || '') + '</span>'
+        + '<span class="mm-lc">' + Object.keys(MM_LOAD_VERBS).map(v => '<button type="button" data-mmlv="' + i + ':' + v + '" class="' + ((l.v || 'keep') === v ? 'on' : '') + '" style="--c:' + MM_LOAD_VERBS[v][1] + '">' + MM_LOAD_VERBS[v][0] + '</button>').join('') + '</span>'
+        + '<button class="mm-lx" type="button" data-mmlx="' + i + '" aria-label="Remove">&times;</button></div>').join('')
+      + (loads.length ? '<div class="mm-lsum">' + Object.keys(MM_LOAD_VERBS).map(v => '<span><b>' + (sum[v] || 0) + '</b> ' + MM_LOAD_VERBS[v][0] + '</span>').join('') + '</div>'
+                      : '<div class="mm-a empty">nothing listed yet \u2014 \u270E Desk, then add a line per load</div>')
+      + (loads.length < MM_LOAD_CAP ? '<div class="mm-ladd"><input id="fMmLoad" placeholder="one load, in a few words"><button type="button" data-mmladd="1">+ Add</button></div>'
+                                    : '<div class="mm-lcap">Twelve is the cap \u2014 a list longer than that is itself a load.</div>');
+  };
+  const whoHtml = () => {
+    const w = desk.who || null;
+    const c = w && w.id ? circle.find(x => String(x.id) === String(w.id)) : null;
+    const name = c ? c.name : (w && w.name) || '';
+    const band = c ? (BANDS.find(b => b.key === c.band) || {}).lbl : '';
+    const chip = name ? '<span class="mm-who"><i>' + escHtml(name.trim().charAt(0).toUpperCase()) + '</i>' + escHtml(name) + (band ? ' \u00B7 ' + escHtml(band) : '') + '</span>'
+                      : '<span class="mm-who none">no one named yet</span>';
+    return chip + '<div class="mm-whoedit"><select id="fMmWho"><option value="">\u2014 from My Circle</option>' + circle.map(x => '<option value="' + escHtml(String(x.id)) + '"' + (c && String(c.id) === String(x.id) ? ' selected' : '') + '>' + escHtml(x.name || '') + '</option>').join('') + '</select>'
+      + '<input id="fMmWhoName" placeholder="or a name" value="' + escHtml(c ? '' : name) + '"></div>';
+  };
+  const deskRows = (door, pfx) => {
+    (MM_DESK[door] || MM_DESK.anx).forEach(row => {
+      if (row.loads) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + loadsHtml() + '</div>';
+      else if (row.who) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + whoHtml() + '</div>';
+      else if (row.split) html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div><div class="mm-split' + (row.split.length === 3 ? ' three' : '') + '">'
+        + row.split.map(sp => '<div><div class="mm-h">' + sp[1] + '</div>' + ans(pfx + sp[0]) + '</div>').join('') + '</div></div>';
+      else html += '<div class="mm-qa"><div class="mm-q">' + row.q + '</div>' + ans(pfx + row.k) + '</div>';
     });
+  };
+  deskRows(k.door, '');
+  if (k.door2 && MM_DESK[k.door2]) {
+    html += '<div class="mm-qa"><div class="mm-q">' + MM_DOORS[k.door2].lbl + ' \u00B7 the second door</div></div>';
+    deskRows(k.door2, k.door2 + '_');
   }
   el('mmDesk').innerHTML = html;
   // step 2: the check
   const ck = (k.desk && k.desk.check) || {};
   const pn2 = mmPillarName_(k.pillar_id);
-  el('mmCheck').innerHTML = '<div class="mm-check-h">The check <span>step 2 \u00B7 thirty seconds</span></div>' + MM_CHECK.map(C => {
-    const q = C.k === 'values' && pn2 ? 'Does my response honour the ' + escHtml(pn2) + ' pillar?' : C.q;
+  const isConf = k.door === 'conf' || k.door2 === 'conf';
+  el('mmCheck').innerHTML = '<div class="mm-check-h">The check <span>step 2 \u00B7 thirty seconds' + (isConf ? ' \u00B7 ego first on a conflict' : '') + '</span></div>' + MM_CHECK.map(C => {
+    const q = C.k === 'values' && pn2 ? 'Does my response honour the ' + escHtml(pn2) + ' pillar?' : (C.k === 'ego' && isConf ? 'Am I trying to be right, or to understand?' : C.q);
     const subs = C.sub ? '<div class="mm-csub' + (mmCheckOpen_ === C.k ? ' open' : '') + '">' + C.sub.map((sq, i) =>
       '<label><input type="checkbox" data-mmcq="' + C.k + ':' + i + '"' + ((ck[C.k + '_q'] || [])[i] ? ' checked' : '') + '> ' + escHtml(sq[0]) + '<b>' + escHtml(sq[1]) + '</b></label>').join('') + '</div>' : '';
-    return '<div class="mm-crow"><button class="mm-cw" type="button" data-mmcopen="' + C.k + '">' + C.lbl + (C.sub ? ' \u25BE' : '') + '</button><span class="mm-cq">' + q + '</span>'
+    return '<div class="mm-crow' + (C.k === 'ego' && isConf ? ' mm-pin' : '') + '"><button class="mm-cw" type="button" data-mmcopen="' + C.k + '">' + C.lbl + (C.sub ? ' \u25BE' : '') + '</button><span class="mm-cq">' + q + '</span>'
       + '<span class="mm-tri">' + MM_CHECK_ANS.map(a => '<button type="button" data-mmck="' + C.k + ':' + a[0] + '" class="' + (ck[C.k] === a[0] ? 'on' + (a[0] === 'caught' ? ' win' : '') : '') + '">' + a[1] + '</button>').join('') + '</span></div>' + subs;
   }).join('');
   const helped = Array.isArray(k.helped) ? k.helped : [];
@@ -6293,9 +6376,32 @@ async function mmSaveDesk_() {
   const k = mmById_(mmPageId_); if (!k) return;
   const desk = Object.assign({}, k.desk || {});
   el('mmDesk').querySelectorAll('textarea[data-mmdesk]').forEach(t => { const v = t.value.trim(); if (v) desk[t.dataset.mmdesk] = v; else delete desk[t.dataset.mmdesk]; });
+  const ws = el('fMmWho'), wn = el('fMmWhoName');
+  if (ws || wn) {
+    const id = ws && ws.value ? ws.value : '', nm = wn ? wn.value.trim() : '';
+    if (id) desk.who = { id }; else if (nm) desk.who = { name: nm }; else delete desk.who;
+  }
   const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
   k.desk = desk; renderMmPage_(); toast('Saved');
+}
+// W1: the load list is saved line by line, verbs default to KEEP. Anything typed in the
+// desk's boxes rides along, so a verb tap in Edit never loses unsaved words.
+function mmDeskFromPage_(k) {
+  const desk = Object.assign({}, k.desk || {});
+  if (el('mmPage').classList.contains('mm-editing')) {
+    el('mmDesk').querySelectorAll('textarea[data-mmdesk]').forEach(t => { const v = t.value.trim(); if (v) desk[t.dataset.mmdesk] = v; else delete desk[t.dataset.mmdesk]; });
+    const ws = el('fMmWho'), wn = el('fMmWhoName');
+    if (ws || wn) { const id = ws && ws.value ? ws.value : '', nm = wn ? wn.value.trim() : ''; if (id) desk.who = { id }; else if (nm) desk.who = { name: nm }; else delete desk.who; }
+  }
+  return desk;
+}
+async function mmSaveLoads_(loads) {
+  const k = mmById_(mmPageId_); if (!k) return;
+  const desk = Object.assign(mmDeskFromPage_(k), { loads });
+  const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  k.desk = desk; renderMmPage_();
 }
 async function mmSetCheck_(key, val) {
   const k = mmById_(mmPageId_); if (!k) return;
@@ -6325,7 +6431,8 @@ function openMmSettle_() {
   el('mmSettleModal').classList.remove('hidden');
 }
 function mmPaintSettle_() {
-  el('mmOuts').innerHTML = Object.keys(MM_OUTS).map(o => '<button type="button" data-mmout="' + o + '" class="' + (mmSettleOut_ === o ? 'on' : '') + '">' + MM_OUTS[o].lbl + '</button>').join('');
+  const kk = mmById_(mmPageId_);
+  el('mmOuts').innerHTML = (kk ? mmOutsFor_(kk) : Object.keys(MM_OUTS)).map(o => '<button type="button" data-mmout="' + o + '" class="' + (mmSettleOut_ === o ? 'on' : '') + '">' + MM_OUTS[o].lbl + '</button>').join('');
   el('mmSettleHelped').innerHTML = mmHelpWords_().map(h => '<button type="button" data-mmshelp="' + escHtml(h) + '" class="' + (mmSettleHelped_.includes(h) ? 'on' : '') + '">' + escHtml(h) + '</button>').join('')
     + '<button type="button" class="add" data-mmshelpadd="1">+ add</button>';
   el('mmPlanHint').style.display = mmSettleOut_ === 'plan' ? '' : 'none';
@@ -6339,9 +6446,17 @@ async function saveMmSettle_() {
     const { error } = await supa.from('why_mind').update(rec).eq('id', k.id).eq('user_id', userId);
     if (error) throw error;
     if (mmSettleOut_ === 'plan') {
-      // Became a plan: a Q2 task in My Priority, the next step as its note.
-      const { error: e2 } = await supa.from('why_priority').insert({ title: k.title, note: k.next_step || '', quadrant: 'q2', tag: null, user_id: userId, updated_at: new Date().toISOString() });
-      if (e2) console.error(e2); else if (typeof loadPriority === 'function') loadPriority();
+      const loads = (k.door === 'over' || k.door2 === 'over') && k.desk && Array.isArray(k.desk.loads) ? k.desk.loads.filter(l => l.v === 'delegate' || l.v === 'defer') : [];
+      if (loads.length) {
+        // Overload became a plan: every DELEGATE line a Q3 task, every DEFER line a Q4 task.
+        const rows = loads.map(l => ({ title: l.t, note: 'from My Mind \u00B7 ' + k.title, quadrant: l.v === 'delegate' ? 'q3' : 'q4', tag: null, user_id: userId, updated_at: new Date().toISOString() }));
+        const { error: e3 } = await supa.from('why_priority').insert(rows);
+        if (e3) console.error(e3); else if (typeof loadPriority === 'function') loadPriority();
+      } else {
+        // Became a plan: a Q2 task in My Priority, the next step as its note.
+        const { error: e2 } = await supa.from('why_priority').insert({ title: k.title, note: k.next_step || '', quadrant: 'q2', tag: null, user_id: userId, updated_at: new Date().toISOString() });
+        if (e2) console.error(e2); else if (typeof loadPriority === 'function') loadPriority();
+      }
     }
     el('mmSettleModal').classList.add('hidden');
     await loadMind();
@@ -6392,6 +6507,19 @@ el('mmPagePen').addEventListener('click', async () => {
   if (pg.classList.contains('mm-editing')) { await mmSaveDesk_(); pg.classList.remove('mm-editing'); renderMmPage_(); }
   else { pg.classList.add('mm-editing'); renderMmPage_(); const t = el('mmDesk').querySelector('textarea'); if (t) setTimeout(() => { try { t.focus(); } catch (e) {} }, 30); }
 });
+el('mmDesk').addEventListener('click', e => {
+  const k = mmById_(mmPageId_); if (!k) return;
+  const loads = (k.desk && Array.isArray(k.desk.loads) ? k.desk.loads : []).map(l => Object.assign({}, l));
+  const v = e.target.closest('[data-mmlv]');
+  if (v) { const [i, verb] = v.dataset.mmlv.split(':'); if (loads[Number(i)]) { loads[Number(i)].v = verb; mmSaveLoads_(loads); } return; }
+  const x = e.target.closest('[data-mmlx]');
+  if (x) { loads.splice(Number(x.dataset.mmlx), 1); mmSaveLoads_(loads); return; }
+  const a = e.target.closest('[data-mmladd]');
+  if (a) { const inp = el('fMmLoad'); const t = inp ? inp.value.trim() : ''; if (!t) { toast('Name the load first'); return; }
+    if (loads.length >= MM_LOAD_CAP) { toast('Twelve is the cap'); return; }
+    loads.push({ t, v: 'keep' }); mmSaveLoads_(loads); return; }
+});
+el('mmDesk').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.id === 'fMmLoad') { e.preventDefault(); const b = el('mmDesk').querySelector('[data-mmladd]'); if (b) b.click(); } });
 el('mmCheck').addEventListener('click', e => {
   const o = e.target.closest('[data-mmcopen]');
   if (o) { mmCheckOpen_ = mmCheckOpen_ === o.dataset.mmcopen ? null : o.dataset.mmcopen; renderMmPage_(); return; }
