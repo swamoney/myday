@@ -411,9 +411,8 @@
   /* wide: map + the open stop only */
   @media (min-width:720px) {
     .mm-stops .mm-stop.done, .mm-stops .mm-stop.later { display:none; }
-    .mm-page-read .mm-stops .mm-stop.done { display:block; }   /* reading view (the record): the map stays, written stops only, one line names the rest */
+    .mm-page-read .mm-stops .mm-stop.done, .mm-page-read .mm-stops .mm-stop.later { display:block; }   /* reading view (the record): every stop, one row each */
   }
-  .mm-page-read .mm-stops .mm-stop.later { display:none; }
   .mm-page-settled .mm-prog { display:none; }   /* no score on a settled knot */
   /* phone: the path, one line of stops */
   @media (max-width:719px) {
@@ -430,7 +429,8 @@
     .mm-stop.now .mm-sc { padding:16px 16px 14px; border-radius:14px; }
     .mm-bigq { font-size:1.125rem; }
     .mm-sub label { flex-wrap:wrap; } .mm-sub label b { flex:1 0 100%; margin-left:0; padding-left:22px; }
-    .mm-page-read .mm-stops { padding-left:0; } .mm-page-read .mm-stops:before, .mm-page-read .mm-stop .mm-sdot { display:none; }   /* the record on a phone: a plain list, no rail */
+    .mm-page-read .mm-stops { padding-left:0; } .mm-page-read .mm-stops:before, .mm-page-read .mm-stop .mm-sdot { display:none; }   /* the record on a phone: the ledger stacks per row */
+    #mmPage.mm-page-read .mm-stop .mm-sc { grid-template-columns:1fr; gap:6px; }
     .mm-sc textarea { min-height:120px; }
   }
   .mm-stop.later .mm-st { cursor:pointer; }
@@ -504,18 +504,32 @@
   #mmPage .pp-pgt { display:inline; }
   /* S1 (24 Oct 2026): a settled knot is a RECORD. The ending sits in the head - a green stamp, the line for the record
      as a serif pull-quote, what helped in one quiet line; no score; the map stays; only written stops in the column. */
-  .mm-end { display:flex; gap:16px; align-items:flex-start; margin-top:14px; }
-  .mm-stamp { flex-shrink:0; width:78px; height:78px; border-radius:50%; border:2px solid #3f6560; color:#3f6560; background:#fff; display:flex; align-items:center; justify-content:center; text-align:center;
-              font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; line-height:1.3; padding:6px; transform:rotate(-8deg); }
+  .mm-end { margin-top:14px; }
+  /* Q1: a square rubber stamp, double rule, floated top-right of the head so the title and the ending wrap beside it */
+  .mm-stamp { float:right; width:92px; height:92px; margin:4px 6px 10px 18px; border:2px solid #3f6560; outline:1px solid #3f6560; outline-offset:-6px; color:#3f6560; background:#fff;
+              display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:8px; transform:rotate(-8deg);
+              font-family:var(--mono); text-transform:uppercase; }
+  .mm-stamp b { font-size:0.5625rem; font-weight:700; letter-spacing:0.14em; line-height:1.3; }
+  .mm-stamp small { font-size:0.5rem; letter-spacing:0.08em; margin-top:4px; opacity:0.8; }
+  #mmPage .pp-pghead::after { content:''; display:block; clear:both; }
   .mm-endt { min-width:0; }
   .mm-el { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.14em; text-transform:uppercase; color:#3f6560; }
   .mm-eline { font-family:var(--serif); font-style:italic; font-size:1.125rem; line-height:1.4; color:#1d2536; margin-top:4px; overflow-wrap:anywhere; }
   .mm-eline.none { color:#aab3c2; font-size:0.9375rem; }
   .mm-ehelp { font-family:var(--serif); font-size:0.9375rem; color:#1d2536; margin-top:10px; overflow-wrap:anywhere; }   /* H3: the helped words in serif, a gold label before them */
   .mm-ehelp span { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; color:#8a6f2f; margin-right:6px; }
-  .mm-left { font-family:var(--serif); font-style:italic; font-size:0.8125rem; color:#aab3c2; line-height:1.7; margin-bottom:14px; }   /* lives in the foot, after the rule */
-  .mm-left button { font:inherit; color:#8B97AC; background:none; border:none; border-bottom:1px dashed #c9d2e0; cursor:pointer; padding:0; }
-  .mm-left button:hover { color:#28324B; }
+  /* A1: the record is an aligned ledger - one row per stop, pointer + dot left, answer right; the map merges into it */
+  .mm-page-read .mm-flow { grid-template-columns:1fr; } .mm-page-read .mm-map { display:none; }
+  .mm-page-read .mm-lsec { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.16em; text-transform:uppercase; color:#aab3c2; padding:14px 0 4px; }
+  .mm-page-read .mm-lsec:first-child { padding-top:0; }
+  .mm-page-read .mm-stop { margin-bottom:0; }
+  .mm-page-read .mm-stop .mm-sc { display:grid; grid-template-columns:220px 1fr; gap:18px; align-items:start; padding:9px 0; border-top:1px dashed #ece9df; }
+  .mm-page-read .mm-stop .mm-st { display:flex; gap:9px; align-items:flex-start; line-height:1.4; padding-top:2px; }
+  .mm-page-read .mm-stop .mm-st:before { content:''; width:10px; height:10px; border-radius:50%; background:var(--pgs,#2f5187); flex-shrink:0; margin-top:3px; }
+  .mm-page-read .mm-stop.ck .mm-st:before { background:#4a4470; }
+  .mm-page-read .mm-stop.later .mm-st { color:#c2c8d2; font-weight:600; } .mm-page-read .mm-stop.later .mm-st:before { background:none; border:1.5px solid #dfe3ea; }
+  .mm-page-read .mm-stop .mm-sa { margin-top:0; }
+  .mm-page-read .mm-stop .mm-sa.un { color:#c2c8d2; font-style:italic; font-size:0.875rem; }
   .mm-fset { display:inline-flex; align-items:center; gap:8px; font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#3f6560; }   /* H3: the settled line in green serif with a tick */
   .mm-fset i { width:18px; height:18px; border-radius:50%; background:#3f6560; color:#fff; font-style:normal; font-size:0.6rem; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
   .mm-echo { margin-top:10px; font-size:0.75rem; color:#5A6478; line-height:1.5; }
@@ -2550,6 +2564,7 @@
           <button class="pp-pgpen" id="mmPageHead" type="button" title="Edit title, door, next step">&#9998; Knot</button>
         </div>
       </div>
+      <div class="mm-stamp hidden" id="mmStamp"></div>
       <div class="mm-hrow"><div class="pp-pgwhy" id="mmPageWhy"></div><div class="pp-pgm" id="mmPageM"></div></div>
       <div class="pp-pgtw"><span class="pp-pgt" id="mmPageT"></span></div>
       <div><button class="mm-nextline hidden" id="mmNext" type="button" title="Change the next step"></button></div>
@@ -2559,7 +2574,7 @@
     </div>
     <div class="pp-pgbody">
       <div class="mm-flow"><div class="mm-map" id="mmMap"></div><div class="mm-stops" id="mmStops"></div></div>
-      <div class="mm-foot"><div id="mmLeft"></div><div class="mm-frow"><div class="mm-fhelp" id="mmFootHelp"><span class="mm-fl">Helped so far</span><div class="mm-helped" id="mmHelped"></div></div><span class="mm-fset hidden" id="mmFootSet"></span><button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button></div></div>
+      <div class="mm-foot"><div class="mm-frow"><div class="mm-fhelp" id="mmFootHelp"><span class="mm-fl">Helped so far</span><div class="mm-helped" id="mmHelped"></div></div><span class="mm-fset hidden" id="mmFootSet"></span><button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button></div></div>
     </div>
   </div></div>
 </div>
@@ -6422,11 +6437,13 @@ function renderMmPage_() {
   // S1: the ending in the head; the footer shows helped chips on an open knot, the settled line on a settled one
   const endEl = el('mmEnd'), outLbl = (MM_OUTS[k.outcome] || {}).lbl || 'Settled';
   if (settled) {
-    endEl.innerHTML = '<div class="mm-stamp">' + escHtml(outLbl) + '</div><div class="mm-endt"><div class="mm-el">How it ended · ' + escHtml(mmFmt_(k.settled_on)) + '</div>'
+    endEl.innerHTML = '<div class="mm-endt"><div class="mm-el">How it ended · ' + escHtml(mmFmt_(k.settled_on)) + '</div>'
       + '<div class="mm-eline' + (k.settled_line ? '' : ' none') + '">' + (k.settled_line ? '\u201C' + escHtml(k.settled_line) + '\u201D' : 'no line for the record') + '</div>'
       + (helped.length ? '<div class="mm-ehelp"><span>WHAT HELPED</span>' + escHtml(helped.join(' \u00B7 ')) + '</div>' : '') + '</div>';
     endEl.classList.remove('hidden');
   } else endEl.classList.add('hidden');
+  const stamp = el('mmStamp'); stamp.classList.toggle('hidden', !settled);
+  stamp.innerHTML = settled ? '<b>' + escHtml(outLbl) + '</b><small>' + escHtml(mmFmt_(k.settled_on)) + '</small>' : '';
   el('mmFootHelp').classList.toggle('hidden', settled);
   const fs = el('mmFootSet'); fs.classList.toggle('hidden', !settled);
   fs.innerHTML = settled ? '<i>\u2713</i>Settled \u00B7 ' + escHtml(outLbl) + ' \u00B7 ' + escHtml(mmFmt_(k.settled_on)) : '';
@@ -6551,9 +6568,11 @@ function renderMmFlow_(k) {
   });
   el('mmMap').innerHTML = map;
   // the stops
-  let html = '', n = 0;
+  let html = '', n = 0, lastS = '';
+  const rec = at == null;
   stops.forEach(st => {
     n++;
+    if (rec && st.sec !== lastS) { html += '<div class="mm-lsec">' + escHtml(secName[st.sec]) + '</div>'; lastS = st.sec; }
     const state = st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : 'later');
     const ck = st.sec === 'check' ? ' ck' : '';
     const title = st.sec === 'check' ? st.title : st.title;
@@ -6565,19 +6584,12 @@ function renderMmFlow_(k) {
     } else if (state === 'done') {
       html += '<div class="mm-stop done' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">\u2713</div><div class="mm-sc"><div class="mm-st"><span>' + escHtml(title) + '</span></div><div class="mm-sa" data-mmgo="' + st.id + '">' + mmSummary_(k, st) + '</div></div></div>';
     } else {
-      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + escHtml(title) + '</div></div></div>';
+      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '"><span>' + escHtml(title) + '</span></div>'
+        + (rec ? '<div class="mm-sa un" data-mmgo="' + st.id + '">left unwritten</div>' : '') + '</div></div>';
     }
   });
-  let leftHtml = '';
-  if (at == null && !allDone) {
-    // the record: the unwritten stops as one quiet line in the foot, each a tap away
-    const left = stops.filter(st => !mmAnswered_(k, st));
-    leftHtml = '<div class="mm-left">' + left.length + (left.length === 1 ? ' stop' : ' stops') + ' left unwritten \u2014 '
-      + left.map(st => '<button type="button" data-mmgo="' + st.id + '">' + escHtml(st.kind === 'check' ? st.title + ' (the check)' : st.title) + '</button>').join(' \u00B7 ') + '. Tap one to write it.</div>';
-    if (!doneN) html = '<div class="mm-rdhint">' + (settled ? 'Settled without the desk. The path is still here.' : 'Tap any stop to open it.') + '</div>' + html;
-  }
+  if (rec && !doneN) html = '<div class="mm-rdhint">' + (settled ? 'Settled without the desk. The path is still here \u2014 tap a row to write it.' : 'Tap any stop to open it.') + '</div>' + html;
   el('mmStops').innerHTML = html;
-  el('mmLeft').innerHTML = leftHtml;
 }
 // Reads the open stop's boxes into a record; saves; moves the cursor.
 function mmCollect_(k) {
@@ -6721,7 +6733,6 @@ el('mmPageBack').addEventListener('click', closeMmPage_);
 el('mmPageHead').addEventListener('click', () => { if (mmPageId_ != null) openMmKnot_(mmPageId_); });
 el('mmNext').addEventListener('click', () => { if (mmPageId_ != null) mmGo_('then:next'); });
 el('mmMap').addEventListener('click', e => { const b = e.target.closest('[data-mmgo]'); if (b) mmGo_(b.dataset.mmgo); });
-el('mmLeft').addEventListener('click', e => { const go = e.target.closest('[data-mmgo]'); if (go && mmPageId_ != null) mmGo_(go.dataset.mmgo); });
 el('mmStops').addEventListener('click', e => {
   const k = mmById_(mmPageId_); if (!k) return;
   const nav = e.target.closest('[data-mmnav]');
