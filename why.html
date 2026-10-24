@@ -333,45 +333,66 @@
   .mm-whoedit select, .mm-whoedit input { border:1px solid #dfe5ee; border-radius:9px; padding:7px 10px; font-family:inherit; font-size:0.8125rem; }
   /* F3 C3 (24 Oct 2026): the knot page is a PATH. One stop open at a time; on a wide screen a map of the
      stops sits on the left; on a phone the stops run down one line. Same DOM, two layouts. */
-  .mm-prog { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.12em; color:#5A6478; margin:0 0 14px; }
-  .mm-prog i { flex:1; height:4px; background:#e2e7ef; border-radius:2px; overflow:hidden; display:block; }
-  .mm-prog i b { display:block; height:100%; background:var(--pgs,#2f5187); transition:width .25s; }
-  .mm-flow { display:grid; grid-template-columns:190px 1fr; gap:16px; }
-  .mm-map { border-right:1px solid #e6eaf1; padding-right:12px; align-self:start; }
+  /* D1 (24 Oct 2026): the quiet room. Cream ground, a quiet head band, progress as one dash per stop,
+     the map in serif, the open stop a white card whose headline is the question, the next step at the END of the path. */
+  #mmPage.pp-page { background:#fbfbf8; }
+  #mmPage .pp-pghead { background:transparent; border:none; border-bottom:1px solid #ece9df; border-radius:0; padding:14px 22px 16px; }
+  #mmPage .pp-pgtop { margin-bottom:12px; }
+  #mmPage .pp-pgback, #mmPage .pp-pgpen { color:var(--pgs,#28324B); font-size:0.5625rem; letter-spacing:0.12em; }
+  #mmPage .pp-pgwhy { font-size:0.5312rem; font-weight:700; }
+  #mmPage .pp-pgm { font-size:0.5625rem; color:#8B97AC; margin-top:0; letter-spacing:0.04em; }
+  .mm-hrow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  #mmPage .pp-pgtw { margin-top:8px; }
+  #mmPage .pp-pgt { font-weight:600; line-height:1.3; color:#1d2536; background:none; padding:0; margin-left:0; }
+  .mm-nextline { display:inline-block; margin-top:8px; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.06em; color:#8a6f2f;
+                 border-bottom:2px solid #f4c430; padding-bottom:2px; cursor:pointer; background:none; border-top:none; border-left:none; border-right:none; text-align:left; }
+  .mm-nextline.sit { color:#4a5260; border-bottom-color:#9aa1ad; font-style:italic; }
+  .mm-prog { display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin:12px 0 0; }
+  .mm-prog i { width:18px; height:3px; border-radius:2px; background:#e4e2d9; display:block; }
+  .mm-prog i.done { background:var(--pgs,#2f5187); opacity:0.4; }
+  .mm-prog i.now { background:var(--pgs,#2f5187); }
+  .mm-prog span { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.08em; color:#8B97AC; margin-left:6px; }
+  .mm-flow { display:grid; grid-template-columns:200px 1fr; gap:22px; }
+  .mm-map { align-self:start; }
   .mm-map .mm-mh { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.16em; text-transform:uppercase; color:#aab3c2; padding:10px 0 4px; }
   .mm-map .mm-mh:first-child { padding-top:0; }
-  .mm-map button { display:flex; gap:8px; align-items:center; width:100%; text-align:left; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.1em; text-transform:uppercase;
-                   padding:7px 0; border:none; border-bottom:1px dashed #eef1f6; background:none; color:#aab3c2; cursor:pointer; }
-  .mm-map button i { width:14px; height:14px; border-radius:50%; border:2px solid #c9d2e0; flex-shrink:0; display:inline-block; }
-  .mm-map button.done { color:var(--pgs,#2f5187); } .mm-map button.done i { background:var(--pgs,#2f5187); border-color:var(--pgs,#2f5187); }
-  .mm-map button.now { color:#28324B; font-weight:700; } .mm-map button.now i { border-color:var(--pgs,#2f5187); box-shadow:0 0 0 3px color-mix(in srgb, var(--pgs,#2f5187) 15%, transparent); }
-  .mm-map button.ck { color:#b9b3d1; } .mm-map button.ck.done { color:#4a4470; } .mm-map button.ck.done i { background:#4a4470; border-color:#4a4470; }
-  .mm-map button.ck.now { color:#28324B; } .mm-map button.ck.now i { border-color:#4a4470; box-shadow:0 0 0 3px #ebe8f3; }
+  .mm-map button { display:flex; gap:9px; align-items:center; width:100%; text-align:left; font-family:var(--serif); font-size:0.8125rem; line-height:1.3;
+                   padding:6px 0; border:none; background:none; color:#9aa3b5; cursor:pointer; }
+  .mm-map button i { width:10px; height:10px; border-radius:50%; border:1.5px solid #c9d2e0; flex-shrink:0; display:inline-block; }
+  .mm-map button.done { color:#5A6478; } .mm-map button.done i { background:var(--pgs,#2f5187); border-color:var(--pgs,#2f5187); }
+  .mm-map button.now { color:#28324B; font-weight:600; } .mm-map button.now i { background:var(--pgs,#2f5187); border-color:var(--pgs,#2f5187); box-shadow:0 0 0 3px color-mix(in srgb, var(--pgs,#2f5187) 15%, transparent); }
+  .mm-map button.ck i { border-color:#c4bedb; } .mm-map button.ck.done i { background:#4a4470; border-color:#4a4470; }
+  .mm-map button.ck.now i { background:#4a4470; border-color:#4a4470; box-shadow:0 0 0 3px #ebe8f3; }
   .mm-stops { position:relative; min-width:0; }
   .mm-stop { position:relative; margin-bottom:14px; }
   .mm-stop .mm-sdot { display:none; }
-  .mm-stop .mm-st { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--pgs,#2f5187); }
+  .mm-stop .mm-st { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--pgs,#2f5187); padding:0; border-radius:0; white-space:normal; }
   .mm-stop.ck .mm-st { color:#4a4470; }
   .mm-stop.later .mm-st { color:#aab3c2; font-weight:600; }
   .mm-stop .mm-sa { font-family:var(--serif); font-size:0.9375rem; line-height:1.5; color:#28324B; margin-top:4px; overflow-wrap:anywhere; white-space:pre-wrap; cursor:pointer; }
   .mm-stop .mm-sa .mm-sh { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#8B97AC; margin-right:6px; white-space:normal; }
-  .mm-stop.now .mm-sc { background:#fff; border:1px solid color-mix(in srgb, var(--pgs,#2f5187) 35%, #fff); border-radius:12px; padding:12px 14px; box-shadow:0 8px 22px rgba(30,47,82,0.06); }
-  .mm-stop.ck.now .mm-sc { border-color:#b9b3d1; }
-  .mm-sq { font-family:var(--serif); font-style:italic; font-size:0.875rem; color:#5A6478; margin:4px 0 10px; }
-  .mm-sq.big { font-style:normal; font-weight:600; font-size:1.0625rem; color:#28324B; }
-  .mm-sc textarea { width:100%; min-height:72px; font-family:var(--serif); font-size:0.9375rem; line-height:1.5; color:#28324B; border:1px solid #dfe5ee; border-radius:9px; padding:9px 11px; resize:vertical; background:#fff; outline:none; }
+  .mm-stop.done .mm-sc, .mm-stop.later .mm-sc { padding:10px 0; border-top:1px dashed #ece9df; }
+  .mm-stop.now .mm-sc { background:#fff; border:1px solid #e6eaf1; border-radius:16px; padding:22px 24px 18px; box-shadow:0 10px 30px rgba(30,47,82,0.07); }
+  .mm-eye { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--pgs,#2f5187); }
+  .mm-stop.ck .mm-eye { color:#4a4470; }
+  .mm-bigq { font-family:var(--serif); font-size:1.5rem; font-weight:500; line-height:1.3; color:#1d2536; margin-top:8px; overflow-wrap:anywhere; }
+  .mm-sq { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#8B97AC; margin:6px 0 14px; }
+  .mm-sc textarea { width:100%; min-height:150px; font-family:var(--serif); font-size:1rem; line-height:30px; color:#28324B; border:1px solid #e3e8f0; border-radius:10px; padding:9px 12px; resize:vertical; outline:none;
+                    background:#fff repeating-linear-gradient(transparent 0 29px, #eef1f6 29px 30px); background-position:0 9px; background-attachment:local; }
   .mm-sc textarea:focus { border-color:var(--pgs,#2f5187); }
+  .mm-sgrid textarea { min-height:96px; }
   .mm-sc input[type=text], .mm-sc input[type=date], .mm-sc select { width:100%; font-family:inherit; font-size:0.875rem; color:#28324B; border:1px solid #dfe5ee; border-radius:9px; padding:9px 11px; background:#fff; outline:none; }
   .mm-sc input:focus { border-color:var(--pgs,#2f5187); }
   .mm-sbtn { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
-  .mm-sbtn .go { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--pgs,#2f5187); border:none; border-radius:8px; padding:9px 14px; cursor:pointer; }
+  .mm-sbtn .go { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; text-transform:uppercase; color:#fff; background:var(--pgs,#2f5187); border:none; border-radius:999px; padding:10px 18px; cursor:pointer; }
   .mm-stop.ck .mm-sbtn .go { background:#4a4470; }
-  .mm-sbtn .ghost { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; text-transform:uppercase; color:#5A6478; background:#fff; border:1px solid #dfe5ee; border-radius:8px; padding:9px 12px; cursor:pointer; }
-  .mm-sbtn .skip { margin-left:auto; font-family:var(--mono); font-size:0.5312rem; color:#8B97AC; background:none; border:none; cursor:pointer; }
+  .mm-sbtn .ghost { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; text-transform:uppercase; color:#5A6478; background:#fff; border:1px solid #dfe5ee; border-radius:999px; padding:10px 14px; cursor:pointer; }
+  .mm-sbtn .skip { margin-left:auto; font-family:var(--mono); font-size:0.5312rem; color:#aab3c2; background:none; border:none; cursor:pointer; }
   .mm-sbtn .skip:hover { color:#5A6478; }
   .mm-shint { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; color:#8a6f2f; margin-top:2px; }
   .mm-sub { font-size:0.75rem; color:#5A6478; line-height:1.5; margin-top:10px; }
   .mm-sub label { display:flex; gap:8px; align-items:baseline; padding:4px 0; border-top:1px dashed #eef1f6; cursor:pointer; }
+  .mm-sub label span { flex:1; min-width:120px; }
   .mm-sub label b { font-family:var(--mono); font-size:0.5rem; color:#8B97AC; margin-left:auto; font-weight:400; white-space:nowrap; }
   .mm-tri { display:flex; gap:3px; flex-wrap:wrap; }
   .mm-tri button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; border:1px solid #dfe5ee; border-radius:999px; padding:5px 9px; color:#8B97AC; background:#fff; cursor:pointer; white-space:nowrap; }
@@ -404,12 +425,14 @@
     .mm-stop.now .mm-sdot { border-color:var(--pgs,#2f5187); color:var(--pgs,#2f5187); box-shadow:0 0 0 4px #e6edf8; }
     .mm-stop.later .mm-st { cursor:pointer; }
     .mm-sgrid.three { grid-template-columns:1fr; }
+    .mm-stop.now .mm-sc { padding:16px 16px 14px; border-radius:14px; }
+    .mm-bigq { font-size:1.125rem; }
+    .mm-sub label { flex-wrap:wrap; } .mm-sub label b { flex:1 0 100%; margin-left:0; padding-left:22px; }
+    .mm-sc textarea { min-height:120px; }
   }
   .mm-stop.later .mm-st { cursor:pointer; }
   .mm-door.wide { grid-column:1 / -1; }
   .mm-knot .mm-nx.sit { color:#4a5260; font-style:italic; }
-  .mm-next.sit { border-color:#d5d9e0; border-left-color:#4a5260; }
-  .mm-next.sit .mm-l { color:#4a5260; } .mm-next.sit .mm-v { color:#4a5260; font-style:italic; }
   .mm-quick { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
   .mm-quick button { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.08em; border:1px dashed #c6cfdd; border-radius:999px; padding:4px 9px; color:#5A6478; background:#fff; cursor:pointer; }
   /* the check layer: ego - reality - values, one tap each */
@@ -476,39 +499,25 @@
   .mm-empty { font-size:0.7812rem; color:#8B97AC; padding:16px 2px; line-height:1.6; }
   /* the knot page */
   #mmPage .pp-pgt { display:inline; }
-  .mm-echo { margin-top:12px; border:1px dashed var(--pgs,#c9d4ec); background:#fff; border-radius:10px; padding:9px 12px; font-size:0.75rem; color:#3a445c; line-height:1.5; }
+  .mm-echo { margin-top:10px; font-size:0.75rem; color:#5A6478; line-height:1.5; }
   .mm-echo b { color:var(--pgs,#41599a); }
-  .mm-next { margin-top:12px; background:#fff; border:1px solid #e6d59a; border-left:4px solid #f4c430; border-radius:10px; padding:10px 12px; cursor:pointer; }
-  .mm-next.none { border-color:#e8c9bf; border-left-color:#b0583f; }
-  .mm-next .mm-l { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.16em; text-transform:uppercase; color:#8a6f2f; }
-  .mm-next.none .mm-l { color:#b0583f; }
-  .mm-next .mm-v { font-family:var(--serif); font-size:1rem; margin-top:2px; color:#28324B; overflow-wrap:anywhere; }
-  .mm-next.none .mm-v { color:#b0583f; font-style:italic; }
-  .mm-next .mm-w { font-family:var(--mono); font-size:0.5625rem; color:#8B97AC; margin-top:3px; }
-  .mm-qa { padding:10px 0; border-bottom:1px solid #eef1f6; }
-  .mm-qa:last-of-type { border-bottom:none; }
-  .mm-qa .mm-q { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--pgs,#41599a); margin-bottom:4px; }
-  .mm-qa .mm-a { font-family:var(--serif); font-size:0.9375rem; line-height:1.55; color:#28324B; white-space:pre-wrap; overflow-wrap:anywhere; }
-  .mm-qa .mm-a.empty { color:#aab3c2; font-style:italic; }
-  .mm-qa textarea { display:none; width:100%; min-height:58px; font-family:var(--serif); font-size:0.9375rem; line-height:1.5; color:#28324B;
-                    border:1px solid #dfe5ee; border-radius:9px; padding:8px 10px; resize:vertical; background:#fff; outline:none; }
-  .mm-qa textarea:focus { border-color:var(--pgs,#41599a); }
-  #mmPage.mm-editing .mm-qa .mm-a { display:none; } #mmPage.mm-editing .mm-qa textarea { display:block; }
-  .mm-split { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  @media (min-width:640px) { .mm-split.three { grid-template-columns:1fr 1fr 1fr; } }
-  .mm-split .mm-h { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#8B97AC; margin-bottom:2px; }
-  .mm-split .mm-a { font-size:0.875rem; }
+  /* the footer: what helped + Settle, one quiet line under the path */
+  .mm-foot { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; padding-top:14px; border-top:1px solid #ece9df; }
+  .mm-fhelp { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
+  .mm-fl { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.12em; text-transform:uppercase; color:#8B97AC; }
   .mm-helped { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .mm-foot .mm-helped { margin-top:0; }
   .mm-helped button { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.08em; border:1px solid #dfe5ee; border-radius:999px; padding:4px 10px; color:#5A6478; background:#fff; cursor:pointer; }
   .mm-helped button.on { border-color:#e6d59a; color:#8a6f2f; background:#fffdf3; }
   .mm-helped button.add { border-style:dashed; }
-  .mm-settle { display:block; width:100%; text-align:center; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.14em; text-transform:uppercase;
-               color:#fff; background:#3f6560; border:none; border-radius:10px; padding:12px; margin-top:16px; cursor:pointer; }
-  .mm-settle.reopen { background:#fff; color:#5A6478; border:1px dashed #c6cfdd; }
+  .mm-settle { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.14em; text-transform:uppercase; white-space:nowrap;
+               color:#3f6560; background:#fff; border:1px solid #c6dbd8; border-radius:999px; padding:8px 14px; cursor:pointer; }
+  .mm-settle:hover { background:#f1f8f7; }
+  .mm-settle.reopen { color:#5A6478; border:1px dashed #c6cfdd; }
+  .mm-kdel { margin-right:auto; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.1em; color:#c9b3a6; background:none; border:none; cursor:pointer; padding:6px 0; }
+  .mm-kdel:hover { color:#8A1F1A; }
   .mm-settled-box { margin-top:14px; border:1px solid #c6dbd8; background:#f1f8f7; border-radius:12px; padding:10px 14px; font-size:0.8125rem; line-height:1.55; }
   .mm-settled-box b { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.14em; text-transform:uppercase; color:#3f6560; display:block; margin-bottom:3px; }
-  .mm-del { border:none; background:none; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.1em; color:#c9b3a6; cursor:pointer; margin-top:30px; }
-  .mm-del:hover { color:#8A1F1A; }
   .mm-pick { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
   .mm-pick button { border:1px solid var(--b); background:var(--w); border-radius:9px; padding:8px 10px; font-size:0.75rem; line-height:1.35; color:#28324B; text-align:left; cursor:pointer; font-family:inherit; }
   .mm-pick button b { display:table; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase;
@@ -2523,19 +2532,16 @@
           <button class="pp-pgpen" id="mmPageHead" type="button" title="Edit title, door, next step">&#9998; Knot</button>
         </div>
       </div>
-      <div class="pp-pgwhy" id="mmPageWhy"></div>
+      <div class="mm-hrow"><div class="pp-pgwhy" id="mmPageWhy"></div><div class="pp-pgm" id="mmPageM"></div></div>
       <div class="pp-pgtw"><span class="pp-pgt" id="mmPageT"></span></div>
-      <div class="pp-pgm" id="mmPageM"></div>
+      <div><button class="mm-nextline hidden" id="mmNext" type="button" title="Change the next step"></button></div>
+      <div class="mm-prog" id="mmProg"></div>
       <div class="mm-echo hidden" id="mmEcho"></div>
-      <div class="mm-next" id="mmNext"></div>
     </div>
     <div class="pp-pgbody">
-      <div class="mm-prog" id="mmProg"></div>
       <div class="mm-flow"><div class="mm-map" id="mmMap"></div><div class="mm-stops" id="mmStops"></div></div>
-      <div class="mm-qa"><div class="mm-q">What helped so far</div><div class="mm-helped" id="mmHelped"></div></div>
       <div id="mmSettledBox"></div>
-      <button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button>
-      <button class="mm-del" id="mmPageDel" type="button">DELETE THIS KNOT</button>
+      <div class="mm-foot"><div class="mm-fhelp"><span class="mm-fl">Helped so far</span><div class="mm-helped" id="mmHelped"></div></div><button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button></div>
     </div>
   </div></div>
 </div>
@@ -2552,6 +2558,7 @@
       <div class="mm-quick" id="mmQuick" style="display:none"></div></div>
     <div class="fld" id="fMmByWrap"><label>By</label><input type="date" id="fMmBy"></div>
     <div class="modal-actions">
+      <button class="mm-kdel hidden" id="mmKnotDel" type="button">DELETE THIS KNOT</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" id="mmKnotCancel" type="button">Cancel</button>
       <button class="btn-primary" id="mmKnotSave" type="button">Open the knot</button>
@@ -6316,6 +6323,7 @@ function openMmKnot_(id) {
   el('fMmNext').value = k ? (k.next_step || '') : '';
   el('fMmBy').value = k ? (k.next_by || '') : '';
   el('mmKnotSave').textContent = k ? 'Save' : 'Open the knot';
+  el('mmKnotDel').classList.toggle('hidden', !k);
   el('mmKnotModal').classList.remove('hidden');
   setTimeout(() => { try { el('fMmTitle').focus(); } catch (e) {} }, 30);
 }
@@ -6379,11 +6387,12 @@ function renderMmPage_() {
     echo.classList.remove('hidden');
   } else echo.classList.add('hidden');
   void others;
+  // D1: the next step is the LAST stop of the path. Once written it shows here as one quiet gold line; empty, nothing
+  // shows (the red nag lives on the index row only). A Loss knot without a step says it is sitting with it, in graphite.
   const nx = el('mmNext');
   const sitting = k.door === 'loss' && (!k.next_step || MM_SIT.test(k.next_step));
-  nx.className = 'mm-next' + (k.next_step ? (sitting ? ' sit' : '') : (sitting ? ' sit' : ' none'));
-  nx.innerHTML = '<div class="mm-l">Next step</div><div class="mm-v">' + (k.next_step ? escHtml(k.next_step) : (sitting ? 'sitting with it \u2014 a step can wait' : settled ? 'settled without a step' : 'no next step yet \u2014 tap to add one')) + '</div>'
-    + '<div class="mm-w">' + (k.next_by ? 'BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + ' · ' : '') + 'tap to change</div>';
+  nx.className = 'mm-nextline' + (sitting ? ' sit' : '') + (k.next_step || (sitting && !settled) ? '' : ' hidden');
+  nx.textContent = k.next_step ? 'NEXT \u00B7 ' + k.next_step + (k.next_by ? ' \u00B7 by ' + mmFmt_(k.next_by) : '') : 'sitting with it \u2014 a step can wait';
   // the path: a map of stops and the one open stop
   renderMmFlow_(k);
   const helped = Array.isArray(k.helped) ? k.helped : [];
@@ -6446,6 +6455,15 @@ function mmSummary_(k, st) {
     return '<div class="mm-snext' + (sitting ? ' sit' : '') + '">' + escHtml(k.next_step || '') + (k.next_by ? '<small>BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + '</small>' : '') + '</div>'; }
   return '';
 }
+function mmCheckQ_(k, st) {
+  const isConf = k.door === 'conf' || k.door2 === 'conf'; const pn = mmPillarName_(k.pillar_id);
+  return st.ck === 'values' && pn ? 'Does my response honour the ' + pn + ' pillar?' : (st.ck === 'ego' && isConf ? 'Am I trying to be right, or to understand?' : st.q);
+}
+// the headline of the open stop: the question itself, as a full sentence
+function mmHeadline_(k, st) {
+  const t = st.kind === 'check' ? mmCheckQ_(k, st) : st.title;
+  return /[.?!…]$/.test(t) ? t : t + '.';
+}
 function mmOpenStop_(k, st) {
   const d = k.desk || {}; let h = '';
   const ta = (key, ph) => '<textarea data-mmf="' + key + '" placeholder="' + escHtml(ph || '') + '">' + escHtml(d[key] || '') + '</textarea>';
@@ -6466,17 +6484,16 @@ function mmOpenStop_(k, st) {
       + '<div class="mm-sgrid"><select data-mmf="who_id"><option value="">\u2014 from My Circle</option>' + circle.map(x => '<option value="' + escHtml(String(x.id)) + '"' + (c && String(c.id) === String(x.id) ? ' selected' : '') + '>' + escHtml(x.name || '') + '</option>').join('') + '</select>'
       + '<input type="text" data-mmf="who_name" placeholder="or a name" value="' + escHtml(c ? '' : (w.name || '')) + '"></div>';
   } else if (st.kind === 'check') {
-    const ck = d.check || {}; const isConf = k.door === 'conf' || k.door2 === 'conf'; const pn = mmPillarName_(k.pillar_id);
-    const q = st.ck === 'values' && pn ? 'Does my response honour the ' + escHtml(pn) + ' pillar?' : (st.ck === 'ego' && isConf ? 'Am I trying to be right, or to understand?' : st.q);
-    h = '<div class="mm-sq big">' + q + '</div><div class="mm-tri">' + MM_CHECK_ANS.map(a => '<button type="button" data-mmck="' + st.ck + ':' + a[0] + '" class="' + (ck[st.ck] === a[0] ? 'on' + (a[0] === 'caught' ? ' win' : '') : '') + '">' + a[1] + '</button>').join('') + '</div>'
-      + (st.sub ? '<div class="mm-sub">' + st.sub.map((sq, i) => '<label><input type="checkbox" data-mmcq="' + st.ck + ':' + i + '"' + ((ck[st.ck + '_q'] || [])[i] ? ' checked' : '') + '> ' + escHtml(sq[0]) + '<b>' + escHtml(sq[1]) + '</b></label>').join('') + '</div>' : '');
+    const ck = d.check || {};
+    h = '<div class="mm-sq">One honest tap.</div><div class="mm-tri">' + MM_CHECK_ANS.map(a => '<button type="button" data-mmck="' + st.ck + ':' + a[0] + '" class="' + (ck[st.ck] === a[0] ? 'on' + (a[0] === 'caught' ? ' win' : '') : '') + '">' + a[1] + '</button>').join('') + '</div>'
+      + (st.sub ? '<div class="mm-sub">' + st.sub.map((sq, i) => '<label><input type="checkbox" data-mmcq="' + st.ck + ':' + i + '"' + ((ck[st.ck + '_q'] || [])[i] ? ' checked' : '') + '> <span>' + escHtml(sq[0]) + '</span><b>' + escHtml(sq[1]) + '</b></label>').join('') + '</div>' : '');
   } else if (st.kind === 'next') {
     const loss = k.door === 'loss' || k.door2 === 'loss';
     h = '<div class="mm-sq">One thing, however small' + (loss ? ' \u2014 or sitting with it' : '') + '.</div>'
       + '<input type="text" data-mmf="next_step" placeholder="the next step" value="' + escHtml(k.next_step || '') + '">'
       + '<div style="height:8px"></div><input type="date" data-mmf="next_by" value="' + escHtml(k.next_by || '') + '">'
       + (loss ? '<div class="mm-quick" style="display:flex">' + MM_LOSS_QUICK.map(t => '<button type="button" data-mmsquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') + '</div>' : '')
-      + '<div class="mm-shint">the one required field</div>';
+      + '<div class="mm-shint">the one field the index asks for</div>';
   }
   return h;
 }
@@ -6491,10 +6508,12 @@ function renderMmFlow_(k) {
   const pg = el('mmPage');
   pg.classList.toggle('mm-page-read', at == null);
   const doneN = stops.filter(st => mmAnswered_(k, st)).length;
-  el('mmProg').innerHTML = '<span>' + (at == null ? doneN + ' OF ' + stops.length + ' ANSWERED' : (idx + 1) + ' OF ' + stops.length) + '</span><i><b style="width:' + Math.round((at == null ? doneN : idx + 1) / stops.length * 100) + '%"></b></i>'
-    + '<span>' + (at == null ? 'THE WHOLE PATH' : (stops[idx].sec === 'check' ? 'THE CHECK \u00B7 ' + stops[idx].title.toUpperCase() : stops[idx].sec === 'then' ? 'THEN' : 'THE DESK')) + '</span>';
-  // the map
   const secName = { desk: 'The desk', desk2: (MM_DOORS[k.door2] || {}).lbl ? MM_DOORS[k.door2].lbl + ' \u00B7 the second door' : 'The second door', check: 'The check', then: 'Then' };
+  const secCaps = st => st.sec === 'check' ? 'THE CHECK \u00B7 ' + st.title.toUpperCase() : secName[st.sec].toUpperCase();
+  // progress: one dash per stop, the answered ones in the door's colour, the open one full
+  el('mmProg').innerHTML = stops.map(st => '<i class="' + (st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : '')) + '"></i>').join('')
+    + '<span>' + (at == null ? doneN + ' OF ' + stops.length + ' ANSWERED \u00B7 THE WHOLE PATH' : (idx + 1) + ' OF ' + stops.length + ' \u00B7 ' + secCaps(stops[idx])) + '</span>';
+  // the map
   let map = '', lastSec = '';
   stops.forEach(st => {
     if (st.sec !== lastSec) { map += '<div class="mm-mh">' + secName[st.sec] + '</div>'; lastSec = st.sec; }
@@ -6510,14 +6529,14 @@ function renderMmFlow_(k) {
     const ck = st.sec === 'check' ? ' ck' : '';
     const title = st.sec === 'check' ? st.title : st.title;
     if (state === 'now') {
-      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st">' + escHtml(title) + '</div>' + mmOpenStop_(k, st)
+      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + ' \u00B7 ' + n + ' OF ' + stops.length + '</div><div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
         + '<div class="mm-sbtn">' + (idx > 0 ? '<button class="ghost" type="button" data-mmnav="back">\u2190 Back</button>' : '')
         + '<button class="go" type="button" data-mmnav="next">' + (idx === stops.length - 1 ? 'Done \u2713' : 'Next \u2192') + '</button>'
         + (idx < stops.length - 1 ? '<button class="skip" type="button" data-mmnav="skip">skip for now</button>' : '') + '</div></div></div>';
     } else if (state === 'done') {
       html += '<div class="mm-stop done' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">\u2713</div><div class="mm-sc"><div class="mm-st">' + escHtml(title) + '</div><div class="mm-sa" data-mmgo="' + st.id + '">' + mmSummary_(k, st) + '</div></div></div>';
     } else {
-      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + escHtml(title) + (st.kind === 'next' ? '<div class="mm-shint">the one required field</div>' : '') + '</div></div></div>';
+      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + escHtml(title) + '</div></div></div>';
     }
   });
   if (at == null && !allDone) html = '<div class="mm-rdhint">' + (settled ? 'Settled. Tap any stop to read or write it.' : 'Tap any stop to open it.') + '</div>' + html;
@@ -6713,7 +6732,7 @@ el('mmHelped').addEventListener('click', e => {
   const b = e.target.closest('[data-mmhelp]'); if (b) mmToggleHelp_(b.dataset.mmhelp);
 });
 el('mmSettleBtn').addEventListener('click', () => { const k = mmById_(mmPageId_); if (!k) return; if (k.status === 'settled') mmReopen_(); else openMmSettle_(); });
-el('mmPageDel').addEventListener('click', () => { if (mmPageId_ != null) mmDelete_(mmPageId_); });
+el('mmKnotDel').addEventListener('click', async () => { const id = mmKnotEditing_; if (id == null) return; closeMmKnot_(); await mmDelete_(id); });
 el('mmOuts').addEventListener('click', e => { const b = e.target.closest('[data-mmout]'); if (!b) return; mmSettleOut_ = b.dataset.mmout; mmPaintSettle_(); });
 el('mmSettleHelped').addEventListener('click', e => {
   const a = e.target.closest('[data-mmshelpadd]');
