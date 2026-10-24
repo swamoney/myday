@@ -511,15 +511,18 @@
   .mm-el { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.14em; text-transform:uppercase; color:#3f6560; }
   .mm-eline { font-family:var(--serif); font-style:italic; font-size:1.125rem; line-height:1.4; color:#1d2536; margin-top:4px; overflow-wrap:anywhere; }
   .mm-eline.none { color:#aab3c2; font-size:0.9375rem; }
-  .mm-ehelp { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.08em; color:#8B97AC; margin-top:8px; }
-  .mm-left { margin-top:12px; font-family:var(--serif); font-style:italic; font-size:0.8125rem; color:#aab3c2; line-height:1.7; }
+  .mm-ehelp { font-family:var(--serif); font-size:0.9375rem; color:#1d2536; margin-top:10px; overflow-wrap:anywhere; }   /* H3: the helped words in serif, a gold label before them */
+  .mm-ehelp span { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; color:#8a6f2f; margin-right:6px; }
+  .mm-left { font-family:var(--serif); font-style:italic; font-size:0.8125rem; color:#aab3c2; line-height:1.7; margin-bottom:14px; }   /* lives in the foot, after the rule */
   .mm-left button { font:inherit; color:#8B97AC; background:none; border:none; border-bottom:1px dashed #c9d2e0; cursor:pointer; padding:0; }
   .mm-left button:hover { color:#28324B; }
-  .mm-fset { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.12em; text-transform:uppercase; color:#8B97AC; }
+  .mm-fset { display:inline-flex; align-items:center; gap:8px; font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#3f6560; }   /* H3: the settled line in green serif with a tick */
+  .mm-fset i { width:18px; height:18px; border-radius:50%; background:#3f6560; color:#fff; font-style:normal; font-size:0.6rem; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
   .mm-echo { margin-top:10px; font-size:0.75rem; color:#5A6478; line-height:1.5; }
   .mm-echo b { color:var(--pgs,#41599a); }
   /* the footer: what helped + Settle, one quiet line under the path */
-  .mm-foot { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; padding-top:14px; border-top:1px solid #ece9df; }
+  .mm-foot { margin-top:22px; padding-top:14px; border-top:1px solid #ece9df; }
+  .mm-frow { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; }
   .mm-fhelp { display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
   .mm-fl { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.12em; text-transform:uppercase; color:#8B97AC; }
   .mm-helped { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
@@ -2556,7 +2559,7 @@
     </div>
     <div class="pp-pgbody">
       <div class="mm-flow"><div class="mm-map" id="mmMap"></div><div class="mm-stops" id="mmStops"></div></div>
-      <div class="mm-foot"><div class="mm-fhelp" id="mmFootHelp"><span class="mm-fl">Helped so far</span><div class="mm-helped" id="mmHelped"></div></div><span class="mm-fset hidden" id="mmFootSet"></span><button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button></div>
+      <div class="mm-foot"><div id="mmLeft"></div><div class="mm-frow"><div class="mm-fhelp" id="mmFootHelp"><span class="mm-fl">Helped so far</span><div class="mm-helped" id="mmHelped"></div></div><span class="mm-fset hidden" id="mmFootSet"></span><button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button></div></div>
     </div>
   </div></div>
 </div>
@@ -6421,12 +6424,12 @@ function renderMmPage_() {
   if (settled) {
     endEl.innerHTML = '<div class="mm-stamp">' + escHtml(outLbl) + '</div><div class="mm-endt"><div class="mm-el">How it ended · ' + escHtml(mmFmt_(k.settled_on)) + '</div>'
       + '<div class="mm-eline' + (k.settled_line ? '' : ' none') + '">' + (k.settled_line ? '\u201C' + escHtml(k.settled_line) + '\u201D' : 'no line for the record') + '</div>'
-      + (helped.length ? '<div class="mm-ehelp">WHAT HELPED \u00B7 ' + escHtml(helped.join(' \u00B7 ')) + '</div>' : '') + '</div>';
+      + (helped.length ? '<div class="mm-ehelp"><span>WHAT HELPED</span>' + escHtml(helped.join(' \u00B7 ')) + '</div>' : '') + '</div>';
     endEl.classList.remove('hidden');
   } else endEl.classList.add('hidden');
   el('mmFootHelp').classList.toggle('hidden', settled);
   const fs = el('mmFootSet'); fs.classList.toggle('hidden', !settled);
-  fs.textContent = settled ? 'Settled \u00B7 ' + outLbl + ' \u00B7 ' + mmFmt_(k.settled_on) : '';
+  fs.innerHTML = settled ? '<i>\u2713</i>Settled \u00B7 ' + escHtml(outLbl) + ' \u00B7 ' + escHtml(mmFmt_(k.settled_on)) : '';
   const btn = el('mmSettleBtn');
   btn.textContent = settled ? 'Reopen this knot' : 'Settle this knot';
   btn.classList.toggle('reopen', settled);
@@ -6565,14 +6568,16 @@ function renderMmFlow_(k) {
       html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + escHtml(title) + '</div></div></div>';
     }
   });
+  let leftHtml = '';
   if (at == null && !allDone) {
-    // the record: the unwritten stops as one quiet line, each a tap away
+    // the record: the unwritten stops as one quiet line in the foot, each a tap away
     const left = stops.filter(st => !mmAnswered_(k, st));
-    html += '<div class="mm-left">' + left.length + (left.length === 1 ? ' stop' : ' stops') + ' left unwritten \u2014 '
+    leftHtml = '<div class="mm-left">' + left.length + (left.length === 1 ? ' stop' : ' stops') + ' left unwritten \u2014 '
       + left.map(st => '<button type="button" data-mmgo="' + st.id + '">' + escHtml(st.kind === 'check' ? st.title + ' (the check)' : st.title) + '</button>').join(' \u00B7 ') + '. Tap one to write it.</div>';
     if (!doneN) html = '<div class="mm-rdhint">' + (settled ? 'Settled without the desk. The path is still here.' : 'Tap any stop to open it.') + '</div>' + html;
   }
   el('mmStops').innerHTML = html;
+  el('mmLeft').innerHTML = leftHtml;
 }
 // Reads the open stop's boxes into a record; saves; moves the cursor.
 function mmCollect_(k) {
@@ -6716,6 +6721,7 @@ el('mmPageBack').addEventListener('click', closeMmPage_);
 el('mmPageHead').addEventListener('click', () => { if (mmPageId_ != null) openMmKnot_(mmPageId_); });
 el('mmNext').addEventListener('click', () => { if (mmPageId_ != null) mmGo_('then:next'); });
 el('mmMap').addEventListener('click', e => { const b = e.target.closest('[data-mmgo]'); if (b) mmGo_(b.dataset.mmgo); });
+el('mmLeft').addEventListener('click', e => { const go = e.target.closest('[data-mmgo]'); if (go && mmPageId_ != null) mmGo_(go.dataset.mmgo); });
 el('mmStops').addEventListener('click', e => {
   const k = mmById_(mmPageId_); if (!k) return;
   const nav = e.target.closest('[data-mmnav]');
