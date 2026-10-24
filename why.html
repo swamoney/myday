@@ -389,7 +389,7 @@
   /* wide: map + the open stop only */
   @media (min-width:720px) {
     .mm-stops .mm-stop.done, .mm-stops .mm-stop.later { display:none; }
-    .mm-page-read .mm-stops .mm-stop.done { display:block; }   /* reading view: every stop folded, no map needed */
+    .mm-page-read .mm-stops .mm-stop.done, .mm-page-read .mm-stops .mm-stop.later { display:block; }   /* reading view: every stop, folded or named, no map */
     .mm-page-read .mm-flow { grid-template-columns:1fr; } .mm-page-read .mm-map { display:none; }
   }
   /* phone: the path, one line of stops */
@@ -6382,7 +6382,7 @@ function renderMmPage_() {
   const nx = el('mmNext');
   const sitting = k.door === 'loss' && (!k.next_step || MM_SIT.test(k.next_step));
   nx.className = 'mm-next' + (k.next_step ? (sitting ? ' sit' : '') : (sitting ? ' sit' : ' none'));
-  nx.innerHTML = '<div class="mm-l">Next step</div><div class="mm-v">' + (k.next_step ? escHtml(k.next_step) : (sitting ? 'sitting with it \u2014 a step can wait' : 'no next step yet \u2014 tap to add one')) + '</div>'
+  nx.innerHTML = '<div class="mm-l">Next step</div><div class="mm-v">' + (k.next_step ? escHtml(k.next_step) : (sitting ? 'sitting with it \u2014 a step can wait' : settled ? 'settled without a step' : 'no next step yet \u2014 tap to add one')) + '</div>'
     + '<div class="mm-w">' + (k.next_by ? 'BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + ' · ' : '') + 'tap to change</div>';
   // the path: a map of stops and the one open stop
   renderMmFlow_(k);
@@ -6520,7 +6520,7 @@ function renderMmFlow_(k) {
       html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + escHtml(title) + (st.kind === 'next' ? '<div class="mm-shint">the one required field</div>' : '') + '</div></div></div>';
     }
   });
-  if (at == null && !settled && !allDone) html = '<div class="mm-rdhint">Tap any stop to open it.</div>' + html;
+  if (at == null && !allDone) html = '<div class="mm-rdhint">' + (settled ? 'Settled. Tap any stop to read or write it.' : 'Tap any stop to open it.') + '</div>' + html;
   el('mmStops').innerHTML = html;
 }
 // Reads the open stop's boxes into a record; saves; moves the cursor.
