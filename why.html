@@ -545,13 +545,36 @@
   @media (max-width:640px) { .mm-aid { grid-template-columns:1fr 1fr; } .mm-at.help { grid-column:1 / -1; } }
   /* R1 (26 Oct 2026): the seven doors run row by row in one column, each a roomier full-width card */
   .mm-doors { display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:18px; }
-  .mm-door { border-radius:16px; padding:20px 24px; border:1px solid var(--b); background:var(--w); display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-align:left; font:inherit; }
+  .mm-door { border-radius:16px; border:1px solid var(--b); background:var(--w); overflow:hidden; transition:box-shadow .2s; }
+  .mm-dh { display:flex; justify-content:space-between; align-items:center; width:100%; padding:20px 24px; border:none; background:none; cursor:pointer; text-align:left; font:inherit; color:inherit; }
+  .mm-dc { display:flex; align-items:center; gap:12px; }
+  .mm-chev { font-size:1.1rem; color:color-mix(in srgb, var(--a) 60%, #fff); width:18px; text-align:center; }
+  /* X1: the opened door */
+  .mm-door.open { background:#fff; box-shadow:0 0 0 2px var(--a), 0 14px 30px rgba(30,47,82,0.10); }
+  .mm-door.open .mm-dh { background:color-mix(in srgb, var(--a) 6%, #fff); }
+  .mm-dbody { padding:6px 18px 14px; border-top:1px solid color-mix(in srgb, var(--a) 15%, #fff); }
+  .mm-dk { display:flex; align-items:center; gap:12px; padding:12px 8px; border-bottom:1px dashed #eef1f6; cursor:pointer; border-radius:10px; }
+  .mm-dk:hover { background:color-mix(in srgb, var(--a) 5%, #fff); }
+  .mm-dk > i { width:12px; height:12px; border-radius:50%; background:var(--a); flex-shrink:0; }
+  .mm-dkt { flex:1; min-width:0; }
+  .mm-dkn { font-family:var(--serif); font-size:1.0625rem; font-weight:600; color:#1d2536; overflow-wrap:anywhere; }
+  .mm-dkx { font-family:var(--mono); font-size:0.5625rem; color:#8a6f2f; margin-top:3px; overflow-wrap:anywhere; }
+  .mm-dkx.none { font-family:var(--serif); font-style:italic; font-size:0.8125rem; color:#b0583f; }
+  .mm-dkx.sit { color:#4a5260; font-style:italic; }
+  .mm-dkd { text-align:right; } .mm-dkd b { display:block; font-family:var(--serif); font-size:1.125rem; line-height:1; color:#1d2536; margin:0; opacity:1; }
+  .mm-dkd small { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.12em; color:#8B97AC; }
+  .mm-dka { font-size:1.4rem; color:color-mix(in srgb, var(--a) 55%, #fff); }
+  .mm-demp { font-family:var(--serif); font-style:italic; color:#8B97AC; padding:12px 8px 0; }
+  .mm-dmore { display:block; margin:8px 8px 0; background:none; border:none; font-family:var(--serif); font-style:italic; font-size:0.8125rem; color:#5A6478; cursor:pointer; padding:0; }
+  .mm-dfoot { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 8px 0; }
+  .mm-dadd { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--a); background:#fff; border:1px dashed color-mix(in srgb, var(--a) 45%, #fff); border-radius:999px; padding:7px 13px; cursor:pointer; }
+  .mm-dseen { background:none; border:none; font-family:var(--serif); font-style:italic; font-size:0.8125rem; color:#8B97AC; cursor:pointer; padding:0; }
   /* D1 (23 Oct 2026): the word in a solid pill of the door's darker shade; the question larger, serif italic, in that shade */
   .mm-door .mm-t { display:inline-block; font-family:var(--mono); font-size:0.6562rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
                    color:#fff; background:color-mix(in srgb, var(--ad,#28324B) 82%, #fff); border-radius:7px; padding:5px 11px; }   /* P3 (26 Oct 2026): softened, a size larger */
   .mm-door .mm-q { font-family:var(--serif); font-style:italic; font-size:1.125rem; font-weight:500; color:#28324B; margin-top:10px; line-height:1.3; }   /* K2: the question in ink */
-  .mm-door b { font-family:var(--serif); font-size:2rem; font-weight:700; color:var(--a); opacity:0.9; margin-left:16px; }
-  .mm-door.sel { box-shadow:0 0 0 3px var(--a); }
+  .mm-dh b { font-family:var(--serif); font-size:2rem; font-weight:700; color:var(--a); opacity:0.9; margin-left:16px; }
+
   /* L3: the record - a timeline on a white sheet */
   .mm-tl { background:#fff; border:1px solid #dfe4ec; border-radius:14px; padding:20px 22px 6px; box-shadow:0 10px 28px rgba(30,47,82,0.07); }
   .mm-tlh { font-family:var(--serif); font-size:1.375rem; font-weight:700; color:#28324B; margin-bottom:14px; }
@@ -585,7 +608,7 @@
   .mm-fx { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; color:#fff; background:var(--a); border:none; border-radius:999px; padding:6px 12px; white-space:nowrap; cursor:pointer; }
   .mm-lderr { display:block; width:100%; margin-bottom:12px; text-align:left; background:#fff; border:1px dashed #e8c9bf; border-radius:12px; padding:14px 16px; font-family:var(--serif); font-size:0.9375rem; color:#8f4f40; cursor:pointer; }
   @media (max-width:560px) { .mm-tl { padding:16px 14px 4px; } .mm-tl .mm-t { font-size:1rem; } .mm-tl .mm-sett .mm-t { font-size:0.9375rem; } .mm-flt { flex-direction:column; align-items:flex-start; } }
-  @media (max-width:420px) { .mm-door { padding:16px 18px; } .mm-door .mm-q { font-size:1rem; } .mm-door b { font-size:1.625rem; } }
+  @media (max-width:420px) { .mm-dh { padding:16px 18px; } .mm-door .mm-q { font-size:1rem; } .mm-dh b { font-size:1.625rem; } .mm-dbody { padding:4px 10px 12px; } .mm-dfoot { flex-direction:column; align-items:flex-start; } }
   .mm-knot { display:flex; align-items:center; gap:12px; padding:12px 14px; margin-bottom:8px; border-radius:14px; border:1px solid var(--b);
              background:linear-gradient(160deg,#fff,var(--w)); box-shadow:0 8px 22px rgba(30,47,82,0.05); cursor:pointer; transition:transform .15s; }
   .mm-knot:hover { transform:translateY(-1px); }
@@ -6482,21 +6505,34 @@ function renderMind() {
     return '<div class="mm-shelf-h"><span class="mm-sq">' + F.h + '</span><span class="mm-sn">' + fo + ' open</span></div><div class="mm-doors">' + F.doors.map((d, i) => {
     const D = MM_DOORS[d], n = open.filter(k => k.door === d || k.door2 === d).length;
     const wide = F.doors.length % 2 === 1 && i === F.doors.length - 1;
-    return '<button class="mm-door ' + D.cls + (mmDoor === d ? ' sel' : '') + (wide ? ' wide' : '') + '" type="button" data-mmdoor="' + d + '">'
-      + '<span><span class="mm-t">' + D.lbl + '</span><div class="mm-q">' + D.q + '</div></span><b>' + n + '</b></button>';
+    // X1 (26 Oct 2026): a door opens in place and shows its own open knots; one door open at a time
+    const isOpen = mmDoor === d;
+    let body = '';
+    if (isOpen) {
+      const mine = open.filter(k => k.door === d || k.door2 === d)
+        .sort((a, b) => String(b.opened_on || '').localeCompare(String(a.opened_on || '')) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
+      const settledHere = done.filter(k => k.door === d || k.door2 === d).length;
+      body = '<div class="mm-dbody">' + (mine.length ? mine.slice(0, 5).map(k => {
+          const days = mmDays_(k.opened_on);
+          return '<div class="mm-dk" data-mmknot="' + escHtml(String(k.id)) + '"><i></i><div class="mm-dkt"><div class="mm-dkn">' + escHtml(k.title || '') + '</div>'
+            + (k.next_step ? '<div class="mm-dkx">NEXT \u00B7 ' + escHtml(k.next_step) + (k.next_by ? ' \u00B7 by ' + escHtml(mmFmt_(k.next_by)) : '') + '</div>'
+                           : (k.door === 'loss' ? '<div class="mm-dkx sit">sitting with it</div>' : '<div class="mm-dkx none">no next step yet</div>'))
+            + '</div><div class="mm-dkd"><b>' + days + '</b><small>' + (days === 1 ? 'DAY' : 'DAYS') + '</small></div><span class="mm-dka">\u203A</span></div>';
+        }).join('') + (mine.length > 5 ? '<button type="button" class="mm-dmore" data-mmseen="1">+ ' + (mine.length - 5) + ' more in the record \u203A</button>' : '')
+        : '<div class="mm-demp">Nothing open here.</div>')
+        + '<div class="mm-dfoot"><button type="button" class="mm-dadd" data-mmaddat="' + d + '">+ Open a knot here</button>'
+        + '<button type="button" class="mm-dseen" data-mmseen="1">' + settledHere + ' settled' + (mine.length ? ' at this door' : '') + ' \u203A</button></div></div>';
+    }
+    return '<div class="mm-door ' + D.cls + (isOpen ? ' open' : '') + (wide ? ' wide' : '') + '"><button class="mm-dh" type="button" data-mmdoor="' + d + '" aria-expanded="' + isOpen + '">'
+      + '<span><span class="mm-t">' + D.lbl + '</span><div class="mm-q">' + D.q + '</div></span><span class="mm-dc"><b>' + n + '</b><span class="mm-chev">' + (isOpen ? '\u2303' : '\u2304') + '</span></span></button>' + body + '</div>';
   }).join('') + '</div>'; }).join('');
-  const shown = open.filter(k => mmDoor === 'all' || k.door === mmDoor || k.door2 === mmDoor)
+  const shown = open.slice()
     .sort((a, b) => String(b.opened_on || '').localeCompare(String(a.opened_on || '')) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
   // L3 (26 Oct 2026): the knots are THE RECORD - a timeline on a white sheet, not more door cards. Open knots lead
   // the line with filled dots; settled ones follow with hollow rings, each with its date, outcome stamp and time taken.
   // A chosen door shows a bar with "Show all" (before, a stray tap emptied both lists with only a thin ring to say why).
-  const fc = el('mmOpenCnt');
-  if (mmDoor !== 'all' && MM_DOORS[mmDoor]) {
-    const M = MM_DOORS[mmDoor], dn = done.filter(k => k.door === mmDoor || k.door2 === mmDoor).length;
-    fc.className = 'mm-flt ' + M.cls;
-    fc.innerHTML = '<span>Showing <b>' + escHtml(M.lbl.toUpperCase()) + '</b> only' + (shown.length || dn ? ' · ' + shown.length + ' open, ' + dn + ' settled' : ' · nothing open at this door, none settled yet') + '</span><button type="button" class="mm-fx" data-mmall="1">Show all ×</button>';
-  } else { fc.className = 'mm-cnt'; fc.innerHTML = ''; }
-  const doneShown = done.filter(k => mmDoor === 'all' || k.door === mmDoor || k.door2 === mmDoor);
+  const fc = el('mmOpenCnt'); fc.className = 'mm-cnt'; fc.innerHTML = '';   // a door tap no longer filters the record (X1)
+  const doneShown = done;
   let html = '';
   if (mmLoadErr_ && !mind.length) html = '<button type="button" class="mm-lderr" data-mmretry="1">Couldn’t load your knots — tap to try again</button>';
   else if (!mind.length) html = '<div class="mm-empty">Nothing on your mind that is written down. When something troubles you, open the door above — sixty seconds, one line.</div>';
@@ -6513,7 +6549,7 @@ function renderMind() {
         + '<em class="mm-days"> · open ' + days + (days === 1 ? ' day' : ' days') + '</em></div>'
         + '</div><button class="mm-x" type="button" data-mmx="' + escHtml(String(k.id)) + '" aria-label="Delete">&times;</button></div>';
     }).join('');
-    if (!shown.length) html += '<div class="mm-empty">Nothing open' + (mmDoor !== 'all' ? ' at this door' : '') + '.</div>';
+    if (!shown.length) html += '<div class="mm-empty">Nothing open.</div>';
     if (doneShown.length) html += '<div class="mm-shelf">SETTLED · ' + doneShown.length + '</div>' + doneShown.map(k => {
       const D = MM_DOORS[k.door] || MM_DOORS.anx, O = MM_OUTS[k.outcome] || MM_OUTS.resolved;
       const took = k.opened_on && k.settled_on ? Math.max(0, Math.round((new Date(k.settled_on) - new Date(k.opened_on)) / 864e5)) : null;
@@ -6990,6 +7026,9 @@ async function mmDelete_(id) {
 /* ---- wiring ---- */
 el('mmAddBtn').addEventListener('click', () => openMmKnot_(null));
 el('mmDoors').addEventListener('click', e => {
+  const kn = e.target.closest('[data-mmknot]'); if (kn) { openMmPage(kn.dataset.mmknot); return; }
+  const ad = e.target.closest('[data-mmaddat]'); if (ad) { openMmKnot_(null); mmPickDoors_ = [ad.dataset.mmaddat]; mmPaintPick_(); return; }
+  if (e.target.closest('[data-mmseen]')) { try { el('mmList').scrollIntoView({ behavior:'smooth', block:'start' }); } catch (x) {} return; }
   const d = e.target.closest('[data-mmdoor]'); if (!d) return;
   mmDoor = mmDoor === d.dataset.mmdoor ? 'all' : d.dataset.mmdoor; renderMind();
 });
