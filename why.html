@@ -530,17 +530,24 @@
   .mm-cnt { font-family:var(--mono); font-size:0.5312rem; font-weight:600; letter-spacing:0.14em; color:#8B97AC; }
   .mm-add { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:#fff;
             background:#1d2d4d; border:none; border-radius:8px; padding:7px 12px; cursor:pointer; }
-  .mm-aid { border:1px solid #e6d59a; background:#fffdf3; border-radius:12px; padding:10px 14px; margin-bottom:12px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
-  .mm-aid b { font-family:var(--serif); font-size:1.25rem; font-weight:600; color:#1d2d4d; }
-  .mm-aid b small { font-size:0.75rem; color:#8a6f2f; }
-  .mm-aid .mm-l { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; text-transform:uppercase; color:#8a6f2f; }
-  .mm-aid .mm-h { font-size:0.75rem; color:#5A6478; margin-left:auto; } .mm-aid .mm-h i { font-style:normal; color:#c89b1a; } .mm-aid .mm-h b { font-size:0.875rem; }
+  /* A1: the evidence card as three tiles */
+  .mm-aid { display:grid; grid-template-columns:1fr 1.3fr 1.4fr; gap:12px; margin-bottom:16px; }
+  .mm-at { background:#fff; border:1px solid #e2e8f2; border-radius:14px; padding:14px 18px; box-shadow:0 6px 18px rgba(30,47,82,0.05); min-width:0; }
+  .mm-at b { display:block; font-family:var(--serif); font-size:2rem; font-weight:700; color:#1d2d4d; line-height:1; }
+  .mm-at b small { font-size:1rem; color:#8B97AC; margin-left:2px; font-weight:600; }
+  .mm-at span { display:block; font-family:var(--serif); font-size:0.9375rem; color:#3a445c; margin-top:6px; }
+  .mm-at em { display:block; font-family:var(--serif); font-style:italic; font-size:0.75rem; color:#8B97AC; margin-top:4px; line-height:1.4; }
+  .mm-at.wait b { color:#8B97AC; }
+  .mm-at.help { background:#fffbea; border-color:#ecd27e; }
+  .mm-at .mm-al { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#8a6f2f; margin:0 0 8px; }
+  .mm-at .mm-fchip { display:inline-block; margin:0 6px 4px 0; font-size:0.875rem; padding:4px 12px; }
+  @media (max-width:640px) { .mm-aid { grid-template-columns:1fr 1fr; } .mm-at.help { grid-column:1 / -1; } }
   /* R1 (26 Oct 2026): the seven doors run row by row in one column, each a roomier full-width card */
   .mm-doors { display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:18px; }
   .mm-door { border-radius:16px; padding:20px 24px; border:1px solid var(--b); background:var(--w); display:flex; justify-content:space-between; align-items:center; cursor:pointer; text-align:left; font:inherit; }
   /* D1 (23 Oct 2026): the word in a solid pill of the door's darker shade; the question larger, serif italic, in that shade */
-  .mm-door .mm-t { display:inline-block; font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
-                   color:#fff; background:var(--ad,#28324B); border-radius:6px; padding:4px 9px; }
+  .mm-door .mm-t { display:inline-block; font-family:var(--mono); font-size:0.6562rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase;
+                   color:#fff; background:color-mix(in srgb, var(--ad,#28324B) 82%, #fff); border-radius:7px; padding:5px 11px; }   /* P3 (26 Oct 2026): softened, a size larger */
   .mm-door .mm-q { font-family:var(--serif); font-style:italic; font-size:1.125rem; font-weight:500; color:#28324B; margin-top:10px; line-height:1.3; }   /* K2: the question in ink */
   .mm-door b { font-family:var(--serif); font-size:2rem; font-weight:700; color:var(--a); opacity:0.9; margin-left:16px; }
   .mm-door.sel { box-shadow:0 0 0 3px var(--a); }
@@ -6459,10 +6466,14 @@ function renderMind() {
   // F1: the first-aid line, once there is evidence
   const ev = mmEvidence_(), evA = mmEvidence_('anx');
   const yr = istToday().slice(0, 4), thisYear = done.filter(k => String(k.settled_on || '').slice(0, 4) === yr).length;
+  // A1 (26 Oct 2026): the evidence as three tiles - settled this year; how many anxieties never happened (shown only once
+  // three are settled: "0 of 1" on a bad night reads as proof the fear was right); what helps most as the gold chips.
+  const evNever = evA.by.never || 0;
   el('mmAid').innerHTML = ev.n ? '<div class="mm-aid">'
-    + (evA.n ? '<div><b>' + (evA.by.never || 0) + '<small> of ' + evA.n + '</small></b><div class="mm-l">' + (evA.n === 1 ? 'anxiety' : 'anxieties') + ' never happened</div></div>' : '')
-    + '<div><b>' + thisYear + '</b><div class="mm-l">settled this year</div></div>'
-    + (ev.top.length ? '<div class="mm-h"><i>★</i> what helps you most: ' + ev.top.map((h, i) => (i ? escHtml(h) : '<b>' + escHtml(h) + '</b>')).join(' · ') + '</div>' : '')
+    + '<div class="mm-at"><b>' + thisYear + '</b><span>settled this year</span></div>'
+    + (evA.n >= 3 ? '<div class="mm-at"><b>' + evNever + '<small>/' + evA.n + '</small></b><span>anxieties that never happened</span></div>'
+                  : '<div class="mm-at wait"><b>' + evA.n + '<small>/3</small></b><span>anxieties settled</span><em>Settle three and this shows how many never came true.</em></div>')
+    + (ev.top.length ? '<div class="mm-at help"><span class="mm-al">What helps you most</span><div>' + ev.top.map(h => '<span class="mm-fchip">' + escHtml(h) + '</span>').join('') + '</div></div>' : '')
     + '</div>' : '';
   // the four doors, open counts
   el('mmDoors').innerHTML = MM_FAMILIES.map(F => {
