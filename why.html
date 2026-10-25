@@ -465,7 +465,7 @@
   .mm-snext.sit { border-color:#d5d9e0; border-left-color:#4a5260; color:#4a5260; font-style:italic; }
   .mm-snext small { display:block; font-family:var(--mono); font-size:0.5312rem; color:#8B97AC; margin-top:3px; font-style:normal; }
   .mm-sgrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; } .mm-sgrid.three { grid-template-columns:1fr 1fr 1fr; }
-  .mm-sgrid .mm-h { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#8B97AC; margin-bottom:3px; }
+  .mm-sgrid .mm-h { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#5A6478; text-transform:uppercase; margin-bottom:4px; }
   .mm-rdhint { font-size:0.75rem; color:#8B97AC; margin:0 0 10px; }
   /* wide: map + the open stop only */
   @media (min-width:720px) {
@@ -573,7 +573,7 @@
   /* your words in your hand: Caveat, pen-ink blue, on ruled lines set to the hand's leading (the decision page's answer box) */
   .mm-hand, .mm-sc textarea, .mm-sc input[type=text], .mm-stop .mm-sa { font-family:var(--hand); font-size:1.25rem; line-height:1.35; color:#1f3d7a; }
   .mm-sc textarea, .mm-sc input[type=text] { background:#fff repeating-linear-gradient(transparent 0 calc(1.35em - 1px), #e6ebf3 calc(1.35em - 1px) 1.35em); background-origin:content-box; background-clip:content-box; background-attachment:local; }
-  .mm-sc textarea::placeholder, .mm-sc input[type=text]::placeholder { font-family:var(--sans); font-size:0.75rem; color:#9aa5b8; }
+  .mm-sc textarea::placeholder, .mm-sc input[type=text]::placeholder { font-family:var(--hand); font-size:1.25rem; color:#b7c0ce; opacity:1; }   /* Q1: the example, in grey hand - shown until you type, never saved */
   /* K1: the record is a grid of CARDS, two across - a numbered serif question, the answer in hand; unwritten ones dashed */
   .mm-page-read .mm-flow { grid-template-columns:1fr; } .mm-page-read .mm-map { display:none; }
   .mm-page-read .mm-stops { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; }
@@ -6290,38 +6290,47 @@ function mmOutsFor_(k) {
   return seen;
 }
 // The desks. kind 'line' = one answer; 'split' = two or three side by side.
+// Q1 (25 Oct 2026): every desk point is a plain question (ask) with a why-line and a grey example placeholder (never saved);
+// q is the short name used on the map and in the record. Keys are unchanged, so every answer already written stays put.
 const MM_DESK = {
-  anx: [ { k:'fear',   q:'The fear, in one line' },
-         { k:'fact',   q:'The fact underneath it' },
-         { q:'Worst · likely · best', split:[['worst','WORST'],['likely','LIKELY'],['best','BEST']] },
-         { q:'What I control · what I don’t', split:[['control','CONTROL'],['dont','DON’T']] },
-         { k:'instead', q:'Instead of checking, I will' } ],
-  ins: [ { k:'compare', q:'The comparison, named' },
-         { q:'Evidence for · evidence against', split:[['evfor','FOR'],['evagainst','AGAINST']] },
-         { k:'friend', q:'What I would tell a friend who said this' },
-         { k:'step',   q:'One competence step, small and learnable' },
-         { k:'keep',   q:'One line to keep' } ],
-  obs: [ { k:'barrier', q:'The barrier, precisely' },
-         { k:'routes',  q:'Four routes: remove it · go around it · wait it out · change the goal' },
-         { k:'help',    q:'Who can help, what it costs' },
-         { k:'route',   q:'The route chosen, and its first step' } ],
-  cha: [ { k:'goal',  q:'The thing to accomplish, in one line' },
-         { k:'skill', q:'The skill or habit it needs' },
-         { k:'steps', q:'Three to five steps' },
-         { k:'first', q:'The first small step' } ],
-  loss:[ { k:'lost',     q:'What was lost, named plainly' },
-         { k:'remains',  q:'What remains' },
-         { k:'recovery', q:'What recovery looks like in a year' },
-         { k:'notrush',  q:'What I will not rush' },
-         { k:'tell',     q:'Who I will tell' } ],
-  over:[ { loads:true, q:'Everything on me right now \u00B7 a verb per line' },
-         { k:'stop',  q:'What I will stop doing, from today' },
-         { k:'one',   q:'The one thing for tomorrow' } ],
-  conf:[ { who:true, q:'Who' },
-         { k:'they',  q:'What they want, in their words, fairly' },
-         { k:'need',  q:'What I actually want \u2014 the need under the position' },
-         { q:'Negotiable \u00B7 not negotiable', split:[['nego','NEGOTIABLE'],['not','NOT']] },
-         { k:'talk',  q:'The conversation to have, and when' } ]
+  anx: [
+    { k:"fear", q:"The fear", ask:"What exactly am I afraid will happen?", why:"One sentence. A named fear is a smaller fear.", ex:"That the market keeps falling and I panic-sell at the bottom." },
+    { k:"fact", q:"The facts", ask:"What do I actually know for sure, right now?", why:"Only what you could show someone. No guesses.", ex:"Nifty is 5% off its high. My plan says rebalance at 10%." },
+    { q:"Worst · likely · best", ask:"Honestly, how could this go?", why:"The likely one is the one fear skips.", split:[["worst","Worst case","Down 30%; two years to recover."],["likely","Most likely","An 8–12% dip, back within a year."],["best","Best case","Back at the high by March."]] },
+    { q:"Mine · not mine", ask:"What part of this is in my hands — and what isn’t?", why:"Put your energy only on the first list.", split:[["control","In my hands","How often I open the app. The SIP."],["dont","Not in my hands","What the market does next."]] },
+    { k:"instead", q:"Instead", ask:"When the worry pulls at me, what will I do instead?", why:"One small action to replace checking or replaying.", ex:"Open the portfolio only on the 1st. Walk after market close." } ],
+  ins: [
+    { k:"compare", q:"The comparison", ask:"Who am I comparing myself to — and on what?", why:"One person, one measure. Be specific.", ex:"R's practice — his AUM is twice mine." },
+    { q:"Both sides", ask:"Is it really true that I’m behind?", why:"Write both sides, like a fair judge would.", split:[["evfor","What says yes","His AUM."],["evagainst","What says no","My margin. My client retention."]] },
+    { k:"friend", q:"To a friend", ask:"If a friend said this about themselves, what would I tell them?", why:"We are kinder — and truer — to friends than to ourselves.", ex:"AUM isn't the scoreboard you chose." },
+    { k:"step", q:"One step", ask:"What is one small thing I could learn or do this month?", why:"Something real and learnable — not “be better”.", ex:"Sit in on one of his client reviews." },
+    { k:"keep", q:"The line", ask:"What one sentence do I want to remember from this?", why:"The line you would say to yourself next time.", ex:"Twice the AUM, half the margin." } ],
+  obs: [
+    { k:"barrier", q:"The block", ask:"What exactly is in the way?", why:"As specific as a receipt.", ex:"The ₹1.2L course fee isn't in this year's budget." },
+    { k:"routes", q:"Ways through", ask:"How could I get past it?", why:"Try each: remove it · go around it · wait it out · change the goal.", ex:"Remove: ask for instalments. Around: a cheaper module first. Wait: next year. Change: self-study." },
+    { k:"help", q:"Who can help", ask:"Who could help — and what would it cost me?", why:"Cost can be money, time or a favour.", ex:"The institute's counsellor — one phone call." },
+    { k:"route", q:"My way", ask:"Which way will I take, and what is its first step?", why:"Choose one. The others can wait.", ex:"Instalments. Email the institute tomorrow morning." } ],
+  cha: [
+    { k:"goal", q:"The goal", ask:"What exactly do I want to accomplish?", why:"So clear you would know the day it is done.", ex:"Run 10 km by March without the knee flaring." },
+    { k:"skill", q:"What it needs", ask:"What skill or habit will this need from me?", why:"The thing you would have to practise.", ex:"Running three times a week, at an easy pace." },
+    { k:"steps", q:"The steps", ask:"What are the 3 to 5 steps from here to there?", why:"Rough is fine. You can change them later.", ex:"1. 3 km easy ×3 a week. 2. Add 1 km a fortnight. 3. Physio check in Dec. 4. 10 km in March." },
+    { k:"first", q:"First step", ask:"What is the smallest first step I can take this week?", why:"Small enough that you cannot say no to it.", ex:"Buy proper shoes; run 3 km on Saturday." } ],
+  loss: [
+    { k:"lost", q:"What was lost", ask:"What did I lose? Say it plainly.", why:"No softening. Naming it is where it starts.", ex:"Four years of building something with R. The Friday calls." },
+    { k:"remains", q:"What remains", ask:"What do I still have?", why:"People, skills, things — what is still yours.", ex:"The clients who came for me. The frameworks." },
+    { k:"recovery", q:"A year from now", ask:"What would “better” look like a year from now?", why:"Not “over it” — just better.", ex:"The practice at the old revenue, and a Friday call I don't dread." },
+    { k:"notrush", q:"Not rushing", ask:"What will I not rush into while this is fresh?", why:"Big decisions can wait.", ex:"Replacing R." },
+    { k:"tell", q:"Who to tell", ask:"Who will I tell, or lean on?", why:"One name is enough.", ex:"S, tonight." } ],
+  over: [
+    { loads:true, q:"Everything on me", ask:"What is on my plate right now?", why:"One line each, then tap what to do with it: keep · delegate · defer · drop." },
+    { k:"stop", q:"Stop", ask:"What will I stop doing, starting today?", why:"One habit or task that is costing more than it gives.", ex:"Reading every SEBI circular the day it lands." },
+    { k:"one", q:"Tomorrow’s one", ask:"If I do only one thing tomorrow, what is it?", why:"Just one. The rest can wait a day.", ex:"Hand the GST filing to the CA." } ],
+  conf: [
+    { who:true, q:"Who", ask:"Who is this with?", why:"From My Circle, or a name." },
+    { k:"they", q:"Their side", ask:"What do they want — said fairly, the way they would say it?", why:"If they read it, they would nod.", ex:"To be near her parents while they can still travel." },
+    { k:"need", q:"My real need", ask:"What do I actually need, underneath what I am asking for?", why:"The reason behind your position, not the position.", ex:"To keep the Tuesday clients and my morning run." },
+    { q:"Flexible · fixed", ask:"What could I give on — and what can’t I?", why:"Knowing your fixed points makes it easier to give on the rest.", split:[["nego","I can give on","The area. The timing."],["not","I can't give on","The practice stays in Pune."]] },
+    { k:"talk", q:"The talk", ask:"What conversation will I have, and when?", why:"Where, when, and how you will open it.", ex:"Sunday after lunch. I open with her reason, not mine." } ]
 };
 const MM_HELP_SEED = ['a walk', 'sleep on it', 'wrote it out', 'ran the numbers', 'spoke to someone', 'a mantra', 'time'];
 let mind = [], mmDoor = 'all', mmPageId_ = null, mmKnotEditing_ = null, mmPickDoors_ = [], mmSettleOut_ = null, mmSettleHelped_ = [], mmOpen_ = null;
@@ -6565,10 +6574,11 @@ function mmStops_(k) {
   const out = [];
   const deskRows = (door, pfx, sec) => (MM_DESK[door] || MM_DESK.anx).forEach((row, i) => {
     const id = sec + ':' + i;
-    if (row.loads) out.push({ id, sec, kind:'loads', title: row.q });
-    else if (row.who) out.push({ id, sec, kind:'who', title: row.q });
-    else if (row.split) out.push({ id, sec, kind:'split', title: row.q, keys: row.split.map(sp => [pfx + sp[0], sp[1]]) });
-    else out.push({ id, sec, kind:'line', title: row.q, key: pfx + row.k });
+    const t = { id, sec, title: row.q, ask: row.ask || row.q, why: row.why || '' };
+    if (row.loads) out.push(Object.assign(t, { kind:'loads' }));
+    else if (row.who) out.push(Object.assign(t, { kind:'who' }));
+    else if (row.split) out.push(Object.assign(t, { kind:'split', keys: row.split.map(sp => [pfx + sp[0], sp[1], sp[2] || '']) }));
+    else out.push(Object.assign(t, { kind:'line', key: pfx + row.k, ex: row.ex || '' }));
   });
   deskRows(k.door, '', 'desk');
   if (k.door2 && MM_DESK[k.door2]) deskRows(k.door2, k.door2 + '_', 'desk2');
@@ -6616,7 +6626,7 @@ function mmCheckQ_(k, st) {
 }
 // the headline of the open stop: the question itself, as a full sentence
 function mmHeadline_(k, st) {
-  const t = st.kind === 'check' ? mmCheckQ_(k, st) : st.title;
+  const t = st.kind === 'check' ? mmCheckQ_(k, st) : (st.ask || st.title);
   return /[.?!…]$/.test(t) ? t : t + '.';
 }
 function mmCkSigns_(k, key) {
@@ -6629,12 +6639,12 @@ function mmCkSigns_(k, key) {
 function mmOpenStop_(k, st) {
   const d = k.desk || {}; let h = '';
   const ta = (key, ph) => '<textarea data-mmf="' + key + '" placeholder="' + escHtml(ph || '') + '">' + escHtml(d[key] || '') + '</textarea>';
-  if (st.kind === 'line') h = '<div class="mm-sq">In your own words.</div>' + ta(st.key);
-  else if (st.kind === 'split') h = '<div class="mm-sq">' + (st.keys.length === 3 ? 'Three lines. The likely one honest.' : 'Two lists, short.') + '</div><div class="mm-sgrid' + (st.keys.length === 3 ? ' three' : '') + '">'
-    + st.keys.map(x => '<div><div class="mm-h">' + x[1] + '</div>' + ta(x[0]) + '</div>').join('') + '</div>';
+  if (st.kind === 'line') h = '<div class="mm-sq">' + escHtml(st.why || 'In your own words.') + '</div>' + ta(st.key, st.ex);
+  else if (st.kind === 'split') h = '<div class="mm-sq">' + escHtml(st.why || '') + '</div><div class="mm-sgrid' + (st.keys.length === 3 ? ' three' : '') + '">'
+    + st.keys.map(x => '<div><div class="mm-h">' + escHtml(x[1]) + '</div>' + ta(x[0], x[2]) + '</div>').join('') + '</div>';
   else if (st.kind === 'loads') {
     const loads = Array.isArray(d.loads) ? d.loads : []; const sum = {}; loads.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
-    h = '<div class="mm-sq">One line per load, then a verb for each.</div>' + loads.map((l, i) => '<div class="mm-lr"><span class="mm-lt' + ((l.v || 'keep') !== 'keep' ? ' dim' : '') + '">' + escHtml(l.t || '') + '</span>'
+    h = '<div class="mm-sq">' + escHtml(st.why || 'One line per load, then a verb for each.') + '</div>' + loads.map((l, i) => '<div class="mm-lr"><span class="mm-lt' + ((l.v || 'keep') !== 'keep' ? ' dim' : '') + '">' + escHtml(l.t || '') + '</span>'
         + '<span class="mm-lc">' + Object.keys(MM_LOAD_VERBS).map(v => '<button type="button" data-mmlv="' + i + ':' + v + '" class="' + ((l.v || 'keep') === v ? 'on' : '') + '" style="--c:' + MM_LOAD_VERBS[v][1] + '">' + MM_LOAD_VERBS[v][0] + '</button>').join('') + '</span>'
         + '<button class="mm-lx" type="button" data-mmlx="' + i + '" aria-label="Remove" style="display:inline-block">&times;</button></div>').join('')
       + (loads.length ? '<div class="mm-lsum">' + Object.keys(MM_LOAD_VERBS).map(v => '<span><b>' + (sum[v] || 0) + '</b> ' + MM_LOAD_VERBS[v][0] + '</span>').join('') + '</div>' : '')
@@ -6642,7 +6652,7 @@ function mmOpenStop_(k, st) {
                                     : '<div class="mm-lcap">Twelve is the cap \u2014 a list longer than that is itself a load.</div>');
   } else if (st.kind === 'who') {
     const w = d.who || {}; const c = w.id ? circle.find(x => String(x.id) === String(w.id)) : null;
-    h = '<div class="mm-sq">From My Circle, or a name.</div>' + (mmWhoLabel_(k) ? mmWhoLabel_(k) + '<div style="height:8px"></div>' : '')
+    h = '<div class="mm-sq">' + escHtml(st.why || 'From My Circle, or a name.') + '</div>' + (mmWhoLabel_(k) ? mmWhoLabel_(k) + '<div style="height:8px"></div>' : '')
       + '<div class="mm-sgrid"><select data-mmf="who_id"><option value="">\u2014 from My Circle</option>' + circle.map(x => '<option value="' + escHtml(String(x.id)) + '"' + (c && String(c.id) === String(x.id) ? ' selected' : '') + '>' + escHtml(x.name || '') + '</option>').join('') + '</select>'
       + '<input type="text" data-mmf="who_name" placeholder="or a name" value="' + escHtml(c ? '' : (w.name || '')) + '"></div>';
   } else if (st.kind === 'check') {
@@ -6712,7 +6722,7 @@ function renderMmFlow_(k) {
     const ck = st.sec === 'check' ? ' ck' : '';
     const title = st.sec === 'check' ? st.title : st.title;
     if (state === 'now') {
-      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + ' \u00B7 ' + n + ' OF ' + stops.length + '</div><div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
+      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + (st.sec === 'desk' || st.sec === 'desk2' ? ' \u00B7 ' + escHtml(st.title.toUpperCase()) : '') + ' \u00B7 ' + n + ' OF ' + stops.length + '</div><div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
         + '<div class="mm-sbtn">' + (idx > 0 ? '<button class="ghost" type="button" data-mmnav="back">\u2190 Back</button>' : '')
         + '<button class="go" type="button" data-mmnav="next">' + (idx === stops.length - 1 ? 'Done \u2713' : 'Next \u2192') + '</button>'
         + (idx < stops.length - 1 ? '<button class="skip" type="button" data-mmnav="skip">skip for now</button>' : '') + '</div></div></div>';
