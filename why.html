@@ -433,6 +433,31 @@
   .mm-tri button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; border:1px solid #dfe5ee; border-radius:999px; padding:5px 9px; color:#8B97AC; background:#fff; cursor:pointer; white-space:nowrap; }
   .mm-tri button.on { background:#4a4470; color:#fff; border-color:#4a4470; }
   .mm-tri button.on.win { background:#3f6560; border-color:#3f6560; }
+  /* E1: the check's answer cards and the ego signs */
+  .mm-verd { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .mm-verd button { text-align:left; border:1px solid #dfe5ee; background:#fff; border-radius:12px; padding:10px 12px; font:inherit; cursor:pointer; }
+  .mm-verd button:hover { border-color:#b9b3d1; }
+  .mm-verd b { display:block; font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#28324B; }
+  .mm-verd small { display:block; font-size:0.6875rem; color:#8B97AC; margin-top:2px; line-height:1.35; }
+  .mm-verd button.on { border-color:#4a4470; box-shadow:0 0 0 2px #4a4470 inset; background:#f6f5fa; }
+  .mm-nudge { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; color:#8B97AC; margin-top:6px; }
+  .mm-help { margin-top:14px; border-top:1px dashed #e6eaf1; padding-top:10px; }
+  .mm-hh { font-family:var(--mono); font-size:0.5312rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#5A6478; margin-bottom:8px; }
+  .mm-sg { display:inline-block; font-family:var(--serif); font-size:0.875rem; color:#28324B; border:1px solid #dfe5ee; background:#fff; border-radius:999px; padding:6px 12px; margin:0 6px 6px 0; cursor:pointer; text-align:left; }
+  .mm-sg.on { background:#4a4470; border-color:#4a4470; color:#fff; }
+  .mm-sg.none { border-style:dashed; color:#5A6478; } .mm-sg.none.on { border-style:solid; background:#2f6146; border-color:#2f6146; color:#fff; }
+  .mm-ckv { font-family:var(--hand); font-size:1.3125rem; line-height:1.25; color:#1f3d7a; }
+  .mm-ckv.caught { color:#2f6146; } .mm-ckv.unsure { color:#8a6f2f; }
+  .mm-ckv.un { font-family:var(--serif); font-style:italic; font-size:0.875rem; color:#c2c8d2; }
+  .mm-cks { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.06em; color:#8B97AC; margin-left:10px; }
+  /* R2: the record's one check card */
+  .mm-page-read .mm-ckcard { grid-column:1 / -1; }
+  .mm-page-read .mm-ckcard .mm-sc { padding:4px 14px; }
+  .mm-ckrow { display:grid; grid-template-columns:90px auto 1fr; gap:14px; align-items:baseline; padding:8px 0; border-top:1px dashed #eef1f6; cursor:pointer; }
+  .mm-ckrow:first-child { border-top:none; }
+  .mm-ckrow .mm-cks { margin-left:0; }
+  .mm-cn { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#28324B; }
+  @media (max-width:640px) { .mm-verd { grid-template-columns:1fr; } .mm-ckrow { grid-template-columns:1fr; gap:2px; } }
   .mm-ckans { display:inline-block; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.06em; border:1px solid #dfe5ee; border-radius:999px; padding:2px 8px; color:#5A6478; margin-top:4px; }
   .mm-ckans.win { background:#3f6560; color:#fff; border-color:#3f6560; }
   .mm-ckans.on { background:#4a4470; color:#fff; border-color:#4a4470; }
@@ -6220,14 +6245,27 @@ const MM_SIT = /^sit with it/i;
 const MM_LOSS_QUICK = ['Sit with it until \u2026', 'Tell one person', 'No step yet, and that\u2019s fine'];
 // The check layer: three rows, one tap each; ego's five prompts unfold beneath.
 const MM_CHECK = [
-  { k:'ego',     lbl:'Ego',     q:'Am I defending my pride, or seeing it straight?',
-    sub:[['Am I trying to be right rather than understand what is true?','truth vs pride'],['Am I reacting because my image or reputation feels threatened?','image vs reality'],
-         ['Can I take valid criticism without immediately defending myself?','learning vs defensiveness'],['Am I making this decision to impress others?','values vs approval'],
-         ['Can I admit a mistake, apologise, or ask for help?','humility vs pride']] },
+  { k:'ego',     lbl:'Ego',     q:'Am I defending my pride, or seeing it straight?', signs:true },
   { k:'reality', lbl:'Reality', q:'Are these the facts, or the story I\u2019m telling?' },
   { k:'values',  lbl:'Values',  q:'Does my response honour what matters to me?' }
 ];
 const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught myself']];
+// E1 (25 Oct 2026): each check answers in sentences - keys stay clear / unsure / caught, the words are per check.
+const MM_CHECK_V = {
+  ego:     { clear:['Seeing it straight','no pride in this one'], unsure:['Not sure','let me look closer'], caught:['Caught it in me','pride is in this \u2014 I see it'] },
+  reality: { clear:['These are the facts','I could show someone the evidence'], unsure:['Not sure','some of it may be story'], caught:['Caught a story','I was filling gaps with fear'] },
+  values:  { clear:['It honours what matters','this is who I want to be'], unsure:['Not sure','part of it pulls the other way'], caught:['Caught myself drifting','this is not my pillar talking'] }
+};
+// The ego signs: every one points the same way - a sentence about me that is either in it or not. [what the card says, what the record keeps]
+const MM_EGO_SIGNS = [
+  ['I want to be right more than I want to understand', 'wanting to be right'],
+  ['My image or reputation feels threatened', 'image threatened'],
+  ['I am defending before I have listened', 'defending before listening'],
+  ['I am choosing this to impress someone', 'choosing to impress'],
+  ['I can\u2019t bring myself to admit it, or ask', 'can\u2019t admit or ask']
+];
+function mmCkWord_(key, val) { return ((MM_CHECK_V[key] || {})[val] || [])[0] || ''; }
+function mmEgoSignsShown_(k) { const conf = k.door === 'conf' || k.door2 === 'conf'; return MM_EGO_SIGNS.map((x, i) => i).filter(i => !(conf && i === 0)); }   // on a conflict the headline already asks sign 0
 const MM_OUTS = {
   never:    { lbl:'Never happened', cls:'never' },
   resolved: { lbl:'Resolved',       cls:'' },
@@ -6534,7 +6572,7 @@ function mmStops_(k) {
   });
   deskRows(k.door, '', 'desk');
   if (k.door2 && MM_DESK[k.door2]) deskRows(k.door2, k.door2 + '_', 'desk2');
-  MM_CHECK.forEach(C => out.push({ id: 'check:' + C.k, sec:'check', kind:'check', ck: C.k, title: C.lbl, q: C.q, sub: C.sub || null }));
+  MM_CHECK.forEach(C => out.push({ id: 'check:' + C.k, sec:'check', kind:'check', ck: C.k, title: C.lbl, q: C.q, signs: !!C.signs }));
   out.push({ id:'then:next', sec:'then', kind:'next', title:'The next step' });
   return out;
 }
@@ -6567,7 +6605,7 @@ function mmSummary_(k, st) {
   if (st.kind === 'loads') { const L = d.loads || []; const sum = {}; L.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
     return L.length + (L.length === 1 ? ' load' : ' loads') + ' \u00B7 ' + Object.keys(MM_LOAD_VERBS).filter(v => sum[v]).map(v => sum[v] + ' ' + MM_LOAD_VERBS[v][0].toLowerCase()).join(', '); }
   if (st.kind === 'who') return mmWhoLabel_(k);
-  if (st.kind === 'check') { const a = d.check && d.check[st.ck]; const A = MM_CHECK_ANS.find(x => x[0] === a); return A ? '<span class="mm-ckans ' + (a === 'caught' ? 'win' : 'on') + '">' + A[1] + '</span>' : ''; }
+  if (st.kind === 'check') { const a = d.check && d.check[st.ck]; return a ? '<span class="mm-ckv ' + a + '">' + escHtml(mmCkWord_(st.ck, a)) + '</span>' + mmCkSigns_(k, st.ck) : ''; }
   if (st.kind === 'next') { const sitting = k.door === 'loss' && MM_SIT.test(k.next_step || '');
     return '<div class="mm-snext' + (sitting ? ' sit' : '') + '">' + escHtml(k.next_step || '') + (k.next_by ? '<small>BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + '</small>' : '') + '</div>'; }
   return '';
@@ -6580,6 +6618,13 @@ function mmCheckQ_(k, st) {
 function mmHeadline_(k, st) {
   const t = st.kind === 'check' ? mmCheckQ_(k, st) : st.title;
   return /[.?!…]$/.test(t) ? t : t + '.';
+}
+function mmCkSigns_(k, key) {
+  if (key !== 'ego') return '';
+  const ck = (k.desk && k.desk.check) || {};
+  if (ck.ego_none) return '<span class="mm-cks">none of the signs</span>';
+  const on = Array.isArray(ck.ego_signs) ? ck.ego_signs : [];
+  return on.length ? '<span class="mm-cks">' + on.map(i => escHtml((MM_EGO_SIGNS[i] || [])[1] || '')).join(' \u00B7 ') + '</span>' : '';
 }
 function mmOpenStop_(k, st) {
   const d = k.desk || {}; let h = '';
@@ -6601,9 +6646,17 @@ function mmOpenStop_(k, st) {
       + '<div class="mm-sgrid"><select data-mmf="who_id"><option value="">\u2014 from My Circle</option>' + circle.map(x => '<option value="' + escHtml(String(x.id)) + '"' + (c && String(c.id) === String(x.id) ? ' selected' : '') + '>' + escHtml(x.name || '') + '</option>').join('') + '</select>'
       + '<input type="text" data-mmf="who_name" placeholder="or a name" value="' + escHtml(c ? '' : (w.name || '')) + '"></div>';
   } else if (st.kind === 'check') {
-    const ck = d.check || {};
-    h = '<div class="mm-sq">One honest tap.</div><div class="mm-tri">' + MM_CHECK_ANS.map(a => '<button type="button" data-mmck="' + st.ck + ':' + a[0] + '" class="' + (ck[st.ck] === a[0] ? 'on' + (a[0] === 'caught' ? ' win' : '') : '') + '">' + a[1] + '</button>').join('') + '</div>'
-      + (st.sub ? '<div class="mm-sub">' + st.sub.map((sq, i) => '<label><input type="checkbox" data-mmcq="' + st.ck + ':' + i + '"' + ((ck[st.ck + '_q'] || [])[i] ? ' checked' : '') + '> <span>' + escHtml(sq[0]) + '</span><b>' + escHtml(sq[1]) + '</b></label>').join('') + '</div>' : '');
+    // E1: three answer cards (one tap answers it); on Ego the signs beneath, which nudge the answer but never lock it
+    const ck = d.check || {}, V = MM_CHECK_V[st.ck] || MM_CHECK_V.ego;
+    h = '<div class="mm-sq">' + (st.signs ? 'Tap what is true. None is an answer too.' : 'Tap what is true.') + '</div>'
+      + '<div class="mm-verd">' + ['clear','unsure','caught'].map(v => '<button type="button" data-mmck="' + st.ck + ':' + v + '" class="' + (ck[st.ck] === v ? 'on' : '') + '"><b>' + escHtml(V[v][0]) + '</b><small>' + escHtml(V[v][1]) + '</small></button>').join('') + '</div>'
+      + (ck[st.ck + '_by'] === 'signs' && ck[st.ck] ? '<div class="mm-nudge">\u2191 set by the signs you tapped \u2014 change it if it isn\u2019t right</div>' : '');
+    if (st.signs) {
+      const on = Array.isArray(ck.ego_signs) ? ck.ego_signs : [];
+      h += '<div class="mm-help"><div class="mm-hh">Help me look</div>'
+        + mmEgoSignsShown_(k).map(i => '<button type="button" class="mm-sg' + (on.includes(i) ? ' on' : '') + '" data-mmsign="' + i + '">' + escHtml(MM_EGO_SIGNS[i][0]) + '</button>').join('')
+        + '<button type="button" class="mm-sg none' + (ck.ego_none ? ' on' : '') + '" data-mmsign="none">None of these</button></div>';
+    }
   } else if (st.kind === 'next') {
     const loss = k.door === 'loss' || k.door2 === 'loss';
     h = '<div class="mm-sq">One thing, however small' + (loss ? ' \u2014 or sitting with it' : '') + '.</div>'
@@ -6644,6 +6697,17 @@ function renderMmFlow_(k) {
   stops.forEach(st => {
     n++;
     if (rec && st.sec !== lastS) { html += '<div class="mm-lsec">' + escHtml(secName[st.sec]) + '</div>'; lastS = st.sec; }
+    if (rec && st.sec === 'check') {
+      // R2: the record folds the three checks into one card, a row each - the answer in hand, the signs beside it
+      if (st.ck !== MM_CHECK[0].k) return;
+      const cks = stops.filter(x => x.sec === 'check');
+      html += '<div class="mm-stop mm-ckcard ck' + (cks.some(x => mmAnswered_(k, x)) ? ' done' : ' later') + '" data-mmstop="check"><div class="mm-sc">'
+        + cks.map(x => { const a = k.desk && k.desk.check && k.desk.check[x.ck];
+            return '<div class="mm-ckrow" data-mmgo="' + x.id + '"><span class="mm-cn">' + escHtml(x.title) + '</span>'
+              + (a ? '<span class="mm-ckv ' + a + '">' + escHtml(mmCkWord_(x.ck, a)) + '</span>' + mmCkSigns_(k, x.ck) : '<span class="mm-ckv un">left unchecked</span>') + '</div>'; }).join('')
+        + '</div></div>';
+      return;
+    }
     const state = st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : 'later');
     const ck = st.sec === 'check' ? ' ck' : '';
     const title = st.sec === 'check' ? st.title : st.title;
@@ -6708,6 +6772,25 @@ async function mmSetCheck_(key, val) {
   const k = mmById_(mmPageId_); if (!k) return;
   const desk = Object.assign({}, k.desk || {}); const ck = Object.assign({}, desk.check || {});
   if (val === null) delete ck[key]; else ck[key] = val;
+  delete ck[key + '_by'];   // a tap on an answer card is yours, not the signs'
+  desk.check = ck;
+  const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  k.desk = desk; renderMmPage_();
+}
+// E1: a sign tapped moves Ego to "caught"; "none of these" moves it to "clear"; both clear each other. A nudge, never a lock.
+async function mmTapSign_(which) {
+  const k = mmById_(mmPageId_); if (!k) return;
+  const desk = Object.assign({}, k.desk || {}); const ck = Object.assign({}, desk.check || {});
+  let on = Array.isArray(ck.ego_signs) ? ck.ego_signs.slice() : [];
+  if (which === 'none') { ck.ego_none = !ck.ego_none; if (ck.ego_none) on = []; }
+  else { const i = Number(which); on = on.includes(i) ? on.filter(x => x !== i) : on.concat(i).sort((a, b) => a - b); if (on.length) delete ck.ego_none; }
+  if (on.length) ck.ego_signs = on; else delete ck.ego_signs;
+  if (!ck.ego_none) delete ck.ego_none;
+  delete ck.ego_q;   // the old five ticks pointed two ways; they are not carried
+  if (on.length) { ck.ego = 'caught'; ck.ego_by = 'signs'; }
+  else if (ck.ego_none) { ck.ego = 'clear'; ck.ego_by = 'signs'; }
+  else if (ck.ego_by === 'signs') { delete ck.ego; delete ck.ego_by; }
   desk.check = ck;
   const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
@@ -6810,6 +6893,8 @@ el('mmStops').addEventListener('click', e => {
   if (nav) { mmGo_(nav.dataset.mmnav); return; }
   const go = e.target.closest('[data-mmgo]');
   if (go) { mmGo_(go.dataset.mmgo); return; }
+  const sgb = e.target.closest('[data-mmsign]');
+  if (sgb) { mmTapSign_(sgb.dataset.mmsign); return; }
   const ckb = e.target.closest('[data-mmck]');
   if (ckb) { const [key, val] = ckb.dataset.mmck.split(':'); const cur = k.desk && k.desk.check ? k.desk.check[key] : null; mmSetCheck_(key, cur === val ? null : val); return; }
   const qk = e.target.closest('[data-mmsquick]');
@@ -6830,14 +6915,6 @@ el('mmStops').addEventListener('click', e => {
     loads.push({ t, v: 'keep' }); mmSaveLoadsNow_(loads); return; }
 });
 el('mmStops').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.id === 'fMmLoad') { e.preventDefault(); const b = el('mmStops').querySelector('[data-mmladd]'); if (b) b.click(); } });
-el('mmStops').addEventListener('change', e => {
-  const c = e.target.closest('[data-mmcq]'); if (!c) return;
-  const [key, i] = c.dataset.mmcq.split(':');
-  const k = mmById_(mmPageId_); if (!k) return;
-  const arr = ((k.desk && k.desk.check && k.desk.check[key + '_q']) || []).slice();
-  arr[Number(i)] = c.checked;
-  mmSetCheck_(key + '_q', arr);
-});
 el('mmQuick').addEventListener('click', e => {
   const b = e.target.closest('[data-mmquick]'); if (!b) return;
   const t = b.dataset.mmquick;
