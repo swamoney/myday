@@ -372,10 +372,20 @@
   .mm-band b { font-family:var(--serif); font-size:0.9375rem; color:#1d2d4d; }
   .mm-band.late { background:#f3d9d3; } .mm-band.late span { color:#8A1F1A; }
   @media (max-width:560px) {
-    .mm-pgrid { grid-template-columns:1fr; gap:10px; }
-    .mm-marks { order:-1; justify-content:flex-end; align-items:center; }
-    .mm-stamp { width:92px; height:54px; margin:0 auto 0 0; }
-    .mm-seal { width:52px; height:52px; font-size:1.125rem; }
+    /* P3 (25 Oct 2026): on a phone the head reads in order - the eyebrow and title first with the door's seal small beside
+       them, then the journey and the ending; the stamp (and what helped, or the NEXT BY band) close the head after a dashed rule.
+       The wrappers dissolve (display:contents) so their children can be placed in one grid. */
+    #mmPage .pp-pghead { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:10px; }
+    #mmPage .mm-pgrid, #mmPage .mm-pb, #mmPage .mm-marks { display:contents; }
+    #mmPage .pp-pghead > *, #mmPage .mm-pb > *, #mmPage .mm-marks > * { grid-column:1 / -1; }
+    #mmPage .mm-eye { grid-column:1; grid-row:1; }
+    #mmPage .mm-pb > .pp-pgtw { grid-column:1; grid-row:2; }
+    #mmPage .mm-seal { grid-column:2; grid-row:1 / span 2; align-self:start; width:46px; height:46px; font-size:1.05rem; }
+    #mmPage .mm-end { order:1; }
+    #mmPage .mm-mstack { order:2; flex-direction:row; align-items:center; gap:12px; margin-top:14px; padding-top:12px; border-top:1px dashed #cfd8e3; }
+    #mmPage.mm-page-settled .mm-mstack { border-top-color:#cfe0d4; }
+    #mmPage .mm-mstack .mm-hnote, #mmPage .mm-mstack .mm-band { flex:1; width:auto; margin-top:0; }
+    .mm-stamp { width:92px; height:54px; margin:0; }
     #mmPage .pp-pgt, #mmPage .pp-pgt.short { font-size:1.75rem; line-height:1.22; }
     .mm-journey { width:100%; } .mm-js { flex:1; text-align:center; white-space:normal; padding:8px 6px; }
   }
