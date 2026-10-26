@@ -534,6 +534,9 @@ async function loadPulses(uid) {
   const bl = await q(() => supa.from('bookmarks').select('created_at').eq('user_id', uid).order('created_at', { ascending: false }).limit(1));
   v.books = bc ? bc.count : null; v.wisdom = wc ? wc.count : null;
   v.lastKept = bl && bl.data && bl.data.length ? bl.data[0].created_at : null;
+  // RS-3 (26 Oct 2026): people marked Rising in My Circle - the monthly knock asks whether any have moved
+  const rs = await q(() => supa.from('why_circle').select('id', { count: 'exact', head: true }).eq('user_id', uid).not('rising_since', 'is', null));
+  v.rising = rs ? rs.count : null;
   return v;
 }
 function paintPulses(v, prefs) {
@@ -578,6 +581,8 @@ function paintPulses(v, prefs) {
   const lastAlbum = prefs && prefs.last_album_copy; const ym = now.toISOString().slice(0, 7);
   if (prefs && prefs.last_backup) { const ad = Math.floor((Date.now() - new Date(prefs.last_backup).getTime()) / 86400000); k.push('<a href="#keep">BACKED UP ' + (ad === 0 ? 'TODAY' : ad + 'D AGO') + '</a>'); }
   if (v.decideBy) { const t = new Date(v.decideBy.on); k.push('<a href="' + ROOMS.why + '">DECIDE BY ' + t.getDate() + ' ' + mon[t.getMonth()] + ' \u00B7 ' + _esc(String(v.decideBy.title || '').toUpperCase().slice(0, 28)) + '</a>'); }
+  // RS-3: in the first week of each month, if anyone is Rising, one knock - the review that keeps the flag honest
+  if (v.rising && now.getDate() <= 7) k.push('<a class="ask" href="' + ROOMS.why + '?sec=circle">\u2B06 ' + v.rising + ' RISING \u00B7 ANY MOVES?</a>');
   set('hubKnocks', k.join(''));
   const kp = [];
   if (prefs && prefs.last_backup) { const ad = Math.floor((Date.now() - new Date(prefs.last_backup).getTime()) / 86400000); kp.push('BACKED UP ' + (ad === 0 ? 'TODAY' : ad + 'D AGO')); }
