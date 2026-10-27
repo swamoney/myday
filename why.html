@@ -374,6 +374,31 @@
   .mm-band span { display:block; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#6b5312; }
   .mm-band b { font-family:var(--serif); font-size:0.9375rem; color:#1d2d4d; }
   .mm-band.late { background:#f3d9d3; } .mm-band.late span { color:#8A1F1A; }
+  /* U1 (27 Oct 2026): the unknown's check-back - blue and dashed, never the gold of the next step */
+  .mm-band.know { background:#eef2fa; border:1px dashed #9fb0d6; margin-top:8px; }
+  .mm-band.know span, .mm-band.know b { color:#2f5187; }
+  .mm-band.know.due { background:#2f5187; border:1px solid #2f5187; } .mm-band.know.due span, .mm-band.know.due b { color:#fff; }
+  .mm-due { margin-top:10px; font-family:var(--serif); font-size:0.9688rem; line-height:1.45; color:#2f5187; background:#eef2fa; border-radius:8px; padding:8px 12px; }
+  .mm-due b { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.12em; margin-right:8px; }
+  .mm-due span { font-style:italic; color:#28324B; }
+  .mm-due button { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; text-transform:uppercase; color:#2f5187; background:none; border:none; text-decoration:underline; padding:0; margin-left:12px; cursor:pointer; }
+  .mm-kb { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:12px 0 0; }
+  .mm-kb label { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#2f5187; }
+  .mm-kb input[type=date] { font-family:var(--mono); font-size:0.75rem; border:1px solid #c8d2e6; border-radius:7px; padding:5px 9px; color:#2f5187; background:#f7f9fd; width:auto; }
+  .mm-kb small { font-family:var(--serif); font-style:italic; font-size:0.875rem; color:#6b7385; }
+  .mm-fh { margin-top:14px; }
+  .mm-kbs { display:block; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#2f5187; margin-top:3px; }
+  .mm-found { margin-top:6px; font-size:0.875rem; color:#28324B; } .mm-found b { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#2E6640; margin-right:6px; }
+  .mm-kbr { font-style:normal; font-family:var(--mono); font-size:0.5938rem; color:#2f5187; margin-left:10px; white-space:nowrap; }
+  .mm-kbr.due { color:#fff; background:#2f5187; border-radius:4px; padding:1px 6px; }
+  /* D2: the decision ending, in the decision room's rust */
+  .mm-out.decision { color:#9a4b33; border-color:#e9cdbf; }
+  .mm-tl .mm-out.decision { color:#9a4b33; border-color:#9a4b33; }
+  .mm-declink { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.04em; color:#9a4b33; background:none; border:none; padding:0; margin-top:10px; text-decoration:underline; cursor:pointer; display:inline-block; }
+  .mm-declink.sm { margin:6px 0 0 4px; font-size:0.5625rem; }
+  .mm-dechint b { color:#9a4b33; }
+  .dc-frommind { display:inline-flex; align-items:center; gap:6px; margin:6px 0 2px; font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em; color:#2f5187; background:#eef2fa; border:none; border-radius:6px; padding:4px 10px; cursor:pointer; }
+  .dc-frommind:hover { background:#e2e9f7; }
   @media (max-width:560px) {
     /* P3 (25 Oct 2026): on a phone the head reads in order - the eyebrow and title first with the door's seal small beside
        them, then the journey and the ending; the stamp (and what helped, or the NEXT BY band) close the head after a dashed rule.
@@ -2672,6 +2697,7 @@
     <div class="dc-plate-b">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span></div>
+    <button type="button" class="dc-frommind hidden" id="dcFromMind"></button>
     <!-- S-1: the line looking back sits under the name as the page's epigraph (lived pages) -->
     <div class="dc-ratebox dc-epi hidden" id="dcRateBox">
       <div class="rnote" id="dcRateNoteRO"></div>
@@ -2907,9 +2933,10 @@
           <div><button class="mm-nextline hidden" id="mmNext" type="button" title="Change the next step"></button></div>
           <div class="mm-prog" id="mmProg"></div>
           <div class="mm-echo hidden" id="mmEcho"></div>
+          <div class="mm-due hidden" id="mmKnowDue"></div>
         </div>
         <div class="mm-marks">
-          <div class="mm-mstack"><div class="mm-stamp" id="mmStamp"></div><div class="mm-hnote hidden" id="mmHelpedHead"></div><button class="mm-band hidden" id="mmBand" type="button" title="Change the date"><span></span><b></b></button></div>
+          <div class="mm-mstack"><div class="mm-stamp" id="mmStamp"></div><div class="mm-hnote hidden" id="mmHelpedHead"></div><button class="mm-band hidden" id="mmBand" type="button" title="Change the date"><span></span><b></b></button><button class="mm-band know hidden" id="mmKnow" type="button" title="The unknown"><span>KNOW BY</span><b></b></button></div>
           <div class="mm-seal" id="mmSeal"></div>
         </div>
       </div>
@@ -2957,6 +2984,7 @@
     <div class="fld"><label>What helped</label><div class="mm-helped" id="mmSettleHelped" style="margin-top:0"></div></div>
     <div class="fld"><label>In a line, for the record (optional)</label><input id="fMmLine" placeholder="what actually happened"></div>
     <div class="fld"><label>Settled on</label><input type="date" id="fMmSettledOn"></div>
+    <div class="fld-hint mm-dechint" id="mmDecHint" style="display:none"><b>Became a decision</b> opens it in My Dreams &amp; Decisions as a decision on the desk, with your checklist ready and what you wrote on the desk as its story. This knot settles, and the two pages link to each other.</div>
     <div class="fld-hint" id="mmPlanHint" style="display:none">"Became a plan" writes into My Priority: a Q2 task with the next step as its note \u2014 or, on an Overload knot, a Q3 task per DELEGATE line and a Q4 task per DEFER line.</div>
     <div class="modal-actions">
       <span style="flex:1"></span>
@@ -3910,7 +3938,8 @@ function printSection() {
     const done = mind.filter(k => k.status === 'settled').sort((a, b) => String(b.settled_on || '').localeCompare(String(a.settled_on || '')));
     if (open.length) body += '<h2>Open</h2><ul>' + open.map(k => '<li><strong>' + e(k.title || '') + '</strong> <span class="meta">' + e(MM_DOORS[k.door].lbl)
       + (k.door2 && MM_DOORS[k.door2] ? ' + ' + e(MM_DOORS[k.door2].lbl) : '') + ' \u00B7 opened ' + e(mmFmt_(k.opened_on)) + '</span>'
-      + (k.next_step ? '<br><span class="meta">next: ' + e(k.next_step) + (k.next_by ? ' by ' + e(mmFmt_(k.next_by)) : '') + '</span>' : '') + '</li>').join('') + '</ul>';
+      + (k.next_step ? '<br><span class="meta">next: ' + e(k.next_step) + (k.next_by ? ' by ' + e(mmFmt_(k.next_by)) : '') + '</span>' : '')
+      + (mmKnow_(k) ? '<br><span class="meta">unknown: ' + e(mmKnow_(k).what) + ' \u00B7 know by ' + e(mmFmt_(mmKnow_(k).by)) + '</span>' : '') + '</li>').join('') + '</ul>';
     if (done.length) body += '<h2>Settled</h2><ul>' + done.map(k => '<li><strong>' + e(k.title || '') + '</strong> <span class="meta">' + e(MM_DOORS[k.door].lbl)
       + ' \u00B7 ' + e((MM_OUTS[k.outcome] || {}).lbl || '') + ' \u00B7 ' + e(mmFmt_(k.settled_on)) + '</span>'
       + (k.settled_line ? '<br><span class="meta">' + e(k.settled_line) + '</span>' : '') + '</li>').join('') + '</ul>';
@@ -6911,13 +6940,14 @@ const MM_OUTS = {
   rebuilt:  { lbl:'Rebuilt',        cls:'' },
   talked:   { lbl:'Talked it through', cls:'' },
   line:     { lbl:'Drew a line',    cls:'accepted' },
-  plan:     { lbl:'Became a plan',  cls:'plan' }
+  plan:     { lbl:'Became a plan',  cls:'plan' },
+  decision: { lbl:'Became a decision', cls:'decision' }   // D2 (27 Oct 2026): the dilemma fold
 };
 // E2: each door shows only the endings that fit it.
 const MM_OUTS_BY_DOOR = {
-  anx: ['never','resolved','faded','accepted','plan'], ins: ['resolved','faded','accepted','plan'],
-  over:['resolved','faded','plan'], obs: ['resolved','faded','accepted','plan'], cha: ['resolved','faded','accepted','plan'],
-  conf:['talked','line','resolved','faded','accepted','plan'], loss:['recovered','rebuilt','accepted','faded','plan']
+  anx: ['never','resolved','faded','accepted','plan','decision'], ins: ['resolved','faded','accepted','plan','decision'],
+  over:['resolved','faded','plan','decision'], obs: ['resolved','faded','accepted','plan','decision'], cha: ['resolved','faded','accepted','plan','decision'],
+  conf:['talked','line','resolved','faded','accepted','plan','decision'], loss:['recovered','rebuilt','accepted','faded','plan']   // Loss: "what I will not rush" - a decision is not its ending
 };
 function mmOutsFor_(k) {
   const a = MM_OUTS_BY_DOOR[k.door] || Object.keys(MM_OUTS), b = k.door2 ? (MM_OUTS_BY_DOOR[k.door2] || []) : [];
@@ -6932,6 +6962,7 @@ const MM_DESK = {
   anx: [
     { k:"fear", q:"The fear", ask:"What exactly am I afraid will happen?", why:"One sentence. A named fear is a smaller fear.", ex:"That the market keeps falling and I panic-sell at the bottom." },
     { k:"fact", q:"The facts", ask:"What do I actually know for sure, right now?", why:"Only what you could show someone. No guesses.", ex:"Nifty is 5% off its high. My plan says rebalance at 10%." },
+    { k:"unknown", q:"The unknown", ask:"What don’t I know yet — and when will I know it?", why:"Most fear lives in the gap. Name the gap, and the day it closes.", ex:"Whether Q2 earnings hold up.", knowBy:true },   // U1 (27 Oct 2026): the uncertainty fold
     { q:"Worst · likely · best", ask:"Honestly, how could this go?", why:"The likely one is the one fear skips.", split:[["worst","Worst case","Down 30%; two years to recover."],["likely","Most likely","An 8–12% dip, back within a year."],["best","Best case","Back at the high by March."]] },
     { q:"Mine · not mine", ask:"What part of this is in my hands — and what isn’t?", why:"Put your energy only on the first list.", split:[["control","In my hands","How often I open the app. The SIP."],["dont","Not in my hands","What the market does next."]] },
     { k:"instead", q:"Instead", ask:"When the worry pulls at me, what will I do instead?", why:"One small action to replace checking or replaying.", ex:"Open the portfolio only on the 1st. Walk after market close." } ],
@@ -7078,6 +7109,7 @@ function renderMind() {
         + '<div class="mm-t">' + escHtml(k.title || '') + '</div>'
         + (k.next_step ? '<div class="mm-nx"><i>NEXT</i><span>' + escHtml(k.next_step) + (k.next_by ? ' · by ' + escHtml(mmFmt_(k.next_by)) : '') + '</span>'
                        : (k.door === 'loss' ? '<div class="mm-nx sit"><i>NEXT</i><span>sitting with it</span>' : '<div class="mm-nx none"><span>no next step yet</span>'))
+        + (function () { const kn = mmKnow_(k); return kn ? '<em class="mm-kbr' + (kn.due ? ' due' : '') + '">' + (kn.due ? 'KNOW BY \u00B7 ' + (kn.today ? 'TODAY' : 'PASSED') : 'know by ' + escHtml(mmFmt_(kn.by).replace(/ \d{4}$/, ''))) + '</em>' : ''; })()
         + '<em class="mm-days"> · open ' + days + (days === 1 ? ' day' : ' days') + '</em></div>'
         + '</div><button class="mm-x" type="button" data-mmx="' + escHtml(String(k.id)) + '" aria-label="Delete">&times;</button></div>';
     }).join('');
@@ -7088,7 +7120,7 @@ function renderMind() {
       return '<div class="mm-sett mm-tn ' + D.cls + '" data-mmknot="' + escHtml(String(k.id)) + '"><i class="mm-tdot"></i><div class="mm-tc">'
         + '<div class="mm-tdt">' + escHtml(mmFmt_(k.settled_on)) + ' · <b>' + escHtml(D.lbl.toUpperCase()) + '</b></div>'
         + '<div class="mm-t">' + escHtml(k.title || '') + '</div>'
-        + '<span class="mm-out ' + O.cls + '">' + O.lbl + '</span>' + (took != null ? '<em class="mm-days">' + (took === 0 ? 'the same day' : 'after ' + took + (took === 1 ? ' day' : ' days')) + '</em>' : '') + '</div>'
+        + '<span class="mm-out ' + O.cls + '">' + O.lbl + '</span>' + (k.outcome === 'decision' && mmDecOf_(k) ? '<span class="mm-declink sm" data-mmdec="' + escHtml(String(mmDecOf_(k).id)) + '">\u2192 open in Decisions</span>' : '') + (took != null ? '<em class="mm-days">' + (took === 0 ? 'the same day' : 'after ' + took + (took === 1 ? ' day' : ' days')) + '</em>' : '') + '</div>'
         + '<button class="mm-x" type="button" data-mmx="' + escHtml(String(k.id)) + '" aria-label="Delete">&times;</button></div>';
     }).join('');
     html += '</div>';
@@ -7189,6 +7221,18 @@ function renderMmPage_() {
     band.querySelector('span').textContent = late ? 'PAST THE DATE' : 'NEXT BY'; band.querySelector('b').textContent = mmFmt_(k.next_by);
     band.classList.toggle('late', late); band.classList.remove('hidden');
   } else band.classList.add('hidden');
+  const kn = mmKnow_(k), kb = el('mmKnow'), kd = el('mmKnowDue');
+  if (kn) {
+    kb.querySelector('b').textContent = kn.today ? 'Today' : mmFmt_(kn.by);
+    kb.querySelector('span').textContent = kn.due && !kn.today ? 'KNOW BY \u00B7 PASSED' : 'KNOW BY';
+    kb.classList.toggle('due', kn.due); kb.classList.remove('hidden'); kb.dataset.stop = kn.stop;
+  } else kb.classList.add('hidden');
+  if (kn && kn.due) {
+    kd.innerHTML = '<b>' + escHtml((kn.today ? mmFmt_(kn.by).replace(/ \d{4}$/, '') + ' is here' : mmFmt_(kn.by) + ' has passed').toUpperCase()) + '</b>Do you know now?'
+      + (kn.what ? ' <span>' + escHtml(kn.what) + '</span>' : '')
+      + '<button type="button" data-mmknow="found">Write what I found</button><button type="button" data-mmknow="move">Move the date</button>';
+    kd.dataset.stop = kn.stop; kd.classList.remove('hidden');
+  } else kd.classList.add('hidden');
   const span = settled && k.settled_on && k.opened_on ? Math.round((new Date(k.settled_on) - new Date(k.opened_on)) / 864e5) : null;
   el('mmPageM').textContent = settled
     ? 'opened ' + mmFmt_(k.opened_on) + ' · settled ' + (span === 0 ? 'the same day' : span > 0 ? span + ' day' + (span === 1 ? '' : 's') + ' later' : mmFmt_(k.settled_on))
@@ -7223,6 +7267,7 @@ function renderMmPage_() {
   if (settled) {
     endEl.innerHTML = '<div class="mm-endt"><div class="mm-el">How it ended · ' + escHtml(mmFmt_(k.settled_on)) + '</div>'
       + '<div class="mm-eline' + (k.settled_line ? '' : ' none') + '">' + (k.settled_line ? '\u201C' + escHtml(k.settled_line) + '\u201D' : 'no line for the record') + '</div>'
+      + (k.outcome === 'decision' && mmDecOf_(k) ? '<button type="button" class="mm-declink" data-mmdec="' + escHtml(String(mmDecOf_(k).id)) + '">\u2192 Open the decision in My Dreams &amp; Decisions</button>' : '')
       + '</div>';
     endEl.classList.remove('hidden');
   } else endEl.classList.add('hidden');
@@ -7253,6 +7298,16 @@ function mmStampSvg_(l1, l2, ink, small, tick) {
     + t(34, l1, 11, tick ? 66 : 60) + t(50, l2, small ? 9 : 11) + '</svg>';
 }
 /* ---- the path (F3 C3): stops, cursor, map ---- */
+// U1: the knot's check-back - an unknown with a date and nothing found yet (either desk, if Anxiety is the second door).
+function mmKnow_(k) {
+  if (!k || k.status === 'settled') return null;
+  const d = k.desk || {};
+  for (const p of ['', 'anx_']) {
+    const by = d[p + 'know_by'];
+    if (by && !String(d[p + 'found'] || '').trim()) return { by, what: d[p + 'unknown'] || '', due: by <= istToday(), today: by === istToday(), stop: (p ? 'desk2' : 'desk') + ':' + (MM_DESK.anx.findIndex(r => r.k === 'unknown')) };
+  }
+  return null;
+}
 function mmStops_(k) {
   const out = [];
   const deskRows = (door, pfx, sec) => (MM_DESK[door] || MM_DESK.anx).forEach((row, i) => {
@@ -7261,7 +7316,7 @@ function mmStops_(k) {
     if (row.loads) out.push(Object.assign(t, { kind:'loads' }));
     else if (row.who) out.push(Object.assign(t, { kind:'who' }));
     else if (row.split) out.push(Object.assign(t, { kind:'split', keys: row.split.map(sp => [pfx + sp[0], sp[1], sp[2] || '']) }));
-    else out.push(Object.assign(t, { kind:'line', key: pfx + row.k, ex: row.ex || '' }));
+    else out.push(Object.assign(t, { kind:'line', key: pfx + row.k, ex: row.ex || '' }, row.knowBy ? { knowKey: pfx + 'know_by', foundKey: pfx + 'found' } : {}));
   });
   deskRows(k.door, '', 'desk');
   if (k.door2 && MM_DESK[k.door2]) deskRows(k.door2, k.door2 + '_', 'desk2');
@@ -7293,7 +7348,8 @@ function mmWhoLabel_(k) {
 }
 function mmSummary_(k, st) {
   const d = k.desk || {};
-  if (st.kind === 'line') return escHtml(d[st.key] || '');
+  if (st.kind === 'line') return escHtml(d[st.key] || '') + (st.knowKey && d[st.knowKey] ? '<small class="mm-kbs">KNOW BY ' + escHtml(mmFmt_(d[st.knowKey])).toUpperCase() + '</small>' : '')
+    + (st.foundKey && d[st.foundKey] ? '<div class="mm-found"><b>FOUND</b>' + escHtml(d[st.foundKey]) + '</div>' : '');
   if (st.kind === 'split') return st.keys.filter(x => d[x[0]]).map(x => '<div class="mm-shr"><div class="mm-sh">' + escHtml(x[1]) + '</div><div>' + escHtml(d[x[0]]) + '</div></div>').join('');
   if (st.kind === 'loads') { const L = d.loads || []; const sum = {}; L.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
     return L.length + (L.length === 1 ? ' load' : ' loads') + ' \u00B7 ' + Object.keys(MM_LOAD_VERBS).filter(v => sum[v]).map(v => sum[v] + ' ' + MM_LOAD_VERBS[v][0].toLowerCase()).join(', '); }
@@ -7322,7 +7378,13 @@ function mmCkSigns_(k, key) {
 function mmOpenStop_(k, st) {
   const d = k.desk || {}; let h = '';
   const ta = (key, ph) => '<textarea data-mmf="' + key + '" placeholder="' + escHtml(ph || '') + '">' + escHtml(d[key] || '') + '</textarea>';
-  if (st.kind === 'line') h = '<div class="mm-sq">' + escHtml(st.why || 'In your own words.') + '</div>' + ta(st.key, st.ex);
+  if (st.kind === 'line') {
+    h = '<div class="mm-sq">' + escHtml(st.why || 'In your own words.') + '</div>' + ta(st.key, st.ex);
+    if (st.knowKey) {
+      h += '<div class="mm-kb"><label>I\u2019ll know by</label><input type="date" data-mmf="' + st.knowKey + '" value="' + escHtml(d[st.knowKey] || '') + '"><small>becomes this knot\u2019s check-back</small></div>';
+      if (d[st.foundKey] || (d[st.knowKey] && d[st.knowKey] <= istToday())) h += '<div class="mm-h mm-fh">What I found out</div>' + ta(st.foundKey, 'what you know now');
+    }
+  }
   else if (st.kind === 'split') h = '<div class="mm-sq">' + escHtml(st.why || '') + '</div><div class="mm-sgrid' + (st.keys.length === 3 ? ' three' : '') + '">'
     + st.keys.map(x => '<div><div class="mm-h">' + escHtml(x[1]) + '</div>' + ta(x[0], x[2]) + '</div>').join('') + '</div>';
   else if (st.kind === 'loads') {
@@ -7513,6 +7575,7 @@ function mmPaintSettle_() {
   el('mmSettleHelped').innerHTML = mmHelpWords_().map(h => '<button type="button" data-mmshelp="' + escHtml(h) + '" class="' + (mmSettleHelped_.includes(h) ? 'on' : '') + '">' + escHtml(h) + '</button>').join('')
     + '<button type="button" class="add" data-mmshelpadd="1">+ add</button>';
   el('mmPlanHint').style.display = mmSettleOut_ === 'plan' ? '' : 'none';
+  el('mmDecHint').style.display = mmSettleOut_ === 'decision' ? '' : 'none';
 }
 async function saveMmSettle_() {
   const k = mmById_(mmPageId_); if (!k) return;
@@ -7535,11 +7598,45 @@ async function saveMmSettle_() {
         if (e2) console.error(e2); else if (typeof loadPriority === 'function') loadPriority();
       }
     }
+    let decId = null;
+    if (mmSettleOut_ === 'decision') decId = await mmToDecision_(k, rec.settled_on);
     el('mmSettleModal').classList.add('hidden');
     await loadMind();
-    toast('Settled · ' + MM_OUTS[mmSettleOut_].lbl.toLowerCase());
+    toast(decId ? 'Settled \u00B7 now a decision in My Dreams & Decisions' : 'Settled · ' + MM_OUTS[mmSettleOut_].lbl.toLowerCase());
   } catch (e) { console.error(e); toast('Could not save'); }
 }
+// D2: the knot becomes a decision on the desk. Its story starts with what the desk holds, copied as it stood that day.
+// The link lives on the knot (desk.decision_id); the decision page finds its knot from that, so no new column.
+function mmDeskStory_(k, on) {
+  const d = k.desk || {}, p = t => '<p>' + t + '</p>';
+  let h = p('<strong>FROM MY MIND</strong> \u00B7 ' + escHtml((MM_DOORS[k.door] || {}).lbl || '') + ' \u00B7 settled ' + escHtml(mmFmt_(on)) + ' as a decision.');
+  mmStops_(k).filter(st => (st.sec === 'desk' || st.sec === 'desk2') && mmAnswered_(k, st)).forEach(st => {
+    let v = '';
+    if (st.kind === 'line') v = escHtml(d[st.key] || '') + (st.knowKey && d[st.knowKey] ? ' (know by ' + escHtml(mmFmt_(d[st.knowKey])) + ')' : '') + (st.foundKey && d[st.foundKey] ? ' \u2014 found: ' + escHtml(d[st.foundKey]) : '');
+    else if (st.kind === 'split') v = st.keys.filter(x => d[x[0]]).map(x => escHtml(x[1]) + ': ' + escHtml(d[x[0]])).join(' \u00B7 ');
+    else if (st.kind === 'loads') v = (d.loads || []).map(l => escHtml(l.t || '')).join(' \u00B7 ');
+    else if (st.kind === 'who') v = escHtml((function () { const w = d.who || {}; const c = w.id ? circle.find(x => String(x.id) === String(w.id)) : null; return c ? c.name : (w.name || ''); })());
+    if (v) h += p('<strong>' + escHtml(String(st.title).toUpperCase()) + '</strong> \u00B7 ' + v);
+  });
+  if (k.next_step) h += p('<strong>THE NEXT STEP</strong> \u00B7 ' + escHtml(k.next_step));
+  return h;
+}
+async function mmToDecision_(k, on) {
+  const d = Object.assign({}, k.desk || {});
+  // Settled as a decision before, reopened, settled again: the same decision, not a second one.
+  if (d.decision_id && (dcRows || []).some(r => String(r.id) === String(d.decision_id))) return d.decision_id;
+  const rec = { user_id: userId, title: k.title || 'From My Mind', target_on: null, kind: 'decision', status: 'open', qset: 'both',
+                answers: dcSetPoints_('both').map(q => ({ q: q, a: '' })), note_html: mmDeskStory_(k, on) };
+  const { data, error } = await supa.from('why_decisions').insert(rec).select('*').single();
+  if (error || !data) { console.error(error); toast('Settled, but could not open the decision'); return null; }
+  dcRows.unshift(data); if (typeof renderDecisions === 'function') renderDecisions();
+  d.decision_id = data.id;
+  const { error: e2 } = await supa.from('why_mind').update({ desk: d }).eq('id', k.id).eq('user_id', userId);
+  if (e2) console.error(e2); else k.desk = d;
+  return data.id;
+}
+function mmDecOf_(k) { const id = k && k.desk && k.desk.decision_id; return id && (dcRows || []).find(r => String(r.id) === String(id)) || null; }
+function mmOpenDec_(id) { closeMmPage_(); showSection('decisions'); openDecision(id); }
 async function mmReopen_() {
   const k = mmById_(mmPageId_); if (!k) return;
   const rec = { status: k.next_step ? 'working' : 'open', outcome: null, settled_on: null, settled_line: null, reopened: (parseInt(k.reopened, 10) || 0) + 1, updated_at: new Date().toISOString() };
@@ -7567,6 +7664,7 @@ el('mmDoors').addEventListener('click', e => {
 el('mmOpenCnt').addEventListener('click', e => { if (e.target.closest('[data-mmall]')) { mmDoor = 'all'; renderMind(); } });
 el('mmList').addEventListener('click', e => {
   if (e.target.closest('[data-mmretry]')) { loadMind(); return; }
+  const dl = e.target.closest('[data-mmdec]'); if (dl) { e.stopPropagation(); mmOpenDec_(dl.dataset.mmdec); return; }
   const x = e.target.closest('[data-mmx]');
   if (x) { e.stopPropagation(); mmDelete_(x.dataset.mmx); return; }
   const r = e.target.closest('[data-mmknot]');
@@ -7628,6 +7726,15 @@ el('mmHelped').addEventListener('click', e => {
 });
 el('mmJourney').addEventListener('click', e => { const b = e.target.closest('[data-mmjact]'); if (b && mmPageId_ != null) openMmSettle_(); });
 el('mmBand').addEventListener('click', () => { if (mmPageId_ != null) mmGo_('then:next'); });
+el('mmEnd').addEventListener('click', e => { const dl = e.target.closest('[data-mmdec]'); if (dl) mmOpenDec_(dl.dataset.mmdec); });
+el('mmKnow').addEventListener('click', () => { if (mmPageId_ != null && el('mmKnow').dataset.stop) mmGo_(el('mmKnow').dataset.stop); });
+el('mmKnowDue').addEventListener('click', async e => {
+  const b = e.target.closest('[data-mmknow]'); if (!b || mmPageId_ == null) return;
+  await mmGo_(el('mmKnowDue').dataset.stop || el('mmKnow').dataset.stop);
+  const box = el('mmStops').querySelector('.mm-stop.now');
+  const f = box && (b.dataset.mmknow === 'move' ? box.querySelector('input[type=date]') : box.querySelector('textarea[data-mmf$="found"]'));
+  if (f) setTimeout(() => { try { f.focus(); if (f.showPicker && b.dataset.mmknow === 'move') f.showPicker(); } catch (x) {} }, 60);
+});
 el('mmSettleBtn').addEventListener('click', () => { const k = mmById_(mmPageId_); if (!k) return; if (k.status === 'settled') mmReopen_(); else openMmSettle_(); });
 el('mmKnotDel').addEventListener('click', async () => { const id = mmKnotEditing_; if (id == null) return; closeMmKnot_(); await mmDelete_(id); });
 el('mmOuts').addEventListener('click', e => { const b = e.target.closest('[data-mmout]'); if (!b) return; mmSettleOut_ = b.dataset.mmout; mmPaintSettle_(); });
@@ -8888,6 +8995,9 @@ function openDecision(id) {
   const wip = dcIsWip_(d);
   dcPaintPlate_(d);
   el('dcName').textContent = d.title;
+  { const fk = (typeof mind !== 'undefined' ? mind : []).find(x => x.desk && String(x.desk.decision_id) === String(d.id)), fm = el('dcFromMind');
+    if (fk) { fm.innerHTML = '\u25C6 FROM MY MIND \u00B7 ' + escHtml(((MM_DOORS[fk.door] || {}).lbl || '').toUpperCase()) + (fk.settled_on ? ' \u00B7 ' + escHtml(mmFmt_(fk.settled_on)).toUpperCase() : '') + ' \u203A'; fm.dataset.knot = fk.id; fm.classList.remove('hidden'); }
+    else { fm.classList.add('hidden'); delete fm.dataset.knot; } }
   el('dcName').classList.toggle('short', String(d.title || '').length <= 40);   // T1: a short title keeps the big size
   dcPaintCover_();
   // DC-D (D1): on an open decision the target is a full-width gold band under the
@@ -9286,6 +9396,7 @@ el('dcQNewTen').addEventListener('keydown', e => { if (e.key === 'Enter') el('dc
 let dcEMadePick = null;
 el('dcBand').addEventListener('click', () => el('dcDetailsBtn').click());
 el('dcEUndecide').addEventListener('click', () => { el('dcEditModal').classList.add('hidden'); el('dcUndecideBtn').click(); });
+el('dcFromMind').addEventListener('click', () => { const id = el('dcFromMind').dataset.knot; if (!id) return; const cb = el('dcBack'); if (cb) cb.click(); showSection('mind'); openMmPage(id); });
 el('dcName').addEventListener('click', () => { if (el('dcWin').classList.contains('dc-editing')) el('dcDetailsBtn').click(); });
 el('dcDetailsBtn').addEventListener('click', () => {
   const d = dcRow_(); if (!d) return;
