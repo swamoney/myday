@@ -374,6 +374,20 @@
   .mm-band span { display:block; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#6b5312; }
   .mm-band b { font-family:var(--serif); font-size:0.9375rem; color:#1d2d4d; }
   .mm-band.late { background:#f3d9d3; } .mm-band.late span { color:#8A1F1A; }
+  /* W2 / N3 (27 Oct 2026): time in human units, one quiet line, one monthly card */
+  .mm-weeks { margin-top:10px; font-family:var(--serif); font-style:italic; font-size:0.9375rem; line-height:1.5; color:#6b7385; }
+  .mm-weeks b { color:#4a5468; font-weight:600; }
+  .mm-nudge-c { background:#fbf8ef; border:1px solid #eadfbf; border-radius:14px; padding:14px 18px; margin:0 0 14px; }
+  .mm-ne { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.16em; color:#8a6d1f; }
+  .mm-nt { font-family:var(--serif); font-size:1.15rem; color:#28324B; margin:4px 0 6px; }
+  .mm-nl button { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; width:100%; text-align:left; background:none; border:none; padding:4px 0; cursor:pointer; font:inherit; }
+  .mm-nl button span { font-family:var(--serif); font-size:0.9875rem; color:#3a4560; }
+  .mm-nl button span::before { content:'\00B7  '; }
+  .mm-nl button em { font-style:normal; font-family:var(--mono); font-size:0.5938rem; letter-spacing:0.06em; color:#8a6d1f; }
+  .mm-nl i { display:block; font-family:var(--serif); font-size:0.875rem; color:#6b7385; margin-top:2px; }
+  .mm-na { display:flex; gap:14px; align-items:center; margin-top:10px; }
+  .mm-na button { font-family:var(--mono); font-size:0.5938rem; letter-spacing:0.1em; text-transform:uppercase; background:none; border:none; color:#6b7385; text-decoration:underline; cursor:pointer; padding:6px 0; }
+  .mm-na button.go { background:#28324B; color:#fff; text-decoration:none; border-radius:999px; padding:6px 13px; }
   /* U1 (27 Oct 2026): the unknown's check-back - blue and dashed, never the gold of the next step */
   .mm-band.know { background:#eef2fa; border:1px dashed #9fb0d6; margin-top:8px; }
   .mm-band.know span, .mm-band.know b { color:#2f5187; }
@@ -2426,6 +2440,7 @@
     </div>
     <div class="sec-panel hidden" id="secMind">
       <div class="mm-top"><span class="mm-cnt" id="mmCount"></span><button class="mm-add" id="mmAddBtn" type="button">+ Something's on my mind</button></div>
+      <div id="mmNudge"></div>
       <div id="mmAid"></div>
       <div id="mmDoors" style="margin-bottom:14px"></div>
       <div class="mm-cnt" id="mmOpenCnt"></div>
@@ -2933,6 +2948,7 @@
           <div><button class="mm-nextline hidden" id="mmNext" type="button" title="Change the next step"></button></div>
           <div class="mm-prog" id="mmProg"></div>
           <div class="mm-echo hidden" id="mmEcho"></div>
+          <div class="mm-weeks hidden" id="mmWeeks"></div>
           <div class="mm-due hidden" id="mmKnowDue"></div>
         </div>
         <div class="mm-marks">
@@ -7034,6 +7050,52 @@ function mmEvidence_(door) {
   const caught = done.filter(k => k.desk && k.desk.check && Object.keys(k.desk.check).some(x => k.desk.check[x] === 'caught')).length;
   return { n: done.length, by, top, caught };
 }
+// W2 (27 Oct 2026): time in the units a person thinks in - days to 13, weeks to ~10, then months.
+function mmAge_(n) {
+  n = Math.max(0, Math.round(n || 0));
+  if (n < 14) return n + (n === 1 ? ' day' : ' days');
+  if (n < 70) return Math.round(n / 7) + ' weeks';
+  const m = Math.round(n / 30.4); return m + (m === 1 ? ' month' : ' months');
+}
+const MM_PLURAL = { anx:'anxieties', ins:'insecurities', obs:'obstacles', cha:'challenges', loss:'losses', over:'overloads', conf:'conflicts' };
+// W2: the middle of how long your own settled knots at this door took (null below three).
+function mmUsual_(door) {
+  const t = mind.filter(k => k.status === 'settled' && k.door === door && k.opened_on && k.settled_on)
+    .map(k => Math.max(0, Math.round((new Date(k.settled_on) - new Date(k.opened_on)) / 864e5))).sort((a, b) => a - b);
+  if (t.length < 3) return null;
+  const h = Math.floor(t.length / 2); return t.length % 2 ? t[h] : Math.round((t[h - 1] + t[h]) / 2);
+}
+// N3: knots that have waited a month - open 30+ days with no step, or a step dated over a week ago.
+// A Loss knot sitting with it counts only once its sit-until date has passed by a week.
+function mmWaiting_() {
+  const weekAgo = new Date(new Date(istToday() + 'T00:00:00').getTime() - 7 * 864e5).toISOString().slice(0, 10);
+  return mind.filter(k => {
+    if (k.status === 'settled' || mmDays_(k.opened_on) < 30) return false;
+    const late = !!(k.next_by && k.next_by < weekAgo);
+    const sitting = k.door === 'loss' && (!k.next_step || MM_SIT.test(k.next_step));
+    return sitting ? late : (!k.next_step || late);
+  }).sort((a, b) => String(a.opened_on || '').localeCompare(String(b.opened_on || '')));
+}
+let mmNudgeUntil_ = '';   // 'Not this month' - kept in user_prefs (mm_nudge_until), so every device agrees
+async function mmLoadNudge_() {
+  try { const { data } = await supa.from('user_prefs').select('prefs').eq('user_id', userId).limit(1);
+    const p = data && data.length ? data[0].prefs : null; mmNudgeUntil_ = (p && p.mm_nudge_until) || ''; } catch (e) { mmNudgeUntil_ = ''; }
+}
+async function mmSnoozeNudge_() {
+  const t = new Date(istToday() + 'T00:00:00'); const until = new Date(t.getFullYear(), t.getMonth() + 1, 1);
+  mmNudgeUntil_ = until.getFullYear() + '-' + String(until.getMonth() + 1).padStart(2, '0') + '-01';
+  renderMind();
+  try {
+    const { data: rows } = await supa.from('user_prefs').select('prefs').eq('user_id', userId).limit(1);
+    const have = rows && rows.length ? rows[0] : null;
+    const prefs = Object.assign({}, (have && have.prefs) || {}, { mm_nudge_until: mmNudgeUntil_ });
+    const stamp = new Date().toISOString();
+    const r = have ? await supa.from('user_prefs').update({ prefs, updated_at: stamp }).eq('user_id', userId)
+                   : await supa.from('user_prefs').insert({ user_id: userId, prefs, updated_at: stamp });
+    if (r && r.error) throw r.error;
+  } catch (e) { console.error('nudge', e); }
+  toast('Until the 1st');
+}
 async function loadMind() {
   try {
     const { data, error } = await supa.from('why_mind').select('*').eq('user_id', userId).order('created_at', { ascending: false });
@@ -7042,6 +7104,7 @@ async function loadMind() {
     mind = (data || []).map(k => { if (typeof k.desk === 'string') { try { k.desk = JSON.parse(k.desk); } catch (e) { k.desk = {}; } }
       if (typeof k.helped === 'string') { try { k.helped = JSON.parse(k.helped); } catch (e) { k.helped = []; } } return k; });
   } catch (e) { console.error('mind', e); mind = mind || []; mmLoadErr_ = true; }
+  await mmLoadNudge_();
   renderMind();
   if (mmPageId_) renderMmPage_();
 }
@@ -7050,6 +7113,18 @@ function renderMind() {
   const open = mind.filter(k => k.status !== 'settled');
   const done = mind.filter(k => k.status === 'settled').sort((a, b) => String(b.settled_on || '').localeCompare(String(a.settled_on || '')));
   el('mmCount').textContent = 'MY MIND · ' + open.length + ' OPEN · ' + done.length + ' SETTLED';
+  // N3: once a month, one quiet card - never on My Day, never red
+  const wt = mmWaiting_(), nu = el('mmNudge');
+  if (nu) {
+    const snoozed = mmNudgeUntil_ && istToday() < mmNudgeUntil_;
+    const N = ['One knot has', 'Two knots have', 'Three knots have', 'Four knots have', 'Five knots have'];
+    nu.innerHTML = wt.length && !snoozed ? '<div class="mm-nudge-c"><div class="mm-ne">ONCE A MONTH</div>'
+      + '<div class="mm-nt">' + (N[wt.length - 1] || wt.length + ' knots have') + ' waited a month or more.</div>'
+      + '<div class="mm-nl">' + wt.slice(0, 5).map(k => '<button type="button" data-mmnudge="' + escHtml(String(k.id)) + '"><span>' + escHtml(k.title || '') + '</span><em>'
+        + escHtml(mmAge_(mmDays_(k.opened_on)).toUpperCase()) + ' \u00B7 ' + (k.next_step && k.next_by ? 'STEP WAS DUE ' + escHtml(mmFmt_(k.next_by).replace(/ \d{4}$/, '')).toUpperCase() : 'NO STEP') + '</em></button>').join('')
+        + (wt.length > 5 ? '<i>and ' + (wt.length - 5) + ' more in the record below</i>' : '') + '</div>'
+      + '<div class="mm-na"><button type="button" class="go" data-mmnudge="' + escHtml(String(wt[0].id)) + '">Look at them</button><button type="button" data-mmsnooze="1">Not this month</button></div></div>' : '';
+  }
   // F1: the first-aid line, once there is evidence
   const ev = mmEvidence_(), evA = mmEvidence_('anx');
   const yr = istToday().slice(0, 4), thisYear = done.filter(k => String(k.settled_on || '').slice(0, 4) === yr).length;
@@ -7110,7 +7185,7 @@ function renderMind() {
         + (k.next_step ? '<div class="mm-nx"><i>NEXT</i><span>' + escHtml(k.next_step) + (k.next_by ? ' · by ' + escHtml(mmFmt_(k.next_by)) : '') + '</span>'
                        : (k.door === 'loss' ? '<div class="mm-nx sit"><i>NEXT</i><span>sitting with it</span>' : '<div class="mm-nx none"><span>no next step yet</span>'))
         + (function () { const kn = mmKnow_(k); return kn ? '<em class="mm-kbr' + (kn.due ? ' due' : '') + '">' + (kn.due ? 'KNOW BY \u00B7 ' + (kn.today ? 'TODAY' : 'PASSED') : 'know by ' + escHtml(mmFmt_(kn.by).replace(/ \d{4}$/, ''))) + '</em>' : ''; })()
-        + '<em class="mm-days"> · open ' + days + (days === 1 ? ' day' : ' days') + '</em></div>'
+        + '<em class="mm-days"> · open ' + mmAge_(days) + '</em></div>'
         + '</div><button class="mm-x" type="button" data-mmx="' + escHtml(String(k.id)) + '" aria-label="Delete">&times;</button></div>';
     }).join('');
     if (!shown.length) html += '<div class="mm-empty">Nothing open.</div>';
@@ -7209,7 +7284,7 @@ function renderMmPage_() {
   el('mmJourney').innerHTML = settled
     ? '<span class="mm-js done">\u25CF OPENED ' + escHtml(mmFmt_(k.opened_on)).toUpperCase() + '</span>' + (k.reopened ? '<span class="mm-js done">REOPENED ' + k.reopened + '\u00D7</span>' : '')
       + '<span class="mm-js onG"><i class="mm-tk">\u2713</i> SETTLED \u00B7 ' + escHtml(mmFmt_(k.settled_on)).toUpperCase() + '</span>'
-    : '<span class="mm-js on">\u25CF ' + (k.next_step ? 'WORKING' : 'OPEN') + ' \u00B7 ' + days + (days === 1 ? ' DAY' : ' DAYS') + '</span><span class="mm-js next" data-mmjact="settle">\u2713 SETTLE\u2026</span>';
+    : '<span class="mm-js on">\u25CF ' + (k.next_step ? 'WORKING' : 'OPEN') + ' \u00B7 ' + mmAge_(days).toUpperCase() + '</span><span class="mm-js next" data-mmjact="settle">\u2713 SETTLE\u2026</span>';
   // the marks: the app's rubber stamp in the door's ink (green once settled), the door's seal, the NEXT BY band
   el('mmStamp').innerHTML = settled
     ? mmStampSvg_('SETTLED', escHtml(mmFmt_(k.settled_on)).toUpperCase(), '#2B4C9B', true, true)   // the settled stamp in the same stamp-pad blue; the band and the journey carry the green
@@ -7221,6 +7296,11 @@ function renderMmPage_() {
     band.querySelector('span').textContent = late ? 'PAST THE DATE' : 'NEXT BY'; band.querySelector('b').textContent = mmFmt_(k.next_by);
     band.classList.toggle('late', late); band.classList.remove('hidden');
   } else band.classList.add('hidden');
+  { const us = settled ? null : mmUsual_(k.door), d0 = mmDays_(k.opened_on), wl = el('mmWeeks');
+    if (us != null && d0 > us && d0 >= 14) {
+      wl.innerHTML = 'With you for <b>' + escHtml(mmAge_(d0)) + '</b>. Your ' + escHtml(MM_PLURAL[k.door] || 'knots here') + ' usually settle in about <b>' + escHtml(mmAge_(us)) + '</b>. Not a deadline \u2014 just where this one stands.';
+      wl.classList.remove('hidden');
+    } else wl.classList.add('hidden'); }
   const kn = mmKnow_(k), kb = el('mmKnow'), kd = el('mmKnowDue');
   if (kn) {
     kb.querySelector('b').textContent = kn.today ? 'Today' : mmFmt_(kn.by);
@@ -7237,7 +7317,7 @@ function renderMmPage_() {
   el('mmPageM').textContent = settled
     ? 'opened ' + mmFmt_(k.opened_on) + ' · settled ' + (span === 0 ? 'the same day' : span > 0 ? span + ' day' + (span === 1 ? '' : 's') + ' later' : mmFmt_(k.settled_on))
       + (k.reopened ? ' · reopened ' + k.reopened + '×' : '')
-    : (k.next_step ? 'Working' : 'Open') + ' · opened ' + mmFmt_(k.opened_on) + ' · ' + mmDays_(k.opened_on) + ' day' + (mmDays_(k.opened_on) === 1 ? '' : 's')
+    : (k.next_step ? 'Working' : 'Open') + ' · opened ' + mmFmt_(k.opened_on) + ' · ' + mmAge_(mmDays_(k.opened_on))
       + (k.reopened ? ' · reopened ' + k.reopened + '×' : '');
   pg.classList.toggle('mm-page-settled', settled);
   // the echo: this door's evidence, when there is any and the knot is still open
@@ -7662,6 +7742,11 @@ el('mmDoors').addEventListener('click', e => {
   mmDoor = mmDoor === d.dataset.mmdoor ? 'all' : d.dataset.mmdoor; renderMind();
 });
 el('mmOpenCnt').addEventListener('click', e => { if (e.target.closest('[data-mmall]')) { mmDoor = 'all'; renderMind(); } });
+el('mmNudge').addEventListener('click', e => {
+  if (e.target.closest('[data-mmsnooze]')) { mmSnoozeNudge_(); return; }
+  const b = e.target.closest('[data-mmnudge]'); if (!b) return;
+  openMmPage(b.dataset.mmnudge); mmGo_('then:next');   // straight to the next-step box
+});
 el('mmList').addEventListener('click', e => {
   if (e.target.closest('[data-mmretry]')) { loadMind(); return; }
   const dl = e.target.closest('[data-mmdec]'); if (dl) { e.stopPropagation(); mmOpenDec_(dl.dataset.mmdec); return; }
