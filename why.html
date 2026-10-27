@@ -1025,7 +1025,7 @@
   .mo-x:hover { color:#a8443e; }
   /* The Add button is always available, so the row controls are too. */
   #personWin .mo-x { display:block; }
-  body:not(.p-editing) .mo-x { display:none; }
+  body:not(.p-editing) .mo-x, body:not(.p-editing) #personWin .mo-x { display:none; }
   /* Read mode is read-only (Aug 2026): every mutating control sleeps until Edit. */
   .p-heroedit { display:none; font-family:var(--mono); font-size:0.5313rem; font-weight:600;
                 letter-spacing:0.1em; text-transform:uppercase; background:none;
@@ -1047,6 +1047,161 @@
   #personWin .pfoot .eb svg { display:none; }
   #personWin .pfoot .eb:hover { color:var(--pc-deep); }
   #personWin .pfoot .fr { gap:20px; }
+  /* ===== Persona page (27 Oct 2026): V1 editorial ===== */
+  /* One ground, one ink, one sage accent; colour only where it means something
+     (Traits / Behaviours / Biases, Q1-Q4, the band). No fills or shadows on headings. */
+  #personWin { --ps-ink:#1f2a44; --ps-ink2:#46506a; --ps-mute:#7a8295; --ps-faint:#a3aab8;
+               --ps-hair:#e8ecf1; --ps-hair2:#f1f3f6; --ps-sage:#3d5a4c; }
+  #personWin .p-sticky { border-bottom:none; padding-bottom:16px; }
+  #personWin .pname { background:none; padding:0; margin-left:0; color:var(--ps-ink); font-size:2.6rem; line-height:1.15; }
+  #personWin .p-sig { width:44px; height:3px; border-radius:2px; background:var(--p-acc,#3d5a4c); margin:12px 0 12px; }
+  #personWin .pav { background:#eef2ee !important; border:none; }
+  /* the pinned advice, under the name */
+  .p-hq { margin:16px 0 0; max-width:640px; padding-left:14px; border-left:2px solid #cfdacb; }
+  .p-hq q { display:block; font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:1.14rem; line-height:1.45; color:var(--ps-ink); quotes:'\201C' '\201D'; }
+  .p-hq span { display:block; font-family:var(--mono); font-size:0.58rem; letter-spacing:0.06em; color:var(--ps-mute); margin-top:4px; }
+  /* the three buttons */
+  .p-btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .p-pb { display:inline-flex; align-items:center; gap:9px; font-family:var(--mono); font-size:0.64rem; font-weight:600; letter-spacing:0.1em;
+          text-transform:uppercase; color:#2F4B3F; background:#fff; border:1px solid #e2e8f2; border-radius:9px; padding:7px 12px; cursor:pointer; }
+  .p-pb:hover { background:#f5f8f5; }
+  .p-pb b { font-weight:400; color:#63645c; letter-spacing:0.04em; }
+  .p-pb em { font-style:normal; font-weight:600; border-radius:5px; padding:1px 6px; letter-spacing:0.04em; white-space:nowrap; }
+  .p-pb .q1 { color:#9c3f4a; background:#fdf3f4; }
+  .p-pb .lt2 { color:#3a5b9c; background:#e6ecf7; }
+  .p-pb .lt2.over { color:#8a5a4a; background:#f3e7e4; }
+  .p-pb .ok { color:#3d6b52; background:#eaf2ec; }
+  .p-pb .no { color:#9a6a55; background:#f7eee9; }
+  .p-pg { display:grid; grid-template-columns:6px 6px; gap:2px; } .p-pg i { width:6px; height:6px; border-radius:1.5px; display:block; }
+  .p-ci { font-size:0.8rem; line-height:1; }
+  .p-cvp { font-size:0.7rem; color:#75766f; transition:transform .15s; }
+  #personWin.pan-pri #pBtnPri { background:#fbf7f6; color:#7d3540; border-color:#d9b9bd; }
+  #personWin.pan-conv #pBtnConv { background:#f4f7fc; color:#34507f; border-color:#b7c6e2; }
+  #personWin.pan-deal #pBtnDeal { background:#f4f8f5; color:#355d47; border-color:#b3cbb9; }
+  #personWin.pan-pri #pBtnPri .p-cvp, #personWin.pan-conv #pBtnConv .p-cvp, #personWin.pan-deal #pBtnDeal .p-cvp { transform:rotate(180deg); color:inherit; }
+  /* panels: tinted boxes, one open at a time */
+  .p-pan { display:none; border-radius:14px; padding:16px 18px 14px; margin:2px 0 20px; }
+  #personWin.pan-pri #pPanPri, #personWin.pan-conv #pPanConv, #personWin.pan-deal #pPanDeal { display:block; }
+  .pan-pri { background:#fbf7f6; border:1px solid #ecdcdc; }
+  .pan-conv { background:#f4f7fc; border:1px solid #d9e2f1; }
+  .pan-deal { background:#f4f8f5; border:1px solid #d8e5db; }
+  .p-panh { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .p-panh .sp { flex:1; }
+  .p-pant { font-family:'Newsreader',Georgia,serif; font-size:1.2rem; font-weight:500; }
+  .pan-pri .p-pant { color:#7d3540; } .pan-conv .p-pant { color:#34507f; } .pan-deal .p-pant { color:#355d47; }
+  .p-pan .p-cb { background:#fff; }
+  #pPanPri .p-stack { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  #pPanPri .p-sub { border-top-color:#eee2e2; }
+  #pPanConv .p-lsi { border-bottom-color:#e2e8f3; }
+  /* Key facts strip */
+  .p-kf { display:grid; grid-template-columns:repeat(4,1fr) auto; border-top:1px solid var(--ps-hair); border-bottom:1px solid var(--ps-hair); padding:12px 0; margin:0 0 4px; }
+  .p-kf > div { padding:0 16px; border-left:1px solid var(--ps-hair2); min-width:0; }
+  .p-kf > div:first-child { padding-left:0; border-left:none; }
+  .p-kf > .kf-e { border-left:none; display:flex; align-items:center; justify-content:flex-end; padding-right:0; }
+  .p-kf i { display:block; font-style:normal; font-family:var(--mono); font-size:0.55rem; letter-spacing:0.16em; color:var(--ps-mute); }
+  .p-kf span { font-family:'Newsreader',Georgia,serif; font-size:1rem; color:var(--ps-ink); overflow-wrap:anywhere; }
+  .p-kf input { width:100%; font-family:'Newsreader',Georgia,serif; font-size:1rem; color:var(--ps-ink); border:none; border-bottom:1.5px solid #cfdacb; background:transparent; padding:3px 0; outline:none; }
+  .p-kf input:focus { border-bottom-color:var(--ps-sage); }
+  /* sections: a serif title with a short sage stroke */
+  .ps { padding:26px 0 24px; border-top:1px solid var(--ps-hair); }
+  .p-kf + .ps { border-top:none; }
+  .psh { display:flex; align-items:baseline; gap:12px; margin:0 0 14px; }
+  .pst { font-family:'Newsreader',Georgia,serif; font-size:1.42rem; font-weight:500; color:var(--ps-ink); position:relative; }
+  .pst::before { content:''; position:absolute; left:0; top:-12px; width:22px; height:2px; background:var(--ps-sage); }
+  .psn { font-family:var(--mono); font-size:0.62rem; color:var(--ps-mute); }
+  .psh .sp { flex:1; }
+  .psa { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ps-sage); background:none; border:none; padding:2px 0; cursor:pointer; }
+  /* W3: the one-line read, then three big colour words */
+  .p-read { margin:0 0 20px; padding:0 0 18px; border-bottom:1px solid var(--ps-hair2); }
+  .p-read i { display:block; font-style:normal; font-family:var(--mono); font-size:0.58rem; font-weight:600; letter-spacing:0.16em; color:var(--ps-mute); margin-bottom:6px; }
+  .p-read p { margin:0; font-family:'Newsreader',Georgia,serif; font-size:1.5rem; line-height:1.35; color:var(--ps-ink); max-width:820px; }
+  .p-read p em { font-style:normal; background:linear-gradient(transparent 62%, #e7eee8 62%); }
+  .p-read.none { padding-bottom:12px; }
+  .pe-read { width:100%; font-family:'Newsreader',Georgia,serif; font-size:1.3rem; color:var(--ps-ink); border:none; border-bottom:1.5px solid #cfdacb; background:transparent; padding:4px 0; outline:none; }
+  .p-g3 { display:grid; grid-template-columns:repeat(3,1fr); }
+  .p-gc { padding:0 20px; border-left:1px solid var(--ps-hair2); min-width:0; }
+  .p-gc:first-child { padding-left:0; border-left:none; } .p-gc:last-child { padding-right:0; }
+  .p-whd { display:flex; align-items:baseline; gap:9px; padding-bottom:8px; border-bottom:2px solid var(--wc); margin-bottom:4px; }
+  .p-whd span { font-family:'Newsreader',Georgia,serif; font-size:1.38rem; font-weight:500; color:var(--wc); }
+  .p-whd b { font-family:var(--mono); font-size:0.62rem; font-weight:500; color:var(--ps-mute); }
+  .p-it { padding:8px 0; border-top:1px solid var(--ps-hair2); font-family:'Newsreader',Georgia,serif; font-size:1.05rem; line-height:1.4; color:var(--ps-ink); overflow-wrap:anywhere; }
+  .p-whd + .p-it, .p-gl + .p-it { border-top:none; }
+  .p-it.dot { padding-left:12px; position:relative; }
+  .p-it.dot::before { content:''; position:absolute; left:0; top:16px; width:5px; height:5px; border-radius:50%; background:var(--wc); opacity:0.55; }
+  .p-it small { display:block; font-family:var(--sans); font-size:0.74rem; color:var(--ps-ink2); margin-top:2px; }
+  .p-it em { display:block; font-style:normal; font-family:var(--mono); font-size:0.56rem; color:var(--ps-faint); margin-top:2px; }
+  .p-more { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.08em; color:var(--ps-sage); background:none; border:none; padding:6px 0 0; cursor:pointer; }
+  /* group labels with their own underline (Works / Avoid) */
+  .p-gl { font-family:var(--mono); font-size:0.6rem; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; border-bottom:1.5px solid currentColor; padding-bottom:6px; margin-bottom:2px; }
+  .p-wk { display:grid; grid-template-columns:1fr 1fr; }
+  .p-wk > div { padding:0 18px; border-left:1px solid #dfe8e1; min-width:0; }
+  .p-wk > div:first-child { padding-left:0; border-left:none; }
+  /* Direct advice: every quote alike; the pinned one has a faint wash */
+  .p-qs { max-width:780px; }
+  .p-q { padding:11px 12px 11px 14px; font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:1.05rem; line-height:1.45; color:var(--ps-ink); border-top:1px solid var(--ps-hair2); }
+  .p-q:first-child { border-top:none; }
+  .p-q span { display:block; font-style:normal; font-family:var(--mono); font-size:0.58rem; color:var(--ps-mute); margin-top:3px; }
+  .p-q.pin { background:#f3f6f2; border-radius:8px; border-top-color:transparent; box-shadow:inset 2px 0 0 #cfdacb; }
+  .p-q.pin + .p-q { border-top-color:transparent; }
+  .p-q .pt { margin-left:8px; color:#7d8f83; letter-spacing:0.14em; font-size:0.52rem; font-weight:600; }
+  /* Indirect learning */
+  .p-ln { display:flex; gap:14px; padding:9px 0; border-top:1px solid var(--ps-hair2); }
+  .p-ln:first-child { border-top:none; }
+  .p-ln .k { font-family:var(--mono); font-size:0.6rem; color:var(--ps-faint); min-width:64px; padding-top:4px; flex-shrink:0; }
+  .p-ln .t { font-family:'Newsreader',Georgia,serif; font-size:1.03rem; line-height:1.45; color:var(--ps-ink); }
+  .p-ln .t small { display:block; font-family:var(--sans); font-size:0.74rem; color:var(--ps-ink2); margin-top:2px; }
+  /* T1: the add line */
+  .pad { display:flex; gap:8px; padding:8px 0 2px; }
+  .pad-p { color:var(--ps-faint); font-size:1.05rem; width:14px; flex-shrink:0; line-height:1.6; }
+  .pad-w { flex:1; min-width:0; }
+  .pad-i { width:100%; border:none; background:transparent; outline:none; padding:2px 0 4px; font-family:'Newsreader',Georgia,serif; font-size:1rem; color:var(--ps-ink); border-bottom:1.5px solid transparent; }
+  .pad-i::placeholder { color:var(--ps-faint); font-style:italic; }
+  .pad.on .pad-i { border-bottom-color:var(--ps-sage); }
+  .pad.on .pad-p { color:var(--ps-sage); }
+  .pad-x { display:none; gap:6px; flex-wrap:wrap; align-items:center; margin:6px 0 4px; }
+  .pad.on .pad-x { display:flex; }
+  .pad-x input[type=text], .pad-x input[type=month] { font-family:var(--mono); font-size:0.66rem; color:var(--ps-ink2); border:1px solid var(--ps-hair); border-radius:6px; padding:3px 7px; background:#fff; outline:none; }
+  .pad-x .pad-s, .pad-x .pad-a { flex:1 1 180px; min-width:0; font-family:var(--sans); font-size:0.74rem; }
+  .pad-pin { font-family:var(--mono); font-size:0.62rem; color:var(--ps-ink2); display:inline-flex; gap:4px; align-items:center; }
+  .pad-k { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; color:var(--ps-mute); }
+  /* Edit mode rows */
+  .pe-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; padding:6px 0; border-top:1px solid var(--ps-hair2); }
+  .pe-row input { border:1px solid var(--ps-hair); border-radius:6px; padding:5px 8px; background:#fff; outline:none; font-family:var(--sans); font-size:0.78rem; color:var(--ps-ink2); min-width:0; }
+  .pe-row .pe-t { flex:1 1 100%; font-family:'Newsreader',Georgia,serif; font-size:1rem; color:var(--ps-ink); }
+  .pe-row .pe-seen, .pe-row .pe-about { flex:1 1 140px; }
+  .pe-row .pe-m { font-family:var(--mono); font-size:0.66rem; }
+  .pe-x, .pe-pin { width:26px; height:26px; border-radius:50%; border:none; background:none; color:#b6bfcd; font-size:1rem; cursor:pointer; flex-shrink:0; }
+  .pe-x:hover { background:#fdf3f2; color:#8A1F1A; }
+  .pe-pin { font-size:0.8rem; opacity:0.35; } .pe-pin.on { opacity:1; background:#f3f6f2; }
+  /* A1: one line for everything empty */
+  .p-empty { border-top:1px solid var(--ps-hair); padding:20px 0 22px; }
+  .pe-h { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
+  .pe-t { font-family:'Newsreader',Georgia,serif; font-size:1.05rem; color:var(--ps-mute); }
+  .pe-n { font-family:var(--mono); font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ps-faint); }
+  .pe-c { display:flex; gap:8px; flex-wrap:wrap; }
+  .pe-c button { font-family:'Newsreader',Georgia,serif; font-size:0.95rem; color:var(--ps-ink2); background:none; border:1px dashed #cfd6e0; border-radius:999px; padding:4px 13px; cursor:pointer; }
+  .pe-c button:hover { border-style:solid; border-color:var(--ps-sage); color:var(--ps-sage); }
+  /* moments and the long note sit in the same grammar */
+  #psMom .mo { border-bottom-color:var(--ps-hair2); }
+  #psNote .ps-body { max-width:660px; }
+  #psNote .essay-date { margin:-6px 0 12px; }
+  @media (max-width:720px) {
+    #personWin .pname { font-size:1.9rem; }
+    .p-btns { gap:6px; }
+    .p-pb { font-size:0.58rem; padding:6px 10px; gap:7px; }
+    .p-pb .lw { display:none; }
+    #pPanPri .p-stack { grid-template-columns:1fr; }
+    .p-pan { padding:12px; }
+    .p-kf { grid-template-columns:1fr 1fr; gap:10px 0; }
+    .p-kf > div { padding:0 0 0 12px; }
+    .p-kf > div:nth-child(odd) { padding-left:0; border-left:none; }
+    .p-kf > .kf-e { grid-column:1 / -1; justify-content:flex-start; padding-left:0; }
+    .p-g3, .p-wk { grid-template-columns:1fr; }
+    .p-gc, .p-wk > div { padding:0; border-left:none; }
+    .p-gc + .p-gc, .p-wk > div + div { margin-top:16px; }
+    .pst { font-size:1.22rem; }
+    .p-read p { font-size:1.2rem; }
+  }
   .fr { display:flex; gap:8px; flex-wrap:wrap; }
   #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
   @media (max-width:640px) { .pscroll { padding-top:20px; } .pin { padding:0 16px 30px; } .pname { font-size:1.625rem; } .pav { width:52px; height:52px; font-size:1.25rem; } }
@@ -3108,6 +3263,8 @@
   </div>
   <div class="pscroll">
     <div class="pin">
+      <!-- Persona page (27 Oct 2026): V1 editorial. Headings are serif titles with
+           a small sage stroke; colour only where it means something. -->
       <div class="p-sticky">
       <div class="phero">
         <div class="pav" id="pAvatar"></div>
@@ -3116,53 +3273,62 @@
           <div class="pnamerow"><span class="pname" id="pName"></span><span class="ptag" id="pTag"></span></div>
           <div class="p-sig"></div>
           <div class="pmeta"><span class="bd" id="pBand"></span><span class="p-rhythm" id="pRhythm"></span><span class="pnote" id="pNote"></span><button class="p-rise" id="pRise" type="button">&#11014; Mark as rising</button><button class="p-heroedit" id="pHeroEdit" type="button">Edit details</button></div>
-        </div>
-        <div class="p-lastcol"><span class="p-lslab">Last spoke</span>
-          <span class="p-lsbig" id="pLastBig">&mdash;</span>
-          <span class="p-lssub" id="pLastSub"></span></div>
-      </div>
-      <div class="essay-date" id="pDates"></div>
-      </div>
-      <!-- One heading system for every section; colour belongs to the content. -->
-      <div class="p-grid">
-      <div class="p-colA">
-      <section class="p-card" data-sec="next">
-        <div class="p-ch"><span class="p-cn" id="pNextSum"></span>
-          <button class="p-cb solid" id="pIntAdd" type="button">Add</button></div>
-        <div class="p-sbody">
-        <div class="p-stack" id="pIntMatrix"></div>
-        <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
-          <!-- Closing an intention does not move it elsewhere; it belongs here. -->
-          <div class="p-sub" id="pLedgerSec">
-            <div class="p-subh"><span class="p-subl">The ledger</span>
-              <span class="p-cn" id="pIntArchCount"></span></div>
-            <div id="pIntArchive"></div>
+          <div class="p-hq" id="pQuote"></div>
+          <div class="p-btns">
+            <button class="p-pb" id="pBtnPri" data-pan="pri" type="button"></button>
+            <button class="p-pb" id="pBtnConv" data-pan="conv" type="button"></button>
+            <button class="p-pb" id="pBtnDeal" data-pan="deal" type="button"></button>
           </div>
         </div>
-      </section>
-      </div>
-
-      <div class="p-colB">
-      <section class="p-card" id="pMomentsSec" data-sec="mom">
-        <div class="p-ch"><button class="p-ct" type="button" data-toggle="mom"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Important moments</span></button>
-          <span class="p-cn" id="pMomSum"></span>
-          <button class="p-cb solid" id="pMomAdd" type="button">Add</button></div>
-        <div class="p-sbody"><div id="pMoments"></div></div>
-      </section>
-
-      <section class="p-card" data-sec="ls">
-        <div class="p-ch"><button class="p-ct" type="button" data-toggle="ls"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">Recent conversation</span></button>
-          <span class="p-cn" id="pLsSum"></span>
-          <button class="p-cb solid" id="pTalkAdd" type="button">Record</button></div>
-        <div class="p-sbody"><div class="p-ls" id="pLastSpoke"></div></div>
-      </section>
       </div>
       </div>
 
-      <section class="p-card p-note" data-sec="note">
-        <div class="p-ch"><button class="p-ct" type="button" data-toggle="note"><svg class="p-cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg><span class="p-cl">The long note</span></button>
-          <span class="p-cn" id="pNoteSum"></span></div>
-        <div class="p-sbody">
+      <!-- The three panels open as tinted boxes, one at a time. -->
+      <div class="p-pan pan-pri" id="pPanPri">
+        <div class="p-panh"><span class="p-pant">Priorities</span><span class="p-cn" id="pNextSum"></span><span class="sp"></span>
+          <button class="p-cb solid" id="pIntAdd" type="button">Add</button><button class="p-cb" data-pan="pri" type="button">Close</button></div>
+        <div class="p-stack" id="pIntMatrix"></div>
+        <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
+        <div class="p-sub" id="pLedgerSec">
+          <div class="p-subh"><span class="p-subl">The ledger</span><span class="p-cn" id="pIntArchCount"></span></div>
+          <div id="pIntArchive"></div>
+        </div>
+      </div>
+      <div class="p-pan pan-conv" id="pPanConv">
+        <div class="p-panh"><span class="p-pant">Recent conversation</span><span class="p-cn" id="pLsSum"></span><span class="sp"></span>
+          <button class="p-cb solid" id="pTalkAdd" type="button">Record</button><button class="p-cb" data-pan="conv" type="button">Close</button></div>
+        <div class="p-ls" id="pLastSpoke"></div>
+      </div>
+      <div class="p-pan pan-deal" id="pPanDeal">
+        <div class="p-panh"><span class="p-pant">How to deal with them</span><span class="sp"></span><button class="p-cb" data-pan="deal" type="button">Close</button></div>
+        <div id="pDeal"></div>
+      </div>
+
+      <div class="p-kf" id="pFacts"></div>
+
+      <section class="ps" id="psWho" data-ps="who">
+        <div class="psh"><span class="pst">Who they are</span><span class="psn" id="pWhoN"></span><span class="sp"></span><button class="psa" data-psadd="who" type="button">+ Add</button></div>
+        <div id="pWho"></div>
+      </section>
+      <section class="ps" id="psAdv" data-ps="adv">
+        <div class="psh"><span class="pst">Direct advice</span><span class="psn" id="pAdvN"></span><span class="sp"></span><button class="psa" data-psadd="adv" type="button">+ Add</button></div>
+        <div id="pAdv"></div>
+      </section>
+      <section class="ps" id="psLrn" data-ps="lrn">
+        <div class="psh"><span class="pst">Indirect learning</span><span class="psn" id="pLrnN"></span><span class="sp"></span><button class="psa" data-psadd="lrn" type="button">+ Add</button></div>
+        <div id="pLrn"></div>
+      </section>
+      <section class="ps" id="psMom" data-ps="mom">
+        <div class="psh"><span class="pst">Important moments</span><span class="psn" id="pMomSum"></span><span class="sp"></span><button class="psa" id="pMomAdd" type="button">+ Add</button></div>
+        <div id="pMoments"></div>
+      </section>
+      <!-- A1: empty sections gather here instead of standing empty. -->
+      <div class="p-empty" id="pEmpty"></div>
+
+      <section class="ps p-note" id="psNote" data-ps="note">
+        <div class="psh"><span class="pst">The long note</span><span class="psn" id="pNoteSum"></span><span class="sp"></span></div>
+        <div class="essay-date" id="pDates"></div>
+        <div class="ps-body">
         <div class="rd-album" id="pAlbum"></div>
         <div class="pessay ro" id="pEssayRO"></div>
         <div id="pToolbar"></div>
@@ -3470,8 +3636,20 @@ async function exportWhy() {
         const moms = (pg.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim());
         const talks = (pg.contacts || []).slice().sort((a, b) => String(b.on).localeCompare(String(a.on)));
         const note = pg.essay && xPlain_(pg.essay) ? pg.essay : '';
-        if (!open.length && !closed.length && !moms.length && !talks.length && !note) return;
+        const ps = pPersonaParts_(pg);
+        if (!open.length && !closed.length && !moms.length && !talks.length && !note && !ps.any) return;
         body += '<h4>' + xEsc_(c.name) + '</h4>';
+        if (ps.facts.length) body += '<p class="meta">' + ps.facts.map(([l, v]) => xEsc_(l) + ': ' + xEsc_(v)).join(' \u00B7 ') + '</p>';
+        if (ps.read) body += '<p><em>' + xEsc_(pReadPlain_(ps.read)) + '</em></p>';
+        ps.who.forEach(g => {
+          body += '<p class="meta">' + xEsc_(g.lbl) + '</p><ul>' + g.items.map(x => '<li>' + xEsc_(x.t)
+            + (x.seen ? ' <span class="meta">(seen: ' + xEsc_(x.seen) + ')</span>' : '') + '</li>').join('') + '</ul>';
+        });
+        if (ps.advice.length) body += '<p class="meta">Direct advice</p><ul>' + ps.advice.map(a => '<li>\u201C' + xEsc_(a.t) + '\u201D'
+          + (a.about || a.on ? ' <span class="meta">' + xEsc_([a.about ? 'on ' + a.about : '', a.on ? pMon_(a.on) : ''].filter(Boolean).join(' \u00B7 ')) + '</span>' : '') + '</li>').join('') + '</ul>';
+        if (ps.learn.length) body += '<p class="meta">Indirect learning</p><ul>' + ps.learn.map(x => '<li>' + xEsc_(x.t) + (x.seen ? ' <span class="meta">' + xEsc_(x.seen) + '</span>' : '') + '</li>').join('') + '</ul>';
+        if (ps.ok.length || ps.no.length) body += '<p class="meta">How to deal with them</p><ul>'
+          + ps.ok.map(d => '<li>\u2713 ' + xEsc_(d.t) + '</li>').join('') + ps.no.map(d => '<li>\u2717 ' + xEsc_(d.t) + '</li>').join('') + '</ul>';
         if (talks.length) {
           body += '<p class="meta">Last spoke ' + xEsc_(priFmt(talks[0].on))
                 + (talks[0].note ? ' \u00B7 ' + xEsc_(talks[0].note) : '') + '</p>';
@@ -5314,7 +5492,6 @@ function pDaysAgo_(iso) {
 function pApplySections() {
   // Open is the resting state. On a phone the stylesheet hides bodies unless a
   // section carries .open, so this starts everything expanded on both.
-  document.querySelectorAll('#personWin .p-card[data-sec]').forEach(sec => sec.classList.add('open'));
   const set = (id, txt) => { const e = el(id); if (e) e.textContent = txt; };
   const talks = pData.contacts || [];
   const last = talks.slice().sort((a, b) => String(a.on).localeCompare(String(b.on)))[talks.length - 1];
@@ -5326,8 +5503,234 @@ function pApplySections() {
   const momN = (pData.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim()).length;
   set('pMomSum', momN ? String(momN) : '');
   const words = NoteEditor.toPlain(pData.essay || '').trim().split(/\s+/).filter(Boolean).length;
-  set('pNoteSum', words ? words + ' words' : '');
+  set('pNoteSum', words ? words + (words === 1 ? ' word' : ' words') : '');
+  if (typeof renderPersona === 'function' && pId !== null) renderPersona();
 }
+// ===== CIRCLE: PERSONA (27 Oct 2026) =====
+// Who they are (one-line read + Traits / Behaviours / Biases), Direct advice,
+// Indirect learning, How to deal with them, Key facts. All of it lives in the
+// same why_circle.page JSON, so no new columns. Adding is always one line away
+// (type, Enter); changing or deleting an entry needs Edit, like the rest.
+let pPan = null, pOpenSecs = new Set(), pFactsEdit = false, pMore = {};
+function pUid_() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function pMonNow_() { return istToday().slice(0, 7); }
+function pMon_(v) {
+  const s = String(v || '');
+  if (/^\d{4}-\d{2}/.test(s)) {
+    const d = new Date(s.slice(0, 7) + '-01T00:00:00');
+    if (!isNaN(d)) return d.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).replace('Sept', 'Sep').toUpperCase();
+  }
+  return s.toUpperCase();
+}
+const P_WHO = [
+  { k: 'trait', lbl: 'Traits',     ink: '#4a6b5a', ph: 'add a trait…' },
+  { k: 'beh',   lbl: 'Behaviours', ink: '#4f6690', ph: 'add a behaviour…' },
+  { k: 'bias',  lbl: 'Biases',     ink: '#9a6a55', ph: 'add a bias…' }
+];
+const P_FACTS = [['bday', 'Birthday', '14 Feb'], ['family', 'Family', 'Partner, children…'], ['work', 'Work', 'Role, company'], ['met', 'How we met', 'Where, when']];
+const P_EMPTY_LBL = { facts: 'Key facts', who: 'Who they are', adv: 'Direct advice', lrn: 'Indirect learning', mom: 'Important moments' };
+function pEditing_() { return document.body.classList.contains('p-editing'); }
+// *words* in the one-line read carry a soft highlight.
+function pReadHtml_(t) { return escHtml(t).replace(/\*([^*]+)\*/g, '<em>$1</em>'); }
+// T1: the add line. Type, Enter; the optional chips appear once you start.
+function pAddLine_(kind, ph, o) {
+  o = o || {};
+  return '<div class="pad" data-padd="' + kind + '"><span class="pad-p">+</span><div class="pad-w">'
+    + '<input class="pad-i" type="text" placeholder="' + escHtml(ph) + '" aria-label="' + escHtml(ph) + '">'
+    + '<div class="pad-x">'
+    + (o.about ? '<input class="pad-a" type="text" placeholder="about…" aria-label="What it was about">' : '')
+    + (o.seen ? '<input class="pad-s" type="text" placeholder="seen: what happened (optional)" aria-label="What you saw">' : '')
+    + (o.month ? '<input class="pad-m" type="month" value="' + pMonNow_() + '" aria-label="When">' : '')
+    + (o.pin ? '<label class="pad-pin"><input type="checkbox" class="pad-pc"> pin</label>' : '')
+    + '<span class="pad-k">ENTER</span></div></div></div>';
+}
+// Edit mode: each entry becomes its own small set of inputs.
+function pEditRow_(list, it, fields) {
+  return '<div class="pe-row">' + fields.map(f => f === 'on'
+      ? '<input class="pe-m" type="month" data-pe="' + list + ':' + it.id + ':on" value="' + escHtml(String(it.on || '').slice(0, 7)) + '">'
+      : '<input class="pe-' + f + '" type="text" data-pe="' + list + ':' + it.id + ':' + f + '" value="' + escHtml(it[f] || '') + '" placeholder="' + (f === 't' ? '' : f) + '">').join('')
+    + (list === 'advice' ? '<button class="pe-pin' + (it.pin ? ' on' : '') + '" type="button" data-ppin="' + it.id + '" title="Pin under the name">📌</button>' : '')
+    + '<button class="pe-x" type="button" data-pdel="' + list + ':' + it.id + '" aria-label="Delete">&times;</button></div>';
+}
+function pHas_() {
+  const f = pData.facts || {};
+  return {
+    facts: P_FACTS.some(([k]) => String(f[k] || '').trim()),
+    who: !!(pData.who || []).length || !!String(pData.read || '').trim(),
+    adv: !!(pData.advice || []).length,
+    lrn: !!(pData.learn || []).length,
+    mom: (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim())
+  };
+}
+function renderPersona() {
+  if (pId === null || !el('pWho')) return;
+  const ed = pEditing_(), has = pHas_();
+  const shown = k => has[k] || pOpenSecs.has(k) || ed;
+  // --- pinned quote under the name
+  const pin = (pData.advice || []).find(a => a.pin);
+  const hq = el('pQuote');
+  hq.innerHTML = pin ? '<q>' + escHtml(pin.t) + '</q><span>ADVICE' + (pin.about ? ' · ON ' + escHtml(pin.about.toUpperCase()) : '') + (pin.on ? ' · ' + escHtml(pMon_(pin.on)) : '') + '</span>' : '';
+  hq.style.display = pin ? '' : 'none';
+  // --- the three buttons
+  const ints = pData.intents || [];
+  const openN = ints.filter(t => (t.status || 'open') === 'open').length;
+  const q1N = ints.filter(t => (t.status || 'open') === 'open' && (t.q || 'q2') === 'q1').length;
+  el('pBtnPri').innerHTML = '<span class="p-pg"><i style="background:#9c3f4a"></i><i style="background:#2E6640"></i><i style="background:#a06a2c"></i><i style="background:#5f6b85"></i></span>Priorities'
+    + '<b>' + (openN ? openN + ' open' : 'none yet') + '</b>' + (q1N ? '<em class="q1">Q1 · ' + q1N + '</em>' : '') + '<span class="p-cvp">▾</span>';
+  const talks = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
+  const last = talks[talks.length - 1];
+  const pp = circle.find(x => String(x.id) === String(pId)) || {};
+  const rh = rhythmOf(pp.rhythm);
+  let over = false;
+  if (rh.days && last) { const d = new Date(String(last.on) + 'T00:00:00'); over = !isNaN(d) && (Date.now() - d.getTime()) / 86400000 > rh.days * 1.5; }
+  el('pBtnConv').innerHTML = '<span class="p-ci">💬</span>Conversations<b>' + (talks.length || 'none yet') + '</b>'
+    + (last ? '<em class="lt2' + (over ? ' over' : '') + '"><span class="lw">LAST · </span>' + escHtml(pDaysAgo_(last.on).toUpperCase()) + '</em>' : '') + '<span class="p-cvp">▾</span>';
+  const okN = (pData.deal || []).filter(d => d.k === 'ok').length, noN = (pData.deal || []).filter(d => d.k === 'no').length;
+  el('pBtnDeal').innerHTML = '<span class="p-ci">🤝</span>How to deal'
+    + (okN || noN ? '<em class="ok">✓ ' + okN + '</em><em class="no">✗ ' + noN + '</em>' : '<b>none yet</b>') + '<span class="p-cvp">▾</span>';
+  const pw = el('personWin');
+  ['pri', 'conv', 'deal'].forEach(k => pw.classList.toggle('pan-' + k, pPan === k));
+  // --- How to deal (inside its panel)
+  el('pDeal').innerHTML = '<div class="p-wk">' + [['ok', '✓ Works', '#4a6b5a', 'add what works…'], ['no', '✗ Avoid', '#9a6a55', 'add what to avoid…']].map(([k, lbl, ink, ph]) =>
+    '<div><div class="p-gl" style="color:' + ink + '">' + lbl + '</div>'
+    + (pData.deal || []).filter(d => d.k === k).map(d => ed ? pEditRow_('deal', d, ['t']) : '<div class="p-it">' + escHtml(d.t) + '</div>').join('')
+    + pAddLine_('deal:' + k, ph) + '</div>').join('') + '</div>';
+  // --- Key facts
+  const f = pData.facts || {}, kf = el('pFacts');
+  const factsOpen = shown('facts');
+  kf.style.display = factsOpen ? '' : 'none';
+  if (factsOpen) {
+    const editingFacts = ed || pFactsEdit || !has.facts;
+    kf.classList.toggle('editing', editingFacts);
+    kf.innerHTML = P_FACTS.filter(([k]) => editingFacts || String(f[k] || '').trim()).map(([k, lbl, ph]) =>
+      '<div><i>' + lbl.toUpperCase() + '</i>' + (editingFacts
+        ? '<input type="text" data-pfact="' + k + '" value="' + escHtml(f[k] || '') + '" placeholder="' + escHtml(ph) + '">'
+        : '<span>' + escHtml(f[k]) + '</span>') + '</div>').join('')
+      + '<div class="kf-e">' + (editingFacts && !ed ? '<button class="psa" type="button" data-pfactsdone="1">Done</button>' : (!ed ? '<button class="psa" type="button" data-pfactsedit="1">Edit</button>' : '')) + '</div>';
+  }
+  // --- Who they are (W3: the one-line read, then three big colour words)
+  const who = pData.who || [];
+  el('psWho').style.display = shown('who') ? '' : 'none';
+  el('pWhoN').textContent = who.length ? who.length + (who.length === 1 ? ' note' : ' notes') : '';
+  const read = String(pData.read || '').trim();
+  let wh = '';
+  if (ed) wh += '<div class="p-read"><i>MY READ OF THEM, IN ONE LINE · *WORD* TO HIGHLIGHT</i><input class="pe-read" type="text" data-pread="1" value="' + escHtml(pData.read || '') + '" placeholder="Your read of them, in one line…"></div>';
+  else if (read) wh += '<div class="p-read"><i>MY READ OF THEM, IN ONE LINE</i><p>' + pReadHtml_(read) + '</p></div>';
+  else wh += '<div class="p-read none">' + pAddLine_('read', 'my read of them, in one line…') + '</div>';
+  wh += '<div class="p-g3">' + P_WHO.map(g => {
+    const its = who.filter(x => x.k === g.k);
+    const cap = 5, all = !!pMore[g.k] || ed, vis = all ? its : its.slice(0, cap);
+    return '<div class="p-gc" style="--wc:' + g.ink + '"><div class="p-whd"><span>' + g.lbl + '</span><b>' + (its.length || '') + '</b></div>'
+      + vis.map(x => ed ? pEditRow_('who', x, ['t', 'seen', 'on'])
+          : '<div class="p-it dot">' + escHtml(x.t) + (x.seen ? '<small>Seen: ' + escHtml(x.seen) + '</small>' : '') + (x.on ? '<em>' + escHtml(pMon_(x.on)) + '</em>' : '') + '</div>').join('')
+      + (its.length > cap && !all ? '<button class="p-more" type="button" data-pmore="' + g.k + '">+ ' + (its.length - cap) + ' more</button>' : '')
+      + pAddLine_('who:' + g.k, g.ph, { seen: true, month: true }) + '</div>';
+  }).join('') + '</div>';
+  el('pWho').innerHTML = wh;
+  // --- Direct advice: all alike; the pinned one only gets a faint wash
+  const adv = (pData.advice || []).slice().sort((a, b) => (b.pin - a.pin) || String(b.on || '').localeCompare(String(a.on || '')));
+  el('psAdv').style.display = shown('adv') ? '' : 'none';
+  el('pAdvN').textContent = adv.length ? adv.length + (adv.length === 1 ? ' quote' : ' quotes') : '';
+  el('pAdv').innerHTML = '<div class="p-qs">' + adv.map(a => ed ? pEditRow_('advice', a, ['t', 'about', 'on'])
+      : '<div class="p-q' + (a.pin ? ' pin' : '') + '">“' + escHtml(a.t) + '”<span>' + [a.about ? 'On ' + escHtml(a.about) : '', a.on ? escHtml(pMon_(a.on)) : ''].filter(Boolean).join(' · ')
+        + (a.pin ? '<b class="pt">PINNED</b>' : '') + '</span></div>').join('')
+    + pAddLine_('adv', 'their words…', { about: true, month: true, pin: true }) + '</div>';
+  // --- Indirect learning
+  const lrn = (pData.learn || []).slice().sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
+  el('psLrn').style.display = shown('lrn') ? '' : 'none';
+  el('pLrnN').textContent = lrn.length ? lrn.length + (lrn.length === 1 ? ' lesson' : ' lessons') : '';
+  el('pLrn').innerHTML = lrn.map(x => ed ? pEditRow_('learn', x, ['t', 'seen', 'on'])
+      : '<div class="p-ln"><span class="k">' + escHtml(pMon_(x.on)) + '</span><span class="t">' + escHtml(x.t) + (x.seen ? '<small>' + escHtml(x.seen) + '</small>' : '') + '</span></div>').join('')
+    + pAddLine_('lrn', 'something you learned by watching them…', { seen: true, month: true });
+  // --- Important moments (its own rows; adding needs Edit, as before)
+  el('psMom').style.display = shown('mom') ? '' : 'none';
+  // --- A1: whatever is empty gathers into one line
+  const empt = ['facts', 'who', 'adv', 'lrn', 'mom'].filter(k => !shown(k));
+  el('pEmpty').innerHTML = empt.length ? '<div class="pe-h"><span class="pe-t">Not written yet</span><span class="pe-n">tap one to start</span></div><div class="pe-c">'
+    + empt.map(k => '<button type="button" data-pempty="' + k + '">+ ' + P_EMPTY_LBL[k] + '</button>').join('') + '</div>' : '';
+  el('pEmpty').style.display = empt.length ? '' : 'none';
+}
+function pFocusAdd_(kind) {
+  const box = el('personWin').querySelector('[data-padd="' + kind + '"] .pad-i');
+  if (box) { box.focus(); box.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+}
+function pCommitAdd_(line) {
+  const kind = line.dataset.padd, q = s => line.querySelector(s);
+  const t = (q('.pad-i').value || '').trim(); if (!t) return;
+  const on = q('.pad-m') ? (q('.pad-m').value || '') : '';
+  const seen = q('.pad-s') ? q('.pad-s').value.trim() : '';
+  const [list, sub] = kind.split(':');
+  if (list === 'read') pData.read = t;
+  else if (list === 'who') (pData.who = pData.who || []).push({ id: pUid_(), k: sub, t, seen, on });
+  else if (list === 'lrn') (pData.learn = pData.learn || []).push({ id: pUid_(), t, seen, on });
+  else if (list === 'deal') (pData.deal = pData.deal || []).push({ id: pUid_(), k: sub, t });
+  else if (list === 'adv') {
+    const pin = !!(q('.pad-pc') && q('.pad-pc').checked);
+    pData.advice = pData.advice || [];
+    if (pin) pData.advice.forEach(a => { a.pin = false; });
+    pData.advice.push({ id: pUid_(), t, about: q('.pad-a') ? q('.pad-a').value.trim() : '', on, pin });
+  }
+  schedulePersonSave();
+  renderPersona();
+  // The next empty line is ready, so five traits take five Enters.
+  if (list !== 'read') pFocusAdd_(kind);
+}
+(function wirePersona_() {
+  const pw = el('personWin'); if (!pw) return;
+  pw.addEventListener('keydown', e => {
+    const line = e.target.closest('.pad');
+    if (line && e.key === 'Enter') { e.preventDefault(); pCommitAdd_(line); return; }
+    if (line && e.key === 'Escape') { e.stopPropagation(); line.querySelectorAll('input[type=text]').forEach(i => { i.value = ''; }); e.target.blur(); return; }
+    if (e.target.matches('[data-pfact]') && e.key === 'Enter') { e.preventDefault(); pFactsEdit = false; renderPersona(); }
+  });
+  pw.addEventListener('focusin', e => { const l = e.target.closest('.pad'); if (l) l.classList.add('on'); });
+  pw.addEventListener('focusout', e => {
+    const l = e.target.closest('.pad'); if (!l) return;
+    setTimeout(() => { if (!l.contains(document.activeElement) && !l.querySelector('.pad-i').value) l.classList.remove('on'); }, 120);
+  });
+  pw.addEventListener('input', e => {
+    const t = e.target;
+    if (t.dataset.pfact) { pData.facts = pData.facts || {}; pData.facts[t.dataset.pfact] = t.value; schedulePersonSave(); return; }
+    if (t.dataset.pread) { pData.read = t.value; schedulePersonSave(); return; }
+    if (t.dataset.pe) {
+      const [list, id, field] = t.dataset.pe.split(':');
+      const it = (pData[list] || []).find(x => x.id === id); if (!it) return;
+      it[field] = t.value; schedulePersonSave();
+    }
+  });
+  pw.addEventListener('click', e => {
+    const pb = e.target.closest('[data-pan]');
+    if (pb) { pPan = pPan === pb.dataset.pan ? null : pb.dataset.pan; renderPersona(); return; }
+    const ad = e.target.closest('[data-psadd]');
+    if (ad) { const k = ad.dataset.psadd; pFocusAdd_(k === 'who' ? 'who:trait' : k); return; }
+    const em = e.target.closest('[data-pempty]');
+    if (em) {
+      const k = em.dataset.pempty;
+      if (k === 'mom') { if (!pEditing_()) el('pEdit').click(); setTimeout(() => el('pMomAdd').click(), 30); return; }
+      pOpenSecs.add(k); renderPersona();
+      if (k === 'facts') { const i = el('pFacts').querySelector('input'); if (i) i.focus(); }
+      else pFocusAdd_(k === 'who' ? 'who:trait' : k);
+      return;
+    }
+    if (e.target.closest('[data-pfactsedit]')) { pFactsEdit = true; renderPersona(); const i = el('pFacts').querySelector('input'); if (i) i.focus(); return; }
+    if (e.target.closest('[data-pfactsdone]')) { pFactsEdit = false; renderPersona(); return; }
+    const mo = e.target.closest('[data-pmore]'); if (mo) { pMore[mo.dataset.pmore] = true; renderPersona(); return; }
+    const pn = e.target.closest('[data-ppin]');
+    if (pn) {
+      const a = (pData.advice || []).find(x => x.id === pn.dataset.ppin); if (!a) return;
+      const on = !a.pin; pData.advice.forEach(x => { x.pin = false; }); a.pin = on;
+      schedulePersonSave(); renderPersona(); return;
+    }
+    const dl = e.target.closest('[data-pdel]');
+    if (dl) {
+      const [list, id] = dl.dataset.pdel.split(':');
+      const it = (pData[list] || []).find(x => x.id === id); if (!it) return;
+      if (!confirm('Delete this?\u000A\u000A' + (it.t || ''))) return;
+      pData[list] = pData[list].filter(x => x.id !== id);
+      schedulePersonSave(); renderPersona(); return;
+    }
+  });
+})();
 document.addEventListener('click', e => {
   const t = e.target.closest('#personWin [data-toggle]'); if (!t) return;
   const sec = t.closest('.p-card'); if (!sec) return;
@@ -5405,7 +5808,7 @@ function renderIntArchive() {
 // Stored as JSON in why_circle.page:
 //   { essay, moments:[{y,t}], contacts:[{on,note}], intents:[{id,t,q,status,outcome,who,on}] }
 // contacts is newest-last; the last entry is what "Last spoke" reads.
-let pId = null, pData = { essay: '', moments: [], contacts: [], intents: [] }, pTimer = null, editingInt = null, closingInt = null, pIntYears = {};
+let pId = null, pData = { essay: '', moments: [], contacts: [], intents: [], read: '', facts: {}, who: [], advice: [], learn: [], deal: [] }, pTimer = null, editingInt = null, closingInt = null, pIntYears = {};
 let pBaseline = null, pVTimer = null;
 let pDirty = false;
 function pUpdateWc_() {
@@ -5422,7 +5825,16 @@ function pSessionEnd_() {
 }
 
 function pParse(raw) {
-  const norm = o => ({
+  // Unknown keys are kept (essay_edited and anything a later version adds);
+  // the known ones are normalised so the page never meets a malformed shape.
+  const arr = v => Array.isArray(v) ? v : [];
+  const norm = o => Object.assign({}, o, {
+    read: typeof o.read === 'string' ? o.read : '',
+    facts: Object.assign({ bday: '', family: '', work: '', met: '' }, (o.facts && typeof o.facts === 'object') ? o.facts : {}),
+    who: arr(o.who).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), k: ['trait','beh','bias'].includes(x.k) ? x.k : 'trait', t: x.t, seen: x.seen || '', on: x.on || '' })),
+    advice: arr(o.advice).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), t: x.t, about: x.about || '', on: x.on || '', pin: !!x.pin })),
+    learn: arr(o.learn).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), t: x.t, seen: x.seen || '', on: x.on || '' })),
+    deal: arr(o.deal).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), k: x.k === 'no' ? 'no' : 'ok', t: x.t })),
     essay: o.essay || '',
     moments: Array.isArray(o.moments) ? o.moments : [],
     contacts: Array.isArray(o.contacts) ? o.contacts : [],
@@ -5445,12 +5857,7 @@ function openPerson(id) {
   el('pName').textContent = p.name || '';
   const talksAll = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
   const lastTalk = talksAll[talksAll.length - 1];
-  const bigEl = el('pLastBig'), subEl = el('pLastSub');
-  bigEl.textContent = lastTalk ? pDaysAgo_(lastTalk.on).replace(/^t/, 'T').replace(/^y/, 'Y') : '\u2014';
-  bigEl.classList.toggle('none', !lastTalk);
-  subEl.textContent = lastTalk
-    ? priFmt(lastTalk.on) + (lastTalk.note ? ' \u00B7 ' + lastTalk.note : '') : '';
-  subEl.style.display = lastTalk ? '' : 'none';
+  pPan = null; pOpenSecs = new Set(); pFactsEdit = false; pMore = {};
   const rh = rhythmOf(p.rhythm), rEl = el('pRhythm');
   if (rEl) {
     let over = false;
@@ -5509,6 +5916,7 @@ function openPerson(id) {
   renderLastSpoke();
   renderIntents();
   pApplySections();
+  renderPersona();
   el('personWin').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -5619,6 +6027,7 @@ async function savePersonCore_(force) {
           pLoadedUpd = theirs.updated_at; pDirty = false;
           el('pEssay').innerHTML = NoteEditor.toHtml(pData.essay || '');
           pBaseline = NoteEditor.sanitize(el('pEssay').innerHTML);
+          pData = pParse(theirData);
           renderPersonRead(); renderMoments(); renderLastSpoke(); renderIntents(); pApplySections();
           el('pSave').textContent = 'Saved';
         }
@@ -5660,7 +6069,7 @@ el('pLastSpoke').addEventListener('click', e => {
     // Remove one match only, in case two share a date and a note.
     const i = (pData.contacts || []).findIndex(c => c.on === on && (c.note || '') === note);
     if (i > -1) pData.contacts.splice(i, 1);
-    renderLastSpoke(); schedulePersonSave(); toast('Deleted');
+    renderLastSpoke(); schedulePersonSave(); renderPersona(); toast('Deleted');
     return;
   }
 });
@@ -5670,7 +6079,7 @@ el('pTalkSave').addEventListener('click', () => {
   pData.contacts = pData.contacts || [];
   pData.contacts.push({ on, note: el('fTalkNote').value.trim() });
   el('pTalkModal').classList.add('hidden');
-  renderLastSpoke(); schedulePersonSave();
+  renderLastSpoke(); schedulePersonSave(); renderPersona();
 });
 function openIntModal(id) {
   editingInt = id;
@@ -5702,13 +6111,13 @@ el('pIntSave').addEventListener('click', () => {
     pData.intents.push({ id: 'i' + Date.now(), t: v, q: el('fIntQ').value, status: 'open', outcome: '', who: '', on: '' });
   }
   el('pIntModal').classList.add('hidden'); editingInt = null;
-  renderIntents(); schedulePersonSave();
+  renderIntents(); schedulePersonSave(); renderPersona();
 });
 el('pIntDel').addEventListener('click', () => {
   if (!editingInt || !confirm('Delete this intention?')) return;
   pData.intents = (pData.intents || []).filter(x => x.id !== editingInt);
   el('pIntModal').classList.add('hidden'); editingInt = null;
-  renderIntents(); schedulePersonSave();
+  renderIntents(); schedulePersonSave(); renderPersona();
 });
 function pIntOutcomeUi_() {
   const v = el('fIntOutcome').value, gone = v === 'remove';
@@ -5736,7 +6145,7 @@ el('pIntCloseSave').addEventListener('click', () => {
     t.on = el('fIntOn').value || new Date().toISOString().slice(0, 10);
   }
   el('pIntCloseModal').classList.add('hidden'); closingInt = null;
-  renderIntents(); schedulePersonSave();
+  renderIntents(); schedulePersonSave(); renderPersona();
 });
 el('pIntMatrix').addEventListener('click', e => {
   if (!document.body.classList.contains('p-editing')) return;   // read mode is read-only
@@ -5797,6 +6206,19 @@ function pMomEdit_(e) {
 el('pMoments').addEventListener('input', pMomEdit_);
 el('pMoments').addEventListener('change', pMomEdit_);
 
+// Persona parts in page order, shared by the .md, the person print and the print-all.
+function pPersonaParts_(pg) {
+  pg = pg || {};
+  const f = pg.facts || {};
+  const facts = P_FACTS.filter(([k]) => String(f[k] || '').trim()).map(([k, lbl]) => [lbl, String(f[k]).trim()]);
+  const who = P_WHO.map(g => ({ lbl: g.lbl, ink: g.ink, items: (pg.who || []).filter(x => x.k === g.k) })).filter(g => g.items.length);
+  const advice = (pg.advice || []).slice().sort((a, b) => (b.pin - a.pin) || String(b.on || '').localeCompare(String(a.on || '')));
+  const learn = (pg.learn || []).slice().sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
+  const ok = (pg.deal || []).filter(d => d.k === 'ok'), no = (pg.deal || []).filter(d => d.k === 'no');
+  return { read: String(pg.read || '').trim(), facts, who, advice, learn, ok, no,
+           any: !!(String(pg.read || '').trim() || facts.length || who.length || advice.length || learn.length || ok.length || no.length) };
+}
+function pReadPlain_(t) { return String(t || '').replace(/\*([^*]+)\*/g, '$1'); }
 // ----- Person export -----
 function pPerson_() { return circle.find(x => String(x.id) === String(pId)) || {}; }
 function pMarkdown_() {
@@ -5818,6 +6240,22 @@ function pMarkdown_() {
   if (p.note) md += '- **Note:** ' + p.note + '\n';
   if (talks.length) md += '- **Last spoke:** ' + priFmt(talks[0].on)
     + (talks[0].note ? ' \u2014 ' + talks[0].note : '') + '\n';
+  const ps = pPersonaParts_(pData);
+  if (ps.facts.length) md += '\n## Key facts\n\n' + ps.facts.map(([l, v]) => '- **' + l + ':** ' + v).join('\n') + '\n';
+  if (ps.read || ps.who.length) {
+    md += '\n## Who they are\n';
+    if (ps.read) md += '\n_My read, in one line:_ ' + pReadPlain_(ps.read) + '\n';
+    ps.who.forEach(g => {
+      md += '\n**' + g.lbl + '**\n\n' + g.items.map(x => '- ' + x.t + (x.seen ? ' \u2014 _seen: ' + x.seen + '_' : '') + (x.on ? ' (' + pMon_(x.on) + ')' : '')).join('\n') + '\n';
+    });
+  }
+  if (ps.advice.length) md += '\n## Direct advice\n\n' + ps.advice.map(a => '> \u201C' + a.t + '\u201D  \n> \u2014 ' + [a.about ? 'on ' + a.about : '', a.on ? pMon_(a.on) : '', a.pin ? 'pinned' : ''].filter(Boolean).join(' \u00B7 ')).join('\n\n') + '\n';
+  if (ps.learn.length) md += '\n## Indirect learning\n\n' + ps.learn.map(x => '- ' + x.t + (x.seen ? ' \u2014 _' + x.seen + '_' : '') + (x.on ? ' (' + pMon_(x.on) + ')' : '')).join('\n') + '\n';
+  if (ps.ok.length || ps.no.length) {
+    md += '\n## How to deal with them\n';
+    if (ps.ok.length) md += '\n**\u2713 Works**\n\n' + ps.ok.map(d => '- ' + d.t).join('\n') + '\n';
+    if (ps.no.length) md += '\n**\u2717 Avoid**\n\n' + ps.no.map(d => '- ' + d.t).join('\n') + '\n';
+  }
 
   if (open.length) {
     md += '\n## What is next\n';
@@ -5920,9 +6358,23 @@ el('pPrint').addEventListener('click', () => {
     const note = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(pData.essay || '')) || '');
     return note ? '<div class="essay">' + note + '</div>' : '';
   })();
+  const ps = pPersonaParts_(pData);
+  const li = (t, sub, d) => '<li>' + esc(t) + (sub ? '<br><span class="meta">' + esc(sub) + '</span>' : '') + (d ? ' <span class="y">' + esc(d) + '</span>' : '') + '</li>';
+  const factsBody = ps.facts.length ? '<ul class="dt">' + ps.facts.map(([l, v]) => '<li><span class="y">' + esc(l) + '</span>' + esc(v) + '</li>').join('') + '</ul>' : '';
+  const whoBody = (ps.read ? '<div class="big">' + esc(pReadPlain_(ps.read)) + '</div>' : '')
+    + ps.who.map(g => '<h3 style="color:' + g.ink + '">' + esc(g.lbl) + '</h3><ul>' + g.items.map(x => li(x.t, x.seen ? 'Seen: ' + x.seen : '', x.on ? pMon_(x.on) : '')).join('') + '</ul>').join('');
+  const advBody = ps.advice.length ? '<ul>' + ps.advice.map(a => '<li><em>\u201C' + esc(a.t) + '\u201D</em><br><span class="meta">' + esc([a.about ? 'On ' + a.about : '', a.on ? pMon_(a.on) : '', a.pin ? 'Pinned' : ''].filter(Boolean).join(' \u00B7 ')) + '</span></li>').join('') + '</ul>' : '';
+  const lrnBody = ps.learn.length ? '<ul>' + ps.learn.map(x => li(x.t, x.seen, x.on ? pMon_(x.on) : '')).join('') + '</ul>' : '';
+  const dealBody = (ps.ok.length ? '<h3 style="color:#4a6b5a">\u2713 Works</h3><ul>' + ps.ok.map(d => li(d.t)).join('') + '</ul>' : '')
+    + (ps.no.length ? '<h3 style="color:#9a6a55">\u2717 Avoid</h3><ul>' + ps.no.map(d => li(d.t)).join('') + '</ul>' : '');
   const body = '<div class="eyebrow">My Circle</div><h1>' + esc(p.name || '')
     + (p.tag ? ' <span class="tagp">' + esc(p.tag) + '</span>' : '') + '</h1>'
     + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
+    + sec('KEY FACTS', factsBody)
+    + sec('WHO THEY ARE', whoBody)
+    + sec('DIRECT ADVICE', advBody)
+    + sec('INDIRECT LEARNING', lrnBody)
+    + sec('HOW TO DEAL WITH THEM', dealBody)
     + sec('LAST SPOKE', talkBody)
     + sec('WHAT IS NEXT', nextBody)
     + sec('IMPORTANT MOMENTS', ms ? '<ul class="dt">' + ms + '</ul>' : '')
