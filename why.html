@@ -1114,6 +1114,18 @@
   .p-pg { display:grid; grid-template-columns:6px 6px; gap:2px; } .p-pg i { width:6px; height:6px; border-radius:1.5px; display:block; }
   .p-ci { font-size:0.8rem; line-height:1; }
   .p-cvp { font-size:0.7rem; color:#75766f; transition:transform .15s; }
+  /* C (28 Oct 2026): Who they are - a lilac button and box; your read stays in the hero */
+  #personWin.pan-who #pBtnWho { background:#f7f6fa; color:#4f4570; border-color:#cbc3dc; }
+  #personWin.pan-who #pBtnWho .p-cvp { transform:rotate(180deg); color:inherit; }
+  #personWin.pan-who #pPanWho { display:block; }
+  .pan-who { background:#f7f6fa; border:1px solid #e3dfec; } .pan-who .p-pant { color:#4f4570; }
+  .p-wd { display:inline-flex; gap:8px; align-items:center; font-weight:400; letter-spacing:0.04em; color:#63645c; }
+  .p-wd i { display:inline-block; width:7px; height:7px; border-radius:2px; margin-right:3px; }
+  .p-rd { margin-top:12px; font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:1.06rem; line-height:1.4; color:#3c3d36; max-width:640px; }
+  .p-rd small { display:block; font-family:var(--mono); font-style:normal; font-size:0.55rem; letter-spacing:0.1em; color:#75766f; margin-bottom:2px; }
+  .p-rd em { font-style:italic; background:linear-gradient(transparent 55%, #efe6c8 55%); }
+  /* R2: the learning heading's quiet second line */
+  #psLrn .pst small { display:block; font-family:'Newsreader',Georgia,serif; font-style:italic; font-weight:400; font-size:0.95rem; color:#63645c; margin-top:-2px; }
   #personWin.pan-pri #pBtnPri { background:#fbf7f6; color:#7d3540; border-color:#d9b9bd; }
   #personWin.pan-conv #pBtnConv { background:#f4f7fc; color:#34507f; border-color:#b7c6e2; }
   #personWin.pan-deal #pBtnDeal { background:#f4f8f5; color:#355d47; border-color:#b3cbb9; }
@@ -3318,7 +3330,9 @@
           <div class="p-sig"></div>
           <div class="pmeta"><span class="bd" id="pBand"></span><span class="p-rhythm" id="pRhythm"></span><span class="pnote" id="pNote"></span><button class="p-rise" id="pRise" type="button">&#11014; Mark as rising</button><button class="p-heroedit" id="pHeroEdit" type="button">Edit details</button></div>
           <div class="p-hq" id="pQuote"></div>
+          <div class="p-rd" id="pRead"></div>
           <div class="p-btns">
+            <button class="p-pb" id="pBtnWho" data-pan="who" type="button"></button>
             <button class="p-pb" id="pBtnPri" data-pan="pri" type="button"></button>
             <button class="p-pb" id="pBtnConv" data-pan="conv" type="button"></button>
             <button class="p-pb" id="pBtnDeal" data-pan="deal" type="button"></button>
@@ -3327,7 +3341,13 @@
       </div>
       </div>
 
-      <!-- The three panels open as tinted boxes, one at a time. -->
+      <!-- The four panels open as tinted boxes, one at a time. -->
+      <!-- C (28 Oct 2026): Who they are is a button; your one-line read stays in the hero. -->
+      <div class="p-pan pan-who" id="pPanWho">
+        <div class="p-panh"><span class="p-pant">Who they are</span><span class="p-cn" id="pWhoN"></span><span class="sp"></span>
+          <button class="p-cb solid" data-psadd="who" type="button">Add</button><button class="p-cb" data-pan="who" type="button">Close</button></div>
+        <div id="pWho"></div>
+      </div>
       <div class="p-pan pan-pri" id="pPanPri">
         <div class="p-panh"><span class="p-pant">Priorities</span><span class="p-cn" id="pNextSum"></span><span class="sp"></span>
           <button class="p-cb solid" id="pIntAdd" type="button">Add</button><button class="p-cb" data-pan="pri" type="button">Close</button></div>
@@ -3350,16 +3370,12 @@
 
       <div class="p-kf" id="pFacts"></div>
 
-      <section class="ps" id="psWho" data-ps="who">
-        <div class="psh"><span class="pst">Who they are</span><span class="psn" id="pWhoN"></span><span class="sp"></span><button class="psa" data-psadd="who" type="button">+ Add</button></div>
-        <div id="pWho"></div>
-      </section>
       <section class="ps" id="psAdv" data-ps="adv">
         <div class="psh"><span class="pst">Direct advice</span><span class="psn" id="pAdvN"></span><span class="sp"></span><button class="psa" data-psadd="adv" type="button">+ Add</button></div>
         <div id="pAdv"></div>
       </section>
       <section class="ps" id="psLrn" data-ps="lrn">
-        <div class="psh"><span class="pst">Indirect learning</span><span class="psn" id="pLrnN"></span><span class="sp"></span><button class="psa" data-psadd="lrn" type="button">+ Add</button></div>
+        <div class="psh"><span class="pst">My indirect learning<small>and introspection</small></span><span class="psn" id="pLrnN"></span><span class="sp"></span><button class="psa" data-psadd="lrn" type="button">+ Add</button></div>
         <div id="pLrn"></div>
       </section>
       <section class="ps" id="psMom" data-ps="mom">
@@ -3691,7 +3707,7 @@ async function exportWhy() {
         });
         if (ps.advice.length) body += '<p class="meta">Direct advice</p><ul>' + ps.advice.map(a => '<li>\u201C' + xEsc_(a.t) + '\u201D'
           + (a.about || a.on ? ' <span class="meta">' + xEsc_([a.about ? 'on ' + a.about : '', a.on ? pMon_(a.on) : ''].filter(Boolean).join(' \u00B7 ')) + '</span>' : '') + '</li>').join('') + '</ul>';
-        if (ps.learn.length) body += '<p class="meta">Indirect learning</p><ul>' + ps.learn.map(x => '<li>' + xEsc_(x.t) + (x.seen ? ' <span class="meta">' + xEsc_(x.seen) + '</span>' : '') + '</li>').join('') + '</ul>';
+        if (ps.learn.length) body += '<p class="meta">My indirect learning and introspection</p><ul>' + ps.learn.map(x => '<li>' + xEsc_(x.t) + (x.seen ? ' <span class="meta">' + xEsc_(x.seen) + '</span>' : '') + '</li>').join('') + '</ul>';
         if (ps.ok.length || ps.no.length) body += '<p class="meta">How to deal with them</p><ul>'
           + ps.ok.map(d => '<li>\u2713 ' + xEsc_(d.t) + '</li>').join('') + ps.no.map(d => '<li>\u2717 ' + xEsc_(d.t) + '</li>').join('') + '</ul>';
         if (talks.length) {
@@ -5573,7 +5589,7 @@ const P_WHO = [
   { k: 'bias',  lbl: 'Biases',     ink: '#9a6a55', ph: 'add a bias…' }
 ];
 const P_FACTS = [['bday', 'Birthday', '14 Feb'], ['family', 'Family', 'Partner, children…'], ['work', 'Work', 'Role, company'], ['met', 'How we met', 'Where, when']];
-const P_EMPTY_LBL = { facts: 'Key facts', who: 'Who they are', adv: 'Direct advice', lrn: 'Indirect learning', mom: 'Important moments' };
+const P_EMPTY_LBL = { facts: 'Key facts', who: 'Who they are', adv: 'Direct advice', lrn: 'My indirect learning & introspection', mom: 'Important moments' };
 function pEditing_() { return document.body.classList.contains('p-editing'); }
 // *words* in the one-line read carry a soft highlight.
 function pReadHtml_(t) { return escHtml(t).replace(/\*([^*]+)\*/g, '<em>$1</em>'); }
@@ -5634,7 +5650,7 @@ function renderPersona() {
   el('pBtnDeal').innerHTML = '<span class="p-ci">🤝</span>How to deal'
     + (okN || noN ? '<em class="ok">✓ ' + okN + '</em><em class="no">✗ ' + noN + '</em>' : '<b>none yet</b>') + '<span class="p-cvp">▾</span>';
   const pw = el('personWin');
-  ['pri', 'conv', 'deal'].forEach(k => pw.classList.toggle('pan-' + k, pPan === k));
+  ['who', 'pri', 'conv', 'deal'].forEach(k => pw.classList.toggle('pan-' + k, pPan === k));
   // --- How to deal (inside its panel)
   el('pDeal').innerHTML = '<div class="p-wk">' + [['ok', '✓ Works', '#4a6b5a', 'add what works…'], ['no', '✗ Avoid', '#9a6a55', 'add what to avoid…']].map(([k, lbl, ink, ph]) =>
     '<div><div class="p-gl" style="color:' + ink + '">' + lbl + '</div>'
@@ -5653,14 +5669,21 @@ function renderPersona() {
         : '<span>' + escHtml(f[k]) + '</span>') + '</div>').join('')
       + '<div class="kf-e">' + (editingFacts && !ed ? '<button class="psa" type="button" data-pfactsdone="1">Done</button>' : (!ed ? '<button class="psa" type="button" data-pfactsedit="1">Edit</button>' : '')) + '</div>';
   }
-  // --- Who they are (W3: the one-line read, then three big colour words)
+  // --- Who they are (C, 28 Oct 2026): a button leading the row, its three counts in their colours;
+  // the one-line read stays in the hero, and the traits, behaviours and biases open in a lilac box.
   const who = pData.who || [];
-  el('psWho').style.display = shown('who') ? '' : 'none';
   el('pWhoN').textContent = who.length ? who.length + (who.length === 1 ? ' note' : ' notes') : '';
   const read = String(pData.read || '').trim();
+  el('pBtnWho').innerHTML = '<span class="p-ci">\uD83E\uDDED</span>Who they are'
+    + (who.length ? '<span class="p-wd">' + P_WHO.map(g => '<span><i style="background:' + g.ink + '"></i>' + who.filter(x => x.k === g.k).length + '</span>').join('') + '</span>' : '<b>none yet</b>')
+    + '<span class="p-cvp">\u25BE</span>';
+  const rd = el('pRead');
+  const rdOn = read && !(ed && pPan === 'who');   // while you edit it in the box, the box holds it
+  rd.innerHTML = rdOn ? '<small>MY READ OF THEM</small>' + pReadHtml_(read) : '';
+  rd.style.display = rdOn ? '' : 'none';
   let wh = '';
   if (ed) wh += '<div class="p-read"><i>MY READ OF THEM, IN ONE LINE · *WORD* TO HIGHLIGHT</i><input class="pe-read" type="text" data-pread="1" value="' + escHtml(pData.read || '') + '" placeholder="Your read of them, in one line…"></div>';
-  else if (read) wh += '<div class="p-read"><i>MY READ OF THEM, IN ONE LINE</i><p>' + pReadHtml_(read) + '</p></div>';
+  else if (read) wh += '';
   else wh += '<div class="p-read none">' + pAddLine_('read', 'my read of them, in one line…') + '</div>';
   wh += '<div class="p-g3">' + P_WHO.map(g => {
     const its = who.filter(x => x.k === g.k);
@@ -5686,16 +5709,17 @@ function renderPersona() {
   el('pLrnN').textContent = lrn.length ? lrn.length + (lrn.length === 1 ? ' lesson' : ' lessons') : '';
   el('pLrn').innerHTML = lrn.map(x => ed ? pEditRow_('learn', x, ['t', 'seen', 'on'])
       : '<div class="p-ln"><span class="k">' + escHtml(pMon_(x.on)) + '</span><span class="t">' + escHtml(x.t) + (x.seen ? '<small>' + escHtml(x.seen) + '</small>' : '') + '</span></div>').join('')
-    + pAddLine_('lrn', 'something you learned by watching them…', { seen: true, month: true });
+    + pAddLine_('lrn', 'something you learned from them, or about yourself…', { seen: true, month: true });
   // --- Important moments (its own rows; adding needs Edit, as before)
   el('psMom').style.display = shown('mom') ? '' : 'none';
   // --- A1: whatever is empty gathers into one line
-  const empt = ['facts', 'who', 'adv', 'lrn', 'mom'].filter(k => !shown(k));
+  const empt = ['facts', 'adv', 'lrn', 'mom'].filter(k => !shown(k));
   el('pEmpty').innerHTML = empt.length ? '<div class="pe-h"><span class="pe-t">Not written yet</span><span class="pe-n">tap one to start</span></div><div class="pe-c">'
     + empt.map(k => '<button type="button" data-pempty="' + k + '">+ ' + P_EMPTY_LBL[k] + '</button>').join('') + '</div>' : '';
   el('pEmpty').style.display = empt.length ? '' : 'none';
 }
 function pFocusAdd_(kind) {
+  if (/^(who|read)/.test(kind) && pPan !== 'who') { pPan = 'who'; renderPersona(); }
   const box = el('personWin').querySelector('[data-padd="' + kind + '"] .pad-i');
   if (box) { box.focus(); box.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
 }
@@ -6317,7 +6341,7 @@ function pMarkdown_() {
     });
   }
   if (ps.advice.length) md += '\n## Direct advice\n\n' + ps.advice.map(a => '> \u201C' + a.t + '\u201D  \n> \u2014 ' + [a.about ? 'on ' + a.about : '', a.on ? pMon_(a.on) : '', a.pin ? 'pinned' : ''].filter(Boolean).join(' \u00B7 ')).join('\n\n') + '\n';
-  if (ps.learn.length) md += '\n## Indirect learning\n\n' + ps.learn.map(x => '- ' + x.t + (x.seen ? ' \u2014 _' + x.seen + '_' : '') + (x.on ? ' (' + pMon_(x.on) + ')' : '')).join('\n') + '\n';
+  if (ps.learn.length) md += '\n## My indirect learning and introspection\n\n' + ps.learn.map(x => '- ' + x.t + (x.seen ? ' \u2014 _' + x.seen + '_' : '') + (x.on ? ' (' + pMon_(x.on) + ')' : '')).join('\n') + '\n';
   if (ps.ok.length || ps.no.length) {
     md += '\n## How to deal with them\n';
     if (ps.ok.length) md += '\n**\u2713 Works**\n\n' + ps.ok.map(d => '- ' + d.t).join('\n') + '\n';
@@ -6440,7 +6464,7 @@ el('pPrint').addEventListener('click', () => {
     + sec('KEY FACTS', factsBody)
     + sec('WHO THEY ARE', whoBody)
     + sec('DIRECT ADVICE', advBody)
-    + sec('INDIRECT LEARNING', lrnBody)
+    + sec('MY INDIRECT LEARNING AND INTROSPECTION', lrnBody)
     + sec('HOW TO DEAL WITH THEM', dealBody)
     + sec('LAST SPOKE', talkBody)
     + sec('WHAT IS NEXT', nextBody)
