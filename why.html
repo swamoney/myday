@@ -1124,6 +1124,27 @@
   .p-rd { margin-top:12px; font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:1.06rem; line-height:1.4; color:#3c3d36; max-width:640px; }
   .p-rd small { display:block; font-family:var(--mono); font-style:normal; font-size:0.55rem; letter-spacing:0.1em; color:#75766f; margin-bottom:2px; }
   .p-rd em { font-style:italic; background:linear-gradient(transparent 55%, #efe6c8 55%); }
+  /* Their people (L1, 28 Oct 2026) */
+  .tp1 { max-width:780px; }
+  .tp-r { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 16px; padding:10px 0; border-top:1px solid var(--ps-hair2); }
+  .tp-r:first-child { border-top:none; }
+  .tp-nm { font-family:'Newsreader',Georgia,serif; font-size:1.08rem; color:var(--ps-ink); }
+  .tp-rl { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ps-mute); margin-left:8px; }
+  .tp-ag { font-family:var(--mono); font-size:0.6rem; color:var(--ps-faint); text-align:right; padding-top:5px; }
+  .tp-nt { grid-column:1 / -1; font-family:var(--sans); font-size:0.8rem; color:var(--ps-ink2); line-height:1.45; }
+  .tp-lk { font-family:var(--mono); font-size:0.52rem; letter-spacing:0.1em; color:#3a6b5a; margin-left:8px; background:none; border:none; border-bottom:1px dashed #9fbfb2; padding:0; cursor:pointer; white-space:nowrap; }
+  .tp-past { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.08em; color:var(--ps-faint); padding:10px 0 0; border-top:1px solid var(--ps-hair2); text-transform:uppercase; line-height:1.8; }
+  .tp-past b { font-weight:400; font-family:'Newsreader',Georgia,serif; font-size:0.95rem; text-transform:none; letter-spacing:0; color:var(--ps-mute); font-style:italic; }
+  .tp-ed { max-width:860px; }
+  .tp-er { display:grid; grid-template-columns:1.4fr 1fr 64px 2fr auto auto auto; gap:6px; padding:6px 0; border-top:1px solid var(--ps-hair2); align-items:center; }
+  .tp-er input[type=text] { border:1px solid var(--ps-hair); border-radius:6px; padding:5px 8px; background:#fff; outline:none; font-family:var(--sans); font-size:0.78rem; color:var(--ps-ink2); min-width:0; }
+  .tp-er .e-p { width:56px; }
+  .tp-er label { font-family:var(--mono); font-size:0.55rem; color:var(--ps-mute); white-space:nowrap; display:flex; gap:4px; align-items:center; }
+  .pad-x .pad-r, .pad-x .pad-n { flex:1 1 160px; } .pad-x .pad-b { width:96px; }
+  @media (max-width:640px) {
+    .tp-er { grid-template-columns:1fr 1fr 60px; }
+    .tp-er .e-nt { grid-column:1 / -1; }
+  }
   /* R2: the learning heading's quiet second line */
   #psLrn .pst small { display:block; font-family:'Newsreader',Georgia,serif; font-style:italic; font-weight:400; font-size:0.95rem; color:#63645c; margin-top:-2px; }
   #personWin.pan-pri #pBtnPri { background:#fbf7f6; color:#7d3540; border-color:#d9b9bd; }
@@ -1145,7 +1166,7 @@
   #pPanPri .p-sub { border-top-color:#eee2e2; }
   #pPanConv .p-lsi { border-bottom-color:#e2e8f3; }
   /* Key facts strip */
-  .p-kf { display:grid; grid-template-columns:repeat(4,1fr) auto; border-top:1px solid var(--ps-hair); border-bottom:1px solid var(--ps-hair); padding:12px 0; margin:0 0 4px; }
+  .p-kf { display:grid; grid-template-columns:repeat(var(--kfn,4),1fr) auto; border-top:1px solid var(--ps-hair); border-bottom:1px solid var(--ps-hair); padding:12px 0; margin:0 0 4px; }
   .p-kf > div { padding:0 16px; border-left:1px solid var(--ps-hair2); min-width:0; }
   .p-kf > div:first-child { padding-left:0; border-left:none; }
   .p-kf > .kf-e { border-left:none; display:flex; align-items:center; justify-content:flex-end; padding-right:0; }
@@ -3382,6 +3403,12 @@
 
       <div class="p-kf" id="pFacts"></div>
 
+      <!-- Their people (28 Oct 2026): the people close to them - name, relation, born, one line; "in memory" keeps, never deletes -->
+      <section class="ps" id="psPpl" data-ps="ppl">
+        <div class="psh"><span class="pst">Their people</span><span class="psn" id="pPplN"></span></div>
+        <div id="pPpl"></div>
+      </section>
+
       <section class="ps" id="psAdv" data-ps="adv">
         <div class="psh"><span class="pst">Direct advice</span><span class="psn" id="pAdvN"></span><span class="sp"></span><button class="psa" data-psadd="adv" type="button">+ Add</button></div>
         <div id="pAdv"></div>
@@ -3714,6 +3741,7 @@ async function exportWhy() {
         if (!open.length && !closed.length && !moms.length && !talks.length && !note && !ps.any) return;
         body += '<h4>' + xEsc_(c.name) + '</h4>';
         if (ps.facts.length) body += '<p class="meta">' + ps.facts.map(([l, v]) => xEsc_(l) + ': ' + xEsc_(v)).join(' \u00B7 ') + '</p>';
+        if (ps.people.length) body += '<p class="meta">Their people</p><ul>' + ps.people.map(x => '<li>' + xEsc_(pPplLine_(x)) + '</li>').join('') + '</ul>';
         if (ps.read) body += '<p><em>' + xEsc_(pReadPlain_(ps.read)) + '</em></p>';
         ps.who.forEach(g => {
           body += '<p class="meta">' + xEsc_(g.lbl) + '</p><ul>' + g.items.map(x => '<li>' + xEsc_(x.t)
@@ -5603,7 +5631,7 @@ const P_WHO = [
   { k: 'bias',  lbl: 'Biases',     ink: '#9a6a55', ph: 'add a bias…' }
 ];
 const P_FACTS = [['bday', 'Birthday', '14 Feb'], ['family', 'Family', 'Partner, children…'], ['work', 'Work', 'Role, company'], ['met', 'How we met', 'Where, when']];
-const P_EMPTY_LBL = { facts: 'Key facts', who: 'Who they are', adv: 'Direct advice', lrn: 'My indirect learning & introspection', mom: 'Important moments' };
+const P_EMPTY_LBL = { facts: 'Key facts', ppl: 'Their people', who: 'Who they are', adv: 'Direct advice', lrn: 'My indirect learning & introspection', mom: 'Important moments' };
 function pEditing_() { return document.body.classList.contains('p-editing'); }
 // *words* in the one-line read carry a soft highlight.
 function pReadHtml_(t) { return escHtml(t).replace(/\*([^*]+)\*/g, '<em>$1</em>'); }
@@ -5613,6 +5641,9 @@ function pAddLine_(kind, ph, o) {
   return '<div class="pad" data-padd="' + kind + '"><span class="pad-p">+</span><div class="pad-w">'
     + '<input class="pad-i" type="text" placeholder="' + escHtml(ph) + '" aria-label="' + escHtml(ph) + '">'
     + '<div class="pad-x">'
+    + (o.rel ? '<input class="pad-r" type="text" placeholder="relation (wife, son, best friend…)" aria-label="Relation">' : '')
+    + (o.born ? '<input class="pad-b" type="text" inputmode="numeric" maxlength="4" placeholder="born (year)" aria-label="Year born">' : '')
+    + (o.note ? '<input class="pad-n" type="text" placeholder="one line (optional)" aria-label="One line about them">' : '')
     + (o.about ? '<input class="pad-a" type="text" placeholder="about…" aria-label="What it was about">' : '')
     + (o.seen ? '<input class="pad-s" type="text" placeholder="seen: what happened (optional)" aria-label="What you saw">' : '')
     + (o.month ? '<input class="pad-m" type="month" value="' + pMonNow_() + '" aria-label="When">' : '')
@@ -5630,7 +5661,8 @@ function pEditRow_(list, it, fields) {
 function pHas_() {
   const f = pData.facts || {};
   return {
-    facts: P_FACTS.some(([k]) => String(f[k] || '').trim()),
+    facts: P_FACTS.some(([k]) => k !== 'family' && String(f[k] || '').trim()),   // Family moved to Their people
+    ppl: !!(pData.people || []).length,
     who: !!(pData.who || []).length || !!String(pData.read || '').trim(),
     adv: !!(pData.advice || []).length,
     lrn: !!(pData.learn || []).length,
@@ -5677,12 +5709,42 @@ function renderPersona() {
   if (factsOpen) {
     const editingFacts = ed;   // reading mode (28 Oct 2026): only the page's Edit edits
     kf.classList.toggle('editing', editingFacts);
-    kf.innerHTML = P_FACTS.filter(([k]) => editingFacts || String(f[k] || '').trim()).map(([k, lbl, ph]) =>
-      '<div><i>' + lbl.toUpperCase() + '</i>' + (editingFacts
+    // Family moved to Their people (28 Oct 2026): hidden, except in Edit while the old box still holds text to move
+    const kfs = P_FACTS.filter(([k]) => k === 'family' ? (editingFacts && String(f[k] || '').trim()) : (editingFacts || String(f[k] || '').trim()));
+    kf.style.setProperty('--kfn', Math.max(1, kfs.length));
+    kf.innerHTML = kfs.map(([k, lbl, ph]) =>
+      '<div><i>' + (k === 'family' ? 'FAMILY \u00B7 MOVE INTO THEIR PEOPLE' : lbl.toUpperCase()) + '</i>' + (editingFacts
         ? '<input type="text" data-pfact="' + k + '" value="' + escHtml(f[k] || '') + '" placeholder="' + escHtml(ph) + '">'
         : '<span>' + escHtml(f[k]) + '</span>') + '</div>').join('')
       + '';   // reading mode (28 Oct 2026): no Edit of its own; the page's Edit covers it
   }
+  // --- Their people (L1, 28 Oct 2026): a quiet list; birth year shows as an age that keeps itself true;
+  // "in memory" moves someone to one quiet line, never deletes; a same-name page in My Circle is linked.
+  const ppl = pData.people || [], live = ppl.filter(x => !x.past), gone = ppl.filter(x => x.past);
+  el('psPpl').style.display = shown('ppl') ? '' : 'none';
+  el('pPplN').textContent = live.length ? live.length + (live.length === 1 ? ' person' : ' people') : '';
+  const yr = new Date().getFullYear();
+  const linkOf = n => { const k = String(n || '').trim().toLowerCase(); if (!k) return null;
+    return circle.find(c => String(c.id) !== String(pId) && String(c.name || '').trim().toLowerCase() === k) || null; };
+  let ph = '';
+  if (ed) {
+    ph = '<div class="tp-ed">' + ppl.map(x => '<div class="tp-er">'
+      + '<input type="text" class="e-n" data-pe="people:' + x.id + ':n" value="' + escHtml(x.n || '') + '" placeholder="name">'
+      + '<input type="text" class="e-r" data-pe="people:' + x.id + ':r" value="' + escHtml(x.r || '') + '" placeholder="relation">'
+      + '<input type="text" class="e-b" inputmode="numeric" maxlength="4" data-pe="people:' + x.id + ':b" value="' + escHtml(x.b || '') + '" placeholder="born">'
+      + '<input type="text" class="e-nt" data-pe="people:' + x.id + ':note" value="' + escHtml(x.note || '') + '" placeholder="one line">'
+      + '<label class="e-m"><input type="checkbox" data-pepast="' + x.id + '"' + (x.past ? ' checked' : '') + '> in memory</label>'
+      + (x.past ? '<input type="text" class="e-p" inputmode="numeric" maxlength="4" data-pe="people:' + x.id + ':pastOn" value="' + escHtml(x.pastOn || '') + '" placeholder="year">' : '')
+      + '<button class="pe-x" type="button" data-pdel="people:' + x.id + '" aria-label="Delete">&times;</button></div>').join('') + '</div>';
+  } else {
+    ph = '<div class="tp1">' + live.map(x => { const l = linkOf(x.n), b = /^\d{4}$/.test(String(x.b || '')) ? yr - +x.b : null;
+      return '<div class="tp-r"><div><span class="tp-nm">' + escHtml(x.n) + '</span>' + (x.r ? '<span class="tp-rl">' + escHtml(x.r) + '</span>' : '')
+        + (l ? '<button type="button" class="tp-lk" data-pplopen="' + escHtml(l.id) + '">IN MY CIRCLE \u2192</button>' : '') + '</div>'
+        + '<div class="tp-ag">' + (b !== null && b >= 0 ? b : '') + '</div>'
+        + (x.note ? '<div class="tp-nt">' + escHtml(x.note) + '</div>' : '') + '</div>'; }).join('') + '</div>'
+      + (gone.length ? '<div class="tp-past">In memory \u00B7 ' + gone.map(x => '<b>' + escHtml(x.n) + '</b>' + (x.r ? ', ' + escHtml(String(x.r).toLowerCase()) : '') + (x.pastOn ? ' (' + escHtml(x.pastOn) + ')' : '')).join(' \u00B7 ') + '</div>' : '');
+  }
+  el('pPpl').innerHTML = ph + pAddLine_('ppl', 'add someone close to them\u2026', { rel: true, born: true, note: true });
   // --- Who they are (C, 28 Oct 2026): a button leading the row, its three counts in their colours;
   // the one-line read stays in the hero, and the traits, behaviours and biases open in a lilac box.
   const who = pData.who || [];
@@ -5729,7 +5791,7 @@ function renderPersona() {
   // --- Important moments (its own rows; adding needs Edit, as before)
   el('psMom').style.display = shown('mom') ? '' : 'none';
   // --- A1: whatever is empty gathers into one line
-  const empt = ['facts', 'adv', 'lrn', 'mom'].filter(k => !shown(k));
+  const empt = ['facts', 'ppl', 'adv', 'lrn', 'mom'].filter(k => !shown(k));
   // E2 (28 Oct 2026): what's missing is one tiny pale line, not a row of buttons
   el('pEmpty').innerHTML = empt.length ? '<div class="p-nwy">Not written yet \u00B7 ' + empt.map(k => escHtml(P_EMPTY_LBL[k])).join(' \u00B7 ') + '</div>' : '';
   el('pEmpty').style.display = empt.length ? '' : 'none';
@@ -5750,6 +5812,9 @@ function pCommitAdd_(line, quiet) {
   else if (list === 'who') (pData.who = pData.who || []).push({ id: pUid_(), k: sub, t, seen, on });
   else if (list === 'lrn') (pData.learn = pData.learn || []).push({ id: pUid_(), t, seen, on });
   else if (list === 'deal') (pData.deal = pData.deal || []).push({ id: pUid_(), k: sub, t });
+  else if (list === 'ppl') (pData.people = pData.people || []).push({ id: pUid_(), n: t,
+    r: q('.pad-r') ? q('.pad-r').value.trim() : '', b: q('.pad-b') ? q('.pad-b').value.replace(/\D/g, '').slice(0, 4) : '',
+    note: q('.pad-n') ? q('.pad-n').value.trim() : '', past: false, pastOn: '' });
   else if (list === 'adv') {
     const pin = !!(q('.pad-pc') && q('.pad-pc').checked);
     pData.advice = pData.advice || [];
@@ -5797,6 +5862,11 @@ function pCommitPending_() {
     const t = e.target;
     if (t.dataset.pfact) { pData.facts = pData.facts || {}; pData.facts[t.dataset.pfact] = t.value; schedulePersonSave(); return; }
     if (t.dataset.pread) { pData.read = t.value; schedulePersonSave(); return; }
+    if (t.dataset.pepast) {
+      const it = (pData.people || []).find(x => x.id === t.dataset.pepast); if (!it) return;
+      it.past = t.checked; if (t.checked && !it.pastOn) it.pastOn = String(new Date().getFullYear());
+      schedulePersonSave(); renderPersona(); return;
+    }
     if (t.dataset.pe) {
       const [list, id, field] = t.dataset.pe.split(':');
       const it = (pData[list] || []).find(x => x.id === id); if (!it) return;
@@ -5804,6 +5874,8 @@ function pCommitPending_() {
     }
   });
   pw.addEventListener('click', e => {
+    const pl = e.target.closest('[data-pplopen]');
+    if (pl) { const to = pl.dataset.pplopen; pCommitPending_(); savePerson_(true); pSessionEnd_(); openPerson(to); el('personWin').scrollTop = 0; return; }
     const pb = e.target.closest('[data-pan]');
     if (pb) { pPan = pPan === pb.dataset.pan ? null : pb.dataset.pan; renderPersona(); return; }
     const ad = e.target.closest('[data-psadd]');
@@ -5830,7 +5902,7 @@ function pCommitPending_() {
     if (dl) {
       const [list, id] = dl.dataset.pdel.split(':');
       const it = (pData[list] || []).find(x => x.id === id); if (!it) return;
-      if (!confirm('Delete this?\u000A\u000A' + (it.t || ''))) return;
+      if (!confirm('Delete this?\u000A\u000A' + (it.t || it.n || ''))) return;
       pData[list] = pData[list].filter(x => x.id !== id);
       schedulePersonSave(); renderPersona(); return;
     }
@@ -5940,6 +6012,7 @@ function pParse(raw) {
     advice: arr(o.advice).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), t: x.t, about: x.about || '', on: x.on || '', pin: !!x.pin })),
     learn: arr(o.learn).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), t: x.t, seen: x.seen || '', on: x.on || '' })),
     deal: arr(o.deal).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), k: x.k === 'no' ? 'no' : 'ok', t: x.t })),
+    people: arr(o.people).filter(x => x && (x.n || x.r || x.note)).map(x => ({ id: x.id || pUid_(), n: x.n || '', r: x.r || '', b: String(x.b || ''), note: x.note || '', past: !!x.past, pastOn: String(x.pastOn || '') })),
     essay: o.essay || '',
     moments: Array.isArray(o.moments) ? o.moments : [],
     contacts: Array.isArray(o.contacts) ? o.contacts : [],
@@ -6321,12 +6394,15 @@ function pPersonaParts_(pg) {
   const f = pg.facts || {};
   const facts = P_FACTS.filter(([k]) => String(f[k] || '').trim()).map(([k, lbl]) => [lbl, String(f[k]).trim()]);
   const who = P_WHO.map(g => ({ lbl: g.lbl, ink: g.ink, items: (pg.who || []).filter(x => x.k === g.k) })).filter(g => g.items.length);
-  const advice = (pg.advice || []).slice().sort((a, b) => (b.pin - a.pin) || String(b.on || '').localeCompare(String(a.on || '')));
+  const advice = (pg.advice || []).slice().sort((a, b) => (a.pin - b.pin) || String(b.on || '').localeCompare(String(a.on || '')));
+  const yr = new Date().getFullYear();
+  const people = (pg.people || []).filter(x => x && x.n).map(x => ({ n: x.n, r: x.r || '', age: /^\d{4}$/.test(String(x.b || '')) ? yr - +x.b : null, note: x.note || '', past: !!x.past, pastOn: x.pastOn || '' }));
   const learn = (pg.learn || []).slice().sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
   const ok = (pg.deal || []).filter(d => d.k === 'ok'), no = (pg.deal || []).filter(d => d.k === 'no');
-  return { read: String(pg.read || '').trim(), facts, who, advice, learn, ok, no,
-           any: !!(String(pg.read || '').trim() || facts.length || who.length || advice.length || learn.length || ok.length || no.length) };
+  return { read: String(pg.read || '').trim(), facts, people, who, advice, learn, ok, no,
+           any: !!(String(pg.read || '').trim() || facts.length || people.length || who.length || advice.length || learn.length || ok.length || no.length) };
 }
+function pPplLine_(x) { return x.n + ([x.r, x.age !== null && x.age >= 0 && !x.past ? String(x.age) : ''].filter(Boolean).length ? ' (' + [x.r, x.age !== null && x.age >= 0 && !x.past ? String(x.age) : ''].filter(Boolean).join(', ') + ')' : '') + (x.past ? ' \u2014 in memory' + (x.pastOn ? ' (' + x.pastOn + ')' : '') : '') + (x.note ? ' \u2014 ' + x.note : ''); }
 function pReadPlain_(t) { return String(t || '').replace(/\*([^*]+)\*/g, '$1'); }
 // ----- Person export -----
 function pPerson_() { return circle.find(x => String(x.id) === String(pId)) || {}; }
@@ -6351,6 +6427,7 @@ function pMarkdown_() {
     + (talks[0].note ? ' \u2014 ' + talks[0].note : '') + '\n';
   const ps = pPersonaParts_(pData);
   if (ps.facts.length) md += '\n## Key facts\n\n' + ps.facts.map(([l, v]) => '- **' + l + ':** ' + v).join('\n') + '\n';
+  if (ps.people.length) md += '\n## Their people\n\n' + ps.people.map(x => '- ' + pPplLine_(x)).join('\n') + '\n';
   if (ps.read || ps.who.length) {
     md += '\n## Who they are\n';
     if (ps.read) md += '\n_My read, in one line:_ ' + pReadPlain_(ps.read) + '\n';
@@ -6470,6 +6547,7 @@ el('pPrint').addEventListener('click', () => {
   const ps = pPersonaParts_(pData);
   const li = (t, sub, d) => '<li>' + esc(t) + (sub ? '<br><span class="meta">' + esc(sub) + '</span>' : '') + (d ? ' <span class="y">' + esc(d) + '</span>' : '') + '</li>';
   const factsBody = ps.facts.length ? '<ul class="dt">' + ps.facts.map(([l, v]) => '<li><span class="y">' + esc(l) + '</span>' + esc(v) + '</li>').join('') + '</ul>' : '';
+  const pplBody = ps.people.length ? '<ul>' + ps.people.map(x => li(pPplLine_(x))).join('') + '</ul>' : '';
   const whoBody = (ps.read ? '<div class="big">' + esc(pReadPlain_(ps.read)) + '</div>' : '')
     + ps.who.map(g => '<h3 style="color:' + g.ink + '">' + esc(g.lbl) + '</h3><ul>' + g.items.map(x => li(x.t, x.seen ? 'Seen: ' + x.seen : '', x.on ? pMon_(x.on) : '')).join('') + '</ul>').join('');
   const advBody = ps.advice.length ? '<ul>' + ps.advice.map(a => '<li><em>\u201C' + esc(a.t) + '\u201D</em><br><span class="meta">' + esc([a.about ? 'On ' + a.about : '', a.on ? pMon_(a.on) : '', a.pin ? 'Pinned' : ''].filter(Boolean).join(' \u00B7 ')) + '</span></li>').join('') + '</ul>' : '';
@@ -6480,6 +6558,7 @@ el('pPrint').addEventListener('click', () => {
     + (p.tag ? ' <span class="tagp">' + esc(p.tag) + '</span>' : '') + '</h1>'
     + '<div class="meta">' + esc(b.lbl + ' (' + b.range + ')') + (p.note ? ' &mdash; ' + esc(p.note) : '') + '</div>'
     + sec('KEY FACTS', factsBody)
+    + sec('THEIR PEOPLE', pplBody)
     + sec('WHO THEY ARE', whoBody)
     + sec('DIRECT ADVICE', advBody)
     + sec('MY INDIRECT LEARNING AND INTROSPECTION', lrnBody)
