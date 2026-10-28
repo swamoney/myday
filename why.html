@@ -1192,9 +1192,8 @@
   .p-q { padding:11px 12px 11px 14px; font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:1.05rem; line-height:1.45; color:var(--ps-ink); border-top:1px solid var(--ps-hair2); }
   .p-q:first-child { border-top:none; }
   .p-q span { display:block; font-style:normal; font-family:var(--mono); font-size:0.58rem; color:var(--ps-mute); margin-top:3px; }
-  .p-q.pin { background:#f3f6f2; border-radius:8px; border-top-color:transparent; box-shadow:inset 2px 0 0 #cfdacb; }
-  .p-q.pin + .p-q { border-top-color:transparent; }
-  .p-q .pt { margin-left:8px; color:#7d8f83; letter-spacing:0.14em; font-size:0.52rem; font-weight:600; }
+  /* C (28 Oct 2026): the pinned quote looks like the others; "· PINNED" is one more plain grey word in its date line */
+  .p-q .pt { font-weight:400; color:inherit; }
   /* Indirect learning */
   .p-ln { display:flex; gap:14px; padding:9px 0; border-top:1px solid var(--ps-hair2); }
   .p-ln:first-child { border-top:none; }
@@ -5712,8 +5711,9 @@ function renderPersona() {
   el('psAdv').style.display = shown('adv') ? '' : 'none';
   el('pAdvN').textContent = adv.length ? adv.length + (adv.length === 1 ? ' quote' : ' quotes') : '';
   el('pAdv').innerHTML = '<div class="p-qs">' + adv.map(a => ed ? pEditRow_('advice', a, ['t', 'about', 'on'])
-      : '<div class="p-q' + (a.pin ? ' pin' : '') + '">“' + escHtml(a.t) + '”<span>' + [a.about ? 'On ' + escHtml(a.about) : '', a.on ? escHtml(pMon_(a.on)) : ''].filter(Boolean).join(' · ')
-        + (a.pin ? '<b class="pt">PINNED</b>' : '') + '</span></div>').join('')
+      : (() => { const meta = [a.about ? 'On ' + escHtml(a.about) : '', a.on ? escHtml(pMon_(a.on)) : ''].filter(Boolean).join(' · ');
+          return '<div class="p-q' + (a.pin ? ' pin' : '') + '">“' + escHtml(a.t) + '”<span>' + meta
+            + (a.pin ? '<b class="pt">' + (meta ? ' · ' : '') + 'PINNED</b>' : '') + '</span></div>'; })()).join('')
     + pAddLine_('adv', 'their words…', { about: true, month: true, pin: true }) + '</div>';
   // --- Indirect learning
   const lrn = (pData.learn || []).slice().sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
