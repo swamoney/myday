@@ -1124,6 +1124,13 @@
   .p-rd { margin-top:12px; font-family:'Newsreader',Georgia,serif; font-style:italic; font-size:1.06rem; line-height:1.4; color:#3c3d36; max-width:640px; }
   .p-rd small { display:block; font-family:var(--mono); font-style:normal; font-size:0.55rem; letter-spacing:0.1em; color:#75766f; margin-bottom:2px; }
   .p-rd em { font-style:italic; background:linear-gradient(transparent 55%, #efe6c8 55%); }
+  /* Their people (B3, 28 Oct 2026): an olive button and box */
+  #personWin.pan-tp #pBtnTp { background:#f6f7f3; color:#4a5a3c; border-color:#c9d1bc; }
+  #personWin.pan-tp #pBtnTp .p-cvp { transform:rotate(180deg); color:inherit; }
+  #personWin.pan-tp #pPanTp { display:block; }
+  .pan-tp { background:#f6f7f3; border:1px solid #e1e5d9; } .pan-tp .p-pant { color:#4a5a3c; }
+  #pBtnTp .nms { font-family:'Newsreader',Georgia,serif; font-size:0.86rem; font-weight:400; letter-spacing:0.02em; text-transform:none; color:#4a4b44; max-width:230px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #pPanTp .tp-r, #pPanTp .tp-past, #pPanTp .tp-er { border-top-color:#e6e9df; }
   /* Their people (L1, 28 Oct 2026) */
   .tp1 { max-width:780px; }
   .tp-r { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 16px; padding:10px 0; border-top:1px solid var(--ps-hair2); }
@@ -1253,7 +1260,7 @@
      no Add / Record in the boxes. Only the page's Edit edits, and it brings all of it back at once. */
   .p-nwy { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:#b4b6ae; line-height:1.7; }
   body:not(.p-editing) #personWin .pad, body:not(.p-editing) #personWin .psa, body:not(.p-editing) #personWin .kf-e,
-  body:not(.p-editing) #pIntAdd, body:not(.p-editing) #pTalkAdd, body:not(.p-editing) #pPanWho .p-cb.solid,
+  body:not(.p-editing) #pIntAdd, body:not(.p-editing) #pTalkAdd, body:not(.p-editing) #pPanWho .p-cb.solid, body:not(.p-editing) #pPanTp .p-cb.solid,
   body:not(.p-editing) #personWin .pr-hint, body:not(.p-editing) #pRise, body:not(.p-editing) #pHeroEdit,
   body:not(.p-editing) #personWin .p-lsx { display:none !important; }
   body:not(.p-editing) #psNote.p-blank { display:none; }
@@ -3366,6 +3373,7 @@
           <div class="p-rd" id="pRead"></div>
           <div class="p-btns">
             <button class="p-pb" id="pBtnWho" data-pan="who" type="button"></button>
+            <button class="p-pb" id="pBtnTp" data-pan="tp" type="button"></button>
             <button class="p-pb" id="pBtnPri" data-pan="pri" type="button"></button>
             <button class="p-pb" id="pBtnConv" data-pan="conv" type="button"></button>
             <button class="p-pb" id="pBtnDeal" data-pan="deal" type="button"></button>
@@ -3380,6 +3388,12 @@
         <div class="p-panh"><span class="p-pant">Who they are</span><span class="p-cn" id="pWhoN"></span><span class="sp"></span>
           <button class="p-cb solid" data-psadd="who" type="button">Add</button><button class="p-cb" data-pan="who" type="button">Close</button></div>
         <div id="pWho"></div>
+      </div>
+      <!-- Their people (B3, 28 Oct 2026): a button with their first names; the list opens in an olive box -->
+      <div class="p-pan pan-tp" id="pPanTp">
+        <div class="p-panh"><span class="p-pant">Their people</span><span class="p-cn" id="pPplN"></span><span class="sp"></span>
+          <button class="p-cb solid" data-psadd="ppl" type="button">Add</button><button class="p-cb" data-pan="tp" type="button">Close</button></div>
+        <div id="pPpl"></div>
       </div>
       <div class="p-pan pan-pri" id="pPanPri">
         <div class="p-panh"><span class="p-pant">Priorities</span><span class="p-cn" id="pNextSum"></span><span class="sp"></span>
@@ -3402,12 +3416,6 @@
       </div>
 
       <div class="p-kf" id="pFacts"></div>
-
-      <!-- Their people (28 Oct 2026): the people close to them - name, relation, born, one line; "in memory" keeps, never deletes -->
-      <section class="ps" id="psPpl" data-ps="ppl">
-        <div class="psh"><span class="pst">Their people</span><span class="psn" id="pPplN"></span></div>
-        <div id="pPpl"></div>
-      </section>
 
       <section class="ps" id="psAdv" data-ps="adv">
         <div class="psh"><span class="pst">Direct advice</span><span class="psn" id="pAdvN"></span><span class="sp"></span><button class="psa" data-psadd="adv" type="button">+ Add</button></div>
@@ -5696,7 +5704,7 @@ function renderPersona() {
   el('pBtnDeal').innerHTML = '<span class="p-ci">🤝</span>How to deal'
     + (okN || noN ? '<em class="ok">✓ ' + okN + '</em><em class="no">✗ ' + noN + '</em>' : '<b>none yet</b>') + '<span class="p-cvp">▾</span>';
   const pw = el('personWin');
-  ['who', 'pri', 'conv', 'deal'].forEach(k => pw.classList.toggle('pan-' + k, pPan === k));
+  ['who', 'tp', 'pri', 'conv', 'deal'].forEach(k => pw.classList.toggle('pan-' + k, pPan === k));
   // --- How to deal (inside its panel)
   el('pDeal').innerHTML = '<div class="p-wk">' + [['ok', '✓ Works', '#4a6b5a', 'add what works…'], ['no', '✗ Avoid', '#9a6a55', 'add what to avoid…']].map(([k, lbl, ink, ph]) =>
     '<div><div class="p-gl" style="color:' + ink + '">' + lbl + '</div>'
@@ -5721,7 +5729,9 @@ function renderPersona() {
   // --- Their people (L1, 28 Oct 2026): a quiet list; birth year shows as an age that keeps itself true;
   // "in memory" moves someone to one quiet line, never deletes; a same-name page in My Circle is linked.
   const ppl = pData.people || [], live = ppl.filter(x => !x.past), gone = ppl.filter(x => x.past);
-  el('psPpl').style.display = shown('ppl') ? '' : 'none';
+  el('pBtnTp').innerHTML = '<span class="p-ci">\uD83D\uDC6A</span>Their people'
+    + (live.length ? '<span class="nms">' + live.map(x => escHtml(String(x.n || '').trim().split(/\s+/)[0])).join(' \u00B7 ') + '</span>' : '<b>none yet</b>')
+    + '<span class="p-cvp">\u25BE</span>';
   el('pPplN').textContent = live.length ? live.length + (live.length === 1 ? ' person' : ' people') : '';
   const yr = new Date().getFullYear();
   const linkOf = n => { const k = String(n || '').trim().toLowerCase(); if (!k) return null;
@@ -5791,13 +5801,14 @@ function renderPersona() {
   // --- Important moments (its own rows; adding needs Edit, as before)
   el('psMom').style.display = shown('mom') ? '' : 'none';
   // --- A1: whatever is empty gathers into one line
-  const empt = ['facts', 'ppl', 'adv', 'lrn', 'mom'].filter(k => !shown(k));
+  const empt = ['facts', 'adv', 'lrn', 'mom'].filter(k => !shown(k));   // Who they are and Their people are buttons, always there
   // E2 (28 Oct 2026): what's missing is one tiny pale line, not a row of buttons
   el('pEmpty').innerHTML = empt.length ? '<div class="p-nwy">Not written yet \u00B7 ' + empt.map(k => escHtml(P_EMPTY_LBL[k])).join(' \u00B7 ') + '</div>' : '';
   el('pEmpty').style.display = empt.length ? '' : 'none';
 }
 function pFocusAdd_(kind) {
   if (/^(who|read)/.test(kind) && pPan !== 'who') { pPan = 'who'; renderPersona(); }
+  if (kind === 'ppl' && pPan !== 'tp') { pPan = 'tp'; renderPersona(); }
   const box = el('personWin').querySelector('[data-padd="' + kind + '"] .pad-i');
   if (box) { box.focus(); box.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
 }
