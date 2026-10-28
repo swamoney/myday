@@ -5699,9 +5699,10 @@ function pFocusAdd_(kind) {
   const box = el('personWin').querySelector('[data-padd="' + kind + '"] .pad-i');
   if (box) { box.focus(); box.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
 }
-function pCommitAdd_(line) {
+function pCommitAdd_(line, quiet) {
   const kind = line.dataset.padd, q = s => line.querySelector(s);
-  const t = (q('.pad-i').value || '').trim(); if (!t) return;
+  const t = (q('.pad-i').value || '').trim(); if (!t) return false;
+  q('.pad-i').value = '';
   const on = q('.pad-m') ? (q('.pad-m').value || '') : '';
   const seen = q('.pad-s') ? q('.pad-s').value.trim() : '';
   const [list, sub] = kind.split(':');
@@ -5716,9 +5717,24 @@ function pCommitAdd_(line) {
     pData.advice.push({ id: pUid_(), t, about: q('.pad-a') ? q('.pad-a').value.trim() : '', on, pin });
   }
   schedulePersonSave();
+  if (quiet) return true;
   renderPersona();
   // The next empty line is ready, so five traits take five Enters.
   if (list !== 'read') pFocusAdd_(kind);
+  return true;
+}
+// FIX (28 Oct 2026): Enter was the only way to keep a line, so text typed and then left
+// (Done, Back, a tap elsewhere) was lost. Now any line you leave with words in it is kept.
+function pCommitPending_() {
+  const pw = el('personWin'); if (!pw || pId === null) return false;
+  let any = false;
+  pw.querySelectorAll('.pad').forEach(l => { if (pCommitAdd_(l, true)) any = true; });
+  if (any) {
+    const a = document.activeElement, ak = a && a.closest && a.closest('.pad') ? a.closest('.pad').dataset.padd : null;
+    renderPersona();
+    if (ak) { const b = pw.querySelector('[data-padd="' + ak + '"] .pad-i'); if (b) b.focus(); }
+  }
+  return any;
 }
 (function wirePersona_() {
   const pw = el('personWin'); if (!pw) return;
@@ -5731,7 +5747,11 @@ function pCommitAdd_(line) {
   pw.addEventListener('focusin', e => { const l = e.target.closest('.pad'); if (l) l.classList.add('on'); });
   pw.addEventListener('focusout', e => {
     const l = e.target.closest('.pad'); if (!l) return;
-    setTimeout(() => { if (!l.contains(document.activeElement) && !l.querySelector('.pad-i').value) l.classList.remove('on'); }, 120);
+    setTimeout(() => {
+      if (l.contains(document.activeElement) || !l.isConnected) return;
+      if ((l.querySelector('.pad-i').value || '').trim()) { pCommitPending_(); return; }
+      l.classList.remove('on');
+    }, 120);
   });
   pw.addEventListener('input', e => {
     const t = e.target;
@@ -5966,6 +5986,7 @@ function openPerson(id) {
   document.body.style.overflow = 'hidden';
 }
 function closePerson() {
+  pCommitPending_();
   pSessionEnd_();
   savePerson_(true);
   setPersonEditing(false);
@@ -6093,6 +6114,7 @@ el('circleRising').addEventListener('click', e => {
   const op = e.target.closest('[data-open]'); if (op) openPerson(op.dataset.open);
 });
 el('pEdit').addEventListener('click', () => {
+  pCommitPending_();
   const on = !document.body.classList.contains('p-editing');
   setPersonEditing(on);
   renderMoments();
@@ -6446,8 +6468,8 @@ const pNk = NoteEditor.mount({
 });
 
 NoteEditor.guard.register(
-  () => rmDirty || pDirty || bkDirty || mtDirty,
-  () => { if (rmDirty && rmId !== null) saveRoadmap(true); if (pDirty && pId !== null) savePerson_(true); }
+  () => rmDirty || pDirty || bkDirty || mtDirty || (pId !== null && [...document.querySelectorAll('#personWin .pad-i')].some(i => i.value.trim())),
+  () => { if (rmDirty && rmId !== null) saveRoadmap(true); if (pId !== null) pCommitPending_(); if (pDirty && pId !== null) savePerson_(true); }
 );
 // ============ MY PRIORITY — the four quadrants ============
 // The verbs matter more than the labels: a quadrant tells you what to DO with a
