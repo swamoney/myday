@@ -7110,6 +7110,8 @@ const MM_CHECK = [
   { k:'reality', lbl:'Reality', q:'Are these the facts, or the story I\u2019m telling?' },
   // N1 · D1 (28 Oct 2026): the self-pity check, named for the loop, not the person; only where "why me" happens
   { k:'pity',    lbl:'Why me',  q:'Am I stuck in \u201Cwhy me\u201D, or seeing what I can do?', signs:true, doors:['loss','ins','obs','over','conf'] },
+  // AV2 (28 Oct 2026): avoidance, where it happens; "resting on purpose" is the calm answer, never a fault
+  { k:'avoid',   lbl:'Avoiding', q:'Am I putting off something important because it\u2019s uncomfortable?', signs:true, doors:['obs','cha','conf','over','ins'] },
   { k:'values',  lbl:'Values',  q:'Does my response honour what matters to me?' }
 ];
 const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught myself']];
@@ -7118,6 +7120,7 @@ const MM_CHECK_V = {
   ego:     { clear:['Seeing it straight','no pride in this one'], unsure:['Not sure','let me look closer'], caught:['Caught it in me','pride is in this \u2014 I see it'] },
   reality: { clear:['These are the facts','I could show someone the evidence'], unsure:['Not sure','some of it may be story'], caught:['Caught a story','I was filling gaps with fear'] },
   pity:    { clear:['Not stuck','it hurts, and I can see what I can do'], unsure:['Not sure','I may be circling it'], caught:['Caught a why-me loop','I keep going round the unfairness'] },
+  avoid:   { clear:['Facing it','or resting on purpose \u2014 not hiding'], unsure:['Not sure','I may be stalling'], caught:['Caught myself avoiding','busy with easier things'] },
   values:  { clear:['It honours what matters','this is who I want to be'], unsure:['Not sure','part of it pulls the other way'], caught:['Caught myself drifting','this is not my pillar talking'] }
 };
 // The ego signs: every one points the same way - a sentence about me that is either in it or not. [what the card says, what the record keeps]
@@ -7134,7 +7137,13 @@ const MM_PITY_SIGNS = [
   ['Sure it\u2019s more unfair to me than to anyone', 'more unfair to me'],
   ['Not seeing the choices or help I do have', 'not seeing my choices']
 ];
-const MM_SIGNS = { ego: MM_EGO_SIGNS, pity: MM_PITY_SIGNS };
+const MM_AVOID_SIGNS = [
+  ['Waiting for a \u201Cright time\u201D that never comes', 'waiting for the right time'],
+  ['Doing the easier things first, again', 'easier things first'],
+  ['Telling myself it will sort itself out', 'it will sort itself out'],
+  ['Dreading one call or conversation', 'dreading one conversation']
+];
+const MM_SIGNS = { ego: MM_EGO_SIGNS, pity: MM_PITY_SIGNS, avoid: MM_AVOID_SIGNS };
 const MM_PITY_LOSS = ['Grieving, not stuck', 'this needs time, and that\u2019s fine'];
 function mmIsLoss_(k) { return !!k && (k.door === 'loss' || k.door2 === 'loss'); }
 function mmCkCard_(key, val, k) { if (key === 'pity' && val === 'clear' && mmIsLoss_(k)) return MM_PITY_LOSS; return (MM_CHECK_V[key] || {})[val] || []; }
@@ -7206,7 +7215,8 @@ const MM_DESK = {
     { who:true, q:"Who", ask:"Who is this with?", why:"From My Circle, or a name." },
     { k:"they", q:"Their side", ask:"What do they want — said fairly, the way they would say it?", why:"If they read it, they would nod.", ex:"To be near her parents while they can still travel." },
     { k:"need", q:"My real need", ask:"What do I actually need, underneath what I am asking for?", why:"The reason behind your position, not the position.", ex:"To keep the Tuesday clients and my morning run." },
-    { q:"Flexible · fixed", ask:"What could I give on — and what can’t I?", why:"Knowing your fixed points makes it easier to give on the rest.", split:[["nego","I can give on","The area. The timing."],["not","I can't give on","The practice stays in Pune."]] },
+    // My line (S2 + third box, 28 Oct 2026): the boundary, in plain words; same keys, so old answers stay in their boxes
+    { q:"My line", ask:"Where is my line?", why:"What I can give on, what I won\u2019t, and what I\u2019ll do if it\u2019s crossed.", split:[["nego","I can give on","The area. The timing."],["not","I won\u2019t give on","The practice stays in Pune."],["cross","If it\u2019s crossed, I will","Say so once, calmly, and pause the talk."]] },
     { k:"talk", q:"The talk", ask:"What conversation will I have, and when?", why:"Where, when, and how you will open it.", ex:"Sunday after lunch. I open with her reason, not mine." } ]
 };
 const MM_HELP_SEED = ['a walk', 'sleep on it', 'wrote it out', 'ran the numbers', 'spoke to someone', 'a mantra', 'time'];
