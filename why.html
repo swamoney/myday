@@ -1225,7 +1225,17 @@
   .pe-x:hover { background:#fdf3f2; color:#8A1F1A; }
   .pe-pin { font-size:0.8rem; opacity:0.35; } .pe-pin.on { opacity:1; background:#f3f6f2; }
   /* A1: one line for everything empty */
-  .p-empty { border-top:1px solid var(--ps-hair); padding:20px 0 22px; }
+  .p-empty { padding:6px 0 14px; }
+  /* E2 (28 Oct 2026): reading mode. The page reads like an article: no add lines, no + Add, no section edits,
+     no Add / Record in the boxes. Only the page's Edit edits, and it brings all of it back at once. */
+  .p-nwy { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:#b4b6ae; line-height:1.7; }
+  body:not(.p-editing) #personWin .pad, body:not(.p-editing) #personWin .psa, body:not(.p-editing) #personWin .kf-e,
+  body:not(.p-editing) #pIntAdd, body:not(.p-editing) #pTalkAdd, body:not(.p-editing) #pPanWho .p-cb.solid,
+  body:not(.p-editing) #personWin .pr-hint, body:not(.p-editing) #pRise, body:not(.p-editing) #pHeroEdit,
+  body:not(.p-editing) #personWin .p-lsx { display:none !important; }
+  body:not(.p-editing) #psNote.p-blank { display:none; }
+  body.p-editing #pEmpty { display:none !important; }
+  body:not(.p-editing) #personWin .pr-tk, body:not(.p-editing) #personWin .pr-tkbox, body:not(.p-editing) #personWin .pr-ou { cursor:default; }
   .pe-h { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
   .pe-t { font-family:'Newsreader',Georgia,serif; font-size:1.05rem; color:var(--ps-mute); }
   .pe-n { font-family:var(--mono); font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ps-faint); }
@@ -5661,13 +5671,13 @@ function renderPersona() {
   const factsOpen = shown('facts');
   kf.style.display = factsOpen ? '' : 'none';
   if (factsOpen) {
-    const editingFacts = ed || pFactsEdit || !has.facts;
+    const editingFacts = ed;   // reading mode (28 Oct 2026): only the page's Edit edits
     kf.classList.toggle('editing', editingFacts);
     kf.innerHTML = P_FACTS.filter(([k]) => editingFacts || String(f[k] || '').trim()).map(([k, lbl, ph]) =>
       '<div><i>' + lbl.toUpperCase() + '</i>' + (editingFacts
         ? '<input type="text" data-pfact="' + k + '" value="' + escHtml(f[k] || '') + '" placeholder="' + escHtml(ph) + '">'
         : '<span>' + escHtml(f[k]) + '</span>') + '</div>').join('')
-      + '<div class="kf-e">' + (editingFacts && !ed ? '<button class="psa" type="button" data-pfactsdone="1">Done</button>' : (!ed ? '<button class="psa" type="button" data-pfactsedit="1">Edit</button>' : '')) + '</div>';
+      + '';   // reading mode (28 Oct 2026): no Edit of its own; the page's Edit covers it
   }
   // --- Who they are (C, 28 Oct 2026): a button leading the row, its three counts in their colours;
   // the one-line read stays in the hero, and the traits, behaviours and biases open in a lilac box.
@@ -5714,8 +5724,8 @@ function renderPersona() {
   el('psMom').style.display = shown('mom') ? '' : 'none';
   // --- A1: whatever is empty gathers into one line
   const empt = ['facts', 'adv', 'lrn', 'mom'].filter(k => !shown(k));
-  el('pEmpty').innerHTML = empt.length ? '<div class="pe-h"><span class="pe-t">Not written yet</span><span class="pe-n">tap one to start</span></div><div class="pe-c">'
-    + empt.map(k => '<button type="button" data-pempty="' + k + '">+ ' + P_EMPTY_LBL[k] + '</button>').join('') + '</div>' : '';
+  // E2 (28 Oct 2026): what's missing is one tiny pale line, not a row of buttons
+  el('pEmpty').innerHTML = empt.length ? '<div class="p-nwy">Not written yet \u00B7 ' + empt.map(k => escHtml(P_EMPTY_LBL[k])).join(' \u00B7 ') + '</div>' : '';
   el('pEmpty').style.display = empt.length ? '' : 'none';
 }
 function pFocusAdd_(kind) {
@@ -6022,7 +6032,8 @@ function renderPersonRead() {
   el('pDates').textContent = essayDateFmt_(pData.essay_edited);
   const ro = el('pEssayRO'); if (!ro) return;
   const html = NoteEditor.toHtml(pData.essay || '').trim();
-  ro.innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+  ro.innerHTML = html || '';
+  { const n = el('psNote'); if (n) n.classList.toggle('p-blank', !html); }
   ro.classList.toggle('empty', !html);
 }
 function setPersonEditing(on) {
@@ -6260,6 +6271,7 @@ el('pIntArchive').addEventListener('click', e => {
   const y = e.target.closest('[data-intyr]');
   if (y) { const k = y.dataset.intyr, box = y.closest('.pr-yr');
     const now = !box.classList.contains('open'); pIntYears[k] = now; box.classList.toggle('open', now); return; }
+  if (!document.body.classList.contains('p-editing')) return;   // read mode is read-only
   const ed = e.target.closest('[data-intedit]');
   if (ed) openIntModal(ed.dataset.intedit);
 });
