@@ -7108,6 +7108,8 @@ const MM_LOSS_QUICK = ['Sit with it until \u2026', 'Tell one person', 'No step y
 const MM_CHECK = [
   { k:'ego',     lbl:'Ego',     q:'Am I defending my pride, or seeing it straight?', signs:true },
   { k:'reality', lbl:'Reality', q:'Are these the facts, or the story I\u2019m telling?' },
+  // N1 · D1 (28 Oct 2026): the self-pity check, named for the loop, not the person; only where "why me" happens
+  { k:'pity',    lbl:'Why me',  q:'Am I stuck in \u201Cwhy me\u201D, or seeing what I can do?', signs:true, doors:['loss','ins','obs','over','conf'] },
   { k:'values',  lbl:'Values',  q:'Does my response honour what matters to me?' }
 ];
 const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught myself']];
@@ -7115,6 +7117,7 @@ const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught 
 const MM_CHECK_V = {
   ego:     { clear:['Seeing it straight','no pride in this one'], unsure:['Not sure','let me look closer'], caught:['Caught it in me','pride is in this \u2014 I see it'] },
   reality: { clear:['These are the facts','I could show someone the evidence'], unsure:['Not sure','some of it may be story'], caught:['Caught a story','I was filling gaps with fear'] },
+  pity:    { clear:['Not stuck','it hurts, and I can see what I can do'], unsure:['Not sure','I may be circling it'], caught:['Caught a why-me loop','I keep going round the unfairness'] },
   values:  { clear:['It honours what matters','this is who I want to be'], unsure:['Not sure','part of it pulls the other way'], caught:['Caught myself drifting','this is not my pillar talking'] }
 };
 // The ego signs: every one points the same way - a sentence about me that is either in it or not. [what the card says, what the record keeps]
@@ -7125,7 +7128,18 @@ const MM_EGO_SIGNS = [
   ['I am choosing this to impress someone', 'choosing to impress'],
   ['I can\u2019t bring myself to admit it, or ask', 'can\u2019t admit or ask']
 ];
-function mmCkWord_(key, val) { return ((MM_CHECK_V[key] || {})[val] || [])[0] || ''; }
+// The why-me signs; rest and grief are not among them - they are the calm answer's words on a Loss knot.
+const MM_PITY_SIGNS = [
+  ['Asking \u201Cwhy me\u201D without learning anything new', 'why me, nothing new'],
+  ['Sure it\u2019s more unfair to me than to anyone', 'more unfair to me'],
+  ['Not seeing the choices or help I do have', 'not seeing my choices']
+];
+const MM_SIGNS = { ego: MM_EGO_SIGNS, pity: MM_PITY_SIGNS };
+const MM_PITY_LOSS = ['Grieving, not stuck', 'this needs time, and that\u2019s fine'];
+function mmIsLoss_(k) { return !!k && (k.door === 'loss' || k.door2 === 'loss'); }
+function mmCkCard_(key, val, k) { if (key === 'pity' && val === 'clear' && mmIsLoss_(k)) return MM_PITY_LOSS; return (MM_CHECK_V[key] || {})[val] || []; }
+function mmCkWord_(key, val, k) { return mmCkCard_(key, val, k)[0] || ''; }
+function mmSignsShown_(k, key) { return key === 'ego' ? mmEgoSignsShown_(k) : (MM_SIGNS[key] || []).map((x, i) => i); }
 function mmEgoSignsShown_(k) { const conf = k.door === 'conf' || k.door2 === 'conf'; return MM_EGO_SIGNS.map((x, i) => i).filter(i => !(conf && i === 0)); }   // on a conflict the headline already asks sign 0
 const MM_OUTS = {
   never:    { lbl:'Never happened', cls:'never' },
@@ -7580,7 +7594,7 @@ function mmStops_(k) {
   });
   deskRows(k.door, '', 'desk');
   if (k.door2 && MM_DESK[k.door2]) deskRows(k.door2, k.door2 + '_', 'desk2');
-  MM_CHECK.forEach(C => out.push({ id: 'check:' + C.k, sec:'check', kind:'check', ck: C.k, title: C.lbl, q: C.q, signs: !!C.signs }));
+  MM_CHECK.filter(C => !C.doors || C.doors.includes(k.door) || (k.door2 && C.doors.includes(k.door2))).forEach(C => out.push({ id: 'check:' + C.k, sec:'check', kind:'check', ck: C.k, title: C.lbl, q: C.q, signs: !!C.signs }));
   out.push({ id:'then:next', sec:'then', kind:'next', title:'The next step' });
   return out;
 }
@@ -7614,7 +7628,7 @@ function mmSummary_(k, st) {
   if (st.kind === 'loads') { const L = d.loads || []; const sum = {}; L.forEach(l => { sum[l.v || 'keep'] = (sum[l.v || 'keep'] || 0) + 1; });
     return L.length + (L.length === 1 ? ' load' : ' loads') + ' \u00B7 ' + Object.keys(MM_LOAD_VERBS).filter(v => sum[v]).map(v => sum[v] + ' ' + MM_LOAD_VERBS[v][0].toLowerCase()).join(', '); }
   if (st.kind === 'who') return mmWhoLabel_(k);
-  if (st.kind === 'check') { const a = d.check && d.check[st.ck]; return a ? '<span class="mm-ckv ' + a + '">' + escHtml(mmCkWord_(st.ck, a)) + '</span>' + mmCkSigns_(k, st.ck) : ''; }
+  if (st.kind === 'check') { const a = d.check && d.check[st.ck]; return a ? '<span class="mm-ckv ' + a + '">' + escHtml(mmCkWord_(st.ck, a, k)) + '</span>' + mmCkSigns_(k, st.ck) : ''; }
   if (st.kind === 'next') { const sitting = k.door === 'loss' && MM_SIT.test(k.next_step || '');
     return '<div class="mm-snext' + (sitting ? ' sit' : '') + '">' + escHtml(k.next_step || '') + (k.next_by ? '<small>BY ' + escHtml(mmFmt_(k.next_by)).toUpperCase() + '</small>' : '') + '</div>'; }
   return '';
@@ -7629,11 +7643,11 @@ function mmHeadline_(k, st) {
   return /[.?!…]$/.test(t) ? t : t + '.';
 }
 function mmCkSigns_(k, key) {
-  if (key !== 'ego') return '';
+  const S = MM_SIGNS[key]; if (!S) return '';
   const ck = (k.desk && k.desk.check) || {};
-  if (ck.ego_none) return '<span class="mm-cks">none of the signs</span>';
-  const on = Array.isArray(ck.ego_signs) ? ck.ego_signs : [];
-  return on.length ? '<span class="mm-cks">' + on.map(i => escHtml((MM_EGO_SIGNS[i] || [])[1] || '')).join(' \u00B7 ') + '</span>' : '';
+  if (ck[key + '_none']) return '<span class="mm-cks">none of the signs</span>';
+  const on = Array.isArray(ck[key + '_signs']) ? ck[key + '_signs'] : [];
+  return on.length ? '<span class="mm-cks">' + on.map(i => escHtml((S[i] || [])[1] || '')).join(' \u00B7 ') + '</span>' : '';
 }
 function mmOpenStop_(k, st) {
   const d = k.desk || {}; let h = '';
@@ -7664,13 +7678,13 @@ function mmOpenStop_(k, st) {
     // E1: three answer cards (one tap answers it); on Ego the signs beneath, which nudge the answer but never lock it
     const ck = d.check || {}, V = MM_CHECK_V[st.ck] || MM_CHECK_V.ego;
     h = '<div class="mm-sq">' + (st.signs ? 'Tap what is true. None is an answer too.' : 'Tap what is true.') + '</div>'
-      + '<div class="mm-verd">' + ['clear','unsure','caught'].map(v => '<button type="button" data-mmck="' + st.ck + ':' + v + '" class="' + (ck[st.ck] === v ? 'on' : '') + '"><b>' + escHtml(V[v][0]) + '</b><small>' + escHtml(V[v][1]) + '</small></button>').join('') + '</div>'
+      + '<div class="mm-verd">' + ['clear','unsure','caught'].map(v => { const C = mmCkCard_(st.ck, v, k); return '<button type="button" data-mmck="' + st.ck + ':' + v + '" class="' + (ck[st.ck] === v ? 'on' : '') + '"><b>' + escHtml(C[0] || '') + '</b><small>' + escHtml(C[1] || '') + '</small></button>'; }).join('') + '</div>'
       + (ck[st.ck + '_by'] === 'signs' && ck[st.ck] ? '<div class="mm-nudge">\u2191 set by the signs you tapped \u2014 change it if it isn\u2019t right</div>' : '');
     if (st.signs) {
-      const on = Array.isArray(ck.ego_signs) ? ck.ego_signs : [];
+      const K = st.ck, S = MM_SIGNS[K] || [], on = Array.isArray(ck[K + '_signs']) ? ck[K + '_signs'] : [];
       h += '<div class="mm-help"><div class="mm-hh">Help me look</div>'
-        + mmEgoSignsShown_(k).map(i => '<button type="button" class="mm-sg' + (on.includes(i) ? ' on' : '') + '" data-mmsign="' + i + '">' + escHtml(MM_EGO_SIGNS[i][0]) + '</button>').join('')
-        + '<button type="button" class="mm-sg none' + (ck.ego_none ? ' on' : '') + '" data-mmsign="none">None of these</button></div>';
+        + mmSignsShown_(k, K).map(i => '<button type="button" class="mm-sg' + (on.includes(i) ? ' on' : '') + '" data-mmsign="' + K + ':' + i + '">' + escHtml(S[i][0]) + '</button>').join('')
+        + '<button type="button" class="mm-sg none' + (ck[K + '_none'] ? ' on' : '') + '" data-mmsign="' + K + ':none">None of these</button></div>';
     }
   } else if (st.kind === 'next') {
     const loss = k.door === 'loss' || k.door2 === 'loss';
@@ -7719,7 +7733,7 @@ function renderMmFlow_(k) {
       html += '<div class="mm-stop mm-ckcard ck' + (cks.some(x => mmAnswered_(k, x)) ? ' done' : ' later') + '" data-mmstop="check"><div class="mm-sc">'
         + cks.map(x => { const a = k.desk && k.desk.check && k.desk.check[x.ck];
             return '<div class="mm-ckrow" data-mmgo="' + x.id + '"><span class="mm-cn">' + escHtml(x.title) + '</span>'
-              + (a ? '<span class="mm-ckv ' + a + '">' + escHtml(mmCkWord_(x.ck, a)) + '</span>' + mmCkSigns_(k, x.ck) : '<span class="mm-ckv un">left unchecked</span>') + '</div>'; }).join('')
+              + (a ? '<span class="mm-ckv ' + a + '">' + escHtml(mmCkWord_(x.ck, a, k)) + '</span>' + mmCkSigns_(k, x.ck) : '<span class="mm-ckv un">left unchecked</span>') + '</div>'; }).join('')
         + '</div></div>';
       return;
     }
@@ -7794,18 +7808,20 @@ async function mmSetCheck_(key, val) {
   k.desk = desk; renderMmPage_();
 }
 // E1: a sign tapped moves Ego to "caught"; "none of these" moves it to "clear"; both clear each other. A nudge, never a lock.
-async function mmTapSign_(which) {
+// The same for Why me (28 Oct 2026): signs are per check - <key>_signs, <key>_none, <key>_by.
+async function mmTapSign_(raw) {
   const k = mmById_(mmPageId_); if (!k) return;
+  const parts = String(raw).split(':'), K = parts.length > 1 ? parts[0] : 'ego', which = parts.length > 1 ? parts[1] : parts[0];
   const desk = Object.assign({}, k.desk || {}); const ck = Object.assign({}, desk.check || {});
-  let on = Array.isArray(ck.ego_signs) ? ck.ego_signs.slice() : [];
-  if (which === 'none') { ck.ego_none = !ck.ego_none; if (ck.ego_none) on = []; }
-  else { const i = Number(which); on = on.includes(i) ? on.filter(x => x !== i) : on.concat(i).sort((a, b) => a - b); if (on.length) delete ck.ego_none; }
-  if (on.length) ck.ego_signs = on; else delete ck.ego_signs;
-  if (!ck.ego_none) delete ck.ego_none;
-  delete ck.ego_q;   // the old five ticks pointed two ways; they are not carried
-  if (on.length) { ck.ego = 'caught'; ck.ego_by = 'signs'; }
-  else if (ck.ego_none) { ck.ego = 'clear'; ck.ego_by = 'signs'; }
-  else if (ck.ego_by === 'signs') { delete ck.ego; delete ck.ego_by; }
+  let on = Array.isArray(ck[K + '_signs']) ? ck[K + '_signs'].slice() : [];
+  if (which === 'none') { ck[K + '_none'] = !ck[K + '_none']; if (ck[K + '_none']) on = []; }
+  else { const i = Number(which); on = on.includes(i) ? on.filter(x => x !== i) : on.concat(i).sort((a, b) => a - b); if (on.length) delete ck[K + '_none']; }
+  if (on.length) ck[K + '_signs'] = on; else delete ck[K + '_signs'];
+  if (!ck[K + '_none']) delete ck[K + '_none'];
+  if (K === 'ego') delete ck.ego_q;   // the old five ticks pointed two ways; they are not carried
+  if (on.length) { ck[K] = 'caught'; ck[K + '_by'] = 'signs'; }
+  else if (ck[K + '_none']) { ck[K] = 'clear'; ck[K + '_by'] = 'signs'; }
+  else if (ck[K + '_by'] === 'signs') { delete ck[K]; delete ck[K + '_by']; }
   desk.check = ck;
   const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save'); return; }
