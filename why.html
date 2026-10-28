@@ -1279,6 +1279,11 @@
   /* moments and the long note sit in the same grammar */
   #psMom .mo { border-bottom-color:var(--ps-hair2); }
   #psNote .ps-body { max-width:660px; }
+  body:not(.p-editing) #psNote .psh { cursor:pointer; }
+  #psNote .nt-cv { font-size:0.8rem; color:var(--ps-faint); transition:transform .15s; }
+  #psNote.col .nt-cv { transform:rotate(-90deg); }
+  body.p-editing #psNote .nt-cv { display:none; }
+  body:not(.p-editing) #psNote.col .ps-body, body:not(.p-editing) #psNote.col #pDates { display:none; }
   #psNote .essay-date { margin:-6px 0 12px; }
   @media (max-width:720px) {
     #personWin .pname { font-size:1.9rem; }
@@ -3436,7 +3441,7 @@
       <!-- A1: empty sections gather here instead of standing empty. -->
 
       <section class="ps p-note" id="psNote" data-ps="note">
-        <div class="psh"><span class="pst">The long note</span><span class="psn" id="pNoteSum"></span><span class="sp"></span></div>
+        <div class="psh" id="pNoteHead" role="button" tabindex="0" aria-expanded="false"><span class="pst">The long note</span><span class="psn" id="pNoteSum"></span><span class="sp"></span><span class="nt-cv" aria-hidden="true">▾</span></div>
         <div class="essay-date" id="pDates"></div>
         <div class="ps-body">
         <div class="rd-album" id="pAlbum"></div>
@@ -6056,7 +6061,7 @@ function openPerson(id) {
   el('pName').textContent = p.name || '';
   const talksAll = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
   const lastTalk = talksAll[talksAll.length - 1];
-  pPan = null; pOpenSecs = new Set(); pFactsEdit = false; pMore = {};
+  pPan = null; pOpenSecs = new Set(); pFactsEdit = false; pMore = {}; pNoteOpen = false;
   const rh = rhythmOf(p.rhythm), rEl = el('pRhythm');
   if (rEl) {
     let over = false;
@@ -6136,8 +6141,19 @@ function renderPersonRead() {
   { const n = el('psNote'); if (n) n.classList.toggle('p-blank', !html); }
   ro.classList.toggle('empty', !html);
 }
+// N1 (28 Oct 2026): while reading, the long note stays folded until you tap its heading; Edit always opens it
+let pNoteOpen = false;
+function pNoteFold_() {
+  const n = el('psNote'); if (!n) return;
+  const col = !pNoteOpen && !document.body.classList.contains('p-editing');
+  n.classList.toggle('col', col);
+  const h = el('pNoteHead'); if (h) h.setAttribute('aria-expanded', col ? 'false' : 'true');
+}
+el('pNoteHead').addEventListener('click', () => { if (document.body.classList.contains('p-editing')) return; pNoteOpen = !pNoteOpen; pNoteFold_(); });
+el('pNoteHead').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el('pNoteHead').click(); } });
 function setPersonEditing(on) {
   document.body.classList.toggle('p-editing', !!on);
+  pNoteFold_();
   if (window.MyAlbum && userId && pId !== null && el('pAlbum')) MyAlbum.setEditing(el('pAlbum'), !!on);
   const b = el('pEdit'); if (b) b.classList.toggle('hot', !!on);
   const l = el('pEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
