@@ -1129,7 +1129,11 @@
   #personWin.pan-tp #pBtnTp .p-cvp { transform:rotate(180deg); color:inherit; }
   #personWin.pan-tp #pPanTp { display:block; }
   .pan-tp { background:#f6f7f3; border:1px solid #e1e5d9; } .pan-tp .p-pant { color:#4a5a3c; }
-  #pBtnTp .nms { font-family:'Newsreader',Georgia,serif; font-size:0.86rem; font-weight:400; letter-spacing:0.02em; text-transform:none; color:#4a4b44; max-width:230px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #pBtnTp { white-space:nowrap; max-width:100%; }
+  #pBtnTp .nms { font-family:'Newsreader',Georgia,serif; font-size:0.86rem; font-weight:400; letter-spacing:0.02em; text-transform:none; color:#4a4b44; max-width:min(230px, calc(100vw - 230px)); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #pBtnTp .ppin { font-family:var(--mono); font-size:0.58rem; font-weight:400; letter-spacing:0.04em; color:#8a8f80; margin-left:-3px; }
+  .tp-er .pe-pin { border:1px solid var(--ps-hair); background:#fff; border-radius:6px; width:30px; height:28px; cursor:pointer; filter:grayscale(1); opacity:0.45; }
+  .tp-er .pe-pin.on { filter:none; opacity:1; background:#f6f7f3; border-color:#c9d1bc; }
   #pPanTp .tp-r, #pPanTp .tp-past, #pPanTp .tp-er { border-top-color:#e6e9df; }
   /* Their people (L1, 28 Oct 2026) */
   .tp1 { max-width:780px; }
@@ -5729,8 +5733,11 @@ function renderPersona() {
   // --- Their people (L1, 28 Oct 2026): a quiet list; birth year shows as an age that keeps itself true;
   // "in memory" moves someone to one quiet line, never deletes; a same-name page in My Circle is linked.
   const ppl = pData.people || [], live = ppl.filter(x => !x.past), gone = ppl.filter(x => x.past);
+  // P2 (28 Oct 2026): pinned people's first names, then a quiet "+N" for the rest; no pins -> the first three
+  const pinned = live.filter(x => x.pin), onBtn = pinned.length ? pinned : live.slice(0, 3), more = live.length - onBtn.length;
   el('pBtnTp').innerHTML = '<span class="p-ci">\uD83D\uDC6A</span>Their people'
-    + (live.length ? '<span class="nms">' + live.map(x => escHtml(String(x.n || '').trim().split(/\s+/)[0])).join(' \u00B7 ') + '</span>' : '<b>none yet</b>')
+    + (live.length ? '<span class="nms">' + onBtn.map(x => escHtml(String(x.n || '').trim().split(/\s+/)[0])).join(' \u00B7 ') + '</span>'
+        + (more > 0 ? '<span class="ppin">+' + more + '</span>' : '') : '<b>none yet</b>')
     + '<span class="p-cvp">\u25BE</span>';
   el('pPplN').textContent = live.length ? live.length + (live.length === 1 ? ' person' : ' people') : '';
   const yr = new Date().getFullYear();
@@ -5745,6 +5752,7 @@ function renderPersona() {
       + '<input type="text" class="e-nt" data-pe="people:' + x.id + ':note" value="' + escHtml(x.note || '') + '" placeholder="one line">'
       + '<label class="e-m"><input type="checkbox" data-pepast="' + x.id + '"' + (x.past ? ' checked' : '') + '> in memory</label>'
       + (x.past ? '<input type="text" class="e-p" inputmode="numeric" maxlength="4" data-pe="people:' + x.id + ':pastOn" value="' + escHtml(x.pastOn || '') + '" placeholder="year">' : '')
+      + (x.past ? '' : '<button class="pe-pin' + (x.pin ? ' on' : '') + '" type="button" data-pplpin="' + x.id + '" title="Show on the button" aria-pressed="' + (x.pin ? 'true' : 'false') + '">\uD83D\uDCCC</button>')
       + '<button class="pe-x" type="button" data-pdel="people:' + x.id + '" aria-label="Delete">&times;</button></div>').join('') + '</div>';
   } else {
     ph = '<div class="tp1">' + live.map(x => { const l = linkOf(x.n), b = /^\d{4}$/.test(String(x.b || '')) ? yr - +x.b : null;
@@ -5885,6 +5893,8 @@ function pCommitPending_() {
     }
   });
   pw.addEventListener('click', e => {
+    const pp = e.target.closest('[data-pplpin]');
+    if (pp) { const it = (pData.people || []).find(x => x.id === pp.dataset.pplpin); if (!it) return; it.pin = !it.pin; schedulePersonSave(); renderPersona(); return; }
     const pl = e.target.closest('[data-pplopen]');
     if (pl) { const to = pl.dataset.pplopen; pCommitPending_(); savePerson_(true); pSessionEnd_(); openPerson(to); el('personWin').scrollTop = 0; return; }
     const pb = e.target.closest('[data-pan]');
@@ -6023,7 +6033,7 @@ function pParse(raw) {
     advice: arr(o.advice).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), t: x.t, about: x.about || '', on: x.on || '', pin: !!x.pin })),
     learn: arr(o.learn).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), t: x.t, seen: x.seen || '', on: x.on || '' })),
     deal: arr(o.deal).filter(x => x && x.t).map(x => ({ id: x.id || pUid_(), k: x.k === 'no' ? 'no' : 'ok', t: x.t })),
-    people: arr(o.people).filter(x => x && (x.n || x.r || x.note)).map(x => ({ id: x.id || pUid_(), n: x.n || '', r: x.r || '', b: String(x.b || ''), note: x.note || '', past: !!x.past, pastOn: String(x.pastOn || '') })),
+    people: arr(o.people).filter(x => x && (x.n || x.r || x.note)).map(x => ({ id: x.id || pUid_(), n: x.n || '', r: x.r || '', b: String(x.b || ''), note: x.note || '', past: !!x.past, pastOn: String(x.pastOn || ''), pin: !!x.pin && !x.past })),
     essay: o.essay || '',
     moments: Array.isArray(o.moments) ? o.moments : [],
     contacts: Array.isArray(o.contacts) ? o.contacts : [],
