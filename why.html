@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#203a72">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Caveat:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Noto+Serif+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   /* Text scales with the reader's own setting; 1rem = their base size. */
   html { font-size:100%; }
@@ -1194,6 +1194,8 @@
   .p-q span { display:block; font-style:normal; font-family:var(--mono); font-size:0.58rem; color:var(--ps-mute); margin-top:3px; }
   /* C (28 Oct 2026): the pinned quote looks like the others; "· PINNED" is one more plain grey word in its date line */
   .p-q .pt { font-weight:400; color:inherit; }
+  /* W2 (28 Oct 2026): quotes in medium weight; their date lines stay light */
+  .p-q { font-weight:500; } .p-q span { font-weight:400; }
   /* Indirect learning */
   .p-ln { display:flex; gap:14px; padding:9px 0; border-top:1px solid var(--ps-hair2); }
   .p-ln:first-child { border-top:none; }
@@ -5707,12 +5709,13 @@ function renderPersona() {
   }).join('') + '</div>';
   el('pWho').innerHTML = wh;
   // --- Direct advice: all alike; the pinned one only gets a faint wash
-  const adv = (pData.advice || []).slice().sort((a, b) => (b.pin - a.pin) || String(b.on || '').localeCompare(String(a.on || '')));
+  // 28 Oct 2026: newest first, the pinned one last - it has already been read under the name
+  const adv = (pData.advice || []).slice().sort((a, b) => (a.pin - b.pin) || String(b.on || '').localeCompare(String(a.on || '')));
   el('psAdv').style.display = shown('adv') ? '' : 'none';
   el('pAdvN').textContent = adv.length ? adv.length + (adv.length === 1 ? ' quote' : ' quotes') : '';
   el('pAdv').innerHTML = '<div class="p-qs">' + adv.map(a => ed ? pEditRow_('advice', a, ['t', 'about', 'on'])
       : (() => { const meta = [a.about ? 'On ' + escHtml(a.about) : '', a.on ? escHtml(pMon_(a.on)) : ''].filter(Boolean).join(' · ');
-          return '<div class="p-q' + (a.pin ? ' pin' : '') + '">“' + escHtml(a.t) + '”<span>' + meta
+          return '<div class="p-q' + (a.pin ? ' p-pinned' : '') + '">“' + escHtml(a.t) + '”<span>' + meta
             + (a.pin ? '<b class="pt">' + (meta ? ' · ' : '') + 'PINNED</b>' : '') + '</span></div>'; })()).join('')
     + pAddLine_('adv', 'their words…', { about: true, month: true, pin: true }) + '</div>';
   // --- Indirect learning
