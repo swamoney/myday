@@ -479,6 +479,11 @@
   .mm-stop.now .mm-sc { background:#fff; border:1px solid #e6eaf1; border-radius:16px; padding:22px 24px 18px; box-shadow:0 10px 30px rgba(30,47,82,0.07); }
   .mm-eye { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--pgs,#2f5187); }
   .mm-stop.ck .mm-eye { color:#4a4470; }
+  /* T3 (30 Oct 2026): door tabs on a two-door check - the doors' own colours, the speaking door filled */
+  .mm-asw { display:flex; align-items:center; gap:6px; margin:8px 0 -2px; flex-wrap:wrap; }
+  .mm-asw .k { font-family:var(--mono); font-size:0.52rem; letter-spacing:0.12em; color:#8a91a0; }
+  .mm-asw button { font-family:var(--mono); font-size:0.55rem; font-weight:600; letter-spacing:0.1em; border-radius:6px; padding:3px 8px; border:1px solid var(--a); color:var(--a); background:#fff; cursor:pointer; }
+  .mm-asw button.on { background:var(--a); color:#fff; }
   .mm-bigq { font-family:var(--serif); font-size:1.5rem; font-weight:500; line-height:1.3; color:#1d2536; margin-top:8px; overflow-wrap:anywhere; }
   .mm-sq { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#5A6478; margin:6px 0 14px; }
   .mm-sc textarea { width:100%; min-height:150px; font-family:var(--serif); font-size:1rem; line-height:30px; color:#28324B; border:1px solid #e3e8f0; border-radius:10px; padding:9px 12px; resize:vertical; outline:none;
@@ -7188,8 +7193,20 @@ const MM_CKW = {
 const MM_CK_LBL = { loss: { pity:'Gentle with myself' } };                       // the row's name, per door
 const MM_CK_UNSURE = { loss: { pity:['Not sure', 'I can\u2019t tell yet'] } };   // "not sure" words, where the shared ones jar
 const MM_CK_NOSIGNS = { loss: ['pity'] };                                        // on Loss the why-me signs would undo the gentle question
-function mmCkRow_(k, key) { if (!k) return null; return (MM_CKW[k.door] || {})[key] || (k.door2 && (MM_CKW[k.door2] || {})[key]) || null; }
-function mmCkDoor_(k, key) { if (!k) return null; return (MM_CKW[k.door] || {})[key] ? k.door : (k.door2 && (MM_CKW[k.door2] || {})[key] ? k.door2 : k.door); }
+// O2 + T3 (30 Oct 2026): on a two-door knot, Loss's gentle words lead whenever Loss is one of the doors, else the first
+// door; door tabs on the card ("Asked as LOSS · ANXIETY") switch the words only - one answer either way. Tabs reset per visit.
+let mmCkTab_ = {};
+function mmCkDoors_(k, key) { if (!k) return []; const ds = [k.door, k.door2].filter(Boolean);
+  return (ds.includes('loss') ? ['loss'].concat(ds.filter(d => d !== 'loss')) : ds).filter(d => (MM_CKW[d] || {})[key]); }
+function mmCkDoor_(k, key) { if (!k) return null; const ds = mmCkDoors_(k, key);
+  if (k.id != null && String(k.id) === String(mmPageId_) && mmCkTab_[key] && ds.includes(mmCkTab_[key])) return mmCkTab_[key];
+  return ds[0] || k.door; }
+function mmCkRow_(k, key) { const d = mmCkDoor_(k, key); return d ? (MM_CKW[d] || {})[key] || null : null; }
+function mmCkTabs_(k, st) {
+  if (st.kind !== 'check') return ''; const ds = mmCkDoors_(k, st.ck); if (ds.length < 2) return '';
+  const on = mmCkDoor_(k, st.ck);
+  return '<div class="mm-asw"><span class="k">ASKED AS</span>' + ds.map(d => '<button type="button" class="' + MM_DOORS[d].cls + (d === on ? ' on' : '') + '" data-mmcktab="' + st.ck + ':' + d + '" aria-pressed="' + (d === on) + '">' + escHtml(MM_DOORS[d].lbl.toUpperCase()) + '</button>').join('') + '</div>';
+}
 function mmCkCard_(key, val, k) {
   const r = mmCkRow_(k, key), d = mmCkDoor_(k, key);
   if (r && val === 'clear') return r.clear;
@@ -7560,7 +7577,7 @@ async function saveMmKnot_() {
 /* ---- the knot page ---- */
 function openMmPage(id) {
   if (!mmById_(id)) return;
-  mmPageId_ = id; mmOpen_ = null;
+  mmPageId_ = id; mmOpen_ = null; mmCkTab_ = {};
   renderMmPage_();
   el('mmPage').classList.add('on');
   try { el('mmPage').scrollTop = 0; } catch (e) {}
@@ -7849,7 +7866,7 @@ function renderMmFlow_(k) {
     const ck = st.sec === 'check' ? ' ck' : '';
     const title = st.sec === 'check' ? st.title : st.title;
     if (state === 'now') {
-      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + (st.sec === 'desk' || st.sec === 'desk2' ? ' \u00B7 ' + escHtml(st.title.toUpperCase()) : '') + ' \u00B7 ' + n + ' OF ' + stops.length + '</div><div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
+      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + (st.sec === 'desk' || st.sec === 'desk2' ? ' \u00B7 ' + escHtml(st.title.toUpperCase()) : '') + ' \u00B7 ' + n + ' OF ' + stops.length + '</div>' + mmCkTabs_(k, st) + '<div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
         + '<div class="mm-sbtn">' + (idx > 0 ? '<button class="ghost" type="button" data-mmnav="back">\u2190 Back</button>' : '')
         + '<button class="go" type="button" data-mmnav="next">' + (idx === stops.length - 1 ? 'Done \u2713' : 'Next \u2192') + '</button>'
         + (idx < stops.length - 1 ? '<button class="skip" type="button" data-mmnav="skip">skip for now</button>' : '') + '</div></div></div>';
@@ -8083,6 +8100,8 @@ el('mmStops').addEventListener('click', e => {
   if (nav) { mmGo_(nav.dataset.mmnav); return; }
   const go = e.target.closest('[data-mmgo]');
   if (go) { mmGo_(go.dataset.mmgo); return; }
+  const tb = e.target.closest('[data-mmcktab]');
+  if (tb) { const [key, d] = tb.dataset.mmcktab.split(':'); mmCkTab_[key] = d; renderMmPage_(); return; }
   const sgb = e.target.closest('[data-mmsign]');
   if (sgb) { mmTapSign_(sgb.dataset.mmsign); return; }
   const ckb = e.target.closest('[data-mmck]');
