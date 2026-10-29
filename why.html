@@ -300,6 +300,7 @@
   .mm-C { --a:#2E6640; --ad:#2E6640; --w:#f2f8f4; --b:#2E664033; }   /* challenge - Priority's Q2 green */
   .mm-F { --a:#b5533a; --ad:#b5533a; --w:#fdf4f0; --b:#b5533a33; }   /* conflict - terracotta */
   .mm-L { --a:#3a3f4b; --ad:#3a3f4b; --w:#f4f5f7; --b:#3a3f4b33; }   /* loss - near-black graphite */
+  .mm-D { --a:#2f6b70; --ad:#2f6b70; --w:#eef6f6; --b:#2f6b7033; }   /* dilemma - deep teal (DL1, 29 Oct 2026) */
   /* X1 + S1: the doors on two family shelves, the shelf heading a serif question in ink with its open count */
   .mm-shelf-h { display:flex; align-items:center; gap:8px; margin:14px 0 8px; }
   .mm-shelf-h:first-child { margin-top:0; }
@@ -377,6 +378,18 @@
   /* W2 / N3 (27 Oct 2026): time in human units, one quiet line, one monthly card */
   .mm-weeks { margin-top:10px; font-family:var(--serif); font-style:italic; font-size:0.9375rem; line-height:1.5; color:#6b7385; }
   .mm-weeks b { color:#4a5468; font-weight:600; }
+  /* DL2 (29 Oct 2026): the one-year look-back on a dilemma */
+  .mm-lb { border:1px solid #d5e6e6; background:#fff; border-left:3px solid #2f6b70; border-radius:12px; padding:14px 18px; margin:0 0 14px; }
+  .mm-lb .e { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.14em; color:#2f6b70; font-weight:600; }
+  .mm-lb .t { font-family:'Newsreader',Georgia,serif; font-size:1.12rem; color:#28324B; margin:4px 0 2px; line-height:1.35; }
+  .mm-lb .s { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.06em; color:#7a8295; margin-bottom:10px; }
+  .mm-lb .q { font-family:'Newsreader',Georgia,serif; font-size:1rem; color:#28324B; margin:8px 0 6px; }
+  .mm-lb .c { display:flex; gap:6px; flex-wrap:wrap; }
+  .mm-lb .c button { font-family:'Newsreader',Georgia,serif; font-size:0.92rem; border:1px solid #dfe4ec; background:#fff; border-radius:999px; padding:5px 13px; color:#28324B; cursor:pointer; }
+  .mm-lb .c button.on { background:#eef6f6; border-color:#2f6b70; color:#2f6b70; }
+  .mm-lb .n { margin-top:12px; font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; color:#7a8295; }
+  .mm-lb .n button { font:inherit; letter-spacing:inherit; color:inherit; background:none; border:none; border-bottom:1px dashed #9aa3b3; padding:0; cursor:pointer; }
+  .mm-lbl { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; color:#2f6b70; margin-top:6px; } .mm-lbl b { font-weight:600; }
   .mm-nudge-c { background:#fbf8ef; border:1px solid #eadfbf; border-radius:14px; padding:14px 18px; margin:0 0 14px; }
   .mm-ne { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.16em; color:#8a6d1f; }
   .mm-nt { font-family:var(--serif); font-size:1.15rem; color:#28324B; margin:4px 0 6px; }
@@ -7094,16 +7107,28 @@ const MM_DOORS = {
   cha: { lbl:'Challenge',  cls:'mm-C', q:'this is hard, I can work at it',      pick:"It's hard, but I can work toward it" },
   loss:{ lbl:'Loss',       cls:'mm-L', q:'something is gone',                   pick:'Something important has gone wrong or is lost' },
   over:{ lbl:'Overload',   cls:'mm-V', q:'too much, all at once',               pick:"There's too much on me right now" },
-  conf:{ lbl:'Conflict',   cls:'mm-F', q:'we want different things',           pick:'Someone and I want different things' }
+  conf:{ lbl:'Conflict',   cls:'mm-F', q:'we want different things',           pick:'Someone and I want different things' },
+  // DL1 (29 Oct 2026): a dilemma is stress - torn between two goods. A decision is the calm plan; this door hands over to it.
+  dil: { lbl:'Dilemma',    cls:'mm-D', q:'torn between two things that matter', pick:"I\u2019m torn between two things that both matter" }
 };
 // X1: the doors on two family shelves. 'wide' spans the row while a shelf has an odd count.
-const MM_FAMILIES = [ { h:'What am I feeling?', doors:['anx','ins','over'] }, { h:'What am I facing?', doors:['obs','cha','conf','loss'] } ];
+const MM_FAMILIES = [ { h:'What am I feeling?', doors:['anx','ins','over','dil'] }, { h:'What am I facing?', doors:['obs','cha','conf','loss'] } ];
 // W1: the overload desk's verbs - the Priority matrix's own.
 const MM_LOAD_VERBS = { keep:['KEEP','#3f6560'], drop:['DROP','#8f4f40'], delegate:['DELEGATE','#a06a2c'], defer:['DEFER','#5f6b85'] };
 const MM_LOAD_CAP = 12;
 // Loss is the one door where "sit with it" is an honest next step.
 const MM_SIT = /^sit with it/i;
 const MM_LOSS_QUICK = ['Sit with it until \u2026', 'Tell one person', 'No step yet, and that\u2019s fine'];
+const MM_DIL_QUICK = ['Decide by \u2026', 'Sleep on it for a week', 'Talk it through with one person'];
+function mmQuickFor_(doors) { return doors.includes('loss') ? MM_LOSS_QUICK : doors.includes('dil') ? MM_DIL_QUICK : null; }
+// a quick chip's words and date: Sit with it = 30 days, Decide by = two weeks, Sleep on it = a week
+function mmQuickFill_(t) {
+  if (/^No step yet/.test(t)) return { step: '', by: '' };
+  const days = /^Sit with it/.test(t) ? 30 : /^Decide by/.test(t) ? 14 : /^Sleep on it/.test(t) ? 7 : 0;
+  if (!days) return { step: t.replace(/\s*\u2026$/, ' '), by: null };
+  const d = new Date(istToday() + 'T00:00:00'); d.setDate(d.getDate() + days); const by = d.toISOString().slice(0, 10);
+  return { step: /^Sit with it/.test(t) ? 'Sit with it until ' + mmFmt_(by) : /^Decide by/.test(t) ? 'Decide by ' + mmFmt_(by) : t, by };
+}
 // The check layer: three rows, one tap each; ego's five prompts unfold beneath.
 const MM_CHECK = [
   { k:'ego',     lbl:'Ego',     q:'Am I defending my pride, or seeing it straight?', signs:true },
@@ -7111,7 +7136,7 @@ const MM_CHECK = [
   // N1 · D1 (28 Oct 2026): the self-pity check, named for the loop, not the person; only where "why me" happens
   { k:'pity',    lbl:'Why me',  q:'Am I stuck in \u201Cwhy me\u201D, or seeing what I can do?', signs:true, doors:['loss','ins','obs','over','conf'] },
   // AV2 (28 Oct 2026): avoidance, where it happens; "resting on purpose" is the calm answer, never a fault
-  { k:'avoid',   lbl:'Avoiding', q:'Am I putting off something important because it\u2019s uncomfortable?', signs:true, doors:['obs','cha','conf','over','ins'] },
+  { k:'avoid',   lbl:'Avoiding', q:'Am I putting off something important because it\u2019s uncomfortable?', signs:true, doors:['obs','cha','conf','over','ins','dil'] },
   { k:'values',  lbl:'Values',  q:'Does my response honour what matters to me?' }
 ];
 const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught myself']];
@@ -7157,6 +7182,8 @@ const MM_OUTS = {
   accepted: { lbl:'Accepted',       cls:'accepted' },
   recovered:{ lbl:'Recovered',      cls:'' },
   rebuilt:  { lbl:'Rebuilt',        cls:'' },
+  chose:    { lbl:'Chose one',      cls:'' },
+  third:    { lbl:'Found a third way', cls:'' },
   talked:   { lbl:'Talked it through', cls:'' },
   line:     { lbl:'Drew a line',    cls:'accepted' },
   plan:     { lbl:'Became a plan',  cls:'plan' },
@@ -7166,7 +7193,8 @@ const MM_OUTS = {
 const MM_OUTS_BY_DOOR = {
   anx: ['never','resolved','faded','accepted','plan','decision'], ins: ['resolved','faded','accepted','plan','decision'],
   over:['resolved','faded','plan','decision'], obs: ['resolved','faded','accepted','plan','decision'], cha: ['resolved','faded','accepted','plan','decision'],
-  conf:['talked','line','resolved','faded','accepted','plan','decision'], loss:['recovered','rebuilt','accepted','faded','plan']   // Loss: "what I will not rush" - a decision is not its ending
+  conf:['talked','line','resolved','faded','accepted','plan','decision'], loss:['recovered','rebuilt','accepted','faded','plan'],
+  dil: ['chose','third','decision','faded']   // Loss: "what I will not rush" - a decision is not its ending
 };
 function mmOutsFor_(k) {
   const a = MM_OUTS_BY_DOOR[k.door] || Object.keys(MM_OUTS), b = k.door2 ? (MM_OUTS_BY_DOOR[k.door2] || []) : [];
@@ -7178,6 +7206,13 @@ function mmOutsFor_(k) {
 // Q1 (25 Oct 2026): every desk point is a plain question (ask) with a why-line and a grey example placeholder (never saved);
 // q is the short name used on the map and in the record. Keys are unchanged, so every answer already written stays put.
 const MM_DESK = {
+  // DL1 (29 Oct 2026): five rows - the choice, a third way, what each costs, one-way or two-way, the loss I can live with
+  dil: [
+    { k:"choice", q:"The choice", ask:"What exactly am I torn between?", why:"Both sides, in one sentence.", ex:"Joining the Mumbai firm, or building my own practice in Pune." },
+    { k:"third", q:"A third way", ask:"Is there an option I haven\u2019t let myself see?", why:"Most dilemmas are a false either/or.", ex:"Consult for them two days a week." },
+    { q:"What each costs", ask:"What do I lose with each?", why:"Every option costs something. Name both costs.", split:[["lose_a","If I choose the first, I lose","Being near Aai and Baba."],["lose_b","If I choose the second, I lose","The bigger client base."]] },
+    { k:"oneway", q:"One-way or two-way", ask:"Which choice can I undo later?", why:"Decide reversible things fast, irreversible ones slowly.", ex:"Mumbai I can leave in a year; closing the Pune office I can\u2019t undo." },
+    { k:"livewith", q:"The loss I can live with", ask:"Which loss could I live with, calmly?", why:"Pick the cost, not the perfect.", ex:"Less money for two years." } ],
   anx: [
     { k:"fear", q:"The fear", ask:"What exactly am I afraid will happen?", why:"One sentence. A named fear is a smaller fear.", ex:"That the market keeps falling and I panic-sell at the bottom." },
     { k:"fact", q:"The facts", ask:"What do I actually know for sure, right now?", why:"Only what you could show someone. No guesses.", ex:"Nifty is 5% off its high. My plan says rebalance at 10%." },
@@ -7261,7 +7296,7 @@ function mmAge_(n) {
   if (n < 70) return Math.round(n / 7) + ' weeks';
   const m = Math.round(n / 30.4); return m + (m === 1 ? ' month' : ' months');
 }
-const MM_PLURAL = { anx:'anxieties', ins:'insecurities', obs:'obstacles', cha:'challenges', loss:'losses', over:'overloads', conf:'conflicts' };
+const MM_PLURAL = { anx:'anxieties', ins:'insecurities', obs:'obstacles', cha:'challenges', loss:'losses', over:'overloads', conf:'conflicts', dil:'dilemmas' };
 // W2: the middle of how long your own settled knots at this door took (null below three).
 function mmUsual_(door) {
   const t = mind.filter(k => k.status === 'settled' && k.door === door && k.opened_on && k.settled_on)
@@ -7281,6 +7316,40 @@ function mmWaiting_() {
   }).sort((a, b) => String(a.opened_on || '').localeCompare(String(b.opened_on || '')));
 }
 let mmNudgeUntil_ = '';   // 'Not this month' - kept in user_prefs (mm_nudge_until), so every device agrees
+// DL2 (29 Oct 2026): a year after a dilemma settles, two separate questions - the choice, and how it turned out -
+// so a good choice that met bad luck is never filed as a bad choice. One card at a time, oldest first.
+const MM_LOOK_Q = { choice: ['Was it a good choice, with what I knew then?', [['yes','Yes'],['mixed','Mixed'],['no','No']]],
+                    turn:   ['How did it turn out?',                         [['well','Well'],['mixed','Mixed'],['badly','Badly']]] };
+function mmIsDil_(k) { return k.door === 'dil' || k.door2 === 'dil'; }
+function mmLookDue_() {
+  const mon = istToday().slice(0, 7);
+  return mind.filter(k => k.status === 'settled' && mmIsDil_(k) && k.settled_on && mmDays_(k.settled_on) >= 365)
+    .filter(k => { const l = (k.desk && k.desk.look) || {}; return !(l.choice && l.turn) && l.skip !== mon; })
+    .sort((a, b) => String(a.settled_on).localeCompare(String(b.settled_on)))[0] || null;
+}
+function mmLookCard_(k) {
+  const l = (k.desk && k.desk.look) || {}, ch = (k.desk && k.desk.choice) || k.title || '';
+  const helped = Array.isArray(k.helped) && k.helped.length ? ' \u00B7 HELPED: ' + k.helped.map(h => escHtml(String(h).toUpperCase())).join(', ') : '';
+  return '<div class="mm-lb" data-mmlookid="' + escHtml(String(k.id)) + '"><div class="e">ONE YEAR ON \u00B7 A DILEMMA</div>'
+    + '<div class="t">A year ago you were torn: ' + escHtml(ch.replace(/[.\s]+$/, '')) + '.' + (k.settled_line ? ' <i>' + escHtml(k.settled_line.replace(/[.\s]+$/, '')) + '.</i>' : '') + '</div>'
+    + '<div class="s">SETTLED ' + escHtml(mmFmt_(k.settled_on)).toUpperCase() + ' \u00B7 ' + escHtml(((MM_OUTS[k.outcome] || {}).lbl || 'SETTLED').toUpperCase()) + helped + '</div>'
+    + Object.keys(MM_LOOK_Q).map(q => '<div class="q">' + MM_LOOK_Q[q][0] + '</div><div class="c">'
+        + MM_LOOK_Q[q][1].map(([v, w]) => '<button type="button" data-mmlook="' + q + ':' + v + '" class="' + (l[q] === v ? 'on' : '') + '">' + w + '</button>').join('') + '</div>').join('')
+    + '<div class="n">TWO SEPARATE ANSWERS \u00B7 A GOOD CHOICE CAN MEET BAD LUCK \u00B7 <button type="button" data-mmlookskip="1">NOT NOW</button></div></div>';
+}
+function mmLookLine_(k) {
+  const l = (k.desk && k.desk.look) || {}; if (!l.choice && !l.turn) return '';
+  const w = (q, v) => ((MM_LOOK_Q[q][1].find(x => x[0] === v) || [])[1] || '\u2014');
+  return '<div class="mm-lbl">A YEAR ON \u00B7 GOOD CHOICE: <b>' + escHtml(w('choice', l.choice)) + '</b> \u00B7 TURNED OUT: <b>' + escHtml(w('turn', l.turn)) + '</b></div>';
+}
+async function mmLookSave_(k, patch) {
+  const desk = Object.assign({}, k.desk || {}); desk.look = Object.assign({}, desk.look || {}, patch);
+  if (desk.look.choice && desk.look.turn) desk.look.on = istToday();
+  const { error } = await supa.from('why_mind').update({ desk, updated_at: new Date().toISOString() }).eq('id', k.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save'); return; }
+  k.desk = desk; if (desk.look.choice && desk.look.turn && !patch.skip) toast('Kept on the knot');
+  renderMind(); if (mmPageId_) renderMmPage_();
+}
 async function mmLoadNudge_() {
   try { const { data } = await supa.from('user_prefs').select('prefs').eq('user_id', userId).limit(1);
     const p = data && data.length ? data[0].prefs : null; mmNudgeUntil_ = (p && p.mm_nudge_until) || ''; } catch (e) { mmNudgeUntil_ = ''; }
@@ -7322,12 +7391,13 @@ function renderMind() {
   if (nu) {
     const snoozed = mmNudgeUntil_ && istToday() < mmNudgeUntil_;
     const N = ['One knot has', 'Two knots have', 'Three knots have', 'Four knots have', 'Five knots have'];
-    nu.innerHTML = wt.length && !snoozed ? '<div class="mm-nudge-c"><div class="mm-ne">ONCE A MONTH</div>'
+    const lk = mmLookDue_();
+    nu.innerHTML = (lk ? mmLookCard_(lk) : '') + (wt.length && !snoozed ? '<div class="mm-nudge-c"><div class="mm-ne">ONCE A MONTH</div>'
       + '<div class="mm-nt">' + (N[wt.length - 1] || wt.length + ' knots have') + ' waited a month or more.</div>'
       + '<div class="mm-nl">' + wt.slice(0, 5).map(k => '<button type="button" data-mmnudge="' + escHtml(String(k.id)) + '"><span>' + escHtml(k.title || '') + '</span><em>'
         + escHtml(mmAge_(mmDays_(k.opened_on)).toUpperCase()) + ' \u00B7 ' + (k.next_step && k.next_by ? 'STEP WAS DUE ' + escHtml(mmFmt_(k.next_by).replace(/ \d{4}$/, '')).toUpperCase() : 'NO STEP') + '</em></button>').join('')
         + (wt.length > 5 ? '<i>and ' + (wt.length - 5) + ' more in the record below</i>' : '') + '</div>'
-      + '<div class="mm-na"><button type="button" class="go" data-mmnudge="' + escHtml(String(wt[0].id)) + '">Look at them</button><button type="button" data-mmsnooze="1">Not this month</button></div></div>' : '';
+      + '<div class="mm-na"><button type="button" class="go" data-mmnudge="' + escHtml(String(wt[0].id)) + '">Look at them</button><button type="button" data-mmsnooze="1">Not this month</button></div></div>' : '');
   }
   // F1: the first-aid line, once there is evidence
   const ev = mmEvidence_(), evA = mmEvidence_('anx');
@@ -7412,9 +7482,9 @@ function mmPaintPick_() {
     '<button type="button" class="' + MM_DOORS[d].cls + (mmPickDoors_.includes(d) ? ' on' : '') + '" data-mmpick="' + d + '"><b>' + MM_DOORS[d].lbl + '</b>' + MM_DOORS[d].pick + '</button>').join('')).join('');
   const qk = el('mmQuick');
   if (qk) {
-    const loss = mmPickDoors_.includes('loss');
-    qk.style.display = loss ? '' : 'none';
-    qk.innerHTML = loss ? MM_LOSS_QUICK.map(t => '<button type="button" data-mmquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') : '';
+    const Q = mmQuickFor_(mmPickDoors_);
+    qk.style.display = Q ? '' : 'none';
+    qk.innerHTML = Q ? Q.map(t => '<button type="button" data-mmquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') : '';
   }
 }
 function openMmKnot_(id) {
@@ -7474,7 +7544,7 @@ function closeMmPage_() { el('mmPage').classList.remove('on'); mmPageId_ = null;
 function renderMmPage_() {
   const k = mmById_(mmPageId_); if (!k) { closeMmPage_(); return; }
   const D = MM_DOORS[k.door] || MM_DOORS.anx, pg = el('mmPage');
-  const HUE = { 'mm-A':['#2f5187','#f2f6fd'], 'mm-I':['#9c3f4a','#fdf3f4'], 'mm-V':['#6a4c93','#f6f3fa'], 'mm-O':['#a06a2c','#fdf8f0'], 'mm-C':['#2E6640','#f2f8f4'], 'mm-F':['#b5533a','#fdf4f0'], 'mm-L':['#3a3f4b','#f4f5f7'] }[D.cls] || ['#4a4470','#f4f3f8'];
+  const HUE = { 'mm-A':['#2f5187','#f2f6fd'], 'mm-I':['#9c3f4a','#fdf3f4'], 'mm-V':['#6a4c93','#f6f3fa'], 'mm-O':['#a06a2c','#fdf8f0'], 'mm-C':['#2E6640','#f2f8f4'], 'mm-F':['#b5533a','#fdf4f0'], 'mm-L':['#3a3f4b','#f4f5f7'], 'mm-D':['#2f6b70','#eef6f6'] }[D.cls] || ['#4a4470','#f4f3f8'];
   pg.style.setProperty('--pgs', HUE[0]); pg.style.setProperty('--pgt', HUE[1]); pg.style.setProperty('--pgi', '#28324B');
   const pn = mmPillarName_(k.pillar_id);
   const settled = k.status === 'settled';
@@ -7551,6 +7621,7 @@ function renderMmPage_() {
   if (settled) {
     endEl.innerHTML = '<div class="mm-endt"><div class="mm-el">How it ended · ' + escHtml(mmFmt_(k.settled_on)) + '</div>'
       + '<div class="mm-eline' + (k.settled_line ? '' : ' none') + '">' + (k.settled_line ? '\u201C' + escHtml(k.settled_line) + '\u201D' : 'no line for the record') + '</div>'
+      + mmLookLine_(k)
       + (k.outcome === 'decision' && mmDecOf_(k) ? '<button type="button" class="mm-declink" data-mmdec="' + escHtml(String(mmDecOf_(k).id)) + '">\u2192 Open the decision in My Dreams &amp; Decisions</button>' : '')
       + '</div>';
     endEl.classList.remove('hidden');
@@ -7701,7 +7772,7 @@ function mmOpenStop_(k, st) {
     h = '<div class="mm-sq">One thing, however small' + (loss ? ' \u2014 or sitting with it' : '') + '.</div>'
       + '<input type="text" data-mmf="next_step" placeholder="the next step" value="' + escHtml(k.next_step || '') + '">'
       + '<div style="height:8px"></div><input type="date" data-mmf="next_by" value="' + escHtml(k.next_by || '') + '">'
-      + (loss ? '<div class="mm-quick" style="display:flex">' + MM_LOSS_QUICK.map(t => '<button type="button" data-mmsquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') + '</div>' : '')
+      + (mmQuickFor_([k.door, k.door2].filter(Boolean)) ? '<div class="mm-quick" style="display:flex">' + mmQuickFor_([k.door, k.door2].filter(Boolean)).map(t => '<button type="button" data-mmsquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') + '</div>' : '')
       + '<div class="mm-shint">the one field the index asks for</div>';
   }
   return h;
@@ -7949,6 +8020,11 @@ el('mmDoors').addEventListener('click', e => {
 });
 el('mmOpenCnt').addEventListener('click', e => { if (e.target.closest('[data-mmall]')) { mmDoor = 'all'; renderMind(); } });
 el('mmNudge').addEventListener('click', e => {
+  const lc = e.target.closest('[data-mmlookid]');
+  if (lc) { const k = mmById_(lc.dataset.mmlookid); if (!k) return;
+    const a = e.target.closest('[data-mmlook]'); if (a) { const [q, v] = a.dataset.mmlook.split(':'); mmLookSave_(k, { [q]: v }); return; }
+    if (e.target.closest('[data-mmlookskip]')) { mmLookSave_(k, { skip: istToday().slice(0, 7) }); return; }
+    return; }
   if (e.target.closest('[data-mmsnooze]')) { mmSnoozeNudge_(); return; }
   const b = e.target.closest('[data-mmnudge]'); if (!b) return;
   openMmPage(b.dataset.mmnudge); mmGo_('then:next');   // straight to the next-step box
@@ -7987,9 +8063,8 @@ el('mmStops').addEventListener('click', e => {
   const qk = e.target.closest('[data-mmsquick]');
   if (qk) { const t = qk.dataset.mmsquick, ns = el('mmStops').querySelector('[data-mmf="next_step"]'), nb = el('mmStops').querySelector('[data-mmf="next_by"]');
     if (!ns) return;
-    if (/^No step yet/.test(t)) { ns.value = ''; nb.value = ''; return; }
-    ns.value = t.replace(/\s*\u2026$/, ' ');
-    if (/^Sit with it/.test(t)) { const d = new Date(istToday() + 'T00:00:00'); d.setDate(d.getDate() + 30); nb.value = d.toISOString().slice(0, 10); ns.value = 'Sit with it until ' + mmFmt_(nb.value); }
+    const f = mmQuickFill_(t); ns.value = f.step; if (f.by !== null) nb.value = f.by;
+    ns.dispatchEvent(new Event('input', { bubbles: true })); if (f.by !== null) nb.dispatchEvent(new Event('change', { bubbles: true }));
     return; }
   const loads = (k.desk && Array.isArray(k.desk.loads) ? k.desk.loads : []).map(l => Object.assign({}, l));
   const v = e.target.closest('[data-mmlv]');
@@ -8005,9 +8080,7 @@ el('mmStops').addEventListener('keydown', e => { if (e.key === 'Enter' && e.targ
 el('mmQuick').addEventListener('click', e => {
   const b = e.target.closest('[data-mmquick]'); if (!b) return;
   const t = b.dataset.mmquick;
-  if (/^No step yet/.test(t)) { el('fMmNext').value = ''; el('fMmBy').value = ''; return; }
-  el('fMmNext').value = t.replace(/\s*\u2026$/, ' ');
-  if (/^Sit with it/.test(t)) { const d = new Date(istToday() + 'T00:00:00'); d.setDate(d.getDate() + 30); el('fMmBy').value = d.toISOString().slice(0, 10); el('fMmNext').value = 'Sit with it until ' + mmFmt_(el('fMmBy').value); }
+  const f = mmQuickFill_(t); el('fMmNext').value = f.step; if (f.by !== null) el('fMmBy').value = f.by;
   try { el('fMmNext').focus(); } catch (x) {}
 });
 el('mmHelped').addEventListener('click', e => {
