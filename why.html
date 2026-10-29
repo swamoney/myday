@@ -7133,10 +7133,12 @@ function mmQuickFill_(t) {
 const MM_CHECK = [
   { k:'ego',     lbl:'Ego',     q:'Am I defending my pride, or seeing it straight?', signs:true },
   { k:'reality', lbl:'Reality', q:'Are these the facts, or the story I\u2019m telling?' },
+  // S2 (30 Oct 2026): responsibility, on Conflict only - it replaces Why me there
+  { k:'part',    lbl:'My part', q:'What am I responsible for here, and what am I not?', doors:['conf'] },
   // N1 · D1 (28 Oct 2026): the self-pity check, named for the loop, not the person; only where "why me" happens
-  { k:'pity',    lbl:'Why me',  q:'Am I stuck in \u201Cwhy me\u201D, or seeing what I can do?', signs:true, doors:['loss','ins','obs','over','conf'] },
+  { k:'pity',    lbl:'Why me',  q:'Am I stuck in \u201Cwhy me\u201D, or seeing what I can do?', signs:true, doors:['loss','ins','obs','over'] },
   // AV2 (28 Oct 2026): avoidance, where it happens; "resting on purpose" is the calm answer, never a fault
-  { k:'avoid',   lbl:'Avoiding', q:'Am I putting off something important because it\u2019s uncomfortable?', signs:true, doors:['obs','cha','conf','over','ins','dil'] },
+  { k:'avoid',   lbl:'Avoiding', q:'Am I putting off something important because it\u2019s uncomfortable?', signs:true, doors:['anx','obs','cha','conf','over','ins','dil'] },
   { k:'values',  lbl:'Values',  q:'Does my response honour what matters to me?' }
 ];
 const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught myself']];
@@ -7144,6 +7146,7 @@ const MM_CHECK_ANS = [['clear','clear'],['unsure','not sure'],['caught','caught 
 const MM_CHECK_V = {
   ego:     { clear:['Seeing it straight','no pride in this one'], unsure:['Not sure','let me look closer'], caught:['Caught it in me','pride is in this \u2014 I see it'] },
   reality: { clear:['These are the facts','I could show someone the evidence'], unsure:['Not sure','some of it may be story'], caught:['Caught a story','I was filling gaps with fear'] },
+  part:    { clear:['Owning my part','without taking all the blame'], unsure:['Not sure','I can\u2019t see it yet'], caught:['Blame is taking over','all of it on them, or all on me'] },
   pity:    { clear:['Not stuck','it hurts, and I can see what I can do'], unsure:['Not sure','I may be circling it'], caught:['Caught a why-me loop','I keep going round the unfairness'] },
   avoid:   { clear:['Facing it','or resting on purpose \u2014 not hiding'], unsure:['Not sure','I may be stalling'], caught:['Caught myself avoiding','busy with easier things'] },
   values:  { clear:['It honours what matters','this is who I want to be'], unsure:['Not sure','part of it pulls the other way'], caught:['Caught myself drifting','this is not my pillar talking'] }
@@ -7169,9 +7172,31 @@ const MM_AVOID_SIGNS = [
   ['Dreading one call or conversation', 'dreading one conversation']
 ];
 const MM_SIGNS = { ego: MM_EGO_SIGNS, pity: MM_PITY_SIGNS, avoid: MM_AVOID_SIGNS };
-const MM_PITY_LOSS = ['Grieving, not stuck', 'this needs time, and that\u2019s fine'];
-function mmIsLoss_(k) { return !!k && (k.door === 'loss' || k.door2 === 'loss'); }
-function mmCkCard_(key, val, k) { if (key === 'pity' && val === 'clear' && mmIsLoss_(k)) return MM_PITY_LOSS; return (MM_CHECK_V[key] || {})[val] || []; }
+// S2 v3 (30 Oct 2026, frozen): each door asks each check in its own words - the question and the calm and caught cards.
+// "Not sure" and the signs stay shared; the stored answer stays clear / unsure / caught, so old knots read in the new words.
+// {pillar} becomes "the <name> pillar", or "what matters to me". A two-door knot uses its first door's words.
+const MM_CKW = {
+  anx: { ego:{ q:"Is concern about how others see me adding to this fear?", clear:["Not about appearances", "the concern is something else"], caught:["Image adds pressure", "I’m worried how I’ll look"] }, reality:{ q:"What evidence supports this fear, and what is still uncertain?", clear:["Checked the evidence", "I know the facts and the gaps"], caught:["Assumptions took over", "fear filled in the gaps"] }, avoid:{ q:"Am I avoiding a safe, useful step just to escape this fear?", clear:["Choosing consciously", "acting or pausing for good reason"], caught:["Fear is narrowing my choices", "I’m avoiding something worthwhile"] }, values:{ q:"Does how I’m handling this fear honour {pillar}?", clear:["Acting on what matters", "I can feel fear and still choose"], caught:["Fear is steering", "this isn’t my pillar talking"] } },
+  ins: { ego:{ q:"Am I measuring myself against someone to protect my image?", clear:["Not about image", "I’m looking at my own path"], caught:["Caught the comparison", "I’m guarding how I look"] }, reality:{ q:"Am I treating a fear about myself as a proven fact?", clear:["A balanced picture", "I see my strengths and my gaps"], caught:["I took fear as fact", "I assumed the worst about myself"] }, pity:{ q:"Am I focusing on what I lack instead of what I can do?", clear:["Seeing what I can do", "not only what I lack"], caught:["Counting what I lack", "I keep measuring what others have"] }, avoid:{ q:"Am I holding back because I doubt myself?", clear:["Giving it a try", "or pausing for a good reason"], caught:["Self-doubt is stopping me", "I’m afraid to find out"] }, values:{ q:"Am I measuring myself by {pillar}, or by someone else’s yardstick?", clear:["My own yardstick", "the measure I chose"], caught:["Caught a borrowed yardstick", "I’m measuring by their life"] } },
+  over: { ego:{ q:"Am I taking on too much just to appear capable?", clear:["I can ask for help", "and set limits when needed"], caught:["Trying to look capable", "I feel I must do it all"] }, reality:{ q:"Is everything really urgent, or can some things wait?", clear:["It really is urgent", "the deadlines are real"], caught:["Caught false urgency", "some of this can wait"] }, pity:{ q:"Am I stuck thinking “why me”, or looking for what could help?", clear:["Not stuck", "I can see what could help"], caught:["Caught a why-me loop", "I keep counting the unfairness"] }, avoid:{ q:"Am I keeping myself busy to avoid something more important?", clear:["Facing it", "or resting on purpose — not hiding"], caught:["Caught busy-avoiding", "easy tasks, not the hard one"] }, values:{ q:"Does what I’m keeping honour {pillar}?", clear:["Priorities are clear", "I know what can wait"], caught:["Caught myself drifting", "busy with other people’s priorities"] } },
+  dil: { ego:{ q:"Am I making this choice to impress others?", clear:["Choosing for me", "not for an audience"], caught:["Trying to impress others", "their opinion is shaping my choice"] }, reality:{ q:"Which costs are confirmed, and which am I assuming?", clear:["Facts separated", "I know what’s real and what’s uncertain"], caught:["Assumed the worst", "a guess became a certainty"] }, avoid:{ q:"Am I putting off choosing, hoping it will decide itself?", clear:["Facing it", "or waiting on purpose, with a date"], caught:["Caught myself avoiding", "letting time choose for me"] }, values:{ q:"Which choice better fits {pillar}, and what will I give up?", clear:["Priorities are clear", "I know what I’m giving up"], caught:["Avoiding the trade-off", "hoping for a cost-free choice"] } },
+  obs: { ego:{ q:"Am I rejecting a good solution just because it isn’t my way?", clear:["Open to other ways", "any route that works"], caught:["Stuck on my way", "I’m rejecting another good option"] }, reality:{ q:"Have I checked whether this is really stopping me?", clear:["It’s really stopping me", "I’ve checked"], caught:["I assumed I was stuck", "I hadn’t checked other options"] }, pity:{ q:"Am I stuck in “why does this happen to me”, or looking for a way through?", clear:["Not stuck", "I’m looking for a way through"], caught:["Caught a why-me loop", "I keep going round the unfairness"] }, avoid:{ q:"Am I avoiding the call, message or ask that would move this?", clear:["Facing it", "or resting on purpose — not hiding"], caught:["Caught myself avoiding", "waiting instead of asking"] }, values:{ q:"Does the way I’m getting through honour {pillar}?", clear:["An honest way through", "no shortcut I’d regret"], caught:["Caught a shortcut", "this way through isn’t mine"] } },
+  cha: { ego:{ q:"Am I making this harder just to prove myself?", clear:["Nothing to prove", "I’m doing it for itself"], caught:["Wanting to be seen", "I’m doing it to prove myself"] }, reality:{ q:"Is it as hard as I’m telling myself?", clear:["It really is hard", "I know what it takes"], caught:["Making it bigger", "it’s smaller than it felt"] }, avoid:{ q:"Am I putting off the first real step?", clear:["Facing it", "or planning on purpose, with a start date"], caught:["Caught myself avoiding", "planning instead of starting"] }, values:{ q:"Does this challenge serve {pillar}?", clear:["It serves what matters", "worth the effort"], caught:["Following someone else’s goal", "I’m doing this because others expect it"] } },
+  conf: { ego:{ q:"Am I trying to be right, or to understand?", clear:["Trying to understand", "not keeping score"], caught:["Caught myself keeping score", "I want to win this"] }, reality:{ q:"Do I know what they think, or am I guessing?", clear:["I know where they stand", "they’ve said it themselves"], caught:["Caught a guess", "I assumed I knew what they meant"] }, part:{ q:"What am I responsible for here, and what am I not?", clear:["Owning my part", "without taking all the blame"], caught:["Blame is taking over", "all of it on them, or all on me"] }, avoid:{ q:"Is there a safe, worthwhile conversation I’m avoiding?", clear:["Choosing how and when", "respecting safety and timing"], caught:["Avoiding a useful talk", "I keep putting it off"] }, values:{ q:"Am I staying true to {pillar} while respecting myself and the other person?", clear:["Fair to both of us", "I’d be proud of how I acted"], caught:["Winning over what matters", "I’m trying to come out on top"] } },
+  loss: { ego:{ q:"Am I hiding my pain to appear strong, even when I need support?", clear:["I can choose privacy", "and seek support when needed"], caught:["Hiding to look strong", "I need help but won’t ask"] }, reality:{ q:"What do I know has changed, and what am I still assuming?", clear:["I know what changed", "I’m not guessing about everything else"], caught:["Assuming the worst", "about things I don’t yet know"] }, pity:{ q:"Am I giving myself time to grieve, without a deadline?", clear:["Making space for grief", "I don’t need to rush"], caught:["Pressuring myself", "I think I should be over it"] }, values:{ q:"Am I taking care of myself in a way that fits what matters to me?", clear:["Caring for myself", "one day at a time"], caught:["Ignoring what I need", "I’m pushing myself too hard"] } }
+};
+const MM_CK_LBL = { loss: { pity:'Gentle with myself' } };                       // the row's name, per door
+const MM_CK_UNSURE = { loss: { pity:['Not sure', 'I can\u2019t tell yet'] } };   // "not sure" words, where the shared ones jar
+const MM_CK_NOSIGNS = { loss: ['pity'] };                                        // on Loss the why-me signs would undo the gentle question
+function mmCkRow_(k, key) { if (!k) return null; return (MM_CKW[k.door] || {})[key] || (k.door2 && (MM_CKW[k.door2] || {})[key]) || null; }
+function mmCkDoor_(k, key) { if (!k) return null; return (MM_CKW[k.door] || {})[key] ? k.door : (k.door2 && (MM_CKW[k.door2] || {})[key] ? k.door2 : k.door); }
+function mmCkCard_(key, val, k) {
+  const r = mmCkRow_(k, key), d = mmCkDoor_(k, key);
+  if (r && val === 'clear') return r.clear;
+  if (r && val === 'caught') return r.caught;
+  if (val === 'unsure' && d && MM_CK_UNSURE[d] && MM_CK_UNSURE[d][key]) return MM_CK_UNSURE[d][key];
+  return (MM_CHECK_V[key] || {})[val] || [];
+}
 function mmCkWord_(key, val, k) { return mmCkCard_(key, val, k)[0] || ''; }
 function mmSignsShown_(k, key) { return key === 'ego' ? mmEgoSignsShown_(k) : (MM_SIGNS[key] || []).map((x, i) => i); }
 function mmEgoSignsShown_(k) { const conf = k.door === 'conf' || k.door2 === 'conf'; return MM_EGO_SIGNS.map((x, i) => i).filter(i => !(conf && i === 0)); }   // on a conflict the headline already asks sign 0
@@ -7675,7 +7700,8 @@ function mmStops_(k) {
   });
   deskRows(k.door, '', 'desk');
   if (k.door2 && MM_DESK[k.door2]) deskRows(k.door2, k.door2 + '_', 'desk2');
-  MM_CHECK.filter(C => !C.doors || C.doors.includes(k.door) || (k.door2 && C.doors.includes(k.door2))).forEach(C => out.push({ id: 'check:' + C.k, sec:'check', kind:'check', ck: C.k, title: C.lbl, q: C.q, signs: !!C.signs }));
+  MM_CHECK.filter(C => !C.doors || C.doors.includes(k.door) || (k.door2 && C.doors.includes(k.door2))).forEach(C => { const d = mmCkDoor_(k, C.k);
+    out.push({ id: 'check:' + C.k, sec:'check', kind:'check', ck: C.k, title: ((MM_CK_LBL[d] || {})[C.k]) || C.lbl, q: C.q, signs: !!C.signs && !((MM_CK_NOSIGNS[d] || []).includes(C.k)) }); });
   out.push({ id:'then:next', sec:'then', kind:'next', title:'The next step' });
   return out;
 }
@@ -7715,8 +7741,9 @@ function mmSummary_(k, st) {
   return '';
 }
 function mmCheckQ_(k, st) {
-  const isConf = k.door === 'conf' || k.door2 === 'conf'; const pn = mmPillarName_(k.pillar_id);
-  return st.ck === 'values' && pn ? 'Does my response honour the ' + pn + ' pillar?' : (st.ck === 'ego' && isConf ? 'Am I trying to be right, or to understand?' : st.q);
+  const pn = mmPillarName_(k.pillar_id), r = mmCkRow_(k, st.ck);
+  if (r) return r.q.replace('{pillar}', pn ? 'the ' + pn + ' pillar' : 'what matters to me');   // S2 v3: the door's own question
+  return st.ck === 'values' && pn ? 'Does my response honour the ' + pn + ' pillar?' : st.q;
 }
 // the headline of the open stop: the question itself, as a full sentence
 function mmHeadline_(k, st) {
