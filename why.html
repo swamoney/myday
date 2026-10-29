@@ -480,6 +480,9 @@
   .mm-eye { font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--pgs,#2f5187); }
   .mm-stop.ck .mm-eye { color:#4a4470; }
   /* T3 (30 Oct 2026): door tabs on a two-door check - the doors' own colours, the speaking door filled */
+  /* M2 (30 Oct 2026): a two-door knot heads each desk with its door's pill */
+  .mm-dpill { display:inline-block; font-family:var(--mono); font-size:0.6rem; font-weight:600; letter-spacing:0.12em; color:#fff; background:var(--a); border-radius:5px; padding:3px 8px; vertical-align:2px; margin-right:6px; }
+  .mm-dsub { font-family:var(--serif); font-weight:600; }
   .mm-asw { display:flex; align-items:center; gap:6px; margin:8px 0 -2px; flex-wrap:wrap; }
   .mm-asw .k { font-family:var(--mono); font-size:0.52rem; letter-spacing:0.12em; color:#8a91a0; }
   .mm-asw button { font-family:var(--mono); font-size:0.55rem; font-weight:600; letter-spacing:0.1em; border-radius:6px; padding:3px 8px; border:1px solid var(--a); color:var(--a); background:#fff; cursor:pointer; }
@@ -7362,6 +7365,14 @@ let mmNudgeUntil_ = '';   // 'Not this month' - kept in user_prefs (mm_nudge_unt
 // so a good choice that met bad luck is never filed as a bad choice. One card at a time, oldest first.
 const MM_LOOK_Q = { choice: ['Was it a good choice, with what I knew then?', [['yes','Yes'],['mixed','Mixed'],['no','No']]],
                     turn:   ['How did it turn out?',                         [['well','Well'],['mixed','Mixed'],['badly','Badly']]] };
+// M2 (30 Oct 2026): one colour pair per door, shared by the page head and a second desk's own stops
+const MM_HUE = { 'mm-A':['#2f5187','#f2f6fd'], 'mm-I':['#9c3f4a','#fdf3f4'], 'mm-V':['#6a4c93','#f6f3fa'], 'mm-O':['#a06a2c','#fdf8f0'], 'mm-C':['#2E6640','#f2f8f4'], 'mm-F':['#b5533a','#fdf4f0'], 'mm-L':['#3a3f4b','#f4f5f7'], 'mm-D':['#2f6b70','#eef6f6'] };
+// a two-door knot names both desks by their door's pill; one door keeps "The desk"
+function mmSecHtml_(k, sec, plain) {
+  if ((sec === 'desk' || sec === 'desk2') && k.door2) { const D = MM_DOORS[sec === 'desk' ? k.door : k.door2]; if (D) return '<span class="mm-dpill ' + D.cls + '">' + escHtml(D.lbl.toUpperCase()) + '</span><span class="mm-dsub">desk</span>'; }
+  return escHtml(plain);
+}
+function mmSty_(k, st) { if (st.sec !== 'desk2' || !k.door2) return ''; const H = MM_HUE[(MM_DOORS[k.door2] || {}).cls]; return H ? ' style="--pgs:' + H[0] + ';--pgt:' + H[1] + '"' : ''; }
 function mmIsDil_(k) { return k.door === 'dil' || k.door2 === 'dil'; }
 function mmLookDue_() {
   const mon = istToday().slice(0, 7);
@@ -7586,7 +7597,7 @@ function closeMmPage_() { el('mmPage').classList.remove('on'); mmPageId_ = null;
 function renderMmPage_() {
   const k = mmById_(mmPageId_); if (!k) { closeMmPage_(); return; }
   const D = MM_DOORS[k.door] || MM_DOORS.anx, pg = el('mmPage');
-  const HUE = { 'mm-A':['#2f5187','#f2f6fd'], 'mm-I':['#9c3f4a','#fdf3f4'], 'mm-V':['#6a4c93','#f6f3fa'], 'mm-O':['#a06a2c','#fdf8f0'], 'mm-C':['#2E6640','#f2f8f4'], 'mm-F':['#b5533a','#fdf4f0'], 'mm-L':['#3a3f4b','#f4f5f7'], 'mm-D':['#2f6b70','#eef6f6'] }[D.cls] || ['#4a4470','#f4f3f8'];
+  const HUE = MM_HUE[D.cls] || ['#4a4470','#f4f3f8'];
   pg.style.setProperty('--pgs', HUE[0]); pg.style.setProperty('--pgt', HUE[1]); pg.style.setProperty('--pgi', '#28324B');
   const pn = mmPillarName_(k.pillar_id);
   const settled = k.status === 'settled';
@@ -7833,16 +7844,17 @@ function renderMmFlow_(k) {
   pg.classList.toggle('mm-page-read', at == null);
   const doneN = stops.filter(st => mmAnswered_(k, st)).length;
   const secName = { desk: 'The desk', desk2: (MM_DOORS[k.door2] || {}).lbl ? MM_DOORS[k.door2].lbl + ' \u00B7 the second door' : 'The second door', check: 'The check', then: 'Then' };
-  const secCaps = st => st.sec === 'check' ? 'THE CHECK \u00B7 ' + st.title.toUpperCase() : secName[st.sec].toUpperCase();
+  const secCaps = st => st.sec === 'check' ? 'THE CHECK \u00B7 ' + st.title.toUpperCase()
+    : (k.door2 && (st.sec === 'desk' || st.sec === 'desk2')) ? ((MM_DOORS[st.sec === 'desk' ? k.door : k.door2] || {}).lbl || '').toUpperCase() + ' DESK' : secName[st.sec].toUpperCase();
   // progress: one dash per stop, the answered ones in the door's colour, the open one full
-  el('mmProg').innerHTML = stops.map(st => '<i class="' + (st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : '')) + '"></i>').join('')
+  el('mmProg').innerHTML = stops.map(st => '<i class="' + (st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : '')) + '"' + mmSty_(k, st) + '></i>').join('')
     + '<span>' + (at == null ? doneN + ' OF ' + stops.length + ' ANSWERED \u00B7 THE WHOLE PATH' : (idx + 1) + ' OF ' + stops.length + ' \u00B7 ' + secCaps(stops[idx])) + '</span>';
   // the map
   let map = '', lastSec = '';
   stops.forEach(st => {
-    if (st.sec !== lastSec) { map += '<div class="mm-mh">' + secName[st.sec] + '</div>'; lastSec = st.sec; }
+    if (st.sec !== lastSec) { map += '<div class="mm-mh">' + mmSecHtml_(k, st.sec, secName[st.sec]) + '</div>'; lastSec = st.sec; }
     const state = st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : 'later');
-    map += '<button type="button" class="' + state + (st.sec === 'check' ? ' ck' : '') + '" data-mmgo="' + st.id + '"><i></i>' + escHtml(st.title) + '</button>';
+    map += '<button type="button" class="' + state + (st.sec === 'check' ? ' ck' : '') + '" data-mmgo="' + st.id + '"' + mmSty_(k, st) + '><i></i>' + escHtml(st.title) + '</button>';
   });
   el('mmMap').innerHTML = map;
   // the stops
@@ -7850,7 +7862,7 @@ function renderMmFlow_(k) {
   const rec = at == null;
   stops.forEach(st => {
     n++;
-    if (rec && st.sec !== lastS) { html += '<div class="mm-lsec">' + escHtml(secName[st.sec]) + '</div>'; lastS = st.sec; }
+    if (rec && st.sec !== lastS) { html += '<div class="mm-lsec">' + mmSecHtml_(k, st.sec, secName[st.sec]) + '</div>'; lastS = st.sec; }
     if (rec && st.sec === 'check') {
       // R2: the record folds the three checks into one card, a row each - the answer in hand, the signs beside it
       if (st.ck !== MM_CHECK[0].k) return;
@@ -7866,14 +7878,14 @@ function renderMmFlow_(k) {
     const ck = st.sec === 'check' ? ' ck' : '';
     const title = st.sec === 'check' ? st.title : st.title;
     if (state === 'now') {
-      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + (st.sec === 'desk' || st.sec === 'desk2' ? ' \u00B7 ' + escHtml(st.title.toUpperCase()) : '') + ' \u00B7 ' + n + ' OF ' + stops.length + '</div>' + mmCkTabs_(k, st) + '<div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
+      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + (st.sec === 'desk' || st.sec === 'desk2' ? ' \u00B7 ' + escHtml(st.title.toUpperCase()) : '') + ' \u00B7 ' + n + ' OF ' + stops.length + '</div>' + mmCkTabs_(k, st) + '<div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
         + '<div class="mm-sbtn">' + (idx > 0 ? '<button class="ghost" type="button" data-mmnav="back">\u2190 Back</button>' : '')
         + '<button class="go" type="button" data-mmnav="next">' + (idx === stops.length - 1 ? 'Done \u2713' : 'Next \u2192') + '</button>'
         + (idx < stops.length - 1 ? '<button class="skip" type="button" data-mmnav="skip">skip for now</button>' : '') + '</div></div></div>';
     } else if (state === 'done') {
-      html += '<div class="mm-stop done' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">\u2713</div><div class="mm-sc"><div class="mm-st">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div><div class="mm-sa" data-mmgo="' + st.id + '">' + mmSummary_(k, st) + '</div></div></div>';
+      html += '<div class="mm-stop done' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">\u2713</div><div class="mm-sc"><div class="mm-st">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div><div class="mm-sa" data-mmgo="' + st.id + '">' + mmSummary_(k, st) + '</div></div></div>';
     } else {
-      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div>'
+      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div>'
         + (rec ? '<div class="mm-sa un" data-mmgo="' + st.id + '">left unwritten</div>' : '') + '</div></div>';
     }
   });
