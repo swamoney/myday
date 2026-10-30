@@ -666,6 +666,13 @@
   #mmPick .mm-prow.on .mm-ptk { background:var(--a); border-color:var(--a); }
   #mmPick .mm-prow.wide { border-style:dashed; border-left-style:solid; border-color:#c9c6b6; border-left-color:var(--a); margin:4px 0 0; }
   #mmKnotModal .modal { max-width:580px; width:100%; }
+  /* X2: the saved state, in the same pop-up */
+  .mm-ksaved { text-align:center; padding:14px 6px 6px; }
+  .mm-kstick { width:52px; height:52px; border-radius:50%; background:#2f6146; color:#fff; font-size:1.5rem; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .mm-kst { font-family:var(--serif); font-size:1.625rem; font-weight:600; color:#1d2536; }
+  .mm-ksl { font-family:var(--serif); font-style:italic; font-size:1rem; color:#3a445c; margin-top:6px; overflow-wrap:anywhere; }
+  .mm-ksw { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#5A6478; margin-top:4px; }
+  .mm-ksb { display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
   .mm-ksub { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#5A6478; margin:2px 0 16px; }
   .mm-klh { font-weight:400; color:#8B97AC; }
   .mm-kfold { display:flex; gap:18px; flex-wrap:wrap; margin:2px 0 6px; }
@@ -3199,6 +3206,7 @@
 
 <div class="modal-overlay hidden" id="mmKnotModal">
   <div class="modal">
+    <div id="mmKForm">
     <div class="modal-title" id="mmKnotTitle">Something's on my mind</div>
     <div class="mm-ksub" id="mmKnotSub">Sixty seconds. The rest can wait for morning.</div>
     <!-- K1 (31 Oct 2026): the line first, then the doors as slim rows in two columns; the step and the pillar fold behind a + -->
@@ -3216,22 +3224,20 @@
       <button class="btn-primary" id="mmKnotSave" type="button">Open the knot</button>
     </div>
     <div class="mm-sos in" id="mmSosPick"></div>
+    </div>
+    <!-- X2 (31 Oct 2026): after Open the knot, the same pop-up turns into "Saved" in place - no second pop-up on top -->
+    <div class="mm-ksaved hidden" id="mmKSaved">
+      <div class="mm-kstick">&#10003;</div>
+      <div class="mm-kst">Saved. It&rsquo;s written down.</div>
+      <div class="mm-ksl" id="mmKSavedLine"></div>
+      <div class="mm-ksw">You can stop here. The desk will wait for morning.</div>
+      <div class="mm-ksb"><button class="btn-ghost" id="mmSavedStop" type="button">Stop here</button><button class="btn-primary" id="mmSavedGo" type="button">Start the desk &rarr;</button></div>
+    </div>
   </div>
 </div>
 
 <!-- P1 + F3 (31 Oct 2026): a door opens as a pop-up over the dimmed page -->
 <div class="modal-overlay hidden" id="mmDoorModal"><div class="mm-dpop" id="mmDoorPop" role="dialog" aria-modal="true"></div></div>
-<!-- AU-E (30 Oct 2026): a knot opened at night asks before it opens the desk -->
-<div class="modal-overlay hidden" id="mmSavedModal">
-  <div class="modal" style="max-width:380px">
-    <div class="modal-title">Saved. It&rsquo;s written down.</div>
-    <div class="modal-sub">You can stop here &mdash; the desk will wait for morning.</div>
-    <div class="modal-actions" style="margin-top:16px">
-      <button class="btn-ghost" id="mmSavedStop" type="button">Stop here</button>
-      <button class="btn-primary" id="mmSavedGo" type="button">Start the desk &rarr;</button>
-    </div>
-  </div>
-</div>
 <div class="modal-overlay hidden" id="mmSettleModal">
   <div class="modal">
     <div class="modal-title">Settle this knot</div>
@@ -7837,6 +7843,7 @@ function openMmKnot_(id) {
   el('mmKnotSave').textContent = k ? 'Save' : 'Open the knot';
   el('mmKnotDel').classList.toggle('hidden', !k);
   const sp = el('mmSosPick'); if (sp) sp.innerHTML = mmSosHtml_();
+  el('mmKForm').classList.remove('hidden'); el('mmKSaved').classList.add('hidden');
   el('mmKnotModal').classList.remove('hidden');
   // AU-E: a new knot starts at the doors - focusing the line would raise the phone keyboard over them
   if (k) setTimeout(() => { try { el('fMmTitle').focus(); } catch (e) {} }, 30);
@@ -7864,7 +7871,7 @@ async function saveMmKnot_() {
       closeMmKnot_(); await loadMind();
       const made = data && data[0];
       // AU-E: "the desk can wait for morning" - so ask, rather than opening the desk at once
-      if (made) { mmSavedId_ = made.id; el('mmSavedModal').classList.remove('hidden'); } else toast('Saved');
+      if (made) { mmSavedId_ = made.id; el('mmKSavedLine').textContent = made.title || title; el('mmKForm').classList.add('hidden'); el('mmKSaved').classList.remove('hidden'); el('mmKnotModal').classList.remove('hidden'); } else toast('Saved');
     }
   } catch (e) { console.error(e); toast('Could not save'); }
 }
@@ -8585,8 +8592,8 @@ function mmKFold_(which, open) {
 }
 el('mmFoldNext').addEventListener('click', () => { mmKFold_('next', true); try { el('fMmNext').focus(); } catch (x) {} });
 el('mmFoldPillar').addEventListener('click', () => { mmKFold_('pillar', true); });
-el('mmSavedStop').addEventListener('click', () => { el('mmSavedModal').classList.add('hidden'); mmSavedId_ = null; toast('Kept. Sleep on it'); });
-el('mmSavedGo').addEventListener('click', () => { el('mmSavedModal').classList.add('hidden'); const id = mmSavedId_; mmSavedId_ = null; if (id != null) openMmPage(id); });
+el('mmSavedStop').addEventListener('click', () => { closeMmKnot_(); mmSavedId_ = null; toast('Kept. Sleep on it'); });
+el('mmSavedGo').addEventListener('click', () => { closeMmKnot_(); const id = mmSavedId_; mmSavedId_ = null; if (id != null) openMmPage(id); });
 ['mmSos', 'mmSosPick'].forEach(id => { const x = el(id); if (x) x.addEventListener('click', e => { if (e.target.closest('[data-mmperson]')) mmEditPerson_(); }); });
 el('mmBand').addEventListener('click', () => { if (mmPageId_ != null) mmGo_('then:next'); });
 el('mmEnd').addEventListener('click', e => { const dl = e.target.closest('[data-mmdec]'); if (dl) mmOpenDec_(dl.dataset.mmdec); });
