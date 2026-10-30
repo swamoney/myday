@@ -270,7 +270,7 @@
   .btn-danger:hover { background:#fbf1f0; border-color:#a8443e; }
   .modal-err { font-family:var(--mono); font-size:0.6875rem; color:#8A1F1A; padding:6px 10px; background:#FCE9E2; border-radius:6px; margin-bottom:12px; }
 
-  .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:#1e2740; color:#fff; padding:11px 20px; border-radius:10px; font-size:0.8125rem; opacity:0; pointer-events:none; transition:all .25s; z-index:400; }
+  .toast { position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:#1e2740; color:#fff; padding:11px 20px; border-radius:10px; font-size:0.8125rem; opacity:0; pointer-events:none; transition:all .25s; z-index:1000; }   /* 31 Oct 2026: above the pop-ups (900), so a message inside a pop-up is seen */
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
   /* ===== My Mantra + My Circle ===== */
   .why-seg { display:inline-flex; flex-wrap:wrap; gap:4px; background:#e7ebf1; padding:4px; border-radius:11px; margin:0 38px 18px; max-width:calc(100% - 76px); }
@@ -666,6 +666,8 @@
   #mmPick .mm-prow.on .mm-ptk { background:var(--a); border-color:var(--a); }
   #mmPick .mm-prow.wide { border-style:dashed; border-left-style:solid; border-color:#c9c6b6; border-left-color:var(--a); margin:4px 0 0; }
   #mmKnotModal .modal { max-width:580px; width:100%; }
+  .mm-kneed { font-family:var(--serif); font-style:italic; font-size:0.875rem; color:#b0583f; margin-top:6px; }
+  #fMmTitle.mm-kwarn, #mmPick.mm-kwarn { box-shadow:0 0 0 2px #e0a08c; border-radius:10px; }
   /* X2: the saved state, in the same pop-up */
   .mm-ksaved { text-align:center; padding:14px 6px 6px; }
   .mm-kstick { width:52px; height:52px; border-radius:50%; background:#2f6146; color:#fff; font-size:1.5rem; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
@@ -7826,7 +7828,12 @@ function mmPaintPick_() {
     qk.innerHTML = Q ? Q.map(t => '<button type="button" data-mmquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') : '';
   }
 }
+// 31 Oct 2026: if opening the form ever fails on a device, say why on screen instead of doing nothing
 function openMmKnot_(id) {
+  try { mmOpenKnotForm_(id); }
+  catch (e) { console.error('open knot', e); try { el('mmKnotModal').classList.remove('hidden'); el('mmKForm').classList.remove('hidden'); el('mmKSaved').classList.add('hidden'); } catch (x) {} toast('Could not open the form: ' + ((e && e.message) || e)); }
+}
+function mmOpenKnotForm_(id) {
   const k = id ? mmById_(id) : null;
   mmKnotEditing_ = k ? k.id : null;
   mmPickDoors_ = k ? [k.door].concat(k.door2 ? [k.door2] : []) : [];
@@ -7844,15 +7851,24 @@ function openMmKnot_(id) {
   el('mmKnotDel').classList.toggle('hidden', !k);
   const sp = el('mmSosPick'); if (sp) sp.innerHTML = mmSosHtml_();
   el('mmKForm').classList.remove('hidden'); el('mmKSaved').classList.add('hidden');
+  document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
   el('mmKnotModal').classList.remove('hidden');
   // AU-E: a new knot starts at the doors - focusing the line would raise the phone keyboard over them
   if (k) setTimeout(() => { try { el('fMmTitle').focus(); } catch (e) {} }, 30);
 }
+function mmKNeed_(id, msg) {
+  document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
+  const f = el(id); if (!f) { toast(msg); return; }
+  const n = document.createElement('div'); n.className = 'mm-kneed'; n.textContent = msg; f.insertAdjacentElement('afterend', n);
+  f.classList.add('mm-kwarn'); setTimeout(() => f.classList.remove('mm-kwarn'), 1600);
+  try { f.scrollIntoView({ behavior:'smooth', block:'center' }); if (id === 'fMmTitle') f.focus(); } catch (x) {}
+}
 function closeMmKnot_() { el('mmKnotModal').classList.add('hidden'); mmKnotEditing_ = null; }
 async function saveMmKnot_() {
   const title = el('fMmTitle').value.trim();
-  if (!title) { toast('Say it in a line first'); return; }
-  if (!mmPickDoors_.length) { toast('Which door? Pick one'); return; }
+  // 31 Oct 2026: say what is missing right where it is missing, not only in a toast
+  if (!title) { mmKNeed_('fMmTitle', 'Say it in a line first \u2014 a few words is enough.'); return; }
+  if (!mmPickDoors_.length) { mmKNeed_('mmPick', 'Which is it? Pick the one closest.'); return; }
   const next = el('fMmNext').value.trim();
   const rec = { user_id: userId, door: mmPickDoors_[0], door2: mmPickDoors_[1] || null, title,
     pillar_id: el('fMmPillar').value || null, next_step: next || null, next_by: next ? (el('fMmBy').value || null) : null,
@@ -8523,9 +8539,11 @@ el('mmPick').addEventListener('click', e => {
   const d = b.dataset.mmpick;
   if (mmPickDoors_.includes(d)) mmPickDoors_ = mmPickDoors_.filter(x => x !== d);
   else { mmPickDoors_.push(d); if (mmPickDoors_.length > 2) mmPickDoors_.shift(); }
+  document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
   mmPaintPick_();
 });
 el('mmKnotSave').addEventListener('click', saveMmKnot_);
+el('fMmTitle').addEventListener('input', () => { document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove()); });
 el('mmKnotCancel').addEventListener('click', closeMmKnot_);
 el('mmPageBack').addEventListener('click', closeMmPage_);
 el('mmPageHead').addEventListener('click', () => { if (mmPageId_ != null) openMmKnot_(mmPageId_); });
