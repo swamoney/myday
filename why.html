@@ -668,6 +668,30 @@
   #mmKnotModal .modal { max-width:580px; width:100%; }
   .mm-kneed { font-family:var(--serif); font-style:italic; font-size:0.875rem; color:#b0583f; margin-top:6px; }
   #fMmTitle.mm-kwarn, #mmPick.mm-kwarn { box-shadow:0 0 0 2px #e0a08c; border-radius:10px; }
+  /* T3 + B3 (31 Oct 2026): settling in two steps */
+  #mmSettleModal .modal { max-width:520px; width:100%; }
+  .mm-sstep { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.14em; color:#8B97AC; margin-bottom:4px; }
+  .mm-ssub { font-family:var(--serif); font-style:italic; font-size:1rem; color:#3a445c; margin:4px 0 14px; overflow-wrap:anywhere; }
+  #mmOuts.mm-outs { display:block; }
+  #mmOuts .mm-orow { display:flex; align-items:baseline; gap:8px; width:100%; margin:0 0 6px; padding:10px 12px; background:#fff; border:1px solid #e6eaf1; border-radius:10px; text-align:left; cursor:pointer; font-family:var(--serif); text-transform:none; letter-spacing:0; color:#1d2536; }
+  #mmOuts .mm-orow b { font-weight:600; font-size:0.9375rem; white-space:nowrap; }
+  #mmOuts .mm-orow small { flex:1; min-width:0; font-style:italic; font-size:0.8125rem; color:#8B97AC; }
+  #mmOuts .mm-orow .mm-ptk { align-self:center; }
+  #mmOuts .mm-orow:hover { background:#f8faf9; }
+  #mmOuts .mm-orow.on { background:#f0f7f3; box-shadow:0 0 0 2px #2f6146 inset; }
+  #mmOuts .mm-orow.on .mm-ptk { background:#2f6146; border-color:#2f6146; }
+  .mm-spicked { display:inline-flex; gap:6px; align-items:center; margin:8px 0 2px; background:#f0f7f3; border:1px solid #bfd8c9; border-radius:999px; padding:5px 12px; font-family:var(--serif); font-size:0.875rem; color:#2f6146; cursor:pointer; }
+  .mm-spicked span { color:#8B97AC; }
+  .mm-sh3 { font-family:var(--serif); font-weight:600; font-size:1.1875rem; color:#1d2536; margin:22px 0 2px; border-bottom:2px solid #28324B; padding-bottom:3px; }
+  .mm-sh3s { font-family:var(--serif); font-style:italic; font-size:0.8125rem; color:#8B97AC; margin:4px 0 9px; }
+  #mmSettleModal #mmSettleHelped button { font-family:var(--serif); font-size:0.875rem; letter-spacing:0; text-transform:none; }
+  #mmSettleModal #mmSettleHelped button.on { background:#fff6d6; border-color:#ecd27e; color:#1d2536; }
+  .mm-shand { width:100%; font-family:var(--hand); font-size:1.375rem; color:#22336b; border:1px solid #dfe5ee; border-radius:10px; padding:8px 12px; background:#fbfcfe; box-sizing:border-box; }
+  .mm-shand:focus { outline:none; border-color:#9fb0cc; background:#fff; }
+  .mm-shand::placeholder { font-family:var(--serif); font-size:0.9375rem; color:#aab3c2; }
+  .mm-sdate { margin-top:16px; font-family:var(--mono); font-size:0.5938rem; letter-spacing:0.1em; color:#5A6478; }
+  .mm-sdate button { background:none; border:none; padding:0 0 1px; margin-left:6px; font:inherit; color:#5A6478; border-bottom:1px dashed #b8c0cd; cursor:pointer; }
+  #mmSettleModal .mm-sgo { background:#2f6146; border-color:#2f6146; }
   /* X2: the saved state, in the same pop-up */
   .mm-ksaved { text-align:center; padding:14px 6px 6px; }
   .mm-kstick { width:52px; height:52px; border-radius:50%; background:#2f6146; color:#fff; font-size:1.5rem; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
@@ -3241,20 +3265,30 @@
 <!-- P1 + F3 (31 Oct 2026): a door opens as a pop-up over the dimmed page -->
 <div class="modal-overlay hidden" id="mmDoorModal"><div class="mm-dpop" id="mmDoorPop" role="dialog" aria-modal="true"></div></div>
 <div class="modal-overlay hidden" id="mmSettleModal">
-  <div class="modal">
-    <div class="modal-title">Settle this knot</div>
-    <div class="modal-sub" id="mmSettleSub"></div>
-    <div class="fld"><label>How did it end?</label><div class="mm-outs" id="mmOuts"></div></div>
-    <div class="fld"><label>What helped</label><div class="mm-helped" id="mmSettleHelped" style="margin-top:0"></div></div>
-    <div class="fld"><label>In a line, for the record (optional)</label><input id="fMmLine" placeholder="what actually happened"></div>
-    <div class="fld"><label>What I&rsquo;d tell myself next time (optional)</label><input id="fMmLesson" placeholder="the one thing worth remembering"><div class="fld-hint" style="margin-top:4px">It comes back the next time you open a knot at this door.</div></div>
-    <div class="fld"><label>Settled on</label><input type="date" id="fMmSettledOn"></div>
-    <div class="fld-hint mm-dechint" id="mmDecHint" style="display:none"><b>Became a decision</b> opens it in My Dreams &amp; Decisions as a decision on the desk, with your checklist ready and what you wrote on the desk as its story. This knot settles, and the two pages link to each other.</div>
-    <div class="fld-hint" id="mmPlanHint" style="display:none">"Became a plan" writes into My Priority: a Q2 task with the next step as its note &mdash; or, on an Overload knot, a Q3 task per DELEGATE line and a Q4 task per DEFER line.</div>
-    <div class="modal-actions">
-      <span style="flex:1"></span>
-      <button class="btn-ghost" id="mmSettleCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="mmSettleSave" type="button">Settle</button>
+  <div class="modal mm-setm">
+    <!-- T3 + B3 (31 Oct 2026): settling in two steps - how it ended, then the record, under big serif headings -->
+    <div id="mmSetStep1">
+      <div class="mm-sstep">1 OF 2</div>
+      <div class="modal-title">How did it end?</div>
+      <div class="mm-ssub" id="mmSettleSub"></div>
+      <div class="mm-outs" id="mmOuts"></div>
+      <div class="fld-hint mm-dechint" id="mmDecHint" style="display:none"><b>Became a decision</b> opens it in My Dreams &amp; Decisions as a decision on the desk, with your checklist ready and what you wrote on the desk as its story. This knot settles, and the two pages link to each other.</div>
+      <div class="fld-hint" id="mmPlanHint" style="display:none">"Became a plan" writes into My Priority: a Q2 task with the next step as its note &mdash; or, on an Overload knot, a Q3 task per DELEGATE line and a Q4 task per DEFER line.</div>
+      <div class="modal-actions"><span style="flex:1"></span><button class="btn-ghost" id="mmSettleCancel" type="button">Cancel</button><button class="btn-primary" id="mmSetNext" type="button">Next &rarr;</button></div>
+    </div>
+    <div id="mmSetStep2" class="hidden">
+      <div class="mm-sstep">2 OF 2</div>
+      <div class="modal-title">For the record</div>
+      <button type="button" class="mm-spicked" id="mmSetPicked"></button>
+      <div class="mm-sh3">What helped</div><div class="mm-sh3s">Anything that eased it, even a little.</div>
+      <div class="mm-helped" id="mmSettleHelped" style="margin-top:0"></div>
+      <div class="mm-sh3">In a line, for the record</div><div class="mm-sh3s">What actually happened.</div>
+      <input id="fMmLine" class="mm-shand" placeholder="what actually happened">
+      <div class="mm-sh3">What I&rsquo;d tell myself next time</div><div class="mm-sh3s">It comes back the next time you open a knot at this door.</div>
+      <input id="fMmLesson" class="mm-shand" placeholder="the one thing worth remembering">
+      <div class="mm-sdate" id="mmSetDateLine"><span id="mmSetDateTxt"></span> <button type="button" id="mmSetDateChg">CHANGE</button></div>
+      <div class="fld hidden" id="mmSetDateWrap" style="margin-top:8px"><label>Settled on</label><input type="date" id="fMmSettledOn"></div>
+      <div class="modal-actions"><button class="btn-ghost" id="mmSetBack" type="button">&larr; Back</button><span style="flex:1"></span><button class="btn-primary mm-sgo" id="mmSettleSave" type="button">&#10003; Settle</button></div>
     </div>
   </div>
 </div>
@@ -7452,6 +7486,10 @@ const MM_OUTS = {
   plan:     { lbl:'Became a plan',  cls:'plan' },
   decision: { lbl:'Became a decision', cls:'decision' }   // D2 (27 Oct 2026): the dilemma fold
 };
+// T3 (31 Oct 2026): each ending's plain meaning, shown beside it when you settle
+const MM_OUT_MEAN = { never:'the fear didn\u2019t come true', happened:'it came true, and I got through', resolved:'it\u2019s sorted', faded:'it stopped mattering', accepted:'I\u2019ve made peace with it',
+  recovered:'I\u2019m back on my feet', rebuilt:'I built something new', chose:'I picked one', third:'I found an option I hadn\u2019t seen', talked:'we talked it through', line:'I drew a line',
+  plan:'a task in My Priority', decision:'a decision on my desk' };
 // E2: each door shows only the endings that fit it.
 const MM_OUTS_BY_DOOR = {
   anx: ['never','happened','resolved','faded','accepted','plan','decision'], gen: ['resolved','faded','accepted','plan','decision'], ins: ['resolved','faded','accepted','plan','decision'],
@@ -8336,13 +8374,15 @@ function openMmSettle_() {
   mmSettleOut_ = null; mmSettleHelped_ = (Array.isArray(k.helped) ? k.helped : []).slice();
   el('mmSettleSub').textContent = k.title || '';
   el('fMmLine').value = ''; el('fMmSettledOn').value = istToday();
+  mmSetStep_(1); el('mmSetDateWrap').classList.add('hidden'); el('mmSetDateLine').classList.remove('hidden');
   el('fMmLesson').value = (k.desk && (k.desk.lesson || k.desk.keep)) || '';
   mmPaintSettle_();
   el('mmSettleModal').classList.remove('hidden');
 }
 function mmPaintSettle_() {
   const kk = mmById_(mmPageId_);
-  el('mmOuts').innerHTML = (kk ? mmOutsFor_(kk) : Object.keys(MM_OUTS)).map(o => '<button type="button" data-mmout="' + o + '" class="' + (mmSettleOut_ === o ? 'on' : '') + '">' + MM_OUTS[o].lbl + '</button>').join('');
+  el('mmOuts').innerHTML = (kk ? mmOutsFor_(kk) : Object.keys(MM_OUTS)).map(o => '<button type="button" data-mmout="' + o + '" class="mm-orow' + (mmSettleOut_ === o ? ' on' : '') + '"><b>' + MM_OUTS[o].lbl + '</b><small>' + escHtml(MM_OUT_MEAN[o] || '') + '</small><i class="mm-ptk">' + (mmSettleOut_ === o ? '\u2713' : '') + '</i></button>').join('');
+  document.querySelectorAll('#mmSetStep1 .mm-kneed').forEach(x => x.remove());
   el('mmSettleHelped').innerHTML = mmHelpWords_().map(h => '<button type="button" data-mmshelp="' + escHtml(h) + '" class="' + (mmSettleHelped_.includes(h) ? 'on' : '') + '">' + escHtml(h) + '</button>').join('')
     + '<button type="button" class="add" data-mmshelpadd="1">+ add</button>';
   el('mmPlanHint').style.display = mmSettleOut_ === 'plan' ? '' : 'none';
@@ -8350,7 +8390,7 @@ function mmPaintSettle_() {
 }
 async function saveMmSettle_() {
   const k = mmById_(mmPageId_); if (!k) return;
-  if (!mmSettleOut_) { toast('How did it end?'); return; }
+  if (!mmSettleOut_) { mmSetStep_(1); mmSetNeed_(); return; }
   const lesson = el('fMmLesson').value.trim(), desk = Object.assign({}, k.desk || {});
   if (lesson) desk.lesson = lesson; else delete desk.lesson;
   delete desk.carry;   // a knot I was living with can still settle
@@ -8636,6 +8676,21 @@ el('mmSettleHelped').addEventListener('click', e => {
   mmPaintSettle_();
 });
 el('mmSettleSave').addEventListener('click', saveMmSettle_);
+// T3: the two steps of settling; step 2 shows the chosen ending as a chip that goes back to step 1
+function mmSetStep_(n) {
+  el('mmSetStep1').classList.toggle('hidden', n !== 1); el('mmSetStep2').classList.toggle('hidden', n !== 2);
+  if (n === 2) { el('mmSetPicked').innerHTML = '\u2713 ' + escHtml((MM_OUTS[mmSettleOut_] || {}).lbl || '') + ' <span>\u00B7 change</span>'; mmSetDate_(); }
+}
+function mmSetDate_() { const v = el('fMmSettledOn').value || istToday(); el('mmSetDateTxt').textContent = (v === istToday() ? 'SETTLED TODAY \u00B7 ' : 'SETTLED \u00B7 ') + mmFmt_(v).toUpperCase(); }
+function mmSetNeed_() {
+  document.querySelectorAll('#mmSetStep1 .mm-kneed').forEach(x => x.remove());
+  const n = document.createElement('div'); n.className = 'mm-kneed'; n.textContent = 'Pick how it ended first.'; el('mmOuts').insertAdjacentElement('afterend', n);
+}
+el('mmSetNext').addEventListener('click', () => { if (!mmSettleOut_) { mmSetNeed_(); return; } mmSetStep_(2); });
+el('mmSetBack').addEventListener('click', () => mmSetStep_(1));
+el('mmSetPicked').addEventListener('click', () => mmSetStep_(1));
+el('mmSetDateChg').addEventListener('click', () => { el('mmSetDateWrap').classList.remove('hidden'); el('mmSetDateLine').classList.add('hidden'); try { el('fMmSettledOn').focus(); } catch (x) {} });
+el('fMmSettledOn').addEventListener('change', mmSetDate_);
 el('mmSettleCancel').addEventListener('click', () => el('mmSettleModal').classList.add('hidden'));
 
 // ============ MY EXPLORE LIST — places worth going, city by city ============
