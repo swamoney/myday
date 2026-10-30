@@ -654,6 +654,24 @@
   /* G: living with it */
   .mm-js.on.carry { background:#5c5a4e; }
   .mm-pick [data-mmpick="gen"] { grid-column:1 / -1; }
+  /* K1 (31 Oct 2026): the door picker as slim rows, two columns */
+  #mmPick.mm-pick { display:block; }
+  .mm-pcols { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .mm-pch { font-family:var(--serif); font-style:italic; font-weight:600; font-size:0.9375rem; color:#28324B; border-bottom:2px solid #28324B; padding-bottom:3px; margin-bottom:7px; text-transform:none; letter-spacing:0; }
+  #mmPick .mm-prow { display:flex; align-items:center; gap:10px; width:100%; margin:0 0 6px; padding:9px 11px; background:#fff; border:1px solid #e6eaf1; border-left:4px solid var(--a); border-radius:10px; font-family:var(--serif); font-size:0.875rem; line-height:1.3; color:#1d2536; text-align:left; cursor:pointer; box-shadow:none; }
+  #mmPick .mm-prow span { flex:1; min-width:0; }
+  #mmPick .mm-prow:hover { background:var(--w); }
+  #mmPick .mm-prow.on { background:var(--w); box-shadow:0 0 0 2px var(--a) inset; }
+  .mm-ptk { width:18px; height:18px; border-radius:50%; border:1.5px solid #c9d0dc; flex-shrink:0; font-style:normal; font-size:0.6875rem; color:#fff; display:flex; align-items:center; justify-content:center; }
+  #mmPick .mm-prow.on .mm-ptk { background:var(--a); border-color:var(--a); }
+  #mmPick .mm-prow.wide { border-style:dashed; border-left-style:solid; border-color:#c9c6b6; border-left-color:var(--a); margin:4px 0 0; }
+  #mmKnotModal .modal { max-width:580px; width:100%; }
+  .mm-ksub { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#5A6478; margin:2px 0 16px; }
+  .mm-klh { font-weight:400; color:#8B97AC; }
+  .mm-kfold { display:flex; gap:18px; flex-wrap:wrap; margin:2px 0 6px; }
+  .mm-kfold button { background:none; border:none; padding:0; font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; text-transform:uppercase; color:#5A6478; border-bottom:1px dashed #b8c0cd; cursor:pointer; }
+  .mm-kfold button.hidden { display:none; }
+  @media (max-width:520px) { .mm-pcols { grid-template-columns:1fr; gap:6px; } .mm-pcols > div + div .mm-pch { margin-top:6px; } }
   .mm-carry .mm-tdot { background:linear-gradient(90deg, var(--a) 50%, #fff 50%); border:2px solid var(--a); }
   /* H: print one knot */
   .mm-prk { margin-top:14px; text-align:right; }
@@ -3182,21 +3200,22 @@
 <div class="modal-overlay hidden" id="mmKnotModal">
   <div class="modal">
     <div class="modal-title" id="mmKnotTitle">Something's on my mind</div>
-    <div class="modal-sub" id="mmKnotSub">sixty seconds now; the desk can wait for morning</div>
-    <div class="fld"><label>Which is it? (one; a second if it's both)</label><div class="mm-pick" id="mmPick"></div></div>
-    <div class="fld"><label>In a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div>
-    <div class="fld"><label>Pillar (optional)</label><select id="fMmPillar"><option value="">&mdash;</option></select></div>
-    <div class="fld"><label>Next step (optional tonight)</label><input id="fMmNext" placeholder="one thing, however small">
-      <div class="fld-hint">Empty, the knot opens as Open; with a step it is Working.</div>
+    <div class="mm-ksub" id="mmKnotSub">Sixty seconds. The rest can wait for morning.</div>
+    <!-- K1 (31 Oct 2026): the line first, then the doors as slim rows in two columns; the step and the pillar fold behind a + -->
+    <div class="fld"><label>Say it in a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div>
+    <div class="fld"><label>Which is it? <span class="mm-klh">&middot; a second if it&rsquo;s both</span></label><div class="mm-pick" id="mmPick"></div></div>
+    <div class="mm-kfold" id="mmKFold"><button type="button" id="mmFoldNext">+ A next step</button><button type="button" id="mmFoldPillar">+ A pillar</button></div>
+    <div class="fld hidden" id="fMmNextWrap"><label>Next step (optional tonight)</label><input id="fMmNext" placeholder="one thing, however small">
       <div class="mm-quick" id="mmQuick" style="display:none"></div></div>
-    <div class="fld" id="fMmByWrap"><label>By</label><input type="date" id="fMmBy"></div>
-    <div class="mm-sos in" id="mmSosPick"></div>
+    <div class="fld hidden" id="fMmByWrap"><label>By</label><input type="date" id="fMmBy"></div>
+    <div class="fld hidden" id="fMmPillarWrap"><label>Pillar (optional)</label><select id="fMmPillar"><option value="">&mdash;</option></select></div>
     <div class="modal-actions">
       <button class="mm-kdel hidden" id="mmKnotDel" type="button">DELETE THIS KNOT</button>
       <span style="flex:1"></span>
       <button class="btn-ghost" id="mmKnotCancel" type="button">Cancel</button>
       <button class="btn-primary" id="mmKnotSave" type="button">Open the knot</button>
     </div>
+    <div class="mm-sos in" id="mmSosPick"></div>
   </div>
 </div>
 
@@ -7790,8 +7809,10 @@ function renderMind() {
 }
 /* ---- the sixty-second door (also the knot's head editor) ---- */
 function mmPaintPick_() {
-  el('mmPick').innerHTML = MM_FAMILIES.map(F => '<div class="mm-shelf-h" style="grid-column:1 / -1"><span class="mm-sq">' + F.h + '</span></div>' + F.doors.map(d =>
-    '<button type="button" class="' + MM_DOORS[d].cls + (mmPickDoors_.includes(d) ? ' on' : '') + '" data-mmpick="' + d + '"><b>' + MM_DOORS[d].lbl + '</b>' + MM_DOORS[d].pick + '</button>').join('')).join('');
+  // K1: the same slim rows as the My Mind page - Feeling | Facing in two columns, Not sure across the foot, a tick on the chosen
+  const row = d => '<button type="button" class="mm-prow ' + MM_DOORS[d].cls + (mmPickDoors_.includes(d) ? ' on' : '') + (d === 'gen' ? ' wide' : '') + '" data-mmpick="' + d + '" title="' + escHtml(MM_DOORS[d].lbl) + '"><span>' + MM_DOORS[d].pick + '</span><i class="mm-ptk">' + (mmPickDoors_.includes(d) ? '\u2713' : '') + '</i></button>';
+  el('mmPick').innerHTML = '<div class="mm-pcols">' + MM_FAMILIES.slice(0, 2).map(F => '<div><div class="mm-pch">' + F.h + '</div>' + F.doors.map(row).join('') + '</div>').join('') + '</div>'
+    + MM_FAMILIES.slice(2).map(F => F.doors.map(row).join('')).join('');
   const qk = el('mmQuick');
   if (qk) {
     const Q = mmQuickFor_(mmPickDoors_);
@@ -7804,7 +7825,7 @@ function openMmKnot_(id) {
   mmKnotEditing_ = k ? k.id : null;
   mmPickDoors_ = k ? [k.door].concat(k.door2 ? [k.door2] : []) : [];
   el('mmKnotTitle').textContent = k ? 'The knot' : "Something's on my mind";
-  el('mmKnotSub').textContent = k ? 'title, door, pillar, next step' : 'sixty seconds now; the desk can wait for morning';
+  el('mmKnotSub').textContent = k ? 'The line, the door, a next step, a pillar.' : 'Sixty seconds. The rest can wait for morning.';
   mmPaintPick_();
   el('fMmTitle').value = k ? (k.title || '') : '';
   const sel = el('fMmPillar');
@@ -7812,6 +7833,7 @@ function openMmKnot_(id) {
   sel.value = k && k.pillar_id ? String(k.pillar_id) : '';
   el('fMmNext').value = k ? (k.next_step || '') : '';
   el('fMmBy').value = k ? (k.next_by || '') : '';
+  mmKFold_('next', !!(k && k.next_step)); mmKFold_('pillar', !!(k && k.pillar_id));
   el('mmKnotSave').textContent = k ? 'Save' : 'Open the knot';
   el('mmKnotDel').classList.toggle('hidden', !k);
   const sp = el('mmSosPick'); if (sp) sp.innerHTML = mmSosHtml_();
@@ -8555,6 +8577,14 @@ async function mmSetCarry_(on) {
   toast(on ? 'Living with it \u2014 no reminders. Settle it whenever that\u2019s true' : 'Back to open');
 }
 let mmSavedId_ = null;
+// K1: the next step (with its date and the Loss / Dilemma quick chips) and the pillar wait behind a "+" until wanted
+function mmKFold_(which, open) {
+  if (which === 'next') { el('fMmNextWrap').classList.toggle('hidden', !open); el('fMmByWrap').classList.toggle('hidden', !open); el('mmFoldNext').classList.toggle('hidden', open); }
+  else { el('fMmPillarWrap').classList.toggle('hidden', !open); el('mmFoldPillar').classList.toggle('hidden', open); }
+  el('mmKFold').classList.toggle('hidden', !el('fMmNextWrap').classList.contains('hidden') && !el('fMmPillarWrap').classList.contains('hidden'));
+}
+el('mmFoldNext').addEventListener('click', () => { mmKFold_('next', true); try { el('fMmNext').focus(); } catch (x) {} });
+el('mmFoldPillar').addEventListener('click', () => { mmKFold_('pillar', true); });
 el('mmSavedStop').addEventListener('click', () => { el('mmSavedModal').classList.add('hidden'); mmSavedId_ = null; toast('Kept. Sleep on it'); });
 el('mmSavedGo').addEventListener('click', () => { el('mmSavedModal').classList.add('hidden'); const id = mmSavedId_; mmSavedId_ = null; if (id != null) openMmPage(id); });
 ['mmSos', 'mmSosPick'].forEach(id => { const x = el(id); if (x) x.addEventListener('click', e => { if (e.target.closest('[data-mmperson]')) mmEditPerson_(); }); });
