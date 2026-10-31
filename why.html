@@ -567,7 +567,7 @@
   .mm-dpx { background:none; border:none; color:rgba(255,255,255,0.75); font-size:1.75rem; line-height:1; cursor:pointer; padding:0 2px; }
   .mm-dpx:hover { color:#fff; } .mm-dpx:focus:not(:focus-visible) { outline:none; }
   .mm-dpop .mm-dbody { border-top:none; padding:4px 14px 14px; }
-  .mm-recs { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+  .mm-recs { display:grid; grid-template-columns:1fr; gap:16px; align-items:start; }
   .mm-ob { background:#fff; border:1px solid #dfe4ec; border-radius:14px; padding:18px 20px 8px; box-shadow:0 10px 28px rgba(30,47,82,0.07); min-width:0; }
   #mmList .mm-or { display:grid; grid-template-columns:4px 1fr auto auto; gap:12px; align-items:start; padding:10px 0; margin:0; border:none; border-bottom:1px solid #eef1f6; border-radius:0; background:none; box-shadow:none; transform:none; cursor:pointer; }
   #mmList .mm-or:last-child { border-bottom:none; }
@@ -595,6 +595,18 @@
   #mmAid .mm-at.help { background:#fff; border-color:#e2e8f2; }
   #mmAid .mm-at.help .mm-al { color:#5A6478; }
   #mmAid .mm-at.help .mm-fchip { background:#fff; border:1px solid #d4dae5; color:#28324B; box-shadow:none; }
+  /* S1 + P1 (31 Oct 2026): Open now and Settled each full width; nothing open = one band, the twin of folded Settled */
+  .mm-ob.none { padding:20px 22px 16px; }
+  .mm-obh { cursor:default !important; }
+  .mm-obh span { white-space:nowrap; }
+  .mm-ob.none .mm-obh { margin-bottom:0; }
+  .mm-ob.none .mm-obh + .mm-carry { margin-top:10px; }
+  /* D1 + T1 (31 Oct 2026): settled list without circles - a hairline between items, a short door-colour stroke under each title */
+  .mm-sb .mm-tn:before { display:none; }
+  .mm-tl.mm-sb .mm-sett { padding:12px 0; border-top:1px solid #e3e9e5; }
+  .mm-tl.mm-sb .mm-sett:first-child { border-top:none; padding-top:4px; }
+  .mm-tl.mm-sb .mm-sett .mm-t:after { content:''; display:block; width:22px; height:3px; border-radius:2px; background:var(--a); margin:5px 0 2px; }
+  .mm-tl.mm-sb .mm-empty { padding-left:0; }
   @media (max-width:640px) {
     #mmDoors .mm-two { gap:8px; } #mmDoors .mm-fsub, #mmDoors .mm-door .mm-q { display:none; }
     #mmDoors .mm-shelf-h .mm-sq { font-size:1rem; } #mmDoors .mm-shelf-h .mm-sn { display:none; }
@@ -602,6 +614,10 @@
     .mm-recs { grid-template-columns:1fr; }
     .mm-sbh { cursor:pointer; } .mm-sbh span i { display:inline; }
     .mm-sb:not(.unfold) .mm-sl { display:none; } .mm-sb:not(.unfold) { padding-bottom:16px; }
+    .mm-sb:not(.unfold) .mm-tlh { margin-bottom:0; }
+  }
+  @media (max-width:560px) {
+    .mm-ob.none { padding:16px 14px 16px; }
   }
   /* ===== the audit pass (AU, 30 Oct 2026) ===== */
   /* F2 (30 Oct 2026): the gate, then one card per check with a flow line */
@@ -7840,7 +7856,8 @@ function renderMind() {
     // N4 (30 Oct 2026): "Open now" as a slim table - a colour bar for the door, the title, the step and its date (rust when it
     // has passed), days open on the right; living with it last, with a dotted bar. "Settled" sits beside it on desktop.
     const late = k => !!(k.next_step && k.next_by && k.next_by < istToday());
-    html += '<div class="mm-recs"><div class="mm-ob"><div class="mm-tlh">Open now</div>';
+    // P1 (31 Oct 2026): nothing open = the heading row alone, "NOTHING OPEN" in the same small caps as the Settled count
+    html += '<div class="mm-recs"><div class="mm-ob' + (shown.length ? '' : ' none') + '">' + (shown.length ? '<div class="mm-tlh">Open now</div>' : '<div class="mm-tlh mm-sbh mm-obh">Open now<span>Nothing open</span></div>');
     html += shown.map(k => {
       const D = MM_DOORS[k.door] || MM_DOORS.anx, days = mmDays_(k.opened_on), pn = mmPillarName_(k.pillar_id);
       const sit = !k.next_step && (k.door === 'loss' || k.door2 === 'loss');
@@ -7852,7 +7869,6 @@ function renderMind() {
         + (kn ? '<em class="mm-kbr' + (kn.due ? ' due' : '') + '">' + (kn.due ? 'KNOW BY · ' + (kn.today ? 'TODAY' : 'PASSED') : 'know by ' + escHtml(mmFmt_(kn.by).replace(/ \d{4}$/, ''))) + '</em>' : '')
         + '</div><span class="mm-days">' + escHtml(mmAge_(days).toUpperCase()) + '</span><button class="mm-x" type="button" data-mmx="' + escHtml(String(k.id)) + '" aria-label="Delete">&times;</button></div>';
     }).join('');
-    if (!shown.length && !carry.length) html += '<div class="mm-empty">Nothing open.</div>';
     // AU-G: knots I am living with - the last rows, a dotted bar, never in the monthly card, never counted as settled
     html += carry.map(k => {
       const D = MM_DOORS[k.door] || MM_DOORS.anx;
@@ -7867,7 +7883,7 @@ function renderMind() {
     html += doneShown.map(k => {
       const D = MM_DOORS[k.door] || MM_DOORS.anx, O = MM_OUTS[k.outcome] || MM_OUTS.resolved;
       const took = k.opened_on && k.settled_on ? Math.max(0, Math.round((new Date(k.settled_on) - new Date(k.opened_on)) / 864e5)) : null;
-      return '<div class="mm-sett mm-tn ' + D.cls + '" data-mmknot="' + escHtml(String(k.id)) + '"><i class="mm-tdot"></i><div class="mm-tc">'
+      return '<div class="mm-sett mm-tn ' + D.cls + '" data-mmknot="' + escHtml(String(k.id)) + '"><div class="mm-tc">'
         + '<div class="mm-tdt">' + escHtml(mmFmt_(k.settled_on)) + ' · <b>' + escHtml(D.lbl.toUpperCase()) + '</b></div>'
         + '<div class="mm-t">' + escHtml(k.title || '') + '</div>'
         + '<span class="mm-out ' + O.cls + '">' + O.lbl + '</span>' + (k.outcome === 'decision' && mmDecOf_(k) ? '<span class="mm-declink sm" data-mmdec="' + escHtml(String(mmDecOf_(k).id)) + '">→ open in Decisions</span>' : '') + (took != null ? '<em class="mm-days">' + (took === 0 ? 'the same day' : 'after ' + took + (took === 1 ? ' day' : ' days')) + '</em>' : '') + '</div>'
