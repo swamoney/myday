@@ -617,6 +617,14 @@
   .mm-cflow .ln.d { background:var(--pgs,#41599a); }
   @media (max-width:420px) { .mm-cflow .n { font-size:0.4375rem; letter-spacing:0.06em; } }
   .mm-map button.sub { padding-left:16px; font-size:0.8125rem; }
+  /* H3 (31 Oct 2026): an open knot's foot is one green "settle it" bar; a knot lived with keeps the chips */
+  .mm-hpanel.mm-hend { background:#f0f7f3; border-color:#bfd8c9; }
+  .mm-hpanel.mm-hend .mm-hph { align-items:center; }
+  .mm-hquiet { font-family:var(--serif); font-style:italic; font-size:0.875rem; color:#5A6478; text-align:right; margin-top:12px; }
+  .mm-hpanel .mm-settle.quiet, .mm-settle.quiet { display:inline; background:none !important; box-shadow:none !important; border:none; padding:0; color:#2f6146 !important; font-family:var(--serif); font-style:italic; font-size:0.875rem; letter-spacing:0; text-transform:none; font-weight:600; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
+  /* G2 (31 Oct 2026): the gate's gentle words, on the first check card only */
+  .mm-cintro { font-family:var(--serif); font-style:italic; font-size:0.9375rem; color:#5A6478; background:#f4f6f9; border-radius:9px; padding:8px 12px; margin:0 0 12px; }
+  .mm-cintro button { font:inherit; color:#28324B; background:none; border:none; padding:0; text-decoration:underline; text-underline-offset:3px; cursor:pointer; }
   /* E: the check as one optional stop - a row per question, one open at a time (retired by F2; kept for the record card) */
   .mm-ckl { border:1px solid #e6eaf1; border-radius:12px; background:#fff; overflow:hidden; }
   .mm-ckli + .mm-ckli { border-top:1px solid #eef1f6; }
@@ -3219,8 +3227,9 @@
       <div class="mm-flow"><div class="mm-map" id="mmMap"></div><div class="mm-stops" id="mmStops"></div></div>
       <div class="mm-foot">
         <div class="mm-hpanel" id="mmFootHelp">
-          <div class="mm-hph"><div><div class="mm-hpq">What is helping, so far?</div><div class="mm-hpw">Tap any that are. They&rsquo;re kept on the knot when it settles.</div></div><span id="mmSettleSlotOpen"></span></div>
+          <div class="mm-hph"><div><div class="mm-hpq" id="mmHpQ">When it&rsquo;s over, settle it.</div><div class="mm-hpw" id="mmHpW">You&rsquo;ll say how it ended and what helped.</div></div><span id="mmSettleSlotOpen"></span></div>
           <div class="mm-helped" id="mmHelped"></div>
+          <div class="mm-hquiet hidden" id="mmHQuiet">If it ever feels over, <span id="mmSettleSlotQuiet"></span>.</div>
         </div>
         <div class="mm-frow hidden" id="mmFootSetRow"><span class="mm-fset" id="mmFootSet"></span><span id="mmSettleSlotSet"><button class="mm-settle" id="mmSettleBtn" type="button">Settle this knot</button></span></div>
         <div class="mm-fhd hidden" id="mmFootHelped"></div>
@@ -8037,6 +8046,14 @@ function renderMmPage_() {
   // a settled knot shows the settled line + Reopen, and W1 - what helped as gold chips - beneath it;
   // H3: the same words as a small gold note under the settled stamp
   el('mmFootHelp').classList.toggle('hidden', settled);
+  // H3 + Q3 (31 Oct 2026): an open knot's foot is only the way to settle it - what helped is asked when it ends. A knot you are
+  // living with may never end, so it keeps the chips: "What helps on the hard days?", and settling is a quiet link.
+  const fh0 = el('mmFootHelp');
+  fh0.classList.toggle('mm-hend', !settled && !carrying); fh0.classList.toggle('mm-hcarry', !settled && carrying);
+  el('mmHpQ').textContent = carrying ? 'What helps on the hard days?' : 'When it\u2019s over, settle it.';
+  el('mmHpW').textContent = carrying ? 'Tap what helps; it builds up over time.' : 'You\u2019ll say how it ended and what helped.';
+  el('mmHelped').classList.toggle('hidden', !carrying);
+  el('mmHQuiet').classList.toggle('hidden', !carrying || settled);
   el('mmFootSetRow').classList.toggle('hidden', !settled);
   const fs = el('mmFootSet');
   fs.innerHTML = settled ? '<i>\u2713</i>Settled \u00B7 ' + escHtml(outLbl) + ' \u00B7 ' + escHtml(mmFmt_(k.settled_on)) : '';
@@ -8046,9 +8063,9 @@ function renderMmPage_() {
   hh.innerHTML = settled && helped.length ? '<div class="mm-hnl">What helped</div><div class="mm-hnw">' + escHtml(helped.join(' \u00B7 ')) + '</div>' : '';
   hh.classList.toggle('hidden', !(settled && helped.length));
   const btn = el('mmSettleBtn');
-  btn.innerHTML = settled ? 'Reopen this knot' : '<i>\u2713</i>Settle this knot';
-  btn.classList.toggle('reopen', settled);
-  el(settled ? 'mmSettleSlotSet' : 'mmSettleSlotOpen').appendChild(btn);
+  btn.innerHTML = settled ? 'Reopen this knot' : carrying ? 'settle it' : '<i>\u2713</i>Settle this knot';
+  btn.classList.toggle('reopen', settled); btn.classList.toggle('quiet', !settled && carrying);
+  el(settled ? 'mmSettleSlotSet' : carrying ? 'mmSettleSlotQuiet' : 'mmSettleSlotOpen').appendChild(btn);
 }
 // K1: the same rubber stamp as Dreams & Decisions - the words and the ink follow the state
 function mmStampSvg_(l1, l2, ink, small, tick) {
@@ -8087,7 +8104,6 @@ function mmStops_(k) {
   // longer asks still shows when it was answered, so an old record never loses a line.
   const cks = mmCks_(k);
   if (cks.length) {
-    out.push({ id:'check:gate', sec:'check', kind:'gate', title:'The check', ask:'A quick check on how I\u2019m seeing this?', cks });
     cks.forEach((c, i) => out.push({ id:'check:' + c.ck, sec:'check', kind:'check', ck: c.ck, title: c.title, q: c.q, signs: c.signs, i, cks }));
   }
   out.push({ id:'then:next', sec:'then', kind:'next', title:'The next step' });
@@ -8121,14 +8137,17 @@ function mmAnswered_(k, st) {
   if (st.kind === 'loads') return Array.isArray(d.loads) && d.loads.length > 0;
   if (st.kind === 'who') return !!(d.who && (d.who.id || d.who.name));
   if (st.kind === 'check') return !!(d.check && d.check[st.ck]);
-  if (st.kind === 'gate') return !!d.ck_gate || st.cks.some(c => mmCkAnswered_(k, c.ck));
+  if (st.kind === 'gate') return !!d.ck_gate || st.cks.some(c => mmCkAnswered_(k, c.ck));   // (the gate stop is gone since G2; kept for the check summary)
   if (st.kind === 'next') return !!k.next_step;
   return false;
 }
 function mmCursor_(k, stops) {
   const d = k.desk || {};
   if (d._at && stops.some(x => x.id === d._at)) return d._at;
-  const first = stops.find(x => x.kind !== 'check' && !mmAnswered_(k, x));   // F2: the gate stands for its checks
+  // G2 (31 Oct 2026): no gate - the path waits on the first unanswered check until the check has been left once (ck_gate);
+  // after that the optional checks are never where the path waits
+  const ckOpen = !d.ck_gate;
+  const first = stops.find(x => x.kind === 'check' ? (ckOpen && !mmCkAnswered_(k, x.ck)) : !mmAnswered_(k, x));
   return first ? first.id : null;
 }
 function mmWhoLabel_(k) {
@@ -8236,7 +8255,9 @@ function renderMmFlow_(k) {
   // progress: one dash per stop, the answered ones in the door's colour, the open one full
   // F2: the gate and its checks are ONE dash, so a hard night's path still looks short
   const atSec = at ? (stops.find(x => x.id === at) || {}).sec : null;
-  el('mmProg').innerHTML = stops.filter(st => st.kind !== 'check').map(st => '<i class="' + (st.id === at || (st.kind === 'gate' && atSec === 'check') ? 'now' : (mmAnswered_(k, st) ? 'done' : '')) + '"' + mmSty_(k, st) + '></i>').join('')
+  const ckSeen = !!(k.desk && k.desk.ck_gate) || stops.some(x => x.kind === 'check' && mmCkAnswered_(k, x.ck));
+  el('mmProg').innerHTML = stops.filter(st => st.kind !== 'check' || st.i === 0).map(st => { const isCk = st.kind === 'check';
+      return '<i class="' + ((isCk ? atSec === 'check' : st.id === at) ? 'now' : ((isCk ? ckSeen : mmAnswered_(k, st)) ? 'done' : '')) + '"' + mmSty_(k, st) + '></i>'; }).join('')
     + '<span>' + (at == null ? 'THE WHOLE PATH' : secCaps(stops[idx])) + '</span>';   // AU-E: no "3 OF 11" - the dashes show the way, not a score
   // the map
   let map = '', lastSec = '';
@@ -8244,45 +8265,48 @@ function renderMmFlow_(k) {
     if (st.sec !== lastSec) { map += '<div class="mm-mh">' + mmSecHtml_(k, st.sec, secName[st.sec]) + '</div>'; lastSec = st.sec; }
     const state = st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : 'later');
     const mstate = st.kind === 'check' ? (st.id === at ? 'now' : (mmCkAnswered_(k, st.ck) ? 'done' : 'later')) : state;
-    map += '<button type="button" class="' + mstate + (st.sec === 'check' ? ' ck' : '') + (st.kind === 'check' ? ' sub' : '') + '" data-mmgo="' + st.id + '"' + mmSty_(k, st) + '><i></i>' + escHtml(st.kind === 'gate' ? 'Start \u00B7 optional' : st.title) + '</button>';
+    map += '<button type="button" class="' + mstate + (st.sec === 'check' ? ' ck' : '') + (st.kind === 'check' ? ' sub' : '') + '" data-mmgo="' + st.id + '"' + mmSty_(k, st) + '><i></i>' + escHtml(st.title) + '</button>';
   });
   el('mmMap').innerHTML = map;
   // the stops
   let html = '', n = 0, lastS = '';
   const rec = at == null;
   stops.forEach(st => {
-    // F2: on the rail a check card shows only while it is the open one; the gate row stands for the rest
-    if (st.kind === 'check' && (rec || st.id !== at)) return;
+    // G2: one row stands for the whole check on the rail (the first check's place) unless a check card is open;
+    // the record folds them into one card
+    if (st.kind === 'check' && st.id !== at && (st.i !== 0 || (!rec && atSec === 'check'))) return;
     n++;
     if (rec && st.sec !== lastS) { html += '<div class="mm-lsec">' + mmSecHtml_(k, st.sec, secName[st.sec]) + '</div>'; lastS = st.sec; }
-    if (rec && st.kind === 'gate') {
+    if (rec && st.kind === 'check') {
       // R2: the record folds the checks into one card, a row each - the answer in the words it was given, the signs beside it
-      html += '<div class="mm-stop mm-ckcard ck' + (mmAnswered_(k, st) ? ' done' : ' later') + '" data-mmstop="check"><div class="mm-sc">'
+      html += '<div class="mm-stop mm-ckcard ck' + (ckSeen ? ' done' : ' later') + '" data-mmstop="check"><div class="mm-sc">'
         + st.cks.map(x => { const a = k.desk && k.desk.check && k.desk.check[x.ck];
             return '<div class="mm-ckrow" data-mmgo="check:' + x.ck + '"><span class="mm-cn">' + escHtml(x.title) + '</span>'
               + (a ? '<span class="mm-ckv ' + a + '">' + escHtml(mmCkShown_(k, x.ck, a)) + '</span>' : '<span class="mm-ckv un">left unchecked</span>') + mmCkSigns_(k, x.ck) + '</div>'; }).join('')
         + '</div></div>';
       return;
     }
-    const state = st.id === at ? 'now' : (mmAnswered_(k, st) ? 'done' : 'later');
+    const ckRow = st.kind === 'check' && st.id !== at;   // the folded row that stands for the check
+    const state = st.id === at ? 'now' : ((ckRow ? st.cks.some(c => mmCkAnswered_(k, c.ck)) : mmAnswered_(k, st)) ? 'done' : 'later');
     const ck = st.sec === 'check' ? ' ck' : '';
-    const title = st.kind === 'gate' ? 'The check \u00B7 optional' : st.title;
+    const title = ckRow ? 'The check \u00B7 optional' : st.title;
+    const goId = ckRow ? 'check:' + ((st.cks.find(c => !mmCkAnswered_(k, c.ck)) || st.cks[0]).ck) : st.id;
     if (state === 'now') {
       const back = idx > 0 ? '<button class="ghost" type="button" data-mmnav="back">\u2190 Back</button>' : '';
       let row;
-      if (st.kind === 'gate') { const firstUn = st.cks.find(c => !mmCkAnswered_(k, c.ck)) || st.cks[0], any = st.cks.some(c => mmCkAnswered_(k, c.ck));
-        row = back + '<button class="go" type="button" data-mmgo="check:' + firstUn.ck + '">' + (any ? 'Continue \u2192' : 'Start the check \u2192') + '</button><button class="skip" type="button" data-mmgo="then:next">not now</button>'; }
-      else if (st.kind === 'check') row = back + '<button class="go" type="button" data-mmnav="next">' + (st.i === st.cks.length - 1 ? 'Done \u00B7 next step \u2192' : 'Next \u2192') + '</button><button class="skip" type="button" data-mmgo="then:next">end the check</button>';
+      if (st.kind === 'check') row = back + '<button class="go" type="button" data-mmnav="next">' + (st.i === st.cks.length - 1 ? 'Done \u00B7 next step \u2192' : 'Next \u2192') + '</button><button class="skip" type="button" data-mmgo="then:next">end the check</button>';
       else row = back + '<button class="go" type="button" data-mmnav="next">' + (idx === stops.length - 1 ? 'Done \u2713' : 'Next \u2192') + '</button>'
         + (idx < stops.length - 1 ? '<button class="skip" type="button" data-mmnav="skip">skip for now</button>' : '');
-      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-eye">' + escHtml(secCaps(st)) + (st.sec === 'desk' || st.sec === 'desk2' ? ' \u00B7 ' + escHtml(st.title.toUpperCase()) : '') + '</div>'
+      html += '<div class="mm-stop now' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">' + n + '</div><div class="mm-sc">'
+        + (st.kind === 'check' && st.i === 0 ? '<div class="mm-cintro">A quick check on how I\u2019m seeing this \u00B7 ' + (MM_NUMW[st.cks.length] || st.cks.length).toLowerCase() + ' short questions \u00B7 <button type="button" data-mmgo="then:next">skip it</button> on a hard night</div>' : '')
+        + '<div class="mm-eye">' + escHtml(secCaps(st)) + (st.sec === 'desk' || st.sec === 'desk2' ? ' \u00B7 ' + escHtml(st.title.toUpperCase()) : '') + '</div>'
         + (st.kind === 'check' ? mmCkFlow_(k, st) : '') + mmCkTabs_(k, st) + '<div class="mm-bigq">' + escHtml(mmHeadline_(k, st)) + '</div>' + mmOpenStop_(k, st)
         + '<div class="mm-sbtn">' + row + '</div></div></div>';
     } else if (state === 'done') {
-      html += '<div class="mm-stop done' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">\u2713</div><div class="mm-sc"><div class="mm-st">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div><div class="mm-sa" data-mmgo="' + st.id + '">' + mmSummary_(k, st) + '</div></div></div>';
+      html += '<div class="mm-stop done' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">\u2713</div><div class="mm-sc"><div class="mm-st">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div><div class="mm-sa" data-mmgo="' + goId + '">' + (ckRow ? mmSummary_(k, Object.assign({}, st, { kind:'gate' })) : mmSummary_(k, st)) + '</div></div></div>';
     } else {
-      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + st.id + '">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div>'
-        + (rec ? '<div class="mm-sa un" data-mmgo="' + st.id + '">left unwritten</div>' : '') + '</div></div>';
+      html += '<div class="mm-stop later' + ck + '" data-mmstop="' + st.id + '"' + mmSty_(k, st) + '><div class="mm-sdot">' + n + '</div><div class="mm-sc"><div class="mm-st" data-mmgo="' + goId + '">' + (rec ? '<i class="mm-n">' + n + '</i>' : '') + '<span>' + escHtml(title) + '</span></div>'
+        + (rec ? '<div class="mm-sa un" data-mmgo="' + goId + '">left unwritten</div>' : '') + '</div></div>';
     }
   });
   if (rec && !doneN) html = '<div class="mm-rdhint">' + (settled ? 'Settled without the desk. The path is still here \u2014 tap a row to write it.' : 'Tap any stop to open it.') + '</div>' + html;
@@ -8311,10 +8335,11 @@ async function mmGo_(where) {
   const { desk, rec } = mmCollect_(k);
   let next = null;
   if (where === 'next' || where === 'skip') next = idx >= 0 && idx < stops.length - 1 ? stops[idx + 1].id : null;
-  else if (where === 'back') { next = idx > 0 ? stops[idx - 1].id : cur;
-    if (idx > 0 && stops[idx - 1].kind === 'check' && (stops[idx] || {}).kind !== 'check') next = 'check:gate'; }   // F2: back from the step returns to the gate
+  else if (where === 'back') next = idx > 0 ? stops[idx - 1].id : cur;
   else next = where;   // a stop id from the map or a folded line
-  if (cur === 'check:gate' && !desk.ck_gate) desk.ck_gate = istToday();   // F2: the gate was seen - the path no longer waits on it
+  // G2: leaving the check for any other stop marks it seen, so the path no longer waits on the optional questions
+  const curSt = stops[idx] || {}, nextSt = stops.find(x => x.id === next) || {};
+  if (curSt.kind === 'check' && nextSt.kind !== 'check' && !desk.ck_gate) desk.ck_gate = istToday();
   if (next) desk._at = next; else delete desk._at;
   const upd = Object.assign({ desk, updated_at: new Date().toISOString() }, rec);
   const { error } = await supa.from('why_mind').update(upd).eq('id', k.id).eq('user_id', userId);
@@ -8465,14 +8490,14 @@ function mmKnotDoc_(k, H) {
     + ' \u00B7 opened ' + e(mmFmt_(k.opened_on)) + ' \u00B7 ' + e(state) + (k.reopened ? ' \u00B7 reopened ' + k.reopened + '\u00D7' : '') + '</p>';
   const items = [];
   mmStops_(k).forEach(st => {
-    if (!mmAnswered_(k, st)) return;
+    if (st.kind === 'check' ? (st.i !== 0 || !st.cks.some(c => mmCkAnswered_(k, c.ck))) : !mmAnswered_(k, st)) return;
     let v = '';
     if (st.kind === 'line') v = e(d[st.key]) + (st.knowKey && d[st.knowKey] ? ' <span class="meta">(know by ' + e(mmFmt_(d[st.knowKey])) + ')</span>' : '') + (st.foundKey && d[st.foundKey] ? '<br>Found: ' + e(d[st.foundKey]) : '');
     else if (st.kind === 'split') v = st.keys.filter(x => d[x[0]]).map(x => e(x[1]) + ': ' + e(d[x[0]])).join('<br>');
     else if (st.kind === 'loads') v = (d.loads || []).map(l => e(l.t) + ' \u2014 ' + e((MM_LOAD_VERBS[l.v || 'keep'] || ['KEEP'])[0].toLowerCase())).join('<br>');
     else if (st.kind === 'who') { const w = d.who || {}, c = w.id ? circle.find(x => String(x.id) === String(w.id)) : null; v = e(c ? c.name : (w.name || '')); }
-    else if (st.kind === 'check') return;
-    else if (st.kind === 'gate') {
+    else if (st.kind === 'check' && st.i !== 0) return;
+    else if (st.kind === 'check') {
       st.cks.forEach(c => { const a = d.check && d.check[c.ck]; const sg = mmSignTexts_(k, c.ck);
         if (!a && !sg.length) return;
         items.push('<li><strong>' + e(mmCkAsked_(k, c.ck)) + '</strong><br>' + (a ? e(mmCkShown_(k, c.ck, a)) : '') + (sg.length ? ' <span class="meta">(signs: ' + e(sg.join(', ')) + ')</span>' : '') + '</li>'); });
