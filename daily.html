@@ -11362,13 +11362,17 @@ const ALM_METRICS = {
   reading: { label: 'Brain Food',   color: '#5C2E40' },
   away:    { label: 'Nights away',  color: '#2c6f8a' },
 };
+// Net invested in a month: in minus redemptions. Can be negative (a month you took out more than you put in).
+function _almNetInvest(m) {
+  return (Number(m.regularInvestment) || 0) + (Number(m.topUp) || 0) + (Number(m.directEquity) || 0) + (Number(m.globalInvest) || 0) - (Number(m.investmentRedemption) || 0);
+}
 function _almMonthValue(m, metric) {
   if (metric === 'walk') return m.walk > 0 ? m.walk : null;
   if (metric === 'sat')  return m.satCount > 0 ? (m.satSum / m.satCount) * 100 : null;
   if (metric === 'reading') return m.readingYes > 0 ? m.readingYes : null;
   if (metric === 'away') return m.awayNights > 0 ? m.awayNights : null;
   if (metric === 'invest') {
-    const inv = (Number(m.regularInvestment) || 0) + (Number(m.topUp) || 0) + (Number(m.directEquity) || 0) + (Number(m.globalInvest) || 0) - (Number(m.investmentRedemption) || 0);
+    const inv = _almNetInvest(m);
     return inv > 0 ? inv : null;
   }
   if (metric === 'spend') {
@@ -11402,7 +11406,10 @@ function _almYearSummary(list, metric) {
     return t ? { v: t, txt: '\u20B9' + Math.round(t).toLocaleString('en-IN') } : null;
   }
   if (metric === 'invest') {
-    const t = list.reduce((s, m) => s + (_almMonthValue(m, 'invest') || 0), 0);
+    // 1 Nov 2026 fix: the year total is the plain sum of every month's net, exactly as the Calendar Year card adds it.
+    // It used to skip months where redemptions beat new money (counted as 0), so a year with a big redemption read too high.
+    // The bars still show only positive months (a bar can't go below the line).
+    const t = list.reduce((s, m) => s + _almNetInvest(m), 0);
     return t ? { v: t, txt: '\u20B9' + Math.round(t).toLocaleString('en-IN') } : null;
   }
   return null;
