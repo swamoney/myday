@@ -14569,7 +14569,8 @@ function renderMonthBudget(monthYM, entries) {
   if (!wrap) return;
   paintMonthRoom_();
   if (mbRoom !== 'budget') { wrap.innerHTML = ''; return; }
-  if (!entries.length) { wrap.innerHTML = ''; return; }
+  // 3 Nov 2026 fix: a month with no entries yet (the 1st, or a month ahead) still shows the card, so its
+  // budgets can be set before the first rupee is logged. It used to render nothing - no "Set budgets" button.
   const env = monthEnvelopes_(entries);
   const bud = budgetsForYm_(monthYM);
   const hasBudget = Object.keys(bud).length > 0;
@@ -14661,15 +14662,25 @@ function prevYm_(ym) {
 }
 async function saveBudgets_() {
   const ym = document.getElementById('mbModal').dataset.ym;
-  const rows = [];
+  const rows = [], cleared = [];
+  const had = budgetsForYm_(ym);
   BUDGET_SECTIONS.forEach(s => {
-    const v = Number(document.getElementById('mbm_' + s.key).value);
-    if (!isNaN(v) && document.getElementById('mbm_' + s.key).value !== '')
-      rows.push({ ym, section: s.key, amount: v });
+    const raw = String(document.getElementById('mbm_' + s.key).value || '').trim();
+    const v = Number(raw);
+    // 3 Nov 2026: every row carries user_id, like every other table the page writes (the conflict key needs it)
+    if (raw !== '' && !isNaN(v)) rows.push({ user_id: userId, ym, section: s.key, amount: v });
+    else if (raw === '' && had[s.key] != null) cleared.push(s.key);   // emptied a box = remove that budget
   });
-  const { error } = await supa.from('day_budgets')
-    .upsert(rows, { onConflict: 'user_id,ym,section' });
-  if (error) { console.error('budget save', error); alert('Could not save budgets'); return; }
+  if (!supa || !userId) { alert('Could not save budgets: not signed in'); return; }
+  if (rows.length) {
+    const { error } = await supa.from('day_budgets')
+      .upsert(rows, { onConflict: 'user_id,ym,section' });
+    if (error) { console.error('budget save', error); alert('Could not save budgets: ' + (error.message || 'unknown error')); return; }
+  }
+  for (const sec of cleared) {
+    const { error } = await supa.from('day_budgets').delete().eq('user_id', userId).eq('ym', ym).eq('section', sec);
+    if (error) { console.error('budget clear', error); alert('Could not clear a budget: ' + (error.message || 'unknown error')); return; }
+  }
   document.getElementById('mbModal').classList.add('hidden');
   await loadBudgets();
   renderMonth();
