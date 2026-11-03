@@ -1602,15 +1602,15 @@
   #secDecisions.dcl-on .dc-toolrow .dc-filters, #secDecisions.dcl-on .dc-toolrow .dc-addrow { margin-bottom:0; }
   #secDecisions.dcl-on .dc-toolrow .dc-addrow { padding-left:0; }
   #secDecisions.dcl-on .dcl-book > .dcl-row:first-child { margin-top:4px; }
-  .dcl-book { background:linear-gradient(#e9f0fa, #fff 260px); border:1px solid #d6e1f1; border-top:5px solid #2f5187; border-radius:16px; padding:10px 24px 10px; box-shadow:0 10px 28px rgba(30,47,82,0.07); }
+  .dcl-book { background:linear-gradient(#e9f0fa, #fff 260px); border:1px solid #d6e1f1; border-radius:16px; padding:10px 24px 10px; box-shadow:0 10px 28px rgba(30,47,82,0.07); }
   .dcl-t { font-family:var(--serif); font-size:1.5rem; font-weight:600; color:#182233; }
   .dcl-s { font-family:var(--serif); font-style:italic; font-size:0.95rem; color:#4d5f80; margin-top:2px; }
   .dcl-dv { display:flex; align-items:center; gap:10px; margin:22px 0 4px; }
   .dcl-dv .lb { font-family:var(--serif); font-size:1.0625rem; font-weight:700; color:#182233; text-decoration:underline; text-decoration-color:#d9b84a; text-decoration-thickness:3px; text-underline-offset:4px; text-decoration-skip-ink:none; white-space:nowrap; }
   .dcl-dv i { flex:1; height:1px; background:#c9d5ea; }
   .dcl-dv .ct { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:#7686a3; white-space:nowrap; }
-  .dcl-row { --r:#9a4a2e; --w:#fff; display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center; margin-top:12px; padding:14px 16px; border:1px solid #e3e8f0; border-top:3px solid var(--r); border-radius:0 0 14px 14px; background:var(--w); cursor:pointer; }
-  .dcl-row.wip { --r:#1F6E78; --w:linear-gradient(180deg,#eef6f7,#e2eff1); }
+  .dcl-row { --r:#b07d1f; --w:linear-gradient(180deg,#fdf8ec,#fbf1d9); display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center; margin-top:12px; padding:14px 16px; border:1px solid #e3e8f0; border-top:3px solid var(--r); border-radius:0 0 14px 14px; background:var(--w); cursor:pointer; }
+  .dcl-row.wip { --r:#5b4a86; --w:linear-gradient(180deg,#f6f4fa,#ebe6f3); }   /* O3: amethyst in progress */
   .dcl-row.lived { --r:#1F6E78; --w:linear-gradient(180deg,#eef6f7,#e2eff1); }   /* L2: lived in Work in progress's sea glass; the teal stamp tells them apart */
   .dcl-row.canx { --r:#a8323f; --w:linear-gradient(180deg,#fcf6f6,#f3e5e5); }   /* R1: walked away in soft rose */
   .dcl-row:hover .dcl-tt { text-decoration:underline; text-decoration-color:#c9d2e0; text-underline-offset:3px; }
@@ -1775,6 +1775,13 @@
   /* B4-1: the wash while it is being lived; moss once lived */
   .dc-plate.wash { background:linear-gradient(180deg,#e6f2f4,#d3e7ea); border:1px solid #aecfd4; border-top:3px solid #1F6E78; border-radius:0 0 14px 14px; padding:14px 18px 16px; margin:0 -18px; }
   .dc-plate.wash .dc-name { color:#0f3a40; }
+  .dc-plate.gold { background:linear-gradient(180deg,#fdf8ec,#fbf1d9); border:1px solid #ecdcb4; border-top:3px solid #b07d1f; border-radius:0 0 14px 14px; padding:14px 18px 16px; margin:0 -18px; }
+  .dc-plate.ame { background:linear-gradient(180deg,#f6f4fa,#ebe6f3); border:1px solid #dcd4ea; border-top:3px solid #5b4a86; border-radius:0 0 14px 14px; padding:14px 18px 16px; margin:0 -18px; }
+  .dc-plate.ame .dc-name { color:#2a2140; }
+  .dc-plate.ame .dc-jseg.on.deep { background:#3b2f5c; }
+  .dc-plate.ame .dc-jseg.next, .dc-plate.ame .dc-jseg.next * { color:#5b4a86; }
+  .dc-plate.ame .dc-journey { border-color:#dcd4ea; }
+  .dc-plate.gold .dc-journey { border-color:#ecdcb4; }
   .dc-plate.rose { background:linear-gradient(180deg,#fcf6f6,#f3e5e5); border:1px solid #e6cfd0; border-top:3px solid #a8323f; border-radius:0 0 14px 14px; padding:14px 18px 16px; margin:0 -18px; }
   .dc-plate.rose .dc-journey { border-color:#e6cfd0; }
   .dc-plate.wash .dc-journey { border-color:#aecfd4; }
@@ -10145,11 +10152,13 @@ function dcPaintPlate_(d) {
                 1:{ sol:'#a8323f', ink:'#a8323f', hi:'#cf6a74', lo:'#6f1f27', paper:'linear-gradient(160deg,#fcf6f6,#f3e5e5)', edge:'#e6cfd0' } };
     const wx = null;   // L2 (4 Nov 2026): a lived page wears Work in progress's sea glass; the stars, not the paper, carry the verdict (W kept for the day it is wanted back)
     const ink = sealed ? (canx ? { sol:'#a8323f', ink:'#a8323f' } : wx ? { sol:wx.sol, ink:wx.ink } : { sol:'#1F6E78', ink:'#1F6E78' })
-              : wip ? { sol:'#1F6E78', ink:'#1F6E78' }
-              : (dream && !dcDreamPending_(d)) ? { sol:'#2F6F6A', ink:'#2F6F6A' } : { sol:'#9a4a2e', ink:'#9a4a2e' };
+              : wip ? (dream ? { sol:'#1F6E78', ink:'#1F6E78' } : { sol:'#5b4a86', ink:'#5b4a86' })        // O3: a decision in progress wears amethyst
+              : (dream && !dcDreamPending_(d)) ? { sol:'#2F6F6A', ink:'#2F6F6A' } : dream ? { sol:'#9a4a2e', ink:'#9a4a2e' } : { sol:'#b07d1f', ink:'#9a6a12' };   // O3: a pending decision wears gold
     const plate = el('dcPlate');
     plate.style.setProperty('--dc-sol', ink.sol); plate.style.setProperty('--dc-ink', ink.ink);
-    plate.classList.toggle('wash', !!wip || (sealed && !canx));       // L2: lived shares the sea glass                                   // B4-1: the plate goes sea glass while it is being lived
+    plate.classList.toggle('wash', (!!wip && dream) || (sealed && !canx));
+    plate.classList.toggle('ame', !!wip && !dream);                    // O3
+    plate.classList.toggle('gold', !sealed && !wip && !dream);         // O3       // L2: lived shares the sea glass                                   // B4-1: the plate goes sea glass while it is being lived
     plate.classList.toggle('moss', false);
     plate.classList.toggle('rose', !!sealed && !!canx);                  // R1: a walked-away page in soft rose
     plate.style.setProperty('--dc-paper', wx ? wx.paper : ''); plate.style.setProperty('--dc-edge', wx ? wx.edge : '');
@@ -10158,8 +10167,8 @@ function dcPaintPlate_(d) {
     seal.textContent = dream ? '\u2726' : 'D';
     // the seal wears the state's ink, whatever its mark: rust owes an answer, sea glass in progress, moss lived, ash cancelled, teal a dream ahead
     const sc = sealed ? (canx ? ['#cf6a74', '#a8323f', '#6f1f27'] : wx ? [wx.hi, wx.sol, wx.lo] : ['#5fb4bf', '#1F6E78', '#124850'])
-             : wip ? ['#5fb4bf', '#1F6E78', '#124850']
-             : (dream && !dcDreamPending_(d)) ? ['#6fb3ac', '#2F6F6A', '#1d5450'] : ['#d9856a', '#9a4a2e', '#6e3220'];
+             : wip ? (dream ? ['#5fb4bf', '#1F6E78', '#124850'] : ['#9a8ac0', '#5b4a86', '#3b2f5c'])
+             : (dream && !dcDreamPending_(d)) ? ['#6fb3ac', '#2F6F6A', '#1d5450'] : dream ? ['#d9856a', '#9a4a2e', '#6e3220'] : ['#d9b45a', '#b07d1f', '#7a5512'];
     seal.style.setProperty('--dc-seal-hi', sc[0]); seal.style.setProperty('--dc-seal', sc[1]); seal.style.setProperty('--dc-seal-lo', sc[2]);
     const kind = dream ? 'DREAM' : 'DECISION';
     const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
@@ -10230,9 +10239,9 @@ function dcStampWalked_() {
 function dcStampFor_(d, sealed, wip, ink) {
   const dream = dcIsDream_(d), canx = dcCanx_(d);
   if (sealed) return canx ? dcStampWalked_() : dcStampSvg_('\u2726 LIVED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#1F6E78', true);
-  if (wip) return dcStampSvg_('WORK IN', 'PROGRESS', '#2B4C9B');
+  if (wip) return dcStampSvg_('WORK IN', 'PROGRESS', dream ? '#2B4C9B' : '#5b4a86');   // O3: amethyst for a decision
   if (dream && !dcDreamPending_(d)) return dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A');
-  return dcStampSvg_('DECISION', 'PENDING', '#9a4a2e');
+  return dcStampSvg_('DECISION', 'PENDING', dream ? '#9a4a2e' : '#9a6a12');           // O3: gold-brown for a decision
 }
 // ===== H1: the picture that stands for a dream or decision - the roadmap's poster, room 'decision' =====
 let dcCover_ = null;
@@ -10550,7 +10559,7 @@ function dcFKindPaint_() {
   el('dcFBox').classList.toggle('dream', dream);
   el('dcFTitle').textContent = dream ? 'A new dream' : 'A new decision';
   el('dcFSave').textContent = dream ? 'Add the dream' : 'Open the decision';
-  el('dcFPv').innerHTML = dream ? dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A') : dcStampSvg_('DECISION', 'PENDING', '#9a4a2e');
+  el('dcFPv').innerHTML = dream ? dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A') : dcStampSvg_('DECISION', 'PENDING', '#9a6a12');
   if (!dream) { dcFSetPick = 'both'; el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'both')); }
 }
 el('dcFKind').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; dcFKindPick = b.dataset.kind; dcFKindPaint_(); });
