@@ -1593,7 +1593,7 @@
   .dcl-dv .lb { font-family:var(--serif); font-size:1.0625rem; font-weight:700; color:#182233; text-decoration:underline; text-decoration-color:#d9b84a; text-decoration-thickness:3px; text-underline-offset:4px; text-decoration-skip-ink:none; white-space:nowrap; }
   .dcl-dv i { flex:1; height:1px; background:#c9d5ea; }
   .dcl-dv .ct { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:#7686a3; white-space:nowrap; }
-  .dcl-row { --r:#9a4a2e; --w:#fff; display:grid; grid-template-columns:64px 1fr auto auto; gap:14px; align-items:center; margin-top:12px; padding:14px 16px; border:1px solid #e3e8f0; border-top:3px solid var(--r); border-radius:0 0 14px 14px; background:var(--w); cursor:pointer; }
+  .dcl-row { --r:#9a4a2e; --w:#fff; display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center; margin-top:12px; padding:14px 16px; border:1px solid #e3e8f0; border-top:3px solid var(--r); border-radius:0 0 14px 14px; background:var(--w); cursor:pointer; }
   .dcl-row.wip { --r:#1F6E78; --w:linear-gradient(180deg,#eef6f7,#e2eff1); }
   .dcl-row.lived { --r:#2f6146; --w:linear-gradient(180deg,#f5faf6,#e9f2eb); }
   .dcl-row.canx { --r:#8a8580; --w:#fafafa; }
@@ -1607,15 +1607,16 @@
   .dcl-m .dc-stars-ro { margin-left:2px; }
   .dcl-row.late .dcl-m { color:#b0583f; }
   .dcl-q { font-family:var(--serif); font-style:italic; font-size:0.9rem; color:#4d5f80; margin-top:4px; }
+  .dcl-mk { display:flex; flex-direction:column; align-items:center; gap:6px; min-width:100px; }
+  .dcl-lb { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.14em; text-transform:uppercase; color:#7686a3; }
   .dcl-stamp { width:96px; height:56px; transform:rotate(-10deg); flex-shrink:0; }
   .dcl-stamp svg { width:100%; height:100%; display:block; }
   .dcl-empty { font-family:var(--serif); font-style:italic; color:#7686a3; padding:12px 0 14px; }
   body.editing .dcl-row .dc-x { display:inline-flex; }
   @media (max-width:640px) {
     .dcl-book { padding:16px 14px 6px; }
-    .dcl-row { grid-template-columns:34px 1fr auto; gap:10px; align-items:start; padding:12px 10px; position:relative; }
-    .dcl-row .dcl-stamp { position:absolute; right:8px; top:8px; }
-    .dcl-row .dcl-eb { padding-right:70px; min-height:30px; }
+    .dcl-row { grid-template-columns:1fr 72px; gap:10px; align-items:start; padding:12px 10px; }
+    .dcl-mk { min-width:0; gap:4px; }
     .dcl-no { display:flex; flex-direction:column; align-items:center; border-right:1px solid #cfdbee; padding-right:9px; line-height:1; }
     .dcl-no small { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.14em; text-transform:uppercase; color:#8fa3c6; font-weight:600; }
     .dcl-no b { font-family:var(--serif); font-size:1.1rem; font-weight:700; color:#2f5187; margin-top:3px; }
@@ -9984,11 +9985,8 @@ function dcLedgerHtml_() {
   // in the state's ink, the eyebrow, the name, and the page's own rubber stamp (no wax seal). Two V1 dividers:
   // Ongoing decisions (on the desk, then being lived) and Past decisions (the trail, newest first).
   const all = dcRows.filter(d => !dcIsDream_(d));
-  const numOf = {};
-  all.slice().sort((a, b) => String(a.created_at || '').localeCompare(String(b.created_at || ''))).forEach((d, i) => { numOf[d.id] = i + 1; });
   const today = new Date().toISOString().slice(0, 10);
   const U = t => String(t).toUpperCase();
-  const no = d => '<span class="dcl-no"><small>No.</small><b>' + String(numOf[d.id] || 0).padStart(2, '0') + '</b></span>';
   const x = d => '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">×</button>';
   const days = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
   const mine = all.filter(dcKeep_);
@@ -9996,10 +9994,12 @@ function dcLedgerHtml_() {
   const open = desk.filter(d => !dcIsWip_(d)).sort((a, b) => (a.target_on || '9999').localeCompare(b.target_on || '9999') || String(b.created_at).localeCompare(String(a.created_at)));
   const wip = desk.filter(dcIsWip_).sort((a, b) => String(b.decided_on || '').localeCompare(String(a.decided_on || '')));
   const trail = mine.filter(d => d.status === 'trail').sort(dcTrailSort_);
-  const entry = (d, st, eb, meta, q) => '<div class="dcl-row ' + st + '" data-dc="' + d.id + '">' + no(d)
+  // LD-3: no numbers; the looking-back stars sit under the stamp
+  const entry = (d, st, eb, meta, q) => '<div class="dcl-row ' + st + '" data-dc="' + d.id + '">'
     + '<div class="dcl-b"><div class="dcl-eb">' + eb + '</div><div class="dcl-tt">' + escHtml(d.title) + '</div><div class="dcl-m">' + meta + '</div>'
     + (q ? '<div class="dcl-q">“' + escHtml(q) + '”</div>' : '') + '</div>'
-    + '<span class="dcl-stamp">' + dcStampFor_(d, d.status === 'trail', dcIsWip_(d), null) + '</span>' + x(d) + '</div>';
+    + '<span class="dcl-mk"><span class="dcl-stamp">' + dcStampFor_(d, d.status === 'trail', dcIsWip_(d), null) + '</span>'
+    + (d.status === 'trail' && Number(d.satisfaction) ? dcStarsRO_(d) + '<span class="dcl-lb">Looking back</span>' : '') + '</span>' + x(d) + '</div>';
   const divider = (name, count) => '<div class="dcl-dv"><span class="lb">' + name + '</span><i></i><span class="ct">' + count + '</span></div>';
   let h = '<div class="dcl-book"><div class="dcl-t">My Decisions</div><div class="dcl-s">The ledger of the choices that shaped me.</div>';
   h += divider('Ongoing decisions', open.length + ' open' + (wip.length ? ' · ' + wip.length + ' being lived' : ''));
@@ -10018,8 +10018,8 @@ function dcLedgerHtml_() {
   h += divider('Past decisions', trail.length + (trail.length === 1 ? ' decision' : ' decisions') + (trail.length ? ' · since ' + String(trail[trail.length - 1].decided_on || trail[trail.length - 1].created_at || '').slice(0, 4) : ''));
   h += trail.map(d => {
     const canx = dcCanx_(d), r = Number(d.satisfaction) || 0;
-    const eb = 'DECISION · THE TRAIL · ' + (canx ? 'CANCELLED' : d.happened_on ? 'LIVED ' + U(dcFmt_(d.happened_on)) : 'NOT YET LIVED');
-    const meta = canx ? (d.decided_on ? U(dcFmt_(d.decided_on)) : '') : U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '') + (r ? ' · LOOKING BACK ' + dcStarsRO_(d) : '');
+    const eb = 'DECISION · THE TRAIL · ' + (canx ? 'WALKED AWAY' + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '') : d.happened_on ? 'LIVED ' + U(dcFmt_(d.happened_on)) : 'NOT YET LIVED');
+    const meta = canx ? 'DIDN\u2019T WORK OUT' : U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '');
     return entry(d, canx ? 'canx' : 'lived', eb, meta, (d.rating_note || '').trim());
   }).join('');
   if (!trail.length) h += '<div class="dcl-empty">no decisions sealed yet</div>';
@@ -10143,7 +10143,7 @@ function dcPaintPlate_(d) {
     const kind = dream ? 'DREAM' : 'DECISION';
     const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
     el('dcEyebrow').textContent =
-      sealed ? (kind + ' \u00B7 THE TRAIL \u00B7 ' + (canx ? 'CANCELLED' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : '')
+      sealed ? (kind + ' \u00B7 THE TRAIL \u00B7 ' + (canx ? 'WALKED AWAY' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : '')
                 + (d.target_on ? ' \u00B7 TARGET WAS ' + dcFmt_(d.target_on).toUpperCase() : ''))   // O4: the original target, folded in as a reference
       : wip ? ('WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : ''))
       : (kind + ' \u00B7 ' + ((dream && !dcDreamPending_(d)) ? 'AHEAD' : 'ON THE DESK') + ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what
@@ -10196,9 +10196,19 @@ function dcStampSvg_(l1, l2, ink, small) {
     '<rect x="10" y="10" width="100" height="50" rx="2" fill="none" stroke="' + ink + '" stroke-width="1.2" opacity="0.85"/>' +
     t(34, l1, 11) + t(50, l2, small ? 9 : 11) + '</svg>';
 }
+// LD-3 (4 Nov 2026): a walked-away decision is one that failed - WALKED AWAY large, DIDN'T WORK OUT under a hairline, in clay
+function dcStampWalked_() {
+  const ink = '#8a6a64';
+  return '<svg viewBox="0 0 120 70" aria-hidden="true">' +
+    '<rect x="4" y="4" width="112" height="62" rx="4" fill="none" stroke="' + ink + '" stroke-width="3.5" stroke-dasharray="60 2 40 3 80 2" opacity="0.9"/>' +
+    '<rect x="10" y="10" width="100" height="50" rx="2" fill="none" stroke="' + ink + '" stroke-width="1.2" opacity="0.85"/>' +
+    '<text x="60" y="33" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700" letter-spacing="1.6" fill="' + ink + '" opacity="0.92">WALKED AWAY</text>' +
+    '<line x1="22" y1="40" x2="98" y2="40" stroke="' + ink + '" stroke-width="0.8" opacity="0.7"/>' +
+    '<text x="60" y="51" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" font-weight="700" letter-spacing="1.2" fill="' + ink + '" opacity="0.92">DIDN\u2019T WORK OUT</text></svg>';
+}
 function dcStampFor_(d, sealed, wip, ink) {
   const dream = dcIsDream_(d), canx = dcCanx_(d);
-  if (sealed) return canx ? dcStampSvg_('WALKED', 'AWAY', '#8a8580') : dcStampSvg_('\u2726 LIVED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#2f6146', true);
+  if (sealed) return canx ? dcStampWalked_() : dcStampSvg_('\u2726 LIVED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#2f6146', true);
   if (wip) return dcStampSvg_('WORK IN', 'PROGRESS', '#2B4C9B');
   if (dream && !dcDreamPending_(d)) return dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A');
   return dcStampSvg_('DECISION', 'PENDING', '#9a4a2e');
