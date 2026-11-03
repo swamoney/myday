@@ -4268,19 +4268,20 @@ function printSection() {
     prOpen_('My Why Pillars', body); return;
   }
   if (activeSec === 'mantra') {
-    const list = mtSorted_();
-    const body = '<div class="eyebrow">My Why</div><h1>My Mantra</h1>'
+    // S2b/R3: the print follows the one list - mantras and musings, wherever each musing lives
+    const list = mmAll_().map(x => x.src === 'iw' ? { text: x.r.title || '', meaning_html: x.r.body || '', source: '', _k: 'Musing' } : Object.assign({}, x.r, { _k: x.t === 'u' ? 'Musing' : 'Mantra' }));
+    const body = '<div class="eyebrow">My Why</div><h1>My Mantras &amp; Musings</h1>'
       + list.map((m, i) => {
         const line = e(NoteEditor.toPlain(m.text_html || m.text || '')).trim();
         const src = e(m.source || '').trim();
         const mean = prTrim_(NoteEditor.toHtml(NoteEditor.sanitize(m.meaning_html || m.meaning || '')) || '');
         return '<div class="mant">'
-          + '<div class="mant-l"><span class="num">' + String(i + 1).padStart(2, '0') + '</span>' + line + '</div>'
+          + '<div class="mant-l"><span class="num">' + String(i + 1).padStart(2, '0') + '</span>' + line + ' <small style="font-family:monospace;font-size:9px;letter-spacing:.14em;color:#8B97AC;text-transform:uppercase">' + m._k + '</small></div>'
           + (src ? '<div class="mant-s">' + src + '</div>' : '')
           + (mean ? '<div class="essay">' + mean + '</div>' : '')
           + '</div>';
       }).join('');
-    prOpen_('My Mantra', body); return;
+    prOpen_('My Mantras & Musings', body); return;
   }
   if (activeSec === 'priority') {
     const open = priority.filter(t => (t.status || 'open') === 'open');
@@ -5450,8 +5451,11 @@ async function loadMantras() {
 // S2b (3 Nov 2026): My Mantras & Musings - the musings (Inner Life's iw_entries, any kind that isn't diary,
 // chapter, trip or writing) join the mantras in one numbered list. Their rows stay where they are.
 let musings = [], mmMixed = false, mmFilter = 'all', mmAddKind = 'musing';
-const MM_NOT_MUSING = new Set(['gratitude','experience','diary','trip','writing','essay','post','thread','note']);
+const MM_NOT_MUSING = new Set(['gratitude','experience','diary','trip','writing','essay','post','thread','note','moved_mantra']);
+let mmHasKind = false;   // R3: why_mantras.kind exists (migrate_musings_to_mantras.sql has run) - musings then live here, editable in place
 async function loadMusings_() {
+  if (mantras.length) mmHasKind = Object.prototype.hasOwnProperty.call(mantras[0], 'kind');
+  else { try { const { error } = await supa.from('why_mantras').select('kind').limit(1); mmHasKind = !error; } catch (e) { mmHasKind = false; } }
   try {
     const { data, error } = await supa.from('iw_entries').select('id,kind,title,body,sort_order,created_at,favourite').eq('user_id', userId);
     if (error) throw error;
@@ -5474,8 +5478,18 @@ function musSortedW_() {
 }
 // One list. Until you first drag (mmMixed, user_prefs.mm_mix_order), mantras come first and musings after,
 // each in its own old order. The first drag writes one shared scale (10, 20, 30...) to both tables.
+const mmMusCmp_ = (a, b) => {
+  const ao = a.sort_order, bo = b.sort_order, an = ao != null, bn = bo != null;
+  if (an && bn && ao !== bo) return ao - bo;
+  if (an && !bn) return -1;
+  if (!an && bn) return 1;
+  return String(b.created_at).localeCompare(String(a.created_at));
+};
 function mmAll_() {
-  const M = mtSorted_().map(r => ({ t: 'm', r })), U = musSortedW_().map(r => ({ t: 'u', r }));
+  // R3: a musing may live in why_mantras (kind 'musing', edited in place) or still in iw_entries (src 'iw')
+  const M = mtSorted_().filter(r => r.kind !== 'musing').map(r => ({ t: 'm', r }));
+  const U = mantras.filter(r => r.kind === 'musing').map(r => ({ t: 'u', r, src: 'mt' }))
+    .concat(musings.map(r => ({ t: 'u', r, src: 'iw' }))).sort((a, b) => mmMusCmp_(a.r, b.r));
   if (!mmMixed) return M.concat(U);
   return M.concat(U).sort((a, b) => {
     const ao = a.r.sort_order, bo = b.r.sort_order, an = ao != null, bn = bo != null;
@@ -5535,7 +5549,7 @@ function renderMantras() {
     const sh = M_SHADES[i % M_SHADES.length];
     const tint = ' style="--sh2:' + sh.w2 + ';--shb:' + sh.bd + ';--sha:' + sh.acc + '"';
     const num = '<div class="m-num">' + String(i + 1).padStart(2, '0') + '<small class="m-kind">' + (x.t === 'm' ? 'Mantra' : 'Musing') + '</small></div>';
-    if (x.t === 'u') {
+    if (x.t === 'u' && x.src === 'iw') {
       const r = x.r;
       const note = NoteEditor.toPlain(r.body || '').replace(/\s+/g, ' ').trim();
       const yr = r.created_at ? String(r.created_at).slice(0, 4) : '';
@@ -5546,13 +5560,14 @@ function renderMantras() {
         (yr ? '<div class="msrc">&mdash; ' + yr + '</div>' : '') + '</div></div>';
     }
     const m = x.r, mean = mtRich(m, 'meaning');
-    return '<div class="mcard" draggable="false" data-mid="' + m.id + '"' + tint + '>' +
+    const yr = x.t === 'u' && !m.source && m.created_at ? String(m.created_at).slice(0, 4) : '';
+    return '<div class="mcard' + (x.t === 'u' ? ' mu' : '') + '" draggable="false" data-mid="' + m.id + '"' + tint + '>' +
       '<button class="m-grip" data-mgrip="' + m.id + '" type="button" aria-label="Drag to reorder" title="Drag to reorder">' + M_GRIP + '</button>' +
       num +
       '<div class="m-body">' +
         '<div class="mtext nk-content">' + mtRich(m, 'text') + '</div>' +
         (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '') +
-        (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') +
+        (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : (yr ? '<div class="msrc">&mdash; ' + yr + '</div>' : '')) +
       '</div>' +
       '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>' +
       '<button class="m-x" data-mx="' + m.id + '" type="button" aria-label="Delete">&times;</button>' +
@@ -5568,6 +5583,18 @@ function renderMantras() {
 async function mmQuickAdd_(text) {
   const all = mmAll_();
   const pool = mmMixed ? all : all.filter(x => x.t === (mmAddKind === 'mantra' ? 'm' : 'u'));
+  // R3: once why_mantras has its kind column, a new musing is born here too (kind 'musing'); a mantra says so
+  if (mmHasKind) {
+    const used2 = pool.map(x => x.r.sort_order).filter(v => v != null);
+    const so2 = used2.length ? Math.min.apply(null, used2) - 1 : (mmAddKind === 'mantra' ? 0 : null);
+    const rec = { user_id: userId, kind: mmAddKind, text, text_html: escHtml(text), meaning: '', meaning_html: '', source: '' };
+    if (so2 != null) rec.sort_order = so2;
+    const { error } = await supa.from('why_mantras').insert(rec);
+    if (error) { console.error(error); toast('Could not save: ' + (error.message || '')); return false; }
+    await loadMantras();
+    toast(mmAddKind === 'mantra' ? 'Kept as a mantra' : 'Kept as a musing');
+    return true;
+  }
   const used = pool.map(x => x.r.sort_order).filter(v => v != null);
   let so = used.length ? Math.min.apply(null, used) - 1 : (mmAddKind === 'mantra' ? 0 : null);
   if (mmMixed && !used.length) so = 0;
@@ -5654,7 +5681,7 @@ el('mantraList').addEventListener('click', e => {
   if (del) {
     const m = mantras.find(x => String(x.id) === String(del.dataset.mx));
     if (!m) return;
-    const line = NoteEditor.toPlain(mtRich(m, 'text')).trim().slice(0, 60) || 'this mantra';
+    const line = NoteEditor.toPlain(mtRich(m, 'text')).trim().slice(0, 60) || (m.kind === 'musing' ? 'this musing' : 'this mantra');
     if (!confirm('Delete \u201C' + line + '\u201D? This cannot be undone.')) return;
     supa.from('why_mantras').delete().eq('id', m.id).eq('user_id', userId).then(async ({ error }) => {
       if (error) { console.error(error); toast('Could not delete'); return; }

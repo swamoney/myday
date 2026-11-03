@@ -987,7 +987,8 @@ async function loadRows() {
   try {
     const { data, error } = await supa.from('iw_entries').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw error;
-    rows = (data || []).map(r => ({ ...r, tags: parseTags(r.tags) }));
+    // R3 (3 Nov 2026): a musing moved into My Mantras & Musings (why_mantras) keeps its old row as kind 'moved_mantra' - kept for undo, never shown
+    rows = (data || []).filter(r => r.kind !== 'moved_mantra').map(r => ({ ...r, tags: parseTags(r.tags) }));
     render();
   } catch (e) {
     el('cardsWrap').innerHTML = '<div class="empty"><div class="big">Couldn\'t load</div><div class="small">' + escHtml(e.message || 'Error') + '<br>Make sure the <code>iw_entries</code> table exists.</div></div>';
