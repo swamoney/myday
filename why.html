@@ -1576,8 +1576,9 @@
   @media (max-width:640px) { .pscroll { padding-top:20px; } .pin { padding:0 16px 30px; } .pname { font-size:1.625rem; } .pav { width:52px; height:52px; font-size:1.25rem; } }
   /* ===== My Decisions — the checklist before the leap (N3, Aug 2026) ===== */
   /* Warm redesign (Aug 2026): parchment, rust rules, and the locked chips. */
-  #secDecisions { background:linear-gradient(165deg,#f4f7fb,#e2e8f2); border:1px solid #dfe5ee;
-                  border-radius:16px; padding:18px 12px; }   /* B2: the bucket's ground, a breath deeper */
+  /* B1 (4 Nov 2026): straight on My Why's page, like Why Pillars and My Mind - no panel, no ledger card */
+  #secDecisions { background:none; border:none; border-radius:0; padding:0 38px 30px; }
+  @media (max-width:640px) { #secDecisions { padding:0 20px 26px; } }   /* B2: the bucket's ground, a breath deeper */
   .dc-shelf { display:inline-block; font-family:var(--mono); font-size:0.5938rem; font-weight:600;
               letter-spacing:0.14em; text-transform:uppercase; border-radius:6px; padding:4px 10px;
               margin:2px 14px 10px; }
@@ -1601,8 +1602,17 @@
   #secDecisions.dcl-on .dc-toolrow { display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
   #secDecisions.dcl-on .dc-toolrow .dc-filters, #secDecisions.dcl-on .dc-toolrow .dc-addrow { margin-bottom:0; }
   #secDecisions.dcl-on .dc-toolrow .dc-addrow { padding-left:0; }
-  #secDecisions.dcl-on .dcl-book > .dcl-row:first-child { margin-top:4px; }
-  .dcl-book { background:linear-gradient(#e9f0fa, #fff 260px); border:1px solid #d6e1f1; border-radius:16px; padding:10px 24px 10px; box-shadow:0 10px 28px rgba(30,47,82,0.07); }
+  #secDecisions.dcl-on .dcl-book > .dcl-row:first-child, #secDecisions.dcl-on .dcl-book > .dcl-og:first-child { margin-top:4px; }
+  .dcl-og { display:grid; grid-template-columns:26px 1fr; gap:8px; align-items:center; margin-top:12px; }
+  .dcl-og .dcl-row { margin-top:0; border-top:1px solid #e3e8f0; border-radius:14px; }
+  .dcl-ind { display:flex; align-items:center; justify-content:center; color:#b07d1f; }
+  .dcl-og.wip .dcl-ind { color:#5b4a86; }
+  .dcl-ind i { display:inline-block; width:7px; height:7px; border-right:2px solid currentColor; border-top:2px solid currentColor; transform:rotate(45deg); opacity:0.15; animation:dclChev 1.4s infinite; }
+  .dcl-ind i:nth-child(2) { animation-delay:0.2s; } .dcl-ind i:nth-child(3) { animation-delay:0.4s; }
+  @keyframes dclChev { 0%, 100% { opacity:0.15; } 40% { opacity:1; } }
+  @media (prefers-reduced-motion: reduce) { .dcl-ind i { animation:none; opacity:0.6; } }
+  @media (max-width:640px) { .dcl-og { grid-template-columns:18px 1fr; gap:5px; } .dcl-ind i { width:5px; height:5px; } }
+  .dcl-book { background:none; border:none; padding:0; box-shadow:none; }
   .dcl-t { font-family:var(--serif); font-size:1.5rem; font-weight:600; color:#182233; }
   .dcl-s { font-family:var(--serif); font-style:italic; font-size:0.95rem; color:#4d5f80; margin-top:2px; }
   .dcl-dv { display:flex; align-items:center; gap:10px; margin:22px 0 4px; }
@@ -1629,7 +1639,7 @@
   .dcl-empty { font-family:var(--serif); font-style:italic; color:#7686a3; padding:12px 0 14px; }
   body.editing .dcl-row .dc-x { display:inline-flex; }
   @media (max-width:640px) {
-    .dcl-book { padding:8px 14px 6px; }
+    .dcl-book { padding:0; }
     .dcl-row { grid-template-columns:1fr 72px; gap:10px; align-items:start; padding:12px 10px; }
     .dcl-mk { min-width:0; gap:4px; }
     .dcl-no { display:flex; flex-direction:column; align-items:center; border-right:1px solid #cfdbee; padding-right:9px; line-height:1; }
@@ -10027,6 +10037,8 @@ function dcLedgerHtml_() {
     + (q ? '<div class="dcl-q">“' + escHtml(q) + '”</div>' : '') + '</div>'
     + '<span class="dcl-mk"><span class="dcl-stamp">' + dcStampFor_(d, d.status === 'trail', dcIsWip_(d), null) + '</span>'
     + (d.status === 'trail' && Number(d.satisfaction) ? dcStarsRO_(d) + '<span class="dcl-lb">Looking back</span>' : '') + '</span>' + x(d) + '</div>';
+  // G1 (4 Nov 2026): an ongoing decision has three chevrons before its box, lighting in turn - still moving
+  const og = (st, html) => '<div class="dcl-og ' + st + '"><span class="dcl-ind" aria-hidden="true"><i></i><i></i><i></i></span>' + html + '</div>';
   const divider = (name, count) => '<div class="dcl-dv"><span class="lb">' + name + '</span><i></i><span class="ct">' + count + '</span></div>';
   // LD-4 (4 Nov 2026, A): no page title and no 'Ongoing decisions' divider - the open and in-progress decisions
   // simply come first (their stamps say what they are); 'Past decisions' is the one divider.
@@ -10035,12 +10047,12 @@ function dcLedgerHtml_() {
     const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
     let when = 'NO DATE', late = false;
     if (d.target_on) { const k = days(today, d.target_on); late = k < 0; when = (k < 0 ? 'WAS DUE ' : 'DECIDE BY ') + U(dcFmt_(d.target_on)) + (k > 0 ? ' · ' + k + (k === 1 ? ' DAY' : ' DAYS') + ' LEFT' : k === 0 ? ' · TODAY' : ''); }
-    return entry(d, 'pend' + (late ? ' late' : ''), 'DECISION · ON THE DESK · ' + n + ' / ' + total + ' ANSWERED', when, '');
+    return og('pend', entry(d, 'pend' + (late ? ' late' : ''), 'DECISION · ON THE DESK · ' + n + ' / ' + total + ' ANSWERED', when, ''));
   }).join('');
   h += wip.map(d => {
     const lived = d.decided_on ? days(d.decided_on, today) : null;
-    return entry(d, 'wip', 'WORK IN PROGRESS · ' + U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : ''),
-      'LIVING IT' + (lived != null && lived >= 0 ? ' · ' + lived + (lived === 1 ? ' DAY' : ' DAYS') : '') + (d.target_on ? ' · TO HAPPEN BY ' + U(dcFmt_(d.target_on)) : ''), '');
+    return og('wip', entry(d, 'wip', 'WORK IN PROGRESS · ' + U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : ''),
+      'LIVING IT' + (lived != null && lived >= 0 ? ' · ' + lived + (lived === 1 ? ' DAY' : ' DAYS') : '') + (d.target_on ? ' · TO HAPPEN BY ' + U(dcFmt_(d.target_on)) : ''), ''));
   }).join('');
   h += divider('Past decisions', trail.length + (trail.length === 1 ? ' decision' : ' decisions') + (trail.length ? ' · since ' + String(trail[trail.length - 1].decided_on || trail[trail.length - 1].created_at || '').slice(0, 4) : ''));
   h += trail.map(d => {
