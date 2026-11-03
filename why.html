@@ -1619,7 +1619,7 @@
   .dcl-dv .lb { font-family:var(--serif); font-size:1.0625rem; font-weight:700; color:#182233; text-decoration:underline; text-decoration-color:#d9b84a; text-decoration-thickness:3px; text-underline-offset:4px; text-decoration-skip-ink:none; white-space:nowrap; }
   .dcl-dv i { flex:1; height:1px; background:#c9d5ea; }
   .dcl-dv .ct { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:#7686a3; white-space:nowrap; }
-  .dcl-row { --r:#b07d1f; --w:linear-gradient(180deg,#fdf8ec,#fbf1d9); display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center; margin-top:12px; padding:14px 16px; border:1px solid #e3e8f0; border-top:3px solid var(--r); border-radius:0 0 14px 14px; background:var(--w); cursor:pointer; }
+  .dcl-row { --r:#b07d1f; --w:linear-gradient(180deg,#fdf8ec,#fbf1d9); display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center; margin-top:12px; padding:14px 16px; border:1px solid #e3e8f0; border-radius:14px; background:var(--w);   /* Y: no coloured top line on any entry */ cursor:pointer; }
   .dcl-row.wip { --r:#5b4a86; --w:linear-gradient(180deg,#f6f4fa,#ebe6f3); }   /* O3: amethyst in progress */
   .dcl-row.lived { --r:#1F6E78; --w:linear-gradient(180deg,#eef6f7,#e2eff1); }   /* L2: lived in Work in progress's sea glass; the teal stamp tells them apart */
   .dcl-row.canx { --r:#a8323f; --w:linear-gradient(180deg,#fcf6f6,#f3e5e5); }   /* R1: walked away in soft rose */
@@ -10057,17 +10057,18 @@ function dcLedgerHtml_() {
     const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
     let when = 'NO DATE', late = false;
     if (d.target_on) { const k = days(today, d.target_on); late = k < 0; when = (k < 0 ? 'WAS DUE ' : 'DECIDE BY ') + U(dcFmt_(d.target_on)) + (k > 0 ? ' · ' + k + (k === 1 ? ' DAY' : ' DAYS') + ' LEFT' : k === 0 ? ' · TODAY' : ''); }
-    return og('pend', entry(d, 'pend' + (late ? ' late' : ''), 'DECISION · ON THE DESK · ' + n + ' / ' + total + ' ANSWERED', when, ''));
+    return og('pend', entry(d, 'pend' + (late ? ' late' : ''), n + ' OF ' + total + ' ANSWERED', when, ''));
   }).join('');
   h += wip.map(d => {
     const lived = d.decided_on ? days(d.decided_on, today) : null;
-    return og('wip', entry(d, 'wip', 'WORK IN PROGRESS · ' + U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : ''),
+    return og('wip', entry(d, 'wip', U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : ''),
       'LIVING IT' + (lived != null && lived >= 0 ? ' · ' + lived + (lived === 1 ? ' DAY' : ' DAYS') : '') + (d.target_on ? ' · TO HAPPEN BY ' + U(dcFmt_(d.target_on)) : ''), ''));
   }).join('');
   h += divider('Past decisions', trail.length + (trail.length === 1 ? ' decision' : ' decisions') + (trail.length ? ' · since ' + String(trail[trail.length - 1].decided_on || trail[trail.length - 1].created_at || '').slice(0, 4) : ''));
   h += trail.map(d => {
     const canx = dcCanx_(d), r = Number(d.satisfaction) || 0;
-    const eb = 'DECISION · THE TRAIL · ' + (canx ? 'WALKED AWAY' + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '') : d.happened_on ? 'LIVED ' + U(dcFmt_(d.happened_on)) : 'NOT YET LIVED');
+    // Y (4 Nov 2026): the small line keeps only what the stamp doesn't say in full
+    const eb = (canx ? 'WALKED AWAY' + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '') : d.happened_on ? 'LIVED ' + U(dcFmt_(d.happened_on)) : 'NOT YET LIVED');
     const meta = canx ? 'DIDN\u2019T WORK OUT' : U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '');
     return entry(d, canx ? 'canx' : 'lived', eb, meta, (d.rating_note || '').trim());
   }).join('');
