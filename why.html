@@ -1612,6 +1612,26 @@
   @keyframes dclChev { 0%, 100% { opacity:0.15; } 40% { opacity:1; } }
   @media (prefers-reduced-motion: reduce) { .dcl-ind i { animation:none; opacity:0.6; } }
   @media (max-width:640px) { .dcl-og { grid-template-columns:18px 1fr; gap:5px; } .dcl-ind i { width:5px; height:5px; } }
+  .bp-card { --a:#2F6F6A; --w:#eaf4f2; position:relative; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; margin-top:10px; padding:14px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
+  .bp-card.ask { --a:#9a4a2e; --w:#fbf1ea; } .bp-card.wip { --a:#5b4a86; --w:#f1eef8; } .bp-card.lived { --a:#1F6E78; --w:#e9f3f4; } .bp-card.canx { --a:#a8323f; --w:#fcf1f1; }
+  .bp-card:hover .bp-nm { text-decoration:underline; text-decoration-color:#c9d2e0; text-underline-offset:3px; }
+  .bp-eb { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.14em; color:var(--a); }
+  .bp-nm { font-family:var(--serif); font-size:1.375rem; font-weight:700; color:#0A1325; line-height:1.22; margin:3px 0 2px; overflow-wrap:anywhere; }
+  .bp-cd { display:inline-block; margin-top:6px; background:var(--a); color:#fff; border-radius:999px; padding:3px 10px; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; }
+  .bp-q { font-family:'Caveat', cursive; font-size:1.2rem; color:var(--a); margin-top:3px; }
+  .bp-stars { margin-top:4px; }
+  .bp-seal { width:84px; height:84px; border-radius:50%; border:2.5px solid var(--a); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--a); transform:rotate(-12deg); position:relative; flex-shrink:0; text-align:center; }
+  .bp-seal:before { content:''; position:absolute; inset:5px; border-radius:50%; border:1px dashed var(--a); }
+  .bp-seal b { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; }
+  .bp-seal em { font-style:normal; font-family:var(--serif); font-size:1rem; font-weight:700; margin:2px 0; }
+  .bp-seal small { font-family:var(--mono); font-size:0.42rem; letter-spacing:0.12em; }
+  body.editing .bp-card .dc-x { display:inline-flex; position:absolute; top:8px; right:8px; }
+  @media (max-width:640px) {
+    .bp-card { padding:12px; gap:10px; }
+    .bp-nm { font-size:1.15rem; }
+    .bp-eb { font-size:0.625rem; letter-spacing:0.1em; }
+    .bp-seal { width:68px; height:68px; } .bp-seal em { font-size:0.8rem; } .bp-seal b, .bp-seal small { font-size:0.36rem; letter-spacing:0.06em; }
+  }
   .dcl-book { background:none; border:none; padding:0; box-shadow:none; }
   .dcl-t { font-family:var(--serif); font-size:1.5rem; font-weight:600; color:#182233; }
   .dcl-s { font-family:var(--serif); font-style:italic; font-size:0.95rem; color:#4d5f80; margin-top:2px; }
@@ -10075,12 +10095,50 @@ function dcLedgerHtml_() {
   if (!trail.length) h += '<div class="dcl-empty">no decisions sealed yet</div>';
   return h + '</div>';
 }
+// BP-1 (4 Nov 2026, B1): My Bucket List as a passport of dreams - each dream a card on its state's paper with a
+// round passport stamp (its month: planned for / decide by / since / lived), a countdown pill, and two dividers:
+// Still dreaming (being lived, needs deciding, ahead; nearest date first, undated last) and Lived (newest first).
+function dcBucketHtml_() {
+  const mine = dcRows.filter(d => dcIsDream_(d)).filter(dcKeep_);
+  const today = new Date().toISOString().slice(0, 10);
+  const mon = iso => { const x = iso ? new Date(iso + 'T00:00:00') : null; return x && !isNaN(x) ? BK_MON[x.getMonth()] + ' \u2019' + String(x.getFullYear()).slice(2) : ''; };
+  const monLong = iso => { const x = iso ? new Date(iso + 'T00:00:00') : null; return x && !isNaN(x) ? BK_MON[x.getMonth()] + ' ' + x.getFullYear() : ''; };
+  const days = (a, b) => Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 864e5);
+  const until = k => k < 0 ? 'WAS DUE' : k === 0 ? 'TODAY' : k < 14 ? 'IN ' + k + (k === 1 ? ' DAY' : ' DAYS') : k < 70 ? 'IN ' + Math.round(k / 7) + ' WEEKS' : k < 730 ? 'IN ' + Math.round(k / 30.4) + ' MONTHS' : 'IN ' + Math.round(k / 365) + ' YEARS';
+  const x = d => '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>';
+  const seal = (st, top, mid, bot) => '<span class="bp-seal"><b>' + top + '</b><em>' + mid + '</em><small>' + bot + '</small></span>';
+  const card = (d, st, eb, pill, sealH, extra) => '<div class="bp-card ' + st + '" data-dc="' + d.id + '"><div class="bp-b"><div class="bp-eb">' + eb + '</div><div class="bp-nm">' + escHtml(d.title) + '</div>'
+    + (pill ? '<span class="bp-cd">' + pill + '</span>' : '') + (extra || '') + '</div>' + sealH + x(d) + '</div>';
+  const desk = mine.filter(d => d.status !== 'trail');
+  const stateOf = d => dcIsWip_(d) ? 'wip' : dcDreamPending_(d) ? 'ask' : 'ahead';
+  const keyDate = d => dcIsWip_(d) ? (d.target_on || '9999') : (d.target_on || '9999');
+  desk.sort((a, b) => keyDate(a).localeCompare(keyDate(b)) || String(a.created_at).localeCompare(String(b.created_at)));
+  const trail = mine.filter(d => d.status === 'trail').sort(dcTrailSort_);
+  let h = '<div class="dcl-dv"><span class="lb">Still dreaming</span><i></i><span class="ct">' + desk.length + (desk.length === 1 ? ' DREAM' : ' DREAMS') + '</span></div>';
+  h += desk.map(d => {
+    const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
+    if (st === 'wip') return card(d, st, 'LIVING IT' + (d.decided_on ? ' \u00B7 SINCE ' + monLong(d.decided_on) : ''), t ? 'TO HAPPEN BY ' + monLong(t) : '', seal(st, 'LIVING', mon(d.decided_on) || '\u2726', 'IT'));
+    if (st === 'ask') return card(d, st, t ? 'DECIDE BY ' + String(dcFmt_(t)).toUpperCase() : 'NEEDS DECIDING', t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET', seal(st, 'NEEDS', mon(t) || '?', 'DECIDING'));
+    return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || '\u2726', 'AHEAD'));
+  }).join('');
+  if (!desk.length) h += '<div class="dcl-empty">no dream ahead yet \u2014 what do you want to live?</div>';
+  const lived = trail.filter(d => !dcCanx_(d));
+  h += '<div class="dcl-dv"><span class="lb">Lived</span><i></i><span class="ct">' + lived.length + (lived.length === 1 ? ' DREAM COME TRUE' : ' DREAMS COME TRUE') + '</span></div>';
+  h += trail.map(d => {
+    const canx = dcCanx_(d), w = d.happened_on || d.decided_on, r = Number(d.satisfaction) || 0, note = (d.rating_note || '').trim();
+    const extra = (r ? '<div class="bp-stars">' + dcStarsRO_(d) + '</div>' : '') + (note ? '<div class="bp-q">\u201C' + escHtml(note) + '\u201D</div>' : '');
+    return canx ? card(d, 'canx', 'LET GO' + (w ? ' \u00B7 ' + monLong(w) : ''), '', seal('canx', 'LET', mon(w) || '\u2715', 'GO'), extra)
+                : card(d, 'lived', d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED', '', seal('lived', '\u2726 LIVED', mon(w) || '\u2726', ''), extra);
+  }).join('');
+  if (!trail.length) h += '<div class="dcl-empty">no dreams lived yet</div>';
+  return '<div class="dcl-book">' + h + '</div>';
+}
 function renderDecisions() {
-  // LD-1: My Decisions reads as a ledger; My Bucket List keeps the rail below
+  // LD-1: My Decisions reads as a ledger; BP-1: My Bucket List as a passport
   const ledger = dcFilter_ !== 'dream';
-  el('secDecisions').classList.toggle('dcl-on', ledger);
-  if (ledger) {
-    el('dcDeskList').innerHTML = dcLedgerHtml_();
+  el('secDecisions').classList.add('dcl-on');
+  if (true) {
+    el('dcDeskList').innerHTML = ledger ? dcLedgerHtml_() : dcBucketHtml_();
     el('dcTrailList').innerHTML = '';
     dcWireList_();
     return;
