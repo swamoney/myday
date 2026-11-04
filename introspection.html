@@ -199,7 +199,8 @@
   .tl-sum b, .tl-dv b { font-family:var(--serif); font-size:1.0625rem; font-weight:700; color:#182233; text-decoration:underline; text-decoration-color:#d9b84a; text-decoration-thickness:3px; text-underline-offset:4px; text-decoration-skip-ink:none; white-space:nowrap; }
   .tl-sum i, .tl-dv i { flex:1; height:1px; background:#d6dde8; }
   .tl-sum span, .tl-dv span { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:#7686a3; white-space:nowrap; }
-  .tl-card { display:grid; grid-template-columns:90px 1fr auto; gap:16px; align-items:center; margin-top:10px; padding:16px 18px; border-radius:14px; border:1px solid #e3e8f0; box-shadow:0 0 0 2px var(--a) inset; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
+  .tl-card { display:grid; grid-template-columns:90px 1fr auto; gap:16px; align-items:center; margin-top:10px; padding:16px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
+  .tl-card.live { box-shadow:0 0 0 2px var(--a) inset; }
   .tl-rn { font-family:var(--serif); font-size:2.6rem; font-weight:700; color:var(--a); line-height:1; text-align:center; }
   .tl-rn small { display:block; font-family:var(--mono); font-size:0.45rem; letter-spacing:0.16em; text-transform:uppercase; color:#8B97AC; font-weight:600; margin-bottom:4px; }
   .tl-eb { font-family:var(--mono); font-size:0.55rem; font-weight:600; letter-spacing:0.14em; color:var(--a); margin-bottom:4px; }
@@ -1361,9 +1362,7 @@ function ageLabel(r) {
   const a2 = r.years_to - by;
   return a2 === a1 ? 'AGE ' + a1 : 'AGE ' + a1 + '\u2013' + a2;
 }
-// TL-2 (4 Nov 2026, L1 + L1b + S3): one summary line; the chapter(s) you are living as full cards with a gold
-// NOW · LIVING IT stamp; every closed chapter as a slim row (numeral, name, years, its share of your life),
-// grouped under decade dividers, newest first - calm at 15 chapters, still calm at 50.
+// TL-2 (4 Nov 2026, L1b): one summary line, then every chapter as a full card, oldest first.
 function ilStampSvg_(l1, l2, ink, small) {
   const t = (y, txt, sz) => '<text x="60" y="' + y + '" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="' + sz + '" font-weight="700" letter-spacing="' + (sz >= 11 ? 2 : 1.5) + '" fill="' + ink + '" opacity="0.92">' + txt + '</text>';
   return '<svg viewBox="0 0 120 70" aria-hidden="true"><rect x="4" y="4" width="112" height="62" rx="4" fill="none" stroke="' + ink + '" stroke-width="3.5" stroke-dasharray="60 2 40 3 80 2" opacity="0.9"/>' +
@@ -1382,31 +1381,21 @@ function renderTimeline(list, wrap) {
   if (list.length) {
     html += '<div class="tl-sum"><b>' + list.length + (list.length === 1 ? ' chapter' : ' chapters') + '</b><i></i><span>'
       + (firstY < 9999 ? startY + ' – NOW · ' + lifeYears + ' YEARS' : '') + '</span></div>';
-    const desc = (a, b) => (b.years_from || 0) - (a.years_from || 0) || String(b.created_at).localeCompare(String(a.created_at));
-    const live = list.filter(r => r.years_from && !r.years_to).sort(desc);
-    const closed = list.filter(r => r.years_from && r.years_to).sort(desc);
-    const loose = list.filter(r => !r.years_from);
-    html += live.map(r => {
-      const sh = chShade(idx[r.id] || 0), yrs = nowY - r.years_from, age = ageLabel(r);
-      return '<div class="tl-card" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
+    // L1b (4 Nov 2026, Rahul's screenshot): every chapter a full card, oldest first, as the life reads;
+    // closed ones stamped CHAPTER CLOSED in their own ink, the one you are living NOW · LIVING IT in gold.
+    html += list.slice().sort(chapterSort).map(r => {
+      const sh = chShade(idx[r.id] || 0), live = r.years_from && !r.years_to, age = ageLabel(r);
+      const yrs = r.years_from ? (r.years_to || nowY) - r.years_from : null;
+      const eb = [age || (r.years_from ? yearsLabel(r) + (live ? 'NOW' : '') : 'NO YEARS YET'), yrs != null ? Math.max(yrs, 1) + (yrs === 1 ? ' YEAR' : ' YEARS') : '', live ? 'ONGOING' : ''].filter(Boolean).join(' · ');
+      const stamp = live ? ilStampSvg_('NOW', 'LIVING IT', '#b07d1f') : r.years_to ? ilStampSvg_('CHAPTER', 'CLOSED', sh) : '';
+      return '<div class="tl-card' + (live ? ' live' : '') + '" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
         + '<div class="tl-rn"><small>Chapter</small>' + rn(r) + '</div>'
-        + '<div class="tl-b"><div class="tl-eb">' + escHtml(yearsLabel(r)) + 'NOW' + (age ? ' · ' + escHtml(age) : '') + ' · ' + yrs + (yrs === 1 ? ' YEAR' : ' YEARS') + ' · ONGOING</div>'
+        + '<div class="tl-b"><div class="tl-eb">' + escHtml(eb) + '</div>'
         + '<div class="tl-nm">' + escHtml(r.title) + '</div>'
         + (r.essence ? '<div class="tl-q">' + escHtml(r.essence) + '</div>' : '')
-        + '<div class="tl-ln"><i style="width:' + share(r) + '%"></i></div></div>'
-        + '<span class="tl-st">' + ilStampSvg_('NOW', 'LIVING IT', '#b07d1f') + '</span></div>';
+        + (r.years_from ? '<div class="tl-ln"><i style="width:' + share(r) + '%"></i></div>' : '') + '</div>'
+        + (stamp ? '<span class="tl-st">' + stamp + '</span>' : '') + '</div>';
     }).join('');
-    const slim = r => {
-      const sh = chShade(idx[r.id] || 0);
-      return '<div class="tl-sl" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1a;"><b>' + rn(r) + '</b><span class="n">' + escHtml(r.title) + '</span>'
-        + '<span class="y">' + escHtml(yearsLabel(r)) + '</span><span class="bb"><i style="width:' + share(r) + '%"></i></span></div>';
-    };
-    const dec = {};
-    closed.forEach(r => { const d = Math.floor(r.years_from / 10) * 10; (dec[d] = dec[d] || []).push(r); });
-    Object.keys(dec).map(Number).sort((a, b) => b - a).forEach(d => {
-      html += '<div class="tl-dv"><b>The ' + d + 's</b><i></i><span>' + dec[d].length + (dec[d].length === 1 ? ' CHAPTER' : ' CHAPTERS') + '</span></div>' + dec[d].map(slim).join('');
-    });
-    if (loose.length) html += '<div class="tl-dv"><b>No years yet</b><i></i><span>' + loose.length + '</span></div>' + loose.map(slim).join('');
   } else {
     html += '<div class="empty"><div class="big">No chapters yet</div><div class="small">Name the first era of your life below.</div></div>';
   }
