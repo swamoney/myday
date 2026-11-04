@@ -201,6 +201,15 @@
   .tl-sum span, .tl-dv span { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:#7686a3; white-space:nowrap; }
   .tl-card { display:grid; grid-template-columns:90px 1fr auto; gap:16px; align-items:center; margin-top:10px; padding:16px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
   .tl-card.live { box-shadow:0 0 0 2px #b07d1f inset; }
+  .ch-age { display:inline-block; margin-top:6px; background:#f3d585; color:#5c4510; border:1px solid #e6c46a; border-radius:999px; padding:3px 10px; font-family:var(--mono); font-size:0.58rem; font-weight:700; letter-spacing:0.12em; cursor:default; }
+  button.ch-age { cursor:pointer; }
+  .ch-agerow { margin-top:2px; line-height:1; }
+  .ch-post { width:100px; height:96px; background:#fff; border:2px dashed var(--a); border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; transform:rotate(4deg); box-shadow:0 3px 8px rgba(0,0,0,0.08); color:var(--a); flex-shrink:0; }
+  .ch-post b { font-family:var(--serif); font-size:1.7rem; line-height:1; color:inherit; }
+  .ch-post small { font-family:var(--mono); font-size:0.46rem; letter-spacing:0.12em; margin-top:3px; }
+  .ch-post em { font-style:normal; font-family:'Caveat', cursive; font-size:1.08rem; font-weight:600; margin-top:4px; white-space:nowrap; }
+  .rd-sticky.plate .rd-mark .ch-post { cursor:pointer; }
+  .rd-sticky.plate .rd-mark .ch-post b { color:var(--a); font-size:1.7rem; position:static; }
   .tl-dec { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.14em; color:var(--a); margin:14px 0 0 2px; }
   .tl-card { border-color:color-mix(in srgb, var(--a) 25%, transparent); }
   .tl-rn { font-family:var(--serif); font-size:2.6rem; font-weight:700; color:var(--a); line-height:1; text-align:center; }
@@ -245,7 +254,9 @@
   .rd-sticky.plate.stamped .rd-mark svg { width:100%; height:100%; display:block; }
   .rdm-yp { background:#f3d585; color:#5c4510; border:none; border-radius:999px; padding:4px 10px; font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.1em; white-space:nowrap; cursor:pointer; }
   @media (max-width:640px) {
-    .tl-card { grid-template-columns:52px 1fr; padding:12px; }
+    .tl-card { grid-template-columns:44px 1fr auto; padding:10px; gap:8px; }
+    .tl-card .ch-post { width:66px; height:68px; } .tl-card .ch-post b { font-size:1.05rem; } .tl-card .ch-post small { font-size:0.38rem; } .tl-card .ch-post em { font-size:0.78rem; }
+    .rd-sticky.plate .rd-mark .ch-post { width:72px; height:76px; } .rd-sticky.plate .rd-mark .ch-post em { font-size:0.86rem; }
     .tl-rn { font-size:1.7rem; }
     .tl-st { display:none; }
     .tl-nm { font-size:1.2rem; }
@@ -1193,8 +1204,8 @@ function chShade(i) { return TL_SHADES[i % TL_SHADES.length]; }
 // 1990s teal, 2000s moss, 2010s indigo, 2020s terracotta, then ochre, aubergine, and round again. No years: slate.
 function chDecShade_(r) {
   if (!r || !r.years_from) return '#7686a3';
-  const P = ['#2b8a80', '#4f7a3e', '#2f5f93', '#b0582f', '#8a6f2f', '#6D4E66'];
-  return P[(((Math.floor(r.years_from / 10) - 199) % 6) + 6) % 6];
+  const P = ['#2F6B8A', '#5b4a86', '#9a7b3a', '#3a6fb0'];   // Q2 (4 Nov 2026): 1990s ocean, 2000s amethyst, 2010s bronze, 2020s sky - no moss, no red
+  return P[(((Math.floor(r.years_from / 10) - 199) % 4) + 4) % 4];
 }
 function romanNum(n) {
   const R = [[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
@@ -1387,6 +1398,14 @@ function ilStampSvg_(l1, l2, ink, small) {
   return '<svg viewBox="0 0 120 70" aria-hidden="true"><rect x="4" y="4" width="112" height="62" rx="4" fill="none" stroke="' + ink + '" stroke-width="3.5" stroke-dasharray="60 2 40 3 80 2" opacity="0.9"/>' +
     '<rect x="10" y="10" width="100" height="50" rx="2" fill="none" stroke="' + ink + '" stroke-width="1.2" opacity="0.85"/>' + t(34, l1, 11) + t(50, l2, small ? 9 : 11) + '</svg>';
 }
+// Q2 (4 Nov 2026): a chapter's postage stamp - how many years, and the years themselves in handwriting
+function chPost_(r, sh) {
+  const nowY = new Date().getFullYear(), live = r.years_from && !r.years_to;
+  if (!r.years_from) return '';
+  const n = Math.max(1, (r.years_to || nowY) - r.years_from);
+  const span = r.years_to ? (r.years_to === r.years_from ? String(r.years_from) : r.years_from + '\u2013' + r.years_to) : r.years_from + '\u2013now';
+  return '<span class="ch-post' + (live ? ' live' : '') + '" style="--a:' + (live ? '#b07d1f' : sh) + ';"><b>' + n + '</b><small>' + (n === 1 ? 'YEAR' : 'YEARS') + '</small><em>' + span + '</em></span>';
+}
 function renderTimeline(list, wrap) {
   const all = rows.filter(x => displayKind(x.kind) === 'experience').sort(chapterSort);
   const idx = {}; all.forEach((r, i) => { idx[r.id] = i; });
@@ -1409,15 +1428,15 @@ function renderTimeline(list, wrap) {
       const decMark = dec !== lastDec ? '<div class="tl-dec" style="--a:' + sh + ';">\u25CF ' + (dec ? 'THE ' + dec + 'S' : 'NO YEARS YET') + '</div>' : '';
       lastDec = dec;
       const yrs = r.years_from ? (r.years_to || nowY) - r.years_from : null;
-      const eb = [age || (r.years_from ? yearsLabel(r) + (live ? 'NOW' : '') : 'NO YEARS YET'), yrs != null ? Math.max(yrs, 1) + (yrs === 1 ? ' YEAR' : ' YEARS') : '', live ? 'ONGOING' : ''].filter(Boolean).join(' · ');
-      const stamp = live ? ilStampSvg_('NOW', 'LIVING IT', '#b07d1f') : r.years_to ? ilStampSvg_('CHAPTER', 'CLOSED', sh) : '';
+      const eb = r.years_from ? r.years_from + ' \u2013 ' + (r.years_to || 'NOW') + ' \u00B7 ' + Math.max(yrs, 1) + (yrs === 1 ? ' YEAR' : ' YEARS') : 'NO YEARS YET';
       return decMark + '<div class="tl-card' + (live ? ' live' : '') + '" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
         + '<div class="tl-rn"><small>Chapter</small>' + rn(r) + '</div>'
         + '<div class="tl-b"><div class="tl-eb">' + escHtml(eb) + '</div>'
         + '<div class="tl-nm">' + escHtml(r.title) + '</div>'
+        + (age ? '<span class="ch-age">' + escHtml(age) + '</span>' : '')
         + (r.essence ? '<div class="tl-q">' + escHtml(r.essence) + '</div>' : '')
         + (r.years_from ? '<div class="tl-ln"><i style="width:' + share(r) + '%"></i></div>' : '') + '</div>'
-        + (stamp ? '<span class="tl-st">' + stamp + '</span>' : '') + '</div>';
+        + chPost_(r, sh) + '</div>';
     }).join('');
   } else {
     html += '<div class="empty"><div class="big">No chapters yet</div><div class="small">Name the first era of your life below.</div></div>';
@@ -1914,17 +1933,7 @@ function openReader(id, keepNav) {
     // the pill says so; the age pill offers the birth year when missing.
     const yl = yearsLabel(r);
     const al = ageLabel(r);
-    el('readerKind').innerHTML = escHtml(meta) +   // PT: the years moved under the stamp, as a gold pill
-      (al ? ' <span class="rk-age rk-tap" id="rkAge" title="Tap to change your birth year">' + escHtml(al) + '</span>'
-          : (yl && !birthYear() ? ' <span class="rk-age rk-tap" id="rkAge" title="Set your birth year for age labels">age?</span>' : ''));
-    const ra = el('rkAge');
-    if (ra) ra.addEventListener('click', () => {
-      const v = prompt('Your birth year (for the AGE labels):', birthYear() || '');
-      if (v && /^\d{4}$/.test(v.trim())) {
-        localStorage.setItem('myday_birth_year', v.trim());
-        openReader(r.id, true); render();
-      }
-    });
+    el('readerKind').innerHTML = escHtml(meta);   // Q2: the eyebrow is CHAPTER III alone; the age sits under the name, the years on the stamp
   } else if (dk === 'trip') {
     const dl = tripDatesLabel(r), dn = tripDaysLabel(r), al = tripAgeLabel(r);
     const tell = r.telling || 'both';
@@ -1986,13 +1995,20 @@ function openReader(id, keepNav) {
       // PH-2 (4 Nov 2026): the chapter page wears a plate like a decision page - its own soft paper and a stamp,
       // and (PT) the years beneath the stamp as a gold pill - tap it to edit the period
       const mk = el('rdMark');
-      const stampSvg = r.years_from && !r.years_to ? ilStampSvg_('NOW', 'LIVING IT', '#b07d1f') : r.years_to ? ilStampSvg_('CHAPTER', 'CLOSED', sh) : ilStampSvg_('CHAPTER', romanNum(ci + 1), sh);
-      const yl = r.years_from ? (r.years_to ? (r.years_to === r.years_from ? String(r.years_from) : r.years_from + ' \u2013 ' + r.years_to) : r.years_from + ' \u2013 NOW') : 'set the years';
-      mk.innerHTML = '<span class="rdm-st">' + stampSvg + '</span><button type="button" class="rdm-yp" id="rkYears" title="Tap to edit the period">' + escHtml(yl) + '</button>';
+      // Q2: the postage stamp (years count + the years) is the tap target for the period; the gold age pill under the name sets the birth year
+      const post = chPost_(r, sh);
+      mk.innerHTML = post ? post.replace('<span class="ch-post', '<span id="rkYears" title="Tap to edit the period" class="ch-post') : '<button type="button" class="ch-age" id="rkYears">set the years</button>';
       el('rkYears').addEventListener('click', () => _editChapterYears(r));
+      const al = ageLabel(r);
+      h1.innerHTML += '<div class="ch-agerow"><button type="button" class="ch-age" id="rkAge" title="' + (al ? 'Tap to change your birth year' : 'Set your birth year for age labels') + '">' + escHtml(al || 'age?') + '</button></div>';
+      el('rkAge').addEventListener('click', () => {
+        const v = prompt('Your birth year (for the AGE labels):', birthYear() || '');
+        if (v && /^\d{4}$/.test(v.trim())) { localStorage.setItem('myday_birth_year', v.trim()); openReader(r.id, true); render(); }
+      });
       mk.classList.remove('hidden');
       el('rdSticky').classList.remove('ch');
-      el('rdSticky').classList.add('plate', 'stamped');
+      el('rdSticky').classList.add('plate');
+      el('rdSticky').classList.remove('stamped');
       el('rdSticky').style.setProperty('--pa', sh); el('rdSticky').style.setProperty('--pw1', sh + '0d'); el('rdSticky').style.setProperty('--pw', sh + '26'); el('rdSticky').style.setProperty('--pb', sh + '40');
       el('readerKind').style.color = sh;   // the eyebrow drinks the chapter's ink
     } else if (dk === 'trip') {
