@@ -200,7 +200,9 @@
   .tl-sum i, .tl-dv i { flex:1; height:1px; background:#d6dde8; }
   .tl-sum span, .tl-dv span { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:#7686a3; white-space:nowrap; }
   .tl-card { display:grid; grid-template-columns:90px 1fr auto; gap:16px; align-items:center; margin-top:10px; padding:16px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
-  .tl-card.live { box-shadow:0 0 0 2px var(--a) inset; }
+  .tl-card.live { box-shadow:0 0 0 2px #b07d1f inset; }
+  .tl-dec { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.14em; color:var(--a); margin:14px 0 0 2px; }
+  .tl-card { border-color:color-mix(in srgb, var(--a) 25%, transparent); }
   .tl-rn { font-family:var(--serif); font-size:2.6rem; font-weight:700; color:var(--a); line-height:1; text-align:center; }
   .tl-rn small { display:block; font-family:var(--mono); font-size:0.45rem; letter-spacing:0.16em; text-transform:uppercase; color:#8B97AC; font-weight:600; margin-bottom:4px; }
   .tl-eb { font-family:var(--mono); font-size:0.55rem; font-weight:600; letter-spacing:0.14em; color:var(--a); margin-bottom:4px; }
@@ -238,8 +240,10 @@
   .rd-sticky.plate .rd-mark .tpc-post { --a:var(--pa); }
   .rd-sticky.plate .rd-mark .tpc-post b { color:inherit; font-size:1.7rem; position:static; }
   .rd-sticky.plate .rd-mark .tpc-post small, .rd-sticky.plate .rd-mark .tpc-post em { color:inherit; }
-  .rd-sticky.plate.stamped .rd-mark { width:110px; height:64px; transform:rotate(-10deg); }
+  .rd-sticky.plate.stamped .rd-mark { width:auto; height:auto; transform:none; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .rd-sticky.plate.stamped .rd-mark .rdm-st { width:110px; height:64px; transform:rotate(-10deg); display:block; }
   .rd-sticky.plate.stamped .rd-mark svg { width:100%; height:100%; display:block; }
+  .rdm-yp { background:#f3d585; color:#5c4510; border:none; border-radius:999px; padding:4px 10px; font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.1em; white-space:nowrap; cursor:pointer; }
   @media (max-width:640px) {
     .tl-card { grid-template-columns:52px 1fr; padding:12px; }
     .tl-rn { font-size:1.7rem; }
@@ -256,7 +260,8 @@
     .rd-sticky.plate .reader-h1 { font-size:1.75rem; line-height:1.22; }
     .rd-sticky.plate .rd-mark { right:10px; top:12px; }
     .rd-sticky.plate .rd-mark .tpc-post { width:60px; height:70px; }
-    .rd-sticky.plate.stamped .rd-mark { width:70px; height:42px; }
+    .rd-sticky.plate.stamped .rd-mark .rdm-st { width:70px; height:42px; }
+    .rdm-yp { font-size:0.5rem; padding:3px 7px; }
   }
   .tdots { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 20px 2px; }
   .tdot { width:16px; height:16px; border-radius:4px; transform:rotate(45deg); border:none; padding:0;
@@ -1184,6 +1189,13 @@ function renderSeg() {
 // const; the timeline tab died with a TL_SHADES ReferenceError.)
 const TL_SHADES = ['#3E5C76', '#A4553F', '#5F7355', '#B08A3E', '#6D4E66'];
 function chShade(i) { return TL_SHADES[i % TL_SHADES.length]; }
+// PT (4 Nov 2026): a chapter wears the colour of the decade it began in, from My Trips' postcard inks -
+// 1990s teal, 2000s moss, 2010s indigo, 2020s terracotta, then ochre, aubergine, and round again. No years: slate.
+function chDecShade_(r) {
+  if (!r || !r.years_from) return '#7686a3';
+  const P = ['#2b8a80', '#4f7a3e', '#2f5f93', '#b0582f', '#8a6f2f', '#6D4E66'];
+  return P[(((Math.floor(r.years_from / 10) - 199) % 6) + 6) % 6];
+}
 function romanNum(n) {
   const R = [[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
   let s = ''; R.forEach(([v, sym]) => { while (n >= v) { s += sym; n -= v; } });
@@ -1390,12 +1402,16 @@ function renderTimeline(list, wrap) {
       + (firstY < 9999 ? startY + ' – NOW · ' + lifeYears + ' YEARS' : '') + '</span></div>';
     // L1b (4 Nov 2026, Rahul's screenshot): every chapter a full card, oldest first, as the life reads;
     // closed ones stamped CHAPTER CLOSED in their own ink, the one you are living NOW · LIVING IT in gold.
+    let lastDec = null;
     html += list.slice().sort(chapterSort).map(r => {
-      const sh = chShade(idx[r.id] || 0), live = r.years_from && !r.years_to, age = ageLabel(r);
+      const sh = chDecShade_(r), live = r.years_from && !r.years_to, age = ageLabel(r);
+      const dec = r.years_from ? Math.floor(r.years_from / 10) * 10 : null;
+      const decMark = dec !== lastDec ? '<div class="tl-dec" style="--a:' + sh + ';">\u25CF ' + (dec ? 'THE ' + dec + 'S' : 'NO YEARS YET') + '</div>' : '';
+      lastDec = dec;
       const yrs = r.years_from ? (r.years_to || nowY) - r.years_from : null;
       const eb = [age || (r.years_from ? yearsLabel(r) + (live ? 'NOW' : '') : 'NO YEARS YET'), yrs != null ? Math.max(yrs, 1) + (yrs === 1 ? ' YEAR' : ' YEARS') : '', live ? 'ONGOING' : ''].filter(Boolean).join(' · ');
       const stamp = live ? ilStampSvg_('NOW', 'LIVING IT', '#b07d1f') : r.years_to ? ilStampSvg_('CHAPTER', 'CLOSED', sh) : '';
-      return '<div class="tl-card' + (live ? ' live' : '') + '" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
+      return decMark + '<div class="tl-card' + (live ? ' live' : '') + '" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
         + '<div class="tl-rn"><small>Chapter</small>' + rn(r) + '</div>'
         + '<div class="tl-b"><div class="tl-eb">' + escHtml(eb) + '</div>'
         + '<div class="tl-nm">' + escHtml(r.title) + '</div>'
@@ -1898,13 +1914,9 @@ function openReader(id, keepNav) {
     // the pill says so; the age pill offers the birth year when missing.
     const yl = yearsLabel(r);
     const al = ageLabel(r);
-    el('readerKind').innerHTML = escHtml(meta) +
-      ' <span class="rk-years rk-tap" id="rkYears" title="Tap to edit the period">' +
-        (yl ? escHtml(yl) : 'set the years') + '</span>' +
+    el('readerKind').innerHTML = escHtml(meta) +   // PT: the years moved under the stamp, as a gold pill
       (al ? ' <span class="rk-age rk-tap" id="rkAge" title="Tap to change your birth year">' + escHtml(al) + '</span>'
           : (yl && !birthYear() ? ' <span class="rk-age rk-tap" id="rkAge" title="Set your birth year for age labels">age?</span>' : ''));
-    const ry = el('rkYears');
-    if (ry) ry.addEventListener('click', () => _editChapterYears(r));
     const ra = el('rkAge');
     if (ra) ra.addEventListener('click', () => {
       const v = prompt('Your birth year (for the AGE labels):', birthYear() || '');
@@ -1967,13 +1979,17 @@ function openReader(id, keepNav) {
     if (dk === 'experience') {
       const chs = rows.filter(x => displayKind(x.kind) === 'experience').sort(chapterSort);
       const ci = Math.max(0, chs.findIndex(x => x.id === r.id));
-      const sh = chShade(ci);
+      const sh = chDecShade_(r);
       h1.innerHTML = '<span class="swp" style="--ch-sw:' + sh + '4d;">' + escHtml(r.title) + '</span>';
       sig.style.setProperty('--ch-sol', sh);
       sig.classList.remove('hidden');
-      // PH-2 (4 Nov 2026): the chapter page wears a plate like a decision page - its own soft paper and a stamp
+      // PH-2 (4 Nov 2026): the chapter page wears a plate like a decision page - its own soft paper and a stamp,
+      // and (PT) the years beneath the stamp as a gold pill - tap it to edit the period
       const mk = el('rdMark');
-      mk.innerHTML = r.years_from && !r.years_to ? ilStampSvg_('NOW', 'LIVING IT', '#b07d1f') : r.years_to ? ilStampSvg_('CHAPTER', 'CLOSED', sh) : ilStampSvg_('CHAPTER', romanNum(ci + 1), sh);
+      const stampSvg = r.years_from && !r.years_to ? ilStampSvg_('NOW', 'LIVING IT', '#b07d1f') : r.years_to ? ilStampSvg_('CHAPTER', 'CLOSED', sh) : ilStampSvg_('CHAPTER', romanNum(ci + 1), sh);
+      const yl = r.years_from ? (r.years_to ? (r.years_to === r.years_from ? String(r.years_from) : r.years_from + ' \u2013 ' + r.years_to) : r.years_from + ' \u2013 NOW') : 'set the years';
+      mk.innerHTML = '<span class="rdm-st">' + stampSvg + '</span><button type="button" class="rdm-yp" id="rkYears" title="Tap to edit the period">' + escHtml(yl) + '</button>';
+      el('rkYears').addEventListener('click', () => _editChapterYears(r));
       mk.classList.remove('hidden');
       el('rdSticky').classList.remove('ch');
       el('rdSticky').classList.add('plate', 'stamped');
@@ -2467,7 +2483,7 @@ function exportEntryPrint() {
   if (displayKind(r.kind) === 'experience') {
     const chs = rows.filter(function(x){ return displayKind(x.kind) === 'experience'; }).sort(chapterSort);
     const ci = Math.max(0, chs.findIndex(function(x){ return x.id === r.id; }));
-    const sh = chShade(ci);
+    const sh = chDecShade_(r);
     kindLine = '<div style="position:relative; padding-left:54px; min-height:44px;">' +
       '<span style="position:absolute; left:0; top:0; width:40px; height:40px;">' +
         '<span style="position:absolute; left:4px; top:4px; right:4px; bottom:4px; transform:rotate(45deg); border-radius:8px; background:' + sh + ';"></span>' +
