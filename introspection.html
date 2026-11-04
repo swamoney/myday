@@ -277,7 +277,31 @@
     .rd-sticky.plate .rd-mark .tpc-post { width:60px; height:70px; }
     .rd-sticky.plate.stamped .rd-mark .rdm-st { width:70px; height:42px; }
     .rdm-yp { font-size:0.5rem; padding:3px 7px; }
+    .rd-sticky.plate.pl-left { padding:12px 14px 14px 84px; }
+    .rd-sticky.plate.pl-wr { padding-right:92px; }
+    .rd-sticky.plate.pl-left .rd-mark { left:12px; right:auto; }
   }
+  /* PG-H2 (Nov 2026): diary page = day stamp on the left; writing page = round reading stamp on the right */
+  .rd-sticky.plate.pl-left { padding:14px 18px 16px 120px; }
+  .rd-sticky.plate.pl-left .rd-mark { left:18px; right:auto; top:16px; }
+  .rd-mark .dy-pst { width:76px; height:84px; border-radius:8px; outline-offset:-6px; }
+  .rd-sticky.plate .rd-mark .dy-pst b, .rd-sticky.plate .rd-mark .wr-pst b { position:static; color:inherit; }
+  .rd-sticky.plate .rd-mark .dy-pst b { font-size:2rem; line-height:1; }
+  .rd-sticky.plate .rd-mark .wr-pst { margin-top:4px; }
+  .rd-sticky.plate.pl-wr { padding-right:150px; }
+  .rd-sticky.plate .rd-mark .wr-pst b { font-family:var(--mono); font-weight:400; font-size:0.52rem; }
+  @media (max-width:640px) {
+    .rd-sticky.plate .rd-mark .dy-pst { width:58px; height:64px; } .rd-sticky.plate .rd-mark .dy-pst b { font-size:1.45rem; }
+    .rd-sticky.plate .rd-mark .dy-pst small { font-size:0.42rem; } .rd-sticky.plate .rd-mark .dy-pst em { font-size:0.34rem; letter-spacing:0.04em; }
+    .rd-sticky.plate .rd-mark .wr-pst { width:72px; height:72px; } .rd-sticky.plate .rd-mark .wr-pst em { font-size:0.86rem; margin:1px 0; }
+    .rd-sticky.plate .rd-mark .wr-pst b, .rd-sticky.plate .rd-mark .wr-pst small { font-size:0.34rem; letter-spacing:0.04em; }
+  }
+  .rd-mark .dy-pst b { font-size:2rem; }
+  .rd-mark .dy-pst small { font-size:0.5rem; margin-top:4px; }
+  .rd-mark .dy-pst em { font-style:normal; font-family:var(--mono); font-size:0.46rem; letter-spacing:0.12em; margin-top:2px; opacity:0.8; }
+  .rd-mark .wr-pst { width:104px; height:104px; }
+  .rd-mark .wr-pst:before { inset:6px; }
+  .rd-mark .wr-pst b { font-size:0.52rem; } .rd-mark .wr-pst em { font-size:1.3rem; margin:2px 0; } .rd-mark .wr-pst small { font-size:0.44rem; letter-spacing:0.08em; }
   .tdots { display:flex; gap:7px; flex-wrap:wrap; margin:10px 0 20px 2px; }
   .tdot { width:16px; height:16px; border-radius:4px; transform:rotate(45deg); border:none; padding:0;
           cursor:pointer; transition:transform .15s; }
@@ -2005,14 +2029,7 @@ function openReader(id, keepNav) {
   // EY-2: quiet suffixes - calm sans beside the semibold section.
   let quiet = '';
   try {
-    if (dk === 'diary' && r.created_at) {
-      quiet = new Date(r.created_at).toLocaleDateString(undefined,
-        { day: 'numeric', month: 'short', year: 'numeric' });
-    } else if (dk === 'writing') {
-      const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
-      if (words) quiet = words.toLocaleString() + ' words \u00B7 ~' +
-        Math.max(1, Math.round(words / 230)) + ' min';
-    }
+    // PG-H2 (Nov 2026): diary and writing pages carry the day / the length on their stamp, so the eyebrow stays bare.
   } catch (e) { quiet = ''; }
   el('readerTitle').textContent = r.title;
   // The chapter page's years + age wear the INDEX grammar exactly: amber
@@ -2117,13 +2134,41 @@ function openReader(id, keepNav) {
       el('rdSticky').classList.remove('stamped');
       el('rdSticky').style.setProperty('--pa', sh); el('rdSticky').style.setProperty('--pw1', sh + '0d'); el('rdSticky').style.setProperty('--pw', sh + '26'); el('rdSticky').style.setProperty('--pb', sh + '40');
       el('readerKind').style.color = sh;
+    } else if (dk === 'diary' || dk === 'writing') {
+      // PG-H2 (Nov 2026): the page wears its index row's stamp on a plate in the room's colour -
+      // the diary's square day stamp on the LEFT (as in the index row), the writing's round reading stamp on the right.
+      h1.textContent = r.title;
+      sig.classList.add('hidden');
+      const sh = dk === 'diary' ? '#4A5878' : '#6D4E66';
+      const mk = el('rdMark');
+      if (dk === 'diary') {
+        const dt = r.created_at ? new Date(r.created_at) : null, ok = dt && !isNaN(dt);
+        mk.innerHTML = ok ? '<span class="dy-ds dy-pst"><b>' + dt.getDate() + '</b><small>' + dt.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase() + '</small>'
+          + '<em>' + dt.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }).toUpperCase() + '</em></span>' : '';
+        mk.classList.toggle('hidden', !ok);
+      } else {
+        const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
+        mk.innerHTML = '<span class="wr-seal wr-pst">' + (words
+          ? '<b>READ</b><em>~' + Math.max(1, Math.round(words / 230)) + ' min</em><small>' + words.toLocaleString('en-IN') + (words === 1 ? ' WORD' : ' WORDS') + '</small>'
+          : '<b>JUST</b><em>begun</em>') + '</span>';
+        mk.classList.remove('hidden');
+      }
+      const st = el('rdSticky');
+      st.classList.remove('ch', 'stamped');
+      st.classList.add('plate');
+      st.classList.toggle('pl-left', dk === 'diary' && !mk.classList.contains('hidden'));
+      st.classList.toggle('pl-wr', dk === 'writing');
+      st.style.setProperty('--pa', sh); st.style.setProperty('--pw1', '#ffffff'); st.style.setProperty('--pw', dk === 'diary' ? '#f3f5f9' : '#f5eff3'); st.style.setProperty('--pb', '#e3e8f0');
+      el('readerKind').style.color = sh;
     } else {
       h1.textContent = r.title;
       sig.classList.add('hidden');
       el('rdMark').classList.add('hidden');
-      el('rdSticky').classList.remove('ch', 'plate', 'stamped');
+      el('rdSticky').classList.remove('ch', 'plate', 'stamped', 'pl-left');
       el('readerKind').style.color = '';
     }
+    if (dk !== 'diary') el('rdSticky').classList.remove('pl-left');
+    if (dk !== 'writing') el('rdSticky').classList.remove('pl-wr');
   })();
   // PH-1: the album strip - every Inner Life page carries one.
   if (window.MyAlbum && userId) {
