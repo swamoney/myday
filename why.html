@@ -2499,6 +2499,37 @@
                            margin-left:46px; margin-top:2px; min-width:0; }
     .prow.keeper .p-went { order:4; margin-top:2px; }
   }
+  /* PX-E2 (Nov 2026): Explore List index = Bucket List passport, coloured by kind */
+  .px-c { --a:#3f6560; --w:#f1f8f7; position:relative; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; margin-top:10px; padding:14px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
+  .px-c:hover .px-nm { text-decoration:underline; text-decoration-color:#c9d2e0; text-underline-offset:3px; }
+  .px-l { min-width:0; }
+  .px-eb { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--a); display:flex; align-items:center; gap:6px; }
+  .px-eb .px-ek { width:13px; height:13px; flex-shrink:0; }
+  .px-nm { font-family:var(--serif); font-size:1.3rem; font-weight:700; color:#0A1325; line-height:1.22; margin:3px 0 2px; overflow-wrap:anywhere; }
+  .px-fv { font-family:'Caveat', cursive; font-size:1.2rem; color:var(--a); margin-top:2px; overflow-wrap:anywhere; }
+  .px-nt { font-size:0.85rem; color:#4d5f80; line-height:1.45; overflow-wrap:anywhere; }
+  .px-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+  .px-pill { display:inline-block; background:var(--a); color:#fff; border-radius:999px; padding:3px 10px; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.12em; }
+  .px-c .px-went { color:var(--a); border:1px solid var(--a); border-radius:999px; padding:3px 10px; font-size:0.5625rem; font-weight:700; background:#fff; }
+  .px-map { display:inline-flex; align-items:center; gap:4px; border:none; background:none; padding:2px 0; cursor:pointer; font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.1em; color:#5A6478; }
+  .px-map svg { width:12px; height:12px; }
+  .px-map.auto { color:#8B97AC; }
+  .px-map:hover { color:#1d2d4d; }
+  .px-seal { width:84px; height:84px; border-radius:50%; border:2.5px solid var(--a); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--a); transform:rotate(-12deg); position:relative; flex-shrink:0; text-align:center; }
+  .px-seal:before { content:''; position:absolute; inset:5px; border-radius:50%; border:1px dashed var(--a); }
+  .px-seal .px-ic { width:24px; height:24px; display:block; }
+  .px-seal b { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; }
+  .px-seal em { font-style:normal; font-family:var(--serif); font-size:1.15rem; font-weight:700; margin:1px 0; }
+  .px-seal small { font-family:var(--mono); font-size:0.42rem; letter-spacing:0.12em; }
+  .px-c .px-x { position:absolute; top:8px; right:8px; }
+  .px-dv:first-child { margin-top:8px; }
+  @media (max-width:640px) {
+    .px-c { padding:12px; gap:10px; }
+    .px-nm { font-size:1.12rem; }
+    .px-eb { font-size:0.6rem; letter-spacing:0.1em; }
+    .px-pill, .px-c .px-went, .px-map { font-size:0.6rem; }
+    .px-seal { width:66px; height:66px; } .px-seal em { font-size:0.9rem; } .px-seal b, .px-seal small { font-size:0.36rem; letter-spacing:0.06em; } .px-seal .px-ic { width:19px; height:19px; }
+  }
   .fld.pl-gold input { border-color:#e6d59a; background:#fffdf3; }
   /* PL-STAY (L1 S1 F1, Oct 2026): a place is a page, a visit is a line */
   .prow .p-arrow { color:#aab3c2; font-size:0.9rem; flex-shrink:0; }
@@ -9170,41 +9201,44 @@ function renderPlaces() {
   if (cnt) cnt.textContent = shown.length + (shown.length === 1 ? ' PLACE' : ' PLACES')
     + (keepers ? ' \u00B7 ' + keepers + ' KEEPER' + (keepers === 1 ? '' : 'S') : '');
 
-  let html = shown.map(p => {
+  // PX-E2 (Nov 2026): the Bucket List passport, coloured by KIND. Three sections by status,
+  // each card a stamp: kind icon + TO TRY, visit count for a Keeper, the month for Been there.
+  const PX_SEC = { not_yet:'Want to try', keeper:'Keepers', been:'Been there' };
+  const pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
+  const card = p => {
     const st = p.status || 'not_yet';
     const k = PL_KINDS[p.kind] || PL_KINDS.eat;
+    const hue = plHue(p);
+    const ic = cls => '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + k.icon + '</svg>';
     // With a city selected you already know where you are — show only the kind.
-    const head = k.lbl + (p.kind === 'stay' && PL_STAY_TYPES[p.stay_type] ? ' \u00B7 ' + PL_STAY_TYPES[p.stay_type] : '')
-      + (placeCity === 'All' && (p.city || '').trim() ? ' \u00B7 ' + escHtml(p.city.trim()) : '');
+    const head = k.lbl + (p.kind === 'stay' && PL_STAY_TYPES[p.stay_type] ? ' · ' + PL_STAY_TYPES[p.stay_type] : '')
+      + (placeCity === 'All' && (p.city || '').trim() ? ' · ' + escHtml(p.city.trim()) : '');
     const S = plStats_(p);
     const when = st !== 'not_yet' && S.last ? plFmt(S.last) : '';
-    const noteBits = [];
-    if (p.note && p.note.trim()) noteBits.push(escHtml(p.note.trim()));
-    // PL-FAVE: a Keeper carries its date in the count block on the right, not the note line.
-    if (when && st !== 'keeper') noteBits.push('<span class="p-when">' + when + '</span>');
     const keeper = st === 'keeper';
-    const fave = keeper && p.fave && p.fave.trim() ? '<div class="p-fave"><i>\u2605</i><em>' + escHtml(p.fave.trim()) + '</em></div>' : '';
-    // The count block: counted from the ledger. A stay says 'n stays' over 'k nights'.
-    const stat = keeper ? '<span class="p-stat"><b' + (!S.times ? ' class="none"' : '') + '>'
-        + (S.times || '\u2014') + (p.kind === 'stay' ? '<small class="w">' + (S.times === 1 ? 'stay' : 'stays') + '</small>' : '<small>\u00D7</small>') + '</b>'
-        + '<span>' + (p.kind === 'stay' && S.nights ? S.nights + ' NIGHT' + (S.nights === 1 ? '' : 'S') + (when ? ' \u00B7 ' : '') : '') + (when ? 'LAST ' + when : '') + '</span></span>'
-      + '<button class="p-went" type="button" data-pwent="' + p.id + '">+ Went today</button>' : '';
-    return '<div class="prow ' + st + '" data-place="' + p.id + '" style="' + plVars(plHue(p)) + '">'
-      + '<button class="p-av" type="button" data-pmap="' + p.id + '" title="Open on the map" aria-label="Open on the map">'
-        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + k.icon + '</svg>'
-        + '<span class="p-pin' + (/^https?:\/\//i.test(p.map_url || '') ? '' : ' auto') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg></span>'
-        + '</button>'
-      + '<span class="p-mid">'
-        + '<span class="p-kind">' + escHtml(head) + '</span>'
-        + '<div class="p-name">' + escHtml(p.name || '') + '</div>'
-        + fave
-        + (noteBits.length ? '<div class="p-note">' + noteBits.join(' \u00B7 ') + '</div>' : '')
-      + '</span>'
-      + stat
-      + '<span class="p-pill ' + st + '">' + PL_STATUS[st] + '</span>'
-      + '<span class="p-arrow">\u203A</span>'
-      + '<button class="p-x" data-px="' + p.id + '" type="button" aria-label="Delete">&times;</button>'
+    let seal;
+    if (st === 'not_yet') seal = ic('px-ic') + '<b>TO TRY</b>';
+    else if (keeper) seal = '<b>' + (p.kind === 'stay' ? (S.times === 1 ? 'STAY' : 'STAYS') : 'VISITS') + '</b><em>' + (S.times || '—') + (S.times ? '×' : '') + '</em>'
+      + '<small>' + (p.kind === 'stay' && S.nights ? S.nights + (S.nights === 1 ? ' NIGHT' : ' NIGHTS') : (when ? when.split(' ')[1] : '')) + '</small>';
+    else seal = when ? '<b>BEEN</b><em>' + when.split(' ')[0] + '</em><small>' + when.split(' ')[1] + '</small>' : ic('px-ic') + '<b>BEEN</b>';
+    const fave = keeper && p.fave && p.fave.trim() ? '<div class="px-fv">★ ' + escHtml(p.fave.trim()) + '</div>' : '';
+    const note = p.note && p.note.trim() ? '<div class="px-nt">' + escHtml(p.note.trim()) + '</div>' : '';
+    return '<div class="px-c ' + st + '" data-place="' + p.id + '" style="--a:' + hue.acc + ';--w:' + hue.c2 + '">'
+      + '<div class="px-l"><div class="px-eb">' + ic('px-ek') + '<span>' + escHtml(head) + '</span></div>'
+        + '<div class="px-nm">' + escHtml(p.name || '') + '</div>' + fave + note
+        + '<div class="px-row">' + (when ? '<span class="px-pill">LAST ' + when + '</span>' : '')
+          + (keeper ? '<button class="p-went px-went" type="button" data-pwent="' + p.id + '">+ Went today</button>' : '')
+          + '<button class="px-map' + (/^https?:\/\//i.test(p.map_url || '') ? '' : ' auto') + '" type="button" data-pmap="' + p.id + '" aria-label="Open on the map">' + pin + 'MAP</button>'
+        + '</div></div>'
+      + '<div class="px-seal">' + seal + '</div>'
+      + '<button class="p-x px-x" data-px="' + p.id + '" type="button" aria-label="Delete">&times;</button>'
       + '</div>';
+  };
+  let html = ['not_yet', 'keeper', 'been'].map(s => {
+    const g = shown.filter(p => (p.status || 'not_yet') === s);
+    if (!g.length) return '';
+    return '<div class="dcl-dv px-dv"><span class="lb">' + PX_SEC[s] + '</span><i></i><span class="ct">' + g.length + (g.length === 1 ? ' PLACE' : ' PLACES') + '</span></div>'
+      + g.map(card).join('');
   }).join('');
 
   if (!shown.length) {
