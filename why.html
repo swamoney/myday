@@ -2523,6 +2523,10 @@
   .px-seal small { font-family:var(--mono); font-size:0.42rem; letter-spacing:0.12em; }
   .px-c .px-x { position:absolute; top:8px; right:8px; }
   .px-dv:first-child { margin-top:8px; }
+  .px-kh { display:flex; align-items:center; gap:7px; margin:16px 0 0 2px; font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.14em; color:var(--a); }
+  .px-kh svg { width:14px; height:14px; flex-shrink:0; }
+  .px-kh .n { color:#8B97AC; font-weight:600; }
+  .px-dv + .px-kh { margin-top:10px; }
   @media (max-width:640px) {
     .px-c { padding:12px; gap:10px; }
     .px-nm { font-size:1.12rem; }
@@ -9204,15 +9208,17 @@ function renderPlaces() {
   // PX-E2 (Nov 2026): the Bucket List passport, coloured by KIND. Three sections by status,
   // each card a stamp: kind icon + TO TRY, visit count for a Keeper, the month for Been there.
   const PX_SEC = { not_yet:'Want to try', keeper:'Keepers', been:'Been there' };
+  const PX_KIND_PL = { eat:'RESTAURANTS', pub:'PUBS & BARS', stay:'STAYS', see:'SIGHTS', event:'EVENTS' };
   const pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
-  const card = p => {
+  const card = (p, grouped) => {
     const st = p.status || 'not_yet';
     const k = PL_KINDS[p.kind] || PL_KINDS.eat;
     const hue = plHue(p);
     const ic = cls => '<svg class="' + cls + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + k.icon + '</svg>';
     // With a city selected you already know where you are — show only the kind.
-    const head = k.lbl + (p.kind === 'stay' && PL_STAY_TYPES[p.stay_type] ? ' · ' + PL_STAY_TYPES[p.stay_type] : '')
-      + (placeCity === 'All' && (p.city || '').trim() ? ' · ' + escHtml(p.city.trim()) : '');
+    // PX-K1: inside a kind group the heading names the kind, so the eyebrow keeps only stay type and city.
+    const head = [grouped ? '' : k.lbl, p.kind === 'stay' && PL_STAY_TYPES[p.stay_type] ? PL_STAY_TYPES[p.stay_type] : '',
+      placeCity === 'All' && (p.city || '').trim() ? escHtml(p.city.trim()) : ''].filter(Boolean).join(' \u00B7 ');
     const S = plStats_(p);
     const when = st !== 'not_yet' && S.last ? plFmt(S.last) : '';
     const keeper = st === 'keeper';
@@ -9238,7 +9244,16 @@ function renderPlaces() {
     const g = shown.filter(p => (p.status || 'not_yet') === s);
     if (!g.length) return '';
     return '<div class="dcl-dv px-dv"><span class="lb">' + PX_SEC[s] + '</span><i></i><span class="ct">' + g.length + (g.length === 1 ? ' PLACE' : ' PLACES') + '</span></div>'
-      + g.map(card).join('');
+      + (s === 'been' ? g.map(p => card(p, false)).join('')
+        // PX-K1 (Nov 2026): Want to try and Keepers sit together by kind, in PL_KINDS order, under a small label in the kind's ink.
+        : Object.keys(PL_KINDS).map(kk => {
+            const gk = g.filter(p => (PL_KINDS[p.kind] ? p.kind : 'eat') === kk);
+            if (!gk.length) return '';
+            return '<div class="px-kh" style="--a:' + PL_KIND_HUES[kk].acc + '">'
+              + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + PL_KINDS[kk].icon + '</svg>'
+              + PX_KIND_PL[kk] + ' <span class="n">\u00B7 ' + gk.length + '</span></div>'
+              + gk.map(p => card(p, true)).join('');
+          }).join(''));
   }).join('');
 
   if (!shown.length) {
