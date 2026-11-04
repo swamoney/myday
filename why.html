@@ -1622,6 +1622,9 @@
   .bp-stars { margin-top:4px; }
   .bp-seal { width:84px; height:84px; border-radius:50%; border:2.5px solid var(--a); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--a); transform:rotate(-12deg); position:relative; flex-shrink:0; text-align:center; }
   .bp-seal:before { content:''; position:absolute; inset:5px; border-radius:50%; border:1px dashed var(--a); }
+  .bp-seal .bp-ic { width:26px; height:26px; display:block; }
+  .bp-seal b .bp-ic, .bp-seal .bp-ic.sm { width:11px; height:11px; display:inline-block; vertical-align:-1px; }
+  .bp-seal em .bp-ic.sm { width:22px; height:22px; }
   .bp-seal b { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; }
   .bp-seal em { font-style:normal; font-family:var(--serif); font-size:1rem; font-weight:700; margin:2px 0; }
   .bp-seal small { font-family:var(--mono); font-size:0.42rem; letter-spacing:0.12em; }
@@ -10098,6 +10101,9 @@ function dcLedgerHtml_() {
 // BP-1 (4 Nov 2026, B1): My Bucket List as a passport of dreams - each dream a card on its state's paper with a
 // round passport stamp (its month: planned for / decide by / since / lived), a countdown pill, and two dividers:
 // Still dreaming (being lived, needs deciding, ahead; nearest date first, undated last) and Lived (newest first).
+// S2 + D2 (4 Nov 2026): the passport stamps' symbols - the road ahead for a dream, a planted flag for a dream lived
+const BP_ROAD = '<svg class="bp-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21L11 3M15 21L13 3"/><path d="M12 6v2M12 11v2.5M12 16.5V19"/></svg>';
+const BP_FLAG = '<svg class="bp-ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4 2.5 4H6"/></svg>';
 function dcBucketHtml_() {
   const mine = dcRows.filter(d => dcIsDream_(d)).filter(dcKeep_);
   const today = new Date().toISOString().slice(0, 10);
@@ -10117,9 +10123,9 @@ function dcBucketHtml_() {
   let h = '<div class="dcl-dv"><span class="lb">Still dreaming</span><i></i><span class="ct">' + desk.length + (desk.length === 1 ? ' DREAM' : ' DREAMS') + '</span></div>';
   h += desk.map(d => {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
-    if (st === 'wip') return card(d, st, 'LIVING IT' + (d.decided_on ? ' \u00B7 SINCE ' + monLong(d.decided_on) : ''), t ? 'TO HAPPEN BY ' + monLong(t) : '', seal(st, 'LIVING', mon(d.decided_on) || '\u2726', 'IT'));
+    if (st === 'wip') return card(d, st, 'LIVING IT' + (d.decided_on ? ' \u00B7 SINCE ' + monLong(d.decided_on) : ''), t ? 'TO HAPPEN BY ' + monLong(t) : '', seal(st, 'LIVING', mon(d.decided_on) || BP_ROAD, 'IT'));
     if (st === 'ask') return card(d, st, t ? 'DECIDE BY ' + String(dcFmt_(t)).toUpperCase() : 'NEEDS DECIDING', t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET', seal(st, 'NEEDS', mon(t) || '?', 'DECIDING'));
-    return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || '\u2726', 'AHEAD'));
+    return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || BP_ROAD, 'AHEAD'));
   }).join('');
   if (!desk.length) h += '<div class="dcl-empty">no dream ahead yet \u2014 what do you want to live?</div>';
   const lived = trail.filter(d => !dcCanx_(d));
@@ -10128,7 +10134,7 @@ function dcBucketHtml_() {
     const canx = dcCanx_(d), w = d.happened_on || d.decided_on, r = Number(d.satisfaction) || 0, note = (d.rating_note || '').trim();
     const extra = (r ? '<div class="bp-stars">' + dcStarsRO_(d) + '</div>' : '') + (note ? '<div class="bp-q">\u201C' + escHtml(note) + '\u201D</div>' : '');
     return canx ? card(d, 'canx', 'LET GO' + (w ? ' \u00B7 ' + monLong(w) : ''), '', seal('canx', 'LET', mon(w) || '\u2715', 'GO'), extra)
-                : card(d, 'lived', d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED', '', seal('lived', '\u2726 LIVED', mon(w) || '\u2726', ''), extra);
+                : card(d, 'lived', d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED', '', seal('lived', BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''), extra);
   }).join('');
   if (!trail.length) h += '<div class="dcl-empty">no dreams lived yet</div>';
   return '<div class="dcl-book">' + h + '</div>';
