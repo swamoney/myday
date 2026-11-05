@@ -148,6 +148,8 @@
           text-transform:uppercase; flex-shrink:0; }
   .sf-t { font-family:var(--serif); font-size:0.8438rem; }
   .ix-fav { color:#c9a227; font-size:0.6875rem; flex-shrink:0; }
+  a.sfind { text-decoration:none; color:inherit; }
+  .xs-h { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#7686a3; margin:16px 4px 4px; }
   .ix-more { margin-left:auto; font-family:var(--mono); font-size:0.75rem;
              color:#3E5C76; flex-shrink:0; }
   /* MUS-2 (29 Sep 2026, P2 O-b N-a): the index in the mantras' type - a dusk
@@ -1005,6 +1007,11 @@ let notes = [];        // wip_notes
 let activeView = 'diary';   // DX-5: evenings open on the nightly door
 // M3 (3 Nov 2026): ?view=<room> lands on that room (the grouped nav links here from My Why)
 { const vq = new URLSearchParams(location.search).get('view'); if (vq && ['diary','introspection','experience','trip','writing','wip'].includes(vq)) activeView = vq; }
+// LE-2 (Nov 2026): the old My Musings & Learnings room is retired - musings live in My Why's My Mantras & Musings.
+// A link to ?view=introspection (with no ?open) goes there; a musing still opened by ?open= keeps its page here,
+// and its Back returns to My Mantras & Musings.
+const IL_MUSING_HOME = 'why.html?sec=mantra';
+if (activeView === 'introspection' && !new URLSearchParams(location.search).get('open')) location.replace(IL_MUSING_HOME);
 let readerEntry = null;
 let rdBaseline = null, rdVTimer = null;
 let rdDirty = false;
@@ -1079,6 +1086,82 @@ const STICKY = [
 ];
 
 // ===== HELPERS =====
+// ===== XS (Nov 2026): ONE SEARCH ACROSS ALL OF MY WHY =====
+// Both files carry this block. It reads both halves straight from the tables (cached ~30s),
+// so a search in My Why finds diary pages, writings, trips, chapters and whiteboard notes,
+// and a search in an Inner Life room finds priorities, pillars, mantras, knots, decisions,
+// dreams, people and places. A result in the same file opens in place; the other file opens by link.
+const XS = (function () {
+  let cache = null, at = 0, inflight = null;
+  const strip = h => String(h == null ? '' : h).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+  const W = (room, c, sec) => ({ room, c, f: 'why', sec });
+  const IWK = { diary: ['My Diary', '#4A5878'], experience: ['My Life Timeline', '#5F7355'], trip: ['My Trips', '#2F6B8A'],
+                writing: ['My Writings', '#6D4E66'], introspection: ['Musing', '#3E5C76'] };
+  const iwKind = k => k === 'gratitude' ? 'diary' : (k === 'experience' || k === 'diary' || k === 'trip') ? k
+    : (k === 'writing' || k === 'essay' || k === 'post' || k === 'thread' || k === 'note') ? 'writing' : 'introspection';
+  const SRC = [
+    { t: 'why_priority', sel: '*', m: () => W('My Priority', '#5b4a86', 'priority'),
+      nm: r => r.title, hay: r => [r.title, r.note] },
+    { t: 'why_pillars', sel: '*', m: () => W('My Why Pillars', '#8a6f2f', 'pillars'),
+      nm: r => r.label || r.num || r.code, hay: r => [r.label, r.num, r.code, r.current_status, strip(r.notes)] },
+    { t: 'why_mantras', sel: '*', m: r => W('My Mantras & Musings', '#63682f', 'mantra'),
+      nm: r => strip(r.text_html || r.text), hay: r => [r.text, r.meaning, strip(r.meaning_html), r.source] },
+    { t: 'why_mind', sel: '*', m: () => W('My Mind', '#2b3242', 'mind'), nm: r => r.title, hay: r => [r.title] },
+    { t: 'why_decisions', sel: '*', m: r => r.kind === 'dream' ? W('My Bucket List', '#2f6f63', 'dreams') : W('My Decisions', '#2f5187', 'decisions'),
+      nm: r => r.title, hay: r => [r.title, strip(r.note_html)] },
+    { t: 'why_circle', sel: '*', m: () => W('My Circle', '#98455a', 'circle'), nm: r => r.name, hay: r => [r.name, r.note, r.tag] },
+    { t: 'why_places', sel: '*', m: () => W('My Explore List', '#1f6a63', 'explore'),
+      nm: r => r.name, hay: r => [r.name, r.city, r.note, r.fave] },
+    { t: 'iw_entries', sel: '*', skip: r => r.kind === 'moved_mantra',
+      m: r => { const k = IWK[iwKind(r.kind)] || IWK.writing; return { room: k[0], c: k[1], f: 'inner', view: iwKind(r.kind) }; },
+      nm: r => r.title, fav: r => !!r.favourite,
+      hay: r => [r.title, r.essence, r.place, strip(r.body), Array.isArray(r.tags) ? r.tags.join(' ') : String(r.tags || '')] },
+    { t: 'wip_notes', sel: '*', skip: r => r.scope != null,
+      m: () => ({ room: 'My Whiteboard', c: '#b4541f', f: 'inner', view: 'wip' }), nm: r => r.heading || 'Untitled note', hay: r => [r.heading, r.body] }
+  ];
+  async function load(uid) {
+    if (cache && Date.now() - at < 30000) return cache;
+    if (inflight) return inflight;
+    inflight = (async () => {
+      const out = [];
+      await Promise.all(SRC.map(async s => {
+        try {
+          const { data, error } = await supa.from(s.t).select(s.sel).eq('user_id', uid);
+          if (error) throw error;
+          (data || []).forEach(r => {
+            if (s.skip && s.skip(r)) return;
+            const hay = s.hay(r).filter(Boolean).map(x => String(x)).join(' \u0001 ').toLowerCase();
+            out.push(Object.assign({ id: r.id, name: String(s.nm(r) || '').trim() || 'Untitled', hay, fav: s.fav ? s.fav(r) : !!r.favourite, t: s.t }, s.m(r)));
+          });
+        } catch (e) { console.warn('XS: ' + s.t + ' not searched', e && e.message); }
+      }));
+      cache = out; at = Date.now(); inflight = null;
+      return out;
+    })();
+    return inflight;
+  }
+  function href(x) {
+    if (x.f === 'inner') return x.view === 'wip' ? 'introspection.html?view=wip' : 'introspection.html?open=' + encodeURIComponent(x.id);
+    if (x.sec === 'pillars') return 'why.html?rm=' + encodeURIComponent(x.id);
+    return 'why.html?sec=' + x.sec + '&open=' + encodeURIComponent(x.id);
+  }
+  function row(x) {
+    const e = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return '<a class="sfind xs-row" href="' + e(href(x)) + '" data-xsf="' + x.f + '" data-xst="' + e(x.t) + '" data-xsid="' + e(x.id) + '" data-xssec="' + e(x.sec || x.view || '') + '">'
+      + '<span class="sf-k" style="color:' + x.c + ';">' + e(x.room) + '</span>'
+      + '<span class="sf-t">' + e(x.name.length > 120 ? x.name.slice(0, 117) + '…' : x.name) + '</span>'
+      + (x.fav ? '<span class="ix-fav">★</span>' : '') + '</a>';
+  }
+  return {
+    async find(uid, q, only) {
+      const all = await load(uid); q = String(q || '').toLowerCase().trim();
+      if (!q) return [];
+      return all.filter(x => (!only || x.f === only) && (x.hay.includes(q) || x.name.toLowerCase().includes(q)));
+    },
+    row, href, forget() { cache = null; }
+  };
+})();
+
 function el(id) { return document.getElementById(id); }
 function escHtml(s) {
   return String(s == null ? '' : s)
@@ -1968,7 +2051,7 @@ function render() {
   if (searchTerm) {
     // DX-3: rows for finding - an ink kicker names the room, serif line beside.
     const KK = { diary: ['Diary', '#4A5878'], introspection: ['Musing', '#3E5C76'],
-                 experience: ['Chapter', '#5F7355'], writing: ['Writing', '#6D4E66'] };
+                 experience: ['Chapter', '#5F7355'], writing: ['Writing', '#6D4E66'], trip: ['Trip', '#2F6B8A'] };
     let html = list.map(r => {
       const kk = KK[displayKind(r.kind)] || ['Note', '#68789a'];
       return '<div class="sfind" data-open="' + escHtml(r.id) + '">' +
@@ -1976,10 +2059,21 @@ function render() {
         '<span class="sf-t">' + escHtml(r.title) + '</span>' +
         (r.favourite ? '<span class="ix-fav">\u2605</span>' : '') + '</div>';
     }).join('');
-    if (!list.length) html = '<div class="empty"><div class="big">No matches</div><div class="small">Nothing anywhere in the Inner Life.</div></div>';
-    wrap.innerHTML = html;
+    wrap.innerHTML = html + '<div id="xsMore"></div>';
     wrap.querySelectorAll('[data-open]').forEach(x =>
       x.addEventListener('click', () => openReader(x.dataset.open)));
+    // LE-5 (Nov 2026): the same search reaches the rest of My Why (and the whiteboard's notes)
+    const tok = (render._xs = (render._xs || 0) + 1), term = searchTerm, localN = list.length;
+    XS.find(userId, term).then(found => {
+      if (tok !== render._xs || term !== searchTerm) return;
+      const more = found.filter(x => x.f === 'why' || x.t === 'wip_notes');
+      const box = el('xsMore'); if (!box) return;
+      if (!more.length && !localN) { box.innerHTML = '<div class="empty"><div class="big">No matches</div><div class="small">Nothing anywhere in My Why.</div></div>'; return; }
+      box.innerHTML = more.length ? '<div class="xs-h">Elsewhere in My Why \u00B7 ' + more.length + '</div>' + more.map(XS.row).join('') : '';
+      box.querySelectorAll('[data-xst="wip_notes"]').forEach(a => a.addEventListener('click', ev => {
+        ev.preventDefault(); searchTerm = ''; el('searchInput').value = ''; activeView = 'wip'; render();
+      }));
+    }).catch(() => {});
   } else if (activeView === 'introspection') renderMusings(list, wrap);
   else if (activeView === 'experience') renderTimeline(list, wrap);
   else if (activeView === 'trip') renderTrips(list, wrap);
@@ -2304,10 +2398,12 @@ function openReader(id, keepNav) {
   el('readerOverlay').classList.remove('hidden');
 }
 function closeReader() {
+  const wasMusing = readerEntry && displayKind(readerEntry.kind) === 'introspection';
   rdSessionEnd_();
   saveRd_(true);
   setRdEditing(false);
   el('readerOverlay').classList.add('hidden');
+  if (wasMusing) location.href = IL_MUSING_HOME;   // LE-2: the musings room is retired - Back goes to My Mantras & Musings
 }
 
 // ----- in-reader writing (shared editor) -----
@@ -2930,9 +3026,10 @@ el('saveBtn').addEventListener('click', saveEntry);
 el('deleteBtn').addEventListener('click', deleteEntry);
 el('readerBack').addEventListener('click', closeReader);
 el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
+el('searchInput').placeholder = 'Search all of My Why\u2026';
 // Bind to the tab spans only — clicking the inner label span has no data-view
 // and would set activeView to undefined.
-el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { activeView = s.dataset.view; musOrdering = false; render(); }));
+el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { if (s.dataset.view === 'introspection') { location.href = IL_MUSING_HOME; return; } activeView = s.dataset.view; musOrdering = false; render(); }));
 
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
