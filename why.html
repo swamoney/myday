@@ -264,7 +264,10 @@
      the status pill under it, the orb as a tilted stamp on the right. The big number and its bar step aside. */
   .rm-hero { border:1px solid #e3e8f0; border-top:3px solid var(--rm-deep,#95a4bb); border-radius:14px; padding:16px 22px 18px;
              background:linear-gradient(180deg,#fff,var(--rm-paper,#f6f8fb)); }
-  .rm-hero .rm-eyebrow { color:var(--rm-deep,#a5702f); font-weight:700; letter-spacing:0.14em; margin-bottom:4px; }
+  .rm-hero .rm-eyebrow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .rm-hero .rm-eyebrow.hidden { display:none; }
+  .rm-hero .pl-n { font-family:var(--mono); font-size:0.68rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#fff; background:var(--rm-deep,#95a4bb); border-radius:999px; padding:4px 12px; }
+  .rm-hero .pl-brk { font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--rm-deep,#95a4bb); border:1px solid var(--rm-deep,#95a4bb); border-radius:999px; padding:2px 9px; opacity:0.85; }
   .rm-hero .rm-num, .rm-hero .rm-sig { display:none; }
   .rm-hero .rm-stands { font-style:normal; font-weight:700; font-size:2rem; color:#0A1325; line-height:1.2; letter-spacing:-0.01em; margin-top:2px; }
   .rm-hero .rm-stands.empty { color:#aab4c8; font-weight:600; font-style:italic; }
@@ -5040,7 +5043,10 @@ function openRoadmap(id) {
     { const hero = el('rmInner');
       hero.style.setProperty('--rm-sol', hue.solid);
       hero.style.setProperty('--rm-ink', hue.ink); }
-    el('rmEyebrow').textContent = ((p.num || p.code) ? 'Pillar ' + (p.num || p.code) + ' \u00B7 ' : '') + 'Long-term roadmap';
+    // PL-H2 (Nov 2026): "Long-term roadmap" goes; the pillar's number rides above the name as a filled pill in its deep colour, its side word as a small tag
+    { const k = p.num || p.code || '';
+      el('rmEyebrow').innerHTML = (k ? '<span class="pl-n">Pillar ' + escHtml(k) + '</span>' : '') + (p.brk ? '<span class="pl-brk">' + escHtml(p.brk) + '</span>' : '');
+      el('rmEyebrow').classList.toggle('hidden', !k && !p.brk); }
     // PL-A (Nov 2026): the heading plate wears the pillar's own colour - its deep shade on the top line and eyebrow, its light tint as paper
     el('rmInner').style.setProperty('--rm-deep', hue.deep);
     el('rmInner').style.setProperty('--rm-paper', hueA_(hue.lt, 0.22));
