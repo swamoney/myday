@@ -2406,7 +2406,7 @@
   .pp-standing.n1 { grid-template-columns:1fr; }
   .pp-standing .pp-sec, .pp-standing .pp-sec.pp-to { margin:0; padding:14px 16px 12px; border-radius:14px; background:#fff;
         border:1px solid #e3e8f0; border-top:4px solid var(--pp-sol,#8189a0); min-width:0; }
-  .pp-standing .pp-sec.pp-nowsec { background:var(--pp-tint,#f5f7fb); border-top-color:var(--pp-deep,var(--pp-sol,#8189a0)); }
+  .pp-standing .pp-sec.pp-nowsec { background:var(--pp-lite,var(--pp-tint,#f5f7fb)); border-top-color:var(--pp-deep,var(--pp-sol,#8189a0)); }
   .pp-standing .pp-sec.pp-parksec { background:#fbfcfd; border:1px dashed #b9c2d1; border-top:4px dashed #b9c2d1; }
   .pp-standing .pp-hd { margin-bottom:4px; flex-wrap:wrap; }
   .pp-standing .pp-lbl, .pp-standing .pp-lbl.pp-far, .pp-standing .pp-lbl.pp-park { font-family:var(--serif); font-size:1.05rem; font-weight:700;
@@ -2433,9 +2433,12 @@
   .pp-fbody { display:none; padding:0 16px 12px; }
   .pp-fold.open .pp-fbody, body.rm-editing .pp-fbody { display:block; }   /* Edit shows everything, pens and arrows */
   .pp-fold .pp-fbody .pp-itrow:first-child { margin-top:0; }
-  .pp-fold:not(.open) { box-shadow:0 5px 0 -1px #fff, 0 5px 0 0 #dfe4ec; }
-  .pp-fold.l2:not(.open) { box-shadow:0 5px 0 -1px #fff, 0 5px 0 0 #dfe4ec, 0 10px 0 -1px #fff, 0 10px 0 0 #e6eaf0; }
-  .pp-fold.l3:not(.open) { box-shadow:0 5px 0 -1px #fff, 0 5px 0 0 #dfe4ec, 0 10px 0 -1px #fff, 0 10px 0 0 #e6eaf0, 0 15px 0 -1px #fff, 0 15px 0 0 #edf0f4; }
+  /* S1 (6 Nov 2026): the pile's paper edges wear the pillar's colour, fading down; Park's stay grey */
+  .pp-fold { --e1:color-mix(in srgb, var(--pp-sol,#8189a0) 45%, #fff); --e2:color-mix(in srgb, var(--pp-sol,#8189a0) 28%, #fff); --e3:color-mix(in srgb, var(--pp-sol,#8189a0) 16%, #fff); --eb:#fff; }
+  .pp-fold.pp-parksec { --e1:#cfd6e1; --e2:#dfe4ec; --e3:#e9edf3; --eb:#fbfcfd; }
+  .pp-fold:not(.open) { box-shadow:0 5px 0 -1px var(--eb), 0 5px 0 0 var(--e1); }
+  .pp-fold.l2:not(.open) { box-shadow:0 5px 0 -1px var(--eb), 0 5px 0 0 var(--e1), 0 10px 0 -1px var(--eb), 0 10px 0 0 var(--e2); }
+  .pp-fold.l3:not(.open) { box-shadow:0 5px 0 -1px var(--eb), 0 5px 0 0 var(--e1), 0 10px 0 -1px var(--eb), 0 10px 0 0 var(--e2), 0 15px 0 -1px var(--eb), 0 15px 0 0 var(--e3); }
   body.rm-editing .pp-fold { box-shadow:none !important; }
   body.rm-editing .pp-fchev { display:none; }
   @media (max-width:640px) { .pp-folds, .pp-folds.n1 { grid-template-columns:1fr; gap:18px; } }
@@ -5212,6 +5215,7 @@ function renderPp() {
   const i = pillars.findIndex(x => String(x.id) === String(rmId));
   const hue = hueFor(i < 0 ? 0 : i, pillars.length);
   box.style.setProperty('--pp-tint', ppBlend_(hue.lt, 0.26));
+  box.style.setProperty('--pp-lite', ppBlend_(hue.lt, 0.13));   // S1: Current focus at half the fill
   box.style.setProperty('--pp-sol', hue.solid);
   box.style.setProperty('--pp-ink', hue.ink);
   box.style.setProperty('--pp-sw', 'transparent');   // no marker wash behind the matrix lines

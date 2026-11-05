@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## PL-S1 · Pillar page: lighter focus, coloured pile (6 Nov 2026)
+- Current focus fill halved: --pp-lite = pillar light at 13% (was --pp-tint at 26%, which other parts still use).
+- The pile edges behind a closed long-game box are now the pillar's own colour, fading down (45% / 28% / 16% mixed with white, via color-mix); Park's stay grey on its pale ground.
+- Trap: with the lighter focus, the pile and badge carry more of the signal. color-mix needs a 2023+ browser; on older ones the edges simply do not draw.
+
 ## PL-K2 · Pillar page: focus on top, the other two as stacks (6 Nov 2026)
 - Supersedes the side-by-side layout of PL-M1 (colours, serif headings and the folded trail stay).
 - Current focus spans the full width and is always open. For the long game and Park sit beneath it in two columns (stacked on phone), closed: heading, a count badge in the pillar's colour (grey for Park) and Open ▾.
