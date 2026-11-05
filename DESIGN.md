@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## PL-Z1 · Pillars index about 30% bigger (6 Nov 2026)
+- Orb 64 → 84px (P-code 1.6rem), spine line 3px; Heading pill 0.92rem; answer 1.55rem; footer 0.92rem; rows 24-26px apart. Phone: orb 64px, answer 1.22rem, and the "N in focus" count always takes its own line.
+- Trap: about four pillars fit on a laptop screen now instead of five, so the lower priorities need a scroll.
+
 ## PL-Y2 + PC-A · Pillars index in the page's voice, and codes become P1, P2… (6 Nov 2026)
 - Y2: the spine and orbs stay; each pillar now shows its Heading as a filled pill in its colour (+ the side word), the In a line as the answer after a → in the pillar's colour, and one quiet footer: status dot + words, and "N in focus" from the roadmap. The map icon is gone: the whole row opens the pillar (not while editing).
 - A: a pillar's code is its priority, pCode_(p) = 'P' + its place in the list, worked out on every draw and never stored. Shown on the index orbs, the pillar page orb (#rmSeal), exports, print and file names. The old typed letters stay in the code column untouched (also exported as code, beside a new priority field), so this can be undone.
