@@ -8,6 +8,13 @@ Written August 2026.
 
 ---
 
+## PL-Y2 + PC-A · Pillars index in the page's voice, and codes become P1, P2… (6 Nov 2026)
+- Y2: the spine and orbs stay; each pillar now shows its Heading as a filled pill in its colour (+ the side word), the In a line as the answer after a → in the pillar's colour, and one quiet footer: status dot + words, and "N in focus" from the roadmap. The map icon is gone: the whole row opens the pillar (not while editing).
+- A: a pillar's code is its priority, pCode_(p) = 'P' + its place in the list, worked out on every draw and never stored. Shown on the index orbs, the pillar page orb (#rmSeal), exports, print and file names. The old typed letters stay in the code column untouched (also exported as code, beside a new priority field), so this can be undone.
+- The Edit form's Code box is now read-only (#mCodeRo) with a one-line hint; a new pillar shows the next P-number and saves code ''. Validation now asks for a heading or an in-a-line.
+- movePillar rewrites sort_order 0..n-1 to every row that differs, so ties or gaps from older moves heal; loadPillars breaks sort_order ties by id. Harness: h_pcode.js.
+- Trap: the code is rank, not name. Moving a pillar changes its number and (as before) its colour, so a note that says "P2" can point at a different pillar later.
+
 ## PL-B2 · Trail entry page: the story as a journal page (6 Nov 2026)
 - A saved story now sits on a page in the pillar's pale colour (--pgpaper, light at 16%) with a 5px coloured edge on the left, faint ruled lines in the pillar's colour that ride the text's own 32px lines, and a drop cap in the pillar's colour.
 - The lone EDIT button became a soft "✎ Edit story" pill at the page's top right (same id, ppWriteEdit), so it no longer looks like the heading's ✎ (which edits the entry).

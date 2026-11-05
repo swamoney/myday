@@ -172,6 +172,27 @@
   .rm-btn:hover { border-color:#f4c430; color:#a5702f; background:#fffaf0; }
   .rm-btn svg { width:17px; height:17px; }
   body.editing .rm-btn { display:none; }
+  /* Y2 (6 Nov 2026): the index in the pillar page's voice, on the same spine */
+  .snode.y2 { padding:16px 0 18px; }
+  .smark.pc { font-size:1.18rem; letter-spacing:-0.02em; transform:rotate(-8deg); position:relative; }
+  .smark.pc:after { content:''; position:absolute; inset:5px; border-radius:50%; border:1px dashed rgba(255,255,255,0.75); pointer-events:none; }
+  .y2 .scontent { padding-right:0; padding-top:4px; }
+  .y2-pl { display:inline-block; font-family:var(--mono); font-size:0.74rem; font-weight:700; letter-spacing:0.1em;
+        text-transform:uppercase; color:#fff; border-radius:10px; padding:4px 11px; line-height:1.35; }
+  .y2-brk { display:inline-block; margin-left:6px; font-family:var(--mono); font-size:0.56rem; font-weight:700; letter-spacing:0.14em;
+        border:1px solid; border-radius:999px; padding:2px 8px; vertical-align:2px; background:#fff; }
+  .y2-ans { display:flex; gap:9px; font-family:var(--serif); font-weight:700; font-size:1.18rem; line-height:1.3; color:#0A1325; margin-top:10px; }
+  .y2-ans b { font-family:var(--sans); }
+  .y2-ans.empty { color:#aab4c8; font-weight:500; font-style:italic; }
+  .y2-ft { display:flex; align-items:center; gap:8px; font-size:0.78rem; color:#5A6478; margin-top:12px; }
+  .y2-ft i { width:7px; height:7px; border-radius:50%; flex:none; }
+  .y2-sp { flex:1; }
+  .y2-ct { white-space:nowrap; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.08em; color:#8B97AC; text-transform:uppercase; }
+  @media (max-width:640px) {
+    .smark.pc { font-size:0.9rem; }
+    .y2-ans { font-size:1.02rem; }
+    .y2-pl { font-size:0.64rem; }
+  }
   .rmw { position:fixed; inset:0; z-index:500; background:#fbfcfe; display:none; flex-direction:column; }
   .rmw.show { display:flex; }
   .rm-bar { display:flex; align-items:center; gap:12px; padding:13px 16px; border-bottom:1px solid #eef1f6; background:#fff; flex-shrink:0; }
@@ -317,6 +338,9 @@
   .fld .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .modal > .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .fld .row2.code-head { grid-template-columns:88px 1fr; }
+  .m-code { height:38px; display:flex; align-items:center; justify-content:center; border:1px dashed #cdd6e4; border-radius:8px;
+        font-family:var(--serif); font-weight:700; font-size:1rem; color:#28324B; background:#f6f8fb; }
+  .m-codehint { font-size:0.68rem; color:#8B97AC; margin-top:6px; line-height:1.4; }
   .modal-actions { display:flex; align-items:center; gap:8px; margin-top:20px; }
   .btn-primary { background:#1e2740; color:#fff; border:none; border-radius:9px; padding:11px 18px; font-weight:600; font-size:0.8125rem; cursor:pointer; }
   .btn-primary:hover { background:#28324b; }
@@ -3861,9 +3885,9 @@
     <!-- H1 D1 W1 (30 Sep 2026): the 'number' is the HEADING - a phrase, not a figure; a short code box beside it;
          'Stands for' is 'In a line'. Keys unchanged (num, label). -->
     <div class="fld"><div class="row2 code-head">
-      <div><label>Code</label><input id="mCode" placeholder="F" maxlength="6"></div>
+      <div><label>Code</label><div class="m-code" id="mCodeRo"></div></div>
       <div><label>Heading</label><input id="mNum" placeholder="the why, as a phrase"></div>
-    </div></div>
+    </div><div class="m-codehint">The code is the pillar's priority, set by its place in the list. Move it up or down to change it.</div></div>
     <div class="fld"><label>In a line</label><input id="mLabel" placeholder="this why, in one line"></div>
     <div class="fld"><label>Current status</label><textarea id="mWhy" placeholder="where this stands right now"></textarea></div>
     <div class="fld"><label>Status state</label><select id="mState"><option value="">Not set</option><option value="good">On track</option><option value="watch">Watch</option><option value="off">Slipping</option></select></div>
@@ -4266,7 +4290,7 @@ const DEFAULTS = [
 
 // ===== DATA =====
 async function loadPillars() {
-  const { data, error } = await supa.from('why_pillars').select('*').eq('user_id', userId).order('sort_order', { ascending: true });
+  const { data, error } = await supa.from('why_pillars').select('*').eq('user_id', userId).order('sort_order', { ascending: true }).order('id', { ascending: true });   // id breaks ties, so P-numbers never flicker
   if (error) throw error;
   if (!data || data.length === 0) {
     const seed = DEFAULTS.map((d, i) => Object.assign({}, d, { user_id: userId, sort_order: i }));
@@ -4334,6 +4358,17 @@ function hueFor(i, total) {
   if (total <= 1) return RAINBOW[2];                     // a lone why keeps the gold
   return RAINBOW[Math.round(i * (RAINBOW.length - 1) / (total - 1))];
 }
+// A (6 Nov 2026): a pillar's code is its priority - P1, P2, P3 - worked out from its place
+// in the list every time, never stored. Moving a pillar renumbers all of them at once; the
+// old typed letters stay in the code column, untouched, so this can be undone.
+function pCode_(p) {
+  const i = pillars.findIndex(x => String(x.id) === String(p && p.id));
+  return i < 0 ? '' : 'P' + (i + 1);
+}
+function pFocusN_(p) {
+  try { const r = typeof p.roadmap === 'string' ? JSON.parse(p.roadmap) : p.roadmap; return (r && r.pp && Array.isArray(r.pp.now)) ? r.pp.now.length : 0; }
+  catch (e) { return 0; }
+}
 function renderSpine() {
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   el('spine').innerHTML = pillars.map((p, idx) => {
@@ -4342,22 +4377,24 @@ function renderSpine() {
     const stColor = STATE[p.state || ''] || STATE[''];
     const stTxt = p.current_status ? escHtml(p.current_status) : '&mdash;';
     const hue = hueFor(idx, pillars.length);
-    return '<div class="snode" data-id="' + p.id + '">' +
+    // Y2 (6 Nov 2026): the spine and orbs stay; the text takes the pillar page's voice -
+    // the Heading filled in the pillar's colour, the In a line as the answer after an arrow,
+    // and one quiet footer: the status as a dot with its words, and how many are in focus.
+    const pillC = hue.deep === '#D3AC2C' ? '#B8921F' : hue.deep;
+    const fN = pFocusN_(p);
+    return '<div class="snode y2" data-id="' + p.id + '" data-open="' + p.id + '">' +
       '<div class="node-tools">' +
         '<button class="nt" data-edit="' + p.id + '" title="Edit">&#9998;</button>' +
         '<button class="nt" data-up="' + p.id + '" title="Move up">&#9650;</button>' +
         '<button class="nt" data-down="' + p.id + '" title="Move down">&#9660;</button>' +
       '</div>' +
-      '<div class="smark" style="background:radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ');color:' + hue.ink + ';box-shadow:0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40;">' + escHtml(p.code) + '</div>' +
+      '<div class="smark pc" style="background:radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ');color:' + hue.ink + ';box-shadow:0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40;">' + pCode_(p) + '</div>' +
       '<div class="scontent">' +
-        '<button class="rm-btn" data-roadmap="' + p.id + '" title="Long-term roadmap">' + RM_ICON + '</button>' +
-        '<div class="snum">' + escHtml(p.num) +
-          (p.brk ? '<span class="brk">' + escHtml(p.brk) + '</span>' : '') +
-        '</div>' +
-        '<div class="' + standsCls + '">' + label + '</div>' +
-        '<div class="s-statusrow">' +
-          '<span class="s-pill" style="color:' + stColor + ';background:' + stColor + '1f;"><span class="pdot" style="background:' + stColor + ';"></span>' + stTxt + '</span>' +
-        '</div>' +
+        '<div class="y2-hd"><span class="y2-pl" style="background:' + pillC + '">' + escHtml(p.num || p.label || 'Untitled') + '</span>' +
+          (p.brk ? '<span class="y2-brk" style="color:' + hue.deep + ';border-color:' + hue.deep + '">' + escHtml(p.brk) + '</span>' : '') + '</div>' +
+        (p.label ? '<div class="y2-ans"><b style="color:' + hue.deep + '">\u2192</b><span>' + label + '</span></div>' : '<div class="y2-ans empty">No line yet</div>') +
+        '<div class="y2-ft"><i style="background:' + stColor + '"></i><span>' + (p.current_status ? stTxt : 'No status yet') + '</span>' +
+          '<span class="y2-sp"></span><span class="y2-ct">' + (fN ? fN + ' in focus' : '') + '</span></div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -4369,7 +4406,7 @@ function renderSpine() {
       const c = hueFor(i, pillars.length);
       // No letter — the spine below names every why. The dot carries its name for
       // hovers and screen readers instead.
-      const nm = (p.label || p.code || 'This why') + ' \u2014 roadmap';
+      const nm = (p.label || pCode_(p) || 'This why') + ' \u2014 roadmap';
       return '<button class="pchip" type="button" data-roadmap="' + p.id + '"'
         + ' title="' + escHtml(nm) + '" aria-label="' + escHtml(nm) + '">'
         + '<i style="background:radial-gradient(circle at 36% 32%, ' + c.lt + ', ' + c.mid + ' 62%, ' + c.deep + ');'
@@ -4410,7 +4447,7 @@ async function exportWhy() {
 
     // --- the raw data, so a future you can rebuild it ---
     zip.file('pillars.json', JSON.stringify(pillars.map(p => ({
-      id: p.id, code: p.code, num: p.num, brk: p.brk, label: p.label,
+      id: p.id, code: p.code, priority: pCode_(p), num: p.num, brk: p.brk, label: p.label,
       current_status: p.current_status, notes: p.notes, roadmap: p.roadmap,
       sort_order: p.sort_order
     })), null, 2));
@@ -4460,7 +4497,7 @@ async function exportWhy() {
     let body = '';
     body += '<h2>My Why Pillars</h2>';
     pillars.forEach((p, i) => {
-      body += '<h3>' + (i + 1) + '. ' + xEsc_(p.label || p.code || 'Untitled') + '</h3>';
+      body += '<h3>' + (i + 1) + '. ' + xEsc_(p.label || pCode_(p) || 'Untitled') + '</h3>';
       if (p.current_status) body += '<p class="meta">' + xEsc_(p.current_status) + '</p>';
       if (p.notes) body += '<div>' + xRich_(p.notes) + '</div>';
       let rm = null;
@@ -4486,13 +4523,13 @@ async function exportWhy() {
         [].concat(pp.now, pp.toward, pp.park).forEach(o => {
           const jb2 = xJourneys[String(o.id)];
           if (!jb2) return;
-          zip.file('why-journeys/' + xSafe_(p.label || p.code) + ' - ' + xSafe_(o.t) + '.md',
+          zip.file('why-journeys/' + xSafe_(p.label || pCode_(p)) + ' - ' + xSafe_(o.t) + '.md',
             '# ' + o.t + '\n\n' + (p.label || '') + '\n\n' + NoteEditor.toMarkdown(jb2) + '\n');
         });
         lg.forEach(e => {
           const jb = xJourneys[String(e.id)];
           if (!jb) return;
-          zip.file('why-journeys/' + xSafe_(p.label || p.code) + ' - ' + xSafe_(e.t) + '.md',
+          zip.file('why-journeys/' + xSafe_(p.label || pCode_(p)) + ' - ' + xSafe_(e.t) + '.md',
             '# ' + e.t + '\n\n' + ppWhen_(e) + ' \u00B7 ' + (p.label || '') + '\n\n'
             + NoteEditor.toMarkdown(jb) + '\n');
         });
@@ -4773,7 +4810,7 @@ function printSection() {
   const e = prEsc_;
   if (activeSec === 'pillars') {
     const body = '<div class="eyebrow">My Why</div><h1>My Why Pillars</h1>'
-      + pillars.map(p => '<h2>' + e(p.code || '') + ' \u00B7 ' + e(p.num || '') + '</h2>'
+      + pillars.map(p => '<h2>' + e(pCode_(p)) + ' \u00B7 ' + e(p.num || '') + '</h2>'
         + '<div class="meta">' + e(p.label || '') + (p.current_status ? ' \u2014 ' + e(p.current_status) : '') + '</div>').join('');
     prOpen_('My Why Pillars', body); return;
   }
@@ -4967,7 +5004,7 @@ function openModal(id) {
   editingId = id || null;
   const p = id ? pillars.find(x => String(x.id) === String(id)) : null;
   el('modalTitle').textContent = p ? 'Edit why' : 'New why';
-  el('mCode').value = p ? (p.code || '') : '';
+  el('mCodeRo').textContent = p ? pCode_(p) : 'P' + (pillars.length + 1);   // A: read-only, from the order
   el('mNum').value = p ? (p.num || '') : '';
   el('mLabel').value = p ? (p.label || '') : '';
   el('mWhy').value = p ? (p.current_status || '') : '';
@@ -4975,20 +5012,19 @@ function openModal(id) {
   el('mDelete').classList.toggle('hidden', !p);
   el('modalErr').classList.add('hidden');
   el('modalOverlay').classList.remove('hidden');
-  setTimeout(() => el('mCode').focus(), 30);
+  setTimeout(() => el('mNum').focus(), 30);
 }
 function closeModal() { el('modalOverlay').classList.add('hidden'); editingId = null; }
 
 async function savePillar() {
   const rec = {
-    code: el('mCode').value.trim(),
     num: el('mNum').value.trim(),
     label: el('mLabel').value.trim(),
     current_status: el('mWhy').value.trim(),
     state: el('mState').value,
   };
-  if (!rec.code && !rec.num) {
-    const er = el('modalErr'); er.textContent = 'Add at least a code or a number.'; er.classList.remove('hidden'); return;
+  if (!rec.num && !rec.label) {
+    const er = el('modalErr'); er.textContent = 'Add a heading or an in-a-line.'; er.classList.remove('hidden'); return;
   }
   const btn = el('mSave'); btn.disabled = true; btn.textContent = 'Saving…';
   try {
@@ -4998,6 +5034,7 @@ async function savePillar() {
     } else {
       const maxOrder = pillars.reduce((m, p) => Math.max(m, p.sort_order || 0), -1);
       rec.user_id = userId; rec.sort_order = maxOrder + 1;
+      rec.code = '';   // A: codes are worked out from the order; an empty string keeps a NOT NULL column happy
       const { error } = await supa.from('why_pillars').insert(rec);
       if (error) throw error;
     }
@@ -5022,13 +5059,19 @@ async function movePillar(id, dir) {
   const idx = pillars.findIndex(p => String(p.id) === String(id));
   const swap = idx + dir;
   if (idx < 0 || swap < 0 || swap >= pillars.length) return;
-  const a = pillars[idx], b = pillars[swap];
-  const ao = a.sort_order, bo = b.sort_order;
+  // A (6 Nov 2026): the code IS the place in the list, so the order must be exact. Swap in the
+  // list, then write 0,1,2... to every row whose sort_order differs - so ties or gaps left by
+  // older moves heal themselves, and P1..Pn always match what is on screen.
+  const order = pillars.slice();
+  const t = order[idx]; order[idx] = order[swap]; order[swap] = t;
+  const writes = order.map((p, i) => ({ p, i })).filter(x => x.p.sort_order !== x.i);
   try {
-    await supa.from('why_pillars').update({ sort_order: bo }).eq('id', a.id).eq('user_id', userId);
-    await supa.from('why_pillars').update({ sort_order: ao }).eq('id', b.id).eq('user_id', userId);
-    await loadPillars();
-  } catch (e) { toast('Reorder failed'); }
+    for (const w of writes) {
+      const { error } = await supa.from('why_pillars').update({ sort_order: w.i }).eq('id', w.p.id).eq('user_id', userId);
+      if (error) throw error;
+    }
+  } catch (e) { console.error(e); toast('Reorder failed'); }
+  await loadPillars();
 }
 
 // ===== AUTH =====
@@ -5125,7 +5168,7 @@ function rmParse(raw) {
 function whyDots_(activeId, attr) {
   return pillars.map((p, i) => {
     const c = hueFor(i, pillars.length);
-    const nm = (p.label || p.code || 'This why');
+    const nm = (p.label || pCode_(p) || 'This why');
     return '<button class="pchip' + (String(p.id) === String(activeId) ? ' here' : '') + '" type="button" '
       + attr + '="' + p.id + '" title="' + escHtml(nm) + '" aria-label="' + escHtml(nm) + '">'
       + '<i style="background:radial-gradient(circle at 36% 32%, ' + c.lt + ', ' + c.mid + ' 62%, ' + c.deep + ');'
@@ -5147,7 +5190,7 @@ function openRoadmap(id) {
   const STATE = { good:'#3d7a5c', watch:'#c08a1f', off:'#a8443e', '':'#95a4bb' };
   // PL-W1: the bar names the pillar by its Heading (the page's main heading now), else its In a line
   el('rmTitle').innerHTML = 'My Why' + ((p.num || p.label) ? ' &middot; ' + escHtml(p.num || p.label) : '');
-  el('rmSeal').textContent = p.code || '';
+  el('rmSeal').textContent = pCode_(p);   // A: the priority, never the old letter
   el('rmDots').innerHTML = whyDots_(id, 'data-rmjump');
   {
     const st = STATE[p.state || ''] || STATE[''];
@@ -5182,7 +5225,7 @@ function openRoadmap(id) {
       hero.style.setProperty('--rm-sol', hue.solid);
       hero.style.setProperty('--rm-ink', hue.ink); }
     // PL-H2 (Nov 2026): "Long-term roadmap" goes; the pillar's number (exactly as typed, no "Pillar" prefix) rides above the name as a filled pill in its deep colour, its side word as a small tag
-    { const k = p.num || p.code || '';
+    { const k = p.num || pCode_(p) || '';
       el('rmEyebrow').innerHTML = (k ? '<span class="pl-n">' + escHtml(k) + '</span>' : '') + (p.brk ? '<span class="pl-brk">' + escHtml(p.brk) + '</span>' : '');
       el('rmEyebrow').classList.toggle('hidden', !k && !p.brk); }
     // PL-A (Nov 2026): the heading plate wears the pillar's own colour - its deep shade on the top line and eyebrow, its light tint as paper
@@ -8421,7 +8464,7 @@ function mmDays_(d) {
   return isNaN(a) ? 0 : Math.max(0, Math.round((b - a) / 86400000));
 }
 function mmById_(id) { return mind.find(k => String(k.id) === String(id)); }
-function mmPillarName_(id) { const p = id ? pillars.find(x => String(x.id) === String(id)) : null; return p ? (p.label || p.code || '') : ''; }
+function mmPillarName_(id) { const p = id ? pillars.find(x => String(x.id) === String(id)) : null; return p ? (p.label || pCode_(p) || '') : ''; }
 function mmHelpWords_() {
   const seen = MM_HELP_SEED.slice();
   mind.forEach(k => (Array.isArray(k.helped) ? k.helped : []).forEach(h => { if (h && !seen.some(x => x.toLowerCase() === h.toLowerCase())) seen.push(h); }));
@@ -8714,7 +8757,7 @@ function mmOpenKnotForm_(id) {
   mmPaintPick_();
   el('fMmTitle').value = k ? (k.title || '') : '';
   const sel = el('fMmPillar');
-  sel.innerHTML = '<option value="">—</option>' + pillars.map(p => '<option value="' + escHtml(String(p.id)) + '">' + escHtml(p.label || p.code || '') + '</option>').join('');
+  sel.innerHTML = '<option value="">—</option>' + pillars.map(p => '<option value="' + escHtml(String(p.id)) + '">' + escHtml(p.label || pCode_(p) || '') + '</option>').join('');
   sel.value = k && k.pillar_id ? String(k.pillar_id) : '';
   el('fMmNext').value = k ? (k.next_step || '') : '';
   el('fMmBy').value = k ? (k.next_by || '') : '';
@@ -11988,7 +12031,7 @@ function rmPillar_() { return pillars.find(x => String(x.id) === String(rmId)) |
 function rmStateLabel_(s) { return ({ good:'On track', watch:'Watch', off:'Slipping' })[s] || ''; }
 function rmMarkdown_() {
   const p = rmPillar_();
-  const head = [p.code, p.num].filter(Boolean).join(' \u00B7 ');
+  const head = [pCode_(p), p.num].filter(Boolean).join(' \u00B7 ');
   let md = '# Long-term roadmap \u2014 ' + (p.label || head || 'My Why') + '\n\n';
   if (head) md += '**' + head + '**\n\n';
   if (p.label) md += '- **In a line:** ' + p.label + '\n';
@@ -12010,7 +12053,7 @@ el('rmCopy').addEventListener('click', () => {
 });
 el('rmMd').addEventListener('click', () => {
   const p = rmPillar_();
-  const slug = String(p.label || p.code || 'why').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'why';
+  const slug = String(p.label || pCode_(p) || 'why').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'why';
   const blob = new Blob([rmMarkdown_()], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a'); a.href = url; a.download = 'roadmap-' + slug + '.md';
@@ -12021,8 +12064,8 @@ el('rmPrint').addEventListener('click', () => {
   const p = rmPillar_();
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:#a5702f}h1{font-family:'Fraunces',serif;font-weight:600;font-size:1.875rem;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:0.8125rem;color:#5a6478;margin-bottom:6px}.rule{height:3px;width:52px;background:#f4c430;margin:12px 0 20px}h2{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;letter-spacing:.14em;text-transform:uppercase;color:#a5702f;margin:26px 0 10px;font-weight:600}.essay{font-size:1.125rem}ul{list-style:none;padding:0}li{font-family:'IBM Plex Sans',sans-serif;font-size:0.9375rem;padding:8px 0;border-bottom:1px solid #eee}li.done{color:#8a94a8;text-decoration:line-through}.y{font-family:'IBM Plex Mono',monospace;font-size:0.6875rem;color:#a5702f;float:right}h2.park{color:#8a94a8;border-bottom:1px dashed #c3cbd8;padding-bottom:4px}h2.park+ul li{color:#6b7589}.noterule{width:110px;height:2px;background:#ccc;margin:30px auto 22px;border-radius:1px}</style>" + '<style>' + NoteEditor.contentCSS('.essay') + '</style>';
-  const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || p.code || 'My Why') + '</h1>'
-    + '<div class="meta">' + esc([p.code, p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
+  const body = '<div class="eyebrow">Long-term roadmap</div><h1>' + esc(p.label || pCode_(p) || 'My Why') + '</h1>'
+    + '<div class="meta">' + esc([pCode_(p), p.num].filter(Boolean).join(' \u00B7 ')) + (p.current_status ? ' &mdash; ' + esc(p.current_status) : '') + '</div><div class="rule"></div>'
     + (rmCover_ && rmCover_.url && window.MyAlbum ? MyAlbum.printMat(rmCover_.url, rmCover_.caption) : '')
     + ppPrintHtml_(esc)
     + (function () {
@@ -12043,6 +12086,8 @@ el('spine').addEventListener('click', e => {
   const ed = e.target.closest('[data-edit]'); if (ed) { openModal(ed.dataset.edit); return; }
   const up = e.target.closest('[data-up]'); if (up) { movePillar(up.dataset.up, -1); return; }
   const dn = e.target.closest('[data-down]'); if (dn) { movePillar(dn.dataset.down, 1); return; }
+  const op = e.target.closest('[data-open]');   // Y2: the whole pillar opens its page (not while editing)
+  if (op && !document.body.classList.contains('editing')) openRoadmap(op.dataset.open);
 });
 
 boot();
