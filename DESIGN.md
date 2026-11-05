@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## PL-Q1 · Pillar page: a quiet trail, right under the boxes (6 Nov 2026)
+- The trail now sits about 20px under the piles, with no rule line above it (T1).
+- Its heading is tiny grey mono capitals ("THE TRAIL"), no underline, a faint line, the count and a small grey Show (Q1): the trail is a back room, not a section.
+- No entries: the whole trail section hides (.pr-arch.tr-none, set in renderPpLedger). The first completed item brings it back.
+- Trap: text this small and grey is easy to stop noticing, and a new pillar no longer says where completed items go.
+
 ## PL-S1 · Pillar page: lighter focus, coloured pile (6 Nov 2026)
 - Current focus fill halved: --pp-lite = pillar light at 13% (was --pp-tint at 26%, which other parts still use).
 - The pile edges behind a closed long-game box are now the pillar's own colour, fading down (45% / 28% / 16% mixed with white, via color-mix); Park's stay grey on its pale ground.

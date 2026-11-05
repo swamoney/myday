@@ -2454,6 +2454,18 @@
   #ppLedger .pp-wt { background:none; padding:0; margin-left:0; }
   #ppLedger .pp-tick { color:var(--pp-sol,#0F6E56); }
   #ppLedger .pp-row { padding:10px 2px; }
+  /* T1 + Q1 (6 Nov 2026): the trail sits right under the boxes, no rule, and its heading goes quiet -
+     tiny grey capitals, a faint line, the count and a small grey Show. No entries: the whole section hides. */
+  .rmx .pp-standing { margin-bottom:0; }
+  .rmx .pp-folds { padding-bottom:14px; }
+  .rmx .pr-arch { margin-top:6px; padding-top:0; border-top:0; }
+  .rmx .pr-arch.tr-none { display:none; }
+  .rmx .rm-trdv { margin:0 0 8px; }
+  .rmx .rm-trdv .lb { font-family:var(--mono); font-size:0.6rem; font-weight:600; letter-spacing:0.14em;
+        text-transform:uppercase; color:#9aa5b8; text-decoration:none; }
+  .rmx .rm-trdv i { background:#e6ebf2; }
+  .rmx .rm-trdv .ct { color:#aab4c4; }
+  .rmx .pp-trtg { font-size:0.52rem; padding:2px 8px; color:#9aa5b8; border-color:#d6dde8; }
   .pp-sec.pp-to { margin-top:11px; padding-top:10px; border-top:1px dashed var(--pp-sol,#8189a0); }
   .pp-hd { display:flex; align-items:baseline; gap:6px; }
   /* C1: gold is 'now' everywhere in the app; the long game wears the pillar's own ink, outlined */
@@ -5283,7 +5295,8 @@ function renderPpLedger() {
   const done = log.filter(e => e.k === 'done').length;
   if (cnt) cnt.textContent = log.length
     ? (log.length + (log.length === 1 ? ' ENTRY' : ' ENTRIES') + (done ? ' \u00B7 ' + done + ' \u2713' : '')) : '';
-  if (!log.length) { wrap.innerHTML = '<div class="pr-empty">Nothing yet \u2014 the first entry starts the trail.</div>'; return; }
+  const arch = wrap.closest('.pr-arch'); if (arch) arch.classList.toggle('tr-none', !log.length);   // Q1: no entries, no trail at all
+  if (!log.length) { wrap.innerHTML = ''; return; }
   const row = e => '<button class="pp-row" type="button" data-pplog="' + e.id + '">'
     + (e.k === 'done' ? '<span class="pp-tick">\u2713</span>' : '<span class="pp-dotk">\u00B7</span>')
     + '<span class="pp-w"><span class="pp-wt">' + escHtml(e.t)
