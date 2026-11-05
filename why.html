@@ -2398,6 +2398,36 @@
   /* G2: no ground - the pillar's edge alone holds the block, so the roadmap reads as one page */
   .pp-standing { border-left:3px solid var(--pp-sol,#8189a0);
                  border-radius:0 10px 10px 0; padding:12px 14px 13px; margin-bottom:16px; }
+  /* M1 (6 Nov 2026): three boxes side by side, like the Priority matrix. Focus is wider and wears the
+     pillar's fill; the long game is white under a pillar-colour line; Park is grey and dashed. */
+  .pp-standing { display:grid; gap:14px; border-left:0; border-radius:0; padding:0; margin-bottom:22px; align-items:start; }
+  .pp-standing.n3 { grid-template-columns:1.25fr 1fr 1fr; }
+  .pp-standing.n2 { grid-template-columns:1.25fr 1fr; }
+  .pp-standing.n1 { grid-template-columns:1fr; }
+  .pp-standing .pp-sec, .pp-standing .pp-sec.pp-to { margin:0; padding:14px 16px 12px; border-radius:14px; background:#fff;
+        border:1px solid #e3e8f0; border-top:4px solid var(--pp-sol,#8189a0); min-width:0; }
+  .pp-standing .pp-sec.pp-nowsec { background:var(--pp-tint,#f5f7fb); border-top-color:var(--pp-deep,var(--pp-sol,#8189a0)); }
+  .pp-standing .pp-sec.pp-parksec { background:#fbfcfd; border:1px dashed #b9c2d1; border-top:4px dashed #b9c2d1; }
+  .pp-standing .pp-hd { margin-bottom:4px; flex-wrap:wrap; }
+  .pp-standing .pp-lbl, .pp-standing .pp-lbl.pp-far, .pp-standing .pp-lbl.pp-park { font-family:var(--serif); font-size:1.05rem; font-weight:700;
+        letter-spacing:0; text-transform:none; color:var(--pp-ink,#28324B); background:none; border:0; border-radius:0; padding:0; }
+  .pp-standing .pp-lbl.pp-park { color:#6b7589; }
+  .pp-cnt { font-family:var(--mono); font-size:0.62rem; color:#8B97AC; margin-left:2px; }
+  .pp-standing .pp-itxt { font-size:0.9rem; line-height:1.5; }
+  .pp-standing .pp-itrow { margin-top:9px; }
+  @media (max-width:640px) { .pp-standing.n3, .pp-standing.n2 { grid-template-columns:1fr; } }
+  /* M1: the trail folds away - heading and count stay, Show opens it; lines are plain, no highlighter */
+  .rmx .pr-arch #ppLedger { display:none; }
+  .rmx .pr-arch.tr-open #ppLedger { display:block; }
+  .rmx .rm-trdv { cursor:pointer; }
+  .pp-trtg { font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;
+        color:var(--pp-sol,#5A6478); background:none; border:1px solid var(--pp-sol,#b9c4d8); border-radius:999px;
+        padding:4px 10px; cursor:pointer; white-space:nowrap; }
+  .pp-trtg b { display:inline-block; transition:transform .2s; }
+  .pr-arch.tr-open .pp-trtg b { transform:rotate(180deg); }
+  #ppLedger .pp-wt { background:none; padding:0; margin-left:0; }
+  #ppLedger .pp-tick { color:var(--pp-sol,#0F6E56); }
+  #ppLedger .pp-row { padding:10px 2px; }
   .pp-sec.pp-to { margin-top:11px; padding-top:10px; border-top:1px dashed var(--pp-sol,#8189a0); }
   .pp-hd { display:flex; align-items:baseline; gap:6px; }
   /* C1: gold is 'now' everywhere in the app; the long game wears the pillar's own ink, outlined */
@@ -3811,6 +3841,7 @@
             <div class="dcl-dv rm-trdv">
               <span class="lb" id="rmxArchT">The trail</span><i></i>
               <span class="ct" id="rmxArchCount"></span>
+              <button class="pp-trtg" id="rmxArchTg" type="button" aria-expanded="false"><span id="rmxArchTgT">Show</span> <b>&#9662;</b></button>
             </div>
             <div id="ppLedger"></div>
           </div>
@@ -5042,6 +5073,7 @@ function openRoadmap(id) {
     seal.style.background = 'radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ')';
     seal.style.color = hue.ink;
     seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
+    ppTrailOpen_(false);   // M1: the trail opens closed, every time
     const rmxT = el('rmxArchT');
     if (rmxT) rmxT.style.setProperty('--arch-acc', hue.solid);   // matches the add button
     // P24 signature: the name marked in its own colour, underscored in the same.
@@ -5159,8 +5191,10 @@ function renderPp() {
   box.style.setProperty('--pp-sol', hue.solid);
   box.style.setProperty('--pp-ink', hue.ink);
   box.style.setProperty('--pp-sw', 'transparent');   // no marker wash behind the matrix lines
+  box.style.setProperty('--pp-deep', hue.deep === '#D3AC2C' ? '#B8921F' : hue.deep);   // M1: the focus box's top line, as the hero pill
   const lg2 = el('ppLedger');
-  if (lg2) lg2.style.setProperty('--pp-sw', hueA_(hue.solid, 0.30));
+  if (lg2) { lg2.style.setProperty('--pp-sw', 'transparent'); lg2.style.setProperty('--pp-sol', hue.solid); }   // M1: clean trail lines
+  const tg = el('rmxArchTg'); if (tg) { tg.style.setProperty('--pp-sol', hue.solid); }
   const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow">'
     + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button>'
     + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + escHtml(o.t) + '</span></button>'
@@ -5169,17 +5203,19 @@ function renderPp() {
     + '</div>').join('');
   const hd = (sec, lbl, since) => '<span class="pp-hd">'
     + '<span class="pp-lbl' + (sec === 'toward' ? ' pp-far' : sec === 'park' ? ' pp-park' : '') + '">' + escHtml(lbl) + '</span>'
+    + '<span class="pp-cnt">' + (pp[sec] || []).length + '</span>'
     + '<button class="pp-pen" type="button" data-pprename="' + sec + '" aria-label="Rename heading">\u270E</button>'
     + (since ? '<span class="pp-since">since ' + ppMonth_(since) + '</span>' : '')
     + '</span>';
   // Empty lists vanish entirely - no heading, no dash. The one door still
   // offers both places, so nothing is unreachable while it is invisible.
   const parts = [];
-  if (pp.now.length) parts.push('<div class="pp-sec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>');
+  if (pp.now.length) parts.push('<div class="pp-sec pp-nowsec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>');
   if (pp.toward.length) parts.push('<div class="pp-sec' + (parts.length ? ' pp-to' : '') + '">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>');
   // PP-PARK: the third place, cool and dashed; empty, it vanishes like the others.
   if (pp.park.length) parts.push('<div class="pp-sec pp-parksec' + (parts.length ? ' pp-to' : '') + '">' + hd('park', pp.parkLbl, '') + items(pp.park, 'park') + '</div>');
   box.classList.toggle('hidden', !parts.length);
+  box.classList.remove('n1', 'n2', 'n3'); if (parts.length) box.classList.add('n' + parts.length);   // M1: boxes side by side
   box.innerHTML = parts.join('');
   const aj = el('ppJourney');
   if (aj) {   // A1 ghost: hairline in the pillar's solid, text in its ink
@@ -5218,6 +5254,18 @@ function renderPpLedger() {
   wrap.innerHTML = log.map(row).join('');
 }
 let ppSecEditing_ = null, ppLogEditing_ = null, ppItemEditing_ = null;
+// M1 (6 Nov 2026): The trail folds away; its heading keeps the count, Show opens it.
+function ppTrailOpen_(on) {
+  const a = document.querySelector('#roadmapWin .pr-arch'); if (!a) return;
+  a.classList.toggle('tr-open', !!on);
+  const t = el('rmxArchTg'); if (t) t.setAttribute('aria-expanded', on ? 'true' : 'false');
+  const tt = el('rmxArchTgT'); if (tt) tt.textContent = on ? 'Hide' : 'Show';
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest || !e.target.closest('#rmxArchTg, #roadmapWin .rm-trdv')) return;
+  const a = document.querySelector('#roadmapWin .pr-arch');
+  ppTrailOpen_(!(a && a.classList.contains('tr-open')));
+});
 /* ===== Journey pages =====
    The story behind a trail entry lives in why_journeys — one row per page —
    never in the roadmap JSON, so thirty years of essays cannot slow a tap. */

@@ -8,6 +8,13 @@ Written August 2026.
 
 ---
 
+## PL-M1 · Pillar page: the three lists as boxes, The trail folded (6 Nov 2026)
+- Current focus, For the long game and Park now sit side by side as three cards (stacked on phone), like the Priority matrix. Focus is wider (1.25fr), wears the pillar's tint and a deep-colour top line; the long game is white under a pillar-colour line; Park is grey and dashed.
+- Headings are serif in the pillar's ink with a small count; no more gold tags. An empty list's box still vanishes, so the grid becomes 2 or 1 columns (classes n1/n2/n3 on #ppStanding; Focus marked .pp-nowsec).
+- The trail opens closed every time (ppTrailOpen_(false) in openRoadmap); the heading keeps the count and a Show/Hide pill in the pillar's colour. Tapping the heading also toggles it.
+- Trail lines are plain: no highlighter behind them, ✓ in the pillar's colour.
+- Trap: a hidden trail is easy to forget; the count on the closed heading is the reminder. It does not remember being open.
+
 ## PL-G1 · Pillar page: the answer arrow nudges (6 Nov 2026)
 - The → before In a line glides 6px right and back every 2.4s, forever (CSS keyframes rmNudge, no GIF).
 - Stays still when the device is set to reduce motion.
