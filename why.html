@@ -2245,6 +2245,36 @@
   .pr-tbtn svg { width:14px; height:14px; flex-shrink:0; }
   .pr-tbtn.solid { background:#5b4a86; border-color:#5b4a86; color:#fff; }
   .pr-tbtn.solid:hover { background:#4d3e73; border-color:#4d3e73; }
+  /* PR-T2·v2·H2 (Nov 2026): My Priority in the house style */
+  #secPriority .pr-dv { margin:4px 0 10px; }
+  #secPriority .pr-dv .ct { white-space:normal; text-align:right; line-height:1.5; }
+  #secPriority .pr-today { border:none; background:none; border-radius:0; padding:0; margin-bottom:18px; }
+  .pr-tcard { display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; border:1px solid #d9d0ea; border-top:4px solid #5b4a86; border-radius:14px; padding:14px 18px; background:linear-gradient(180deg,#fff,#e9e4f2); }
+  .pr-tcard.empty { display:block; }
+  .pr-today.rust .pr-tcard { border-color:#e0b9a8; border-top-color:#9a4a2e; background:linear-gradient(180deg,#fff,#fbe6db); }
+  .pr-today.rust .pr-dv .ct, .pr-today.rust .pr-teb { color:#9a4a2e; }
+  .pr-tl { min-width:0; }
+  .pr-teb { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.14em; color:#5b4a86; margin-bottom:8px; }
+  .pr-tcard .pr-td { background:rgba(255,255,255,0.72); }
+  .pr-tcard .pr-td .t { font-family:var(--serif); font-size:1rem; font-weight:700; color:#0A1325; }
+  .pr-tcard .pr-tdempty { color:#5b4a86; }
+  .pr-tsun { width:74px; height:74px; border-radius:50%; border:2.5px solid #c89b1a; color:#8a6f2f; display:flex; flex-direction:column; align-items:center; justify-content:center; transform:rotate(-12deg); position:relative; flex-shrink:0; }
+  .pr-tsun:before { content:''; position:absolute; inset:5px; border-radius:50%; border:1px dashed #c89b1a; }
+  .pr-tsun em { font-style:normal; font-family:var(--serif); font-size:1.15rem; font-weight:700; line-height:1; }
+  .pr-tsun small { font-family:var(--mono); font-size:0.42rem; letter-spacing:0.12em; margin-top:2px; }
+  .pr-today.rust .pr-tsun { border-color:#9a4a2e; color:#9a4a2e; } .pr-today.rust .pr-tsun:before { border-color:#9a4a2e; }
+  #secPriority .pr-tkrow.picked, #secPriority .pr-tkrow.picked:hover { background:none; }
+  #secPriority .pr-tkrow.picked:hover { background:rgba(255,255,255,0.7); }
+  #secPriority .pr-tkrow.picked .pr-tkn { text-decoration:underline; text-decoration-color:#d9b84a; text-decoration-thickness:2.5px; text-underline-offset:4px; text-decoration-skip-ink:none; }
+  #secPriority .pr-sun.on { color:#c89b1a; text-shadow:0 0 6px rgba(200,155,26,0.4); }
+  #secPriority .pr-arch { border-top:none; padding-top:0; margin-top:26px; }
+  #secPriority .pr-archhd { margin-bottom:8px; }
+  #secPriority .pr-balance { border-top:none; padding-top:0; }
+  @media (max-width:640px) {
+    .pr-tcard { padding:12px 14px; gap:10px; }
+    .pr-tsun { width:58px; height:58px; } .pr-tsun em { font-size:0.9rem; } .pr-tsun small { font-size:0.34rem; }
+    #secPriority .pr-mx { margin-top:4px; }
+  }
   /* the archive — this year open, older years folded away */
   .pr-arch { margin-top:30px; padding-top:18px; border-top:1px solid #e4e9f1; }
   .pr-archhd { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:13px; }
@@ -2920,9 +2950,9 @@
       </div>
       <div class="pr-hint">TAP THE CIRCLE TO CLOSE A TASK &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT IT</div>
       <div class="pr-arch">
-        <div class="pr-archhd">
-          <span class="pr-archt">What I closed</span>
-          <span class="pr-archn" id="priArchCount"></span>
+        <div class="dcl-dv pr-dv pr-archhd">
+          <span class="lb">What I closed</span><i></i>
+          <span class="ct" id="priArchCount"></span>
         </div>
         <div class="pr-tagrow" id="priTagRow"></div>
         <div id="priArchive"></div>
@@ -7605,10 +7635,14 @@ function renderPriToday() {
   const day = isNaN(dt) ? today : WD[dt.getDay()] + ' ' + dt.getDate() + ' ' + MON[dt.getMonth()];
   const many = picks.length >= 4;
   box.classList.toggle('rust', many);
-  const hd = '<div class="hd"><b>\u2600 TODAY\u2019S TO-DO</b><i></i><span>' + escHtml(day) + ' \u00B7 '
+  // PR-T2 (Nov 2026): a gold section heading, then Today as a card on My Priority's soft lavender
+  // with a purple top line, the date eyebrow and a gold sun stamp (done / picked). Four or more picks turn the card rust.
+  const hd = '<div class="dcl-dv pr-dv"><span class="lb">Today\u2019s to-do</span><i></i><span class="ct">'
     + (picks.length ? done.length + ' OF ' + picks.length + ' DONE \u00B7 ' : '') + (many ? 'TOO MANY?' : 'CLEARS AT MIDNIGHT') + '</span></div>';
-  if (!picks.length) { box.innerHTML = hd + '<div class="pr-tdempty">Nothing chosen yet \u2014 tap the \u2600 on a task below. One to three, with care.</div>'; return; }
-  box.innerHTML = hd + picks.map(t => {
+  const eb = '<div class="pr-teb">\u2600 ' + escHtml(day) + '</div>';
+  if (!picks.length) { box.innerHTML = hd + '<div class="pr-tcard empty">' + eb + '<div class="pr-tdempty">Nothing chosen yet \u2014 tap the \u2600 on a task below. One to three, with care.</div></div>'; return; }
+  const stamp = '<div class="pr-tsun" aria-label="' + done.length + ' of ' + picks.length + ' done"><em>' + done.length + '/' + picks.length + '</em><small>TODAY</small></div>';
+  box.innerHTML = hd + '<div class="pr-tcard"><div class="pr-tl">' + eb + picks.map(t => {
     const q = PRI_Q[t.quadrant || 'q2'] || PRI_Q.q2, isDone = (t.status || 'open') !== 'open';
     const m = Number(t.mornings) || 0;
     const nth = m >= 2 ? (m === 2 ? '2ND' : m === 3 ? '3RD' : m + 'TH') + ' MORNING' : '';
@@ -7619,7 +7653,7 @@ function renderPriToday() {
       + '<span class="q" style="background:' + q.acc + '">' + q.code + '</span>'
       + (isDone ? '<span class="x">CLOSED' + (t.closed_hm ? ' ' + escHtml(t.closed_hm) : '') + '</span>' : (nth ? '<span class="w">' + nth + '</span>' : ''))
       + '</div>';
-  }).join('');
+  }).join('') + '</div>' + stamp + '</div>';
 }
 // a tap on the sun: pick for today / un-pick; the mornings count follows the days, not the taps (finding 7)
 async function priSun_(id) {
@@ -7655,7 +7689,7 @@ function renderPriority() {
           + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
           + '</i></button>'
           + '<button class="pr-tk" type="button" data-pri="' + t.id + '" title="Edit">'
-          + '<span class="pr-tkt">' + priTagHtml_(t) + escHtml(t.title || '') + '</span></button>'
+          + '<span class="pr-tkt">' + priTagHtml_(t) + '<span class="pr-tkn">' + escHtml(t.title || '') + '</span></span></button>'
           + '<button class="pr-sun' + (priIsToday_(t) ? ' on' : '') + '" type="button" data-prisun="' + t.id + '" title="' + (priIsToday_(t) ? 'Take off today\u2019s list' : 'Do this today') + '">\u2600</button></div>').join('')
       : '<div class="pr-qempty">nothing here</div>';
     return '<div class="pr-q" style="background:linear-gradient(160deg,#ffffff,' + q.w2 + ');border-color:' + q.acc + '33">'
@@ -7729,7 +7763,7 @@ function renderPriBalance() {
       + '<span class="pr-bb">' + seg + '</span>'
       + '<span class="pr-bq">' + Math.round(d.q2 / d.n * 100) + '% Q2</span></div>';
   }).join('');
-  wrap.innerHTML = '<div class="pr-bt">Where the years went</div>' + rows;
+  wrap.innerHTML = '<div class="dcl-dv pr-dv"><span class="lb">Where the years went</span><i></i><span class="ct"></span></div>' + rows;
 }
 function openPriModal(id) {
   editingPri = id;
