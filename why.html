@@ -2258,7 +2258,9 @@
   .pr-today.rust .pr-dv .ct, .pr-today.rust .pr-teb { color:#9a4a2e; }
   .pr-tl { min-width:0; }
   .pr-teb { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.14em; color:#5b4a86; margin-bottom:8px; }
-  .pr-tcard .pr-td { background:rgba(255,255,255,0.72); }
+  /* PR-M2 (Nov 2026): no white box behind a pick - it sits straight on the lavender; picks split by a faint dashed line */
+  .pr-tcard .pr-td { background:none; padding:7px 0; margin-bottom:0; border-radius:0; }
+  .pr-tcard .pr-td + .pr-td { border-top:1px dashed #d9d0ea; }
   .pr-tcard .pr-td .t { font-family:var(--serif); font-size:1rem; font-weight:700; color:#0A1325; }
   .pr-tcard .pr-tdempty { color:#5b4a86; }
   .pr-tsun { width:74px; height:74px; border-radius:50%; border:2.5px solid #c89b1a; color:#8a6f2f; display:flex; flex-direction:column; align-items:center; justify-content:center; transform:rotate(-12deg); position:relative; flex-shrink:0; }
@@ -2274,8 +2276,12 @@
   #secPriority .pr-archhd { margin-bottom:8px; }
   #secPriority .pr-balance { border-top:none; padding-top:0; }
   @media (max-width:640px) {
-    .pr-tcard { padding:12px 14px; gap:10px; }
-    .pr-tsun { width:58px; height:58px; } .pr-tsun em { font-size:0.9rem; } .pr-tsun small { font-size:0.34rem; }
+    /* PR-M2: on a phone the stamp hides (the heading says N OF M DONE) so the title gets the full width; Q and Nth MORNING wrap under it */
+    .pr-tcard { display:block; padding:12px 14px; }
+    .pr-tsun { display:none; }
+    .pr-tcard .pr-td { flex-wrap:wrap; }
+    .pr-tcard .pr-td .t { flex:1 1 calc(100% - 40px); }
+    .pr-tcard .pr-td .q { margin-left:36px; }
     #secPriority .pr-mx { margin-top:4px; }
   }
   /* the archive — this year open, older years folded away */
