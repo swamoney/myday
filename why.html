@@ -2547,6 +2547,27 @@
   .pp-pgst span { font-size:0.55rem; font-weight:700; margin-top:3px; text-align:center; line-height:1.2; }
   .pp-pgst i { font-style:normal; font-size:0.5rem; margin-top:2px; }
   .pp-pgst.open { opacity:0.75; }
+  /* B2 (6 Nov 2026): the story as a journal page - pale pillar paper, faint rules, a coloured edge, a drop cap */
+  #ppPage .pp-pgbody { padding:18px 0 40px; }
+  .pp-journal { background-color:var(--pgpaper,#fffaea); border:1px solid color-mix(in srgb, var(--pgs,#8189a0) 18%, #fff);
+        border-left:5px solid var(--pgd,var(--pgs,#8189a0)); border-radius:6px 16px 16px 6px; padding:20px 30px 24px; }
+  .pp-jtop { display:flex; justify-content:flex-end; height:26px; margin-bottom:10px; }
+  .pp-jedit { font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;
+        color:var(--pgs,#5A6478); background:rgba(255,255,255,0.7); border:1px solid color-mix(in srgb, var(--pgs,#8189a0) 45%, #fff);
+        border-radius:999px; padding:5px 12px; cursor:pointer; }
+  .pp-journal .pp-rd { font-size:1.12rem; line-height:32px; color:#1d2536; max-width:700px;
+        background-image:repeating-linear-gradient(transparent 0 31px, var(--pgrule,rgba(0,0,0,0.06)) 31px 32px); }   /* the rules ride the text's own lines */
+  .pp-journal .pp-rd p { margin:0 0 32px; }
+  .pp-journal .pp-rd > :last-child { margin-bottom:0; }
+  .pp-journal .pp-rd > p:first-child::first-letter { float:left; font-family:var(--serif); font-weight:700; font-size:3.1rem;
+        line-height:0.9; color:var(--pgs,#5A6478); margin:4px 8px 0 0; }
+  .pp-navs { display:flex; justify-content:space-between; gap:16px; margin-top:26px; padding-top:16px; border-top:1px solid #e6ebf2; }
+  .pp-nv { display:flex; flex-direction:column; align-items:flex-start; font-family:var(--sans); font-size:0.86rem; font-weight:600;
+        color:#28324B; background:none; border:0; padding:2px 0; cursor:pointer; max-width:48%; text-align:left; }
+  .pp-nv.next { align-items:flex-end; text-align:right; }
+  .pp-nv small { font-family:var(--mono); font-size:0.6rem; font-weight:400; letter-spacing:0.08em; color:#8B97AC; text-transform:uppercase; margin-top:3px; }
+  .pp-nv:hover { color:#0A1325; }
+  @media (max-width:640px) { .pp-journal { padding:16px 16px 20px; } .pp-journal .pp-rd { font-size:1.02rem; } }
   .pp-pgst.park { border-style:dashed; border-color:#8b95a8; color:#6b7589; }
   .pp-pgst.park:before { border-color:#a9b3c4; }
   @media (max-width:640px) {
@@ -5404,6 +5425,8 @@ async function ppOpenPage(id) {
   el('ppPageWhy').textContent = nm2;   // J2: the pill names the pillar; the stamp says where the entry stands
   el('ppPageBack').textContent = f.kind === 'log' ? '\u2190 The trail' : '\u2190 Back';
   phd.style.setProperty('--pgd', hue.deep);
+  phd.style.setProperty('--pgpaper', ppBlend_(hue.lt, 0.16));   // B2: the journal page
+  phd.style.setProperty('--pgrule', hueA_(hue.solid, 0.13));
   phd.style.setProperty('--pgp', hue.deep === '#D3AC2C' ? '#B8921F' : hue.deep);
   {   // J2 stamp: done = tick + month; note = NOTED; open items carry their list's name
     const st = el('ppPageSt'), isDone = f.kind === 'log' && e.k === 'done';
@@ -5433,11 +5456,23 @@ function ppRenderPage_(body) {
   const box = el('ppPageBody');
   if (ppEditor_) { try { ppEditor_.destroyPopovers(); } catch (e) {} ppEditor_ = null; }
   if (!NoteEditor.toPlain(body || '').trim()) {
-    box.innerHTML = '<div class="pp-pgempty"><button type="button" id="ppWriteStart">Write the story</button></div>';
+    box.innerHTML = '<div class="pp-pgempty"><button type="button" id="ppWriteStart">Write the story</button></div>' + ppNav_();
     return;
   }
-  box.innerHTML = '<div class="pp-pgtools"><button class="pp-pgbtn" type="button" id="ppWriteEdit">Edit</button></div>'
-    + '<div class="pp-rd">' + NoteEditor.toHtml(body) + '</div>';
+  // B2 (6 Nov 2026): the story is a journal page - pale pillar paper, ruled lines, a drop cap.
+  box.innerHTML = '<div class="pp-journal"><div class="pp-jtop"><button class="pp-jedit" type="button" id="ppWriteEdit">\u270E Edit story</button></div>'
+    + '<div class="pp-rd">' + NoteEditor.toHtml(body) + '</div></div>' + ppNav_();
+}
+// B2: newer / older trail entries, so the trail reads page by page (trail entries only).
+function ppNav_() {
+  const pp = rmData.pp || {}, id = ppPageEntry_;
+  const log = (pp.log || []).slice().sort((a, b) => ppKey_(b).localeCompare(ppKey_(a)));
+  const i = log.findIndex(x => x.id === id);
+  if (i < 0 || log.length < 2) return '';
+  const a = (e, cls, lbl) => e ? '<button class="pp-nv ' + cls + '" type="button" data-ppnav="' + e.id + '">'
+    + (cls === 'prev' ? '\u2190 ' : '') + escHtml(e.t) + (cls === 'next' ? ' \u2192' : '')
+    + '<small>' + lbl + ' \u00B7 ' + ppShort_(e.m2 || e.m) + '</small></button>' : '<span></span>';
+  return '<div class="pp-navs">' + a(log[i - 1], 'prev', 'newer') + a(log[i + 1], 'next', 'older') + '</div>';
 }
 let ppEditor_ = null;
 function ppOpenWriter_(body) {
@@ -5477,6 +5512,8 @@ async function ppSaveStory_() {
 el('ppPageBody').addEventListener('click', e => {
   if (e.target.closest('#ppWriteStart')) { ppPageBody_ = ''; ppOpenWriter_(''); return; }
   if (e.target.closest('#ppWriteEdit')) { ppOpenWriter_(ppPageBody_); return; }
+  const nv = e.target.closest('[data-ppnav]');
+  if (nv) { el('ppPage').scrollTop = 0; ppOpenPage(nv.dataset.ppnav); return; }
   if (e.target.closest('#ppWriteCancel')) { ppRenderPage_(ppPageBody_); return; }
   if (e.target.closest('#ppWriteSave')) ppSaveStory_();
 });

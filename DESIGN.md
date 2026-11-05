@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## PL-B2 · Trail entry page: the story as a journal page (6 Nov 2026)
+- A saved story now sits on a page in the pillar's pale colour (--pgpaper, light at 16%) with a 5px coloured edge on the left, faint ruled lines in the pillar's colour that ride the text's own 32px lines, and a drop cap in the pillar's colour.
+- The lone EDIT button became a soft "✎ Edit story" pill at the page's top right (same id, ppWriteEdit), so it no longer looks like the heading's ✎ (which edits the entry).
+- New: links to the newer and older trail entries under the story (ppNav_, data-ppnav), trail entries only, also under "Write the story" when there is no story yet.
+- Trap: the rules assume plain paragraphs; headings, lists or photos inside a story break the rhythm and the text drifts off the lines.
+
 ## PL-J2 · Trail entry page: the heading (6 Nov 2026)
 - The page an entry opens (#ppPage) now has a white card under a 4px line in the pillar's deep colour; the back button says "← The trail" (or "← Back" for an item still in a list); the pill shows only the pillar's name, filled like the pillar page; the title is 1.9rem serif with no highlighter.
 - A round ink stamp sits on the right (#ppPageSt): ✓ DONE + month for done entries, · NOTED for notes, and for open items FOCUS (☀), LONG GAME (→) or PARKED (dashed grey), a little fainter. Phone: 60px, no month.
