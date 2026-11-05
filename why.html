@@ -2525,6 +2525,40 @@
               var(--pgsw,transparent) 96%, transparent 96%);
             box-decoration-break:clone; -webkit-box-decoration-break:clone; }
   .pp-pgm { font-family:var(--mono); font-size:0.6563rem; color:#5A6478; margin-top:7px; }
+  /* J2 (6 Nov 2026): the trail page heading - a white card under a pillar-colour line, the pillar pill,
+     the title big and clean, and a round ink stamp on the right saying where the entry stands. */
+  #ppPage .pp-pghead { position:relative; background:#fff; border:1px solid #e3e8f0; border-top:4px solid var(--pgd,var(--pgs,#8189a0));
+        border-radius:16px; padding:16px 140px 20px 22px; }
+  #ppPage .pp-pgtop { margin-right:-118px; margin-bottom:14px; }
+  #ppPage .pp-pgback { font-family:var(--sans); font-size:0.82rem; font-weight:600; letter-spacing:0; text-transform:none; color:#28324B; }
+  #ppPage .pp-ic, #ppPage .pp-pgpen { color:#5A6478; }
+  #ppPage .pp-ic:hover { background:#f3f5f9; }
+  #ppPage .pp-pgwhy { font-size:0.72rem; font-weight:700; letter-spacing:0.1em; background:var(--pgp,var(--pgs,#5A6478));
+        border-radius:10px; padding:4px 11px; }
+  #ppPage .pp-pgtw { margin-top:10px; }
+  #ppPage .pp-pgt { font-size:1.9rem; line-height:1.2; color:#0A1325; background:none; padding:0; margin-left:0; display:block; }
+  #ppPage .pp-pgm { font-size:0.72rem; margin-top:8px; }
+  .pp-pgst { position:absolute; right:26px; top:60px; width:92px; height:92px; border-radius:50%;
+        border:2px solid var(--pgs,#5A6478); color:var(--pgs,#5A6478); display:flex; flex-direction:column;
+        align-items:center; justify-content:center; transform:rotate(-10deg); font-family:var(--mono);
+        text-transform:uppercase; letter-spacing:0.12em; pointer-events:none; }
+  .pp-pgst:before { content:''; position:absolute; inset:4px; border-radius:50%; border:1px dashed var(--pgs,#5A6478); opacity:0.7; }
+  .pp-pgst b { font-size:1.5rem; line-height:1; }
+  .pp-pgst span { font-size:0.55rem; font-weight:700; margin-top:3px; text-align:center; line-height:1.2; }
+  .pp-pgst i { font-style:normal; font-size:0.5rem; margin-top:2px; }
+  .pp-pgst.open { opacity:0.75; }
+  .pp-pgst.park { border-style:dashed; border-color:#8b95a8; color:#6b7589; }
+  .pp-pgst.park:before { border-color:#a9b3c4; }
+  @media (max-width:640px) {
+    #ppPage .pp-pghead { padding:12px 84px 16px 14px; }
+    #ppPage .pp-pgtop { margin-right:-70px; }
+    #ppPage .pp-pgwhy { font-size:0.62rem; }
+    #ppPage .pp-pgt { font-size:1.4rem; }
+    .pp-pgst { width:60px; height:60px; right:14px; top:56px; }
+    .pp-pgst b { font-size:1.05rem; }
+    .pp-pgst span { font-size:0.45rem; letter-spacing:0.08em; }
+    .pp-pgst i { display:none; }
+  }
   .pp-pgbody { padding:24px 22px 40px; }
   .pp-rd { font-family:var(--serif); font-size:1rem; line-height:1.75; color:#1d2536; }
   .pp-rd p { margin-bottom:16px; }
@@ -3250,6 +3284,7 @@
       <div class="pp-pgwhy" id="ppPageWhy"></div>
       <div class="pp-pgtw"><span class="pp-pgt" id="ppPageT"></span></div>
       <div class="pp-pgm" id="ppPageM"></div>
+      <div class="pp-pgst" id="ppPageSt" aria-hidden="true"><b></b><span></span><i></i></div>
     </div>
     <div class="rd-album" id="ppAlbum"></div>
     <div class="pp-pgbody" id="ppPageBody"></div>
@@ -5366,8 +5401,19 @@ async function ppOpenPage(id) {
   const pp2 = rmData.pp;
   const nm2 = (p && (p.num || p.label)) || 'My Why';
   const place = f.kind === 'log' ? 'The trail' : ppLbl_(f.kind);
-  el('ppPageWhy').textContent = nm2 + ' \u00B7 ' + place;
-  el('ppPageBack').textContent = '\u2190 ' + nm2 + (f.kind === 'log' ? ' \u00B7 the trail' : '');
+  el('ppPageWhy').textContent = nm2;   // J2: the pill names the pillar; the stamp says where the entry stands
+  el('ppPageBack').textContent = f.kind === 'log' ? '\u2190 The trail' : '\u2190 Back';
+  phd.style.setProperty('--pgd', hue.deep);
+  phd.style.setProperty('--pgp', hue.deep === '#D3AC2C' ? '#B8921F' : hue.deep);
+  {   // J2 stamp: done = tick + month; note = NOTED; open items carry their list's name
+    const st = el('ppPageSt'), isDone = f.kind === 'log' && e.k === 'done';
+    const mk = f.kind === 'log' ? (isDone ? ['\u2713', 'Done'] : ['\u00B7', 'Noted'])
+      : f.kind === 'now' ? ['\u2600', 'Focus'] : f.kind === 'park' ? ['\u2016', 'Parked'] : ['\u2192', 'Long game'];
+    st.querySelector('b').textContent = mk[0];
+    st.querySelector('span').textContent = mk[1];
+    st.querySelector('i').textContent = f.kind === 'log' ? ppShort_(e.m2 || e.m) : '';
+    st.className = 'pp-pgst' + (f.kind === 'park' ? ' park' : '') + (f.kind === 'log' ? '' : ' open');
+  }
   el('ppPageT').textContent = e.t;
   el('ppPageM').textContent = f.kind === 'log' ? ppWhen_(e)
     : (f.kind === 'now' ? 'standing since ' + ppMonth_(pp2.since) : f.kind === 'park' ? 'parked \u00B7 not as of now' : 'lined up');

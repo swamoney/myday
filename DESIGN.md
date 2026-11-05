@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## PL-J2 · Trail entry page: the heading (6 Nov 2026)
+- The page an entry opens (#ppPage) now has a white card under a 4px line in the pillar's deep colour; the back button says "← The trail" (or "← Back" for an item still in a list); the pill shows only the pillar's name, filled like the pillar page; the title is 1.9rem serif with no highlighter.
+- A round ink stamp sits on the right (#ppPageSt): ✓ DONE + month for done entries, · NOTED for notes, and for open items FOCUS (☀), LONG GAME (→) or PARKED (dashed grey), a little fainter. Phone: 60px, no month.
+- Scoped to #ppPage, so the mantra page (#mmPage, same classes) is untouched.
+- Trap: the stamp's month is the end month; a range still shows in full on the date line below the title.
+
 ## PL-Q1 · Pillar page: a quiet trail, right under the boxes (6 Nov 2026)
 - The trail now sits about 20px under the piles, with no rule line above it (T1).
 - Its heading is tiny grey mono capitals ("THE TRAIL"), no underline, a faint line, the count and a small grey Show (Q1): the trail is a back room, not a section.
