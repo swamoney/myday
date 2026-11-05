@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## PL-A4 · Pillar page: In a line as the answer (6 Nov 2026)
+- The In a line on the pillar page is now upright bold serif 1.45rem (1.1rem phone), dark #0A1325, with a → arrow in the pillar's colour before it: the filled Heading is the why, this line is the answer.
+- No word added to the Heading (the "WHY ·" idea was dropped).
+- Phone orb stamp 50px → 60px (text padding 66 → 76px). Desktop orb unchanged (84px).
+- Trap: the bigger the phone stamp, the less room for text; 60px was chosen over 68px for that reason.
+
 ## 1. What the app is
 
 A personal life-tracking app for one person, used daily, intended to outlive every
