@@ -258,6 +258,28 @@
     .rm-poster { padding:10px; } .rm-poster.hand { padding-bottom:38px; }
     .rm-num { font-size:1.5rem; }
   }
+
+  /* PL-A (Nov 2026): a pillar's roadmap page heading = a plate in the pillar's colour (index unchanged).
+     Top line and eyebrow in its deep shade, its light tint as paper, the NAME as the big heading,
+     the status pill under it, the orb as a tilted stamp on the right. The big number and its bar step aside. */
+  .rm-hero { border:1px solid #e3e8f0; border-top:3px solid var(--rm-deep,#95a4bb); border-radius:14px; padding:16px 22px 18px;
+             background:linear-gradient(180deg,#fff,var(--rm-paper,#f6f8fb)); }
+  .rm-hero .rm-eyebrow { color:var(--rm-deep,#a5702f); font-weight:700; letter-spacing:0.14em; margin-bottom:4px; }
+  .rm-hero .rm-num, .rm-hero .rm-sig { display:none; }
+  .rm-hero .rm-stands { font-style:normal; font-weight:700; font-size:2rem; color:#0A1325; line-height:1.2; letter-spacing:-0.01em; margin-top:2px; }
+  .rm-hero .rm-stands.empty { color:#aab4c8; font-weight:600; font-style:italic; }
+  .rm-hero .rm-statusrow { margin-top:10px; }
+  .rm-hero .rm-seal { width:96px; height:96px; font-size:2rem; right:22px; top:50%; transform:translateY(-50%) rotate(-8deg); }
+  .rm-hero .rm-seal:after { content:''; position:absolute; inset:6px; border-radius:50%; border:1px dashed rgba(255,255,255,0.75); pointer-events:none; }
+  .rm-hero .rm-seal { position:absolute; }
+  .rm-hero-b { padding-right:130px; }
+  .rmx .rm-trdv { margin:4px 0 10px; }
+  @media (max-width:640px) {
+    .rm-hero { padding:12px 14px 14px; }
+    .rm-hero .rm-stands { font-size:1.45rem; }
+    .rm-hero .rm-seal { width:68px; height:68px; font-size:1.4rem; right:14px; }
+    .rm-hero-b { padding-right:84px; }
+  }
   .rm-sec { margin-bottom:30px; }
   .rm-k { display:flex; align-items:center; gap:7px; font-family:var(--mono); font-size:0.5938rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#a5702f; }
   .rm-k svg { width:14px; height:14px; }
@@ -3773,9 +3795,9 @@
           <div class="pp-top"><button class="pp-aj" id="ppJourney" type="button">+ Add Journey</button></div>
           <div class="pp-standing" id="ppStanding"></div>
           <div class="pr-arch">
-            <div class="pr-archhd">
-              <span class="pr-archt" id="rmxArchT">The trail</span>
-              <span class="pr-archn" id="rmxArchCount"></span>
+            <div class="dcl-dv rm-trdv">
+              <span class="lb" id="rmxArchT">The trail</span><i></i>
+              <span class="ct" id="rmxArchCount"></span>
             </div>
             <div id="ppLedger"></div>
           </div>
@@ -5018,7 +5040,10 @@ function openRoadmap(id) {
     { const hero = el('rmInner');
       hero.style.setProperty('--rm-sol', hue.solid);
       hero.style.setProperty('--rm-ink', hue.ink); }
-    el('rmEyebrow').textContent = (p.code ? 'Pillar ' + p.code + ' \u00B7 ' : '') + 'Long-term roadmap';
+    el('rmEyebrow').textContent = ((p.num || p.code) ? 'Pillar ' + (p.num || p.code) + ' \u00B7 ' : '') + 'Long-term roadmap';
+    // PL-A (Nov 2026): the heading plate wears the pillar's own colour - its deep shade on the top line and eyebrow, its light tint as paper
+    el('rmInner').style.setProperty('--rm-deep', hue.deep);
+    el('rmInner').style.setProperty('--rm-paper', hueA_(hue.lt, 0.22));
   }
   el('rmNum').textContent = p.num || '';
   rmPaintCover_();
