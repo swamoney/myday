@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## PL-G1 · Pillar page: the answer arrow nudges (6 Nov 2026)
+- The → before In a line glides 6px right and back every 2.4s, forever (CSS keyframes rmNudge, no GIF).
+- Stays still when the device is set to reduce motion.
+- Trap: constant motion pulls the eye off the words; G4 (nudge three times then stop) was the calmer alternative if it ever feels busy.
+
 ## PL-A4 · Pillar page: In a line as the answer (6 Nov 2026)
 - The In a line on the pillar page is now upright bold serif 1.45rem (1.1rem phone), dark #0A1325, with a → arrow in the pillar's colour before it: the filled Heading is the why, this line is the answer.
 - No word added to the Heading (the "WHY ·" idea was dropped).
