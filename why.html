@@ -193,6 +193,15 @@
     .y2-ans { font-size:1.02rem; }
     .y2-pl { font-size:0.64rem; }
   }
+  /* K3 (6 Nov 2026): the pillar page is quiet - colour lives only in the heading block. The three lists
+     sit on plain light-grey panels with no lines, piles or coloured badges; headings go dark, circles grey. */
+  #roadmapWin .pp-standing .pp-sec, #roadmapWin .pp-standing .pp-sec.pp-to, #roadmapWin .pp-standing .pp-sec.pp-nowsec,
+  #roadmapWin .pp-standing .pp-sec.pp-parksec { background:#f3f5f9; border:0; box-shadow:none; }
+  #roadmapWin .pp-fold:not(.open), #roadmapWin .pp-fold.l2:not(.open), #roadmapWin .pp-fold.l3:not(.open) { box-shadow:none; }
+  #roadmapWin .pp-standing .pp-lbl, #roadmapWin .pp-standing .pp-lbl.pp-far { color:#182233; }
+  #roadmapWin .pp-fbadge { background:#8b95a8; }
+  #roadmapWin .pp-fchev { color:#6b7589; }
+  #roadmapWin .pp-tosec .pp-circ { border-color:#a9b3c4; }
   /* Z1 (6 Nov 2026): the whole index about 30% bigger - orb 84px, larger Heading pill, answer and footer, more air */
   .spine-line { left:41px; top:40px; bottom:40px; width:3px; }
   .snode { grid-template-columns:84px 1fr; gap:30px; }
@@ -4405,7 +4414,6 @@ function renderSpine() {
     // the Heading filled in the pillar's colour, the In a line as the answer after an arrow,
     // and one quiet footer: the status as a dot with its words, and how many are in focus.
     const pillC = hue.deep === '#D3AC2C' ? '#B8921F' : hue.deep;
-    const fN = pFocusN_(p);
     return '<div class="snode y2" data-id="' + p.id + '" data-open="' + p.id + '">' +
       '<div class="node-tools">' +
         '<button class="nt" data-edit="' + p.id + '" title="Edit">&#9998;</button>' +
@@ -4417,8 +4425,7 @@ function renderSpine() {
         '<div class="y2-hd"><span class="y2-pl" style="background:' + pillC + '">' + escHtml(p.num || p.label || 'Untitled') + '</span>' +
           (p.brk ? '<span class="y2-brk" style="color:' + hue.deep + ';border-color:' + hue.deep + '">' + escHtml(p.brk) + '</span>' : '') + '</div>' +
         (p.label ? '<div class="y2-ans"><b style="color:' + hue.deep + '">\u2192</b><span>' + label + '</span></div>' : '<div class="y2-ans empty">No line yet</div>') +
-        '<div class="y2-ft"><i style="background:' + stColor + '"></i><span>' + (p.current_status ? stTxt : 'No status yet') + '</span>' +
-          '<span class="y2-sp"></span><span class="y2-ct">' + (fN ? fN + ' in focus' : '') + '</span></div>' +
+        '<div class="y2-ft"><i style="background:' + stColor + '"></i><span>' + (p.current_status ? stTxt : 'No status yet') + '</span></div>' +   // I1: status only
       '</div>' +
     '</div>';
   }).join('');

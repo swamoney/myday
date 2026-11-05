@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## PL-I1 + K3 · Index shows status only; the pillar page goes quiet (6 Nov 2026)
+- I1: the "N in focus" count is gone from the index footer; just the status dot and its words. (pFocusN_ stays in the file, unused.)
+- K3: on the pillar page, colour lives only in the heading block (top line, plate, orb, pill, arrow, status). Current focus, the long game and Park sit on plain #f3f5f9 panels with no borders, top lines or piles; headings dark #182233; badges grey; long-game circles grey. Current focus circles keep the pillar's colour. Scoped with #roadmapWin, so it supersedes the M1/S1 colour rules there without deleting them.
+- Trap: below the heading every pillar page now looks the same, and the coloured pile (S1) no longer shows; the badge count is the only sign of what waits inside a closed box.
+
 ## PL-Z1 · Pillars index about 30% bigger (6 Nov 2026)
 - Orb 64 → 84px (P-code 1.6rem), spine line 3px; Heading pill 0.92rem; answer 1.55rem; footer 0.92rem; rows 24-26px apart. Phone: orb 64px, answer 1.22rem, and the "N in focus" count always takes its own line.
 - Trap: about four pillars fit on a laptop screen now instead of five, so the lower priorities need a scroll.
