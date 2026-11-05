@@ -2416,6 +2416,29 @@
   .pp-standing .pp-itxt { font-size:0.9rem; line-height:1.5; }
   .pp-standing .pp-itrow { margin-top:9px; }
   @media (max-width:640px) { .pp-standing.n3, .pp-standing.n2 { grid-template-columns:1fr; } }
+  /* K2 (6 Nov 2026): Current focus spans the width; the other two fold into stacks beneath it */
+  .pp-standing { grid-template-columns:1fr; }
+  .pp-folds { display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start; padding-bottom:12px; }
+  .pp-folds.n1 { grid-template-columns:1fr 1fr; }
+  .pp-standing .pp-sec.pp-fold { padding:0; }
+  .pp-fhd { display:flex; align-items:center; gap:8px; padding:12px 16px; cursor:pointer; }
+  .pp-fhd .pp-hd { margin:0; }
+  .pp-fhd .pp-cnt { display:none; }
+  .pp-fbadge { font-family:var(--mono); font-size:0.62rem; font-weight:700; color:#fff; background:var(--pp-sol,#8189a0);
+        border-radius:999px; padding:2px 8px; line-height:1.4; }
+  .pp-parksec .pp-fbadge { background:#8b95a8; }
+  .pp-fchev { margin-left:auto; font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.12em;
+        text-transform:uppercase; color:var(--pp-sol,#5A6478); background:none; border:0; cursor:pointer; padding:2px 0; white-space:nowrap; }
+  .pp-parksec .pp-fchev { color:#6b7589; }
+  .pp-fbody { display:none; padding:0 16px 12px; }
+  .pp-fold.open .pp-fbody, body.rm-editing .pp-fbody { display:block; }   /* Edit shows everything, pens and arrows */
+  .pp-fold .pp-fbody .pp-itrow:first-child { margin-top:0; }
+  .pp-fold:not(.open) { box-shadow:0 5px 0 -1px #fff, 0 5px 0 0 #dfe4ec; }
+  .pp-fold.l2:not(.open) { box-shadow:0 5px 0 -1px #fff, 0 5px 0 0 #dfe4ec, 0 10px 0 -1px #fff, 0 10px 0 0 #e6eaf0; }
+  .pp-fold.l3:not(.open) { box-shadow:0 5px 0 -1px #fff, 0 5px 0 0 #dfe4ec, 0 10px 0 -1px #fff, 0 10px 0 0 #e6eaf0, 0 15px 0 -1px #fff, 0 15px 0 0 #edf0f4; }
+  body.rm-editing .pp-fold { box-shadow:none !important; }
+  body.rm-editing .pp-fchev { display:none; }
+  @media (max-width:640px) { .pp-folds, .pp-folds.n1 { grid-template-columns:1fr; gap:18px; } }
   /* M1: the trail folds away - heading and count stay, Show opens it; lines are plain, no highlighter */
   .rmx .pr-arch #ppLedger { display:none; }
   .rmx .pr-arch.tr-open #ppLedger { display:block; }
@@ -5074,6 +5097,7 @@ function openRoadmap(id) {
     seal.style.color = hue.ink;
     seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
     ppTrailOpen_(false);   // M1: the trail opens closed, every time
+    ppFoldOpen_ = { toward: false, park: false };   // K2: so do the two stacks
     const rmxT = el('rmxArchT');
     if (rmxT) rmxT.style.setProperty('--arch-acc', hue.solid);   // matches the add button
     // P24 signature: the name marked in its own colour, underscored in the same.
@@ -5211,11 +5235,23 @@ function renderPp() {
   // offers both places, so nothing is unreachable while it is invisible.
   const parts = [];
   if (pp.now.length) parts.push('<div class="pp-sec pp-nowsec">' + hd('now', pp.nowLbl, pp.since) + items(pp.now, 'now') + '</div>');
-  if (pp.toward.length) parts.push('<div class="pp-sec' + (parts.length ? ' pp-to' : '') + '">' + hd('toward', pp.toLbl, '') + items(pp.toward, 'toward') + '</div>');
+  // K2 (6 Nov 2026): the long game and Park fold into small stacks under Current focus -
+  // one paper edge behind for each item (up to three), a count badge, Open to unfold.
+  const fold = (sec, cls, lbl, a) => {
+    const n = a.length, op = !!ppFoldOpen_[sec];
+    return '<div class="pp-sec pp-fold ' + cls + (op ? ' open' : '') + (n >= 2 ? ' l2' : '') + (n >= 3 ? ' l3' : '') + '">'
+      + '<div class="pp-fhd" data-ppfold="' + sec + '">' + hd(sec, lbl, '')
+      + '<span class="pp-fbadge">' + n + '</span>'
+      + '<button class="pp-fchev" type="button" data-ppfold="' + sec + '" aria-expanded="' + op + '">' + (op ? 'Hide \u25B4' : 'Open \u25BE') + '</button></div>'
+      + '<div class="pp-fbody">' + items(a, sec) + '</div></div>';
+  };
+  const folds = [];
+  if (pp.toward.length) folds.push(fold('toward', 'pp-tosec', pp.toLbl, pp.toward));
   // PP-PARK: the third place, cool and dashed; empty, it vanishes like the others.
-  if (pp.park.length) parts.push('<div class="pp-sec pp-parksec' + (parts.length ? ' pp-to' : '') + '">' + hd('park', pp.parkLbl, '') + items(pp.park, 'park') + '</div>');
+  if (pp.park.length) folds.push(fold('park', 'pp-parksec', pp.parkLbl, pp.park));
+  if (folds.length) parts.push('<div class="pp-folds n' + folds.length + '">' + folds.join('') + '</div>');
   box.classList.toggle('hidden', !parts.length);
-  box.classList.remove('n1', 'n2', 'n3'); if (parts.length) box.classList.add('n' + parts.length);   // M1: boxes side by side
+  box.classList.remove('n1', 'n2', 'n3');
   box.innerHTML = parts.join('');
   const aj = el('ppJourney');
   if (aj) {   // A1 ghost: hairline in the pillar's solid, text in its ink
@@ -5254,6 +5290,7 @@ function renderPpLedger() {
   wrap.innerHTML = log.map(row).join('');
 }
 let ppSecEditing_ = null, ppLogEditing_ = null, ppItemEditing_ = null;
+let ppFoldOpen_ = { toward: false, park: false };   // K2: which stacks are unfolded, this visit only
 // M1 (6 Nov 2026): The trail folds away; its heading keeps the count, Show opens it.
 function ppTrailOpen_(on) {
   const a = document.querySelector('#roadmapWin .pr-arch'); if (!a) return;
@@ -5653,6 +5690,10 @@ el('fPpWhere').addEventListener('change', () => {
 });
 el('ppJourney').addEventListener('click', () => ppOpenLog(null));
 el('ppStanding').addEventListener('click', e => {
+  const fd = e.target.closest('[data-ppfold]');
+  if (fd && !e.target.closest('[data-pprename]')) {
+    const k = fd.dataset.ppfold; ppFoldOpen_[k] = !ppFoldOpen_[k]; renderPp(); return;
+  }
   const mv2 = e.target.closest('[data-ppmv]');
   if (mv2) {
     const q = mv2.dataset.ppmv.split(':'), s = q[0], i = Number(q[1]), j = i + Number(q[2]);

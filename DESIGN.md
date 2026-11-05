@@ -8,6 +8,13 @@ Written August 2026.
 
 ---
 
+## PL-K2 · Pillar page: focus on top, the other two as stacks (6 Nov 2026)
+- Supersedes the side-by-side layout of PL-M1 (colours, serif headings and the folded trail stay).
+- Current focus spans the full width and is always open. For the long game and Park sit beneath it in two columns (stacked on phone), closed: heading, a count badge in the pillar's colour (grey for Park) and Open ▾.
+- A closed box shows one paper edge behind it per item, up to three (classes l2/l3), so you can see how much waits without any words.
+- Tap the heading or Open to unfold (ppFoldOpen_, this visit only; reset in openRoadmap, kept across re-renders so ticking an item does not snap it shut). Edit mode shows both boxes open, with pens and arrows.
+- Trap: long-term goals seen less often can drift; the badge and the pile are the reminder.
+
 ## PL-M1 · Pillar page: the three lists as boxes, The trail folded (6 Nov 2026)
 - Current focus, For the long game and Park now sit side by side as three cards (stacked on phone), like the Priority matrix. Focus is wider (1.25fr), wears the pillar's tint and a deep-colour top line; the long game is white under a pillar-colour line; Park is grey and dashed.
 - Headings are serif in the pillar's ink with a small count; no more gold tags. An empty list's box still vanishes, so the grid becomes 2 or 1 columns (classes n1/n2/n3 on #ppStanding; Focus marked .pp-nowsec).
