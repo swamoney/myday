@@ -143,6 +143,8 @@ kept.
 
 **Q4 = PARK** (23 Sep 2026): the fourth quadrant is 'Park - not as of now' (was 'Delete - not important & not urgent'): Rahul rarely deletes; those tasks are on hold for a later matrix. Stored key stays q4; PRI_Q verb/sub, the task dialog's option, and the print follow. Closing a parked task no longer presumes 'cancelled' - the window opens on 'done' like any other.
 
+**MY WHY PILLARS: THE HEADING PILL'S LETTERS BIGGER (F1)** (5 Nov 2026, why.html, no SQL): on a pillar's page the filled pill holds the pillar's Heading (the form's "Heading" field, mNum - not a number, as the PL-H2 note wrongly called it; the In a line is the big text under it). Its letters grow from 0.68rem to 0.85rem (0.78rem phone), padding 5px 14px; fill, capitals and colour unchanged.
+
 **MY WHY PILLARS: THE YELLOW PILLAR'S NUMBER PILL ONE STEP DARKER (Y3, PL-Y3)** (5 Nov 2026, why.html, no SQL): white text was faint on the yellow (#D3AC2C), so on the yellow pillar's page only its number pill uses #B8921F (--rm-pill); its top line, paper and orb keep the yellow. Every other colour's pill uses its own deep shade as before.
 
 **MY WHY PILLARS: "PILLAR 02" AS A FILLED PILL ABOVE THE NAME (H2, PL-H2)** (5 Nov 2026, why.html, no SQL): on a pillar's roadmap page the eyebrow "PILLAR 02 · LONG-TERM ROADMAP" is gone; #rmEyebrow now holds a filled pill with the pillar's number exactly as typed, no "Pillar" prefix (e.g. "02"; the letter if no number) (.pl-n: mono capitals, white on the pillar's deep colour) and, when the pillar has a side word, a small outlined tag (.pl-brk, e.g. WORK). The pillar's name stays the big heading under it; status pill and orb stamp unchanged. With no number, letter or side word the eyebrow hides.
