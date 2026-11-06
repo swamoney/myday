@@ -2268,22 +2268,42 @@
   #dcWin.dc-editing .dc-epi .rnote { display:none; }
   .dc-stack { display:flex; flex-direction:column; align-items:center; gap:6px; }
   .dc-headstars { display:flex; flex-direction:column; align-items:center; gap:3px; }
-  /* M1 (6 Nov 2026): a decision's page heading on the phone - no seal, no band, a small stamp in the corner, the date as one pill */
+  /* H1 + PA + M1 (6 Nov 2026): a decision's page heading - no D circle, no band, no side column. The mark sits beside
+     the title like an index card (desktop: the stage stamp, or the calendar leaf once decided); on the phone it drops to
+     a row of its own under the heading. The date is one pill under the title, everywhere; a tap on it edits the dates. */
+  .dc-hrow { display:block; }
+  .dc-hmark { display:none; }
+  #dcWin .dc-plate:not(.bp) { grid-template-columns:1fr; }
+  #dcWin .dc-plate:not(.bp) .dc-plate-side { display:none !important; }
+  #dcWin .dc-plate:not(.bp) .dc-hrow { display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center; }
+  #dcWin .dc-plate:not(.bp) .dc-hl { min-width:0; }
+  #dcWin .dc-plate:not(.bp) .dc-hmark { display:flex; flex-direction:column; align-items:center; padding-right:6px; }
+  #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp { margin:0; transform:rotate(-8deg); }
+  #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp.alt { display:none; }
+  #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf { min-width:150px; }
+  #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf .bg { font-size:1.35rem; padding:11px 14px 9px; }
+  #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf .bn, #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf .ft { font-size:0.62rem; }
   .bp-cd.m1 { display:none; }
+  #dcWin .dc-plate:not(.bp) .bp-cd.m1 { display:inline-flex; align-items:center; margin:8px 0 2px; white-space:nowrap; background:var(--a); color:#fff; font-size:0.62rem; cursor:pointer; }
+  #dcWin .dc-plate:not(.bp) .bp-cd.m1.hidden { display:none; }
+  #dcWin .dc-plate:not(.bp) .bp-cd.m1.live { position:relative; padding-left:22px; }
+  #dcWin .dc-plate:not(.bp) .bp-cd.m1.live:before { content:''; position:absolute; left:9px; top:50%; width:6px; height:6px; margin-top:-3px; border-radius:50%; background:#fff; animation:bpLive 1.4s ease-in-out infinite; }
   @media (max-width:640px) {
-    #dcWin .dc-plate:not(.bp) { position:relative; }
-    #dcWin .dc-plate:not(.bp) .dc-seal, #dcWin .dc-plate:not(.bp) .dc-band, #dcWin .dc-plate:not(.bp) .dc-headstars { display:none !important; }
-    #dcWin .dc-plate:not(.bp) .dc-plate-side { position:absolute; right:10px; top:10px; width:auto; margin:0; }
-    #dcWin .dc-plate:not(.bp) .dc-stamp svg { width:92px; height:auto; }
-    #dcWin .dc-plate:not(.bp) .dc-plate-b { padding-right:100px; }
+    #dcWin .dc-plate:not(.bp) .dc-hrow { grid-template-columns:1fr; gap:0; }
+    #dcWin .dc-plate:not(.bp) .dc-hmark { align-items:flex-start; padding:0; margin:12px 0 4px 4px; }
+    #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp { transform:rotate(-6deg); }
+    #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp.alt { display:block; }
+    #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf { display:none; }
     #dcWin .dc-plate:not(.bp) .dc-name { font-size:1.5rem; }
     #dcWin .dc-plate:not(.bp) .m1x { display:none; }
-    #dcWin .dc-plate:not(.bp) .bp-cd.m1 { display:inline-flex; align-items:center; margin:6px 0 2px; white-space:nowrap; background:var(--a); color:#fff; font-size:0.56rem; }
-    #dcWin .dc-plate:not(.bp) .bp-cd.m1.hidden { display:none; }
-    #dcWin .dc-plate:not(.bp) .bp-cd.m1.live { position:relative; padding-left:20px; }
-    #dcWin .dc-plate:not(.bp) .bp-cd.m1.live:before { content:''; position:absolute; left:8px; top:50%; width:6px; height:6px; margin-top:-3px; border-radius:50%; background:#fff; animation:bpLive 1.4s ease-in-out infinite; }
+    #dcWin .dc-plate:not(.bp) .bp-cd.m1 { margin:6px 0 2px; font-size:0.56rem; }
+    #dcWin .dc-plate:not(.bp) .bp-cd.m1.live { padding-left:20px; }
+    #dcWin .dc-plate:not(.bp) .bp-cd.m1.live:before { left:8px; }
     .dm-stars { flex-wrap:wrap; } .dm-scap { flex-basis:100%; margin:6px 0 0 !important; }
+    /* B2 (6 Nov 2026): an ongoing decision in the list wears a live dot before its title */
+    .dcl-og .dcl-tt:before { content:''; display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--r); margin-right:8px; vertical-align:3px; animation:dclLeaf 1.4s ease-in-out infinite; }
   }
+  @media (prefers-reduced-motion: reduce) { .dcl-og .dcl-tt:before { animation:none; } }
   .dc-headstars.hidden { display:none; }
   .dc-headstars .rstars { display:flex; gap:3px; }
   .dc-headstars .rstars b { font-size:1rem; line-height:1; color:#dccfa8; font-weight:400; cursor:default; transition:transform .1s; }
@@ -3650,6 +3670,7 @@
          the seal carrying the KIND (D / dream mark), the picture in its mat beneath -->
     <div class="dc-plate" id="dcPlate">
     <div class="dc-plate-b">
+    <div class="dc-hrow"><div class="dc-hl">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span><button type="button" class="dm-pen hidden" id="dmPen" title="Edit name &amp; dates" aria-label="Edit name and dates">&#9998;</button></div>
     <span class="bp-cd hidden" id="dcCd"></span>
@@ -3660,6 +3681,7 @@
       <input class="rnote-in" id="dcRateNote" maxlength="240" placeholder="A line looking back &mdash; what the years taught (optional)">
     </div>
     <div class="dc-sig"></div>
+    </div><div class="dc-hmark" id="dcHMark"></div></div>
     <!-- R1: the journey on one row - where you stand is lit, the next step is a tap -->
     <div class="dc-journey" id="dcJourney"></div>
     <div class="dc-meta" id="dcMeta"></div>
@@ -11136,6 +11158,9 @@ function dcPaintPlate_(d) {
       if (cd && m.pill) { cd.textContent = m.pill; cd.classList.remove('hidden'); }
       if (cd) cd.classList.toggle('late', dmLate_(d));   // D: the page pill goes amber too
     } else stamp.classList.remove('bp-stamp');
+    // H1 + PA: the mark beside the title - the stage stamp, or the calendar leaf once decided (the phone keeps the stamp)
+    { const hm = el('dcHMark');
+    if (hm) hm.innerHTML = dcIsDream_(d) ? '' : (wip ? dcLeaf_(d) + '<div class="dc-stamp alt">' + el('dcStamp').innerHTML + '</div>' : '<div class="dc-stamp">' + el('dcStamp').innerHTML + '</div>'); }
   }
 }
 // BP-2: the dream's state, eyebrow, countdown and passport stamp - the same words its card uses in the list
@@ -12017,6 +12042,7 @@ el('dcQNewTen').addEventListener('keydown', e => { if (e.key === 'Enter') el('dc
 // doors; this modal touches only the frame around them.
 let dcEMadePick = null;
 el('dcBand').addEventListener('click', () => el('dcDetailsBtn').click());
+el('dcCd').addEventListener('click', () => { if (el('dcCd').classList.contains('m1')) el('dcDetailsBtn').click(); });   // H1: the date pill takes over the band's tap
 el('dcEUndecide').addEventListener('click', () => { el('dcEditModal').classList.add('hidden'); el('dcUndecideBtn').click(); });
 el('dcFromMind').addEventListener('click', () => { const id = el('dcFromMind').dataset.knot; if (!id) return; const cb = el('dcBack'); if (cb) cb.click(); showSection('mind'); openMmPage(id); });
 el('dcName').addEventListener('click', () => { if (el('dcWin').classList.contains('dc-editing')) el('dcDetailsBtn').click(); });

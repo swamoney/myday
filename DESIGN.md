@@ -8,6 +8,14 @@ Written August 2026.
 
 ---
 
+## DC-H1 + PA + B2 · Decision page heading like an index card; live dot on phone (6 Nov 2026)
+- The D circle is gone from decision pages (all of them are decisions). Dream pages are untouched.
+- The heading is a row (.dc-hrow): top line, title, date pill and coloured line on the left; the mark (#dcHMark) on the right, centred, like an index card. Thinking it through and past pages show their stamp; a decided page shows the calendar leaf (TO HAPPEN BY · 15 Mar 2027 · 4 MONTHS TO GO).
+- The old side column (seal, stamp, head stars, date band) is hidden on decision pages. The date pill under the title now shows on desktop too, and a tap on it opens the details form (the band's old job).
+- PA (phone): the mark drops to its own row under the heading, before the steps. A decided page shows its DECIDED stamp there, not the leaf (the pill already gives the date).
+- B2 (phone): ongoing decisions in the list have a blinking dot in their colour before the title. Reduced motion stops it.
+- Harness: h_dcclean.js.
+
 ## DC-J3 · Past decisions as a life journey (6 Nov 2026)
 - Past decisions hang on one line, like the My Why pillars spine: newest at the top, back to "2023 · where it began" (the oldest one's year) at the foot.
 - Each decision has a small orb on the line (sea glass ✦ for It happened, rose ✕ for Walked away, the pillar orbs' dashed ring) and its month and year (happened, else decided) just above its card.
