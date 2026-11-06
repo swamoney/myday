@@ -272,6 +272,32 @@
   .tpsum i { flex:1; height:1px; background:#d6dde8; } .tpsum span { font-size:0.5rem; }
   .tp-newbtn { display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:0.625rem; font-weight:600; letter-spacing:0; padding:5px 10px; border-radius:8px; cursor:pointer; color:#fff; background:#2F6B8A; border:1px solid #2F6B8A; margin-left:4px; }
   .tp-newbtn svg { width:12px; height:12px; flex-shrink:0; }
+  /* TP-POP (7 Nov 2026): the New trip pop-up, shaped like A new decision in My Why */
+  .tpm-ov { position:fixed; inset:0; z-index:240; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(18,26,44,0.55); backdrop-filter:blur(4px); }
+  .tpm-ov.hidden { display:none; }
+  .tpm { position:relative; overflow:hidden; width:100%; max-width:460px; max-height:92vh; overflow-y:auto; background:linear-gradient(#eef4f8, #fff 150px); border-radius:18px; padding:26px 24px; box-shadow:0 30px 70px rgba(10,20,40,0.35); }
+  .tpm:before { content:''; position:absolute; left:0; right:0; top:0; height:5px; background:#2F6B8A; }
+  .tpm-t { font-family:var(--serif); font-size:1.375rem; font-weight:600; color:#182233; margin-bottom:4px; }
+  .tpm-t u { text-decoration:underline; text-decoration-color:#d9b84a; text-decoration-thickness:4px; text-underline-offset:5px; text-decoration-skip-ink:none; }
+  .tpm-s { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.14em; text-transform:uppercase; color:#8189a0; margin-bottom:18px; padding-right:100px; }
+  .tpm-pv { --a:#3a6fb0; position:absolute; right:20px; top:20px; width:74px; height:78px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--a); border:3px solid var(--a); border-radius:8px; box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3.5px var(--a); transform:rotate(-6deg); opacity:0.9; }
+  .tpm-pv.empty { --a:#b9c4d4; }
+  .tpm-pv b { font-family:var(--serif); font-size:1.6rem; font-weight:800; line-height:1; }
+  .tpm-pv small { font-family:var(--mono); font-size:0.45rem; font-weight:700; letter-spacing:0.2em; margin-top:2px; }
+  .tpm-pv em { font-style:normal; font-family:var(--mono); font-size:0.5rem; font-weight:700; margin-top:3px; }
+  .tpm-f { margin-bottom:14px; }
+  .tpm-f label { display:block; font-family:var(--mono); font-size:0.625rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#8189a0; margin-bottom:5px; }
+  .tpm-f input { width:100%; min-width:0; background:#f4f7fb; border:1px solid #dce3ee; border-radius:9px; padding:11px 12px; font-size:0.875rem; color:#182233; font-family:var(--sans); }
+  .tpm-f input:focus { outline:none; border-color:#c9a94a; background:#fff; }
+  .tpm-r2 { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+  .tpm-cos { display:flex; flex-wrap:wrap; gap:10px; padding:4px 2px; }
+  .tpm-co { font-family:var(--mono); font-size:0.56rem; font-weight:800; letter-spacing:0.14em; color:var(--c); background:#fff; border:2px solid var(--c); border-radius:4px; box-shadow:inset 0 0 0 1.5px #fff, inset 0 0 0 2.5px var(--c); padding:5px 9px; opacity:0.45; cursor:pointer; transition:opacity .12s, transform .12s; }
+  .tpm-co.on { opacity:1; transform:rotate(-6deg); }
+  .tpm-acts { display:flex; align-items:center; gap:8px; margin-top:20px; }
+  .tpm-bp { background:#2F6B8A; color:#fff; border:none; border-radius:9px; padding:11px 18px; font-weight:600; font-size:0.8125rem; cursor:pointer; font-family:var(--sans); }
+  .tpm-bp:disabled { opacity:0.5; }
+  .tpm-bg { background:transparent; border:1px solid #dce3ee; border-radius:9px; padding:11px 16px; font-size:0.8125rem; color:#6a7690; cursor:pointer; font-family:var(--sans); }
+  @media (max-width:520px) { .tpm-pv { width:58px; height:62px; right:14px; top:16px; } .tpm-pv b { font-size:1.2rem; } .tpm-s { padding-right:70px; } }
   .tpjr { position:relative; padding-left:56px; }
   .tpjr:before { content:''; position:absolute; left:27px; top:20px; bottom:40px; width:3px; border-radius:3px; background:linear-gradient(180deg,#3a6fb0,#9fb6c6 30%,#9fb6c6 85%,#dfe6ee); }
   .tpjr .tl-dv { margin:22px 0 4px; } .tpjr .tl-dv:first-child { margin-top:4px; }
@@ -1040,6 +1066,21 @@
       <span class="spacer"></span>
       <button class="btn-save" id="saveBtn">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- TP-POP (7 Nov 2026): A new trip -->
+<div class="tpm-ov hidden" id="tpmOv">
+  <div class="tpm">
+    <span class="tpm-pv empty" id="tpmPv" aria-hidden="true"></span>
+    <div class="tpm-t"><u>A new trip</u></div>
+    <div class="tpm-s">where you went, and when</div>
+    <div class="tpm-f"><label for="tpmName">The trip</label><input id="tpmName" maxlength="160" placeholder="e.g. Ten days in Ladakh"></div>
+    <div class="tpm-f"><label>From &ndash; to</label><div class="tpm-r2"><input type="date" id="tpmFrom" title="From"><input type="date" id="tpmTo" title="To (blank = one day)"></div></div>
+    <div class="tpm-f"><label for="tpmWhere">Where (optional)</label><input id="tpmWhere" placeholder="Leh &middot; Nubra &middot; Pangong"></div>
+    <div class="tpm-f"><label>Who with (optional)</label><div class="tpm-cos" id="tpmCos"></div></div>
+    <div class="tpm-f"><label for="tpmSig">One line (optional)</label><input id="tpmSig" placeholder="the line that stays with you"></div>
+    <div class="tpm-acts"><button type="button" class="tpm-bp" id="tpmSave">Open it</button><button type="button" class="tpm-bg" id="tpmCancel">Cancel</button></div>
   </div>
 </div>
 
@@ -1882,9 +1923,7 @@ function tripRenderDays_(r, editing) {
 const TRIP_PAL = ['#2b8a80', '#4f7a3e', '#2f5f93', '#b0582f', '#8a6f2f', '#6D4E66'];
 // TP-Y2 (7 Nov 2026): a trip wears the ink of the decade it began in - the Life Timeline's rule, so a trip and a chapter
 // from the same decade match (1990s ocean, 2000s amethyst, 2010s bronze, 2020s sky). No date: slate.
-// TP-Y1 (7 Nov 2026): one ink per YEAR instead - the four inks in turn (2024 ocean, 2025 amethyst, 2026 bronze, 2027 sky ...)
-function tripYearShade_(y) { const P = ['#2F6B8A', '#5b4a86', '#9a7b3a', '#3a6fb0']; y = parseInt(y, 10); return isNaN(y) ? '#7686a3' : P[((y % 4) + 4) % 4]; }
-function tripDecShade_(r) { return r && r.trip_from ? tripYearShade_(r.trip_from.slice(0, 4)) : '#7686a3'; }
+function tripDecShade_(r) { return r && r.trip_from ? chDecShade_({ years_from: parseInt(r.trip_from.slice(0, 4), 10) }) : '#7686a3'; }   // TP-Y2 again (7 Nov 2026): the decade's ink, as the Life Timeline
 function tripDaysN_(r) {
   const a = tripDate_(r.trip_from), b = tripDate_(r.trip_to || r.trip_from);
   if (!a || isNaN(a)) return 0;
@@ -1923,46 +1962,65 @@ function renderTrips(list, wrap) {
       + '<button type="button" class="tp-newbtn" id="tpNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>New trip</span></button></div>';
     html += '<div class="tpjr">';
     Object.keys(byYear).sort((a, b) => b.localeCompare(a)).forEach(y => {
-      html += '<div class="tl-dv" style="--yc:' + tripYearShade_(y) + ';"><b>' + y + '</b><i></i><span>' + byYear[y].length + (byYear[y].length === 1 ? ' TRIP' : ' TRIPS') + '</span></div>' + byYear[y].map(card).join('');
+      html += '<div class="tl-dv" style="--yc:' + chDecShade_({ years_from: parseInt(y, 10) }) + ';"><b>' + y + '</b><i></i><span>' + byYear[y].length + (byYear[y].length === 1 ? ' TRIP' : ' TRIPS') + '</span></div>' + byYear[y].map(card).join('');
     });
     if (loose.length) html += '<div class="tl-dv"><b>No date</b><i></i><span>' + loose.length + '</span></div>' + loose.map(card).join('');
     html += '</div>';
   } else {
     html += '<div class="empty"><div class="big">No trips yet</div><div class="small">Name the first journey below.</div></div>';
   }
-  // TP-NEW (7 Nov 2026): with trips on the page the + New trip button (top right) opens the form; the dashed box stays only when empty
-  html += '<div class="addp' + (list.length ? ' hidden' : '') + '" id="tpAdd">\uFF0B Add a trip</div>' +
-    '<div class="ch-askrow hidden" id="tpAsk">' +
-      '<input id="tpName" type="text" placeholder="Its name \u2014 e.g., Ten days in Ladakh">' +
-      '<div class="ch-yrrow"><input id="tpFrom" type="date" title="From"><span>\u2013</span><input id="tpTo" type="date" title="To (blank = one day)"></div>' +
-      '<input id="tpWhere" type="text" placeholder="Where \u2014 Leh \u00B7 Nubra \u00B7 Pangong (optional)">' +
-      '<input id="tpSig" type="text" placeholder="One italic line beneath it (optional)">' +
-      '<button id="tpGo" type="button" class="tp-go">CREATE \u2192 OPENS THE TRIP</button>' +
-    '</div>';
+  // TP-POP (7 Nov 2026): + New trip (top right) opens the pop-up, like + New decision in My Why; the dashed box shows only when the room is empty
+  html += '<div class="addp' + (list.length ? ' hidden' : '') + '" id="tpAdd">\uFF0B Add a trip</div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-open]').forEach(x => x.addEventListener('click', () => openReader(x.dataset.open)));
-  if (el('tpNew')) el('tpNew').addEventListener('click', () => {
-    el('tpAdd').click();
-    if (!el('tpAsk').classList.contains('hidden')) { try { el('tpAsk').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }
-  });
-  el('tpAdd').addEventListener('click', () => {
-    el('tpAsk').classList.toggle('hidden');
-    if (!el('tpAsk').classList.contains('hidden')) el('tpName').focus();
-  });
-  el('tpName').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); el('tpGo').click(); } });
-  el('tpGo').addEventListener('click', async () => {
-    const nm = el('tpName').value.trim(); if (!nm) { el('tpName').focus(); return; }
-    const f = el('tpFrom').value || null;
-    let t = el('tpTo').value || null;
-    if (f && t && t < f) { toast('The trip cannot end before it begins'); return; }
-    if (f && !t) t = f;
-    const id = await quickInsert('trip', nm, {
-      essence: el('tpSig').value.trim(), trip_from: f, trip_to: t,
-      place: el('tpWhere').value.trim(), telling: 'both', days: { currency: '\u20B9', days: [] },
-    });
-    if (id) { openReader(id); setRdEditing(true); }
-  });
+  if (el('tpNew')) el('tpNew').addEventListener('click', tpmOpen_);
+  el('tpAdd').addEventListener('click', tpmOpen_);
 }
+// ---- the New trip pop-up ----
+let tpmCo_ = null;
+function tpmPreview_() {
+  const f = el('tpmFrom').value, t = el('tpmTo').value || f, pv = el('tpmPv');
+  const r = { trip_from: f || null, trip_to: t || null };
+  const n = f ? tripDaysN_(r) : 0;
+  if (!f || !n || (t && t < f)) { pv.className = 'tpm-pv empty'; pv.style.removeProperty('--a'); pv.innerHTML = '<b>\u2013</b><small>DAYS</small><em>&nbsp;</em>'; return; }
+  const dt = tripDate_(f), sh = tripDecShade_(r);
+  pv.className = 'tpm-pv'; pv.style.setProperty('--a', sh);
+  pv.innerHTML = '<b>' + n + '</b><small>' + (n === 1 ? 'DAY' : 'DAYS') + '</small><em>' + escHtml(dt.toLocaleDateString('en-GB', { month: 'short' }) + ' \u2019' + String(dt.getFullYear()).slice(2)) + '</em>';
+}
+function tpmOpen_() {
+  ['tpmName', 'tpmFrom', 'tpmTo', 'tpmWhere', 'tpmSig'].forEach(i => { el(i).value = ''; });
+  tpmCo_ = null;
+  el('tpmCos').innerHTML = Object.keys(TRIP_COMPANY).map(k => '<button type="button" class="tpm-co" data-co="' + k + '" style="--c:' + TRIP_COMPANY_INK[k] + ';">' + TRIP_COMPANY[k] + '</button>').join('');
+  tpmPreview_();
+  el('tpmOv').classList.remove('hidden');
+  setTimeout(() => el('tpmName').focus(), 60);
+}
+function tpmClose_() { el('tpmOv').classList.add('hidden'); }
+async function tpmSave_() {
+  const nm = el('tpmName').value.trim(); if (!nm) { el('tpmName').focus(); return; }
+  const f = el('tpmFrom').value || null; let t = el('tpmTo').value || null;
+  if (f && t && t < f) { toast('The trip cannot end before it begins'); return; }
+  if (f && !t) t = f;
+  const btn = el('tpmSave'); btn.disabled = true;
+  const id = await quickInsert('trip', nm, {
+    essence: el('tpmSig').value.trim(), trip_from: f, trip_to: t, company: tpmCo_,
+    place: el('tpmWhere').value.trim(), telling: 'both', days: { currency: '\u20B9', days: [] },
+  });
+  btn.disabled = false;
+  if (id) { tpmClose_(); openReader(id); setRdEditing(true); }
+}
+el('tpmFrom').addEventListener('change', tpmPreview_);
+el('tpmTo').addEventListener('change', tpmPreview_);
+el('tpmCos').addEventListener('click', e => {
+  const b = e.target.closest('[data-co]'); if (!b) return;
+  tpmCo_ = tpmCo_ === b.dataset.co ? null : b.dataset.co;   // tap again clears
+  el('tpmCos').querySelectorAll('[data-co]').forEach(x => x.classList.toggle('on', x.dataset.co === tpmCo_));
+});
+el('tpmSave').addEventListener('click', tpmSave_);
+el('tpmCancel').addEventListener('click', tpmClose_);
+el('tpmOv').addEventListener('click', e => { if (e.target === el('tpmOv')) tpmClose_(); });
+el('tpmName').addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); tpmSave_(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !el('tpmOv').classList.contains('hidden')) tpmClose_(); });
 
 // ---- Room 3: My Diary - the plain, chipped stream ----
 // DX-2 (Aug 2026): the six chip triples drink the manuscript inkwell.

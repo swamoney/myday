@@ -8,6 +8,14 @@ Written August 2026.
 
 ---
 
+## TP-POP · New trip pop-up; colours back to one per decade (7 Nov 2026, introspection.html)
+- "+ New trip" (top right) opens a pop-up (#tpmOv), shaped like "A new decision" in My Why. It has a blue top edge, "A new trip" with the gold underline, and the subtitle "where you went, and when".
+- Fields: the trip, from–to, where (optional), who with (optional), one line (optional).
+- Who with: the four company stamps. Tap to ink in, tap again to clear.
+- A days-stamp preview in the corner fills itself from the dates in the decade's ink.
+- "Open it" creates the trip (company saved too) and opens its page in edit. Cancel, a click outside or Escape closes it. The old inline form at the foot is gone. The dashed "+ Add a trip" box shows only when the room is empty, and it opens the same pop-up.
+- Colour is back to TP-Y2, one ink per decade by the Life Timeline's rule. tripYearShade_ is removed.
+
 ## TP-NEW + TP-Y1 · New trip button; one ink per year (7 Nov 2026, introspection.html)
 - A filled "+ New trip" button (.tp-newbtn, My Trips blue #2F6B8A) sits at the right end of the caption line, like "+ New decision". It opens the same short form at the foot of the list and scrolls it into view. The dashed "+ Add a trip" box is hidden while there are trips, and stays as the way in when the room is empty.
 - Colour is now per year (tripYearShade_), replacing per decade: the four inks in turn by year % 4 (2024 ocean, 2025 amethyst, 2026 bronze, 2027 sky). It applies to the year heading, pin, card, days stamp and the trip page. Undated trips are slate. Trips no longer share colours with the Life Timeline's decades.
