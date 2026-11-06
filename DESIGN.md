@@ -8,6 +8,15 @@ Written August 2026.
 
 ---
 
+## DC-C1 + X1 + Y1 + M1 · My Decisions, cleaner list and phone heading (6 Nov 2026)
+- C1: list boxes lose the eyebrow line; each keeps the title, at most one small line, and its mark. Thinking it through: "Decide by 15 Dec · **39 days left** · 1 of 2 answered". Decided: "Decided 12 Oct · took my time". Past decisions: stamp + stars + the line looking back only (no "Looking back" label, no decided line).
+- X1: a decided decision has no DECIDED stamp; it wears a calendar leaf (dcLeaf_): month band, the day big, and a foot "● 4 MONTHS TO GO" (violet) or "● 9 WEEKS LATE" (amber #B0721A). No date: "TO HAPPEN BY / ? / NO DATE YET".
+- Countdown words (dcSpan_/dcLeft_): days under 31, weeks under 70 days, months under two years, then years. dcFmtS_ gives "12 Oct" (year only when not this year).
+- The small line is written in sentence case and shown in capitals on desktop by CSS (text-transform), plain on phone.
+- Y1 (phone): no chevrons, plain small grey line, stamp/leaf beside the title and a touch smaller (stamp 76px, leaf 78px).
+- M1 (phone, decision pages only, not dreams): no D seal, no date band, no head stars; small stamp in the top-right corner; the date is one pill under the title (#dcCd with class m1): "DECIDE BY … · 39 DAYS LEFT", "● BY … · IN 4 MONTHS", amber "WAS DUE … · 9 WEEKS LATE". A thinking-it-through page's top line keeps only "1 / 2 ANSWERED" (.m1x hides the stage). Desktop page unchanged. Star caption wraps under the stars on phone.
+- Harness: h_dcclean.js.
+
 ## DC-V1 · One flow, one set of words for decisions (6 Nov 2026)
 - A decision's page walks the dream flow's pattern in its own words (dcPaintFlow_): Thinking it through → Decided → It happened; exit Walked away. Step line with YOU ARE HERE / IN PROGRESS and the ripple, one question card, tiny ways back, all without Edit. Colours as before: gold, amethyst, sea glass, rose.
 - Thinking it through: "Have you decided?" → "Yes, I've decided" (How did you decide? I took my time / I went with my gut - required; Decided on; To happen by, optional). Tiny: Walk away from it (confirm).
