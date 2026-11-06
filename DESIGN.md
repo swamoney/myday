@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## TP-FIT · Trip stamps never spill out on a phone (7 Nov 2026, introspection.html)
+- Cause: an older phone rule (P1 plate era) still floated the days stamp (absolute, 60×70) and padded the date and title by 66px. Together with the rotation, the stamps could push past the card's right edge.
+- Fix: a last-word phone block. The card grid is 40px / minmax(0,1fr) / 64px. The stamp column is a fixed 64px, the days stamp is 54×62, both stamps tilt -4°, the tag is max 60px wide, and the old 66px padding is cancelled. Checked at 320, 360, 390 and 414px with a long title and two-word tags.
+
 ## TP-S2 · My Trips in one colour; tag stamp under the days stamp on phone (7 Nov 2026, introspection.html)
 - Every trip uses My Trips' own sea blue (#2F6B8A): cards, pins, year headings, days stamps, the trip page and the pop-up preview. tripDecShade_ returns it for all trips, so the decade inks are dropped for trips. The Life Timeline keeps its decade inks.
 - The company stamps keep their own inks.
