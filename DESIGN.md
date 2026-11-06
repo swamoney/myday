@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## TP-P3 · Phone trip cards: one clean column (7 Nov 2026, introspection.html)
+- Phone only. The card is a single column. The date line opens with "TRIP n ·" (.tpx, hidden on desktop).
+- The days stamp and the right column (.tpc-mk) are hidden; the days already show in the date line. The corner badge (.tpn) is retired.
+- The AGE pill and the company stamp (.tp-cost.inb) share one row at the foot (.tpc-ft), which wraps on narrow phones. The title is 1.2rem.
+- Desktop is unchanged: big TRIP number on the left, days and company stamps on the right.
+
 ## TP-M1 · Phone: the trip number as a corner badge (7 Nov 2026, introspection.html)
 - Phone only: the TRIP number column (.tpc-l) is hidden. The number becomes .tpn, a 28px circle filled in the trip ink with a white ring and a white numeral, on the card's top-left corner (-10px/-10px). The card grid is minmax(0,1fr) / 64px with 16px left padding. Desktop keeps the big TRIP number.
 - The caption line and the + New trip button don't wrap; the caption's right part trims with an ellipsis on narrow phones.
