@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TP-PAGE · The trip page matches its index card (7 Nov 2026, introspection.html)
+- The top line reads "TRIP n · dates · days · AGE". n is the trip's number in tripSort order, as on the card. The plain company pill leaves the top line.
+- The page's mark (#rdMark) stacks the days stamp and the company rubber stamp (tripCoStamp_) under it, on desktop and phone. On the phone the tag is small and wraps, and the title is padded 78px on the right so it wraps before the stamps.
+- The WRITTEN date line (and "edited …") is hidden on trip pages (body.rd-trip #readerDates). Trip dates stay editable by tapping them in the top line.
+
 ## TP-TELL · The "TOLD AS" pill is removed (7 Nov 2026, introspection.html)
 - A trip page always shows both parts, the day book then the story. A part with nothing in it is simply skipped.
 - A trip with a day book but no story no longer shows "Nothing written yet". The print/PDF and .md export always use both, skipping empty parts.

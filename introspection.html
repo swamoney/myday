@@ -351,6 +351,11 @@
   .rd-sticky.plate .rd-mark .tpc-post { --a:var(--pa); }
   .rd-sticky.plate .rd-mark .tpc-post b { color:inherit; font-size:1.7rem; position:static; }
   .rd-sticky.plate .rd-mark .tpc-post small, .rd-sticky.plate .rd-mark .tpc-post em { color:inherit; }
+  /* TP-PAGE (7 Nov 2026): the trip page's stamps stack like its card; no WRITTEN line on a trip */
+  .rd-sticky.plate .rd-mark:has(.tpc-post), .rd-sticky.plate .rd-mark:has(.tp-cost) { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .rd-sticky.plate .rd-mark .tp-cost { font-size:0.6rem; }
+  body.rd-trip .rd-sticky.plate { min-height:190px; }
+  body.rd-trip #readerDates { display:none; }
   .rd-sticky.plate.stamped .rd-mark { width:auto; height:auto; transform:none; display:flex; flex-direction:column; align-items:center; gap:8px; }
   .rd-sticky.plate.stamped .rd-mark .rdm-st { width:110px; height:64px; transform:rotate(-10deg); display:block; }
   .rd-sticky.plate.stamped .rd-mark svg { width:100%; height:100%; display:block; }
@@ -915,6 +920,12 @@
     .tpc-ft { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:8px; }
     .tpc .tpc-ft .s-agepill { display:inline-block; white-space:nowrap; margin:0; }
     .tp-cost.inb { display:inline-block; font-size:0.45rem; padding:4px 7px; letter-spacing:0.12em; transform:rotate(-3deg); white-space:nowrap; max-width:none; }
+  }
+  @media (max-width:640px) {
+    body.rd-trip .rd-sticky.plate { min-height:150px; }
+    body.rd-trip .rd-sticky.plate .reader-h1 { padding-right:78px; }
+    body.rd-trip .rd-sticky.plate .rd-mark { gap:8px; }
+    body.rd-trip .rd-sticky.plate .rd-mark .tp-cost { font-size:0.42rem; padding:3px 5px; letter-spacing:0.08em; white-space:normal; max-width:64px; text-align:center; line-height:1.35; }
   }
 </style>
 </head>
@@ -2305,12 +2316,13 @@ function openReader(id, keepNav) {
     el('readerKind').innerHTML = escHtml(meta);   // Q2: the eyebrow is CHAPTER III alone; the age sits under the name, the years on the stamp
   } else if (dk === 'trip') {
     const dl = tripDatesLabel(r), dn = tripDaysLabel(r), al = tripAgeLabel(r);
-    el('readerKind').innerHTML = escHtml(meta) +
+    const tno = rows.filter(x => x.kind === 'trip').sort(tripSort).findIndex(x => x.id === r.id) + 1;
+    el('readerKind').innerHTML = escHtml(meta) + (tno ? ' ' + tno : '') + ' \u00B7' +
       ' <span class="rk-years rk-tap tp" id="rkTpDates" title="Tap to edit the dates">' +
         (dl ? escHtml(dl) + (dn ? ' \u00B7 ' + dn.toLowerCase() : '') : 'set the dates') + '</span>' +
       (al ? ' <span class="rk-age rk-tap" id="rkAge" title="Tap to change your birth year">' + escHtml(al) + '</span>'
           : (dl && !birthYear() ? ' <span class="rk-age rk-tap" id="rkAge" title="Set your birth year for age labels">age?</span>' : '')) +
-      ' ' + tripCoChip_(r);   // TP-TELL (7 Nov 2026): the TOLD AS pill is gone - a trip always shows its day book and its story
+      '';   // TP-PAGE: the company is a stamp under the days stamp now; TP-TELL (7 Nov 2026): the TOLD AS pill is gone - a trip always shows its day book and its story
     el('rkTpDates').addEventListener('click', () => {
       const row = el('rdTripDates');
       el('rdTpFrom').value = r.trip_from || ''; el('rdTpTo').value = r.trip_to || '';
@@ -2379,8 +2391,9 @@ function openReader(id, keepNav) {
       // PH-2: the trip page wears a plate - its postcard paper and its postage stamp (days, month)
       const mk = el('rdMark'), n = tripDaysN_(r), dt = tripDate_(r.trip_from);
       const mon = dt && !isNaN(dt) ? dt.toLocaleDateString('en-GB', { month: 'short' }) + ' \u2019' + String(dt.getFullYear()).slice(2) : '';
-      mk.innerHTML = n ? '<span class="tpc-post"><b>' + n + '</b><small>' + (n === 1 ? 'DAY' : 'DAYS') + '</small><em>' + escHtml(mon) + '</em></span>' : '';
-      mk.classList.toggle('hidden', !n);
+      // TP-PAGE (7 Nov 2026): the page wears its index card's stamps - days, and the company stamp under it
+      mk.innerHTML = (n ? '<span class="tpc-post"><b>' + n + '</b><small>' + (n === 1 ? 'DAY' : 'DAYS') + '</small><em>' + escHtml(mon) + '</em></span>' : '') + tripCoStamp_(r, '');
+      mk.classList.toggle('hidden', !n && !r.company);
       el('rdSticky').classList.remove('ch');
       el('rdSticky').classList.add('plate');
       el('rdSticky').classList.remove('stamped');
