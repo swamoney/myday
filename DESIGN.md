@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TL-S1 · Life Timeline: quiet summary, no "born", a real stamp (7 Nov 2026, introspection.html)
+- The "4 chapters" summary line (.tl-sum b) is set in the same small grey mono type as the birth-year line.
+- The "1992 · born" cap is removed. The line starts at the first decade heading.
+- The years stamp (.ch-post) inks like a rubber stamp, in the list and on the chapter page: a solid 3px frame with a thin inner frame, bold numerals (800), YEARS in spaced capitals, the span in bold mono, tilted -6°, 92% opacity with multiply.
+
 ## TP-BORDER + TL-LINE · My Trips border; My Life Timeline line (7 Nov 2026, introspection.html)
 - My Trips: each trip card (.tpc) has a 1.5px border in its own ink (42% mix) and a soft shadow in the same ink, instead of the faint grey edge. Nothing else changed.
 - My Life Timeline: the decade headings and chapter cards sit inside .tljr, one line down the left like Past decisions in My Why. It opens at "1992 · born" (the birth year; without one, the first chapter's year · where it began).
