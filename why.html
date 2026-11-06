@@ -2041,7 +2041,27 @@
   .dm-lb { margin-top:14px; padding-top:12px; border-top:1px dashed color-mix(in srgb, var(--dm-ink,#2E7A4E) 30%, transparent); }
   .dm-ph { display:none; width:100%; text-align:left; margin-top:14px; align-items:center; gap:12px; border:1.5px dashed color-mix(in srgb, var(--dm-ink,#2E7A4E) 40%, #fff);
         border-radius:12px; padding:12px 16px; color:var(--dm-ink,#2E7A4E); background:rgba(255,255,255,0.6); cursor:pointer; font-family:var(--sans); }
-  #dcWin.dm-nocover .dm-ph { display:flex; }
+  #dcWin.dc-editing.dm-nocover .dm-ph { display:flex; }   /* PH-ALL (B): the add box only in Edit */
+  #dcWin.dm-livedslot #dcHPh { display:none !important; }   /* a lived dream keeps its own box under the line looking back */
+  .dc-poster.inhead.empty { display:none !important; }      /* in the heading the add box replaces the old empty frame */
+  .dm-ph.dc-hph { max-width:620px; }
+  #personWin .pav.has-pic { background:var(--pav-img) center/cover no-repeat !important; color:transparent !important; box-shadow:0 0 0 3px #fff, 0 0 0 4px var(--pc-deep,#35786f); }
+  .p-cover { max-width:620px; margin:14px 0 6px; }
+  .p-cover.hidden, body:not(.p-editing) .p-cover.p-empty { display:none; }
+  .p-cover .tp-add { display:flex; width:100%; text-align:left; align-items:center; gap:12px; border:1.5px dashed color-mix(in srgb, var(--pc-deep,#35786f) 40%, #fff); border-radius:12px; padding:12px 16px; background:rgba(255,255,255,0.6); color:var(--pc-deep,#35786f); cursor:pointer; font-family:var(--sans); }
+  .p-cover .tp-add:hover { background:#fff; } .p-cover .tp-add i { font-style:normal; font-size:1.35rem; } .p-cover .tp-add b { display:block; font-size:0.9rem; } .p-cover .tp-add small { color:#6b7589; font-size:0.78rem; }
+  .p-pic { margin:0; background:#fff; border:1px solid #d9dfe8; padding:10px; box-shadow:0 10px 26px rgba(20,30,60,0.14); }
+  .p-pic .tp-win { position:relative; }
+  .p-pic i { display:block; height:300px; background-size:cover; background-position:center; background-repeat:no-repeat; background-color:#fff; cursor:zoom-in; }
+  .p-pic[data-fit="fit"] i { background-size:contain; }
+  .p-pic[data-size="m"] i { height:220px; } .p-pic[data-size="xl"] i { height:420px; }
+  .p-pic .tp-tools { display:none; position:absolute; left:8px; right:8px; bottom:8px; flex-wrap:wrap; gap:6px; justify-content:center; }
+  body.p-editing .p-pic .tp-tools { display:flex; }
+  .p-pic .tp-tools button { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.08em; border:0; border-radius:999px; padding:5px 10px; background:rgba(10,19,37,0.78); color:#fff; cursor:pointer; }
+  .p-pic .tp-hint { display:none; position:absolute; left:0; right:0; top:8px; text-align:center; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.6); pointer-events:none; }
+  body.p-editing .p-pic[data-fit="fill"] .tp-hint { display:block; } body.p-editing .p-pic[data-fit="fill"] i { cursor:crosshair; }
+  .p-pic figcaption { font-family:'Caveat', cursive; font-size:1.2rem; color:var(--pc-deep,#35786f); text-align:center; margin-top:6px; }
+  @media (max-width:640px) { .p-pic i { height:200px; } .p-pic[data-size="m"] i { height:150px; } .p-pic[data-size="xl"] i { height:270px; } }
   .dm-ph:hover { background:#fff; }
   /* PH-HEAD: the photo inside a lived dream's heading - a white frame, as on a trip's page */
   .dc-poster.inhead { margin:14px 0 0; padding:10px; box-shadow:0 10px 26px rgba(20,30,60,0.14); max-width:100%; }
@@ -3692,6 +3712,9 @@
       <input class="rnote-in" id="dcRateNote" maxlength="240" placeholder="A line looking back &mdash; what the years taught (optional)">
     </div>
     <div class="dc-sig"></div>
+    <!-- PH-ALL (7 Nov 2026): every dream and decision carries its photo in the heading -->
+    <button type="button" class="dm-ph dc-hph" id="dcHPh"><i aria-hidden="true">&#128247;</i><span><b>Add a photo from it</b><small>One picture you&rsquo;ll want to see in ten years.</small></span></button>
+    <div class="dm-cvslot" id="dcHSlot"></div>
     </div><div class="dc-hmark" id="dcHMark"></div></div>
     <!-- R1: the journey on one row - where you stand is lit, the next step is a tap -->
     <div class="dc-journey" id="dcJourney"></div>
@@ -4317,6 +4340,7 @@
           <div class="pmeta"><span class="bd" id="pBand"></span><span class="p-rhythm" id="pRhythm"></span><span class="pnote" id="pNote"></span><button class="p-rise" id="pRise" type="button">&#11014; Mark as rising</button><button class="p-heroedit" id="pHeroEdit" type="button">Edit details</button></div>
           <div class="p-hq" id="pQuote"></div>
           <div class="p-rd" id="pRead"></div>
+          <div class="p-cover hidden" id="pCover"></div>
           <div class="p-btns">
             <button class="p-pb" id="pBtnWho" data-pan="who" type="button"></button>
             <button class="p-pb" id="pBtnTp" data-pan="tp" type="button"></button>
@@ -7368,6 +7392,75 @@ function pParse(raw) {
   try { return norm(JSON.parse(raw)); }
   catch (e) { return norm({ essay: String(raw) }); }
 }
+// PH-ALL (7 Nov 2026, P2): a person's photo lives in their page heading (room 'circle', the album's cover photo)
+// and the same photo fills the round avatar. No photo: the letter stays and "Add a photo of you two" waits in Edit.
+let pCover_ = null;
+function pCoverCfg_() { const c = (pCover_ && pCover_.cfg) || {}; return { fit: c.fit === 'fit' ? 'fit' : 'fill', size: ['m','l','xl'].includes(c.size) ? c.size : 'l', x: Number.isFinite(c.x) ? c.x : 50, y: Number.isFinite(c.y) ? c.y : 50 }; }
+function pPaintFit_() {
+  const f = el('pCover').querySelector('.p-pic'); if (!f) return;
+  const c = pCoverCfg_(), i = f.querySelector('i');
+  f.setAttribute('data-fit', c.fit); f.setAttribute('data-size', c.size);
+  i.style.backgroundPosition = c.fit === 'fill' ? c.x + '% ' + c.y + '%' : 'center';
+  const bf = f.querySelector('[data-cov="fit"]'), bs = f.querySelector('[data-cov="size"]');
+  if (bf) bf.innerHTML = c.fit === 'fill' ? '&#9635; FILL' : '&#9634; FIT';
+  if (bs) bs.innerHTML = '&#8597; SIZE ' + c.size.toUpperCase();
+  el('pAvatar').style.setProperty('--pav-img', 'url("' + String(pCover_.url).replace(/"/g, '%22') + '")');
+}
+async function pCoverSet_(id, patch) {
+  const cfg = MyAlbum.setCoverCfg ? await MyAlbum.setCoverCfg('circle', id, Object.assign({}, pCoverCfg_(), patch)) : null;
+  if (pCover_) pCover_.cfg = cfg || Object.assign({}, pCoverCfg_(), patch);
+  pPaintFit_();
+}
+async function pPaintCover_(id) {
+  const box = el('pCover'), av = el('pAvatar'); if (!box) return;
+  box.innerHTML = ''; box.classList.add('hidden'); box.classList.remove('p-empty'); pCover_ = null;
+  av.classList.remove('has-pic'); av.style.removeProperty('--pav-img');
+  if (!(window.MyAlbum && MyAlbum.cover && userId)) return;
+  let c = null; try { c = await MyAlbum.cover('circle', id); } catch (e) { c = null; }
+  if (String(pId) !== String(id)) return;
+  if (c && c.url) {
+    pCover_ = c;
+    box.innerHTML = '<figure class="p-pic"><div class="tp-win"><i role="button" aria-label="The picture" style="background-image:url(&quot;' + escHtml(c.url) + '&quot;)"></i>'
+      + '<div class="tp-tools"><button type="button" data-cov="change">&#8635; CHANGE</button><button type="button" data-cov="fit"></button><button type="button" data-cov="size"></button>'
+      + '<button type="button" data-cov="caption">&#9998; CAPTION</button><button type="button" data-cov="remove">&#10005; REMOVE</button></div>'
+      + '<span class="tp-hint">TAP THE PICTURE TO SET WHERE IT CENTRES</span></div>'
+      + ((c.caption || '').trim() ? '<figcaption>' + escHtml(c.caption) + '</figcaption>' : '') + '</figure>';
+    av.classList.add('has-pic');
+    pPaintFit_();
+    box.querySelector('.tp-tools').addEventListener('click', async e => {
+      const b = e.target.closest('[data-cov]'); if (!b) return;
+      const k = b.dataset.cov;
+      if (k === 'change') { const got = await MyAlbum.pickCover('circle', id); if (got) pPaintCover_(id); return; }
+      if (k === 'fit') return pCoverSet_(id, { fit: pCoverCfg_().fit === 'fill' ? 'fit' : 'fill' });
+      if (k === 'size') { const o = ['m','l','xl']; return pCoverSet_(id, { size: o[(o.indexOf(pCoverCfg_().size) + 1) % o.length] }); }
+      if (k === 'remove') { if (!confirm('Remove the picture from this page?')) return; await MyAlbum.removeCover('circle', id); pPaintCover_(id); toast('Picture removed'); return; }
+      if (k === 'caption') { const t = prompt('A few words under the picture:', (pCover_ && pCover_.caption) || ''); if (t === null) return; if (MyAlbum.captionCover) await MyAlbum.captionCover('circle', id, t.trim()); pPaintCover_(id); }
+    });
+    box.querySelector('.tp-win i').addEventListener('click', e => {
+      if (!pCover_) return;
+      if (document.body.classList.contains('p-editing')) {
+        if (pCoverCfg_().fit !== 'fill') return;
+        const rc = e.currentTarget.getBoundingClientRect();
+        pCoverSet_(id, { x: Math.round(Math.min(100, Math.max(0, (e.clientX - rc.left) / rc.width * 100))), y: Math.round(Math.min(100, Math.max(0, (e.clientY - rc.top) / rc.height * 100))) });
+        return;
+      }
+      let v = el('pPicView');
+      if (!v) { v = document.createElement('div'); v.id = 'pPicView';
+        v.style.cssText = 'position:fixed; inset:0; z-index:900; background:rgba(10,19,37,0.92); display:flex; align-items:center; justify-content:center; cursor:zoom-out;';
+        v.addEventListener('click', () => v.remove()); document.body.appendChild(v); }
+      v.innerHTML = '<img src="' + escHtml(pCover_.url) + '" alt="" style="max-width:96vw; max-height:92vh; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.5);">';
+    });
+  } else {
+    box.classList.add('p-empty');
+    box.innerHTML = '<button type="button" class="tp-add"><i aria-hidden="true">📷</i><span><b>Add a photo of you two</b><small>One picture you’ll want to see in ten years.</small></span></button>';
+    box.querySelector('.tp-add').addEventListener('click', async () => {
+      if (!MyAlbum.pickCover) return;
+      const got = await MyAlbum.pickCover('circle', id);
+      if (got) pPaintCover_(id);
+    });
+  }
+  box.classList.remove('hidden');
+}
 function openPerson(id) {
   const p = circle.find(x => String(x.id) === String(id)); if (!p) return;
   const b = BANDS.find(x => x.key === p.band) || BANDS[0];
@@ -7428,6 +7521,7 @@ function openPerson(id) {
     if (cur !== pBaseline) { NoteEditor.versions.record('circle', pId, pBaseline); pBaseline = cur; }
   }, 600000);
   el('pSave').textContent = '';
+  pPaintCover_(id);   // PH-ALL (P2): the heading photo, also worn by the round avatar
   if (window.MyAlbum && userId) MyAlbum.mount({ host: el('pAlbum'), room: 'circle', entryId: id,
     watch: [el('pEssayRO'), el('pEssay')], editing: false });
   setPersonEditing(false);
@@ -11232,7 +11326,9 @@ function dmPosterHome_() {
   post.classList.remove('inhead');
 }
 function dmPlacePoster_() {
-  const post = el('dcPoster'), slot = el('dmCvSlot'); if (!post) return;
+  const lived = el('dmCvSlot'), post = el('dcPoster'), slot = lived || el('dcHSlot'); if (!post) return;   // PH-ALL: every stage
+  el('dcWin').classList.toggle('dm-livedslot', !!lived);
+  const j = el('dcJourney'), hp = el('dcHPh'); if (j && hp) hp.style.setProperty('--dm-ink', j.style.getPropertyValue('--dm-ink') || '');
   if (slot) { if (!DC_POSTER_HOME_) DC_POSTER_HOME_ = { p: post.parentNode, n: post.nextSibling }; slot.appendChild(post); post.classList.add('inhead'); }
   else dmPosterHome_();
 }
@@ -11385,6 +11481,7 @@ function dcPaintFlow_(d) {
   j.classList.add('dm');
   j.innerHTML = steps + body + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
   j.classList.remove('sea', 'moss', 'ash');
+  dmPlacePoster_();   // PH-ALL (7 Nov 2026): a decision's photo sits in its heading too
 }
 async function dcfSave_(d, patch, msg) {
   const { error } = await supa.from('why_decisions').update(patch).eq('id', d.id).eq('user_id', userId);
@@ -11484,6 +11581,10 @@ async function dcCoverSet_(patch) {
   if (cfg && dcCover_) dcCover_.cfg = cfg;
   dcPaintCoverFit_();
 }
+el('dcHPh').addEventListener('click', async () => {   // PH-ALL: the heading's add box
+  if (!(window.MyAlbum && MyAlbum.pickCover) || dcId === null) return;
+  const r = await MyAlbum.pickCover('decision', dcId); if (r) dcPaintCover_();
+});
 el('dcPicAsk').addEventListener('click', async () => {
   if (!el('dcWin').classList.contains('dc-editing')) return;
   const r = await MyAlbum.pickCover('decision', dcId); if (r) dcPaintCover_();

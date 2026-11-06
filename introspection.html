@@ -383,6 +383,11 @@
   .tp-tools button[data-cov="remove"] { color:#a8443e; }
   .tp-hint { display:none; position:absolute; right:10px; bottom:8px; font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.14em; color:rgba(255,255,255,0.9); text-shadow:0 1px 3px rgba(0,0,0,0.6); pointer-events:none; }
   body.rd-editing .tp-pic[data-fit="fill"] .tp-hint { display:block; }
+  /* PH-ALL (7 Nov 2026, B): no photo yet -> the add box shows only in Edit; reading stays clean */
+  body:not(.rd-editing) .tp-cover.tp-empty { display:none; }
+  /* PH-ALL (W1): written / edited - a tiny faint line while reading; the date box only in Edit */
+  .rd-wq { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; text-transform:uppercase; color:#a3acbd; }
+  body.rd-editing .rd-wq, body:not(.rd-editing) .rd-wed { display:none; }
   .tp-pic figcaption { font-family:'Caveat', cursive; font-size:1.2rem; color:var(--pa,#2F6B8A); text-align:center; margin-top:6px; }
   .rd-sticky.plate.stamped .rd-mark { width:auto; height:auto; transform:none; display:flex; flex-direction:column; align-items:center; gap:8px; }
   .rd-sticky.plate.stamped .rd-mark .rdm-st { width:110px; height:64px; transform:rotate(-10deg); display:block; }
@@ -1824,7 +1829,7 @@ async function tpCoverSet_(r, patch) {
 }
 async function tpPaintCover_(r) {
   const box = el('tpCover'); if (!box) return;
-  box.innerHTML = ''; box.classList.add('hidden'); tpCover_ = null;
+  box.innerHTML = ''; box.classList.add('hidden'); box.classList.remove('tp-empty'); tpCover_ = null;
   if (!(window.MyAlbum && MyAlbum.cover && userId)) return;
   let c = null; try { c = await MyAlbum.cover('iw', r.id); } catch (e) { c = null; }
   if (!readerEntry || String(readerEntry.id) !== String(r.id)) return;
@@ -1842,7 +1847,7 @@ async function tpPaintCover_(r) {
       if (k === 'change') { const got = await MyAlbum.pickCover('iw', r.id); if (got) tpPaintCover_(r); return; }
       if (k === 'fit') return tpCoverSet_(r, { fit: tpCoverCfg_().fit === 'fill' ? 'fit' : 'fill' });
       if (k === 'size') { const o = ['m','l','xl']; return tpCoverSet_(r, { size: o[(o.indexOf(tpCoverCfg_().size) + 1) % o.length] }); }
-      if (k === 'remove') { if (!confirm('Remove the picture from this trip?')) return; await MyAlbum.removeCover('iw', r.id); tpPaintCover_(r); toast('Picture removed'); return; }
+      if (k === 'remove') { if (!confirm('Remove the picture from this page?')) return; await MyAlbum.removeCover('iw', r.id); tpPaintCover_(r); toast('Picture removed'); return; }
       if (k === 'caption') { const t = prompt('A few words under the picture:', (tpCover_ && tpCover_.caption) || ''); if (t === null) return; if (MyAlbum.captionCover) await MyAlbum.captionCover('iw', r.id, t.trim()); tpPaintCover_(r); }
     });
     box.querySelector('.tp-win i').addEventListener('click', e => {
@@ -1860,6 +1865,7 @@ async function tpPaintCover_(r) {
       v.innerHTML = '<img src="' + escHtml(tpCover_.url) + '" alt="" style="max-width:96vw; max-height:92vh; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.5);">';
     });
   } else {
+    box.classList.add('tp-empty');
     box.innerHTML = '<button type="button" class="tp-add"><i aria-hidden="true">\uD83D\uDCF7</i><span><b>Add a photo from it</b><small>One picture you\u2019ll want to see in ten years.</small></span></button>';
     box.querySelector('.tp-add').addEventListener('click', async () => {
       if (!MyAlbum.pickCover) return;
@@ -1868,6 +1874,17 @@ async function tpPaintCover_(r) {
     });
   }
   box.classList.remove('hidden');
+  tpWiden_();
+}
+// PH-ALL: on a phone the photo runs the plate's full width once it sits below the stamp
+function tpWiden_() {
+  const box = el('tpCover'), st = el('rdSticky'), mk = el('rdMark'); if (!box || !st) return;
+  box.style.marginRight = ''; box.style.maxWidth = '';
+  if (!window.matchMedia || !window.matchMedia('(max-width:640px)').matches || box.classList.contains('hidden') || !box.offsetHeight) return;
+  if (st.classList.contains('pl-left')) return;   // the diary's stamp sits left; the right is already free
+  const pr = parseFloat(getComputedStyle(st).paddingRight) || 0;
+  const below = !mk || mk.classList.contains('hidden') || box.getBoundingClientRect().top > mk.getBoundingClientRect().bottom + 6;
+  if (below && pr > 20) { box.style.marginRight = -(pr - 14) + 'px'; box.style.maxWidth = 'none'; }
 }
 function tripCoStamp_(r, cls) {
   const c = r.company;
@@ -2481,6 +2498,7 @@ function openReader(id, keepNav) {
       el('rdSticky').classList.remove('stamped');
       el('rdSticky').style.setProperty('--pa', sh); el('rdSticky').style.setProperty('--pw1', sh + '0d'); el('rdSticky').style.setProperty('--pw', sh + '26'); el('rdSticky').style.setProperty('--pb', sh + '40');
       el('readerKind').style.color = sh;   // the eyebrow drinks the chapter's ink
+      tpPaintCover_(r);   // PH-ALL (7 Nov 2026): a chapter's photo in its heading, as on a trip
     } else if (dk === 'trip') {
       const trs = rows.filter(x => x.kind === 'trip').sort(tripSort);
       const ti = Math.max(0, trs.findIndex(x => x.id === r.id));
@@ -2526,6 +2544,7 @@ function openReader(id, keepNav) {
       st.classList.toggle('pl-wr', dk === 'writing');
       st.style.setProperty('--pa', sh); st.style.setProperty('--pw1', '#ffffff'); st.style.setProperty('--pw', dk === 'diary' ? '#f3f5f9' : '#f5eff3'); st.style.setProperty('--pb', '#e3e8f0');
       el('readerKind').style.color = sh;
+      tpPaintCover_(r);   // PH-ALL: diary and writing pages too
     } else {
       h1.textContent = r.title;
       sig.classList.add('hidden');
@@ -2617,7 +2636,9 @@ function openReader(id, keepNav) {
     let s = made ? ('Written <input type="date" id="rdDatePick" class="rd-datepick" value="' + curYmd +
       '" title="Change this entry\u2019s date" aria-label="Entry date">') : '';
     if (edited && edited !== made) s += ' \u00b7 edited ' + escHtml(edited);
-    el('readerDates').innerHTML = s;
+    // PH-ALL (W1): reading shows a tiny plain line; Edit shows the date box as before
+    const q = made ? 'Written ' + escHtml(made) + (edited && edited !== made ? ' \u00b7 edited ' + escHtml(edited) : '') : '';
+    el('readerDates').innerHTML = (q ? '<span class="rd-wq">' + q + '</span>' : '') + (s ? '<span class="rd-wed">' + s + '</span>' : '');
   })();
   el('readerLead').style.display = r.essence ? '' : 'none';
   // IL-2: the diary page wears its chips; + chip adds, tapping one removes.
@@ -2687,6 +2708,7 @@ function setRdEditing(on) {
   const wasEditing = document.body.classList.contains('rd-editing');
   document.body.classList.toggle('rd-editing', !!on);
   el('readerEdit').textContent = on ? 'Done' : 'Edit';
+  tpWiden_();   // PH-ALL: the add box appears / leaves with Edit
   if (readerEntry && readerEntry.kind === 'trip') {
     if (!on && wasEditing) tripSaveBook_(readerEntry, tripBook_(readerEntry), true);
     tripRenderDays_(readerEntry, !!on);
