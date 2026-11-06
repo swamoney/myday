@@ -8,6 +8,22 @@ Written August 2026.
 
 ---
 
+## BP-AU · Bucket list audit: decision words out (6 Nov 2026)
+1. Dream page bar reads MY BUCKET LIST (#dcBarRoom).
+2. The "new points have joined your checklist" banner never shows on a dream.
+3. Remove button: "Remove this dream".
+4. Remove prompt: "Remove "…"? Its story, photo and notes go with it — forever."
+5. Copy / Download .md: dmSummary_ - "On the way · to happen by January 2027 · decided August 2026 · took my time", "Lived …", "Let go …"; the line looking back as a quote; no checklist.
+6. Print / PDF: the same summary; no checklist heading.
+7. New dream form: subtitle "something you want to live, one day"; no questions/preparation choice (dreams are made with no checklist, qset prep); stamp preview A DREAM · SOMEDAY in sky blue; month picker (saved as the 1st); toast "Added — someday".
+8. Stars under the stamp in Edit: toast "Rated".
+9. A lived dream with no lived date reads LIVED <decided month> (list and page), never "DECIDED · NOT YET LIVED".
+10. On the way page stamp shows the to-happen month (road when undated), matching the list.
+11. One Edit on a dream page: the bottom toolbar's Edit is hidden (#dcWin.dm-page).
+12. An old checklist on a dream shows only in Edit.
+- Held for later: a photo prompt on lived dreams, years on Lived cards, room counts, a "was due" nudge.
+- Trap: dreams made with questions before today keep them, visible only in Edit.
+
 ## BP-G2p · A let-go dream's page, on the plate (6 Nov 2026)
 - The white "You let this one go." box is gone. Under the dashed line on the stone-grey plate: "Walking away is also a choice." in italics, an optional line about why (rating_note, the same field as a lived dream's line), then tiny grey links: "Add a line about why" / "Change the line", "Bring it back as a dream".
 - Bringing it back clears that line, so it never turns into a line looking back.

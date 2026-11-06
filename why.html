@@ -1981,6 +1981,8 @@
         border-radius:50%; width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; white-space:nowrap; margin-left:10px; vertical-align:middle; position:relative; top:-0.25em; }
   .dm-pen:hover { background:color-mix(in srgb, var(--dc-ink,#5b4a86) 6%, #fff); }
   #dcWin .dc-details.dm-off { display:none !important; }
+  #dcWin.dm-page #dcEditToggle { display:none; }   /* AU-11: one Edit on a dream page - the one at the top */
+  #dcWin.dm-page:not(.dc-editing) #dcQA { display:none; }   /* AU-12: an old checklist on a dream shows only in Edit */
   .dm-two { display:flex; gap:18px; flex-wrap:wrap; }
   .dm-stars { display:flex; gap:4px; align-items:center; }
   .dm-stars b { font-size:1.9rem; color:#d9dfe9; cursor:pointer; line-height:1; transition:transform .1s; user-select:none; }
@@ -3564,7 +3566,7 @@
 <div class="dc-overlay hidden" id="dcWin">
   <div class="dc-pgbar">
     <button class="dc-back" id="dcBack" type="button">&larr; Back</button>
-    <span class="bt">My Decisions</span>
+    <span class="bt" id="dcBarRoom">My Decisions</span>
     <button class="eb dc-topedit" id="dcEditTop" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><span id="dcEditTopWord">Edit</span></button>
   </div>
   <div class="dc-pgwrap">
@@ -10873,7 +10875,7 @@ function dcBucketHtml_() {
     const canx = dcCanx_(d), w = d.happened_on || d.decided_on, r = Number(d.satisfaction) || 0, note = (d.rating_note || '').trim();
     const extra = (r ? '<div class="bp-stars">' + dcStarsRO_(d) + '</div>' : '') + (note ? '<div class="bp-q">\u201C' + escHtml(note) + '\u201D</div>' : '');
     return canx ? card(d, 'canx', 'LET GO' + (w ? ' \u00B7 ' + monLong(w) : ''), '', seal('canx', 'LET', mon(w) || '\u2715', 'GO'), extra)
-                : card(d, 'lived', d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED', '', seal('lived', BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''), extra);
+                : card(d, 'lived', 'LIVED' + (w ? ' ' + monLong(w) : ''), '', seal('lived', BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''), extra);
   };
   h += lived.map(tcard).join('');
   if (!lived.length) h += '<div class="dcl-empty">no dreams lived yet</div>';
@@ -11039,10 +11041,11 @@ function dcDreamMarks_(d) {
   if (d.status === 'trail') {
     const w = d.happened_on || d.decided_on;
     if (dcCanx_(d)) { st = 'canx'; eb = 'LET GO' + (w ? ' \u00B7 ' + monLong(w) : ''); sl = seal('LET', mon(w) || '\u2715', 'GO'); }
-    else { st = 'lived'; eb = (d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED') + (dmHow_(d) ? ' \u00B7 ' + dmHow_(d) : ''); sl = seal(BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''); }
+    // AU-9: in Lived it says lived; the decided month stands in when there is no lived date
+    else { st = 'lived'; eb = 'LIVED' + (w ? ' ' + monLong(w) : '') + (dmHow_(d) ? ' \u00B7 ' + dmHow_(d) : ''); sl = seal(BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''); }
   } else if (dcIsWip_(d)) {
     st = 'wip'; eb = 'ON THE WAY' + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : '') + (dmHow_(d) ? ' \u00B7 ' + dmHow_(d) : '');   // W1 + F2
-    pill = t ? 'TO HAPPEN BY ' + monLong(t) : ''; sl = seal('ON THE', mon(d.decided_on) || BP_ROAD, 'WAY');
+    pill = t ? 'TO HAPPEN BY ' + monLong(t) : 'NO DATE YET'; sl = seal('ON THE', mon(t) || BP_ROAD, 'WAY');   // AU-10: the stamp shows when it happens, as in the list
   } else if (dcDreamPending_(d)) {
     st = 'ask'; eb = t ? 'DECIDE BY ' + monLong(t) : 'MAKING UP MY MIND';   // F2 (6 Nov 2026): dream words
     pill = t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET'; sl = seal('MAKING UP', mon(t) || '?', 'MY MIND');
@@ -11345,7 +11348,9 @@ function openDecision(id) {
   const wip = dcIsWip_(d);
   dcPaintPlate_(d);
   el('dcName').textContent = d.title;
-  el('dmPen').classList.toggle('hidden', !dcIsDream_(d));   // E1: a dream edits its name and dates right here
+  el('dmPen').classList.toggle('hidden', !dcIsDream_(d));
+  el('dcBarRoom').textContent = dcIsDream_(d) ? 'My Bucket List' : 'My Decisions';   // AU-1
+  el('dcWin').classList.toggle('dm-page', dcIsDream_(d));                              // AU-11/12: dream-only page rules   // E1: a dream edits its name and dates right here
   el('dcDetailsBtn').classList.toggle('dm-off', dcIsDream_(d));   // ...so the decisions box never opens for a dream
   { const fk = (typeof mind !== 'undefined' ? mind : []).find(x => x.desk && String(x.desk.decision_id) === String(d.id)), fm = el('dcFromMind');
     if (fk) { fm.innerHTML = '\u25C6 FROM MY MIND \u00B7 ' + escHtml(((MM_DOORS[fk.door] || {}).lbl || '').toUpperCase()) + (fk.settled_on ? ' \u00B7 ' + escHtml(mmFmt_(fk.settled_on)).toUpperCase() : '') + ' \u203A'; fm.dataset.knot = fk.id; fm.classList.remove('hidden'); }
@@ -11437,12 +11442,12 @@ function openDecision(id) {
     el('dcHeadStars').classList.add('dm-ro');
     if (Number(d.satisfaction)) el('dcRateCap').textContent = DM_RATE_CAP[Number(d.satisfaction)];
   } else el('dcHeadStars').classList.remove('dm-ro');
-  const miss = sealed ? [] : dcMissing_(d);
+  const miss = (sealed || dcIsDream_(d)) ? [] : dcMissing_(d);   // AU-2: the decisions checklist never asks a dream
   el('dcCatch').classList.toggle('hidden', !miss.length);
   if (miss.length) el('dcCatchTxt').textContent = miss.length
     + (miss.length === 1 ? ' new point has' : ' new points have')
     + ' joined your checklist since this decision opened.';
-  el('dcDelBtn').textContent = sealed ? 'Remove from the trail' : 'Remove this decision';
+  el('dcDelBtn').textContent = dcIsDream_(d) ? 'Remove this dream' : sealed ? 'Remove from the trail' : 'Remove this decision';   // AU-3
   el('dcStory').innerHTML = NoteEditor.toHtml(d.note_html || '');
   dcNoteBase = NoteEditor.sanitize(el('dcStory').innerHTML);
   if (window.MyBoard && userId) MyBoard.mount({ host: el('dcBoard'), scope: 'decision:' + id, title: 'THINKING BOARD', readOnly: true });   // the board wakes with Edit
@@ -11499,7 +11504,25 @@ function dcText_(html) {
   const t = document.createElement('div'); t.innerHTML = html || '';
   return (t.textContent || '').trim();
 }
+// AU-5/6 (6 Nov 2026): a dream's one-line summary in its own words, for copy, download and print
+function dmSummary_(d) {
+  const st = dmStage_(d), M = iso => { const x = iso ? new Date(String(iso).slice(0, 10) + 'T00:00:00') : null; return x && !isNaN(x) ? x.toLocaleDateString('en-GB', { month:'long', year:'numeric' }) : ''; };   // months, as dreams are dated
+  const stars = Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '';
+  const how = d.made === 'quick' ? 'went with my gut' : (d.made && d.made !== 'cancelled') ? 'took my time' : '';
+  if (st === 'ahead') return 'Someday' + (d.target_on ? ' \u00B7 planned for ' + M(d.target_on) : '');
+  if (st === 'ask') return 'Making up my mind' + (d.target_on ? ' \u00B7 decide by ' + M(d.target_on) : '');
+  if (st === 'wip') return 'On the way' + (d.target_on ? ' \u00B7 to happen by ' + M(d.target_on) : '') + (d.decided_on ? ' \u00B7 decided ' + M(d.decided_on) : '') + (how ? ' \u00B7 ' + how : '');
+  if (st === 'lived') return 'Lived' + ((d.happened_on || d.decided_on) ? ' ' + M(d.happened_on || d.decided_on) : '') + (how ? ' \u00B7 ' + how : '') + stars;
+  return 'Let go' + (d.decided_on ? ' ' + M(d.decided_on) : '');
+}
 function dcMd_(d) {
+  if (dcIsDream_(d)) {   // AU-5: no desk, target or verdict on a dream
+    let m = '# ' + d.title + '\n\n' + dmSummary_(d) + '\n\n';
+    const ln = (d.rating_note || '').trim();
+    if (ln) m += '> ' + dcText_(ln) + '\n\n';
+    const st = dcText_(d.note_html); if (st) m += '## The story\n\n' + st + '\n';
+    return m;
+  }
   const qa = Array.isArray(d.answers) ? d.answers : [];
   const sealed = d.status === 'trail';
   let md = '# ' + d.title + '\n\n';
@@ -11535,7 +11558,8 @@ el('dcPrintBtn').addEventListener('click', () => {
   const sealed = d.status === 'trail';
   const e = escHtml;
   let body = '<div class="eyebrow">' + (dcIsDream_(d) ? 'My Dream' : 'My Decision') + '</div><h1>' + e(d.title) + '</h1><p class="meta">'
-    + (sealed ? (dcVerdictLong_(d)
+    + (dcIsDream_(d) ? e(dmSummary_(d)) + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : '')   // AU-6
+    : sealed ? (dcVerdictLong_(d)
         + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
         + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
         + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : ''))
@@ -11546,9 +11570,9 @@ el('dcPrintBtn').addEventListener('click', () => {
   if (tbn.length) {
     body = body.replace(/<ul>$/, '') + '<h2>Thinking board</h2><ul>' +
       tbn.map(n => '<li>' + (n.heading ? '<strong>' + e(n.heading) + '</strong>' + (n.body ? '<br>' : '') : '') + '<span class="meta">' + e(n.body || '') + '</span></li>').join('') +
-      '</ul><h2>The checklist</h2><ul>';
+      '</ul>' + (dcIsDream_(d) ? '' : '<h2>The checklist</h2>') + '<ul>';
   }
-  qa.forEach(x => {
+  if (!dcIsDream_(d)) qa.forEach(x => {
     body += '<li><strong>' + e(x.q) + '</strong><br><span class="meta">'
       + (String(x.a || '').trim() ? e(x.a) : '(unanswered)') + '</span></li>';
   });
@@ -11587,23 +11611,25 @@ el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
     if (error) { console.error(error); toast('Could not save the rating'); return; }
     d.satisfaction = next; dcRatePaint_();
     dcPaintPlate_(d);   // the plate's weather follows the stars
-    toast(next ? ('Satisfaction: ' + next + ' of 5') : 'Rating cleared');
+    toast(next ? (dcIsDream_(d) ? 'Rated' : 'Satisfaction: ' + next + ' of 5') : 'Rating cleared');   // AU-8
   }));
 let dcFSetPick = 'both', dcFKindPick = 'decision';
 function dcFKindPaint_() {
   const dream = dcFKindPick === 'dream';
   el('dcFKind').querySelectorAll('[data-kind]').forEach(b => b.classList.toggle('on', b.dataset.kind === dcFKindPick));
   el('dcFKind').classList.toggle('dream', dream);
-  el('dcFSub').textContent = dream ? 'name it, and walk the points before you commit' : 'walk the checklist before the leap';
+  el('dcFSub').textContent = dream ? 'something you want to live, one day' : 'walk the checklist before the leap';   // AU-7
   el('dcFNameLbl').textContent = dream ? 'What do you want to live?' : 'The decision';
   el('dcFName').placeholder = dream ? 'e.g. Walk the Kailash kora' : 'e.g. Move to Bangalore for the new role?';
   el('dcFTargetLbl').textContent = dream ? 'Planned for (optional)' : 'Decide by (optional)';
-  el('dcFSetFld').classList.toggle('hidden', !dream);            // only a dream chooses: the questions, or a preparation list
+  el('dcFSetFld').classList.add('hidden');   // AU-7: a dream has no checklist to choose
+  if (dream) dcFSetPick = 'prep';
+  { const ti = el('dcFTarget'), v = ti.value; ti.type = dream ? 'month' : 'date'; ti.value = dream ? String(v || '').slice(0, 7) : ''; }
   // M2 (4 Nov 2026): the room decides the kind - no switch; the form wears the room's band and previews the stamp
   el('dcFBox').classList.toggle('dream', dream);
   el('dcFTitle').textContent = dream ? 'A new dream' : 'A new decision';
   el('dcFSave').textContent = dream ? 'Add the dream' : 'Open the decision';
-  el('dcFPv').innerHTML = dream ? dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A') : dcStampSvg_('DECISION', 'PENDING', '#9a6a12');
+  el('dcFPv').innerHTML = dream ? dcStampSvg_('A DREAM', 'SOMEDAY', '#3D6A99') : dcStampSvg_('DECISION', 'PENDING', '#9a6a12');
   if (!dream) { dcFSetPick = 'both'; el('dcFSet').querySelectorAll('[data-set]').forEach(x => x.classList.toggle('on', x.dataset.set === 'both')); }
 }
 el('dcFKind').addEventListener('click', e => { const b = e.target.closest('[data-kind]'); if (!b) return; dcFKindPick = b.dataset.kind; dcFKindPaint_(); });
@@ -11624,14 +11650,15 @@ el('dcFCancel').addEventListener('click', () => el('dcNewModal').classList.add('
 el('dcFSave').addEventListener('click', async () => {
   const t = el('dcFName').value.trim();
   if (!t) { toast(dcFKindPick === 'dream' ? 'Name the dream first' : 'Name the decision first'); el('dcFName').focus(); return; }
-  const rec = { user_id: userId, title: t, target_on: el('dcFTarget').value || null, kind: dcFKindPick,
+  const tv = el('dcFTarget').value || null;
+  const rec = { user_id: userId, title: t, target_on: tv && /^\d{4}-\d{2}$/.test(tv) ? tv + '-01' : tv, kind: dcFKindPick,   // AU-7: a dream picks a month
                 status: 'open', qset: dcFSetPick, answers: dcSetPoints_(dcFSetPick).map(q => ({ q: q, a: '' })) };
   const { data, error } = await supa.from('why_decisions').insert(rec).select('*').single();
   if (error) { console.error(error); toast('Could not save'); return; }
   el('dcNewModal').classList.add('hidden');
   dcRows.unshift(data); renderDecisions();
   openDecision(data.id);
-  toast(dcFKindPick === 'dream' ? 'On the rail \u2014 a dream ahead' : 'On the desk \u2014 walk the points when ready');
+  toast(dcFKindPick === 'dream' ? 'Added \u2014 someday' : 'On the desk \u2014 walk the points when ready');
 });
 let dcMadePick = null;
 function dcHistCheck_() {
@@ -12022,7 +12049,8 @@ el('dcCatchYes').addEventListener('click', async () => {
 // mode, a small x on every index row - the same words, the same sweep.
 async function dcDeleteRow_(d, fromPage) {
   const sealed = d.status === 'trail';
-  const msg = sealed
+  const msg = dcIsDream_(d) ? ('Remove \u201C' + d.title + '\u201D? Its story, photo and notes go with it \u2014 forever.')   // AU-4
+    : sealed
     ? ('This is the historical record. Removing "' + d.title + '" erases the sealed answers, the verdict ('
        + dcVerdictLong_(d) + ')'
        + (Number(d.satisfaction) ? ' and the ' + d.satisfaction + '-star rating' : '')
