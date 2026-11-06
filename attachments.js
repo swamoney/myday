@@ -48,7 +48,8 @@
           const cw = Math.max(1, Math.round(w * s)), ch = Math.max(1, Math.round(h * s));
           const c = document.createElement('canvas');
           c.width = cw; c.height = ch;
-          c.getContext('2d').drawImage(img, 0, 0, cw, ch);
+          const g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';   // PH-Q (7 Nov 2026)
+          g.drawImage(img, 0, 0, cw, ch);
           c.toBlob(done, 'image/webp', quality);
         } catch (e) { reject(e); }
         finally { URL.revokeObjectURL(img.src); }
@@ -820,8 +821,8 @@
           if (!f) { resolve(null); return; }
           try {
             toast('Keeping the picture\u2026');
-            const big = await shrink(f, MAX_EDGE, QUALITY);
-            const th = await shrink(f, THUMB_EDGE, 0.7);
+            const big = await shrink(f, 2400, 0.88);   // PH-Q (7 Nov 2026): a cover is seen large - more pixels, less compression
+            const th = await shrink(f, 480, 0.8);
             const st = { room, entryId: String(entryId), rows: [] };
             const p = newPath(st, '.webp'), tp = p.replace('.webp', '_t.webp');
             let up = await supa.storage.from(BUCKET).upload(p, big, { contentType: 'image/webp' });
