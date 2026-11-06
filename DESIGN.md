@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TP-HEAD · Trip heading built like a lived dream's; day book off the page (7 Nov 2026, introspection.html)
+- Inside the heading plate (body.rd-trip): a spaced mono top line, a 2.9rem title (1.75rem on phone), and a short thick 88×6 bar in the trip ink (the reader-sig). Then the places, a dashed rule, and the line as a quote (readerLead with “ ”). The days stamp is 104×112 (64×72 on phone), with the company stamp under it.
+- Photo (#tpCover, tpPaintCover_): the album cover for room 'iw' (MyAlbum.cover) in a white frame with its caption. With none, an "Add a photo from it · One picture you'll want to see in ten years." box opens MyAlbum.pickCover('iw', id). It is the same as a lived dream's, in the trip ink. Hidden on every other kind of page.
+- The day book (#rdDays) is hidden on trip pages. Existing day books are kept in the data and still go into the .md and print. No SQL.
+
 ## TP-PAGE · The trip page matches its index card (7 Nov 2026, introspection.html)
 - The top line reads "TRIP n · dates · days · AGE". n is the trip's number in tripSort order, as on the card. The plain company pill leaves the top line.
 - The page's mark (#rdMark) stacks the days stamp and the company rubber stamp (tripCoStamp_) under it, on desktop and phone. On the phone the tag is small and wraps, and the title is padded 78px on the right so it wraps before the stamps.

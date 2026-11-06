@@ -356,6 +356,24 @@
   .rd-sticky.plate .rd-mark .tp-cost { font-size:0.6rem; }
   body.rd-trip .rd-sticky.plate { min-height:190px; }
   body.rd-trip #readerDates { display:none; }
+  /* TP-HEAD (7 Nov 2026): the trip heading built like a lived dream's - spaced top line, a big title, a short thick bar,
+     the places, a dashed rule, the line as a quote, then the photo; the day book leaves the page */
+  body.rd-trip #rdDays { display:none !important; }
+  body.rd-trip .rd-sticky.plate .reader-kind { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.16em; }
+  body.rd-trip .rd-sticky.plate .reader-h1 { font-size:2.9rem; line-height:1.1; margin-bottom:10px; }
+  body.rd-trip .rd-sticky.plate .reader-sig { display:block !important; width:88px; height:6px; border-radius:3px; background:var(--pa,#2F6B8A); margin:2px 0 14px; }
+  body.rd-trip .rd-sticky.plate .rd-where { margin:0; }
+  body.rd-trip .rd-sticky.plate .reader-lead { font-family:var(--serif); font-style:italic; font-size:1.15rem; color:#28324B; margin:14px 0 4px; padding-top:14px; border-top:1px dashed color-mix(in srgb, var(--pa,#2F6B8A) 30%, transparent); max-width:620px; }
+  body.rd-trip .rd-sticky.plate .reader-lead:before { content:'\201C'; } body.rd-trip .rd-sticky.plate .reader-lead:after { content:'\201D'; }
+  body.rd-trip .rd-sticky.plate .rd-mark .tpc-post { width:104px; height:112px; } body.rd-trip .rd-sticky.plate .rd-mark .tpc-post b { font-size:2.3rem; }
+  .tp-cover { max-width:620px; margin-top:14px; }
+  .tp-cover.hidden { display:none; }
+  .tp-add { display:flex; width:100%; text-align:left; align-items:center; gap:12px; border:1.5px dashed color-mix(in srgb, var(--pa,#2F6B8A) 40%, #fff); border-radius:12px; padding:12px 16px; background:rgba(255,255,255,0.6); color:var(--pa,#2F6B8A); cursor:pointer; font-family:var(--sans); }
+  .tp-add:hover { background:#fff; }
+  .tp-add i { font-style:normal; font-size:1.35rem; } .tp-add b { display:block; font-size:0.9rem; } .tp-add small { color:#6b7589; font-size:0.78rem; }
+  .tp-pic { margin:0; background:#fff; border:1px solid #d9dfe8; padding:10px; box-shadow:0 10px 26px rgba(20,30,60,0.14); }
+  .tp-pic i { display:block; height:300px; background-size:cover; background-position:center; }
+  .tp-pic figcaption { font-family:'Caveat', cursive; font-size:1.2rem; color:var(--pa,#2F6B8A); text-align:center; margin-top:6px; }
   .rd-sticky.plate.stamped .rd-mark { width:auto; height:auto; transform:none; display:flex; flex-direction:column; align-items:center; gap:8px; }
   .rd-sticky.plate.stamped .rd-mark .rdm-st { width:110px; height:64px; transform:rotate(-10deg); display:block; }
   .rd-sticky.plate.stamped .rd-mark svg { width:100%; height:100%; display:block; }
@@ -927,6 +945,11 @@
     body.rd-trip .rd-sticky.plate .rd-mark { gap:8px; }
     body.rd-trip .rd-sticky.plate .rd-mark .tp-cost { font-size:0.42rem; padding:3px 5px; letter-spacing:0.08em; white-space:normal; max-width:64px; text-align:center; line-height:1.35; }
   }
+  @media (max-width:640px) {
+    body.rd-trip .rd-sticky.plate .reader-h1 { font-size:1.75rem; }
+    .tp-pic i { height:190px; }
+    body.rd-trip .rd-sticky.plate .rd-mark .tpc-post { width:64px; height:72px; } body.rd-trip .rd-sticky.plate .rd-mark .tpc-post b { font-size:1.4rem; }
+  }
 </style>
 </head>
 <body>
@@ -1035,6 +1058,7 @@
           <div class="rd-meta-co" id="rdMetaCo"></div>
         </div>
         <div class="reader-lead" id="readerLead"></div>
+        <div class="tp-cover hidden" id="tpCover"></div>
         <div class="reader-chips hidden" id="readerChips"></div>
         <div class="reader-dates" id="readerDates"></div>
         <div id="rdToolbar"></div>
@@ -1770,6 +1794,26 @@ function tripShade() { return TRIP_SEA; }
 // TR-6 (C1): the trip's company - four true inks, fixed for thirty years.
 const TRIP_COMPANY = { business: 'FOR BUSINESS', solo: 'SOLO', family: 'WITH FAMILY', friends: 'WITH FRIENDS' };   // TP-TAG (7 Nov 2026): the words; the saved value is unchanged
 const TRIP_COMPANY_INK = { business: '#44546A', solo: '#B08A3E', family: '#5F7355', friends: '#A4553F' };
+// TP-HEAD (7 Nov 2026): a trip's photo lives in its heading - the album's cover photo, or an "Add a photo from it" box
+async function tpPaintCover_(r) {
+  const box = el('tpCover'); if (!box) return;
+  box.innerHTML = ''; box.classList.add('hidden');
+  if (!(window.MyAlbum && MyAlbum.cover && userId)) return;
+  let c = null; try { c = await MyAlbum.cover('iw', r.id); } catch (e) { c = null; }
+  if (!readerEntry || String(readerEntry.id) !== String(r.id)) return;
+  if (c && c.url) {
+    box.innerHTML = '<figure class="tp-pic"><i style="background-image:url(&quot;' + escHtml(c.url) + '&quot;)"></i>'
+      + ((c.caption || '').trim() ? '<figcaption>' + escHtml(c.caption) + '</figcaption>' : '') + '</figure>';
+  } else {
+    box.innerHTML = '<button type="button" class="tp-add"><i aria-hidden="true">\uD83D\uDCF7</i><span><b>Add a photo from it</b><small>One picture you\u2019ll want to see in ten years.</small></span></button>';
+    box.querySelector('.tp-add').addEventListener('click', async () => {
+      if (!MyAlbum.pickCover) return;
+      const got = await MyAlbum.pickCover('iw', r.id);
+      if (got) tpPaintCover_(r);
+    });
+  }
+  box.classList.remove('hidden');
+}
 function tripCoStamp_(r, cls) {
   const c = r.company;
   if (!c || !TRIP_COMPANY[c]) return '';
@@ -2279,6 +2323,7 @@ async function toggleFavourite(id) {
 
 // ===== READER =====
 function openReader(id, keepNav) {
+  if (el('tpCover')) { el('tpCover').classList.add('hidden'); el('tpCover').innerHTML = ''; }   // TP-HEAD
   _rdDateApplied = '';
   const r = rows.find(x => x.id === id); if (!r) return;
   const k = KIND[displayKind(r.kind)] || KIND.note;
@@ -2399,6 +2444,7 @@ function openReader(id, keepNav) {
       el('rdSticky').classList.remove('stamped');
       el('rdSticky').style.setProperty('--pa', sh); el('rdSticky').style.setProperty('--pw1', sh + '0d'); el('rdSticky').style.setProperty('--pw', sh + '26'); el('rdSticky').style.setProperty('--pb', sh + '40');
       el('readerKind').style.color = sh;
+      tpPaintCover_(r);   // TP-HEAD (7 Nov 2026): the photo inside the heading, as on a lived dream
     } else if (dk === 'diary' || dk === 'writing') {
       // PG-H2 (Nov 2026): the page wears its index row's stamp on a plate in the room's colour -
       // the diary's square day stamp on the LEFT (as in the index row), the writing's round reading stamp on the right.
