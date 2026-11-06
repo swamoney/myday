@@ -1786,11 +1786,11 @@
   .dcl-m { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; color:#7686a3; margin-top:6px; line-height:1.6; text-transform:uppercase; }
   .dcl-m b { color:#9a6a12; font-weight:700; }
   /* X1 (6 Nov 2026): a decided decision's calendar leaf - month band, the day, and the countdown at its foot */
-  .dcl-leaf { --k:#5b4a86; display:flex; flex-direction:column; min-width:112px; border-radius:12px; overflow:hidden; background:#fff; text-align:center;
+  .dcl-leaf { --k:#5b4a86; display:flex; flex-direction:column; min-width:128px; border-radius:12px; overflow:hidden; background:#fff; text-align:center;
     border:1px solid color-mix(in srgb,var(--k) 30%,#fff); box-shadow:0 2px 0 color-mix(in srgb,var(--k) 15%,#fff); }
   .dcl-leaf.late { --k:#B0721A; }
   .dcl-leaf .bn { background:var(--k); color:#fff; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.13em; padding:4px 8px; white-space:nowrap; }
-  .dcl-leaf .bg { font-family:var(--serif); font-weight:700; font-size:2rem; line-height:1; padding:7px 0 5px; color:#0A1325; }
+  .dcl-leaf .bg { font-family:var(--serif); font-weight:700; font-size:1.15rem; line-height:1.2; padding:9px 12px 7px; color:#0A1325; white-space:nowrap; }
   .dcl-leaf .ft { background:color-mix(in srgb,var(--k) 10%,#fff); color:var(--k); font-family:var(--mono); font-size:0.55rem; font-weight:700; letter-spacing:0.11em; padding:5px 8px; display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap; }
   .dcl-leaf .ft i { width:6px; height:6px; border-radius:50%; background:currentColor; flex:none; animation:dclLeaf 1.4s ease-in-out infinite; }
   @keyframes dclLeaf { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
@@ -1819,13 +1819,13 @@
     /* Y1 (6 Nov 2026): no chevrons, the small line in plain text, the stamp or leaf beside the title, a touch smaller */
     .dcl-og { display:block; }
     .dcl-ind { display:none; }
-    .dcl-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:10px; padding:13px 14px; }
-    .dcl-tt { font-size:1.05rem; line-height:1.25; }
-    .dcl-m { font-family:var(--sans,'IBM Plex Sans',sans-serif); font-size:0.78rem; letter-spacing:0; text-transform:none; color:#6b7589; margin-top:3px; line-height:1.45; }
-    .dcl-mk { flex-direction:column; align-items:center; gap:6px; margin:0; }
-    .dcl-stamp { width:76px; height:44px; }
-    .dcl-leaf { min-width:78px; }
-    .dcl-leaf .bg { font-size:1.35rem; padding:4px 0 3px; }
+    .dcl-og .dcl-row { display:grid; grid-template-columns:1fr auto; align-items:start; gap:10px; padding:13px 14px; }
+    .dcl-og .dcl-tt { font-size:1.05rem; line-height:1.25; }
+    .dcl-og .dcl-m { font-family:var(--sans,'IBM Plex Sans',sans-serif); font-size:0.78rem; letter-spacing:0; text-transform:none; color:#6b7589; margin-top:3px; line-height:1.45; }
+    .dcl-og .dcl-mk { flex-direction:column; align-items:center; gap:6px; margin:0; }
+    .dcl-og .dcl-stamp { width:76px; height:44px; }
+    .dcl-leaf { min-width:92px; }
+    .dcl-leaf .bg { font-size:0.9rem; padding:6px 7px 5px; }
     .dcl-leaf .bn, .dcl-leaf .ft { font-size:0.44rem; padding:3px 5px; }
     .dcl-leaf .ft { letter-spacing:0.06em; }
     .dcl-dv .lb { font-size:1.1rem; }
@@ -10833,9 +10833,10 @@ function dcLeft_(t) {
   return { k, late: k < 0, txt: k === 0 ? 'DUE TODAY' : k < 0 ? dcSpan_(-k) + ' LATE' : dcSpan_(k) + ' TO GO' };
 }
 function dcLeaf_(d) {
-  if (!d.target_on) return '<span class="dcl-leaf"><span class="bn">TO HAPPEN BY</span><span class="bg">?</span><span class="ft">NO DATE YET</span></span>';
-  const x = new Date(d.target_on + 'T00:00:00'), L = dcLeft_(d.target_on);
-  return '<span class="dcl-leaf' + (L.late ? ' late' : '') + '" title="To happen by ' + escHtml(dcFmt_(d.target_on)) + '"><span class="bn">' + BK_MON[x.getMonth()] + ' ' + x.getFullYear() + '</span><span class="bg">' + x.getDate() + '</span><span class="ft"><i></i>' + L.txt + '</span></span>';
+  // Z1-A (6 Nov 2026): the whole date on one row, so no lone number reads as a count
+  if (!d.target_on) return '<span class="dcl-leaf"><span class="bn">TO HAPPEN BY</span><span class="bg">No date yet</span><span class="ft">ADD ONE ON ITS PAGE</span></span>';
+  const x = new Date(d.target_on + 'T00:00:00'), L = dcLeft_(d.target_on), m = BK_MON[x.getMonth()];
+  return '<span class="dcl-leaf' + (L.late ? ' late' : '') + '"><span class="bn">' + (L.late ? 'WAS DUE' : 'TO HAPPEN BY') + '</span><span class="bg">' + x.getDate() + ' ' + m.charAt(0) + m.slice(1).toLowerCase() + ' ' + x.getFullYear() + '</span><span class="ft"><i></i>' + L.txt + '</span></span>';
 }
 let dcFilter_ = 'decision', dcQuery_ = '';
 function dcRoomPaint_() {
@@ -10876,10 +10877,10 @@ function dcLedgerHtml_() {
   // LD-3: no numbers; the looking-back stars sit under the stamp
   const entry = (d, st, eb, meta, q) => '<div class="dcl-row ' + st + '" data-dc="' + d.id + '">'
     // C1 + X1 (6 Nov 2026): no eyebrow, at most one small line; a decided decision wears a calendar leaf, not a stamp
-    + '<div class="dcl-b"><div class="dcl-tt">' + escHtml(d.title) + '</div>' + (meta ? '<div class="dcl-m">' + meta + '</div>' : '')
+    + '<div class="dcl-b">' + (eb ? '<div class="dcl-eb">' + eb + '</div>' : '') + '<div class="dcl-tt">' + escHtml(d.title) + '</div>' + (meta ? '<div class="dcl-m">' + meta + '</div>' : '')
     + (q ? '<div class="dcl-q">“' + escHtml(q) + '”</div>' : '') + '</div>'
     + '<span class="dcl-mk">' + (st.indexOf('wip') === 0 ? dcLeaf_(d) : '<span class="dcl-stamp">' + dcStampFor_(d, d.status === 'trail', dcIsWip_(d), null) + '</span>')
-    + (d.status === 'trail' && Number(d.satisfaction) ? dcStarsRO_(d) : '') + '</span>' + x(d) + '</div>';
+    + (d.status === 'trail' && Number(d.satisfaction) ? dcStarsRO_(d) + '<span class="dcl-lb">Looking back</span>' : '') + '</span>' + x(d) + '</div>';
   // G1 (4 Nov 2026): an ongoing decision has three chevrons before its box, lighting in turn - still moving
   const og = (st, html) => '<div class="dcl-og ' + st + '"><span class="dcl-ind" aria-hidden="true"><i></i><i></i><i></i></span>' + html + '</div>';
   const divider = (name, count) => '<div class="dcl-dv"><span class="lb">' + name + '</span><i></i><span class="ct">' + count + '</span></div>';
@@ -10900,8 +10901,9 @@ function dcLedgerHtml_() {
   h += trail.map(d => {
     const canx = dcCanx_(d), r = Number(d.satisfaction) || 0;
     // Y (4 Nov 2026): the small line keeps only what the stamp doesn't say in full
-    const eb = (canx ? 'WALKED AWAY' + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '') : 'IT HAPPENED' + ((d.happened_on || d.decided_on) ? ' ' + U(dcFmt_(d.happened_on || d.decided_on)) : ''));   // V1
-    return entry(d, canx ? 'canx' : 'lived', eb, '', (d.rating_note || '').trim());   // C1: the stamp and the line looking back say it
+    // C1b (6 Nov 2026): past decisions keep their earlier box - eyebrow, decided line, stars and Looking back
+    const meta = canx ? 'FROM THE QUESTION' : 'DECIDED' + (d.decided_on ? ' ' + U(dcFmt_(d.decided_on)) : '') + ' · ' + U(dcVerdictLong_(d));
+    return entry(d, canx ? 'canx' : 'lived', '', meta, (d.rating_note || '').trim());   // Z1-A: no top line - the stamp carries the date
   }).join('');
   if (!trail.length) h += '<div class="dcl-empty">nothing on the trail yet</div>';
   return h + '</div>';
@@ -11459,7 +11461,8 @@ function dcStampWalked_() {
 function dcStampFor_(d, sealed, wip, ink) {
   const dream = dcIsDream_(d), canx = dcCanx_(d);
   // V1 (6 Nov 2026): decision stamps in the flow's words - THINKING IT THROUGH, DECIDED, IT HAPPENED, WALKED AWAY
-  if (sealed) return canx ? dcStampWalked_() : dcStampSvg_('\u2726 IT HAPPENED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#1F6E78', true);
+  if (sealed) return canx ? ((d.happened_on || d.decided_on) ? dcStampSvg_('WALKED AWAY', escHtml(dcFmt_(d.happened_on || d.decided_on).toUpperCase()), '#a8323f', true) : dcStampWalked_()) :   // Z1-A: dated, like IT HAPPENED
+    dcStampSvg_('\u2726 IT HAPPENED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#1F6E78', true);
   if (wip) return dream ? dcStampSvg_('WORK IN', 'PROGRESS', '#2B4C9B') : dcStampSvg_('DECIDED', d.decided_on ? escHtml(dcFmt_(d.decided_on).toUpperCase()) : '', '#5b4a86', true);
   if (dream && !dcDreamPending_(d)) return dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A');
   return dream ? dcStampSvg_('DECISION', 'PENDING', '#9a4a2e') : dcStampSvg_('THINKING IT', 'THROUGH', '#9a6a12');
