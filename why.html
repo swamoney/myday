@@ -1925,6 +1925,55 @@
   /* R1: the journey row */
   .dc-journey { display:flex; border:1px solid var(--rule); border-radius:10px; overflow:hidden; background:#fff; width:max-content; max-width:100%; margin:6px 0 12px; }
   .dc-journey:empty { display:none; }
+  /* F2 (6 Nov 2026): a dream's flow - a step line (the current circle ripples, Lived wears a flag) and one question card */
+  .dc-journey.dm { display:block; border:0; border-radius:0; overflow:visible; background:none; width:auto; max-width:620px; margin:16px 0 6px; }
+  .dm-steps { display:flex; align-items:flex-start; margin:4px 0 6px; }
+  .dm-sp { flex:1; position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .dm-sp:before { content:''; position:absolute; top:13px; left:-50%; right:50%; height:3px; background:#d9dfe9; }
+  .dm-sp:first-child:before { display:none; }
+  .dm-sp.dn:before, .dm-sp.on:before { background:var(--dm-ink,#2F6F6A); }
+  .dm-sp i { position:relative; z-index:1; width:28px; height:28px; border-radius:50%; background:#fff; border:2px solid #cfd6e2;
+        display:flex; align-items:center; justify-content:center; color:#fff; }
+  .dm-sp i svg { width:15px; height:15px; }
+  .dm-sp.dn i { background:var(--dm-ink,#2F6F6A); border-color:var(--dm-ink,#2F6F6A); }
+  .dm-sp.on i { background:var(--dm-ink,#2F6F6A); border-color:var(--dm-ink,#2F6F6A); width:34px; height:34px; margin-top:-3px;
+        box-shadow:0 0 0 5px color-mix(in srgb, var(--dm-ink,#2F6F6A) 22%, #fff), 0 4px 12px color-mix(in srgb, var(--dm-ink,#2F6F6A) 35%, transparent); }
+  .dm-sp.on:not(.lv) i:after { content:''; width:10px; height:10px; border-radius:50%; background:#fff; }
+  .dm-sp.on:not(.lv) i:before { content:''; position:absolute; inset:-2px; border-radius:50%; border:2px solid var(--dm-ink,#2F6F6A); animation:dmRip 2s ease-out infinite; }
+  @keyframes dmRip { 0% { transform:scale(1); opacity:0.7; } 100% { transform:scale(1.9); opacity:0; } }
+  @media (prefers-reduced-motion:reduce) { .dm-sp.on i:before { animation:none; opacity:0; } }
+  .dm-sp.lv i { color:#b9c2d1; }
+  .dm-sp.lv i svg { width:16px; height:16px; }
+  .dm-sp.lv.on i { color:#fff; }
+  .dm-sp.lv.on i svg { width:18px; height:18px; }
+  .dm-sp .nm { display:block; margin-top:7px; font-family:var(--sans); font-size:0.76rem; color:#8B97AC; font-weight:500; line-height:1.25; }
+  .dm-sp.on .nm { color:var(--dm-ink,#2F6F6A); font-weight:700; font-size:0.84rem; }
+  .dm-sp.dn .nm { color:#5A6478; }
+  .dm-sp em { font-style:normal; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.14em; color:#fff;
+        background:var(--dm-ink,#2F6F6A); border-radius:999px; padding:2px 7px; margin-top:5px; white-space:nowrap; }
+  .dm-q, .dm-sheet { margin-top:16px; background:#fff; border:1px solid #e3e8f0; border-radius:12px; padding:14px 16px; }
+  .dm-sheet { border-color:#d6dde8; box-shadow:0 8px 24px rgba(16,24,40,0.08); margin-top:12px; }
+  .dm-q h4, .dm-sheet h4 { margin:0 0 4px; font-family:var(--serif); font-size:1.12rem; color:#182233; }
+  .dm-q p { margin:0 0 12px; font-family:var(--sans); font-size:0.86rem; color:#5A6478; line-height:1.45; }
+  .dm-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .dm-sheet .dm-row { margin-top:16px; }
+  .dm-bt { font-family:var(--sans); font-weight:600; font-size:0.9rem; border-radius:10px; padding:10px 16px; cursor:pointer; border:1px solid transparent; }
+  .dm-bt.p { background:var(--dm-ink,#2F6F6A); color:#fff; }
+  .dm-bt.p.danger { background:#a8323f; }
+  .dm-bt.s { background:#fff; color:#28324B; border-color:#d6dde8; }
+  .dm-bt.l { background:none; border:0; color:#6b7589; text-decoration:underline; text-underline-offset:3px; padding:10px 6px; font-weight:500; }
+  .dm-sheet label { display:block; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; color:#8B97AC; margin:12px 0 5px; text-transform:uppercase; }
+  .dm-chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .dm-ch { font-family:var(--sans); font-size:0.84rem; border:1px solid #d6dde8; background:#fff; border-radius:999px; padding:7px 13px; cursor:pointer; color:#28324B; }
+  .dm-ch.on { background:var(--dm-ink,#2F6F6A); color:#fff; border-color:var(--dm-ink,#2F6F6A); }
+  .dm-in { font-family:var(--sans); font-size:0.9rem; border:1px solid #d6dde8; border-radius:8px; padding:8px 10px; width:220px; max-width:100%; }
+  .dm-hint { font-family:var(--sans); font-size:0.76rem; color:#8B97AC; margin-top:5px; }
+  .dc-plate.bp .dc-band { display:none; }   /* F2: the pill carries the date on a dream */
+  @media (max-width:640px) {
+    .dm-sp .nm { font-size:0.62rem; } .dm-sp.on .nm { font-size:0.68rem; }
+    .dm-sp em { font-size:0.42rem; padding:2px 5px; }
+    .dm-row .dm-bt.s { white-space:normal; text-align:center; }
+  }
   .dc-jseg { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; padding:9px 12px; color:var(--muted); background:#fff; border:none; border-right:1px solid var(--rule); white-space:nowrap; cursor:default; }
   .dc-jseg:last-child { border-right:none; }
   .dc-jseg.done { background:#eef1f6; color:#8a97b3; }
@@ -10765,8 +10814,8 @@ function dcBucketHtml_() {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
     // W1 (6 Nov 2026): a decided dream is ON THE WAY, not 'living it' (that is the decisions word)
     if (st === 'wip') return card(d, st, 'ON THE WAY' + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : ''), t ? 'TO HAPPEN BY ' + monLong(t) : '', seal(st, 'ON THE', mon(d.decided_on) || BP_ROAD, 'WAY'));
-    if (st === 'ask') return card(d, st, t ? 'DECIDE BY ' + String(dcFmt_(t)).toUpperCase() : 'NEEDS DECIDING', t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET', seal(st, 'NEEDS', mon(t) || '?', 'DECIDING'));
-    return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || BP_ROAD, 'AHEAD'));
+    if (st === 'ask') return card(d, st, t ? 'DECIDE BY ' + monLong(t) : 'MAKING UP MY MIND', t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET', seal(st, 'MAKING UP', mon(t) || '?', 'MY MIND'));
+    return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || BP_ROAD, 'SOMEDAY'));
   }).join('');
   if (!desk.length) h += '<div class="dcl-empty">no dream ahead yet \u2014 what do you want to live?</div>';
   const lived = trail.filter(d => !dcCanx_(d));
@@ -10918,7 +10967,7 @@ function dcPaintPlate_(d) {
       plate.classList.add('bp', m.st);
       plate.style.setProperty('--dc-sol', m.ink); plate.style.setProperty('--dc-ink', m.ink);
       stamp.innerHTML = m.seal; stamp.classList.add('bp-stamp');
-      el('dcEyebrow').textContent = m.eb + (sealed ? '' : ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what);
+      el('dcEyebrow').textContent = m.eb + (sealed || !qa.length ? '' : ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what);   // F2: no '0 / 0 PREPARED'
       if (cd && m.pill) { cd.textContent = m.pill; cd.classList.remove('hidden'); }
     } else stamp.classList.remove('bp-stamp');
   }
@@ -10937,16 +10986,16 @@ function dcDreamMarks_(d) {
   if (d.status === 'trail') {
     const w = d.happened_on || d.decided_on;
     if (dcCanx_(d)) { st = 'canx'; eb = 'LET GO' + (w ? ' \u00B7 ' + monLong(w) : ''); sl = seal('LET', mon(w) || '\u2715', 'GO'); }
-    else { st = 'lived'; eb = (d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED') + ' \u00B7 ' + dcVerdictLong_(d).toUpperCase(); sl = seal(BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''); }
+    else { st = 'lived'; eb = (d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED') + (dmHow_(d) ? ' \u00B7 ' + dmHow_(d) : ''); sl = seal(BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''); }
   } else if (dcIsWip_(d)) {
-    st = 'wip'; eb = 'ON THE WAY \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : '');   // W1
+    st = 'wip'; eb = 'ON THE WAY' + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : '') + (dmHow_(d) ? ' \u00B7 ' + dmHow_(d) : '');   // W1 + F2
     pill = t ? 'TO HAPPEN BY ' + monLong(t) : ''; sl = seal('ON THE', mon(d.decided_on) || BP_ROAD, 'WAY');
   } else if (dcDreamPending_(d)) {
-    st = 'ask'; eb = t ? 'DECIDE BY ' + String(dcFmt_(t)).toUpperCase() : 'NEEDS DECIDING';
-    pill = t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET'; sl = seal('NEEDS', mon(t) || '?', 'DECIDING');
+    st = 'ask'; eb = t ? 'DECIDE BY ' + monLong(t) : 'MAKING UP MY MIND';   // F2 (6 Nov 2026): dream words
+    pill = t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET'; sl = seal('MAKING UP', mon(t) || '?', 'MY MIND');
   } else {
     st = 'ahead'; eb = t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY';
-    pill = t ? until(k) : 'NO DATE YET'; sl = seal('A DREAM', mon(t) || BP_ROAD, 'AHEAD');
+    pill = t ? until(k) : 'NO DATE YET'; sl = seal('A DREAM', mon(t) || BP_ROAD, 'SOMEDAY');
   }
   return { st, eb, pill, seal: sl, ink: INK[st] };
 }
@@ -10956,6 +11005,8 @@ function dcDreamMarks_(d) {
 // Passed segments go grey; the one you stand in is lit (DECIDED in the deepest sea); the next is offered in ink.
 function dcPaintJourney_(d, sealed, wip) {
   const j = el('dcJourney'); if (!j) return;
+  j.classList.toggle('dm', dcIsDream_(d));
+  if (dcIsDream_(d)) { dmPaintFlow_(d); return; }   // F2: a dream walks its own flow
   const dream = dcIsDream_(d), canx = dcCanx_(d), pend = dcDreamPending_(d);
   const seg = (cls, act, txt) => '<button type="button" class="dc-jseg ' + cls + '"' + (act ? ' data-jact="' + act + '"' : ' disabled') + '>' + txt + '</button>';
   const decidedTxt = '\u2713 DECIDED' + (d.made && d.made !== 'cancelled' ? ' \u00B7 ' + (d.made === 'quick' ? 'WITH MY GUT' : 'WITH CARE') : '') + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : '');
@@ -10981,6 +11032,86 @@ function dcPaintJourney_(d, sealed, wip) {
   j.innerHTML = h;
   j.classList.toggle('sea', !!wip); j.classList.toggle('moss', !!sealed && !canx); j.classList.toggle('ash', !!canx);
 }
+// ===== F2 (6 Nov 2026): a dream's flow - Someday -> Making up my mind -> On the way -> Lived =====
+// A step line shows where the dream stands (the current circle ripples; Lived wears a flag and never
+// moves), and one question card asks what is next, with plain buttons. Every door works without Edit.
+// The small forms open right under the question. Dates are asked as months and saved as the 1st.
+let dmSheet_ = '', dmHowPick_ = '', dmFor_ = null;
+function dmHow_(d) { return d.made === 'quick' ? 'WITH MY GUT' : d.made === 'care' ? 'TOOK MY TIME' : ''; }
+function dmStage_(d) { return d.status === 'trail' ? (dcCanx_(d) ? 'canx' : 'lived') : dcIsWip_(d) ? 'wip' : dcDreamPending_(d) ? 'ask' : 'ahead'; }
+const DM_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const DM_FLAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4 2.5 4H6"/></svg>';
+function dmMonth_(iso) { return iso ? String(iso).slice(0, 7) : ''; }
+function dmPaintFlow_(d) {
+  const j = el('dcJourney');
+  if (dmFor_ !== d.id) { dmSheet_ = ''; dmHowPick_ = ''; dmFor_ = d.id; }
+  const st = dmStage_(d), ink = dcDreamMarks_(d).ink;
+  const ORDER = ['ahead', 'ask', 'wip', 'lived'], NAME = { ahead:'Someday', ask:'Making up my mind', wip:'On the way', lived:'Lived' };
+  const at = st === 'canx' ? -1 : ORDER.indexOf(st);
+  const steps = '<div class="dm-steps">' + ORDER.map((k, i) => {
+    const lv = k === 'lived', cls = st === 'canx' ? (i === 0 ? 'dn' : '') : i < at ? 'dn' : i === at ? 'on' : '';
+    const inner = lv ? DM_FLAG : cls === 'dn' ? DM_TICK : '';
+    const tag = cls === 'on' && !lv ? '<em>' + (k === 'wip' ? 'IN PROGRESS' : 'YOU ARE HERE') + '</em>' : '';
+    return '<div class="dm-sp ' + cls + (lv ? ' lv' : '') + '"><i>' + inner + '</i><span class="nm">' + NAME[k] + '</span>' + tag + '</div>';
+  }).join('') + '</div>';
+  const b = (cls, act, txt) => '<button type="button" class="dm-bt ' + cls + '" data-dm="' + act + '">' + txt + '</button>';
+  let q;
+  if (st === 'ahead') q = ['Ready to make a real choice?', 'Move it to “Making up my mind” and pick a month to decide by. Or, if you already know, say yes now.',
+      b('p', 's:ask', 'Start making up my mind') + b('s', 's:yes', 'Yes, I’m doing it')];
+  else if (st === 'ask') q = ['Are you doing it?', 'Say yes and pick when it will happen, or let it go. Either answer is a decision.',
+      b('p', 's:yes', 'Yes, I’m doing it') + b('s', 'ahead', 'Not now — back to someday') + b('l', 's:go', 'Let it go')];
+  else if (st === 'wip') q = ['Did it happen?', 'When it does, mark it lived and it moves to your Lived list.',
+      b('p', 's:lived', '✦ It happened!') + b('s', 'back-ask', 'Change of plan — back to making up my mind') + b('l', 's:go', 'Let it go')];
+  else if (st === 'lived') q = ['A dream come true.', 'Rate it and write how it was, any time.', b('s', 'undo-lived', 'Undo — it hasn’t happened yet')];
+  else q = ['You let this one go.', 'Walking away is also a choice.', b('s', 'revive', 'Bring it back as a dream')];
+  const mi = (v) => '<input class="dm-in" id="dmMonth" type="month" value="' + escHtml(v || '') + '" placeholder="YYYY-MM">';
+  const foot = (act, txt, danger) => '<div class="dm-row">' + b('p' + (danger ? ' danger' : ''), act, txt) + b('l', 'cancel', danger ? 'Keep it' : 'Cancel') + '</div>';
+  let sh = '';
+  if (dmSheet_ === 'ask') sh = '<h4>Making up my mind</h4><label>Decide by (optional)</label>' + mi(dmMonth_(d.target_on))
+      + '<div class="dm-hint">Shown on the card as “DECIDE BY …” with a countdown.</div>' + foot('save-ask', 'Save');
+  else if (dmSheet_ === 'yes') sh = '<h4>Yes, I’m doing it!</h4><label>How did you decide? (optional)</label><div class="dm-chips">'
+      + '<button type="button" class="dm-ch' + (dmHowPick_ === 'care' ? ' on' : '') + '" data-dm="how:care">I took my time</button>'
+      + '<button type="button" class="dm-ch' + (dmHowPick_ === 'quick' ? ' on' : '') + '" data-dm="how:quick">I went with my gut</button></div>'
+      + '<label>When will it happen? (optional)</label>' + mi(dmMonth_(d.target_on))
+      + '<div class="dm-hint">Decided on is today; you can change it later in Edit.</div>' + foot('save-yes', 'Save — it’s on the way');
+  else if (dmSheet_ === 'lived') sh = '<h4>It happened! ✦</h4><label>When?</label>' + mi(new Date().toISOString().slice(0, 7)) + foot('save-lived', 'Save — move it to Lived');
+  else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
+  j.style.setProperty('--dm-ink', ink);
+  j.innerHTML = steps + '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>'
+    + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
+  j.classList.remove('sea', 'moss', 'ash');
+}
+async function dmSave_(d, patch, msg) {
+  const { error } = await supa.from('why_decisions').update(patch).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save that'); return false; }
+  Object.assign(d, patch); dmSheet_ = ''; dmHowPick_ = '';
+  openDecision(d.id); renderDecisions(); if (msg) toast(msg);
+  return true;
+}
+function dmMonthVal_() {
+  const v = ((el('dmMonth') || {}).value || '').trim();
+  if (!v) return null;
+  const m = v.match(/^(\d{4})-(\d{1,2})/);
+  return m ? m[1] + '-' + String(m[2]).padStart(2, '0') + '-01' : 'bad';
+}
+el('dcJourney').addEventListener('click', async e => {
+  const t = e.target.closest('[data-dm]'); if (!t) return;
+  const d = dcRow_(); if (!d || !dcIsDream_(d)) return;
+  const a = t.dataset.dm, today = new Date().toISOString().slice(0, 10);
+  if (a.startsWith('s:')) { dmSheet_ = a.slice(2); dmPaintFlow_(d); const i = el('dmMonth'); if (i) i.focus(); return; }
+  if (a === 'cancel') { dmSheet_ = ''; dmPaintFlow_(d); return; }
+  if (a.startsWith('how:')) { const h = a.slice(4); dmHowPick_ = dmHowPick_ === h ? '' : h; dmPaintFlow_(d); return; }
+  const mv = (a === 'save-ask' || a === 'save-yes' || a === 'save-lived') ? dmMonthVal_() : null;
+  if (mv === 'bad') { toast('That month could not be read — try 2027-05'); return; }
+  if (a === 'save-ask') await dmSave_(d, { pending: true, target_on: mv }, 'Making up my mind');
+  else if (a === 'save-yes') await dmSave_(d, { status: 'wip', pending: false, made: dmHowPick_ || null, decided_on: today, target_on: mv }, 'On the way!');
+  else if (a === 'ahead') await dmSave_(d, { pending: false }, 'Back to someday');
+  else if (a === 'save-lived') await dmSave_(d, { status: 'trail', happened_on: mv || today }, 'A dream come true ✦');
+  else if (a === 'back-ask') await dmSave_(d, { status: 'desk', made: null, decided_on: null, pending: true }, 'Back to making up my mind');
+  else if (a === 'save-go') await dmSave_(d, { status: 'trail', made: 'cancelled', decided_on: today, happened_on: null }, 'Let go — it rests in Lived');
+  else if (a === 'undo-lived') await dmSave_(d, { status: 'wip', happened_on: null }, 'Back on the way');
+  else if (a === 'revive') await dmSave_(d, { status: 'desk', made: null, decided_on: null, pending: false }, 'Back as a dream');
+});
 el('dcJourney').addEventListener('click', e => {
   const b = e.target.closest('[data-jact]'); if (!b) return;
   const a = b.dataset.jact;

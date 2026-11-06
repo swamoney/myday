@@ -8,6 +8,15 @@ Written August 2026.
 
 ---
 
+## BP-F2 · A dream's flow: Someday → Making up my mind → On the way → Lived (6 Nov 2026)
+- On a dream's page the old three-part strip (A DREAM AHEAD · NEEDS DECIDING · I HAVE DECIDED…, two parts Edit-only) is replaced by dmPaintFlow_: a step line and one question card. Decisions keep their own strip and form.
+- Step line: passed steps filled with a tick; the current one is a bigger filled circle with a soft ring, its name bold, a tag (YOU ARE HERE; IN PROGRESS on On the way) and a ripple every 2s (B1; still under reduce-motion). Lived wears a flag (S1), grey until reached, lit with no tag once lived.
+- Question card per stage, all without Edit: Someday → "Start making up my mind" (form: decide-by month, optional) / "Yes, I'm doing it"; Making up my mind → Yes / "Not now — back to someday" / Let it go; On the way → "✦ It happened!" (form: month) / "Change of plan" / Let it go; Lived → Undo; Let go → "Bring it back as a dream". Let it go asks once.
+- "Yes, I'm doing it" form: I took my time / I went with my gut (optional; made care/quick/null) + when it will happen (month, optional). decided_on = today. Months save as the 1st (YYYY-MM-01). No more "verdict" words on dreams.
+- Words: NEEDS DECIDING → MAKING UP MY MIND (stamp MAKING UP / month / MY MIND); the someday stamp says SOMEDAY; ON THE WAY eyebrows show TOOK MY TIME / WITH MY GUT instead of "Finalized with…"; the "· 0 / 0 PREPARED" tail is gone when a dream has no questions; the gold date band is hidden on dream plates (the pill carries the date).
+- Saves to the same fields as before (status, pending, made, decided_on, target_on, happened_on). Harness: h_dreamflow.js.
+- Trap: one date field (target_on) holds planned-for, decide-by and to-happen-by in turn, so each stage's form replaces it. Firefox desktop has no month picker; it shows a text box and wants 2027-05.
+
 ## BP-L1 · Bucket list: "Still dreaming" becomes "The lineup" (6 Nov 2026)
 - The first section heading reads The lineup; the count and "Lived" below are unchanged.
 - Trap: undated dreams sit last, as if last in line.
