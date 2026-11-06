@@ -8,6 +8,13 @@ Written August 2026.
 
 ---
 
+## TP-LINE + TP-Y2 · My Trips in the Life Timeline's grammar (7 Nov 2026, introspection.html)
+- A quiet caption at the top (.tpsum): "5 TRIPS · 2019 – 2026 · 37 DAYS AWAY". Days are summed from tripDaysN_; an undated trip adds 0 days and stays out of the year range.
+- The year headings and cards sit in .tpjr, one line down the left. Year headings are large serif with an underline in the decade's ink (--yc).
+- Each trip hangs from a map pin in its ink, with a white dot in the pin's head.
+- Colour, Y2: tripDecShade_ gives a trip the ink of the decade it began in, by the Life Timeline's rule (chDecShade_: 1990s ocean, 2000s amethyst, 2010s bronze, 2020s sky). Undated trips are slate. The trip page uses the same ink. TRIP_PAL is no longer used for colour.
+- The days stamp (.tpc-post) is the rubber stamp, in the list and on the page: a solid frame, a thin inner frame and bold type. The AGE pill on a trip card is the gold pill.
+
 ## TL-S1 · Life Timeline: quiet summary, no "born", a real stamp (7 Nov 2026, introspection.html)
 - The "4 chapters" summary line (.tl-sum b) is set in the same small grey mono type as the birth-year line.
 - The "1992 · born" cap is removed. The line starts at the first decade heading.
