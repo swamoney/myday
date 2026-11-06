@@ -8,6 +8,17 @@ Written August 2026.
 
 ---
 
+## DA · My Decisions audit fixes (6 Nov 2026)
+1-2. Copy / Download .md / Print use dcSummary_: "Pending · decide by …", "Work in progress · Finalized with care · … · to happen by …", "Walked away · …", "Finalized with … · happened …" (+ stars, + the line).
+3-4. Edit details on a work-in-progress decision shows Finalized on and How (no Happened, no Cancelled); the date label follows the stage (Decide by / To happen by / Target date (was)).
+5. The "new points joined your checklist" banner shows only on a pending decision.
+6. Remove prompt for an in-progress decision: "It is decided and in progress; its answers and story go with it."
+9. Eyebrows drop "DECISION ·" (dreams keep their own).
+11. "It happened…" opens a small date form (#dcHapModal) instead of a browser prompt.
+12. A lived decision rates in place (stars under the stamp, no Edit) and asks for its line in place when there is none.
+13. One Edit per page (the bottom toolbar's Edit hidden everywhere).
+- Harness: h_decfix.js. Still to mock: one flow and one vocabulary for decisions (items 7, 8, 10, 14).
+
 ## BP-T1 · One button forward; the ways back are tiny (6 Nov 2026)
 - Making up my mind: one button "Yes, I'm doing it"; tiny links "Not now — back to someday" · "Let it go". Line: "Say yes and pick when it will happen."
 - On the way: "✦ It happened!" (plus "Pick a new month" when it slipped); tiny links "Change of plan — back to making up my mind" · "Let it go". Someday is unchanged.
