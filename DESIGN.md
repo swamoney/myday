@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TP-S2 · My Trips in one colour; tag stamp under the days stamp on phone (7 Nov 2026, introspection.html)
+- Every trip uses My Trips' own sea blue (#2F6B8A): cards, pins, year headings, days stamps, the trip page and the pop-up preview. tripDecShade_ returns it for all trips, so the decade inks are dropped for trips. The Life Timeline keeps its decade inks.
+- The company stamps keep their own inks.
+- Phone: the company stamp sits under the days stamp, as on desktop. It is set small (0.4rem, max 64px wide), and two-word tags wrap onto two lines. The beside-the-AGE-pill copy is removed.
+
 ## TP-R1 · My Trips cards laid out like the Life Timeline's (7 Nov 2026, introspection.html)
 - Card grid 90px / 1fr / auto with the timeline's padding (16px 18px). On the left, "TRIP" over the trip's number (.tpc-l), counted from your first trip (tripSort order), in the trip's ink.
 - The company stamp leaves mid-card (.tpc-mid is gone). Desktop: it sits under the days stamp (.tp-cost.mk). Phone: it sits beside the AGE pill (.tp-cost.inb), so the stamp column stays narrow.
