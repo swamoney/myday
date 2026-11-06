@@ -2278,7 +2278,8 @@
   #dcWin .dc-plate:not(.bp) .dc-hrow { display:grid; grid-template-columns:1fr auto; gap:24px; align-items:center; }
   #dcWin .dc-plate:not(.bp) .dc-hl { min-width:0; }
   #dcWin .dc-plate:not(.bp) .dc-hmark { display:flex; flex-direction:column; align-items:center; padding-right:6px; }
-  #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp { margin:0; transform:rotate(-8deg); }
+  #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp { margin:0; transform:rotate(-8deg); width:132px; height:77px; }   /* S1: about 20% bigger */
+  #dcWin .dc-journey.dcpast .dm-steps { display:none; }   /* S1: a past decision skips the three steps */
   #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp.alt { display:none; }
   #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf { min-width:150px; }
   #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf .bg { font-size:1.35rem; padding:11px 14px 9px; }
@@ -2291,7 +2292,11 @@
   @media (max-width:640px) {
     #dcWin .dc-plate:not(.bp) .dc-hrow { grid-template-columns:1fr; gap:0; }
     #dcWin .dc-plate:not(.bp) .dc-hmark { align-items:center; padding:0; margin:14px 0 6px; }   /* C1: the stamp centred in its own row */
-    #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp { transform:rotate(-6deg); }
+    #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp { transform:rotate(-6deg); width:132px; height:auto; }
+    #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp svg { width:132px; height:auto; }
+    /* S1: on the phone a past decision's stars, caption, line and small links sit in the centre, under the stamp */
+    #dcWin .dc-journey.dcpast, #dcWin .dc-journey.dcpast * { text-align:center; }
+    #dcWin .dc-journey.dcpast .dm-stars, #dcWin .dc-journey.dcpast .dm-undo, #dcWin .dc-journey.dcpast .dm-row { justify-content:center; }
     #dcWin .dc-plate:not(.bp) .dc-hmark .dc-stamp.alt { display:block; }
     #dcWin .dc-plate:not(.bp) .dc-hmark .dcl-leaf { display:none; }
     #dcWin .dc-plate:not(.bp) .dc-name { font-size:1.5rem; }
@@ -3772,25 +3777,6 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="dcDecideModal">
-  <div class="modal">
-    <div class="modal-title">How was it decided?</div>
-    <div class="fld"><div class="dc-mchoice" id="dcMade">
-      <button data-m="thoughtful" type="button">Finalized with care<br><span style="font-weight:400;font-size:0.6875rem">I sat with it &mdash; walked the points, let it settle</span></button>
-      <button data-m="quick" type="button">Finalized with my gut<br><span style="font-weight:400;font-size:0.6875rem">I knew fast &mdash; the heart moved first</span></button>
-      <button data-m="cancelled" type="button">Cancelled<br><span style="font-weight:400;font-size:0.6875rem">the question no longer needs an answer &mdash; walking away is also a decision</span></button>
-    </div></div>
-    <div class="fld"><label>Decision finalized on</label><input type="date" id="dcMWhen">
-      <div class="dc-hist" id="dcMHist"></div></div>
-    <div class="fld" id="dcMHapFld"><label>Happened on</label><input type="date" id="dcMHap">
-      <div class="dc-sub">optional &mdash; leave it blank and the decision hangs as <b>work in progress</b> until it does</div></div>
-    <div class="modal-actions">
-      <button class="btn-primary" id="dcMSave" type="button">Save the verdict</button>
-      <button class="btn-ghost" id="dcMCancel" type="button">Not yet</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-overlay hidden" id="dmEditModal"><div class="modal dm-modal" id="dmEditBody"></div></div>
 <div class="modal-overlay hidden" id="dcHapModal"><div class="modal" style="max-width:400px">
   <div class="modal-title">It happened &#10022;</div>
@@ -3823,13 +3809,13 @@
 <div class="modal-overlay hidden" id="dcImportModal">
   <div class="modal">
     <div class="modal-title">Import past decisions</div>
-    <div class="modal-sub">upload your One Life Checklist .xlsx as it is, or paste its rows &mdash; nothing is written until you seal</div>
+    <div class="modal-sub">upload your One Life Checklist .xlsx as it is, or paste its rows &mdash; nothing is saved until you press Add</div>
     <label class="dc-import-file" for="dcImportFile">&#8593; Upload the .xlsx / .csv<input type="file" id="dcImportFile" accept=".xlsx,.xls,.csv" style="position:absolute; left:-9999px;"></label>
     <div class="dc-import-or">or paste</div>
     <textarea id="dcImportText" class="dc-import-ta" placeholder="Paste the rows from your sheet, header rows included"></textarea>
     <div class="dc-import-prev" id="dcImportPrev"></div>
     <div class="modal-actions">
-      <button class="btn-primary" id="dcImportSeal" type="button" disabled>Seal into the trail</button>
+      <button class="btn-primary" id="dcImportSeal" type="button" disabled>Add to past decisions</button>
       <button class="btn-ghost" id="dcImportTpl" type="button">Template .csv</button>
       <button class="btn-ghost" id="dcImportCancel" type="button">Cancel</button>
     </div>
@@ -4877,14 +4863,12 @@ async function exportWhy() {
     body += '<h2>My Bucket List &amp; My Decisions</h2>';
     dcRows.forEach(d => {
       const qa = Array.isArray(d.answers) ? d.answers : [];
-      const sealed = d.status === 'trail';
+      // fix 1 (6 Nov 2026): the same words as the pages - dmSummary_ for a dream, dcSummary_ for a decision
+      const pend = !dcIsDream_(d) && d.status !== 'trail' && !dcIsWip_(d);
       body += '<h3>' + xEsc_(d.title) + '</h3><p class="meta">'
-        + (sealed ? (dcVerdictLong_(d)
-            + (d.decided_on ? ' \u00B7 ' + xEsc_(dcFmt_(d.decided_on)) : '')
-            + (d.happened_on ? ' \u00B7 happened ' + xEsc_(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
-            + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : ''))
-          : ('On the desk' + (d.target_on ? ' \u00B7 target ' + xEsc_(dcFmt_(d.target_on)) : '')
-            + ' \u00B7 ' + dcAnswered_(d) + ' of ' + qa.length + ' answered')) + '</p>';
+        + xEsc_(dcIsDream_(d) ? dmSummary_(d) : dcSummary_(d))
+        + (pend && qa.length ? ' \u00B7 ' + dcAnswered_(d) + ' of ' + qa.length + ' answered' : '')
+        + ((d.rating_note || '').trim() ? '<br><em>' + xEsc_(d.rating_note) + '</em>' : '') + '</p>';
       const answered = qa.filter(x => x && String(x.a || '').trim());
       if (answered.length) body += '<ul>' + answered.map(x =>
         '<li><strong>' + xEsc_(x.q) + '</strong> \u2014 ' + xEsc_(x.a) + '</li>').join('') + '</ul>';
@@ -5126,28 +5110,19 @@ function printSection() {
     const desk = mine.filter(d => d.status !== 'trail');
     const trail = mine.filter(d => d.status === 'trail').sort(dcTrailSort_);
     const living = desk.filter(dcIsWip_), pending = desk.filter(d => !dcIsWip_(d));
-    if (living.length) {
-      body += '<h2>Work in progress</h2><ul>' + living.map(d => '<li><strong>' + e(d.title) + '</strong>'
-        + ' <span class="meta">' + e(dcVerdictLong_(d)) + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '') + '</span>'
-        + (d.target_on ? ' <span class="meta">to happen by ' + e(dcFmt_(d.target_on)) + '</span>' : '') + '</li>').join('') + '</ul>';
-    }
-    if (pending.length) {
-      body += '<h2>On the desk</h2><ul>' + pending.map(d => {
-        const qa = Array.isArray(d.answers) ? d.answers : [];
-        return '<li><strong>' + e(d.title) + '</strong>'
-          + (d.target_on ? ' <span class="meta">target ' + e(dcFmt_(d.target_on)) + '</span>' : '')
-          + ' <span class="meta">' + dcAnswered_(d) + ' of ' + qa.length + ' answered</span></li>';
-      }).join('') + '</ul>';
-    }
+    // fix 1 (6 Nov 2026): the room's own words - Decided / Thinking it through / Past decisions (dreams: On the way / Someday / Lived and let go)
+    const sum = d => dreamRoom ? dmSummary_(d) : dcSummary_(d);
+    const li = d => { const qa = Array.isArray(d.answers) ? d.answers : [];
+      return '<li><strong>' + e(d.title) + '</strong> <span class="meta">' + e(sum(d))
+        + (!dreamRoom && !dcIsWip_(d) && qa.length ? ' \u00B7 ' + dcAnswered_(d) + ' of ' + qa.length + ' answered' : '') + '</span></li>'; };
+    if (pending.length) body += '<h2>' + (dreamRoom ? 'Someday and making up my mind' : 'Thinking it through') + '</h2><ul>' + pending.map(li).join('') + '</ul>';
+    if (living.length) body += '<h2>' + (dreamRoom ? 'On the way' : 'Decided') + '</h2><ul>' + living.map(li).join('') + '</ul>';
     if (trail.length) {
-      body += '<h2>The trail</h2>';
+      body += '<h2>' + (dreamRoom ? 'Lived and let go' : 'Past decisions') + '</h2>';
       trail.forEach(d => {
         const qa = Array.isArray(d.answers) ? d.answers : [];
-        body += '<h3>' + e(d.title) + '</h3><p class="meta">'
-          + dcVerdictLong_(d)
-          + (d.decided_on ? ' \u00B7 ' + e(dcFmt_(d.decided_on)) : '')
-          + (d.happened_on ? ' \u00B7 happened ' + e(dcFmt_(d.happened_on)) : ' \u00B7 not yet lived')
-          + (Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '') + '</p>';
+        body += '<h3>' + e(d.title) + '</h3><p class="meta">' + e(sum(d))
+          + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : '') + '</p>';
         const answered = qa.filter(x => x && String(x.a || '').trim());
         if (answered.length) body += '<ul>' + answered.map(x =>
           '<li><strong>' + e(x.q) + '</strong><br><span class="meta">' + e(x.a) + '</span></li>').join('') + '</ul>';
@@ -10814,10 +10789,6 @@ function dcAnswered_(d) {
   const a = Array.isArray(d.answers) ? d.answers : [];
   return a.filter(x => x && String(x.a || '').trim()).length;
 }
-function dcVerdict_(d) {
-  return d.made === 'cancelled' ? 'CANCELLED'
-       : d.made === 'quick' ? 'FINALIZED WITH MY GUT' : 'FINALIZED WITH CARE';
-}
 function dcVerdictLong_(d) {
   return d.made === 'cancelled' ? 'Walked away'   // V1: one set of words
        : d.made === 'quick' ? 'Went with my gut' : 'Took my time';
@@ -11023,72 +10994,7 @@ function renderDecisions() {
     dcWireList_();
     return;
   }
-  // MW-A: the rail opens with what is being lived, then what is still pending;
-  // inside each group the nearest date leads, the undated last.
-  const rank = (d) => dcIsWip_(d) ? 0 : dcOwesAnswer_(d) ? 1 : 2;   // living, then what owes an answer, then dreaming
-  const desk = dcRows.filter(d => d.status !== 'trail' && dcKeep_(d)).sort((a, b) =>
-    rank(a) - rank(b) || (a.target_on || '9999').localeCompare(b.target_on || '9999') || String(a.created_at).localeCompare(String(b.created_at)));
-  const trail = dcRows.filter(d => d.status === 'trail' && dcKeep_(d)).sort(dcTrailSort_);
-  // DC-H (H1 + 1): open decisions HANG from a rail as parchment tags - the shape says pending.
-  const today = new Date().toISOString().slice(0, 10);
-  const dcTagHtml_ = (d) => {
-        const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
-        const pct = total ? Math.round(n / total * 100) : 0;
-        const late = d.target_on && d.target_on < today;
-        const wip = dcIsWip_(d), dream = dcIsDream_(d), dq = dcDreamPending_(d);
-        return '<div class="dc-tag' + (wip ? ' wip' : dq ? ' dq' : dream ? ' dream' : ' pend') + '" data-dc="' + d.id + '"><span class="string"></span>' +
-          '<div class="card"><span class="hole"></span><span class="stamp' + (wip ? ' wipd' : dq ? ' drmq' : dream ? ' drm' : '') + '">' + (wip ? 'WORK IN PROGRESS' : dq ? 'DREAM \u00B7 DECISION PENDING' : dream ? 'DREAM AHEAD' : 'DECISION PENDING') + '</span>' +
-          '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>' +
-          '<div class="t">' + escHtml(d.title) + '</div>' +
-          '<div class="prog">' + n + ' / ' + total + '<i><b style="width:' + pct + '%;"></b></i></div>' +
-          '<div class="chips">' + (d.target_on ? '<span class="chip' + (late ? ' late' : '') + '">' + (!wip && dream && !dq ? 'PLANNED ' : 'BY ') + escHtml(String(dcFmt_(d.target_on)).toUpperCase()) + '</span>' : '') + '</div>' +
-          (wip ? '<span class="made">' + escHtml(dcVerdictLong_(d).toUpperCase()) + (d.decided_on ? ' \u00B7 ' + escHtml(String(dcFmt_(d.decided_on)).toUpperCase()) : '') + '</span>' : '') +
-          '</div></div>';
-      };
-  // MW-C (R2): each state begins its own bare rail - living, pending, dreaming;
-  // a group with nothing in it shows no rail at all.
-  {
-    const groups = [desk.filter(dcIsWip_), desk.filter(dcOwesAnswer_), desk.filter(x => !dcIsWip_(x) && !dcOwesAnswer_(x))];
-    // one rail only, above the first row; the other rows hang from the air beneath it
-    const html = groups.filter(g => g.length)
-      .map((g, i) => (i === 0 ? '<div class="dc-rail"></div>' : '') + '<div class="dc-hang">' + g.map(dcTagHtml_).join('') + '</div>').join('');
-    el('dcDeskList').innerHTML = html
-      || (dcFilter_ === 'dream' ? '<div class="dc-empty">no dream ahead yet \u2014 what do you want to live?</div>'
-                                 : '<div class="dc-empty">nothing on the rail \u2014 may it stay that way a while</div>');
-  }
-
-  const dcRowHtml_ = (d) =>
-    '<div class="dc-card trail' + (dcCanx_(d) ? ' canx' : '') + (Number(d.satisfaction) && !dcCanx_(d) ? ' r' + Number(d.satisfaction) : '') + '" data-dc="' + d.id + '">'
-    + (dcCanx_(d) ? dcXDisc_() : dcTickDonut_())
-    // K3: the kind is a quiet word under the title, not a chip in the deck
-    + '<span class="t">' + escHtml(d.title) + '<span class="kw' + (dcIsDream_(d) ? ' dr' : '') + '">' + dcKindWord_(d) + '</span></span>'
-    + '<span class="rowdeck">'
-    + '<button type="button" class="dc-x" data-dc-x="' + d.id + '" title="Remove">\u00D7</button>'
-    + (d.qset === 'ten' ? '<span class="dc-pill wait">THE TEN</span>' : '')
-    + '<span class="dc-pill ' + (dcCanx_(d) ? 'canx' : 'verdict') + '"><span class="sym">'
-    + (dcCanx_(d) ? '\u2715' : '\u2713') + '</span>'
-    + (d.decided_on ? dcFmt_(d.decided_on) : dcVerdict_(d)) + '</span>'
-    // D2: did it come to pass - a moss LIVED pill with its date, else a grey NOT YET LIVED (never on a cancelled one)
-    + (dcCanx_(d) ? '' : (d.happened_on ? '<span class="dc-pill hap"><span class="sym">\u2726</span>LIVED ' + escHtml(dcFmt_(d.happened_on)) + '</span>' : '<span class="dc-pill wait">NOT YET LIVED</span>'))
-    + '</span>'
-    // S1: the ledger line - a dotted hairline, LOOKING BACK, muted stars, the sentence in quiet italic
-    + ((Number(d.satisfaction) || (d.rating_note || '').trim())
-        ? '<span class="dc-vl"><span class="lbl">LOOKING BACK</span>' + dcStarsRO_(d)
-          + ((d.rating_note || '').trim() ? '<span class="dc-rnote">' + escHtml(d.rating_note.trim()) + '</span>' : '') + '</span>'
-        : '')
-    + '</div>'
-  ;
-  { let out = '', lastY = '';                                   // MW-C: the trail breaks by year
-    const yOf = (x) => String(x.happened_on || x.decided_on || String(x.created_at || '').slice(0, 10) || '').slice(0, 4) || '\u2014';
-    trail.forEach(d => {
-      const y = yOf(d);
-      if (y !== lastY) { out += '<div class="dc-yr"><b>' + escHtml(y) + '</b><i></i><span>' + trail.filter(x => yOf(x) === y).length + ' SEALED</span></div>'; lastY = y; }
-      out += dcRowHtml_(d);
-    });
-    el('dcTrailList').innerHTML = out || '<div class="dc-empty">' + (dcFilter_ === 'dream' ? 'no dreams lived yet' : 'nothing on the trail yet') + '</div>';
-  }
-
-  dcWireList_();
+  // fix 4 (6 Nov 2026): the old rail / tag / trail-card layout that lived here is gone - the ledger and the passport replaced it
 }
 function dcWireList_() {
   { const s = el('dcSearch'); if (s && !s._w) { s._w = 1; let t = null;
@@ -11198,6 +11104,7 @@ function dcDreamMarks_(d) {
 function dcPaintJourney_(d, sealed, wip) {
   const j = el('dcJourney'); if (!j) return;
   j.classList.toggle('dm', dcIsDream_(d));
+  j.classList.toggle('dcpast', !dcIsDream_(d) && d.status === 'trail');   // S1 (6 Nov 2026): a past decision needs no steps
   if (dcIsDream_(d)) { dmPaintFlow_(d); return; }   // F2: a dream walks its own flow
   dcPaintFlow_(d); return;   // V1: a decision walks its own
   const dream = dcIsDream_(d), canx = dcCanx_(d), pend = dcDreamPending_(d);
@@ -11912,25 +11819,7 @@ el('dcFSave').addEventListener('click', async () => {
   openDecision(data.id);
   toast(dcFKindPick === 'dream' ? 'Added \u2014 someday' : 'Thinking it through \u2014 answer the questions when ready');
 });
-let dcMadePick = null;
-function dcHistCheck_() {
-  const v = el('dcMWhen').value, today = new Date().toISOString().slice(0, 10);
-  const past = v && v < today;
-  el('dcMHist').classList.toggle('on', past);
-  if (past) {
-    const days = Math.round((new Date(today) - new Date(v)) / 864e5);
-    el('dcMHist').textContent = 'Writing history: this seals as decided ' + days + ' day' + (days === 1 ? '' : 's') + ' ago.';
-  }
-}
-el('dcMWhen').addEventListener('change', dcHistCheck_);
-el('dcDecideBtn').addEventListener('click', () => {
-  dcMadePick = null;
-  el('dcMade').querySelectorAll('button').forEach(b => b.classList.remove('on'));
-  el('dcMWhen').value = new Date().toISOString().slice(0, 10);
-  el('dcMHap').value = '';
-  dcHistCheck_();
-  el('dcDecideModal').classList.remove('hidden');
-});
+// fix 3 (6 Nov 2026): the old 'How was it decided?' box is gone - the page's flow (dcPaintFlow_) decides
 // MW-A: a decided decision comes to pass - or the verdict is taken back.
 // A1: a dream says whether it is waiting its turn or owes an answer now
 async function dcDreamStateSet_(v) {
@@ -11964,32 +11853,6 @@ el('dcUndecideBtn').addEventListener('click', async () => {
   if (error) { console.error(error); toast('Could not undo it'); return; }
   d.status = 'desk'; d.made = null; d.decided_on = null;
   openDecision(d.id); toast('Back to thinking it through');
-});
-el('dcMade').addEventListener('click', e => {
-  const b = e.target.closest('[data-m]'); if (!b) return;
-  dcMadePick = b.dataset.m;
-  el('dcMade').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
-  // nothing happens to a cancelled question - the field sleeps
-  const hap = el('dcMHapFld');
-  if (hap) { hap.classList.toggle('hidden', dcMadePick === 'cancelled'); if (dcMadePick === 'cancelled') el('dcMHap').value = ''; }
-});
-el('dcMCancel').addEventListener('click', () => el('dcDecideModal').classList.add('hidden'));
-el('dcMSave').addEventListener('click', async () => {
-  if (!dcMadePick) { toast('With care, or with your gut?'); return; }
-  const d = dcRow_(); if (!d) return;
-  const when = el('dcMWhen').value || new Date().toISOString().slice(0, 10);
-  const hap = el('dcMHap').value || null;
-  // cancelled has nothing left to live; a decision already lived goes straight to the trail;
-  // otherwise it becomes WORK IN PROGRESS and stays on the rail until it happens.
-  const next = (dcMadePick === 'cancelled' || hap) ? 'trail' : 'wip';
-  const { error } = await supa.from('why_decisions')
-    .update({ status: next, made: dcMadePick, decided_on: when, happened_on: hap, answers: d.answers })
-    .eq('id', d.id).eq('user_id', userId);
-  if (error) { console.error(error); toast('Could not save it'); return; }
-  d.status = next; d.made = dcMadePick; d.decided_on = when; d.happened_on = hap;
-  el('dcDecideModal').classList.add('hidden');
-  if (next === 'trail') { dcClose_(); toast(dcMadePick === 'cancelled' ? 'Walked away \u2014 it rests in the trail' : 'Sealed \u2014 it walks to the trail, answers frozen'); }
-  else { openDecision(d.id); toast('Decided \u2014 now the living of it'); }
 });
 // The manager edits a working copy as rows - rename, reorder, remove, add -
 // and only Save persists. Every operation shapes FUTURE decisions; open and
@@ -12234,7 +12097,7 @@ function dcImportRepaint_() {
     rowEl.querySelector('.d').textContent = (r.sealed ? fmtD(r.when) : (r.target ? 'BY ' + fmtD(r.target) : 'NO TARGET')) + ' \u00B7 ' + r.answered + ' / ' + dcTen.length + ' ANSWERED';
     const b = rowEl.querySelector('[data-imp-flip]');
     b.className = 'v ' + (r.sealed ? r.made : 'desk');
-    b.textContent = r.sealed ? (r.made === 'cancelled' ? '\u2715 NO' : '\u2713 DONE') : 'PENDING';
+    b.textContent = r.sealed ? (r.made === 'cancelled' ? '\u2715 WALKED AWAY' : '\u2726 PAST') : 'THINKING IT THROUGH';   // fix 2: the room's words
   });
 }
 el('dcImportBtn').addEventListener('click', () => {
@@ -12253,7 +12116,7 @@ el('dcImportTpl').addEventListener('click', () => {
 el('dcImportSeal').addEventListener('click', async () => {
   if (!dcImportRows_.length) return;
   const nSeal = dcImportRows_.filter(r => r.sealed).length;
-  if (!confirm('Bring ' + dcImportRows_.length + ' decision(s) in \u2014 ' + nSeal + ' sealed into the trail, ' + (dcImportRows_.length - nSeal) + ' onto the desk? They can be deleted like any decision.')) return;
+  if (!confirm('Bring ' + dcImportRows_.length + ' decision(s) in \u2014 ' + nSeal + ' into Past decisions, ' + (dcImportRows_.length - nSeal) + ' still being thought through? They can be deleted like any decision.')) return;
   const recs = dcImportRows_.map(r => {
     const rec = { user_id: userId, title: r.title, qset: 'ten', answers: r.answers, target_on: r.target || null,
       note_html: r.outcome ? '<p>' + escHtml(r.outcome) + '</p>' : '' };
@@ -12263,7 +12126,7 @@ el('dcImportSeal').addEventListener('click', async () => {
     return rec;
   });
   const { data, error } = await supa.from('why_decisions').insert(recs).select('*');
-  if (error) { console.error(error); toast('Could not seal them'); return; }
+  if (error) { console.error(error); toast('Could not add them'); return; }
   (data || []).forEach(x => dcRows.unshift(x));
   renderDecisions();
   el('dcImportModal').classList.add('hidden');

@@ -8,6 +8,19 @@ Written August 2026.
 
 ---
 
+## DC-S1 · Past decision pages: no steps, bigger stamp, centred on phone (6 Nov 2026)
+- A past decision's page (It happened, Walked away) hides the three steps (.dc-journey.dcpast .dm-steps). The small Undo / Bring it back links remain the way back.
+- The page stamp beside the title is about 20% bigger: 132px wide on desktop and phone (was 110).
+- Phone: on a past page the stars, their caption, the line and the small links are centred under the centred stamp. Desktop keeps them left-aligned.
+- Harness: h_dcclean.js.
+
+## DC-F14 · Leftover words and dead code (6 Nov 2026)
+1. Exports use the pages' words. The whole-My-Why export uses dcSummary_ (decisions) and dmSummary_ (dreams). The room print uses the headings Thinking it through / Decided / Past decisions (dreams: Someday and making up my mind / On the way / Lived and let go). "On the desk", "Work in progress", "target", "not yet lived" and "The trail" are gone from what you read.
+2. Import past decisions: "nothing is saved until you press Add", the button "Add to past decisions", preview tags THINKING IT THROUGH / ✦ PAST / ✕ WALKED AWAY, and the confirm and toast without "seal".
+3. The old "How was it decided?" box (#dcDecideModal) and its code are removed. The flow on the page decides.
+4. The old rail / tag / trail-card list that sat unused after renderDecisions' early return is removed, along with dcVerdict_ ("FINALIZED WITH …").
+- Harness: h_dcclean.js (room print words; old box gone).
+
 ## DC-H1 + PA + B2 · Decision page heading like an index card; live dot on phone (6 Nov 2026)
 - The D circle is gone from decision pages (all of them are decisions). Dream pages are untouched.
 - The heading is a row (.dc-hrow): top line, title, date pill and coloured line on the left; the mark (#dcHMark) on the right, centred, like an index card. Thinking it through and past pages show their stamp; a decided page shows the calendar leaf (TO HAPPEN BY · 15 Mar 2027 · 4 MONTHS TO GO).
