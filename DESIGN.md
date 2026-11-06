@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TP-R1 · My Trips cards laid out like the Life Timeline's (7 Nov 2026, introspection.html)
+- Card grid 90px / 1fr / auto with the timeline's padding (16px 18px). On the left, "TRIP" over the trip's number (.tpc-l), counted from your first trip (tripSort order), in the trip's ink.
+- The company stamp leaves mid-card (.tpc-mid is gone). Desktop: it sits under the days stamp (.tp-cost.mk). Phone: it sits beside the AGE pill (.tp-cost.inb), so the stamp column stays narrow.
+- The places line is light grey (#8B97AC, 0.55rem). Phone grid is 44px / 1fr / auto, and the days stamp is 54×62.
+
 ## TP-POP · New trip pop-up; colours back to one per decade (7 Nov 2026, introspection.html)
 - "+ New trip" (top right) opens a pop-up (#tpmOv), shaped like "A new decision" in My Why. It has a blue top edge, "A new trip" with the gold underline, and the subtitle "where you went, and when".
 - Fields: the trip, from–to, where (optional), who with (optional), one line (optional).

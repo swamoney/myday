@@ -312,18 +312,25 @@
   .tpc-post b { font-weight:800; font-size:2rem; }
   .tpc-post small { font-weight:700; font-size:0.55rem; letter-spacing:0.2em; }
   .tpc-post em { font-family:var(--mono); font-size:0.6rem; font-weight:700; }
-  .tpc { grid-template-columns:minmax(0,1.3fr) auto minmax(0,1fr); align-items:center; }
-  .tpc-mid { display:flex; justify-content:center; }
-  .tpc-mk { justify-self:end; display:flex; flex-direction:column; align-items:center; gap:9px; }
+  /* TP-R1 (7 Nov 2026): the Life Timeline's card - a big number on the left, words in the middle, the stamps on the right */
+  .tpc { grid-template-columns:90px 1fr auto; gap:16px; align-items:center; padding:16px 18px; }
+  .tpc-l { font-family:var(--serif); font-size:2.6rem; font-weight:700; color:var(--a); line-height:1; text-align:center; }
+  .tpc-l small { display:block; font-family:var(--mono); font-size:0.45rem; letter-spacing:0.16em; text-transform:uppercase; color:#8B97AC; font-weight:600; margin-bottom:4px; }
+  .tpc .tpc-wh { color:#8B97AC; font-size:0.55rem; }
+  .tpc-mk { justify-self:end; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .tp-cost.inb { display:none; }
   .tp-cost { display:inline-block; font-family:var(--mono); font-size:0.6rem; font-weight:800; letter-spacing:0.16em; color:var(--c); white-space:nowrap;
     border:2px solid var(--c); border-radius:4px; box-shadow:inset 0 0 0 1.5px #fff, inset 0 0 0 2.5px var(--c); padding:6px 10px; transform:rotate(-6deg); opacity:0.9; mix-blend-mode:multiply; }
-  .tp-cost.ph { display:none; }
+
   .tpc .s-agepill { font-family:var(--mono); font-size:0.55rem; font-weight:700; letter-spacing:0.1em; color:#8A5711; background:#F7DE8E; border:0; border-radius:999px; padding:3px 10px; }
   @media (max-width:640px) {
     .tpjr { padding-left:40px; } .tpjr:before { left:15px; }
-    .tpc { display:grid !important; grid-template-columns:1fr auto; gap:10px; }
-    .tpc .tpc-post { position:static !important; }
-    .tpc-mid { display:none; } .tp-cost.ph { display:inline-block; }
+    .tpc { display:grid !important; grid-template-columns:44px 1fr auto; gap:8px; padding:10px; }
+    .tpc .tpc-post { position:static !important; width:54px; height:62px; }
+    .tpc-mk { padding-right:4px; }
+    .tpc-l { font-size:1.7rem; }
+    .tp-cost.mk { display:none; } .tp-cost.inb { display:inline-block; margin:8px 0 0 8px; vertical-align:middle; }
+    .tpc .s-agepill { display:inline-block; vertical-align:middle; margin-top:8px; }
     .tp-cost { font-size:0.46rem; padding:4px 6px; letter-spacing:0.1em; }
     .tpjr .tpc:before { left:-38px; width:30px; height:30px; margin-top:-15px; }
     .tpjr .tpc:after { left:-28px; width:9px; height:9px; margin-top:-4.5px; }
@@ -1943,15 +1950,15 @@ function renderTrips(list, wrap) {
       const dt = tripDate_(r.trip_from);
       const mon = dt && !isNaN(dt) ? dt.toLocaleDateString('en-GB', { month: 'short' }) + ' ’' + String(dt.getFullYear()).slice(2) : '';
       return '<div class="tpc" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
+        + '<div class="tpc-l"><small>Trip</small>' + ((idx[r.id] || 0) + 1) + '</div>'   // TP-R1 (7 Nov 2026): the trip's number where CHAPTER I sits
         + '<div class="tpc-b">'
         + (dl ? '<div class="tpc-eb">' + escHtml(dl.toUpperCase()) + (dn ? ' · ' + dn : '') + '</div>' : '')
         + '<div class="tpc-nm">' + escHtml(r.title) + '</div>'
         + (r.place ? '<div class="tpc-wh">' + escHtml(r.place.toUpperCase()) + '</div>' : '')
         + (r.essence ? '<div class="tpc-q">' + escHtml(r.essence) + '</div>' : '')
-        + (age ? '<div class="s-agepill">' + age + '</div>' : '') + '</div>'
+        + (age ? '<div class="s-agepill">' + age + '</div>' : '') + tripCoStamp_(r, ' inb') + '</div>'
         // TP-TAG (7 Nov 2026): the company is a second rubber stamp - mid-card on desktop, under the days stamp on the phone
-        + '<div class="tpc-mid">' + tripCoStamp_(r, '') + '</div>'
-        + '<div class="tpc-mk">' + (n ? '<span class="tpc-post"><b>' + n + '</b><small>' + (n === 1 ? 'DAY' : 'DAYS') + '</small><em>' + escHtml(mon) + '</em></span>' : '') + tripCoStamp_(r, ' ph') + '</div>'
+        + '<div class="tpc-mk">' + (n ? '<span class="tpc-post"><b>' + n + '</b><small>' + (n === 1 ? 'DAY' : 'DAYS') + '</small><em>' + escHtml(mon) + '</em></span>' : '') + tripCoStamp_(r, ' mk') + '</div>'
         + '</div>';
     };
     // TP-LINE (7 Nov 2026): the Life Timeline's grammar - a quiet caption, year headings in the decade's ink, one line with a map pin per trip
