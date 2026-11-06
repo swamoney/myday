@@ -2043,6 +2043,12 @@
         border-radius:12px; padding:12px 16px; color:var(--dm-ink,#2E7A4E); background:rgba(255,255,255,0.6); cursor:pointer; font-family:var(--sans); }
   #dcWin.dm-nocover .dm-ph { display:flex; }
   .dm-ph:hover { background:#fff; }
+  /* PH-HEAD: the photo inside a lived dream's heading - a white frame, as on a trip's page */
+  .dc-poster.inhead { margin:14px 0 0; padding:10px; box-shadow:0 10px 26px rgba(20,30,60,0.14); max-width:100%; }
+  .dc-poster.inhead.hand { padding-bottom:40px; }
+  .dc-poster.inhead.empty { margin:0; padding:0; }
+  .dc-poster.inhead .dc-pic { height:300px; } .dc-poster.inhead .dc-window[data-size="m"] .dc-pic { height:220px; } .dc-poster.inhead .dc-window[data-size="xl"] .dc-pic { height:420px; }
+  @media (max-width:640px) { .dc-poster.inhead .dc-pic { height:200px; } .dc-poster.inhead .dc-window[data-size="m"] .dc-pic { height:150px; } .dc-poster.inhead .dc-window[data-size="xl"] .dc-pic { height:270px; } }
   .dm-ph i { font-style:normal; font-size:1.35rem; }
   .dm-ph b { display:block; font-size:0.9rem; }
   .dm-ph small { color:#6b7589; font-size:0.78rem; }
@@ -3291,7 +3297,7 @@
 
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20260822a"></script>
-<script src="attachments.js?v=20260901a"></script>
+<script src="attachments.js?v=20261107a"></script>
 <script src="stickies.js?v=20260904a"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
@@ -11182,7 +11188,7 @@ function dmPaintFlow_(d) {
     const tiny = '<div class="dm-undo">' + (dmRateEdit_ ? '' : '<button type="button" data-dm="rate-edit">' + (note ? 'Change the line' : 'Add a line looking back') + '</button>')
       + '<button type="button" data-dm="undo-lived">Undo \u2014 it hasn\u2019t happened yet</button></div>';
     const photo = '<button type="button" class="dm-ph" data-dm="photo"><i aria-hidden="true">\uD83D\uDCF7</i><span><b>Add a photo from it</b><small>One picture you\u2019ll want to see in ten years.</small></span></button>';   // A
-    q = ['', '', stars + line + photo + tiny];
+    q = ['', '', stars + line + photo + '<div class="dm-cvslot" id="dmCvSlot"></div>' + tiny];   // PH-HEAD: the photo sits here, in the heading
   }
   else {   // G2 (6 Nov 2026): let go, on the plate like Lived - a quiet sentence, an optional line about why, tiny links
     const note = (d.rating_note || '').trim();
@@ -11208,11 +11214,27 @@ function dmPaintFlow_(d) {
   else if (dmSheet_ === 'redate') sh = '<h4>A new month</h4><label>To happen by</label>' + mi('') + foot('save-redate', 'Save');
   else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
   j.style.setProperty('--dm-ink', ink);
+  dmPosterHome_();   // PH-HEAD: lift the photo out before the flow is redrawn
   j.innerHTML = steps + ((st === 'lived' || st === 'canx') ? '<div class="dm-lb">' + q[2] + '</div>'
     : '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div>'
       + (q[3] ? '<div class="dm-undo">' + q[3].map(x => '<button type="button" data-dm="' + x[0] + '">' + x[1] + '</button>').join('') + '</div>' : '') + '</div>')
     + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
   j.classList.remove('sea', 'moss', 'ash');
+  dmPlacePoster_();
+}
+// PH-HEAD (7 Nov 2026): a lived dream's photo is part of its heading - the poster moves into the plate, under the
+// line looking back (where "Add a photo from it" sits), as on a trip's page; everywhere else it stays below the plate.
+let DC_POSTER_HOME_ = null;
+function dmPosterHome_() {
+  const post = el('dcPoster'); if (!post) return;
+  if (!DC_POSTER_HOME_) DC_POSTER_HOME_ = { p: post.parentNode, n: post.nextSibling };
+  if (post.parentNode !== DC_POSTER_HOME_.p) DC_POSTER_HOME_.p.insertBefore(post, DC_POSTER_HOME_.n);
+  post.classList.remove('inhead');
+}
+function dmPlacePoster_() {
+  const post = el('dcPoster'), slot = el('dmCvSlot'); if (!post) return;
+  if (slot) { if (!DC_POSTER_HOME_) DC_POSTER_HOME_ = { p: post.parentNode, n: post.nextSibling }; slot.appendChild(post); post.classList.add('inhead'); }
+  else dmPosterHome_();
 }
 // Q1 (6 Nov 2026): "Edit name & dates" opens a pop-up in the middle, like the app's other edit boxes;
 // only this stage's fields. Its buttons go through the same click handler as the flow.
@@ -11312,6 +11334,7 @@ let dcfSheet_ = '', dcfHow_ = '', dcfFor_ = null, dcfLineEdit_ = false;
 const DCF_INK = { a:'#b07d1f', b:'#5b4a86', c:'#1F6E78', x:'#a8323f' };
 function dcfStage_(d) { return d.status === 'trail' ? (dcCanx_(d) ? 'x' : 'c') : dcIsWip_(d) ? 'b' : 'a'; }
 function dcPaintFlow_(d) {
+  dmPosterHome_();   // PH-HEAD: a decision keeps its photo below the plate
   const j = el('dcJourney');
   if (dcfFor_ !== d.id) { dcfSheet_ = ''; dcfHow_ = ''; dcfLineEdit_ = false; dcfFor_ = d.id; }
   const st = dcfStage_(d), ink = DCF_INK[st];

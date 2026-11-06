@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## PH-HEAD + PH-Q · A lived dream's photo sits in its heading; sharper covers (7 Nov 2026, why.html + attachments.js)
+- why.html: on a lived dream the poster (#dcPoster) moves into the heading plate. It goes into #dmCvSlot under the line looking back, where "Add a photo from it" sits (dmPlacePoster_). It returns home before the flow is redrawn (dmPosterHome_) and on every decision page.
+- Inside the heading it is a white frame (.dc-poster.inhead): 10px mat, sizes M/L/XL 220/300/420px (phone 150/200/270). The Edit tools (change, fill/fit, size, caption, remove, tap-to-centre) are unchanged.
+- attachments.js: pickCover now keeps covers at a 2400px long edge and WebP quality 0.88 (was 1600 / 0.78), with a 480px thumb. Every resize uses high-quality smoothing. This applies to dream, pillar, decision and trip covers picked from now on; existing covers stay as uploaded (re-pick with CHANGE to get the sharper copy). Album photos are unchanged at 1600 / 0.78.
+- Both pages show the full-size file, not the thumb.
+
 ## TP-PICTOOLS · The trip photo can be changed, sized, captioned and removed (7 Nov 2026, introspection.html)
 - In Edit (body.rd-editing) the trip's heading photo has the lived dream's tools along its top: ↻ CHANGE (MyAlbum.pickCover), ▣ FILL / ▢ FIT, ↕ SIZE M/L/XL (220/300/420px; phone 150/190/260), ✎ CAPTION (captionCover) and ✕ REMOVE (removeCover, with a confirm).
 - In FILL, tapping the picture in Edit sets where it centres (the hint shows). Outside Edit a tap opens the picture full-screen.
