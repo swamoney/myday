@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## BP-E1 · A dream edits its name and dates beside its name (6 Nov 2026)
+- A "✎ Edit name & dates" button (#dmPen) sits beside a dream's name, always, no Edit mode. It opens "Edit this dream" under the question card (dmSheet_ 'edit') with only this stage's fields: Someday → planned for; Making up my mind → decide by; On the way → to happen by, decided in, how I decided; Lived → lived in, decided in, how I decided; Let go → let go in. Months save as the 1st; an empty name saves nothing.
+- The decisions box ("Edit details — name, dates, verdict" / "Edit this decision") no longer shows on dream pages (.dm-off). The top Edit stays for the story and the photo. My Decisions unchanged.
+- Fix: "I took my time" now saves made = 'thoughtful' (the value My Decisions uses); dmHow_ reads both 'thoughtful' and the earlier 'care'.
+- Trap: a pen beside every dream's name adds a little to a heading that was just cleaned up.
+
 ## BP-O2 + A4 + E2 · The lineup in groups; decided dreams first and alive (6 Nov 2026)
 - O2: The lineup shows three groups under quiet labels in their stage's colour (.bp-sub): ON THE WAY · n, then MAKING UP MY MIND · n, then SOMEDAY · n. Inside each, soonest date first, undated last. Empty groups show no label; the count beside The lineup is the total.
 - A4: a decided dream's pill carries a small white dot that blinks gently (bpLive, 1.4s; still under reduce-motion).

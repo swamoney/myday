@@ -1977,11 +1977,19 @@
   .dm-ch { font-family:var(--sans); font-size:0.84rem; border:1px solid #d6dde8; background:#fff; border-radius:999px; padding:7px 13px; cursor:pointer; color:#28324B; }
   .dm-ch.on { background:var(--dm-ink,#2F6F6A); color:#fff; border-color:var(--dm-ink,#2F6F6A); }
   .dm-in { font-family:var(--sans); font-size:0.9rem; border:1px solid #d6dde8; border-radius:8px; padding:8px 10px; width:220px; max-width:100%; }
+  .dm-pen { font-family:var(--sans); font-size:0.78rem; font-weight:600; color:var(--dc-ink,#5b4a86); background:#fff; border:1px solid color-mix(in srgb, var(--dc-ink,#5b4a86) 30%, #fff);
+        border-radius:999px; padding:5px 11px; cursor:pointer; white-space:nowrap; margin-left:10px; vertical-align:middle; position:relative; top:-0.25em; }
+  .dm-pen:hover { background:color-mix(in srgb, var(--dc-ink,#5b4a86) 6%, #fff); }
+  #dcWin .dc-details.dm-off { display:none !important; }
+  .dm-two { display:flex; gap:18px; flex-wrap:wrap; }
+  .dm-in.dm-name { width:100%; max-width:460px; }
   .dm-hint { font-family:var(--sans); font-size:0.76rem; color:#8B97AC; margin-top:5px; }
   .dc-plate.bp .dc-band { display:none; }   /* F2: the pill carries the date on a dream */
   @media (max-width:640px) {
     .dm-sp .nm { font-size:0.62rem; } .dm-sp.on .nm { font-size:0.68rem; }
     .dm-sp em { font-size:0.42rem; padding:2px 5px; }
+    .dm-pen { display:inline-block; margin:8px 0 0; top:0; }
+    .dm-pen.hidden { display:none; }
     .dm-row .dm-bt.s { white-space:normal; text-align:center; }
   }
   .dc-jseg { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; padding:9px 12px; color:var(--muted); background:#fff; border:none; border-right:1px solid var(--rule); white-space:nowrap; cursor:default; }
@@ -3543,7 +3551,7 @@
     <div class="dc-plate" id="dcPlate">
     <div class="dc-plate-b">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
-    <div><span class="dc-name" id="dcName"></span></div>
+    <div><span class="dc-name" id="dcName"></span><button type="button" class="dm-pen hidden" id="dmPen">&#9998; Edit name &amp; dates</button></div>
     <span class="bp-cd hidden" id="dcCd"></span>
     <button type="button" class="dc-frommind hidden" id="dcFromMind"></button>
     <!-- S-1: the line looking back sits under the name as the page's epigraph (lived pages) -->
@@ -11059,7 +11067,7 @@ function dcPaintJourney_(d, sealed, wip) {
 // moves), and one question card asks what is next, with plain buttons. Every door works without Edit.
 // The small forms open right under the question. Dates are asked as months and saved as the 1st.
 let dmSheet_ = '', dmHowPick_ = '', dmFor_ = null;
-function dmHow_(d) { return d.made === 'quick' ? 'WITH MY GUT' : d.made === 'care' ? 'TOOK MY TIME' : ''; }
+function dmHow_(d) { return d.made === 'quick' ? 'WITH MY GUT' : (d.made === 'thoughtful' || d.made === 'care') ? 'TOOK MY TIME' : ''; }   // care is stored as 'thoughtful', as in My Decisions
 function dmStage_(d) { return d.status === 'trail' ? (dcCanx_(d) ? 'canx' : 'lived') : dcIsWip_(d) ? 'wip' : dcDreamPending_(d) ? 'ask' : 'ahead'; }
 const DM_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const DM_FLAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4 2.5 4H6"/></svg>';
@@ -11092,11 +11100,25 @@ function dmPaintFlow_(d) {
   if (dmSheet_ === 'ask') sh = '<h4>Making up my mind</h4><label>Decide by (optional)</label>' + mi(dmMonth_(d.target_on))
       + '<div class="dm-hint">Shown on the card as “DECIDE BY …” with a countdown.</div>' + foot('save-ask', 'Save');
   else if (dmSheet_ === 'yes') sh = '<h4>Yes, I’m doing it!</h4><label>How did you decide? (optional)</label><div class="dm-chips">'
-      + '<button type="button" class="dm-ch' + (dmHowPick_ === 'care' ? ' on' : '') + '" data-dm="how:care">I took my time</button>'
+      + '<button type="button" class="dm-ch' + (dmHowPick_ === 'thoughtful' ? ' on' : '') + '" data-dm="how:thoughtful">I took my time</button>'
       + '<button type="button" class="dm-ch' + (dmHowPick_ === 'quick' ? ' on' : '') + '" data-dm="how:quick">I went with my gut</button></div>'
       + '<label>When will it happen? (optional)</label>' + mi(dmMonth_(d.target_on))
       + '<div class="dm-hint">Decided on is today; you can change it later in Edit.</div>' + foot('save-yes', 'Save — it’s on the way');
   else if (dmSheet_ === 'lived') sh = '<h4>It happened! ✦</h4><label>When?</label>' + mi(new Date().toISOString().slice(0, 7)) + foot('save-lived', 'Save — move it to Lived');
+  else if (dmSheet_ === 'edit') {   // E1 (6 Nov 2026): name and dates, only the fields this stage has
+    const fld = (id, lbl, v) => '<div><label>' + lbl + '</label><input class="dm-in" id="' + id + '" type="month" value="' + escHtml(dmMonth_(v)) + '" placeholder="YYYY-MM"></div>';
+    let f = '';
+    if (st === 'ahead') f = fld('dmET', 'Planned for (optional)', d.target_on);
+    else if (st === 'ask') f = fld('dmET', 'Decide by (optional)', d.target_on);
+    else if (st === 'wip') f = fld('dmET', 'To happen by', d.target_on) + fld('dmED', 'Decided in', d.decided_on);
+    else if (st === 'lived') f = fld('dmEH', 'Lived in', d.happened_on) + fld('dmED', 'Decided in', d.decided_on);
+    else f = fld('dmED', 'Let go in', d.decided_on);
+    const how = (st === 'wip' || st === 'lived') ? '<label>How I decided</label><div class="dm-chips">'
+      + '<button type="button" class="dm-ch' + (dmHowPick_ === 'thoughtful' ? ' on' : '') + '" data-dm="how:thoughtful">I took my time</button>'
+      + '<button type="button" class="dm-ch' + (dmHowPick_ === 'quick' ? ' on' : '') + '" data-dm="how:quick">I went with my gut</button></div>' : '';
+    sh = '<h4>Edit this dream</h4><label>The dream</label><input class="dm-in dm-name" id="dmEN" maxlength="180" value="' + escHtml(d.title || '') + '">'
+      + '<div class="dm-two">' + f + '</div>' + how + foot('save-edit', 'Save');
+  }
   else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
   j.style.setProperty('--dm-ink', ink);
   j.innerHTML = steps + '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>'
@@ -11116,6 +11138,13 @@ function dmMonthVal_() {
   const m = v.match(/^(\d{4})-(\d{1,2})/);
   return m ? m[1] + '-' + String(m[2]).padStart(2, '0') + '-01' : 'bad';
 }
+el('dmPen').addEventListener('click', () => {
+  const d = dcRow_(); if (!d) return;
+  dmSheet_ = dmSheet_ === 'edit' ? '' : 'edit';
+  dmHowPick_ = d.made === 'quick' ? 'quick' : (d.made && d.made !== 'cancelled') ? 'thoughtful' : '';
+  dmPaintFlow_(d);
+  const n = el('dmEN'); if (n) { n.closest('.dm-sheet').scrollIntoView({ block:'nearest', behavior:'smooth' }); n.focus(); }
+});
 el('dcJourney').addEventListener('click', async e => {
   const t = e.target.closest('[data-dm]'); if (!t) return;
   const d = dcRow_(); if (!d || !dcIsDream_(d)) return;
@@ -11123,6 +11152,18 @@ el('dcJourney').addEventListener('click', async e => {
   if (a.startsWith('s:')) { dmSheet_ = a.slice(2); dmPaintFlow_(d); const i = el('dmMonth'); if (i) i.focus(); return; }
   if (a === 'cancel') { dmSheet_ = ''; dmPaintFlow_(d); return; }
   if (a.startsWith('how:')) { const h = a.slice(4); dmHowPick_ = dmHowPick_ === h ? '' : h; dmPaintFlow_(d); return; }
+  if (a === 'save-edit') {
+    const name = ((el('dmEN') || {}).value || '').trim();
+    if (!name) { toast('The dream needs its name'); el('dmEN').focus(); return; }
+    const rd = id => { const i = el(id); if (!i) return undefined; const v = (i.value || '').trim(); if (!v) return null; const m = v.match(/^(\d{4})-(\d{1,2})/); return m ? m[1] + '-' + String(m[2]).padStart(2, '0') + '-01' : 'bad'; };
+    const up = { title: name }, T = rd('dmET'), Dd = rd('dmED'), Hh = rd('dmEH');
+    if ([T, Dd, Hh].includes('bad')) { toast('That month could not be read \u2014 try 2027-05'); return; }
+    if (T !== undefined) up.target_on = T;
+    if (Dd !== undefined) up.decided_on = Dd;
+    if (Hh !== undefined) up.happened_on = Hh;
+    if (el('dmEN').closest('.dm-sheet').querySelector('.dm-chips')) up.made = dmHowPick_ || null;
+    await dmSave_(d, up, 'Saved'); return;
+  }
   const mv = (a === 'save-ask' || a === 'save-yes' || a === 'save-lived') ? dmMonthVal_() : null;
   if (mv === 'bad') { toast('That month could not be read — try 2027-05'); return; }
   if (a === 'save-ask') await dmSave_(d, { pending: true, target_on: mv }, 'Making up my mind');
@@ -11232,6 +11273,8 @@ function openDecision(id) {
   const wip = dcIsWip_(d);
   dcPaintPlate_(d);
   el('dcName').textContent = d.title;
+  el('dmPen').classList.toggle('hidden', !dcIsDream_(d));   // E1: a dream edits its name and dates right here
+  el('dcDetailsBtn').classList.toggle('dm-off', dcIsDream_(d));   // ...so the decisions box never opens for a dream
   { const fk = (typeof mind !== 'undefined' ? mind : []).find(x => x.desk && String(x.desk.decision_id) === String(d.id)), fm = el('dcFromMind');
     if (fk) { fm.innerHTML = '\u25C6 FROM MY MIND \u00B7 ' + escHtml(((MM_DOORS[fk.door] || {}).lbl || '').toUpperCase()) + (fk.settled_on ? ' \u00B7 ' + escHtml(mmFmt_(fk.settled_on)).toUpperCase() : '') + ' \u203A'; fm.dataset.knot = fk.id; fm.classList.remove('hidden'); }
     else { fm.classList.add('hidden'); delete fm.dataset.knot; } }
