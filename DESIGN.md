@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## TP-BORDER + TL-LINE · My Trips border; My Life Timeline line (7 Nov 2026, introspection.html)
+- My Trips: each trip card (.tpc) has a 1.5px border in its own ink (42% mix) and a soft shadow in the same ink, instead of the faint grey edge. Nothing else changed.
+- My Life Timeline: the decade headings and chapter cards sit inside .tljr, one line down the left like Past decisions in My Why. It opens at "1992 · born" (the birth year; without one, the first chapter's year · where it began).
+- Each chapter hangs from a round ✦ orb in its own ink (radial fill, dashed-style inner ring). The chapter being lived (.tl-card.live) pulses. Numerals, AGE pills, bars, stamps and decade headings are untouched.
+- Phone: the line takes 40px (orbs 30px), so cards are narrower.
+
 ## DC-S1 · Past decision pages: no steps, bigger stamp, centred on phone (6 Nov 2026)
 - A past decision's page (It happened, Walked away) hides the three steps (.dc-journey.dcpast .dm-steps). The small Undo / Bring it back links remain the way back.
 - The page stamp beside the title is about 20% bigger: 132px wide on desktop and phone (was 110).

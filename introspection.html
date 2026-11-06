@@ -203,6 +203,24 @@
   .tl-sum span, .tl-dv span { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:#7686a3; white-space:nowrap; }
   .tl-card { display:grid; grid-template-columns:90px 1fr auto; gap:16px; align-items:center; margin-top:10px; padding:16px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
   .tl-card.live { box-shadow:0 0 0 2px #b07d1f inset; }
+  /* TL-LINE (7 Nov 2026): one line down the left; each chapter hangs from a round ✦ orb in its own ink (the pillar
+     orbs' dashed ring), the chapter being lived gently pulses; the line opens at the birth year */
+  .tljr { position:relative; padding-left:56px; }
+  .tljr:before { content:''; position:absolute; left:27px; top:12px; bottom:40px; width:3px; border-radius:3px; background:linear-gradient(180deg,#dfe6ee,#9fb0c6 15%,#9fb0c6 85%,#b07d1f); }
+  .tljr .tl-card { position:relative; overflow:visible; }
+  .tljr .tl-card:before { content:'\2726'; position:absolute; left:-49px; top:50%; width:40px; height:40px; margin-top:-20px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.95rem; z-index:1;
+    background:radial-gradient(circle at 38% 34%, color-mix(in srgb, var(--a) 50%, #fff), var(--a) 70%);
+    box-shadow:0 4px 10px color-mix(in srgb, var(--a) 40%, transparent), inset 0 0 0 3px color-mix(in srgb, var(--a) 70%, #fff), inset 0 0 0 4px rgba(255,255,255,0.7); }
+  .tljr .tl-card.live:before { animation:tlPulse 1.8s ease-in-out infinite; }
+  @keyframes tlPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.12); } }
+  .tlbeg { position:relative; display:flex; align-items:center; gap:12px; margin:6px 0 0 -40px; font-family:var(--serif); font-style:italic; font-size:0.9rem; color:#7686a3; }
+  .tlbeg span { width:17px; height:17px; border-radius:50%; background:#fff; border:3px solid #cfd8e3; position:relative; z-index:1; }
+  @media (max-width:640px) {
+    .tljr { padding-left:40px; }
+    .tljr:before { left:15px; }
+    .tljr .tl-card:before { left:-38px; width:30px; height:30px; margin-top:-15px; font-size:0.75rem; }
+    .tlbeg { margin-left:-32px; }
+  }
   .ch-age { display:inline-block; margin-top:6px; background:#f3d585; color:#5c4510; border:1px solid #e6c46a; border-radius:999px; padding:3px 10px; font-family:var(--mono); font-size:0.58rem; font-weight:700; letter-spacing:0.12em; cursor:default; }
   button.ch-age { cursor:pointer; }
   .ch-agerow { margin-top:2px; line-height:1; }
@@ -233,7 +251,8 @@
   .tl-sl .n { font-family:var(--serif); font-weight:600; font-size:1rem; color:#182233; }
   .tl-sl .y { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.1em; color:#5A6478; white-space:nowrap; }
   .tl-sl .bb { margin-top:0; height:4px; }
-  .tpc { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:start; margin-top:10px; padding:16px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
+  .tpc { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:start; margin-top:10px; padding:16px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer;
+    border:1.5px solid color-mix(in srgb, var(--a) 42%, #fff); box-shadow:0 6px 16px color-mix(in srgb, var(--a) 10%, transparent); }   /* TP-BORDER (7 Nov 2026): a border in the trip's own ink */
   .tpc:hover .tpc-nm { text-decoration:underline; text-decoration-color:#c9d2e0; text-underline-offset:3px; }
   .tpc-eb { font-family:var(--mono); font-size:0.58rem; font-weight:600; letter-spacing:0.14em; color:var(--a); margin-bottom:4px; }
   .tpc-nm { font-family:var(--serif); font-size:1.45rem; font-weight:700; color:#0A1325; line-height:1.2; }
@@ -1577,6 +1596,8 @@ function renderTimeline(list, wrap) {
     // L1b (4 Nov 2026, Rahul's screenshot): every chapter a full card, oldest first, as the life reads;
     // closed ones stamped CHAPTER CLOSED in their own ink, the one you are living NOW · LIVING IT in gold.
     let lastDec = null;
+    // TL-LINE (7 Nov 2026): the chapters hang on one line like Past decisions in My Why, from "1992 · born" down to now
+    html += '<div class="tljr"><div class="tlbeg"><span></span>' + (birthYear() ? birthYear() + ' \u00B7 born' : (firstY < 9999 ? firstY + ' \u00B7 where it began' : 'where it began')) + '</div>';
     html += list.slice().sort(chapterSort).map(r => {
       const sh = chDecShade_(r), live = r.years_from && !r.years_to, age = ageLabel(r);
       const dec = r.years_from ? Math.floor(r.years_from / 10) * 10 : null;
@@ -1594,7 +1615,7 @@ function renderTimeline(list, wrap) {
         + (r.essence ? '<div class="tl-q">' + escHtml(r.essence) + '</div>' : '')
         + (r.years_from ? '<div class="tl-ln"><i style="width:' + share(r) + '%"></i></div>' : '') + '</div>'
         + chPost_(r, sh) + '</div>';
-    }).join('');
+    }).join('') + '</div>';
   } else {
     html += '<div class="empty"><div class="big">No chapters yet</div><div class="small">Name the first era of your life below.</div></div>';
   }
