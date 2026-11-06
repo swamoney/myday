@@ -1982,6 +1982,13 @@
   .dm-pen:hover { background:color-mix(in srgb, var(--dc-ink,#5b4a86) 6%, #fff); }
   #dcWin .dc-details.dm-off { display:none !important; }
   .dm-two { display:flex; gap:18px; flex-wrap:wrap; }
+  .dm-modal { border-top:4px solid var(--dm-ink,#5b4a86); max-width:460px; }
+  .dm-msub { font-family:var(--sans); font-size:0.82rem; color:#6b7589; margin:-4px 0 4px; }
+  .dm-sheet.dm-pop { margin:0; padding:0; border:0; box-shadow:none; }
+  .dm-pop .dm-two { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .dm-pop .dm-in { width:100%; background:#f6f8fb; }
+  .dm-pop .dm-row { margin-top:20px; }
+  @media (max-width:640px) { .dm-pop .dm-two { grid-template-columns:1fr; } }
   .dm-in.dm-name { width:100%; max-width:460px; }
   .dm-hint { font-family:var(--sans); font-size:0.76rem; color:#8B97AC; margin-top:5px; }
   .dc-plate.bp .dc-band { display:none; }   /* F2: the pill carries the date on a dream */
@@ -3669,6 +3676,7 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="dmEditModal"><div class="modal dm-modal" id="dmEditBody"></div></div>
 <div class="modal-overlay hidden" id="dcEditModal">
   <div class="modal">
     <div class="modal-title">Edit this decision</div>
@@ -11105,7 +11113,18 @@ function dmPaintFlow_(d) {
       + '<label>When will it happen? (optional)</label>' + mi(dmMonth_(d.target_on))
       + '<div class="dm-hint">Decided on is today; you can change it later in Edit.</div>' + foot('save-yes', 'Save — it’s on the way');
   else if (dmSheet_ === 'lived') sh = '<h4>It happened! ✦</h4><label>When?</label>' + mi(new Date().toISOString().slice(0, 7)) + foot('save-lived', 'Save — move it to Lived');
-  else if (dmSheet_ === 'edit') {   // E1 (6 Nov 2026): name and dates, only the fields this stage has
+  else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
+  j.style.setProperty('--dm-ink', ink);
+  j.innerHTML = steps + '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>'
+    + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
+  j.classList.remove('sea', 'moss', 'ash');
+}
+// Q1 (6 Nov 2026): "Edit name & dates" opens a pop-up in the middle, like the app's other edit boxes;
+// only this stage's fields. Its buttons go through the same click handler as the flow.
+function dmEditHtml_(d) {
+  const st = dmStage_(d);
+  const b = (cls, act, txt) => '<button type="button" class="dm-bt ' + cls + '" data-dm="' + act + '">' + txt + '</button>';
+
     const fld = (id, lbl, v) => '<div><label>' + lbl + '</label><input class="dm-in" id="' + id + '" type="month" value="' + escHtml(dmMonth_(v)) + '" placeholder="YYYY-MM"></div>';
     let f = '';
     if (st === 'ahead') f = fld('dmET', 'Planned for (optional)', d.target_on);
@@ -11116,14 +11135,9 @@ function dmPaintFlow_(d) {
     const how = (st === 'wip' || st === 'lived') ? '<label>How I decided</label><div class="dm-chips">'
       + '<button type="button" class="dm-ch' + (dmHowPick_ === 'thoughtful' ? ' on' : '') + '" data-dm="how:thoughtful">I took my time</button>'
       + '<button type="button" class="dm-ch' + (dmHowPick_ === 'quick' ? ' on' : '') + '" data-dm="how:quick">I went with my gut</button></div>' : '';
-    sh = '<h4>Edit this dream</h4><label>The dream</label><input class="dm-in dm-name" id="dmEN" maxlength="180" value="' + escHtml(d.title || '') + '">'
-      + '<div class="dm-two">' + f + '</div>' + how + foot('save-edit', 'Save');
-  }
-  else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
-  j.style.setProperty('--dm-ink', ink);
-  j.innerHTML = steps + '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>'
-    + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
-  j.classList.remove('sea', 'moss', 'ash');
+    return '<div class="modal-title">Edit this dream</div><div class="dm-msub">' + ({ ahead:'Someday', ask:'Making up my mind', wip:'On the way', lived:'Lived', canx:'Let go' })[st] + '</div><div class="dm-sheet dm-pop"><label>The dream</label><input class="dm-in dm-name" id="dmEN" maxlength="180" value="' + escHtml(d.title || '') + '">'
+      + '<div class="dm-two">' + f + '</div>' + how + '<div class="dm-row">' + b('p', 'save-edit', 'Save') + b('s', 'cancel', 'Cancel') + '</div></div>';
+  
 }
 async function dmSave_(d, patch, msg) {
   const { error } = await supa.from('why_decisions').update(patch).eq('id', d.id).eq('user_id', userId);
@@ -11140,18 +11154,22 @@ function dmMonthVal_() {
 }
 el('dmPen').addEventListener('click', () => {
   const d = dcRow_(); if (!d) return;
-  dmSheet_ = dmSheet_ === 'edit' ? '' : 'edit';
+  dmSheet_ = ''; dmPaintFlow_(d);
   dmHowPick_ = d.made === 'quick' ? 'quick' : (d.made && d.made !== 'cancelled') ? 'thoughtful' : '';
-  dmPaintFlow_(d);
-  const n = el('dmEN'); if (n) { n.closest('.dm-sheet').scrollIntoView({ block:'nearest', behavior:'smooth' }); n.focus(); }
+  el('dmEditBody').innerHTML = dmEditHtml_(d);
+  el('dmEditBody').style.setProperty('--dm-ink', dcDreamMarks_(d).ink);
+  el('dmEditModal').classList.remove('hidden');
+  setTimeout(() => { const n = el('dmEN'); if (n) n.focus(); }, 30);
 });
-el('dcJourney').addEventListener('click', async e => {
+async function dmClick_(e) {
   const t = e.target.closest('[data-dm]'); if (!t) return;
   const d = dcRow_(); if (!d || !dcIsDream_(d)) return;
   const a = t.dataset.dm, today = new Date().toISOString().slice(0, 10);
   if (a.startsWith('s:')) { dmSheet_ = a.slice(2); dmPaintFlow_(d); const i = el('dmMonth'); if (i) i.focus(); return; }
-  if (a === 'cancel') { dmSheet_ = ''; dmPaintFlow_(d); return; }
-  if (a.startsWith('how:')) { const h = a.slice(4); dmHowPick_ = dmHowPick_ === h ? '' : h; dmPaintFlow_(d); return; }
+  const popOpen = !el('dmEditModal').classList.contains('hidden');
+  if (a === 'cancel') { if (popOpen) el('dmEditModal').classList.add('hidden'); else { dmSheet_ = ''; dmPaintFlow_(d); } return; }
+  if (a.startsWith('how:')) { const h = a.slice(4); dmHowPick_ = dmHowPick_ === h ? '' : h;
+    if (popOpen) el('dmEditBody').querySelectorAll('.dm-ch').forEach(c => c.classList.toggle('on', c.dataset.dm === 'how:' + dmHowPick_)); else dmPaintFlow_(d); return; }
   if (a === 'save-edit') {
     const name = ((el('dmEN') || {}).value || '').trim();
     if (!name) { toast('The dream needs its name'); el('dmEN').focus(); return; }
@@ -11161,7 +11179,8 @@ el('dcJourney').addEventListener('click', async e => {
     if (T !== undefined) up.target_on = T;
     if (Dd !== undefined) up.decided_on = Dd;
     if (Hh !== undefined) up.happened_on = Hh;
-    if (el('dmEN').closest('.dm-sheet').querySelector('.dm-chips')) up.made = dmHowPick_ || null;
+    if (el('dmEditBody').querySelector('.dm-chips')) up.made = dmHowPick_ || null;
+    el('dmEditModal').classList.add('hidden');
     await dmSave_(d, up, 'Saved'); return;
   }
   const mv = (a === 'save-ask' || a === 'save-yes' || a === 'save-lived') ? dmMonthVal_() : null;
@@ -11174,7 +11193,9 @@ el('dcJourney').addEventListener('click', async e => {
   else if (a === 'save-go') await dmSave_(d, { status: 'trail', made: 'cancelled', decided_on: today, happened_on: null }, 'Let go — it rests in Lived');
   else if (a === 'undo-lived') await dmSave_(d, { status: 'wip', happened_on: null }, 'Back on the way');
   else if (a === 'revive') await dmSave_(d, { status: 'desk', made: null, decided_on: null, pending: false }, 'Back as a dream');
-});
+}
+el('dcJourney').addEventListener('click', dmClick_);
+el('dmEditModal').addEventListener('click', e => { if (e.target === el('dmEditModal')) { el('dmEditModal').classList.add('hidden'); return; } dmClick_(e); });
 el('dcJourney').addEventListener('click', e => {
   const b = e.target.closest('[data-jact]'); if (!b) return;
   const a = b.dataset.jact;

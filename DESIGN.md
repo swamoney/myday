@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## BP-Q1 · "Edit name & dates" opens as a pop-up (6 Nov 2026)
+- The dream's edit form now opens in a centred pop-up (#dmEditModal, the app's modal-overlay) instead of under the question card: "Edit this dream", the stage underneath, only that stage's fields, Save / Cancel; a tap outside closes it. Built by dmEditHtml_; its buttons share dmClick_ with the flow. Top line in the dream's stage colour.
+- Trap: the pop-up hides the step line while editing (fine for names and dates).
+
 ## BP-E1 · A dream edits its name and dates beside its name (6 Nov 2026)
 - A "✎ Edit name & dates" button (#dmPen) sits beside a dream's name, always, no Edit mode. It opens "Edit this dream" under the question card (dmSheet_ 'edit') with only this stage's fields: Someday → planned for; Making up my mind → decide by; On the way → to happen by, decided in, how I decided; Lived → lived in, decided in, how I decided; Let go → let go in. Months save as the 1st; an empty name saves nothing.
 - The decisions box ("Edit details — name, dates, verdict" / "Edit this decision") no longer shows on dream pages (.dm-off). The top Edit stays for the story and the photo. My Decisions unchanged.
