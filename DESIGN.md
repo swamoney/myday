@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## BP-L1 · Bucket list: "Still dreaming" becomes "The lineup" (6 Nov 2026)
+- The first section heading reads The lineup; the count and "Lived" below are unchanged.
+- Trap: undated dreams sit last, as if last in line.
+
 ## BP-W1 · Bucket list: a decided dream is ON THE WAY (6 Nov 2026)
 - A dream that is decided but not yet lived (status wip) no longer says "LIVING IT" (the My Decisions word). Card: ON THE WAY · DECIDED <Month Year>, stamp ON THE / <Mon 'YY> / WAY; the dream's page: ON THE WAY · <verdict> · DECIDED <Month Year>. Colour and the TO HAPPEN BY pill unchanged.
 - My Decisions keeps LIVING IT, on purpose: the two rooms use different words for the same stage.
