@@ -1992,6 +1992,7 @@
   .dm-note { font-family:var(--serif); font-style:italic; font-size:1.05rem; color:#28324B; margin-top:10px; }
   .dm-note button { font-family:var(--sans); font-style:normal; font-size:0.75rem; border:0; background:none; color:#6b7589; text-decoration:underline; cursor:pointer; padding:0 2px; }
   .dm-lb { margin-top:14px; padding-top:12px; border-top:1px dashed color-mix(in srgb, var(--dm-ink,#2E7A4E) 30%, transparent); }
+  .dm-say { font-family:var(--serif); font-style:italic; font-size:1.08rem; color:#4b4540; }
   .dm-undo { display:flex; justify-content:flex-end; gap:14px; flex-wrap:wrap; margin-top:12px; }
   .dm-undo button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:#b4bdcc; background:none; border:0; padding:2px 0; cursor:pointer; }
   .dm-undo button:hover { color:#6b7589; text-decoration:underline; }
@@ -11127,7 +11128,16 @@ function dmPaintFlow_(d) {
       + '<button type="button" data-dm="undo-lived">Undo \u2014 it hasn\u2019t happened yet</button></div>';
     q = ['', '', stars + line + tiny];
   }
-  else q = ['You let this one go.', 'Walking away is also a choice.', b('s', 'revive', 'Bring it back as a dream')];
+  else {   // G2 (6 Nov 2026): let go, on the plate like Lived - a quiet sentence, an optional line about why, tiny links
+    const note = (d.rating_note || '').trim();
+    const line = dmRateEdit_
+      ? '<input class="dm-in dm-noteIn" id="dmNote" maxlength="240" placeholder="A line about why you let it go" value="' + escHtml(note) + '">'
+        + '<div class="dm-row" style="margin-top:10px">' + b('p', 'rate-save', 'Save') + b('l', 'rate-cancel', 'Cancel') + '</div>'
+      : (note ? '<div class="dm-note">\u201C' + escHtml(note) + '\u201D</div>' : '');
+    q = ['', '', '<div class="dm-say">Walking away is also a choice.</div>' + line
+      + '<div class="dm-undo">' + (dmRateEdit_ ? '' : '<button type="button" data-dm="rate-edit">' + (note ? 'Change the line' : 'Add a line about why') + '</button>')
+      + '<button type="button" data-dm="revive">Bring it back as a dream</button></div>'];
+  }
   const mi = (v) => '<input class="dm-in" id="dmMonth" type="month" value="' + escHtml(v || '') + '" placeholder="YYYY-MM">';
   const foot = (act, txt, danger) => '<div class="dm-row">' + b('p' + (danger ? ' danger' : ''), act, txt) + b('l', 'cancel', danger ? 'Keep it' : 'Cancel') + '</div>';
   let sh = '';
@@ -11141,7 +11151,7 @@ function dmPaintFlow_(d) {
   else if (dmSheet_ === 'lived') sh = '<h4>It happened! ✦</h4><label>When?</label>' + mi(new Date().toISOString().slice(0, 7)) + foot('save-lived', 'Save — move it to Lived');
   else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
   j.style.setProperty('--dm-ink', ink);
-  j.innerHTML = steps + (st === 'lived' ? '<div class="dm-lb">' + q[2] + '</div>'
+  j.innerHTML = steps + ((st === 'lived' || st === 'canx') ? '<div class="dm-lb">' + q[2] + '</div>'
     : '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>')
     + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
   j.classList.remove('sea', 'moss', 'ash');
@@ -11233,7 +11243,7 @@ async function dmClick_(e) {
   else if (a === 'back-ask') await dmSave_(d, { status: 'desk', made: null, decided_on: null, pending: true }, 'Back to making up my mind');
   else if (a === 'save-go') await dmSave_(d, { status: 'trail', made: 'cancelled', decided_on: today, happened_on: null }, 'Let go — it rests in Lived');
   else if (a === 'undo-lived') await dmSave_(d, { status: 'wip', happened_on: null }, 'Back on the way');
-  else if (a === 'revive') await dmSave_(d, { status: 'desk', made: null, decided_on: null, pending: false }, 'Back as a dream');
+  else if (a === 'revive') await dmSave_(d, { status: 'desk', made: null, decided_on: null, pending: false, rating_note: null }, 'Back as a dream');   // the line about why goes with it, so it never turns into a line looking back
 }
 el('dcJourney').addEventListener('click', dmClick_);
 el('dmEditModal').addEventListener('click', e => { if (e.target === el('dmEditModal')) { el('dmEditModal').classList.add('hidden'); return; } dmClick_(e); });

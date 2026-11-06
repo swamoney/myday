@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## BP-G2p · A let-go dream's page, on the plate (6 Nov 2026)
+- The white "You let this one go." box is gone. Under the dashed line on the stone-grey plate: "Walking away is also a choice." in italics, an optional line about why (rating_note, the same field as a lived dream's line), then tiny grey links: "Add a line about why" / "Change the line", "Bring it back as a dream".
+- Bringing it back clears that line, so it never turns into a line looking back.
+- Trap: a tiny "Bring it back" is easy to miss - on purpose, for something you chose to leave.
+
 ## BP-N1 · Looking back sits on the heading, no box, no heading (6 Nov 2026)
 - On a lived dream the rating is no longer a white card: under a faint dashed line on the plate (.dm-lb) come the stars with their caption, the line in italics, then tiny grey links: "Change the line" / "Add a line looking back", then "Undo — it hasn't happened yet". No heading.
 - A star tap now saves at once (same star clears). The line opens an input with Save / Cancel. Stars under the stamp still show once rated.
