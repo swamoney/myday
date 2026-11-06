@@ -12,7 +12,7 @@ Written August 2026.
 - The D circle is gone from decision pages (all of them are decisions). Dream pages are untouched.
 - The heading is a row (.dc-hrow): top line, title, date pill and coloured line on the left; the mark (#dcHMark) on the right, centred, like an index card. Thinking it through and past pages show their stamp; a decided page shows the calendar leaf (TO HAPPEN BY · 15 Mar 2027 · 4 MONTHS TO GO).
 - The old side column (seal, stamp, head stars, date band) is hidden on decision pages. The date pill under the title now shows on desktop too, and a tap on it opens the details form (the band's old job).
-- PA (phone): the mark drops to its own row under the heading, before the steps. A decided page shows its DECIDED stamp there, not the leaf (the pill already gives the date).
+- PA (phone): the mark drops to its own row under the heading, before the steps, centred (C1). A decided page shows its DECIDED stamp there, not the leaf (the pill already gives the date).
 - B2 (phone): ongoing decisions in the list have a blinking dot in their colour before the title. Reduced motion stops it.
 - Harness: h_dcclean.js.
 
