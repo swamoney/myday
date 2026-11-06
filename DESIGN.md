@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## BP-G2 + P1 · Let go gets its own section; one colour per stage (6 Nov 2026)
+- G2: "Lived" holds only dreams that came true; dreams let go sit in their own small "Let go" section at the very bottom (.bp-gone, cards at 85% opacity, grey heading), shown only when there is one.
+- P1 "dawn to harvest": Someday sky blue #3D6A99, Making up my mind amber #B0721A, On the way violet #5b4a86 (unchanged), Lived green #2E7A4E, Let go stone grey #7A6F68 - on the cards (.bp-card), the dream page plate (.dc-plate.bp), its stamp, pill and step line (INK in dcDreamMarks_). My Decisions keeps its own colours.
+- Trap: five colours on one list; the light card papers and a grey Let go keep it calm. The amber sits close to the gold used elsewhere (mantra stars, the yellow pillar).
+
 ## BP-F2 · A dream's flow: Someday → Making up my mind → On the way → Lived (6 Nov 2026)
 - On a dream's page the old three-part strip (A DREAM AHEAD · NEEDS DECIDING · I HAVE DECIDED…, two parts Edit-only) is replaced by dmPaintFlow_: a step line and one question card. Decisions keep their own strip and form.
 - Step line: passed steps filled with a tick; the current one is a bigger filled circle with a soft ring, its name bold, a tag (YOU ARE HERE; IN PROGRESS on On the way) and a ripple every 2s (B1; still under reduce-motion). Lived wears a flag (S1), grey until reached, lit with no tag once lived.
