@@ -1977,11 +1977,24 @@
   .dm-ch { font-family:var(--sans); font-size:0.84rem; border:1px solid #d6dde8; background:#fff; border-radius:999px; padding:7px 13px; cursor:pointer; color:#28324B; }
   .dm-ch.on { background:var(--dm-ink,#2F6F6A); color:#fff; border-color:var(--dm-ink,#2F6F6A); }
   .dm-in { font-family:var(--sans); font-size:0.9rem; border:1px solid #d6dde8; border-radius:8px; padding:8px 10px; width:220px; max-width:100%; }
-  .dm-pen { font-family:var(--sans); font-size:0.78rem; font-weight:600; color:var(--dc-ink,#5b4a86); background:#fff; border:1px solid color-mix(in srgb, var(--dc-ink,#5b4a86) 30%, #fff);
-        border-radius:999px; padding:5px 11px; cursor:pointer; white-space:nowrap; margin-left:10px; vertical-align:middle; position:relative; top:-0.25em; }
+  .dm-pen { font-family:var(--sans); font-size:0.95rem; font-weight:600; color:var(--dc-ink,#5b4a86); background:#fff; border:1px solid color-mix(in srgb, var(--dc-ink,#5b4a86) 30%, #fff);
+        border-radius:50%; width:32px; height:32px; padding:0; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; white-space:nowrap; margin-left:10px; vertical-align:middle; position:relative; top:-0.25em; }
   .dm-pen:hover { background:color-mix(in srgb, var(--dc-ink,#5b4a86) 6%, #fff); }
   #dcWin .dc-details.dm-off { display:none !important; }
   .dm-two { display:flex; gap:18px; flex-wrap:wrap; }
+  .dm-stars { display:flex; gap:4px; align-items:center; }
+  .dm-stars b { font-size:1.9rem; color:#d9dfe9; cursor:pointer; line-height:1; transition:transform .1s; user-select:none; }
+  .dm-stars b.on { color:#E0A526; }
+  .dm-stars b:hover { transform:scale(1.12); }
+  .dm-scap { margin-left:10px; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; color:#8B97AC; text-transform:uppercase; }
+  .dm-lbl { display:block; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; color:#8B97AC; margin:14px 0 5px; text-transform:uppercase; }
+  .dm-in.dm-noteIn { width:100%; max-width:520px; font-family:var(--serif); font-style:italic; font-size:1rem; background:#f6f8fb; }
+  .dm-note { font-family:var(--serif); font-style:italic; font-size:1.05rem; color:#28324B; margin-top:10px; }
+  .dm-note button { font-family:var(--sans); font-style:normal; font-size:0.75rem; border:0; background:none; color:#6b7589; text-decoration:underline; cursor:pointer; padding:0 2px; }
+  .dm-undo { text-align:right; margin-top:14px; }
+  .dm-undo button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:#b4bdcc; background:none; border:0; padding:2px 0; cursor:pointer; }
+  .dm-undo button:hover { color:#6b7589; text-decoration:underline; }
+  #dcHeadStars.dm-ro .rstars b { cursor:default; }
   .dm-modal { border-top:4px solid var(--dm-ink,#5b4a86); max-width:460px; }
   .dm-msub { font-family:var(--sans); font-size:0.82rem; color:#6b7589; margin:-4px 0 4px; }
   .dm-sheet.dm-pop { margin:0; padding:0; border:0; box-shadow:none; }
@@ -1995,7 +2008,7 @@
   @media (max-width:640px) {
     .dm-sp .nm { font-size:0.62rem; } .dm-sp.on .nm { font-size:0.68rem; }
     .dm-sp em { font-size:0.42rem; padding:2px 5px; }
-    .dm-pen { display:inline-block; margin:8px 0 0; top:0; }
+    .dm-pen { margin-left:8px; top:-0.15em; }
     .dm-pen.hidden { display:none; }
     .dm-row .dm-bt.s { white-space:normal; text-align:center; }
   }
@@ -3558,7 +3571,7 @@
     <div class="dc-plate" id="dcPlate">
     <div class="dc-plate-b">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
-    <div><span class="dc-name" id="dcName"></span><button type="button" class="dm-pen hidden" id="dmPen">&#9998; Edit name &amp; dates</button></div>
+    <div><span class="dc-name" id="dcName"></span><button type="button" class="dm-pen hidden" id="dmPen" title="Edit name &amp; dates" aria-label="Edit name and dates">&#9998;</button></div>
     <span class="bp-cd hidden" id="dcCd"></span>
     <button type="button" class="dc-frommind hidden" id="dcFromMind"></button>
     <!-- S-1: the line looking back sits under the name as the page's epigraph (lived pages) -->
@@ -11074,7 +11087,8 @@ function dcPaintJourney_(d, sealed, wip) {
 // A step line shows where the dream stands (the current circle ripples; Lived wears a flag and never
 // moves), and one question card asks what is next, with plain buttons. Every door works without Edit.
 // The small forms open right under the question. Dates are asked as months and saved as the 1st.
-let dmSheet_ = '', dmHowPick_ = '', dmFor_ = null;
+let dmSheet_ = '', dmHowPick_ = '', dmFor_ = null, dmRatePick_ = null, dmRateEdit_ = false;
+const DM_RATE_CAP = { 1:'I wish I hadn\u2019t', 2:'Not worth it', 3:'It was fine', 4:'Glad I did', 5:'One of the best things I\u2019ve done' };
 function dmHow_(d) { return d.made === 'quick' ? 'WITH MY GUT' : (d.made === 'thoughtful' || d.made === 'care') ? 'TOOK MY TIME' : ''; }   // care is stored as 'thoughtful', as in My Decisions
 function dmStage_(d) { return d.status === 'trail' ? (dcCanx_(d) ? 'canx' : 'lived') : dcIsWip_(d) ? 'wip' : dcDreamPending_(d) ? 'ask' : 'ahead'; }
 const DM_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
@@ -11082,7 +11096,7 @@ const DM_FLAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 function dmMonth_(iso) { return iso ? String(iso).slice(0, 7) : ''; }
 function dmPaintFlow_(d) {
   const j = el('dcJourney');
-  if (dmFor_ !== d.id) { dmSheet_ = ''; dmHowPick_ = ''; dmFor_ = d.id; }
+  if (dmFor_ !== d.id) { dmSheet_ = ''; dmHowPick_ = ''; dmFor_ = d.id; dmRatePick_ = null; dmRateEdit_ = false; }
   const st = dmStage_(d), ink = dcDreamMarks_(d).ink;
   const ORDER = ['ahead', 'ask', 'wip', 'lived'], NAME = { ahead:'Someday', ask:'Making up my mind', wip:'On the way', lived:'Lived' };
   const at = st === 'canx' ? -1 : ORDER.indexOf(st);
@@ -11100,7 +11114,19 @@ function dmPaintFlow_(d) {
       b('p', 's:yes', 'Yes, I’m doing it') + b('s', 'ahead', 'Not now — back to someday') + b('l', 's:go', 'Let it go')];
   else if (st === 'wip') q = ['Did it happen?', 'When it does, mark it lived and it moves to your Lived list.',
       b('p', 's:lived', '✦ It happened!') + b('s', 'back-ask', 'Change of plan — back to making up my mind') + b('l', 's:go', 'Let it go')];
-  else if (st === 'lived') q = ['A dream come true.', 'Rate it and write how it was, any time.', b('s', 'undo-lived', 'Undo — it hasn’t happened yet')];
+  else if (st === 'lived') {   // R2 (6 Nov 2026): rate it and look back right here, no Edit; Undo is tiny
+    const rated = !!(Number(d.satisfaction) || (d.rating_note || '').trim()) && !dmRateEdit_;
+    const r = rated ? Number(d.satisfaction) || 0 : (dmRatePick_ == null ? Number(d.satisfaction) || 0 : dmRatePick_);
+    const stars = '<div class="dm-stars">' + [1, 2, 3, 4, 5].map(i => '<b class="' + (i <= r ? 'on' : '') + '" data-dm="star:' + i + '" role="button" aria-label="' + i + ' star' + (i > 1 ? 's' : '') + '">\u2605</b>').join('')
+      + '<span class="dm-scap">' + (r ? DM_RATE_CAP[r] : 'tap a star') + '</span></div>';
+    const undo = '<div class="dm-undo"><button type="button" data-dm="undo-lived">Undo \u2014 it hasn\u2019t happened yet</button></div>';
+    const note = (d.rating_note || '').trim();
+    q = rated
+      ? ['A dream come true.', 'How it was:', stars + (note ? '<div class="dm-note">\u201C' + escHtml(note) + '\u201D <button type="button" data-dm="rate-edit">change</button></div>' : '<div class="dm-note"><button type="button" data-dm="rate-edit">add a line looking back</button></div>') + undo]
+      : ['A dream come true.', 'How was it? Rate it and leave a line to remember it by.', stars
+          + '<label class="dm-lbl">A line looking back (optional)</label><input class="dm-in dm-noteIn" id="dmNote" maxlength="240" placeholder="What stayed with you?" value="' + escHtml(note) + '">'
+          + '<div class="dm-row" style="margin-top:12px">' + b('p', 'rate-save', 'Save') + (dmRateEdit_ ? b('l', 'rate-cancel', 'Cancel') : '') + '</div>' + undo];
+  }
   else q = ['You let this one go.', 'Walking away is also a choice.', b('s', 'revive', 'Bring it back as a dream')];
   const mi = (v) => '<input class="dm-in" id="dmMonth" type="month" value="' + escHtml(v || '') + '" placeholder="YYYY-MM">';
   const foot = (act, txt, danger) => '<div class="dm-row">' + b('p' + (danger ? ' danger' : ''), act, txt) + b('l', 'cancel', danger ? 'Keep it' : 'Cancel') + '</div>';
@@ -11115,7 +11141,8 @@ function dmPaintFlow_(d) {
   else if (dmSheet_ === 'lived') sh = '<h4>It happened! ✦</h4><label>When?</label>' + mi(new Date().toISOString().slice(0, 7)) + foot('save-lived', 'Save — move it to Lived');
   else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
   j.style.setProperty('--dm-ink', ink);
-  j.innerHTML = steps + '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>'
+  const qBody = st === 'lived' ? q[2] : '<div class="dm-row">' + q[2] + '</div>';
+  j.innerHTML = steps + '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p>' + qBody + '</div>'
     + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
   j.classList.remove('sea', 'moss', 'ash');
 }
@@ -11142,7 +11169,7 @@ function dmEditHtml_(d) {
 async function dmSave_(d, patch, msg) {
   const { error } = await supa.from('why_decisions').update(patch).eq('id', d.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save that'); return false; }
-  Object.assign(d, patch); dmSheet_ = ''; dmHowPick_ = '';
+  Object.assign(d, patch); dmSheet_ = ''; dmHowPick_ = ''; dmRatePick_ = null; dmRateEdit_ = false;
   openDecision(d.id); renderDecisions(); if (msg) toast(msg);
   return true;
 }
@@ -11170,6 +11197,22 @@ async function dmClick_(e) {
   if (a === 'cancel') { if (popOpen) el('dmEditModal').classList.add('hidden'); else { dmSheet_ = ''; dmPaintFlow_(d); } return; }
   if (a.startsWith('how:')) { const h = a.slice(4); dmHowPick_ = dmHowPick_ === h ? '' : h;
     if (popOpen) el('dmEditBody').querySelectorAll('.dm-ch').forEach(c => c.classList.toggle('on', c.dataset.dm === 'how:' + dmHowPick_)); else dmPaintFlow_(d); return; }
+  if (a.startsWith('star:')) {
+    const i = Number(a.slice(5)), rated = !!(Number(d.satisfaction) || (d.rating_note || '').trim()) && !dmRateEdit_;
+    if (rated) { const nx = Number(d.satisfaction) === i ? null : i; await dmSave_(d, { satisfaction: nx }, nx ? 'Rated' : 'Rating cleared'); return; }
+    const keep = el('dmNote') ? el('dmNote').value : null;
+    const cur = dmRatePick_ == null ? Number(d.satisfaction) || 0 : dmRatePick_;
+    dmRatePick_ = cur === i ? 0 : i; dmPaintFlow_(d);
+    if (keep != null && el('dmNote')) el('dmNote').value = keep; return;
+  }
+  if (a === 'rate-edit') { dmRateEdit_ = true; dmRatePick_ = Number(d.satisfaction) || 0; dmPaintFlow_(d); const n = el('dmNote'); if (n) n.focus(); return; }
+  if (a === 'rate-cancel') { dmRateEdit_ = false; dmRatePick_ = null; dmPaintFlow_(d); return; }
+  if (a === 'rate-save') {
+    const sat = dmRatePick_ == null ? (Number(d.satisfaction) || null) : (dmRatePick_ || null);
+    const note = ((el('dmNote') || {}).value || '').trim() || null;
+    dmRateEdit_ = false; dmRatePick_ = null;
+    await dmSave_(d, { satisfaction: sat, rating_note: note }, 'Saved'); return;
+  }
   if (a === 'save-edit') {
     const name = ((el('dmEN') || {}).value || '').trim();
     if (!name) { toast('The dream needs its name'); el('dmEN').focus(); return; }
@@ -11318,7 +11361,7 @@ function openDecision(id) {
   // only one exception remains worth a pill: sealed by verdict but not yet lived (legacy rows).
   let meta = '';
   if (sealed) {
-    if (!dcCanx_(d) && !d.happened_on) meta += '<span class="dc-pill wait">NOT YET LIVED</span>';
+    if (!dcCanx_(d) && !d.happened_on && !dcIsDream_(d)) meta += '<span class="dc-pill wait">NOT YET LIVED</span>';   // a dream's eyebrow already says it
   } else if (wip) {
     // R1 + B4-1: the row and the stamp carry the state
   } else {
@@ -11380,6 +11423,12 @@ function openDecision(id) {
   el('dcRateBox').classList.toggle('hidden', !(sealed && !dcCanx_(d)));
   el('dcHeadStars').classList.toggle('hidden', !(sealed && !dcCanx_(d)));
   if (sealed) dcRatePaint_();
+  if (dcIsDream_(d)) {   // R2: on a dream the line lives in the card; the stars under the stamp show only once rated
+    el('dcRateBox').classList.add('hidden');
+    el('dcHeadStars').classList.toggle('hidden', !(sealed && !dcCanx_(d) && Number(d.satisfaction)));
+    el('dcHeadStars').classList.add('dm-ro');
+    if (Number(d.satisfaction)) el('dcRateCap').textContent = DM_RATE_CAP[Number(d.satisfaction)];
+  } else el('dcHeadStars').classList.remove('dm-ro');
   const miss = sealed ? [] : dcMissing_(d);
   el('dcCatch').classList.toggle('hidden', !miss.length);
   if (miss.length) el('dcCatchTxt').textContent = miss.length
@@ -11504,7 +11553,7 @@ function dcRatePaint_() {
   const d = dcRow_(); if (!d) return;
   const r = Number(d.satisfaction) || 0;
   el('dcRateStars').querySelectorAll('b').forEach((s, i) => s.classList.toggle('on', i < r));
-  el('dcRateCap').textContent = r ? DC_RATE_CAP[r] : 'tap a star';
+  el('dcRateCap').textContent = r ? (dcIsDream_(d) ? DM_RATE_CAP[r] : DC_RATE_CAP[r]) : 'tap a star';   // R2: a dream keeps its own words
   el('dcRateCap').classList.toggle('hint', !r);
   el('dcRateBox').classList.toggle('unrated', !r && !(d.rating_note || '').trim());
   const note = (d.rating_note || '').trim();

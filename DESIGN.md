@@ -8,6 +8,13 @@ Written August 2026.
 
 ---
 
+## BP-R2 · Rate a lived dream in its card; tiny Undo; ✎ icon (6 Nov 2026)
+- A lived dream's question card now asks "How was it?": five big stars (tap again to clear) with a dream caption (DM_RATE_CAP: I wish I hadn't … One of the best things I've done) and "A line looking back", then Save - no Edit mode. Once rated it shows the stars (a tap re-rates at once) and the line in italics with "change". Saves satisfaction and rating_note.
+- The stars also show under the stamp, only once rated (#dcHeadStars, read-only look, dream caption). The old epigraph line under the name is hidden on dreams; the "NOT YET LIVED" pill too (the eyebrow says it).
+- "Undo — it hasn't happened yet" is tiny pale mono capitals at the card's bottom right, darker on hover.
+- "Edit name & dates" is now a round ✎ icon (title + aria-label keep the words).
+- Trap: a tiny Undo and a lone ✎ are easy to miss; a stray star tap re-rates.
+
 ## BP-Q1 · "Edit name & dates" opens as a pop-up (6 Nov 2026)
 - The dream's edit form now opens in a centred pop-up (#dmEditModal, the app's modal-overlay) instead of under the question card: "Edit this dream", the stage underneath, only that stage's fields, Save / Cancel; a tap outside closes it. Built by dmEditHtml_; its buttons share dmClick_ with the flow. Top line in the dream's stage colour.
 - Trap: the pop-up hides the step line while editing (fine for names and dates).
