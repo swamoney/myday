@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## BP-T1 · One button forward; the ways back are tiny (6 Nov 2026)
+- Making up my mind: one button "Yes, I'm doing it"; tiny links "Not now — back to someday" · "Let it go". Line: "Say yes and pick when it will happen."
+- On the way: "✦ It happened!" (plus "Pick a new month" when it slipped); tiny links "Change of plan — back to making up my mind" · "Let it go". Someday is unchanged.
+- The question array carries the tiny links as q[3], drawn in .dm-undo like Undo on a lived dream.
+- Trap: Let it go is hard to find on purpose; tiny links are small to tap on a phone.
+
 ## BP-L1b · "The lineup" heading removed (6 Nov 2026)
 - The bucket list opens straight on its first group label (ON THE WAY · n …); no "The lineup" heading and no total count. Group labels keep their counts; Lived and Let go keep their headings.
 - Trap: Lived now reads as the only heading on the page.

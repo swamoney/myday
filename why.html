@@ -11128,15 +11128,16 @@ function dmPaintFlow_(d) {
   let q;
   if (st === 'ahead') q = ['Ready to make a real choice?', 'Move it to “Making up my mind” and pick a month to decide by. Or, if you already know, say yes now.',
       b('p', 's:ask', 'Start making up my mind') + b('s', 's:yes', 'Yes, I’m doing it')];
-  else if (st === 'ask') q = ['Are you doing it?', 'Say yes and pick when it will happen, or let it go. Either answer is a decision.',
-      b('p', 's:yes', 'Yes, I’m doing it') + b('s', 'ahead', 'Not now — back to someday') + b('l', 's:go', 'Let it go')];
+  // T1 (6 Nov 2026): one button forward; the ways back and Let it go are tiny links (q[3])
+  else if (st === 'ask') q = ['Are you doing it?', 'Say yes and pick when it will happen.',
+      b('p', 's:yes', 'Yes, I\u2019m doing it'), [['ahead', 'Not now \u2014 back to someday'], ['s:go', 'Let it go']]];
   else if (st === 'wip' && dmLate_(d)) {   // D: the nudge once the date has passed
     const ml = new Date(String(d.target_on).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-GB', { month:'long', year:'numeric' });
     q = ['It was due ' + ml + '.', 'Did it happen, or does it need a new date?',
-      b('p', 's:lived', '\u2726 It happened!') + b('s', 's:redate', 'Pick a new month') + b('l', 's:go', 'Let it go')];
+      b('p', 's:lived', '\u2726 It happened!') + b('s', 's:redate', 'Pick a new month'), [['back-ask', 'Change of plan \u2014 back to making up my mind'], ['s:go', 'Let it go']]];
   }
   else if (st === 'wip') q = ['Did it happen?', 'When it does, mark it lived and it moves to your Lived list.',
-      b('p', 's:lived', '✦ It happened!') + b('s', 'back-ask', 'Change of plan — back to making up my mind') + b('l', 's:go', 'Let it go')];
+      b('p', 's:lived', '\u2726 It happened!'), [['back-ask', 'Change of plan \u2014 back to making up my mind'], ['s:go', 'Let it go']]];
   else if (st === 'lived') {   // R2 + N1 (6 Nov 2026): no heading, no box - stars, the line, then tiny links, on the plate itself
     const r = Number(d.satisfaction) || 0, note = (d.rating_note || '').trim();
     const stars = '<div class="dm-stars">' + [1, 2, 3, 4, 5].map(i => '<b class="' + (i <= r ? 'on' : '') + '" data-dm="star:' + i + '" role="button" aria-label="' + i + ' star' + (i > 1 ? 's' : '') + '">\u2605</b>').join('')
@@ -11175,7 +11176,8 @@ function dmPaintFlow_(d) {
   else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
   j.style.setProperty('--dm-ink', ink);
   j.innerHTML = steps + ((st === 'lived' || st === 'canx') ? '<div class="dm-lb">' + q[2] + '</div>'
-    : '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>')
+    : '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div>'
+      + (q[3] ? '<div class="dm-undo">' + q[3].map(x => '<button type="button" data-dm="' + x[0] + '">' + x[1] + '</button>').join('') + '</div>' : '') + '</div>')
     + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
   j.classList.remove('sea', 'moss', 'ash');
 }
