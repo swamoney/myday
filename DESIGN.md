@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## TP-NEW + TP-Y1 · New trip button; one ink per year (7 Nov 2026, introspection.html)
+- A filled "+ New trip" button (.tp-newbtn, My Trips blue #2F6B8A) sits at the right end of the caption line, like "+ New decision". It opens the same short form at the foot of the list and scrolls it into view. The dashed "+ Add a trip" box is hidden while there are trips, and stays as the way in when the room is empty.
+- Colour is now per year (tripYearShade_), replacing per decade: the four inks in turn by year % 4 (2024 ocean, 2025 amethyst, 2026 bronze, 2027 sky). It applies to the year heading, pin, card, days stamp and the trip page. Undated trips are slate. Trips no longer share colours with the Life Timeline's decades.
+
 ## TP-TAG · The company becomes a second rubber stamp (7 Nov 2026, introspection.html)
 - Words (TRIP_COMPANY): SOLO, FOR BUSINESS, WITH FAMILY, WITH FRIENDS. The saved values (solo/business/family/friends) are unchanged. The trip page chip, the picker and prints use the new words.
 - On a trip card the company leaves the date line. It becomes a small rubber stamp (.tp-cost) in its ink: double frame, spaced capitals, tilted -6° like the days stamp.

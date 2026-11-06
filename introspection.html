@@ -270,6 +270,8 @@
      map pin per trip in its ink, the rubber days stamp (list and page), the gold AGE pill */
   .tpsum { display:flex; align-items:center; gap:10px; margin:4px 0 8px; font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.12em; color:#7686a3; }
   .tpsum i { flex:1; height:1px; background:#d6dde8; } .tpsum span { font-size:0.5rem; }
+  .tp-newbtn { display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:0.625rem; font-weight:600; letter-spacing:0; padding:5px 10px; border-radius:8px; cursor:pointer; color:#fff; background:#2F6B8A; border:1px solid #2F6B8A; margin-left:4px; }
+  .tp-newbtn svg { width:12px; height:12px; flex-shrink:0; }
   .tpjr { position:relative; padding-left:56px; }
   .tpjr:before { content:''; position:absolute; left:27px; top:20px; bottom:40px; width:3px; border-radius:3px; background:linear-gradient(180deg,#3a6fb0,#9fb6c6 30%,#9fb6c6 85%,#dfe6ee); }
   .tpjr .tl-dv { margin:22px 0 4px; } .tpjr .tl-dv:first-child { margin-top:4px; }
@@ -1880,7 +1882,9 @@ function tripRenderDays_(r, editing) {
 const TRIP_PAL = ['#2b8a80', '#4f7a3e', '#2f5f93', '#b0582f', '#8a6f2f', '#6D4E66'];
 // TP-Y2 (7 Nov 2026): a trip wears the ink of the decade it began in - the Life Timeline's rule, so a trip and a chapter
 // from the same decade match (1990s ocean, 2000s amethyst, 2010s bronze, 2020s sky). No date: slate.
-function tripDecShade_(r) { return r && r.trip_from ? chDecShade_({ years_from: parseInt(r.trip_from.slice(0, 4), 10) }) : '#7686a3'; }
+// TP-Y1 (7 Nov 2026): one ink per YEAR instead - the four inks in turn (2024 ocean, 2025 amethyst, 2026 bronze, 2027 sky ...)
+function tripYearShade_(y) { const P = ['#2F6B8A', '#5b4a86', '#9a7b3a', '#3a6fb0']; y = parseInt(y, 10); return isNaN(y) ? '#7686a3' : P[((y % 4) + 4) % 4]; }
+function tripDecShade_(r) { return r && r.trip_from ? tripYearShade_(r.trip_from.slice(0, 4)) : '#7686a3'; }
 function tripDaysN_(r) {
   const a = tripDate_(r.trip_from), b = tripDate_(r.trip_to || r.trip_from);
   if (!a || isNaN(a)) return 0;
@@ -1915,17 +1919,19 @@ function renderTrips(list, wrap) {
     const ys = Object.keys(byYear).sort();
     const away = list.reduce((t, r) => t + (tripDaysN_(r) || 0), 0);
     html += '<div class="tpsum">' + list.length + (list.length === 1 ? ' TRIP' : ' TRIPS') + '<i></i><span>'
-      + (ys.length ? ys[0] + (ys.length > 1 ? ' \u2013 ' + ys[ys.length - 1] : '') + ' \u00B7 ' : '') + away + (away === 1 ? ' DAY' : ' DAYS') + ' AWAY</span></div>';
+      + (ys.length ? ys[0] + (ys.length > 1 ? ' \u2013 ' + ys[ys.length - 1] : '') + ' \u00B7 ' : '') + away + (away === 1 ? ' DAY' : ' DAYS') + ' AWAY</span>'
+      + '<button type="button" class="tp-newbtn" id="tpNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>New trip</span></button></div>';
     html += '<div class="tpjr">';
     Object.keys(byYear).sort((a, b) => b.localeCompare(a)).forEach(y => {
-      html += '<div class="tl-dv" style="--yc:' + chDecShade_({ years_from: parseInt(y, 10) }) + ';"><b>' + y + '</b><i></i><span>' + byYear[y].length + (byYear[y].length === 1 ? ' TRIP' : ' TRIPS') + '</span></div>' + byYear[y].map(card).join('');
+      html += '<div class="tl-dv" style="--yc:' + tripYearShade_(y) + ';"><b>' + y + '</b><i></i><span>' + byYear[y].length + (byYear[y].length === 1 ? ' TRIP' : ' TRIPS') + '</span></div>' + byYear[y].map(card).join('');
     });
     if (loose.length) html += '<div class="tl-dv"><b>No date</b><i></i><span>' + loose.length + '</span></div>' + loose.map(card).join('');
     html += '</div>';
   } else {
     html += '<div class="empty"><div class="big">No trips yet</div><div class="small">Name the first journey below.</div></div>';
   }
-  html += '<div class="addp" id="tpAdd">\uFF0B Add a trip</div>' +
+  // TP-NEW (7 Nov 2026): with trips on the page the + New trip button (top right) opens the form; the dashed box stays only when empty
+  html += '<div class="addp' + (list.length ? ' hidden' : '') + '" id="tpAdd">\uFF0B Add a trip</div>' +
     '<div class="ch-askrow hidden" id="tpAsk">' +
       '<input id="tpName" type="text" placeholder="Its name \u2014 e.g., Ten days in Ladakh">' +
       '<div class="ch-yrrow"><input id="tpFrom" type="date" title="From"><span>\u2013</span><input id="tpTo" type="date" title="To (blank = one day)"></div>' +
@@ -1935,6 +1941,10 @@ function renderTrips(list, wrap) {
     '</div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('[data-open]').forEach(x => x.addEventListener('click', () => openReader(x.dataset.open)));
+  if (el('tpNew')) el('tpNew').addEventListener('click', () => {
+    el('tpAdd').click();
+    if (!el('tpAsk').classList.contains('hidden')) { try { el('tpAsk').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }
+  });
   el('tpAdd').addEventListener('click', () => {
     el('tpAsk').classList.toggle('hidden');
     if (!el('tpAsk').classList.contains('hidden')) el('tpName').focus();
