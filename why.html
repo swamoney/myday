@@ -1739,6 +1739,7 @@
   .bp-sub { font-family:var(--mono); font-size:0.56rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; margin:16px 0 0; }   /* O2 */
   .bp-sub.wip { color:#5b4a86; } .bp-sub.ask { color:#B0721A; } .bp-sub.ahead { color:#3D6A99; }
   .dcl-dv + .bp-sub { margin-top:4px; }
+  .dcl-book > .bp-sub:first-child { margin-top:2px; }
   /* A4 (6 Nov 2026): a decided dream's pill carries a small live dot that blinks gently */
   .bp-card.wip .bp-cd { position:relative; padding-left:22px; }
   .bp-card.wip .bp-cd:before { content:''; position:absolute; left:9px; top:50%; width:7px; height:7px; margin-top:-3.5px; border-radius:50%; background:#fff; animation:bpLive 1.4s ease-in-out infinite; }
@@ -10861,8 +10862,7 @@ function dcBucketHtml_() {
   const keyDate = d => dcIsWip_(d) ? (d.target_on || '9999') : (d.target_on || '9999');
   desk.sort((a, b) => keyDate(a).localeCompare(keyDate(b)) || String(a.created_at).localeCompare(String(b.created_at)));
   const trail = mine.filter(d => d.status === 'trail').sort(dcTrailSort_);
-  // L1 (6 Nov 2026): the first section is The lineup (was Still dreaming)
-  let h = '<div class="dcl-dv"><span class="lb">The lineup</span><i></i><span class="ct">' + desk.length + (desk.length === 1 ? ' DREAM' : ' DREAMS') + '</span></div>';
+  let h = '';   // L1 (6 Nov 2026): no 'The lineup' heading or total - the room opens on its first group label
   const deskCard = d => {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
     // W1 + E2 (6 Nov 2026): a decided dream is ON THE WAY; in the list the stamp shows when it should happen

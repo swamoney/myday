@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## BP-L1b · "The lineup" heading removed (6 Nov 2026)
+- The bucket list opens straight on its first group label (ON THE WAY · n …); no "The lineup" heading and no total count. Group labels keep their counts; Lived and Let go keep their headings.
+- Trap: Lived now reads as the only heading on the page.
+
 ## BP-A + D · A photo prompt on lived dreams; a nudge when a dream slips (6 Nov 2026)
 - A: a lived dream with no photo shows a dashed tile on the plate, "Add a photo from it", opening the photo picker (MyAlbum.pickCover) without Edit. Shown only once the cover has loaded and there is none (#dcWin.dm-nocover).
 - D: an On the way dream whose to-happen-by month is before this month (dmLate_) has an amber pill WAS DUE <Month Year> in the list and on its page, and its page asks "It was due <Month Year>. Did it happen, or does it need a new date?" with "✦ It happened!", "Pick a new month" (a month form, saves target_on) and Let it go.
