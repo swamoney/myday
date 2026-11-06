@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## BP-N1 · Looking back sits on the heading, no box, no heading (6 Nov 2026)
+- On a lived dream the rating is no longer a white card: under a faint dashed line on the plate (.dm-lb) come the stars with their caption, the line in italics, then tiny grey links: "Change the line" / "Add a line looking back", then "Undo — it hasn't happened yet". No heading.
+- A star tap now saves at once (same star clears). The line opens an input with Save / Cancel. Stars under the stamp still show once rated.
+- Trap: with no heading, the caption ("tap a star") is the only hint of what the stars are for.
+
 ## BP-R2 · Rate a lived dream in its card; tiny Undo; ✎ icon (6 Nov 2026)
 - A lived dream's question card now asks "How was it?": five big stars (tap again to clear) with a dream caption (DM_RATE_CAP: I wish I hadn't … One of the best things I've done) and "A line looking back", then Save - no Edit mode. Once rated it shows the stars (a tap re-rates at once) and the line in italics with "change". Saves satisfaction and rating_note.
 - The stars also show under the stamp, only once rated (#dcHeadStars, read-only look, dream caption). The old epigraph line under the name is hidden on dreams; the "NOT YET LIVED" pill too (the eyebrow says it).

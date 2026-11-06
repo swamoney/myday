@@ -1986,12 +1986,13 @@
   .dm-stars b { font-size:1.9rem; color:#d9dfe9; cursor:pointer; line-height:1; transition:transform .1s; user-select:none; }
   .dm-stars b.on { color:#E0A526; }
   .dm-stars b:hover { transform:scale(1.12); }
-  .dm-scap { margin-left:10px; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; color:#8B97AC; text-transform:uppercase; }
+  .dm-scap { margin-left:10px; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; color:#5A6478; text-transform:uppercase; }
   .dm-lbl { display:block; font-family:var(--mono); font-size:0.6rem; letter-spacing:0.12em; color:#8B97AC; margin:14px 0 5px; text-transform:uppercase; }
   .dm-in.dm-noteIn { width:100%; max-width:520px; font-family:var(--serif); font-style:italic; font-size:1rem; background:#f6f8fb; }
   .dm-note { font-family:var(--serif); font-style:italic; font-size:1.05rem; color:#28324B; margin-top:10px; }
   .dm-note button { font-family:var(--sans); font-style:normal; font-size:0.75rem; border:0; background:none; color:#6b7589; text-decoration:underline; cursor:pointer; padding:0 2px; }
-  .dm-undo { text-align:right; margin-top:14px; }
+  .dm-lb { margin-top:14px; padding-top:12px; border-top:1px dashed color-mix(in srgb, var(--dm-ink,#2E7A4E) 30%, transparent); }
+  .dm-undo { display:flex; justify-content:flex-end; gap:14px; flex-wrap:wrap; margin-top:12px; }
   .dm-undo button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:#b4bdcc; background:none; border:0; padding:2px 0; cursor:pointer; }
   .dm-undo button:hover { color:#6b7589; text-decoration:underline; }
   #dcHeadStars.dm-ro .rstars b { cursor:default; }
@@ -11114,18 +11115,17 @@ function dmPaintFlow_(d) {
       b('p', 's:yes', 'Yes, I’m doing it') + b('s', 'ahead', 'Not now — back to someday') + b('l', 's:go', 'Let it go')];
   else if (st === 'wip') q = ['Did it happen?', 'When it does, mark it lived and it moves to your Lived list.',
       b('p', 's:lived', '✦ It happened!') + b('s', 'back-ask', 'Change of plan — back to making up my mind') + b('l', 's:go', 'Let it go')];
-  else if (st === 'lived') {   // R2 (6 Nov 2026): rate it and look back right here, no Edit; Undo is tiny
-    const rated = !!(Number(d.satisfaction) || (d.rating_note || '').trim()) && !dmRateEdit_;
-    const r = rated ? Number(d.satisfaction) || 0 : (dmRatePick_ == null ? Number(d.satisfaction) || 0 : dmRatePick_);
+  else if (st === 'lived') {   // R2 + N1 (6 Nov 2026): no heading, no box - stars, the line, then tiny links, on the plate itself
+    const r = Number(d.satisfaction) || 0, note = (d.rating_note || '').trim();
     const stars = '<div class="dm-stars">' + [1, 2, 3, 4, 5].map(i => '<b class="' + (i <= r ? 'on' : '') + '" data-dm="star:' + i + '" role="button" aria-label="' + i + ' star' + (i > 1 ? 's' : '') + '">\u2605</b>').join('')
       + '<span class="dm-scap">' + (r ? DM_RATE_CAP[r] : 'tap a star') + '</span></div>';
-    const undo = '<div class="dm-undo"><button type="button" data-dm="undo-lived">Undo \u2014 it hasn\u2019t happened yet</button></div>';
-    const note = (d.rating_note || '').trim();
-    q = rated
-      ? ['A dream come true.', 'How it was:', stars + (note ? '<div class="dm-note">\u201C' + escHtml(note) + '\u201D <button type="button" data-dm="rate-edit">change</button></div>' : '<div class="dm-note"><button type="button" data-dm="rate-edit">add a line looking back</button></div>') + undo]
-      : ['A dream come true.', 'How was it? Rate it and leave a line to remember it by.', stars
-          + '<label class="dm-lbl">A line looking back (optional)</label><input class="dm-in dm-noteIn" id="dmNote" maxlength="240" placeholder="What stayed with you?" value="' + escHtml(note) + '">'
-          + '<div class="dm-row" style="margin-top:12px">' + b('p', 'rate-save', 'Save') + (dmRateEdit_ ? b('l', 'rate-cancel', 'Cancel') : '') + '</div>' + undo];
+    const line = dmRateEdit_
+      ? '<input class="dm-in dm-noteIn" id="dmNote" maxlength="240" placeholder="A line looking back \u2014 what stayed with you?" value="' + escHtml(note) + '">'
+        + '<div class="dm-row" style="margin-top:10px">' + b('p', 'rate-save', 'Save') + b('l', 'rate-cancel', 'Cancel') + '</div>'
+      : (note ? '<div class="dm-note">\u201C' + escHtml(note) + '\u201D</div>' : '');
+    const tiny = '<div class="dm-undo">' + (dmRateEdit_ ? '' : '<button type="button" data-dm="rate-edit">' + (note ? 'Change the line' : 'Add a line looking back') + '</button>')
+      + '<button type="button" data-dm="undo-lived">Undo \u2014 it hasn\u2019t happened yet</button></div>';
+    q = ['', '', stars + line + tiny];
   }
   else q = ['You let this one go.', 'Walking away is also a choice.', b('s', 'revive', 'Bring it back as a dream')];
   const mi = (v) => '<input class="dm-in" id="dmMonth" type="month" value="' + escHtml(v || '') + '" placeholder="YYYY-MM">';
@@ -11141,8 +11141,8 @@ function dmPaintFlow_(d) {
   else if (dmSheet_ === 'lived') sh = '<h4>It happened! ✦</h4><label>When?</label>' + mi(new Date().toISOString().slice(0, 7)) + foot('save-lived', 'Save — move it to Lived');
   else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
   j.style.setProperty('--dm-ink', ink);
-  const qBody = st === 'lived' ? q[2] : '<div class="dm-row">' + q[2] + '</div>';
-  j.innerHTML = steps + '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p>' + qBody + '</div>'
+  j.innerHTML = steps + (st === 'lived' ? '<div class="dm-lb">' + q[2] + '</div>'
+    : '<div class="dm-q"><h4>' + q[0] + '</h4><p>' + q[1] + '</p><div class="dm-row">' + q[2] + '</div></div>')
     + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
   j.classList.remove('sea', 'moss', 'ash');
 }
@@ -11197,21 +11197,19 @@ async function dmClick_(e) {
   if (a === 'cancel') { if (popOpen) el('dmEditModal').classList.add('hidden'); else { dmSheet_ = ''; dmPaintFlow_(d); } return; }
   if (a.startsWith('how:')) { const h = a.slice(4); dmHowPick_ = dmHowPick_ === h ? '' : h;
     if (popOpen) el('dmEditBody').querySelectorAll('.dm-ch').forEach(c => c.classList.toggle('on', c.dataset.dm === 'how:' + dmHowPick_)); else dmPaintFlow_(d); return; }
-  if (a.startsWith('star:')) {
-    const i = Number(a.slice(5)), rated = !!(Number(d.satisfaction) || (d.rating_note || '').trim()) && !dmRateEdit_;
-    if (rated) { const nx = Number(d.satisfaction) === i ? null : i; await dmSave_(d, { satisfaction: nx }, nx ? 'Rated' : 'Rating cleared'); return; }
-    const keep = el('dmNote') ? el('dmNote').value : null;
-    const cur = dmRatePick_ == null ? Number(d.satisfaction) || 0 : dmRatePick_;
-    dmRatePick_ = cur === i ? 0 : i; dmPaintFlow_(d);
-    if (keep != null && el('dmNote')) el('dmNote').value = keep; return;
+  if (a.startsWith('star:')) {   // N1: a tap saves at once; the same star again clears it
+    const i = Number(a.slice(5)), nx = Number(d.satisfaction) === i ? null : i;
+    const keep = el('dmNote') ? el('dmNote').value : null, wasEdit = dmRateEdit_;
+    await dmSave_(d, { satisfaction: nx }, nx ? 'Rated' : 'Rating cleared');
+    if (wasEdit) { dmRateEdit_ = true; dmPaintFlow_(d); if (keep != null && el('dmNote')) el('dmNote').value = keep; }
+    return;
   }
   if (a === 'rate-edit') { dmRateEdit_ = true; dmRatePick_ = Number(d.satisfaction) || 0; dmPaintFlow_(d); const n = el('dmNote'); if (n) n.focus(); return; }
   if (a === 'rate-cancel') { dmRateEdit_ = false; dmRatePick_ = null; dmPaintFlow_(d); return; }
   if (a === 'rate-save') {
-    const sat = dmRatePick_ == null ? (Number(d.satisfaction) || null) : (dmRatePick_ || null);
     const note = ((el('dmNote') || {}).value || '').trim() || null;
-    dmRateEdit_ = false; dmRatePick_ = null;
-    await dmSave_(d, { satisfaction: sat, rating_note: note }, 'Saved'); return;
+    dmRateEdit_ = false;
+    await dmSave_(d, { rating_note: note }, note ? 'Saved' : 'Line cleared'); return;
   }
   if (a === 'save-edit') {
     const name = ((el('dmEN') || {}).value || '').trim();
