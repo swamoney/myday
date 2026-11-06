@@ -1994,6 +1994,16 @@
   .dm-note { font-family:var(--serif); font-style:italic; font-size:1.05rem; color:#28324B; margin-top:10px; }
   .dm-note button { font-family:var(--sans); font-style:normal; font-size:0.75rem; border:0; background:none; color:#6b7589; text-decoration:underline; cursor:pointer; padding:0 2px; }
   .dm-lb { margin-top:14px; padding-top:12px; border-top:1px dashed color-mix(in srgb, var(--dm-ink,#2E7A4E) 30%, transparent); }
+  .dm-ph { display:none; width:100%; text-align:left; margin-top:14px; align-items:center; gap:12px; border:1.5px dashed color-mix(in srgb, var(--dm-ink,#2E7A4E) 40%, #fff);
+        border-radius:12px; padding:12px 16px; color:var(--dm-ink,#2E7A4E); background:rgba(255,255,255,0.6); cursor:pointer; font-family:var(--sans); }
+  #dcWin.dm-nocover .dm-ph { display:flex; }
+  .dm-ph:hover { background:#fff; }
+  .dm-ph i { font-style:normal; font-size:1.35rem; }
+  .dm-ph b { display:block; font-size:0.9rem; }
+  .dm-ph small { color:#6b7589; font-size:0.78rem; }
+  .bp-card.wip.late .bp-cd { background:#B0721A; }   /* D */
+  .bp-card.wip.late { border-color:#ecd3a6; }
+  .dc-plate.bp.wip .bp-cd.late { background:#B0721A; }
   .dm-say { font-family:var(--serif); font-style:italic; font-size:1.08rem; color:#4b4540; }
   .dm-undo { display:flex; justify-content:flex-end; gap:14px; flex-wrap:wrap; margin-top:12px; }
   .dm-undo button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:#b4bdcc; background:none; border:0; padding:2px 0; cursor:pointer; }
@@ -10857,7 +10867,7 @@ function dcBucketHtml_() {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
     // W1 + E2 (6 Nov 2026): a decided dream is ON THE WAY; in the list the stamp shows when it should happen
     // (the road when undated) - the decided date stays on the dream's own page
-    if (st === 'wip') return card(d, st, 'ON THE WAY', t ? 'TO HAPPEN BY ' + monLong(t) : 'NO DATE YET', seal(st, 'ON THE', mon(t) || BP_ROAD, 'WAY'));
+    if (st === 'wip') return card(d, st + (dmLate_(d) ? ' late' : ''), 'ON THE WAY', t ? (dmLate_(d) ? 'WAS DUE ' : 'TO HAPPEN BY ') + monLong(t) : 'NO DATE YET', seal(st, 'ON THE', mon(t) || BP_ROAD, 'WAY'));   // D: amber once it slips
     if (st === 'ask') return card(d, st, t ? 'DECIDE BY ' + monLong(t) : 'MAKING UP MY MIND', t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET', seal(st, 'MAKING UP', mon(t) || '?', 'MY MIND'));
     return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || BP_ROAD, 'SOMEDAY'));
   };
@@ -11024,6 +11034,7 @@ function dcPaintPlate_(d) {
       stamp.innerHTML = m.seal; stamp.classList.add('bp-stamp');
       el('dcEyebrow').textContent = m.eb + (sealed || !qa.length ? '' : ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what);   // F2: no '0 / 0 PREPARED'
       if (cd && m.pill) { cd.textContent = m.pill; cd.classList.remove('hidden'); }
+      if (cd) cd.classList.toggle('late', dmLate_(d));   // D: the page pill goes amber too
     } else stamp.classList.remove('bp-stamp');
   }
 }
@@ -11045,7 +11056,7 @@ function dcDreamMarks_(d) {
     else { st = 'lived'; eb = 'LIVED' + (w ? ' ' + monLong(w) : '') + (dmHow_(d) ? ' \u00B7 ' + dmHow_(d) : ''); sl = seal(BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''); }
   } else if (dcIsWip_(d)) {
     st = 'wip'; eb = 'ON THE WAY' + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : '') + (dmHow_(d) ? ' \u00B7 ' + dmHow_(d) : '');   // W1 + F2
-    pill = t ? 'TO HAPPEN BY ' + monLong(t) : 'NO DATE YET'; sl = seal('ON THE', mon(t) || BP_ROAD, 'WAY');   // AU-10: the stamp shows when it happens, as in the list
+    pill = t ? (dmLate_(d) ? 'WAS DUE ' : 'TO HAPPEN BY ') + monLong(t) : 'NO DATE YET'; sl = seal('ON THE', mon(t) || BP_ROAD, 'WAY');   // AU-10: the stamp shows when it happens, as in the list
   } else if (dcDreamPending_(d)) {
     st = 'ask'; eb = t ? 'DECIDE BY ' + monLong(t) : 'MAKING UP MY MIND';   // F2 (6 Nov 2026): dream words
     pill = t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET'; sl = seal('MAKING UP', mon(t) || '?', 'MY MIND');
@@ -11095,6 +11106,8 @@ function dcPaintJourney_(d, sealed, wip) {
 let dmSheet_ = '', dmHowPick_ = '', dmFor_ = null, dmRatePick_ = null, dmRateEdit_ = false;
 const DM_RATE_CAP = { 1:'I wish I hadn\u2019t', 2:'Not worth it', 3:'It was fine', 4:'Glad I did', 5:'One of the best things I\u2019ve done' };
 function dmHow_(d) { return d.made === 'quick' ? 'WITH MY GUT' : (d.made === 'thoughtful' || d.made === 'care') ? 'TOOK MY TIME' : ''; }   // care is stored as 'thoughtful', as in My Decisions
+// D (6 Nov 2026): an On the way dream whose to-happen-by month has passed
+function dmLate_(d) { return dcIsWip_(d) && !!d.target_on && String(d.target_on).slice(0, 7) < new Date().toISOString().slice(0, 7); }
 function dmStage_(d) { return d.status === 'trail' ? (dcCanx_(d) ? 'canx' : 'lived') : dcIsWip_(d) ? 'wip' : dcDreamPending_(d) ? 'ask' : 'ahead'; }
 const DM_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const DM_FLAG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4"/><path d="M6 4h11l-2.5 4 2.5 4H6"/></svg>';
@@ -11117,6 +11130,11 @@ function dmPaintFlow_(d) {
       b('p', 's:ask', 'Start making up my mind') + b('s', 's:yes', 'Yes, I’m doing it')];
   else if (st === 'ask') q = ['Are you doing it?', 'Say yes and pick when it will happen, or let it go. Either answer is a decision.',
       b('p', 's:yes', 'Yes, I’m doing it') + b('s', 'ahead', 'Not now — back to someday') + b('l', 's:go', 'Let it go')];
+  else if (st === 'wip' && dmLate_(d)) {   // D: the nudge once the date has passed
+    const ml = new Date(String(d.target_on).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+    q = ['It was due ' + ml + '.', 'Did it happen, or does it need a new date?',
+      b('p', 's:lived', '\u2726 It happened!') + b('s', 's:redate', 'Pick a new month') + b('l', 's:go', 'Let it go')];
+  }
   else if (st === 'wip') q = ['Did it happen?', 'When it does, mark it lived and it moves to your Lived list.',
       b('p', 's:lived', '✦ It happened!') + b('s', 'back-ask', 'Change of plan — back to making up my mind') + b('l', 's:go', 'Let it go')];
   else if (st === 'lived') {   // R2 + N1 (6 Nov 2026): no heading, no box - stars, the line, then tiny links, on the plate itself
@@ -11129,7 +11147,8 @@ function dmPaintFlow_(d) {
       : (note ? '<div class="dm-note">\u201C' + escHtml(note) + '\u201D</div>' : '');
     const tiny = '<div class="dm-undo">' + (dmRateEdit_ ? '' : '<button type="button" data-dm="rate-edit">' + (note ? 'Change the line' : 'Add a line looking back') + '</button>')
       + '<button type="button" data-dm="undo-lived">Undo \u2014 it hasn\u2019t happened yet</button></div>';
-    q = ['', '', stars + line + tiny];
+    const photo = '<button type="button" class="dm-ph" data-dm="photo"><i aria-hidden="true">\uD83D\uDCF7</i><span><b>Add a photo from it</b><small>One picture you\u2019ll want to see in ten years.</small></span></button>';   // A
+    q = ['', '', stars + line + photo + tiny];
   }
   else {   // G2 (6 Nov 2026): let go, on the plate like Lived - a quiet sentence, an optional line about why, tiny links
     const note = (d.rating_note || '').trim();
@@ -11152,6 +11171,7 @@ function dmPaintFlow_(d) {
       + '<label>When will it happen? (optional)</label>' + mi(dmMonth_(d.target_on))
       + '<div class="dm-hint">Decided on is today; you can change it later in Edit.</div>' + foot('save-yes', 'Save — it’s on the way');
   else if (dmSheet_ === 'lived') sh = '<h4>It happened! ✦</h4><label>When?</label>' + mi(new Date().toISOString().slice(0, 7)) + foot('save-lived', 'Save — move it to Lived');
+  else if (dmSheet_ === 'redate') sh = '<h4>A new month</h4><label>To happen by</label>' + mi('') + foot('save-redate', 'Save');
   else if (dmSheet_ === 'go') sh = '<h4>Let it go?</h4><div class="dm-hint" style="margin-top:0">It moves to Lived as LET GO, this month. You can bring it back.</div>' + foot('save-go', 'Let it go', true);
   j.style.setProperty('--dm-ink', ink);
   j.innerHTML = steps + ((st === 'lived' || st === 'canx') ? '<div class="dm-lb">' + q[2] + '</div>'
@@ -11217,6 +11237,7 @@ async function dmClick_(e) {
     if (wasEdit) { dmRateEdit_ = true; dmPaintFlow_(d); if (keep != null && el('dmNote')) el('dmNote').value = keep; }
     return;
   }
+  if (a === 'photo') { if (window.MyAlbum && MyAlbum.pickCover) { const r = await MyAlbum.pickCover('decision', dcId); if (r) dcPaintCover_(); } return; }
   if (a === 'rate-edit') { dmRateEdit_ = true; dmRatePick_ = Number(d.satisfaction) || 0; dmPaintFlow_(d); const n = el('dmNote'); if (n) n.focus(); return; }
   if (a === 'rate-cancel') { dmRateEdit_ = false; dmRatePick_ = null; dmPaintFlow_(d); return; }
   if (a === 'rate-save') {
@@ -11237,7 +11258,8 @@ async function dmClick_(e) {
     el('dmEditModal').classList.add('hidden');
     await dmSave_(d, up, 'Saved'); return;
   }
-  const mv = (a === 'save-ask' || a === 'save-yes' || a === 'save-lived') ? dmMonthVal_() : null;
+  const mv = (a === 'save-ask' || a === 'save-yes' || a === 'save-lived' || a === 'save-redate') ? dmMonthVal_() : null;
+  if (a === 'save-redate') { if (!mv) { toast('Pick a month'); return; } await dmSave_(d, { target_on: mv }, 'New date set'); return; }
   if (mv === 'bad') { toast('That month could not be read — try 2027-05'); return; }
   if (a === 'save-ask') await dmSave_(d, { pending: true, target_on: mv }, 'Making up my mind');
   else if (a === 'save-yes') await dmSave_(d, { status: 'wip', pending: false, made: dmHowPick_ || null, decided_on: today, target_on: mv }, 'On the way!');
@@ -11297,12 +11319,13 @@ function dcPaintCoverFit_() {
 async function dcPaintCover_() {
   const win = el('dcWindow'), pic = el('dcPic'), post = el('dcPoster'); if (!win || !pic) return;
   dcCover_ = null; win.classList.add('empty'); post.classList.add('empty'); post.classList.remove('hand');
+  el('dcWin').classList.remove('dm-nocover');   // A: the photo tile waits until we know
   pic.style.backgroundImage = ''; el('dcHand').textContent = '';
   if (!(window.MyAlbum && window.MyAlbum.cover && userId && dcId !== null)) return;
   const id = dcId;
   try { dcCover_ = await MyAlbum.cover('decision', id); } catch (e) { dcCover_ = null; }
   if (String(id) !== String(dcId)) return;
-  if (!dcCover_ || !dcCover_.url) return;
+  if (!dcCover_ || !dcCover_.url) { el('dcWin').classList.add('dm-nocover'); return; }
   pic.style.backgroundImage = 'url("' + dcCover_.url + '")';
   el('dcHand').textContent = dcCover_.caption || '';
   post.classList.toggle('hand', !!(dcCover_.caption || '').trim());

@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## BP-A + D · A photo prompt on lived dreams; a nudge when a dream slips (6 Nov 2026)
+- A: a lived dream with no photo shows a dashed tile on the plate, "Add a photo from it", opening the photo picker (MyAlbum.pickCover) without Edit. Shown only once the cover has loaded and there is none (#dcWin.dm-nocover).
+- D: an On the way dream whose to-happen-by month is before this month (dmLate_) has an amber pill WAS DUE <Month Year> in the list and on its page, and its page asks "It was due <Month Year>. Did it happen, or does it need a new date?" with "✦ It happened!", "Pick a new month" (a month form, saves target_on) and Let it go.
+- Held: B (Lived by year), C (tally).
+- Trap: the photo tile shows on every old lived dream without a picture; amber is close to the Making up my mind colour.
+
 ## BP-AU · Bucket list audit: decision words out (6 Nov 2026)
 1. Dream page bar reads MY BUCKET LIST (#dcBarRoom).
 2. The "new points have joined your checklist" banner never shows on a dream.
