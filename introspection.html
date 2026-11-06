@@ -272,6 +272,7 @@
   .tpsum i { flex:1; height:1px; background:#d6dde8; } .tpsum span { font-size:0.5rem; }
   .tp-newbtn { display:inline-flex; align-items:center; gap:5px; font-family:var(--sans); font-size:0.625rem; font-weight:600; letter-spacing:0; padding:5px 10px; border-radius:8px; cursor:pointer; color:#fff; background:#2F6B8A; border:1px solid #2F6B8A; margin-left:4px; }
   .tp-newbtn svg { width:12px; height:12px; flex-shrink:0; }
+  .tp-newbtn, .tpsum { white-space:nowrap; } .tpsum span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
   /* TP-POP (7 Nov 2026): the New trip pop-up, shaped like A new decision in My Why */
   .tpm-ov { position:fixed; inset:0; z-index:240; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(18,26,44,0.55); backdrop-filter:blur(4px); }
   .tpm-ov.hidden { display:none; }
@@ -318,6 +319,7 @@
   .tpc-l small { display:block; font-family:var(--mono); font-size:0.45rem; letter-spacing:0.16em; text-transform:uppercase; color:#8B97AC; font-weight:600; margin-bottom:4px; }
   .tpc .tpc-wh { color:#8B97AC; font-size:0.55rem; }
   .tpc-mk { justify-self:end; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .tpn { display:none; }
 
   .tp-cost { display:inline-block; font-family:var(--mono); font-size:0.6rem; font-weight:800; letter-spacing:0.16em; color:var(--c); white-space:nowrap;
     border:2px solid var(--c); border-radius:4px; box-shadow:inset 0 0 0 1.5px #fff, inset 0 0 0 2.5px var(--c); padding:6px 10px; transform:rotate(-6deg); opacity:0.9; mix-blend-mode:multiply; }
@@ -902,7 +904,10 @@
   /* TP-FIT (7 Nov 2026): on the phone the two stamps sit in a fixed 64px column inside the card, so they can never
      spill out: an older rule had floated the days stamp and padded the title by 66px; both are cancelled here (last word) */
   @media (max-width:640px) {
-    .tpc { grid-template-columns:40px minmax(0,1fr) 64px; gap:8px; padding:12px 10px 12px 8px; }
+    .tpc { grid-template-columns:minmax(0,1fr) 64px; gap:8px; padding:12px 10px 12px 16px; position:relative; }
+    /* TP-M1 (7 Nov 2026): the number leaves its column and becomes a dark badge on the card's top-left corner */
+    .tpc-l { display:none; }
+    .tpc .tpn { display:flex; position:absolute; left:-10px; top:-10px; width:28px; height:28px; border-radius:50%; background:var(--a); color:#fff; align-items:center; justify-content:center; font-family:var(--serif); font-weight:700; font-size:0.85rem; box-shadow:0 2px 6px rgba(0,0,0,0.18); border:2px solid #fff; z-index:3; }
     .tpc .tpc-eb, .tpc .tpc-nm { padding-right:0; }
     .tpc-mk { width:64px; padding:0; justify-self:center; }
     .tpc .tpc-post { width:54px; height:62px; transform:rotate(-4deg); }
@@ -1959,7 +1964,8 @@ function renderTrips(list, wrap) {
       const dt = tripDate_(r.trip_from);
       const mon = dt && !isNaN(dt) ? dt.toLocaleDateString('en-GB', { month: 'short' }) + ' ’' + String(dt.getFullYear()).slice(2) : '';
       return '<div class="tpc" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
-        + '<div class="tpc-l"><small>Trip</small>' + ((idx[r.id] || 0) + 1) + '</div>'   // TP-R1 (7 Nov 2026): the trip's number where CHAPTER I sits
+        + '<div class="tpc-l"><small>Trip</small>' + ((idx[r.id] || 0) + 1) + '</div>'
+        + '<span class="tpn" aria-hidden="true">' + ((idx[r.id] || 0) + 1) + '</span>'   // TP-M1: the phone's corner badge   // TP-R1 (7 Nov 2026): the trip's number where CHAPTER I sits
         + '<div class="tpc-b">'
         + (dl ? '<div class="tpc-eb">' + escHtml(dl.toUpperCase()) + (dn ? ' · ' + dn : '') + '</div>' : '')
         + '<div class="tpc-nm">' + escHtml(r.title) + '</div>'

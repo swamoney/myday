@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## TP-M1 · Phone: the trip number as a corner badge (7 Nov 2026, introspection.html)
+- Phone only: the TRIP number column (.tpc-l) is hidden. The number becomes .tpn, a 28px circle filled in the trip ink with a white ring and a white numeral, on the card's top-left corner (-10px/-10px). The card grid is minmax(0,1fr) / 64px with 16px left padding. Desktop keeps the big TRIP number.
+- The caption line and the + New trip button don't wrap; the caption's right part trims with an ellipsis on narrow phones.
+
 ## TP-FIT · Trip stamps never spill out on a phone (7 Nov 2026, introspection.html)
 - Cause: an older phone rule (P1 plate era) still floated the days stamp (absolute, 60×70) and padded the date and title by 66px. Together with the rotation, the stamps could push past the card's right edge.
 - Fix: a last-word phone block. The card grid is 40px / minmax(0,1fr) / 64px. The stamp column is a fixed 64px, the days stamp is 54×62, both stamps tilt -4°, the tag is max 60px wide, and the old 66px padding is cancelled. Checked at 320, 360, 390 and 414px with a long title and two-word tags.
