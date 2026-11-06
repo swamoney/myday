@@ -8,6 +8,16 @@ Written August 2026.
 
 ---
 
+## DC-V1 · One flow, one set of words for decisions (6 Nov 2026)
+- A decision's page walks the dream flow's pattern in its own words (dcPaintFlow_): Thinking it through → Decided → It happened; exit Walked away. Step line with YOU ARE HERE / IN PROGRESS and the ripple, one question card, tiny ways back, all without Edit. Colours as before: gold, amethyst, sea glass, rose.
+- Thinking it through: "Have you decided?" → "Yes, I've decided" (How did you decide? I took my time / I went with my gut - required; Decided on; To happen by, optional). Tiny: Walk away from it (confirm).
+- Decided: "Did it happen?" → "✦ It happened" (the date form; the page stays open to rate). Slipped date: "It was due …" + Pick a new date. Tiny: Change my mind — back to thinking it through · Walk away from it.
+- It happened: stars (rate in place, DC_RATE_CAP; 1 = "wrong call, and I know it") and the line on the plate; tiny Change the line · Undo. Walked away: "Walking away is also a decision.", a line about why, tiny Bring it back.
+- Walked away has one meaning: walked away from the question. The stamp loses "DIDN'T WORK OUT"; a decision that went badly is It happened with low stars. "How did you decide?" no longer offers Cancelled (Edit details keeps "I walked away" for corrections).
+- Words everywhere: eyebrows (THINKING IT THROUGH · n / N ANSWERED; DECIDED <date> · TOOK MY TIME; IT HAPPENED <date>; WALKED AWAY <date>), stamps (THINKING IT THROUGH, DECIDED <date>, ✦ IT HAPPENED <date>, WALKED AWAY), list, exports (dcSummary_), Edit details, prompts and toasts. dcVerdictLong_ now returns Took my time / Went with my gut / Walked away. "Verdict", "sealed", "living it", "finalized" are gone from what you read.
+- Saved data unchanged; no SQL. The old "How was it decided?" box (#dcDecideModal) stays in the file, unused.
+- Trap: decisions marked walked away to mean "it failed" now read as walked away from the question; move them to It happened with a low rating if that was the meaning.
+
 ## DA · My Decisions audit fixes (6 Nov 2026)
 1-2. Copy / Download .md / Print use dcSummary_: "Pending · decide by …", "Work in progress · Finalized with care · … · to happen by …", "Walked away · …", "Finalized with … · happened …" (+ stars, + the line).
 3-4. Edit details on a work-in-progress decision shows Finalized on and How (no Happened, no Cancelled); the date label follows the stage (Decide by / To happen by / Target date (was)).

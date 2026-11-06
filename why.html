@@ -2005,6 +2005,8 @@
   .bp-card.wip.late .bp-cd { background:#B0721A; }   /* D */
   .bp-card.wip.late { border-color:#ecd3a6; }
   .dc-plate.bp.wip .bp-cd.late { background:#B0721A; }
+  .dm-sp i .dcf-spark { font-size:0.9rem; font-weight:700; line-height:1; }
+  .dm-sp.lv:not(.on) i .dcf-spark { color:#b9c2d1; }
   .dm-say { font-family:var(--serif); font-style:italic; font-size:1.08rem; color:#4b4540; }
   .dm-undo { display:flex; justify-content:flex-end; gap:14px; flex-wrap:wrap; margin-top:12px; }
   .dm-undo button { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:#b4bdcc; background:none; border:0; padding:2px 0; cursor:pointer; }
@@ -3602,7 +3604,7 @@
     <div class="dc-journey" id="dcJourney"></div>
     <div class="dc-meta" id="dcMeta"></div>
     <!-- D1: the details door sits right under the things it edits - above the picture, the board, everything -->
-    <button class="dc-back dc-details" id="dcDetailsBtn" type="button">&#9998; Edit details &mdash; name, dates, verdict</button>
+    <button class="dc-back dc-details" id="dcDetailsBtn" type="button">&#9998; Edit details &mdash; name, dates, how</button>
     </div>
     <!-- T1: the marks - the stamp (in progress), the seal, and the date stacked beneath it -->
     <div class="dc-plate-side">
@@ -3719,19 +3721,19 @@
     <div class="fld"><label>The decision</label><input id="dcEName" maxlength="180"></div>
     <div class="fld"><label>Target date</label><input type="date" id="dcETarget"></div>
     <div id="dcESealedWrap">
-      <div class="fld"><label>Decision finalized on</label><input type="date" id="dcEWhen"></div>
+      <div class="fld"><label>Decided on</label><input type="date" id="dcEWhen"></div>
       <div class="fld"><label>Happened on</label><input type="date" id="dcEHap">
         <div class="dc-sub">optional &mdash; the day it came true</div></div>
-      <div class="fld"><label>How was it decided?</label><div class="dc-mchoice" id="dcEMade">
-        <button data-m="thoughtful" type="button">Finalized with care</button>
-        <button data-m="quick" type="button">Finalized with my gut</button>
-        <button data-m="cancelled" type="button">Cancelled</button>
+      <div class="fld"><label>How did you decide?</label><div class="dc-mchoice" id="dcEMade">
+        <button data-m="thoughtful" type="button">I took my time</button>
+        <button data-m="quick" type="button">I went with my gut</button>
+        <button data-m="cancelled" type="button">I walked away</button>
       </div></div>
     </div>
     <div class="modal-actions">
       <button class="btn-primary" id="dcESave" type="button">Save</button>
       <button class="btn-ghost" id="dcECancel" type="button">Cancel</button>
-      <button class="btn-ghost hidden" id="dcEUndecide" type="button" style="margin-left:auto; color:#9a4a2e;">Back to pending</button>
+      <button class="btn-ghost hidden" id="dcEUndecide" type="button" style="margin-left:auto; color:#9a4a2e;">Back to thinking it through</button>
     </div>
   </div>
 </div>
@@ -10710,7 +10712,7 @@ const DC_DEFAULT_POINTS = [
   'Will this matter in five years?',
   'What would I need to see to change my mind?'
 ];
-const DC_RATE_CAP = { 1:'wrong turn, and I know it', 2:'rougher than hoped', 3:'it worked out okay',
+const DC_RATE_CAP = { 1:'wrong call, and I know it', 2:'rougher than hoped', 3:'it worked out okay',
                       4:'a good call', 5:'one of the best calls I have made' };
 async function loadDecisions() {
   const [d, p] = await Promise.all([
@@ -10735,8 +10737,8 @@ function dcVerdict_(d) {
        : d.made === 'quick' ? 'FINALIZED WITH MY GUT' : 'FINALIZED WITH CARE';
 }
 function dcVerdictLong_(d) {
-  return d.made === 'cancelled' ? 'Cancelled'
-       : d.made === 'quick' ? 'Finalized with my gut' : 'Finalized with care';
+  return d.made === 'cancelled' ? 'Walked away'   // V1: one set of words
+       : d.made === 'quick' ? 'Went with my gut' : 'Took my time';
 }
 function dcCanx_(d) { return d.made === 'cancelled'; }
 function dcDonut_(n, total) {
@@ -10834,18 +10836,18 @@ function dcLedgerHtml_() {
   }).join('');
   h += wip.map(d => {
     const lived = d.decided_on ? days(d.decided_on, today) : null;
-    return og('wip', entry(d, 'wip', U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : ''),
-      'LIVING IT' + (lived != null && lived >= 0 ? ' · ' + lived + (lived === 1 ? ' DAY' : ' DAYS') : '') + (d.target_on ? ' · TO HAPPEN BY ' + U(dcFmt_(d.target_on)) : ''), ''));
+    return og('wip', entry(d, 'wip', 'DECIDED' + (d.decided_on ? ' ' + U(dcFmt_(d.decided_on)) : '') + ' · ' + U(dcVerdictLong_(d)),
+      'IN PROGRESS' + (lived != null && lived >= 0 ? ' · ' + lived + (lived === 1 ? ' DAY' : ' DAYS') : '') + (d.target_on ? ' · TO HAPPEN BY ' + U(dcFmt_(d.target_on)) : ''), ''));
   }).join('');
   h += divider('Past decisions', trail.length + (trail.length === 1 ? ' decision' : ' decisions') + (trail.length ? ' · since ' + String(trail[trail.length - 1].decided_on || trail[trail.length - 1].created_at || '').slice(0, 4) : ''));
   h += trail.map(d => {
     const canx = dcCanx_(d), r = Number(d.satisfaction) || 0;
     // Y (4 Nov 2026): the small line keeps only what the stamp doesn't say in full
-    const eb = (canx ? 'WALKED AWAY' + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '') : d.happened_on ? 'LIVED ' + U(dcFmt_(d.happened_on)) : 'NOT YET LIVED');
-    const meta = canx ? 'DIDN\u2019T WORK OUT' : U(dcVerdictLong_(d)) + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '');
+    const eb = (canx ? 'WALKED AWAY' + (d.decided_on ? ' · ' + U(dcFmt_(d.decided_on)) : '') : 'IT HAPPENED' + ((d.happened_on || d.decided_on) ? ' ' + U(dcFmt_(d.happened_on || d.decided_on)) : ''));   // V1
+    const meta = canx ? 'FROM THE QUESTION' : 'DECIDED' + (d.decided_on ? ' ' + U(dcFmt_(d.decided_on)) : '') + ' · ' + U(dcVerdictLong_(d));
     return entry(d, canx ? 'canx' : 'lived', eb, meta, (d.rating_note || '').trim());
   }).join('');
-  if (!trail.length) h += '<div class="dcl-empty">no decisions sealed yet</div>';
+  if (!trail.length) h += '<div class="dcl-empty">nothing on the trail yet</div>';
   return h + '</div>';
 }
 // BP-1 (4 Nov 2026, B1): My Bucket List as a passport of dreams - each dream a card on its state's paper with a
@@ -10974,7 +10976,7 @@ function renderDecisions() {
       if (y !== lastY) { out += '<div class="dc-yr"><b>' + escHtml(y) + '</b><i></i><span>' + trail.filter(x => yOf(x) === y).length + ' SEALED</span></div>'; lastY = y; }
       out += dcRowHtml_(d);
     });
-    el('dcTrailList').innerHTML = out || '<div class="dc-empty">' + (dcFilter_ === 'dream' ? 'no dreams lived yet' : 'no decisions sealed yet') + '</div>';
+    el('dcTrailList').innerHTML = out || '<div class="dc-empty">' + (dcFilter_ === 'dream' ? 'no dreams lived yet' : 'nothing on the trail yet') + '</div>';
   }
 
   dcWireList_();
@@ -11023,11 +11025,11 @@ function dcPaintPlate_(d) {
     const kind = dream ? 'DREAM' : 'DECISION';
     const n = dcAnswered_(d), what = (dream && !dcDreamPending_(d) && !wip && !sealed) ? 'PREPARED' : 'ANSWERED';
     el('dcEyebrow').textContent =
-      sealed ? ((dream ? kind + ' \u00B7 ' : '') + 'THE TRAIL \u00B7 ' + (canx ? 'WALKED AWAY' : 'LIVED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : '')
+      sealed ? ((dream ? kind + ' \u00B7 THE TRAIL \u00B7 ' : '') + (canx ? 'WALKED AWAY' : dream ? 'LIVED' : 'IT HAPPENED') + (d.happened_on || d.decided_on ? ' ' + dcFmt_(d.happened_on || d.decided_on).toUpperCase() : '')
                 + (d.target_on ? ' \u00B7 TARGET WAS ' + dcFmt_(d.target_on).toUpperCase() : ''))   // O4: the original target, folded in as a reference
-      : wip ? ('WORK IN PROGRESS \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : ''))
+      : wip ? ('DECIDED' + (d.decided_on ? ' ' + dcFmt_(d.decided_on).toUpperCase() : '') + ' \u00B7 ' + dcVerdictLong_(d).toUpperCase())
       // DA-9: no DECISION · inside My Decisions
-      : ((dream ? kind + ' \u00B7 ' : '') + ((dream && !dcDreamPending_(d)) ? 'AHEAD' : 'ON THE DESK') + ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what
+      : ((dream ? kind + ' \u00B7 ' : '') + ((dream && !dcDreamPending_(d)) ? 'AHEAD' : dream ? 'ON THE DESK' : 'THINKING IT THROUGH') + ' \u00B7 ' + n + ' / ' + qa.length + ' ' + what
          + (d.qset && DC_SET_LABEL[d.qset] && d.qset !== 'new' ? ' \u00B7 ' + DC_SET_LABEL[d.qset] : ''));
     // BP-2 (4 Nov 2026): a dream's page heading wears its Bucket List card - the state's paper, the same eyebrow
     // and countdown pill, and the round passport stamp (no rubber stamp, no wax seal). Decisions are untouched.
@@ -11083,6 +11085,7 @@ function dcPaintJourney_(d, sealed, wip) {
   const j = el('dcJourney'); if (!j) return;
   j.classList.toggle('dm', dcIsDream_(d));
   if (dcIsDream_(d)) { dmPaintFlow_(d); return; }   // F2: a dream walks its own flow
+  dcPaintFlow_(d); return;   // V1: a decision walks its own
   const dream = dcIsDream_(d), canx = dcCanx_(d), pend = dcDreamPending_(d);
   const seg = (cls, act, txt) => '<button type="button" class="dc-jseg ' + cls + '"' + (act ? ' data-jact="' + act + '"' : ' disabled') + '>' + txt + '</button>';
   const decidedTxt = '\u2713 DECIDED' + (d.made && d.made !== 'cancelled' ? ' \u00B7 ' + (d.made === 'quick' ? 'WITH MY GUT' : 'WITH CARE') : '') + (d.decided_on ? ' \u00B7 ' + dcFmt_(d.decided_on).toUpperCase() : '');
@@ -11281,7 +11284,96 @@ async function dmClick_(e) {
   else if (a === 'undo-lived') await dmSave_(d, { status: 'wip', happened_on: null }, 'Back on the way');
   else if (a === 'revive') await dmSave_(d, { status: 'desk', made: null, decided_on: null, pending: false, rating_note: null }, 'Back as a dream');   // the line about why goes with it, so it never turns into a line looking back
 }
+// ===== V1 (6 Nov 2026): a decision's flow - Thinking it through -> Decided -> It happened; exit: Walked away =====
+// Same pattern as the dream flow (step line, one question card, tiny ways back, the rating on the plate),
+// in the decision's own words. Saved fields are unchanged: status desk / wip / trail, made, decided_on, target_on, happened_on.
+let dcfSheet_ = '', dcfHow_ = '', dcfFor_ = null, dcfLineEdit_ = false;
+const DCF_INK = { a:'#b07d1f', b:'#5b4a86', c:'#1F6E78', x:'#a8323f' };
+function dcfStage_(d) { return d.status === 'trail' ? (dcCanx_(d) ? 'x' : 'c') : dcIsWip_(d) ? 'b' : 'a'; }
+function dcPaintFlow_(d) {
+  const j = el('dcJourney');
+  if (dcfFor_ !== d.id) { dcfSheet_ = ''; dcfHow_ = ''; dcfLineEdit_ = false; dcfFor_ = d.id; }
+  const st = dcfStage_(d), ink = DCF_INK[st];
+  const ORDER = ['a', 'b', 'c'], NAME = { a:'Thinking it through', b:'Decided', c:'It happened' };
+  const at = st === 'x' ? -1 : ORDER.indexOf(st);
+  const steps = '<div class="dm-steps">' + ORDER.map((k, i) => {
+    const lv = k === 'c', cls = st === 'x' ? (i === 0 ? 'dn' : '') : i < at ? 'dn' : i === at ? 'on' : '';
+    const inner = lv ? '<b class="dcf-spark">✦</b>' : cls === 'dn' ? DM_TICK : '';
+    const tag = cls === 'on' && !lv ? '<em>' + (k === 'b' ? 'IN PROGRESS' : 'YOU ARE HERE') + '</em>' : '';
+    return '<div class="dm-sp ' + cls + (lv ? ' lv' : '') + '"><i>' + inner + '</i><span class="nm">' + NAME[k] + '</span>' + tag + '</div>';
+  }).join('') + '</div>';
+  const b = (cls, act, txt) => '<button type="button" class="dm-bt ' + cls + '" data-dcf="' + act + '">' + txt + '</button>';
+  const tiny = a => '<div class="dm-undo">' + a.map(x => '<button type="button" data-dcf="' + x[0] + '">' + x[1] + '</button>').join('') + '</div>';
+  const today = new Date().toISOString().slice(0, 10);
+  let body = '';
+  const note = (d.rating_note || '').trim();
+  const lineIn = (ph) => '<input class="dm-in dm-noteIn" id="dcfNote" maxlength="240" placeholder="' + ph + '" value="' + escHtml(note) + '">'
+    + '<div class="dm-row" style="margin-top:10px">' + b('p', 'line-save', 'Save') + b('l', 'line-cancel', 'Cancel') + '</div>';
+  if (st === 'a') {
+    body = '<div class="dm-q"><h4>Have you decided?</h4><p>Answer the questions below when you’re ready, then make the call.</p><div class="dm-row">'
+      + b('p', 's:yes', 'Yes, I’ve decided') + '</div>' + tiny([['s:walk', 'Walk away from it']]) + '</div>';
+  } else if (st === 'b') {
+    const late = dmLate_(d);
+    const ml = late ? new Date(String(d.target_on).slice(0, 10) + 'T00:00:00').toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : '';
+    body = '<div class="dm-q"><h4>' + (late ? 'It was due ' + ml + '.' : 'Did it happen?') + '</h4><p>' + (late ? 'Did it happen, or does it need a new date?' : 'When it does, mark it and it moves to the trail.') + '</p><div class="dm-row">'
+      + b('p', 'hap', '✦ It happened') + (late ? b('s', 's:redate', 'Pick a new date') : '') + '</div>'
+      + tiny([['back', 'Change my mind — back to thinking it through'], ['s:walk', 'Walk away from it']]) + '</div>';
+  } else if (st === 'c') {
+    const r = Number(d.satisfaction) || 0;
+    const stars = '<div class="dm-stars">' + [1, 2, 3, 4, 5].map(i => '<b class="' + (i <= r ? 'on' : '') + '" data-dcf="star:' + i + '" role="button" aria-label="' + i + ' star' + (i > 1 ? 's' : '') + '">★</b>').join('')
+      + '<span class="dm-scap">' + (r ? DC_RATE_CAP[r] : 'how did it turn out? tap a star') + '</span></div>';
+    body = '<div class="dm-lb">' + stars + (dcfLineEdit_ ? lineIn('A line looking back — what the years taught') : (note ? '<div class="dm-note">“' + escHtml(note) + '”</div>' : ''))
+      + tiny((dcfLineEdit_ ? [] : [['line-edit', note ? 'Change the line' : 'Add a line looking back']]).concat([['unhap', 'Undo — it hasn’t happened yet']])) + '</div>';
+  } else {
+    body = '<div class="dm-lb"><div class="dm-say">Walking away is also a decision.</div>' + (dcfLineEdit_ ? lineIn('A line about why you walked away') : (note ? '<div class="dm-note">“' + escHtml(note) + '”</div>' : ''))
+      + tiny((dcfLineEdit_ ? [] : [['line-edit', note ? 'Change the line' : 'Add a line about why']]).concat([['revive', 'Bring it back to thinking it through']])) + '</div>';
+  }
+  let sh = '';
+  const foot = (act, txt, danger) => '<div class="dm-row">' + b('p' + (danger ? ' danger' : ''), act, txt) + b('l', 'cancel', danger ? 'Keep it' : 'Cancel') + '</div>';
+  if (dcfSheet_ === 'yes') sh = '<h4>Yes, I’ve decided</h4><label>How did you decide?</label><div class="dm-chips">'
+      + '<button type="button" class="dm-ch' + (dcfHow_ === 'thoughtful' ? ' on' : '') + '" data-dcf="how:thoughtful">I took my time</button>'
+      + '<button type="button" class="dm-ch' + (dcfHow_ === 'quick' ? ' on' : '') + '" data-dcf="how:quick">I went with my gut</button></div>'
+      + '<div class="dm-two"><div><label>Decided on</label><input class="dm-in" id="dcfWhen" type="date" value="' + today + '"></div>'
+      + '<div><label>To happen by (optional)</label><input class="dm-in" id="dcfBy" type="date"></div></div>' + foot('save-yes', 'Save');
+  else if (dcfSheet_ === 'walk') sh = '<h4>Walk away from it?</h4><div class="dm-hint" style="margin-top:0">The question no longer needs an answer. It moves to the trail as WALKED AWAY; your answers stay.</div>' + foot('save-walk', 'Walk away', true);
+  else if (dcfSheet_ === 'redate') sh = '<h4>A new date</h4><label>To happen by</label><input class="dm-in" id="dcfBy" type="date">' + foot('save-redate', 'Save');
+  j.style.setProperty('--dm-ink', ink);
+  j.classList.add('dm');
+  j.innerHTML = steps + body + (sh ? '<div class="dm-sheet">' + sh + '</div>' : '');
+  j.classList.remove('sea', 'moss', 'ash');
+}
+async function dcfSave_(d, patch, msg) {
+  const { error } = await supa.from('why_decisions').update(patch).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not save that'); return false; }
+  Object.assign(d, patch); dcfSheet_ = ''; dcfHow_ = ''; dcfLineEdit_ = false;
+  openDecision(d.id); renderDecisions(); if (msg) toast(msg);
+  return true;
+}
 el('dcJourney').addEventListener('click', dmClick_);
+el('dcJourney').addEventListener('click', async e => {
+  const t = e.target.closest('[data-dcf]'); if (!t) return;
+  const d = dcRow_(); if (!d || dcIsDream_(d)) return;
+  const a = t.dataset.dcf, today = new Date().toISOString().slice(0, 10);
+  if (a.startsWith('s:')) { dcfSheet_ = a.slice(2); dcPaintFlow_(d); return; }
+  if (a === 'cancel') { dcfSheet_ = ''; dcPaintFlow_(d); return; }
+  if (a.startsWith('how:')) { const h = a.slice(4); dcfHow_ = dcfHow_ === h ? '' : h; const keepW = (el('dcfWhen') || {}).value, keepB = (el('dcfBy') || {}).value; dcPaintFlow_(d); if (el('dcfWhen') && keepW) el('dcfWhen').value = keepW; if (el('dcfBy') && keepB) el('dcfBy').value = keepB; return; }
+  if (a === 'save-yes') {
+    if (!dcfHow_) { toast('Took your time, or went with your gut?'); return; }
+    const when = (el('dcfWhen') || {}).value || today, by = (el('dcfBy') || {}).value || null;
+    await dcfSave_(d, { status: 'wip', made: dcfHow_, decided_on: when, target_on: by, answers: d.answers }, 'Decided — in progress'); return;
+  }
+  if (a === 'save-walk') { await dcfSave_(d, { status: 'trail', made: 'cancelled', decided_on: today, happened_on: null }, 'Walked away — it rests in the trail'); return; }
+  if (a === 'save-redate') { const by = (el('dcfBy') || {}).value; if (!by) { toast('Pick a date'); return; } await dcfSave_(d, { target_on: by }, 'New date set'); return; }
+  if (a === 'hap') { el('dcLivedBtn').click(); return; }
+  if (a === 'back') { if (!confirm('Back to thinking it through? Its answers stay.')) return; await dcfSave_(d, { status: 'desk', made: null, decided_on: null }, 'Back to thinking it through'); return; }
+  if (a === 'unhap') { await dcfSave_(d, { status: 'wip', happened_on: null }, 'Back in progress'); return; }
+  if (a === 'revive') { await dcfSave_(d, { status: 'desk', made: null, decided_on: null, rating_note: null }, 'Back to thinking it through'); return; }
+  if (a.startsWith('star:')) { const i = Number(a.slice(5)), nx = Number(d.satisfaction) === i ? null : i; await dcfSave_(d, { satisfaction: nx }, nx ? 'Rated' : 'Rating cleared'); return; }
+  if (a === 'line-edit') { dcfLineEdit_ = true; dcPaintFlow_(d); const n = el('dcfNote'); if (n) n.focus(); return; }
+  if (a === 'line-cancel') { dcfLineEdit_ = false; dcPaintFlow_(d); return; }
+  if (a === 'line-save') { const v = ((el('dcfNote') || {}).value || '').trim() || null; await dcfSave_(d, { rating_note: v }, v ? 'Saved' : 'Line cleared'); return; }
+});
+
 el('dmEditModal').addEventListener('click', e => { if (e.target === el('dmEditModal')) { el('dmEditModal').classList.add('hidden'); return; } dmClick_(e); });
 el('dcJourney').addEventListener('click', e => {
   const b = e.target.closest('[data-jact]'); if (!b) return;
@@ -11304,16 +11396,15 @@ function dcStampWalked_() {
   return '<svg viewBox="0 0 120 70" aria-hidden="true">' +
     '<rect x="4" y="4" width="112" height="62" rx="4" fill="none" stroke="' + ink + '" stroke-width="3.5" stroke-dasharray="60 2 40 3 80 2" opacity="0.9"/>' +
     '<rect x="10" y="10" width="100" height="50" rx="2" fill="none" stroke="' + ink + '" stroke-width="1.2" opacity="0.85"/>' +
-    '<text x="60" y="33" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="11" font-weight="700" letter-spacing="1.6" fill="' + ink + '" opacity="0.92">WALKED AWAY</text>' +
-    '<line x1="22" y1="40" x2="98" y2="40" stroke="' + ink + '" stroke-width="0.8" opacity="0.7"/>' +
-    '<text x="60" y="51" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="7.5" font-weight="700" letter-spacing="1.2" fill="' + ink + '" opacity="0.92">DIDN\u2019T WORK OUT</text></svg>';
+    '<text x="60" y="40" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="12" font-weight="700" letter-spacing="1.8" fill="' + ink + '" opacity="0.92">WALKED AWAY</text></svg>';   // V1: one meaning only - walked away from the question
 }
 function dcStampFor_(d, sealed, wip, ink) {
   const dream = dcIsDream_(d), canx = dcCanx_(d);
-  if (sealed) return canx ? dcStampWalked_() : dcStampSvg_('\u2726 LIVED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#1F6E78', true);
-  if (wip) return dcStampSvg_('WORK IN', 'PROGRESS', dream ? '#2B4C9B' : '#5b4a86');   // O3: amethyst for a decision
+  // V1 (6 Nov 2026): decision stamps in the flow's words - THINKING IT THROUGH, DECIDED, IT HAPPENED, WALKED AWAY
+  if (sealed) return canx ? dcStampWalked_() : dcStampSvg_('\u2726 IT HAPPENED', d.happened_on ? escHtml(dcFmt_(d.happened_on).toUpperCase()) : '', ink || '#1F6E78', true);
+  if (wip) return dream ? dcStampSvg_('WORK IN', 'PROGRESS', '#2B4C9B') : dcStampSvg_('DECIDED', d.decided_on ? escHtml(dcFmt_(d.decided_on).toUpperCase()) : '', '#5b4a86', true);
   if (dream && !dcDreamPending_(d)) return dcStampSvg_('A DREAM', 'AHEAD', '#2F6F6A');
-  return dcStampSvg_('DECISION', 'PENDING', dream ? '#9a4a2e' : '#9a6a12');           // O3: gold-brown for a decision
+  return dream ? dcStampSvg_('DECISION', 'PENDING', '#9a4a2e') : dcStampSvg_('THINKING IT', 'THROUGH', '#9a6a12');
 }
 // ===== H1: the picture that stands for a dream or decision - the roadmap's poster, room 'decision' =====
 let dcCover_ = null;
@@ -11470,11 +11561,11 @@ function openDecision(id) {
   el('dcRateBox').classList.toggle('hidden', !(sealed && !dcCanx_(d)));
   el('dcHeadStars').classList.toggle('hidden', !(sealed && !dcCanx_(d)));
   if (sealed) dcRatePaint_();
-  if (dcIsDream_(d)) {   // R2: on a dream the line lives in the card; the stars under the stamp show only once rated
+  if (true) {   // R2 + V1: the line and the rating live in the flow; the stars under the stamp show only once rated
     el('dcRateBox').classList.add('hidden');
     el('dcHeadStars').classList.toggle('hidden', !(sealed && !dcCanx_(d) && Number(d.satisfaction)));
     el('dcHeadStars').classList.add('dm-ro');
-    if (Number(d.satisfaction)) el('dcRateCap').textContent = DM_RATE_CAP[Number(d.satisfaction)];
+    if (Number(d.satisfaction)) el('dcRateCap').textContent = (dcIsDream_(d) ? DM_RATE_CAP : DC_RATE_CAP)[Number(d.satisfaction)];
   } else el('dcHeadStars').classList.remove('dm-ro');
   const miss = (sealed || wip || dcIsDream_(d)) ? [] : dcMissing_(d);   // DA-5: only a pending decision gathers new points   // AU-2: the decisions checklist never asks a dream
   el('dcCatch').classList.toggle('hidden', !miss.length);
@@ -11554,9 +11645,9 @@ function dcSummary_(d) {
   const F = x => x ? dcFmtLong_(x) : '', stars = Number(d.satisfaction) ? ' \u00B7 ' + '\u2605'.repeat(d.satisfaction) + '\u2606'.repeat(5 - d.satisfaction) : '';
   if (d.status === 'trail') return dcCanx_(d)
     ? 'Walked away' + (d.decided_on ? ' \u00B7 ' + F(d.decided_on) : '') + stars
-    : dcVerdictLong_(d) + (d.decided_on ? ' \u00B7 ' + F(d.decided_on) : '') + (d.happened_on ? ' \u00B7 happened ' + F(d.happened_on) : '') + stars;
-  if (dcIsWip_(d)) return 'Work in progress \u00B7 ' + dcVerdictLong_(d) + (d.decided_on ? ' \u00B7 ' + F(d.decided_on) : '') + (d.target_on ? ' \u00B7 to happen by ' + F(d.target_on) : '');
-  return 'Pending' + (d.target_on ? ' \u00B7 decide by ' + F(d.target_on) : '');
+    : 'It happened' + ((d.happened_on || d.decided_on) ? ' ' + F(d.happened_on || d.decided_on) : '') + (d.decided_on ? ' \u00B7 decided ' + F(d.decided_on) : '') + ' \u00B7 ' + dcVerdictLong_(d).toLowerCase() + stars;
+  if (dcIsWip_(d)) return 'Decided' + (d.decided_on ? ' ' + F(d.decided_on) : '') + ' \u00B7 ' + dcVerdictLong_(d).toLowerCase() + (d.target_on ? ' \u00B7 to happen by ' + F(d.target_on) : '');
+  return 'Thinking it through' + (d.target_on ? ' \u00B7 decide by ' + F(d.target_on) : '');
 }
 function dcMd_(d) {
   if (dcIsDream_(d)) {   // AU-5: no desk, target or verdict on a dream
@@ -11638,7 +11729,7 @@ el('dcRateNote').addEventListener('keydown', e => { if (e.key === 'Enter') { e.p
 el('dcRateStars').querySelectorAll('b').forEach((s, i) =>
   s.addEventListener('click', async () => {
     const d = dcRow_(); if (!d || d.status !== 'trail') return;
-    if (dcIsDream_(d) && !el('dcWin').classList.contains('dc-editing')) return;   // a dream rates in its card
+    if (!el('dcWin').classList.contains('dc-editing')) return;   // R2 + V1: both rate in the flow; here only in Edit
     const next = (Number(d.satisfaction) === i + 1) ? null : i + 1;   // DA-12: rate in place, no Edit
     const { error } = await supa.from('why_decisions').update({ satisfaction: next })
       .eq('id', d.id).eq('user_id', userId);
@@ -11692,7 +11783,7 @@ el('dcFSave').addEventListener('click', async () => {
   el('dcNewModal').classList.add('hidden');
   dcRows.unshift(data); renderDecisions();
   openDecision(data.id);
-  toast(dcFKindPick === 'dream' ? 'Added \u2014 someday' : 'On the desk \u2014 walk the points when ready');
+  toast(dcFKindPick === 'dream' ? 'Added \u2014 someday' : 'Thinking it through \u2014 answer the questions when ready');
 });
 let dcMadePick = null;
 function dcHistCheck_() {
@@ -11737,15 +11828,15 @@ el('dcHapSave').addEventListener('click', async () => {
   const { error } = await supa.from('why_decisions').update({ status: 'trail', happened_on: hap }).eq('id', d.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not save it'); return; }
   d.status = 'trail'; d.happened_on = hap;
-  dcClose_(); toast('It happened \u2014 it walks to the trail');
+  openDecision(d.id); renderDecisions(); toast('It happened \u2014 now, how did it turn out?');   // V1: stay, so it can be rated
 });
 el('dcUndecideBtn').addEventListener('click', async () => {
   const d = dcRow_(); if (!d) return;
-  if (!confirm('Take the verdict back? "' + (d.title || '').slice(0, 60) + '" returns to the desk as pending; its answers stay.')) return;
+  if (!confirm('Back to thinking it through? "' + (d.title || '').slice(0, 60) + '" keeps its answers.')) return;
   const { error } = await supa.from('why_decisions').update({ status: 'desk', made: null, decided_on: null }).eq('id', d.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not undo it'); return; }
   d.status = 'desk'; d.made = null; d.decided_on = null;
-  openDecision(d.id); toast('Back on the desk');
+  openDecision(d.id); toast('Back to thinking it through');
 });
 el('dcMade').addEventListener('click', e => {
   const b = e.target.closest('[data-m]'); if (!b) return;
@@ -12097,8 +12188,8 @@ async function dcDeleteRow_(d, fromPage) {
   const sealed = d.status === 'trail';
   const msg = dcIsDream_(d) ? ('Remove \u201C' + d.title + '\u201D? Its story, photo and notes go with it \u2014 forever.')   // AU-4
     : sealed
-    ? ('This is the historical record. Removing "' + d.title + '" erases the sealed answers, the verdict ('
-       + dcVerdictLong_(d) + ')'
+    ? ('This is your record. Removing "' + d.title + '" erases its answers, how you decided ('
+       + dcVerdictLong_(d).toLowerCase() + ')'
        + (Number(d.satisfaction) ? ' and the ' + d.satisfaction + '-star rating' : '')
        + ' \u2014 forever. Remove it?')
     : dcIsWip_(d) ? ('Remove "' + d.title + '"? It is decided and in progress; its answers and story go with it.')   // DA-6
@@ -12110,7 +12201,7 @@ async function dcDeleteRow_(d, fromPage) {
   if (error) { console.error(error); toast('Could not remove it'); return false; }
   dcRows = dcRows.filter(x => String(x.id) !== String(d.id));
   if (fromPage) dcClose_(); else renderDecisions();
-  toast(sealed ? 'Removed from the trail' : 'Removed \u2014 the desk forgets, the trail never knew');
+  toast(sealed ? 'Removed from the trail' : 'Removed');
   return true;
 }
 el('dcDelBtn').addEventListener('click', async () => { const d = dcRow_(); if (d) dcDeleteRow_(d, true); });
