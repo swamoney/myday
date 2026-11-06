@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TP-TELL · The "TOLD AS" pill is removed (7 Nov 2026, introspection.html)
+- A trip page always shows both parts, the day book then the story. A part with nothing in it is simply skipped.
+- A trip with a day book but no story no longer shows "Nothing written yet". The print/PDF and .md export always use both, skipping empty parts.
+- The saved `telling` column is now ignored. New trips still write 'both', and the export JSON still carries it. No SQL needed.
+
 ## TP-P3 · Phone trip cards: one clean column (7 Nov 2026, introspection.html)
 - Phone only. The card is a single column. The date line opens with "TRIP n ·" (.tpx, hidden on desktop).
 - The days stamp and the right column (.tpc-mk) are hidden; the days already show in the date line. The corner badge (.tpn) is retired.

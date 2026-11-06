@@ -2305,15 +2305,12 @@ function openReader(id, keepNav) {
     el('readerKind').innerHTML = escHtml(meta);   // Q2: the eyebrow is CHAPTER III alone; the age sits under the name, the years on the stamp
   } else if (dk === 'trip') {
     const dl = tripDatesLabel(r), dn = tripDaysLabel(r), al = tripAgeLabel(r);
-    const tell = r.telling || 'both';
-    const TELL = { essay: 'ESSAY', days: 'DAY BOOK', both: 'BOTH' };
     el('readerKind').innerHTML = escHtml(meta) +
       ' <span class="rk-years rk-tap tp" id="rkTpDates" title="Tap to edit the dates">' +
         (dl ? escHtml(dl) + (dn ? ' \u00B7 ' + dn.toLowerCase() : '') : 'set the dates') + '</span>' +
       (al ? ' <span class="rk-age rk-tap" id="rkAge" title="Tap to change your birth year">' + escHtml(al) + '</span>'
           : (dl && !birthYear() ? ' <span class="rk-age rk-tap" id="rkAge" title="Set your birth year for age labels">age?</span>' : '')) +
-      ' ' + tripCoChip_(r) +
-      ' <span class="rk-told rk-tap" id="rkTold" title="How this trip is told - tap to change">TOLD AS \u00B7 ' + TELL[tell] + '</span>';
+      ' ' + tripCoChip_(r);   // TP-TELL (7 Nov 2026): the TOLD AS pill is gone - a trip always shows its day book and its story
     el('rkTpDates').addEventListener('click', () => {
       const row = el('rdTripDates');
       el('rdTpFrom').value = r.trip_from || ''; el('rdTpTo').value = r.trip_to || '';
@@ -2335,14 +2332,6 @@ function openReader(id, keepNav) {
     if (ra) ra.addEventListener('click', () => {
       const v = prompt('Your birth year (for the AGE labels):', birthYear() || '');
       if (v && /^\d{4}$/.test(v.trim())) { localStorage.setItem('myday_birth_year', v.trim()); openReader(r.id, true); render(); }
-    });
-    el('rkTold').addEventListener('click', async () => {
-      const next = { essay: 'days', days: 'both', both: 'essay' }[r.telling || 'both'];
-      try {
-        const { error } = await supa.from('iw_entries').update({ telling: next }).eq('id', r.id).eq('user_id', userId);
-        if (error) throw error;
-        r.telling = next; openReader(r.id, true);
-      } catch (e) { toast('Could not save'); }
     });
   } else if (quiet) {
     el('readerKind').innerHTML = escHtml(meta) +
@@ -2544,9 +2533,10 @@ function openReader(id, keepNav) {
     });
   })();
   const bodyHtml = NoteEditor.toHtml(r.body || '').trim();
-  document.body.classList.toggle('tell-days', dk === 'trip' && (r.telling || 'both') === 'days');
-  document.body.classList.toggle('tell-essay', dk === 'trip' && (r.telling || 'both') === 'essay');
-  el('readerBody').innerHTML = bodyHtml || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+  document.body.classList.remove('tell-days', 'tell-essay');
+  // TP-TELL: a trip with a day book but no story yet shows no "nothing written" line - the empty part simply isn't there
+  const tripHasDays = dk === 'trip' && tripBook_(r).days.length > 0;
+  el('readerBody').innerHTML = bodyHtml || (tripHasDays ? '' : '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>');
   el('readerBodyInp').innerHTML = bodyHtml;
   if (!keepNav) rdNavIds = filteredRows().map(x => x.id);
   readerEntry = r;
@@ -2608,7 +2598,7 @@ function setRdEditing(on) {
     h1.classList.remove('rd-h1-edit');
     const html = NoteEditor.sanitize(el('readerBodyInp').innerHTML).trim();
     el('readerBodyInp').innerHTML = html;
-    el('readerBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
+    el('readerBody').innerHTML = html || ((readerEntry && readerEntry.kind === 'trip' && tripBook_(readerEntry).days.length) ? '' : '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>');   // TP-TELL
     if (wasEditing) { _rdTitleCommit(h1.textContent); }
     return;
   }
@@ -2818,7 +2808,7 @@ function entryMd_(r) {
     (isTrip && r.company && TRIP_COMPANY[r.company] ? ' \u00B7 ' + TRIP_COMPANY[r.company].toLowerCase() : '') + '*\n\n';
   if (isTrip && r.place) md += r.place.toUpperCase() + '\n\n';
   if (r.essence) md += '> ' + r.essence + '\n\n';
-  const tell = r.telling || 'both';
+  const tell = 'both';   // TP-TELL: always both; an empty part is skipped
   if (isTrip && tell !== 'essay') {
     const b = tripBook_(r);
     if (b.days.length) {
@@ -2937,7 +2927,7 @@ function exportEntryPrint() {
   }
   let daysH = '', essayH = '<div class="bd">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '') + '</div>';
   if (r.kind === 'trip') {
-    const tell = r.telling || 'both';
+    const tell = 'both';   // TP-TELL
     if (tell === 'days') essayH = '';
     if (tell !== 'essay') daysH = tripDaysPrintHtml_(r, esc);
   }
