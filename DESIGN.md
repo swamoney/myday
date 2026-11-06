@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TP-PICTOOLS · The trip photo can be changed, sized, captioned and removed (7 Nov 2026, introspection.html)
+- In Edit (body.rd-editing) the trip's heading photo has the lived dream's tools along its top: ↻ CHANGE (MyAlbum.pickCover), ▣ FILL / ▢ FIT, ↕ SIZE M/L/XL (220/300/420px; phone 150/190/260), ✎ CAPTION (captionCover) and ✕ REMOVE (removeCover, with a confirm).
+- In FILL, tapping the picture in Edit sets where it centres (the hint shows). Outside Edit a tap opens the picture full-screen.
+- Settings are kept on the cover's own row (setCoverCfg cover_cfg), the same as dreams and pillars. No SQL.
+
 ## TP-HEAD · Trip heading built like a lived dream's; day book off the page (7 Nov 2026, introspection.html)
 - Inside the heading plate (body.rd-trip): a spaced mono top line, a 2.9rem title (1.75rem on phone), and a short thick 88×6 bar in the trip ink (the reader-sig). Then the places, a dashed rule, and the line as a quote (readerLead with “ ”). The days stamp is 104×112 (64×72 on phone), with the company stamp under it.
 - Photo (#tpCover, tpPaintCover_): the album cover for room 'iw' (MyAlbum.cover) in a white frame with its caption. With none, an "Add a photo from it · One picture you'll want to see in ten years." box opens MyAlbum.pickCover('iw', id). It is the same as a lived dream's, in the trip ink. Hidden on every other kind of page.
