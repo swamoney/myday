@@ -1802,6 +1802,27 @@
   .dcl-lb { font-family:var(--mono); font-size:0.4375rem; letter-spacing:0.14em; text-transform:uppercase; color:#7686a3; }
   .dcl-stamp { width:96px; height:56px; transform:rotate(-10deg); flex-shrink:0; }
   .dcl-stamp svg { width:100%; height:100%; display:block; }
+  /* J3 (6 Nov 2026): the past as a journey - one line from the newest back to where it began, a small orb per decision */
+  .dcl-jr { position:relative; margin-top:10px; }
+  .dcl-jr:before { content:''; position:absolute; left:27px; top:30px; bottom:12px; width:3px; border-radius:3px; background:linear-gradient(180deg,#1F6E78,#a9c9cc 70%,#dfe6ee); }
+  .dcl-jn { position:relative; display:grid; grid-template-columns:56px 1fr; gap:16px; align-items:start; margin-top:12px; }
+  .dcl-jn:first-child { margin-top:0; }
+  .dcl-jc { min-width:0; }
+  .dcl-jc .dcl-row { margin-top:0; }
+  .dcl-jdt { font-family:var(--mono); font-size:0.6rem; font-weight:700; letter-spacing:0.14em; color:#7686a3; margin:0 0 5px 2px; }
+  .dcl-jd { position:relative; z-index:1; width:40px; height:40px; margin:26px 0 0 8px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-size:0.95rem; }
+  .dcl-jd:after { content:''; position:absolute; inset:3px; border-radius:50%; border:1px dashed rgba(255,255,255,0.7); }
+  .dcl-jd.lived { background:radial-gradient(circle at 38% 34%, #6fc0c9, #2a8792 62%, #1F6E78); box-shadow:0 4px 10px #1F6E7859; }
+  .dcl-jd.canx { background:radial-gradient(circle at 38% 34%, #d9848c, #b84652 62%, #a8323f); box-shadow:0 4px 10px #a8323f59; }
+  .dcl-jend { position:relative; display:flex; align-items:center; gap:12px; margin:14px 0 4px; padding-left:20px; font-family:var(--serif); font-style:italic; font-size:0.9rem; color:#7686a3; }
+  .dcl-jend span { width:17px; height:17px; border-radius:50%; background:#fff; border:3px solid #cfd8e3; position:relative; z-index:1; }
+  @media (max-width:640px) {
+    .dcl-jr:before { left:19px; }
+    .dcl-jn { grid-template-columns:40px 1fr; gap:10px; }
+    .dcl-jd { width:30px; height:30px; margin:24px 0 0 5px; font-size:0.78rem; }
+    .dcl-jend { padding-left:12px; }
+    .dcl-jend span { width:15px; height:15px; }
+  }
   .dcl-empty { font-family:var(--serif); font-style:italic; color:#7686a3; padding:12px 0 14px; }
   body.editing .dcl-row .dc-x { display:inline-flex; }
   @media (max-width:640px) {
@@ -10898,13 +10919,21 @@ function dcLedgerHtml_() {
     return og('wip', entry(d, 'wip', '', 'Decided' + (d.decided_on ? ' ' + dcFmtS_(d.decided_on) : '') + (v ? ' · ' + v.charAt(0).toLowerCase() + v.slice(1) : ''), ''));
   }).join('');
   h += divider('Past decisions', trail.length + (trail.length === 1 ? ' decision' : ' decisions') + (trail.length ? ' · since ' + String(trail[trail.length - 1].decided_on || trail[trail.length - 1].created_at || '').slice(0, 4) : ''));
+  // J3 (6 Nov 2026): past decisions hang on one line, newest first, back to where it began - a life journey.
+  // Each has a small ✦ / ✕ orb and its month and year just above its card; no TODAY mark (the heading says Past decisions).
+  if (trail.length) h += '<div class="dcl-jr">';
   h += trail.map(d => {
     const canx = dcCanx_(d), r = Number(d.satisfaction) || 0;
+    const w = String(d.happened_on || d.decided_on || '').slice(0, 10), wx = w ? new Date(w + 'T00:00:00') : null;
+    const when = wx && !isNaN(wx) ? BK_MON[wx.getMonth()] + ' ' + wx.getFullYear() : '';
     // Y (4 Nov 2026): the small line keeps only what the stamp doesn't say in full
     // C1b (6 Nov 2026): past decisions keep their earlier box - eyebrow, decided line, stars and Looking back
     const meta = canx ? 'FROM THE QUESTION' : 'DECIDED' + (d.decided_on ? ' ' + U(dcFmt_(d.decided_on)) : '') + ' · ' + U(dcVerdictLong_(d));
-    return entry(d, canx ? 'canx' : 'lived', '', meta, (d.rating_note || '').trim());   // Z1-A: no top line - the stamp carries the date
+    return '<div class="dcl-jn"><span class="dcl-jd ' + (canx ? 'canx' : 'lived') + '" aria-hidden="true">' + (canx ? '\u2715' : '\u2726') + '</span><div class="dcl-jc">'
+      + (when ? '<div class="dcl-jdt">' + when + '</div>' : '') + entry(d, canx ? 'canx' : 'lived', '', meta, (d.rating_note || '').trim()) + '</div></div>';   // Z1-A: no top line - the stamp carries the date
   }).join('');
+  if (trail.length) { const first = trail[trail.length - 1], fy = String(first.happened_on || first.decided_on || first.created_at || '').slice(0, 4);
+    h += '<div class="dcl-jend"><span></span>' + (fy ? escHtml(fy) + ' \u00B7 ' : '') + 'where it began</div></div>'; }
   if (!trail.length) h += '<div class="dcl-empty">nothing on the trail yet</div>';
   return h + '</div>';
 }

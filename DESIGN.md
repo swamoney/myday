@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## DC-J3 · Past decisions as a life journey (6 Nov 2026)
+- Past decisions hang on one line, like the My Why pillars spine: newest at the top, back to "2023 · where it began" (the oldest one's year) at the foot.
+- Each decision has a small orb on the line (sea glass ✦ for It happened, rose ✕ for Walked away, the pillar orbs' dashed ring) and its month and year (happened, else decided) just above its card.
+- No TODAY mark: the Past decisions heading opens the line. J2 (year chapters) was tried and dropped for this.
+- Ongoing decisions are untouched. Harness: h_dcclean.js.
+
 ## DC-Z1A · The leaf shows the whole date; past decisions keep their box, minus the top line (6 Nov 2026)
 - The calendar leaf on a decided decision now reads TO HAPPEN BY / "15 Mar 2027" on one row / "● 4 MONTHS TO GO". Late: WAS DUE / "1 Sep 2026" / "● 9 WEEKS LATE" in amber. A lone big day read as a count ("11 days?"), so it went.
 - Past decisions are back to their earlier box (decided line, stars, Looking back) and the C1 list change no longer touches them, but the top line (IT HAPPENED · … / WALKED AWAY · …) is gone: the stamp says it.
