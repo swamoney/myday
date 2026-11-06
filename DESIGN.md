@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## BP-O2 + A4 + E2 · The lineup in groups; decided dreams first and alive (6 Nov 2026)
+- O2: The lineup shows three groups under quiet labels in their stage's colour (.bp-sub): ON THE WAY · n, then MAKING UP MY MIND · n, then SOMEDAY · n. Inside each, soonest date first, undated last. Empty groups show no label; the count beside The lineup is the total.
+- A4: a decided dream's pill carries a small white dot that blinks gently (bpLive, 1.4s; still under reduce-motion).
+- E2: in the list, an On the way card's top line is just ON THE WAY and its stamp shows the month it should happen (the road symbol when undated); the pill says TO HAPPEN BY … or NO DATE YET. The decided date stays on the dream's own page.
+- Trap: a soon decide-by now sits second, below decided dreams a year away (on purpose); the list no longer shows how long ago a dream was decided.
+
 ## BP-G2 + P1 · Let go gets its own section; one colour per stage (6 Nov 2026)
 - G2: "Lived" holds only dreams that came true; dreams let go sit in their own small "Let go" section at the very bottom (.bp-gone, cards at 85% opacity, grey heading), shown only when there is one.
 - P1 "dawn to harvest": Someday sky blue #3D6A99, Making up my mind amber #B0721A, On the way violet #5b4a86 (unchanged), Lived green #2E7A4E, Let go stone grey #7A6F68 - on the cards (.bp-card), the dream page plate (.dc-plate.bp), its stamp, pill and step line (INK in dcDreamMarks_). My Decisions keeps its own colours.

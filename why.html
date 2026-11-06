@@ -1736,6 +1736,14 @@
   @media (max-width:640px) { .dc-plate.bp { margin:0 -8px; padding:12px 12px 14px; } .dc-plate.bp .dc-stamp .bp-seal { width:72px; height:72px; } .dc-plate.bp .dc-stamp .bp-seal em { font-size:0.85rem; } .dc-plate.bp .dc-band { display:none; } }
   .bp-card { --a:#3D6A99; --w:#edf2f9; position:relative; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; margin-top:10px; padding:14px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg,#fff,var(--w)); cursor:pointer; }
   .bp-card.ask { --a:#B0721A; --w:#fbf3e6; } .bp-card.wip { --a:#5b4a86; --w:#f1eef8; } .bp-card.lived { --a:#2E7A4E; --w:#eaf5ee; } .bp-card.canx { --a:#7A6F68; --w:#f4f2f0; }   /* P1 */
+  .bp-sub { font-family:var(--mono); font-size:0.56rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; margin:16px 0 0; }   /* O2 */
+  .bp-sub.wip { color:#5b4a86; } .bp-sub.ask { color:#B0721A; } .bp-sub.ahead { color:#3D6A99; }
+  .dcl-dv + .bp-sub { margin-top:4px; }
+  /* A4 (6 Nov 2026): a decided dream's pill carries a small live dot that blinks gently */
+  .bp-card.wip .bp-cd { position:relative; padding-left:22px; }
+  .bp-card.wip .bp-cd:before { content:''; position:absolute; left:9px; top:50%; width:7px; height:7px; margin-top:-3.5px; border-radius:50%; background:#fff; animation:bpLive 1.4s ease-in-out infinite; }
+  @keyframes bpLive { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.7); } }
+  @media (prefers-reduced-motion:reduce) { .bp-card.wip .bp-cd:before { animation:none; } }
   .bp-gone { margin-top:6px; } .bp-gone .bp-card { opacity:0.85; } .bp-gone .dcl-dv .lb { color:#6b7589; }   /* G2 */
   .bp-card:hover .bp-nm { text-decoration:underline; text-decoration-color:#c9d2e0; text-underline-offset:3px; }
   .bp-eb { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.14em; color:var(--a); }
@@ -10812,13 +10820,21 @@ function dcBucketHtml_() {
   const trail = mine.filter(d => d.status === 'trail').sort(dcTrailSort_);
   // L1 (6 Nov 2026): the first section is The lineup (was Still dreaming)
   let h = '<div class="dcl-dv"><span class="lb">The lineup</span><i></i><span class="ct">' + desk.length + (desk.length === 1 ? ' DREAM' : ' DREAMS') + '</span></div>';
-  h += desk.map(d => {
+  const deskCard = d => {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
-    // W1 (6 Nov 2026): a decided dream is ON THE WAY, not 'living it' (that is the decisions word)
-    if (st === 'wip') return card(d, st, 'ON THE WAY' + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : ''), t ? 'TO HAPPEN BY ' + monLong(t) : '', seal(st, 'ON THE', mon(d.decided_on) || BP_ROAD, 'WAY'));
+    // W1 + E2 (6 Nov 2026): a decided dream is ON THE WAY; in the list the stamp shows when it should happen
+    // (the road when undated) - the decided date stays on the dream's own page
+    if (st === 'wip') return card(d, st, 'ON THE WAY', t ? 'TO HAPPEN BY ' + monLong(t) : 'NO DATE YET', seal(st, 'ON THE', mon(t) || BP_ROAD, 'WAY'));
     if (st === 'ask') return card(d, st, t ? 'DECIDE BY ' + monLong(t) : 'MAKING UP MY MIND', t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET', seal(st, 'MAKING UP', mon(t) || '?', 'MY MIND'));
     return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || BP_ROAD, 'SOMEDAY'));
-  }).join('');
+  };
+  // O2 (6 Nov 2026): The lineup in three groups, each under a quiet label in its stage's colour - On the way,
+  // then Making up my mind, then Someday; inside each, the soonest date first and undated last (desk is
+  // already sorted that way). A group with no dream shows no label.
+  [['wip', 'On the way'], ['ask', 'Making up my mind'], ['ahead', 'Someday']].forEach(([g, name]) => {
+    const grp = desk.filter(d => stateOf(d) === g); if (!grp.length) return;
+    h += '<div class="bp-sub ' + g + '">' + name + ' \u00B7 ' + grp.length + '</div>' + grp.map(deskCard).join('');
+  });
   if (!desk.length) h += '<div class="dcl-empty">no dream ahead yet \u2014 what do you want to live?</div>';
   const lived = trail.filter(d => !dcCanx_(d));
   h += '<div class="dcl-dv"><span class="lb">Lived</span><i></i><span class="ct">' + lived.length + (lived.length === 1 ? ' DREAM COME TRUE' : ' DREAMS COME TRUE') + '</span></div>';
