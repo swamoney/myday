@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## TP-TAG · The company becomes a second rubber stamp (7 Nov 2026, introspection.html)
+- Words (TRIP_COMPANY): SOLO, FOR BUSINESS, WITH FAMILY, WITH FRIENDS. The saved values (solo/business/family/friends) are unchanged. The trip page chip, the picker and prints use the new words.
+- On a trip card the company leaves the date line. It becomes a small rubber stamp (.tp-cost) in its ink: double frame, spaced capitals, tilted -6° like the days stamp.
+- Desktop: the stamp sits mid-card (.tpc-mid; the card grid is 1.3fr / auto / 1fr).
+- Phone: the stamp sits under the days stamp (.tp-cost.ph). The card is a 1fr / auto grid, and the days stamp no longer floats over the corner.
+
 ## TP-LINE + TP-Y2 · My Trips in the Life Timeline's grammar (7 Nov 2026, introspection.html)
 - A quiet caption at the top (.tpsum): "5 TRIPS · 2019 – 2026 · 37 DAYS AWAY". Days are summed from tripDaysN_; an undated trip adds 0 days and stays out of the year range.
 - The year headings and cards sit in .tpjr, one line down the left. Year headings are large serif with an underline in the decade's ink (--yc).

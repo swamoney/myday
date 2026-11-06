@@ -284,9 +284,19 @@
   .tpc-post b { font-weight:800; font-size:2rem; }
   .tpc-post small { font-weight:700; font-size:0.55rem; letter-spacing:0.2em; }
   .tpc-post em { font-family:var(--mono); font-size:0.6rem; font-weight:700; }
+  .tpc { grid-template-columns:minmax(0,1.3fr) auto minmax(0,1fr); align-items:center; }
+  .tpc-mid { display:flex; justify-content:center; }
+  .tpc-mk { justify-self:end; display:flex; flex-direction:column; align-items:center; gap:9px; }
+  .tp-cost { display:inline-block; font-family:var(--mono); font-size:0.6rem; font-weight:800; letter-spacing:0.16em; color:var(--c); white-space:nowrap;
+    border:2px solid var(--c); border-radius:4px; box-shadow:inset 0 0 0 1.5px #fff, inset 0 0 0 2.5px var(--c); padding:6px 10px; transform:rotate(-6deg); opacity:0.9; mix-blend-mode:multiply; }
+  .tp-cost.ph { display:none; }
   .tpc .s-agepill { font-family:var(--mono); font-size:0.55rem; font-weight:700; letter-spacing:0.1em; color:#8A5711; background:#F7DE8E; border:0; border-radius:999px; padding:3px 10px; }
   @media (max-width:640px) {
     .tpjr { padding-left:40px; } .tpjr:before { left:15px; }
+    .tpc { display:grid !important; grid-template-columns:1fr auto; gap:10px; }
+    .tpc .tpc-post { position:static !important; }
+    .tpc-mid { display:none; } .tp-cost.ph { display:inline-block; }
+    .tp-cost { font-size:0.46rem; padding:4px 6px; letter-spacing:0.1em; }
     .tpjr .tpc:before { left:-38px; width:30px; height:30px; margin-top:-15px; }
     .tpjr .tpc:after { left:-28px; width:9px; height:9px; margin-top:-4.5px; }
   }
@@ -1680,8 +1690,13 @@ function renderTimeline(list, wrap) {
 const TRIP_SEA = '#2F6B8A';
 function tripShade() { return TRIP_SEA; }
 // TR-6 (C1): the trip's company - four true inks, fixed for thirty years.
-const TRIP_COMPANY = { business: 'BUSINESS', solo: 'SOLO', family: 'FAMILY', friends: 'FRIENDS' };
+const TRIP_COMPANY = { business: 'FOR BUSINESS', solo: 'SOLO', family: 'WITH FAMILY', friends: 'WITH FRIENDS' };   // TP-TAG (7 Nov 2026): the words; the saved value is unchanged
 const TRIP_COMPANY_INK = { business: '#44546A', solo: '#B08A3E', family: '#5F7355', friends: '#A4553F' };
+function tripCoStamp_(r, cls) {
+  const c = r.company;
+  if (!c || !TRIP_COMPANY[c]) return '';
+  return '<span class="tp-cost' + (cls || '') + '" style="--c:' + TRIP_COMPANY_INK[c] + ';">' + TRIP_COMPANY[c] + '</span>';
+}
 function tripCoChip_(r, mono) {
   const c = r.company;
   if (!c || !TRIP_COMPANY[c]) return '';
@@ -1886,12 +1901,14 @@ function renderTrips(list, wrap) {
       const mon = dt && !isNaN(dt) ? dt.toLocaleDateString('en-GB', { month: 'short' }) + ' ’' + String(dt.getFullYear()).slice(2) : '';
       return '<div class="tpc" data-open="' + escHtml(r.id) + '" style="--a:' + sh + ';--w:' + sh + '1f;">'
         + '<div class="tpc-b">'
-        + (dl || tripCoChip_(r) ? '<div class="tpc-eb">' + (dl ? escHtml(dl.toUpperCase()) + (dn ? ' · ' + dn : '') : '') + ' ' + tripCoChip_(r) + '</div>' : '')
+        + (dl ? '<div class="tpc-eb">' + escHtml(dl.toUpperCase()) + (dn ? ' · ' + dn : '') + '</div>' : '')
         + '<div class="tpc-nm">' + escHtml(r.title) + '</div>'
         + (r.place ? '<div class="tpc-wh">' + escHtml(r.place.toUpperCase()) + '</div>' : '')
         + (r.essence ? '<div class="tpc-q">' + escHtml(r.essence) + '</div>' : '')
         + (age ? '<div class="s-agepill">' + age + '</div>' : '') + '</div>'
-        + (n ? '<span class="tpc-post"><b>' + n + '</b><small>' + (n === 1 ? 'DAY' : 'DAYS') + '</small><em>' + escHtml(mon) + '</em></span>' : '')
+        // TP-TAG (7 Nov 2026): the company is a second rubber stamp - mid-card on desktop, under the days stamp on the phone
+        + '<div class="tpc-mid">' + tripCoStamp_(r, '') + '</div>'
+        + '<div class="tpc-mk">' + (n ? '<span class="tpc-post"><b>' + n + '</b><small>' + (n === 1 ? 'DAY' : 'DAYS') + '</small><em>' + escHtml(mon) + '</em></span>' : '') + tripCoStamp_(r, ' ph') + '</div>'
         + '</div>';
     };
     // TP-LINE (7 Nov 2026): the Life Timeline's grammar - a quiet caption, year headings in the decade's ink, one line with a map pin per trip
