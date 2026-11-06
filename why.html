@@ -10762,7 +10762,8 @@ function dcBucketHtml_() {
   let h = '<div class="dcl-dv"><span class="lb">Still dreaming</span><i></i><span class="ct">' + desk.length + (desk.length === 1 ? ' DREAM' : ' DREAMS') + '</span></div>';
   h += desk.map(d => {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
-    if (st === 'wip') return card(d, st, 'LIVING IT' + (d.decided_on ? ' \u00B7 SINCE ' + monLong(d.decided_on) : ''), t ? 'TO HAPPEN BY ' + monLong(t) : '', seal(st, 'LIVING', mon(d.decided_on) || BP_ROAD, 'IT'));
+    // W1 (6 Nov 2026): a decided dream is ON THE WAY, not 'living it' (that is the decisions word)
+    if (st === 'wip') return card(d, st, 'ON THE WAY' + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : ''), t ? 'TO HAPPEN BY ' + monLong(t) : '', seal(st, 'ON THE', mon(d.decided_on) || BP_ROAD, 'WAY'));
     if (st === 'ask') return card(d, st, t ? 'DECIDE BY ' + String(dcFmt_(t)).toUpperCase() : 'NEEDS DECIDING', t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET', seal(st, 'NEEDS', mon(t) || '?', 'DECIDING'));
     return card(d, st, t ? 'PLANNED FOR ' + monLong(t) : 'SOMEDAY', t ? until(k) : 'NO DATE YET', seal(st, 'A DREAM', mon(t) || BP_ROAD, 'AHEAD'));
   }).join('');
@@ -10937,8 +10938,8 @@ function dcDreamMarks_(d) {
     if (dcCanx_(d)) { st = 'canx'; eb = 'LET GO' + (w ? ' \u00B7 ' + monLong(w) : ''); sl = seal('LET', mon(w) || '\u2715', 'GO'); }
     else { st = 'lived'; eb = (d.happened_on ? 'LIVED ' + monLong(d.happened_on) : 'DECIDED \u00B7 NOT YET LIVED') + ' \u00B7 ' + dcVerdictLong_(d).toUpperCase(); sl = seal(BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''); }
   } else if (dcIsWip_(d)) {
-    st = 'wip'; eb = 'LIVING IT \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 SINCE ' + monLong(d.decided_on) : '');
-    pill = t ? 'TO HAPPEN BY ' + monLong(t) : ''; sl = seal('LIVING', mon(d.decided_on) || BP_ROAD, 'IT');
+    st = 'wip'; eb = 'ON THE WAY \u00B7 ' + dcVerdictLong_(d).toUpperCase() + (d.decided_on ? ' \u00B7 DECIDED ' + monLong(d.decided_on) : '');   // W1
+    pill = t ? 'TO HAPPEN BY ' + monLong(t) : ''; sl = seal('ON THE', mon(d.decided_on) || BP_ROAD, 'WAY');
   } else if (dcDreamPending_(d)) {
     st = 'ask'; eb = t ? 'DECIDE BY ' + String(dcFmt_(t)).toUpperCase() : 'NEEDS DECIDING';
     pill = t ? (k < 0 ? 'WAS DUE' : k + (k === 1 ? ' DAY LEFT' : ' DAYS LEFT')) : 'NO DATE YET'; sl = seal('NEEDS', mon(t) || '?', 'DECIDING');

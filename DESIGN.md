@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## BP-W1 · Bucket list: a decided dream is ON THE WAY (6 Nov 2026)
+- A dream that is decided but not yet lived (status wip) no longer says "LIVING IT" (the My Decisions word). Card: ON THE WAY · DECIDED <Month Year>, stamp ON THE / <Mon 'YY> / WAY; the dream's page: ON THE WAY · <verdict> · DECIDED <Month Year>. Colour and the TO HAPPEN BY pill unchanged.
+- My Decisions keeps LIVING IT, on purpose: the two rooms use different words for the same stage.
+
 ## PL-I1 + K3 · Index shows status only; the pillar page goes quiet (6 Nov 2026)
 - I1: the "N in focus" count is gone from the index footer; just the status dot and its words. (pFocusN_ stays in the file, unused.)
 - K3: on the pillar page, colour lives only in the heading block (top line, plate, orb, pill, arrow, status). Current focus, the long game and Park sit on plain #f3f5f9 panels with no borders, top lines or piles; headings dark #182233; badges grey; long-game circles grey. Current focus circles keep the pillar's colour. Scoped with #roadmapWin, so it supersedes the M1/S1 colour rules there without deleting them.
