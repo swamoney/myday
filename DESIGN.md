@@ -12,7 +12,7 @@ Written August 2026.
 - The calendar leaf on a decided decision now reads TO HAPPEN BY / "15 Mar 2027" on one row / "● 4 MONTHS TO GO". Late: WAS DUE / "1 Sep 2026" / "● 9 WEEKS LATE" in amber. A lone big day read as a count ("11 days?"), so it went.
 - Past decisions are back to their earlier box (decided line, stars, Looking back) and the C1 list change no longer touches them, but the top line (IT HAPPENED · … / WALKED AWAY · …) is gone: the stamp says it.
 - The Walked away stamp now carries its date on a second line, like It happened (happened_on, else decided_on). It is the same stamp on the decision's page.
-- Y1 phone rules are scoped to ongoing rows (.dcl-og); past rows keep their earlier phone layout.
+- Y1 phone rules are scoped to ongoing rows (.dcl-og); past rows keep their earlier phone layout, except the title, which is the same size as an ongoing one (1.05rem) on the phone.
 
 ## DC-C1 + X1 + Y1 + M1 · My Decisions, cleaner list and phone heading (6 Nov 2026)
 - C1: list boxes lose the eyebrow line; each keeps the title, at most one small line, and its mark. Thinking it through: "Decide by 15 Dec · **39 days left** · 1 of 2 answered". Decided: "Decided 12 Oct · took my time". Past decisions: stamp + stars + the line looking back only (no "Looking back" label, no decided line).
