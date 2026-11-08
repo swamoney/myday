@@ -2118,9 +2118,11 @@
   #personWin .p-hq { order:3 !important; border:none !important; padding:0 !important; margin:14px 0 4px !important; max-width:700px; }
   #personWin .p-hq q { font-style:normal !important; font-family:var(--serif) !important; font-weight:600 !important; font-size:1.7rem !important;
     line-height:1.3 !important; color:var(--p-acc,#35786f) !important; quotes:none !important; }
-  #personWin .p-hq q::before { content:'\201C'; display:block; font-size:3.2rem; line-height:0.6; margin-bottom:4px; color:color-mix(in srgb, var(--p-acc,#35786f) 45%, #fff); }
+  /* CL-Q1: opening and closing marks right against the words, text-sized, in a pale ring shade (no gap above) */
+  #personWin .p-hq q::before { content:'\201C'; margin-right:0.04em; color:color-mix(in srgb, var(--p-acc,#35786f) 55%, #fff); }
+  #personWin .p-hq q::after { content:'\201D'; color:color-mix(in srgb, var(--p-acc,#35786f) 55%, #fff); }
   #personWin .p-hq span { text-transform:uppercase; }
-  @media (max-width:640px) { #personWin .p-hq q { font-size:1.3rem !important; } #personWin .p-hq q::before { font-size:2.6rem; } }
+  @media (max-width:640px) { #personWin .p-hq q { font-size:1.3rem !important; } }
   /* CL-K1 (8 Nov 2026): read like a kundli - Direct advice, Indirect learning and Important moments are houses: a cream panel
      with a fine double border and ring-colour corner marks, a numbered seal (I, II, III), what the house holds, and upright
      items on dotted dividers. Advice is never italic now. */
@@ -2141,14 +2143,23 @@
   #personWin #psAdv .pst::before { content:'I'; } #personWin #psLrn .pst::before { content:'II'; } #personWin #psMom .pst::before { content:'III'; }
   #personWin #psAdv .psn, #personWin #psLrn .psn, #personWin #psMom .psn { color:#8a6f43 !important; text-transform:uppercase; letter-spacing:0.1em; }
   #personWin #psAdv .psn:not(:empty)::after { content:' \00B7  their words to me'; }
-  #personWin #psLrn .psn:not(:empty)::after { content:' \00B7  from them, about me'; }
-  #personWin #psMom .psn:not(:empty)::after { content:' \00B7  that made us'; }
+  /* Rahul, 8 Nov: Indirect learning and Important moments show just their count */
   #personWin #psAdv .p-q, #personWin #psAdv .p-q * { font-style:normal !important; }
   #personWin #psAdv .p-q { font-family:var(--serif) !important; border-top:none !important; border-bottom:1px dotted #e0d4b8; padding:10px 2px !important; }
   #personWin #psLrn .p-ln { border-top:none !important; border-bottom:1px dotted #e0d4b8; padding:10px 2px !important; }
   #personWin #psMom .mo { border-bottom:1px dotted #e0d4b8 !important; }
   #personWin #psAdv .p-q:last-child, #personWin #psLrn .p-ln:last-child, #personWin #psMom .mo:last-child { border-bottom:none !important; }
   #personWin #psMom .mo-y.ro { color:#8a6f43 !important; font-family:var(--mono); letter-spacing:0.06em; }
+  /* CL-L2 (8 Nov 2026): Direct advice on a line like My Why Pillars - numbered shaded orbs joined by a line that fades downward */
+  body:not(.p-editing) #personWin #psAdv .p-qs { position:relative; padding-left:48px; counter-reset:adv; }
+  body:not(.p-editing) #personWin #psAdv .p-qs::before { content:''; position:absolute; left:17px; top:24px; bottom:24px; width:3px; border-radius:2px;
+    background:linear-gradient(var(--p-acc,#35786f), color-mix(in srgb, var(--p-acc,#35786f) 30%, #fff)); }
+  body:not(.p-editing) #personWin #psAdv .p-q { position:relative; counter-increment:adv; }
+  body:not(.p-editing) #personWin #psAdv .p-q::before { content:counter(adv); position:absolute; left:-48px; top:10px; width:36px; height:36px; border-radius:50%;
+    display:grid; place-items:center; font-family:var(--serif); font-weight:600; font-size:1rem; font-style:normal; color:#fff;
+    background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--p-acc,#35786f) 55%, #fff), var(--p-acc,#35786f));
+    box-shadow:0 4px 10px rgba(30,47,82,0.18), inset 0 0 0 3px rgba(255,255,255,0.35); }
+  body:not(.p-editing) #personWin #psAdv .p-qs:has(.p-q:only-child)::before { display:none; }
   @media (max-width:640px) { #personWin #psAdv, #personWin #psLrn, #personWin #psMom { padding:16px 16px 12px !important; } }
   .p-stamp b { display:block; font-family:var(--serif); font-size:1.45rem; letter-spacing:0.04em; line-height:1.15; padding:2px 0; }
   .p-stamp b.long { font-size:1.05rem; }
