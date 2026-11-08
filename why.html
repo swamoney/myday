@@ -2058,6 +2058,40 @@
   .dm-ph.dc-hph { max-width:620px; }
   #personWin .pav.has-pic { background:var(--pav-img) center/cover no-repeat !important; color:transparent !important; box-shadow:0 0 0 3px #fff, 0 0 0 4px var(--pc-deep,#35786f); }
   .p-cover { max-width:620px; margin:14px 0 6px; }
+  /* CL-P2 (8 Nov 2026): a person's heading is a plate like Decisions / Trips - ring-colour rule on top, tinted card,
+     mono eyebrow (MY CIRCLE · RING (RANGE) · RHYTHM), big bold name, colour bar, my read as the quote, the pinned
+     advice under it, the photo, and a rubber ring stamp top right. The round letter avatar gives way to the photo. */
+  #personWin .phero { position:relative; display:block; border:1px solid color-mix(in srgb, var(--p-acc,#35786f) 30%, #fff);
+    border-top:4px solid var(--p-acc,#35786f); border-radius:0 0 16px 16px; background:linear-gradient(180deg, #fff, var(--p-wash,#eef7f6));
+    padding:20px 22px 22px; }
+  #personWin .pav { display:none !important; }
+  #personWin .pb { display:flex; flex-direction:column; align-items:stretch; }
+  #personWin .peyebrow { order:0; color:var(--p-acc,#35786f); font-weight:600; padding-right:170px; }
+  #personWin .peyebrow .over { color:#a8443e; }
+  #personWin .pnamerow { order:1; padding-right:170px; }
+  #personWin .pname { font-family:var(--serif); font-weight:600; font-size:2.7rem; line-height:1.08; color:#0a1325; }
+  #personWin .p-sig { order:2; width:88px; height:6px; border-radius:3px; background:var(--p-acc,#35786f); margin:10px 0 12px; }
+  #personWin .pmeta { order:3; padding-right:170px; }
+  #personWin #pBand, #personWin #pRhythm { display:none !important; }
+  #personWin .p-rd { order:4; max-width:640px; border-top:1px dashed #b9c6d6; margin-top:14px; padding-top:12px; font-size:1.22rem; }
+  #personWin .p-rd:empty { display:none; }
+  #personWin .p-hq { order:5; border-left-color:color-mix(in srgb, var(--p-acc,#35786f) 50%, #fff); }
+  #personWin .p-cover { order:6; }
+  #personWin .p-btns { margin-top:16px; }
+  .p-stamp { position:absolute; right:24px; top:22px; transform:rotate(-6deg); text-align:center; color:var(--p-acc,#35786f);
+    border:3px solid var(--p-acc,#35786f); border-radius:10px; padding:6px 14px; min-width:100px; background:rgba(255,255,255,0.5);
+    box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3.5px var(--p-acc,#35786f); font-family:var(--mono); pointer-events:none; }
+  .p-stamp:empty { display:none; }
+  .p-stamp b { display:block; font-family:var(--serif); font-size:1.45rem; letter-spacing:0.04em; line-height:1.15; }
+  .p-stamp b.long { font-size:1.05rem; }
+  .p-stamp span { display:block; font-size:0.62rem; letter-spacing:0.14em; }
+  .p-stamp small { display:block; font-size:0.55rem; letter-spacing:0.12em; margin-top:2px; }
+  @media (max-width:640px) {
+    #personWin .phero { padding:16px 14px 18px; }
+    .p-stamp { position:static; display:table; margin:2px auto 14px; }
+    #personWin .peyebrow, #personWin .pnamerow, #personWin .pmeta { padding-right:0; }
+    #personWin .pname { font-size:2rem; }
+  }
   .p-cover.hidden, body:not(.p-editing) .p-cover.p-empty { display:none; }
   .p-cover .tp-add { display:flex; width:100%; text-align:left; align-items:center; gap:12px; border:1.5px dashed color-mix(in srgb, var(--pc-deep,#35786f) 40%, #fff); border-radius:12px; padding:12px 16px; background:rgba(255,255,255,0.6); color:var(--pc-deep,#35786f); cursor:pointer; font-family:var(--sans); }
   .p-cover .tp-add:hover { background:#fff; } .p-cover .tp-add i { font-style:normal; font-size:1.35rem; } .p-cover .tp-add b { display:block; font-size:0.9rem; } .p-cover .tp-add small { color:#6b7589; font-size:0.78rem; }
@@ -4343,6 +4377,7 @@
            a small sage stroke; colour only where it means something. -->
       <div class="p-sticky">
       <div class="phero">
+        <div class="p-stamp" id="pStamp" aria-hidden="true"></div>
         <div class="pav" id="pAvatar"></div>
         <div class="pb">
           <div class="peyebrow">My Circle</div>
@@ -4352,15 +4387,15 @@
           <div class="p-hq" id="pQuote"></div>
           <div class="p-rd" id="pRead"></div>
           <div class="p-cover hidden" id="pCover"></div>
-          <div class="p-btns">
+        </div>
+      </div>
+        <div class="p-btns">
             <button class="p-pb" id="pBtnWho" data-pan="who" type="button"></button>
             <button class="p-pb" id="pBtnTp" data-pan="tp" type="button"></button>
             <button class="p-pb" id="pBtnPri" data-pan="pri" type="button"></button>
             <button class="p-pb" id="pBtnConv" data-pan="conv" type="button"></button>
             <button class="p-pb" id="pBtnDeal" data-pan="deal" type="button"></button>
           </div>
-        </div>
-      </div>
       </div>
 
       <!-- The four panels open as tinted boxes, one at a time. -->
@@ -7527,6 +7562,17 @@ function openPerson(id) {
   }
   el('pAvatar').style.color = b.acc;
   el('pBand').textContent = b.lbl + ' (' + b.range + ')';
+  { // CL-P2: the eyebrow carries ring and rhythm; the stamp carries the ring and, from "How we met", the year
+    const ey = document.querySelector('#personWin .peyebrow');
+    if (ey) ey.innerHTML = 'My Circle &middot; ' + escHtml(b.lbl) + ' (' + b.range + ')'
+      + (rh.key ? ' &middot; <span class="' + (rEl && rEl.classList.contains('over') ? 'over' : '') + '">' + escHtml(rh.lbl) + '</span>' : '');
+    const SHORT = { close:'CLOSE', sympathy:'CONFIDANTS', affinity:'ACTIVE CIRCLE', near:'NEAR COMMUNITY', outer:'OUTER COMMUNITY', wider:'WIDER WORLD' };
+    const yr = /\b(19|20)\d{2}\b/.exec(String((pData.facts && pData.facts.met) || ''));
+    const w = SHORT[b.key] || String(b.lbl).toUpperCase();
+    const st = el('pStamp');
+    if (st) st.innerHTML = '<b class="' + (w.length > 10 ? 'long' : '') + '">' + escHtml(w) + '</b><span>' + escHtml(b.range) + '</span>'
+      + (yr ? '<small>SINCE ' + yr[0] + '</small>' : '');
+  }
   paintPersonRise_(p);
   el('pBand').style.background = b.bg;
   el('pBand').style.color = b.acc;
