@@ -2160,6 +2160,37 @@
     background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--p-acc,#35786f) 55%, #fff), var(--p-acc,#35786f));
     box-shadow:0 4px 10px rgba(30,47,82,0.18), inset 0 0 0 3px rgba(255,255,255,0.35); }
   body:not(.p-editing) #personWin #psAdv .p-qs:has(.p-q:only-child)::before { display:none; }
+  /* CL-L1 (8 Nov 2026): Indirect learning on the same numbered-orb line as Direct advice, its month under each lesson */
+  body:not(.p-editing) #personWin #pLrn { position:relative; padding-left:48px; counter-reset:ln; }
+  body:not(.p-editing) #personWin #pLrn::before { content:''; position:absolute; left:17px; top:24px; bottom:24px; width:3px; border-radius:2px;
+    background:linear-gradient(var(--p-acc,#35786f), color-mix(in srgb, var(--p-acc,#35786f) 30%, #fff)); }
+  body:not(.p-editing) #personWin #pLrn:has(.p-ln:only-child)::before { display:none; }
+  body:not(.p-editing) #personWin #pLrn .p-ln { position:relative; counter-increment:ln; display:flex !important; flex-direction:column-reverse; gap:2px !important; padding:12px 0 14px !important; min-height:58px; }
+  body:not(.p-editing) #personWin #pLrn .p-ln::before { content:counter(ln); position:absolute; left:-48px; top:8px; width:36px; height:36px; border-radius:50%;
+    display:grid; place-items:center; font-family:var(--serif); font-weight:600; font-size:1rem; color:#fff;
+    background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--p-acc,#35786f) 55%, #fff), var(--p-acc,#35786f));
+    box-shadow:0 4px 10px rgba(30,47,82,0.18), inset 0 0 0 3px rgba(255,255,255,0.35); }
+  body:not(.p-editing) #personWin #pLrn .p-ln .k { width:auto !important; font-family:var(--mono); font-size:0.68rem !important; color:#8a6f43 !important; }
+  body:not(.p-editing) #personWin #pLrn .p-ln .k:empty { display:none; }
+  /* CL-M1 (8 Nov 2026): Important moments as a timeline - date, a small star orb on a line, the moment */
+  body:not(.p-editing) #personWin #pMoments .mo { position:relative; display:grid !important; grid-template-columns:120px 36px 1fr; align-items:start !important; gap:0 !important; border-bottom:none !important; padding:10px 0 !important; }
+  body:not(.p-editing) #personWin #pMoments .mo .mo-y.ro { grid-column:1; grid-row:1; width:auto; min-width:0; padding:5px 12px 0 0; text-align:right; white-space:nowrap; }
+  body:not(.p-editing) #personWin #pMoments .mo .mo-tr { grid-column:3; grid-row:1; padding:2px 0 0 8px; }
+  body:not(.p-editing) #personWin #pMoments .mo::before { content:'\2726'; grid-column:2; grid-row:1; justify-self:center; width:24px; height:24px; border-radius:50%;
+    display:grid; place-items:center; font-size:0.7rem; color:#fff; position:relative; z-index:1;
+    background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--p-acc,#35786f) 55%, #fff), var(--p-acc,#35786f)); box-shadow:0 0 0 4px #fffdf8; }
+  body:not(.p-editing) #personWin #pMoments .mo::after { content:''; position:absolute; left:137px; top:0; bottom:0; width:2px; background:color-mix(in srgb, var(--p-acc,#35786f) 40%, #fff); }
+  body:not(.p-editing) #personWin #pMoments .mo:first-child::after { top:20px; }
+  body:not(.p-editing) #personWin #pMoments .mo:last-child::after { bottom:calc(100% - 22px); }
+  body:not(.p-editing) #personWin #pMoments .mo:only-child::after { display:none; }
+  @media (max-width:640px) {   /* P1: on a phone the date sits above the words, the line down the left edge */
+    body:not(.p-editing) #personWin #pMoments .mo { grid-template-columns:30px 1fr; grid-template-rows:auto auto; }
+    body:not(.p-editing) #personWin #pMoments .mo::before { grid-column:1; grid-row:1 / span 2; }
+    body:not(.p-editing) #personWin #pMoments .mo .mo-y.ro { grid-column:2; grid-row:1; text-align:left; padding:2px 0 0 8px; font-size:0.72rem !important; }
+    body:not(.p-editing) #personWin #pMoments .mo .mo-y.ro i { display:none; }
+    body:not(.p-editing) #personWin #pMoments .mo .mo-tr { grid-column:2; grid-row:2; }
+    body:not(.p-editing) #personWin #pMoments .mo::after { left:14px; }
+  }
   @media (max-width:640px) { #personWin #psAdv, #personWin #psLrn, #personWin #psMom { padding:16px 16px 12px !important; } }
   .p-stamp b { display:block; font-family:var(--serif); font-size:1.45rem; letter-spacing:0.04em; line-height:1.15; padding:2px 0; }
   .p-stamp b.long { font-size:1.05rem; }
@@ -7281,7 +7312,7 @@ function renderPersona() {
   // --- Indirect learning
   const lrn = (pData.learn || []).slice().sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
   el('psLrn').style.display = shown('lrn') ? '' : 'none';
-  el('pLrnN').textContent = lrn.length ? lrn.length + (lrn.length === 1 ? ' lesson' : ' lessons') : '';
+  el('pLrnN').textContent = lrn.length ? String(lrn.length) : '';   // Rahul, 8 Nov: just the number
   el('pLrn').innerHTML = lrn.map(x => ed ? pEditRow_('learn', x, ['t', 'seen', 'on'])
       : '<div class="p-ln"><span class="k">' + escHtml(pMon_(x.on)) + '</span><span class="t">' + escHtml(x.t) + (x.seen ? '<small>' + escHtml(x.seen) + '</small>' : '') + '</span></div>').join('')
     + pAddLine_('lrn', 'something you learned from them, or about yourself…', { seen: true, month: true });
