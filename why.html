@@ -2065,6 +2065,7 @@
     border-top:4px solid var(--p-acc,#35786f); border-radius:0 0 16px 16px; background:linear-gradient(180deg, #fff, var(--p-wash,#eef7f6));
     padding:20px 22px 22px; }
   #personWin .pav { display:none !important; }
+  #personWin { background:color-mix(in srgb, var(--p-wash,#eef7f6) 55%, #fbfcfe); }   /* CL-G2: the page takes the ring's wash at half strength */
   #personWin .pb { display:flex; flex-direction:column; align-items:stretch; }
   #personWin .peyebrow { order:0; color:var(--p-acc,#35786f); font-weight:600; padding-right:170px; }
   #personWin .peyebrow .over { color:#a8443e; }
@@ -2082,7 +2083,7 @@
     border:3px solid var(--p-acc,#35786f); border-radius:10px; padding:6px 14px; min-width:100px; background:rgba(255,255,255,0.5);
     box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3.5px var(--p-acc,#35786f); font-family:var(--mono); pointer-events:none; }
   .p-stamp:empty { display:none; }
-  .p-stamp b { display:block; font-family:var(--serif); font-size:1.45rem; letter-spacing:0.04em; line-height:1.15; }
+  .p-stamp b { display:block; font-family:var(--serif); font-size:1.45rem; letter-spacing:0.04em; line-height:1.15; padding:2px 0; }
   .p-stamp b.long { font-size:1.05rem; }
   .p-stamp span { display:block; font-size:0.62rem; letter-spacing:0.14em; }
   .p-stamp small { display:block; font-size:0.55rem; letter-spacing:0.12em; margin-top:2px; }
@@ -7567,11 +7568,9 @@ function openPerson(id) {
     if (ey) ey.innerHTML = 'My Circle &middot; ' + escHtml(b.lbl) + ' (' + b.range + ')'
       + (rh.key ? ' &middot; <span class="' + (rEl && rEl.classList.contains('over') ? 'over' : '') + '">' + escHtml(rh.lbl) + '</span>' : '');
     const SHORT = { close:'CLOSE', sympathy:'CONFIDANTS', affinity:'ACTIVE CIRCLE', near:'NEAR COMMUNITY', outer:'OUTER COMMUNITY', wider:'WIDER WORLD' };
-    const yr = /\b(19|20)\d{2}\b/.exec(String((pData.facts && pData.facts.met) || ''));
     const w = SHORT[b.key] || String(b.lbl).toUpperCase();
-    const st = el('pStamp');
-    if (st) st.innerHTML = '<b class="' + (w.length > 10 ? 'long' : '') + '">' + escHtml(w) + '</b><span>' + escHtml(b.range) + '</span>'
-      + (yr ? '<small>SINCE ' + yr[0] + '</small>' : '');
+    const st = el('pStamp');   // CL-X1: the ring's name only
+    if (st) st.innerHTML = '<b class="' + (w.length > 10 ? 'long' : '') + '">' + escHtml(w) + '</b>';
   }
   paintPersonRise_(p);
   el('pBand').style.background = b.bg;
