@@ -1191,6 +1191,33 @@
   .bc { font-family:var(--mono); font-size:0.5938rem; color:#9aa4ba; }
   .bbar { flex:1; height:3px; background:#eef1f6; border-radius:2px; overflow:hidden; }
   .bbar span { display:block; height:100%; }
+  /* CL-F2 + U4 (8 Nov 2026): seats on Confidants and Active Circle; the big A-Z rings fold into letters */
+  .cl-seats { display:inline-flex; align-items:center; gap:3px; flex-wrap:nowrap; }
+  .cl-seats i { flex:0 0 auto; width:10px; height:10px; border-radius:50%; border:1.5px solid var(--sa); background:#fff; }
+  .cl-seats i.f { background:var(--sa); }
+  .cl-seats b { font-family:var(--mono); font-size:0.625rem; font-weight:600; color:#a8443e; margin-left:3px; }
+  .cl-fold { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:12px 16px; margin-bottom:9px; border-radius:16px;
+    background:linear-gradient(135deg, var(--cw1), var(--cw2)); border:1px solid color-mix(in srgb, var(--cacc) 22%, #fff); }
+  .cl-ltrs { display:flex; flex-wrap:wrap; gap:5px; flex:1; min-width:0; }
+  .cl-ltrs button { min-width:30px; height:30px; padding:0 6px; border-radius:8px; background:#fff; cursor:pointer;
+    border:1px solid color-mix(in srgb, var(--cacc) 30%, #fff); display:inline-flex; align-items:center; justify-content:center; gap:2px;
+    font-family:var(--serif); font-weight:600; font-size:0.9rem; color:var(--cacc); }
+  .cl-ltrs button:hover { background:var(--cw1); border-color:var(--cacc); }
+  .cl-ltrs sub { font-family:var(--mono); font-size:0.55rem; color:#8a93a6; font-weight:400; }
+  .cl-show, .cl-less { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.1em; color:var(--cacc); cursor:pointer; white-space:nowrap;
+    border:1px solid color-mix(in srgb, var(--cacc) 40%, #fff); background:#fff; border-radius:999px; padding:5px 12px; }
+  .cl-show { margin-left:auto; }
+  .cl-less { display:block; margin:0 auto 14px; }
+  .cl-less.h { display:inline-block; margin:0; padding:2px 9px; font-size:0.5625rem; }
+  .crow.cl-flash { outline:3px solid var(--cacc); outline-offset:3px; transition:outline-color 1.2s ease; }
+  @media (max-width:640px) {
+    .bhead.seated { flex-wrap:wrap; row-gap:5px; }
+    .bhead.seated .bc { white-space:nowrap; }
+    .bhead.seated .cl-seats { flex-basis:100%; order:3; }
+    .cl-ltrs button { min-width:26px; height:28px; font-size:0.82rem; }
+    .cl-show { margin-left:0; width:100%; text-align:center; }
+    .cl-less.h { display:none; }
+  }
   /* Card rows — no table, so it reflows cleanly on a phone. */
   .crow { display:flex; align-items:center; gap:13px; padding:14px 16px; margin-bottom:9px; cursor:pointer;
           background:linear-gradient(160deg,var(--cw1,#f9fbfd),var(--cw2,#eef2f8));
@@ -6322,7 +6349,7 @@ function showSection(sec) {
   const panelSec = sec === 'dreams' ? 'decisions' : sec;
   if (sec === 'dreams' || sec === 'decisions') { try { dcFilter_ = sec === 'dreams' ? 'dream' : 'decision'; dcRoomPaint_(); if (dcRows) renderDecisions(); } catch (e) { /* the decisions code has not loaded yet; its first render reads dcFilter_ */ } }
   // Arriving at a partial list with no memory of why is worse than one more tap.
-  if (sec !== 'circle') circleTag = '';
+  if (sec !== 'circle') { circleTag = ''; if (clOpen_ && clOpen_.size) { clOpen_ = new Set(); try { renderCircle(); } catch (e) {} } }   // CL-F2: big rings fold again when you leave
   ['pillars','mantra','circle','explore','priority','decisions','mind'].forEach(s => {
     const p = el('sec' + s.charAt(0).toUpperCase() + s.slice(1));
     if (p) p.classList.toggle('hidden', s !== panelSec);
@@ -6771,6 +6798,18 @@ function paintPersonRise_(p) {
   b.classList.toggle('on', !!p.rising_since);
   b.textContent = p.rising_since ? '\u2B06 Rising since ' + clMonth_(p.rising_since) + ' \u00B7 unmark' : '\u2B06 Mark as rising';
 }
+// CL-F2 (8 Nov 2026): Near Community, Outer Community and The Wider World fold into an A-Z strip once they hold
+// more than 12 people (after any tag filter). Folded by default on every visit - nothing is remembered; a ring you
+// open stays open until you leave My Circle (showSection clears it) or refresh. Close, Confidants, Active Circle never fold.
+const CL_FOLD_BANDS = new Set(['near', 'outer', 'wider']);
+const CL_FOLD_AT = 12;
+var clOpen_ = clOpen_ || new Set();   // var: showSection may touch it before this line runs
+function clLetter_(p) { const c = String(p.name || '').trim().charAt(0).toUpperCase(); return /[A-Z]/.test(c) ? c : '#'; }
+function clFlash_(id) {
+  const r = document.querySelector('#circleList .crow[data-open="' + String(id).replace(/"/g, '') + '"]'); if (!r) return;
+  r.scrollIntoView({ block: 'center', behavior: 'smooth' }); r.classList.add('cl-flash');
+  setTimeout(() => r.classList.remove('cl-flash'), 1600);
+}
 function renderCircle() {
   const wrap = el('circleList'); if (!wrap) return;
   renderCircleChips();
@@ -6790,13 +6829,30 @@ function renderCircle() {
     const count = circleTag ? (people.length + (people.length === 1 ? ' person' : ' people'))
                 : capped ? (people.length + ' of ' + b.cap)
                          : (people.length + (people.length === 1 ? ' person' : ' people'));
-    html += '<div class="bhead"><span class="bt" style="color:' + b.acc + ';">' + escHtml(b.lbl)
+    // U4: one dot per seat on My Confidants (10) and My Active Circle (15); Close keeps its bar (Rahul, 8 Nov 2026)
+    const seated = capped && !circleTag && (b.key === 'sympathy' || b.key === 'affinity');
+    const foldable = CL_FOLD_BANDS.has(b.key) && people.length > CL_FOLD_AT;
+    const folded = foldable && !clOpen_.has(b.key);
+    const seats = seated ? '<span class="cl-seats" style="--sa:' + b.acc + '" title="' + people.length + ' of ' + b.cap + ' seats taken">'
+          + Array.from({ length: b.cap }, (_, j) => '<i class="' + (j < people.length ? 'f' : '') + '"></i>').join('')
+          + (people.length > b.cap ? '<b>+' + (people.length - b.cap) + '</b>' : '') + '</span>' : '';
+    html += '<div class="bhead' + (seated ? ' seated' : '') + '"><span class="bt" style="color:' + b.acc + ';">' + escHtml(b.lbl)
           + ' <i>(' + b.range + ')</i></span>'
           + '<span class="bc">' + count + '</span>'
-          + (capped && !circleTag ? '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span>'
-                    : '<span class="bbar bare"></span>')
+          + (foldable && !folded ? '<button type="button" class="cl-less h" data-clless="' + b.key + '" style="--cacc:' + b.acc + '">SHOW LESS \u25B4</button>' : '')
+          + (seated ? seats
+             : capped && !circleTag ? '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span>'
+             : '<span class="bbar bare"></span>')
           + '</div>'
           + '<div class="bdesc">' + b.desc + '</div>';
+    if (folded) {   // F2: the letters, each with how many people sit under it
+      const cnt = {}; people.forEach(p => { const L = clLetter_(p); cnt[L] = (cnt[L] || 0) + 1; });
+      html += '<div class="cl-fold" style="--cw1:' + b.w1 + ';--cw2:' + b.bg + ';--cacc:' + b.acc + '"><span class="cl-ltrs">'
+            + Object.keys(cnt).sort((x, y) => x === '#' ? 1 : y === '#' ? -1 : x.localeCompare(y))
+                .map(L => '<button type="button" data-clletter="' + L + '" data-clband="' + b.key + '" aria-label="' + cnt[L] + ' under ' + L + '">' + L + '<sub>' + cnt[L] + '</sub></button>').join('')
+            + '</span><button type="button" class="cl-show" data-clopen="' + b.key + '">SHOW ALL ' + people.length + ' \u25BE</button></div>';
+      return;
+    }
     // Card rows, not a table: reflows on any width, gives the note real room,
     // and no empty edit cells cutting the panel edge in read mode.
     html += people.map((p, pi) =>
@@ -6825,6 +6881,7 @@ function renderCircle() {
         '<span class="c-go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>' +
       '</div>'
     ).join('');
+    if (foldable) html += '<button type="button" class="cl-less" data-clless="' + b.key + '" style="--cacc:' + b.acc + '">SHOW LESS \u25B4</button>';
   });
   if (!circle.length) html += '<div class="c-empty">No one here yet \u2014 tap Edit, then add the people who matter.</div>';
   html += '<div class="addrow" id="circleAdd">+ Add someone</div>';
@@ -6889,6 +6946,7 @@ function closeCircleModal() { el('circleModal').classList.add('hidden'); editing
 async function savePerson() {
   const name = el('fPerson').value.trim();
   if (!name) { toast('Add a name first'); return; }
+  let newId = null;
   const rec = { name, band: el('fBand').value, note: el('fRel').value.trim(),
                 tag: el('fTag').value.trim(), rhythm: el('fRhythm').value, user_id: userId };
   try {
@@ -6896,15 +6954,18 @@ async function savePerson() {
       const prev = circle.find(x => String(x.id) === String(editingPerson));
       // Changing someone's band drops their old position — they join the
       // bottom of the new band rather than landing in an arbitrary slot.
-      if (prev && prev.band !== rec.band) { rec.sort_order = null; rec.rising_since = null; }   // RC-A: any move fulfils or drops the intention
+      if (prev && prev.band !== rec.band) { rec.sort_order = null; rec.rising_since = null; newId = editingPerson; }   // RC-A: any move fulfils or drops the intention (CL-F2: and we show where they went)
       const { error } = await supa.from('why_circle').update(rec).eq('id', editingPerson).eq('user_id', userId);
       if (error) throw error;
     } else {
-      const { error } = await supa.from('why_circle').insert(rec);
+      const { data: added, error } = await supa.from('why_circle').insert(rec).select('id');
       if (error) throw error;
+      newId = added && added[0] && added[0].id;
     }
     const wasEditing = editingPerson;   // closeCircleModal nulls it
+    if (newId && CL_FOLD_BANDS.has(rec.band)) clOpen_.add(rec.band);   // CL-F2: a folded ring opens so you see where they landed
     closeCircleModal(); await loadCircle(); toast('Saved');
+    if (newId) setTimeout(() => clFlash_(newId), 60);
     // If that person's page is open behind the modal, its hero repaints too.
     if (pId && wasEditing && String(pId) === String(wasEditing)
         && el('personWin').classList.contains('show')) {
@@ -6928,6 +6989,25 @@ el('circleChips').addEventListener('click', e => {
   renderCircle();
 });
 el('circleList').addEventListener('click', e => {
+  // CL-F2: open a folded ring at a letter, open it all, or fold it again
+  const lt = e.target.closest('[data-clletter]');
+  if (lt) {
+    clOpen_.add(lt.dataset.clband); renderCircle();
+    const first = circle.filter(p => p.band === lt.dataset.clband && (!circleTag || clTagKeys(p.tag).indexOf(circleTag) > -1))
+      .find(p => clLetter_(p) === lt.dataset.clletter);
+    const rows = [...el('circleList').querySelectorAll('.crow')];
+    const hit = first && rows.find(r => r.dataset.open === String(first.id));
+    if (hit) clFlash_(hit.dataset.open);
+    return;
+  }
+  const so = e.target.closest('[data-clopen]'); if (so) { clOpen_.add(so.dataset.clopen); renderCircle(); return; }
+  const sl = e.target.closest('[data-clless]');
+  if (sl) {
+    clOpen_.delete(sl.dataset.clless); renderCircle();
+    const f = el('circleList').querySelector('[data-clopen="' + sl.dataset.clless + '"]');
+    if (f) { const r = f.closest('.cl-fold').getBoundingClientRect(); if (r.top < 0 || r.top > window.innerHeight) f.closest('.cl-fold').scrollIntoView({ block: 'center' }); }
+    return;
+  }
   const mv = e.target.closest('[data-cmove]');
   if (mv) { e.stopPropagation(); moveCirclePerson(mv.dataset.cmove, Number(mv.dataset.dir)); return; }
   const ed = e.target.closest('[data-cedit]'); if (ed) { openCircleModal(ed.dataset.cedit); return; }
