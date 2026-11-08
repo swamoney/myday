@@ -1553,6 +1553,13 @@
   #personWin.pan-pri #pBtnPri .p-cvp, #personWin.pan-conv #pBtnConv .p-cvp, #personWin.pan-deal #pBtnDeal .p-cvp { transform:rotate(180deg); color:inherit; }
   /* panels: tinted boxes, one open at a time */
   .p-pan { display:none; border-radius:14px; padding:16px 18px 14px; margin:2px 0 20px; }
+  /* CL-M1 (8 Nov 2026): the five section boxes open as a centred pop-up over a dimmed page, not inside it */
+  #personWin .p-pan { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(640px, calc(100vw - 32px)); max-height:80vh;
+    overflow:auto; z-index:600; margin:0; border-radius:18px; padding:20px 22px; box-shadow:0 24px 70px rgba(10,19,37,0.35); }
+  #pPanBg { display:none; position:fixed; inset:0; background:rgba(10,19,37,0.42); z-index:590; }
+  #personWin[class*="pan-"] .pbar { position:relative; z-index:595; }   /* Back, History and Edit stay usable above the dim */
+  #personWin[class*="pan-"] #pPanBg { display:block; }
+  @media (max-width:640px) { #personWin .p-pan { max-height:84vh; padding:16px 14px; } }
   #personWin.pan-pri #pPanPri, #personWin.pan-conv #pPanConv, #personWin.pan-deal #pPanDeal { display:block; }
   .pan-pri { background:#fbf7f6; border:1px solid #ecdcdc; }
   .pan-conv { background:#f4f7fc; border:1px solid #d9e2f1; }
@@ -4517,6 +4524,7 @@
 
       <!-- The four panels open as tinted boxes, one at a time. -->
       <!-- C (28 Oct 2026): Who they are is a button; your one-line read stays in the hero. -->
+      <div id="pPanBg" aria-hidden="true"></div>
       <div class="p-pan pan-who" id="pPanWho">
         <div class="p-panh"><span class="p-pant">Who they are</span><span class="p-cn" id="pWhoN"></span><span class="sp"></span>
           <button class="p-cb solid" data-psadd="who" type="button">Add</button><button class="p-cb" data-pan="who" type="button">Close</button></div>
@@ -7144,6 +7152,15 @@ function pApplySections() {
 // same why_circle.page JSON, so no new columns. Adding is always one line away
 // (type, Enter); changing or deleting an entry needs Edit, like the rest.
 let pPan = null, pOpenSecs = new Set(), pFactsEdit = false, pMore = {};
+// CL-M1: close the pop-up (CLOSE, a tap outside, Esc, or the phone's Back)
+function pPanClose_() {
+  if (!pPan) return;
+  try { pCommitPending_(); } catch (e) {}   // anything typed but not yet added is kept, not lost
+  pPan = null; renderPersona();
+  if (history.state && history.state.ppan) { try { history.back(); } catch (e) {} }
+}
+window.addEventListener('popstate', () => { if (pPan) { try { pCommitPending_(); } catch (e) {} pPan = null; renderPersona(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && pPan && el('personWin').classList.contains('show')) { e.stopPropagation(); pPanClose_(); } }, true);
 function pUid_() { return 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function pMonNow_() { return istToday().slice(0, 7); }
 function pMon_(v) {
@@ -7226,6 +7243,8 @@ function renderPersona() {
     + (okN || noN ? '<em class="ok">✓ ' + okN + '</em><em class="no">✗ ' + noN + '</em>' : '<b>none yet</b>') + '<span class="p-cvp">▾</span>';
   const pw = el('personWin');
   ['who', 'tp', 'pri', 'conv', 'deal'].forEach(k => pw.classList.toggle('pan-' + k, pPan === k));
+  // CL-M1: an open pop-up owns one history step, so the phone's Back closes it
+  if (pPan && !(history.state && history.state.ppan)) { try { history.pushState(Object.assign({}, history.state || {}, { ppan: 1 }), ''); } catch (e) {} }
   // --- How to deal (inside its panel)
   el('pDeal').innerHTML = '<div class="p-wk">' + [['ok', '✓ Works', '#4a6b5a', 'add what works…'], ['no', '✗ Avoid', '#9a6a55', 'add what to avoid…']].map(([k, lbl, ink, ph]) =>
     '<div><div class="p-gl" style="color:' + ink + '">' + lbl + '</div>'
@@ -7415,7 +7434,8 @@ function pCommitPending_() {
     const pl = e.target.closest('[data-pplopen]');
     if (pl) { const to = pl.dataset.pplopen; pCommitPending_(); savePerson_(true); pSessionEnd_(); openPerson(to); el('personWin').scrollTop = 0; return; }
     const pb = e.target.closest('[data-pan]');
-    if (pb) { pPan = pPan === pb.dataset.pan ? null : pb.dataset.pan; renderPersona(); return; }
+    if (pb) { const nx = pPan === pb.dataset.pan ? null : pb.dataset.pan; if (!nx) { pPanClose_(); return; } pPan = nx; renderPersona(); return; }
+    if (e.target.id === 'pPanBg') { pPanClose_(); return; }
     const ad = e.target.closest('[data-psadd]');
     if (ad) { const k = ad.dataset.psadd; pFocusAdd_(k === 'who' ? 'who:trait' : k); return; }
     const em = e.target.closest('[data-pempty]');
@@ -7716,6 +7736,7 @@ function openPerson(id) {
   document.body.style.overflow = 'hidden';
 }
 function closePerson() {
+  if (pPan) pPanClose_();   // CL-M1
   pCommitPending_();
   pSessionEnd_();
   savePerson_(true);
