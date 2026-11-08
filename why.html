@@ -1556,6 +1556,28 @@
   /* CL-M1 (8 Nov 2026): the five section boxes open as a centred pop-up over a dimmed page, not inside it */
   #personWin .p-pan { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:min(640px, calc(100vw - 32px)); max-height:80vh;
     overflow:auto; z-index:600; margin:0; border-radius:18px; padding:20px 22px; box-shadow:0 24px 70px rgba(10,19,37,0.35); }
+  /* CL-W1 / C3 / T3 (8 Nov 2026): the merged Who they are & how to deal box */
+  #pWhoRd .w-read { font-family:var(--serif); font-style:italic; font-size:1.2rem; line-height:1.45; color:#1f2a44;
+    border-left:3px solid var(--p-acc,#35786f); padding:2px 0 2px 12px; margin:0 0 14px; }
+  #pWhoRd .w-read small { display:block; font-family:var(--mono); font-style:normal; font-size:0.62rem; letter-spacing:0.12em; color:#5d6880; margin-bottom:3px; }
+  #pDeal .w-dd { display:grid !important; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 14px; }
+  #pDeal .w-dd > div { border-radius:12px; padding:10px 14px; border-left:none !important; }
+  #pDeal .w-dd .w-ok { background:#eef6f0; border:1px solid #c8e0cf; }
+  #pDeal .w-dd .w-no { background:#fbefed; border:1px solid #efcfc9; }
+  #pDeal .w-dd .p-gl { font-family:var(--mono); font-size:0.68rem !important; letter-spacing:0.14em; font-weight:600; border:none !important; padding:0 !important; margin-bottom:6px; }
+  #pDeal .w-dd .w-ok .p-gl { color:#2f5e45 !important; } #pDeal .w-dd .w-no .p-gl { color:#8a3d32 !important; }
+  #pDeal .w-dd .p-it { font-family:var(--serif); font-size:1.02rem; color:#1f2a44; padding:3px 0; border:none; }
+  #pWho .w-row { display:flex; gap:14px; align-items:flex-start; padding:10px 0; border-top:1px dashed #e3e8f0; }
+  #pWho .w-row:first-child { border-top:none; }
+  #pWho .w-lbl { flex:0 0 96px; font-family:var(--serif); font-weight:600; font-size:1.02rem; color:var(--wc); padding-top:4px; }
+  #pWho .w-chips { flex:1; min-width:0; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  #pWho .w-chips > i { font-style:normal; font-family:var(--serif); font-size:0.98rem; color:#1f2a44; border-radius:999px; padding:4px 12px;
+    background:color-mix(in srgb, var(--wc) 9%, #fff); border:1px solid color-mix(in srgb, var(--wc) 30%, #fff); }
+  #pWho .w-chips > i small { font-family:var(--mono); font-size:0.6rem; color:#8a93a6; margin-left:6px; }
+  #pWho .w-chips .pad { flex:1 1 100%; }
+  .w-none { font-family:var(--serif); font-style:italic; font-size:0.95rem; color:#9aa4ba; padding-top:3px; }
+  #pWhoRd:has(.p-read.none) { display:none; }
+  @media (max-width:640px) { #pDeal .w-dd { grid-template-columns:1fr; } #pWho .w-row { flex-direction:column; gap:6px; } #pWho .w-lbl { flex:none; } }
   #pPanBg { display:none; position:fixed; inset:0; background:rgba(10,19,37,0.42); z-index:590; }
   #personWin[class*="pan-"] .pbar { position:relative; z-index:595; }   /* Back, History and Edit stay usable above the dim */
   #personWin[class*="pan-"] #pPanBg { display:block; }
@@ -4518,7 +4540,7 @@
             <button class="p-pb" id="pBtnTp" data-pan="tp" type="button"></button>
             <button class="p-pb" id="pBtnPri" data-pan="pri" type="button"></button>
             <button class="p-pb" id="pBtnConv" data-pan="conv" type="button"></button>
-            <button class="p-pb" id="pBtnDeal" data-pan="deal" type="button"></button>
+            <button class="p-pb hidden" id="pBtnDeal" type="button" aria-hidden="true"></button>
           </div>
       </div>
 
@@ -4526,8 +4548,11 @@
       <!-- C (28 Oct 2026): Who they are is a button; your one-line read stays in the hero. -->
       <div id="pPanBg" aria-hidden="true"></div>
       <div class="p-pan pan-who" id="pPanWho">
-        <div class="p-panh"><span class="p-pant">Who they are</span><span class="p-cn" id="pWhoN"></span><span class="sp"></span>
+        <div class="p-panh"><span class="p-pant">Who they are &amp; how to deal</span><span class="p-cn" id="pWhoN"></span><span class="sp"></span>
           <button class="p-cb solid" data-psadd="who" type="button">Add</button><button class="p-cb" data-pan="who" type="button">Close</button></div>
+        <!-- CL-W1 (8 Nov 2026): one box - my read, then how to deal (DO / DON'T), then traits, behaviours, biases -->
+        <div id="pWhoRd"></div>
+        <div id="pDeal"></div>
         <div id="pWho"></div>
       </div>
       <!-- Their people (B3, 28 Oct 2026): a button with their first names; the list opens in an olive box -->
@@ -4551,10 +4576,7 @@
           <button class="p-cb solid" id="pTalkAdd" type="button">Record</button><button class="p-cb" data-pan="conv" type="button">Close</button></div>
         <div class="p-ls" id="pLastSpoke"></div>
       </div>
-      <div class="p-pan pan-deal" id="pPanDeal">
-        <div class="p-panh"><span class="p-pant">How to deal with them</span><span class="sp"></span><button class="p-cb" data-pan="deal" type="button">Close</button></div>
-        <div id="pDeal"></div>
-      </div>
+      <!-- CL-W1: How to deal now lives in the Who they are box -->
 
       <div class="p-kf" id="pFacts"></div>
 
@@ -7246,9 +7268,11 @@ function renderPersona() {
   // CL-M1: an open pop-up owns one history step, so the phone's Back closes it
   if (pPan && !(history.state && history.state.ppan)) { try { history.pushState(Object.assign({}, history.state || {}, { ppan: 1 }), ''); } catch (e) {} }
   // --- How to deal (inside its panel)
-  el('pDeal').innerHTML = '<div class="p-wk">' + [['ok', '✓ Works', '#4a6b5a', 'add what works…'], ['no', '✗ Avoid', '#9a6a55', 'add what to avoid…']].map(([k, lbl, ink, ph]) =>
-    '<div><div class="p-gl" style="color:' + ink + '">' + lbl + '</div>'
+  // CL-C3: reading - a green DO box and a red DON'T box; Edit keeps the Works / Avoid rows
+  el('pDeal').innerHTML = '<div class="p-wk' + (ed ? '' : ' w-dd') + '">' + [['ok', ed ? '✓ Works' : '✓ DO', '#4a6b5a', 'add what works…'], ['no', ed ? '✗ Avoid' : '✗ DON\u2019T', '#9a6a55', 'add what to avoid…']].map(([k, lbl, ink, ph]) =>
+    '<div class="w-' + k + '"><div class="p-gl" style="color:' + ink + '">' + lbl + '</div>'
     + (pData.deal || []).filter(d => d.k === k).map(d => ed ? pEditRow_('deal', d, ['t']) : '<div class="p-it">' + escHtml(d.t) + '</div>').join('')
+    + (!ed && !(pData.deal || []).some(d => d.k === k) ? '<em class="w-none">nothing yet</em>' : '')
     + pAddLine_('deal:' + k, ph) + '</div>').join('') + '</div>';
   // --- Key facts
   const f = pData.facts || {}, kf = el('pFacts');
@@ -7304,18 +7328,34 @@ function renderPersona() {
   const who = pData.who || [];
   el('pWhoN').textContent = who.length ? who.length + (who.length === 1 ? ' note' : ' notes') : '';
   const read = String(pData.read || '').trim();
-  el('pBtnWho').innerHTML = '<span class="p-ci">\uD83E\uDDED</span>Who they are'
-    + (who.length ? '<span class="p-wd">' + P_WHO.map(g => '<span><i style="background:' + g.ink + '"></i>' + who.filter(x => x.k === g.k).length + '</span>').join('') + '</span>' : '<b>none yet</b>')
-    + '<span class="p-cvp">\u25BE</span>';
+  { const okN = (pData.deal || []).filter(d => d.k === 'ok').length, noN = (pData.deal || []).filter(d => d.k === 'no').length;
+    el('pBtnWho').innerHTML = '<span class="p-ci">\uD83E\uDDED</span>Who they are &amp; how to deal'
+    + (who.length ? '<span class="p-wd">' + P_WHO.map(g => '<span><i style="background:' + g.ink + '"></i>' + who.filter(x => x.k === g.k).length + '</span>').join('') + '</span>' : '')
+    + (okN || noN ? '<em class="ok">\u2713 ' + okN + '</em><em class="no">\u2717 ' + noN + '</em>' : '')
+    + (!who.length && !okN && !noN ? '<b>none yet</b>' : '')
+    + '<span class="p-cvp">\u25BE</span>'; }
   const rd = el('pRead');
   const rdOn = read && !(ed && pPan === 'who');   // while you edit it in the box, the box holds it
   rd.innerHTML = rdOn ? '<small>MY READ OF THEM</small>' + pReadHtml_(read) : '';
   rd.style.display = rdOn ? '' : 'none';
+  let wr = '';   // CL-W1: my read sits at the top of the box, always (it used to hide here while reading)
+  if (ed) wr += '<div class="p-read"><i>MY READ OF THEM, IN ONE LINE · *WORD* TO HIGHLIGHT</i><input class="pe-read" type="text" data-pread="1" value="' + escHtml(pData.read || '') + '" placeholder="Your read of them, in one line…"></div>';
+  else if (read) wr += '<div class="w-read"><small>MY READ OF THEM</small>' + pReadHtml_(read) + '</div>';
+  else wr += '<div class="p-read none">' + pAddLine_('read', 'my read of them, in one line…') + '</div>';
+  el('pWhoRd').innerHTML = wr;
   let wh = '';
-  if (ed) wh += '<div class="p-read"><i>MY READ OF THEM, IN ONE LINE · *WORD* TO HIGHLIGHT</i><input class="pe-read" type="text" data-pread="1" value="' + escHtml(pData.read || '') + '" placeholder="Your read of them, in one line…"></div>';
-  else if (read) wh += '';
-  else wh += '<div class="p-read none">' + pAddLine_('read', 'my read of them, in one line…') + '</div>';
-  wh += '<div class="p-g3">' + P_WHO.map(g => {
+  if (!ed) {   // CL-T3: reading - one row per group, its notes as soft chips
+    wh = '<div class="w-rows">' + P_WHO.map(g => {
+      const its = who.filter(x => x.k === g.k);
+      const cap = 8, all = !!pMore[g.k], vis = all ? its : its.slice(0, cap);
+      return '<div class="w-row" style="--wc:' + g.ink + '"><span class="w-lbl">' + g.lbl + '</span><span class="w-chips">'
+        + vis.map(x => '<i title="' + escHtml([x.seen ? 'Seen: ' + x.seen : '', x.on ? pMon_(x.on) : ''].filter(Boolean).join(' · ')) + '">' + escHtml(x.t)
+          + (x.seen ? '<small>' + escHtml(x.seen) + '</small>' : '') + '</i>').join('')
+        + (its.length ? '' : '<em class="w-none">nothing yet</em>')
+        + (its.length > cap && !all ? '<button class="p-more" type="button" data-pmore="' + g.k + '">+ ' + (its.length - cap) + ' more</button>' : '')
+        + pAddLine_('who:' + g.k, g.ph, { seen: true, month: true }) + '</span></div>';
+    }).join('') + '</div>';
+  } else wh += '<div class="p-g3">' + P_WHO.map(g => {
     const its = who.filter(x => x.k === g.k);
     const cap = 5, all = !!pMore[g.k] || ed, vis = all ? its : its.slice(0, cap);
     return '<div class="p-gc" style="--wc:' + g.ink + '"><div class="p-whd"><span>' + g.lbl + '</span><b>' + (its.length || '') + '</b></div>'
@@ -7325,6 +7365,8 @@ function renderPersona() {
       + pAddLine_('who:' + g.k, g.ph, { seen: true, month: true }) + '</div>';
   }).join('') + '</div>';
   el('pWho').innerHTML = wh;
+  { const dn = (pData.deal || []).length, wn = who.length + dn;   // the box's count covers both halves
+    el('pWhoN').textContent = wn ? wn + (wn === 1 ? ' note' : ' notes') : ''; }
   // --- Direct advice: all alike; the pinned one only gets a faint wash
   // 28 Oct 2026: newest first, the pinned one last - it has already been read under the name
   const adv = (pData.advice || []).slice().sort((a, b) => (a.pin - b.pin) || String(b.on || '').localeCompare(String(a.on || '')));
@@ -7351,7 +7393,7 @@ function renderPersona() {
   el('pEmpty').style.display = empt.length ? '' : 'none';
 }
 function pFocusAdd_(kind) {
-  if (/^(who|read)/.test(kind) && pPan !== 'who') { pPan = 'who'; renderPersona(); }
+  if (/^(who|read|deal)/.test(kind) && pPan !== 'who') { pPan = 'who'; renderPersona(); }
   if (kind === 'ppl' && pPan !== 'tp') { pPan = 'tp'; renderPersona(); }
   const box = el('personWin').querySelector('[data-padd="' + kind + '"] .pad-i');
   if (box) { box.focus(); box.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
