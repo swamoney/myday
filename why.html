@@ -16385,18 +16385,27 @@ if (IW_EMBED) {
     if (push !== false) { try { history.pushState({ iw: want }, '', '?iw=' + encodeURIComponent(want)); } catch (e) {} }
   };
   // a link inside Inner Life that leaves it: a My Why room opens here at once; anything else loads as before
+  // IW-S4: also why.html?sec=<room>&open=<id> (a search result) and why.html?rm=<id> (a pillar's roadmap) - no reload
   window.iwLeave_ = function (url) {
-    const m = /^why\.html\?sec=([\w-]+)$/.exec(url || '');
-    const chip = m && document.querySelector('#m3nav [data-f="why"][data-k="' + m[1] + '"]');
-    if (!chip) { location.href = url; return; }
+    const m = /^why\.html\?([^#]*)$/.exec(url || '');
+    const p = m ? new URLSearchParams(m[1]) : null, keys = p ? [...p.keys()].sort().join(',') : '';
+    let act = null;
+    if (keys === 'sec' || keys === 'open,sec') {
+      const sec = p.get('sec'), id = p.get('open');
+      const chip = document.querySelector('#m3nav [data-f="why"][data-k="' + sec + '"]');
+      if (chip) act = id && typeof xsOpenWhy_ === 'function' ? () => xsOpenWhy_(sec, id, true) : () => chip.click();
+    } else if (keys === 'rm' && typeof openRoadmap === 'function') {
+      const rm = p.get('rm'); act = () => openRoadmap(rm);
+    }
+    if (!act) { location.href = url; return; }
     hide(); window.scrollTo(0, 0);
-    if (history.state && history.state.iw !== undefined) { pendChip = chip; history.back(); } else chip.click();
+    if (history.state && history.state.iw !== undefined) { pendChip = act; history.back(); } else act();
   };
   window.addEventListener('popstate', () => {
     const st = history.state;
     if (st && st.iw !== undefined) { window.iwOpen_(st.iw, false); return; }
     hide();
-    if (pendChip) { const c = pendChip; pendChip = null; c.click(); }
+    if (pendChip) { const c = pendChip; pendChip = null; c(); }
   });
   document.addEventListener('click', e => {
     const a = e.target.closest && e.target.closest('a[href^="introspection.html"], a[href^="why.html?iw="]'); if (!a) return;
