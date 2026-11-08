@@ -1599,8 +1599,18 @@
   .pp-go { color:#b5bfcf; font-size:1.3rem; }
   .pp-gone { background:none; border:none; padding:0; font:inherit; color:inherit; cursor:pointer; }
   .pp-addrow { display:block; width:100%; margin-top:10px; border:1.5px dashed #c9cfbd; border-radius:12px; padding:10px; text-align:center; color:#4f5a2e; background:none; font-family:var(--serif); font-size:1rem; cursor:pointer; }
+  /* CL-T1 */
+  .pp-bd { font-family:var(--mono); font-size:0.68rem; color:#a06a2c; }
+  .pp-dob { display:flex; gap:8px; } .pp-dob #pplD { flex:0 0 70px; } .pp-dob select { flex:1; } .pp-dob #pplB { flex:0 0 90px; }
+  .pp-dob select { border:1px solid #d6dde8; border-radius:10px; padding:10px 12px; font-family:var(--serif); font-size:1rem; background:#fff; }
+  .pp-ageln { font-size:0.86rem; color:#6b7488; margin:5px 2px 0; }
+  #pnKind .pp-rc.on { background:var(--kc); border-color:var(--kc); color:#fff; }
+  .w-plus { border:1.5px dashed #c9cdd8; background:#fff; color:#6b7488; border-radius:999px; padding:3px 12px; font-size:0.95rem; cursor:pointer; }
+  #pWho .pn-tap { cursor:pointer; }
   /* CL-E1 */
-  #personWin #psAdv .psa, #personWin #psLrn .psa { display:inline-block !important; background:var(--p-acc,#35786f); color:#fff; border-radius:6px; padding:4px 9px; }
+  /* CL-T1: + Add on advice, learning and moments - Edit only, all three alike */
+  body.p-editing #personWin #psAdv .psa, body.p-editing #personWin #psLrn .psa, body.p-editing #personWin #pMomAdd { display:inline-block !important; background:var(--p-acc,#35786f) !important; color:#fff !important; border:none !important; border-radius:6px; padding:4px 9px; }
+  body:not(.p-editing) #personWin .pn-addrow { display:none !important; }
   #personWin .pn-tap { cursor:pointer; }
   #personWin .pn-tap:hover { background:color-mix(in srgb, var(--p-acc,#35786f) 5%, transparent); }
   .pn-addrow { display:block; width:100%; margin-top:10px; border:1.5px dashed #d9c9a3; border-radius:10px; padding:9px; text-align:center; color:var(--p-acc,#35786f); background:none; font-family:var(--serif); font-size:1rem; cursor:pointer; }
@@ -4596,7 +4606,7 @@
       <!-- C (28 Oct 2026): Who they are is a button; your one-line read stays in the hero. -->
       <div id="pPanBg" aria-hidden="true"></div>
       <div class="p-pan pan-who" id="pPanWho">
-        <div class="p-panh"><span class="p-pant">Who they are &amp; how to deal</span><span class="p-cn" id="pWhoN"></span><span class="sp"></span>
+        <div class="p-panh"><span class="p-pant"><span class="p-ci">🧭</span> Who they are &amp; how to deal</span><span class="p-cn" id="pWhoN"></span><span class="sp"></span>
           <button class="p-cb solid" data-psadd="who" type="button">Add</button><button class="p-cb" data-pan="who" type="button">Close</button></div>
         <!-- CL-W1 (8 Nov 2026): one box - my read, then how to deal (DO / DON'T), then traits, behaviours, biases -->
         <div id="pWhoRd"></div>
@@ -4605,13 +4615,14 @@
       </div>
       <!-- Their people (B3, 28 Oct 2026): a button with their first names; the list opens in an olive box -->
       <div class="p-pan pan-tp" id="pPanTp">
-        <div class="p-panh"><span class="p-pant">Their people</span><span class="p-cn" id="pPplN"></span><span class="sp"></span>
+        <div class="p-panh"><span class="p-pant"><span class="p-ci">👪</span> Their people</span><span class="p-cn" id="pPplN"></span><span class="sp"></span>
           <button class="p-cb solid" data-psadd="ppl" type="button">Add</button><button class="p-cb" data-pan="tp" type="button">Close</button></div>
         <div id="pPpl"></div>
       </div>
       <!-- CL-E1: add / change a piece of advice or a lesson - a small form, not a table -->
       <div class="pp-ov hidden" id="pnOv"><div class="pp-form" role="dialog" aria-modal="true">
         <div class="pp-fh" id="pnFh">Their words</div>
+        <div id="pnKindW"><label>KIND · TAP ONE</label><div class="pp-rels" id="pnKind"></div></div>
         <label id="pnTl">WHAT THEY SAID</label><textarea id="pnT" rows="3"></textarea>
         <div id="pnAboutW"><label>ABOUT · TAP ONE</label><div class="pp-rels" id="pnAbout"></div><input type="text" id="pnAboutIn" class="hidden" placeholder="a topic, in a word or two"></div>
         <div id="pnSeenW"><label>WHAT HAPPENED (OPTIONAL)</label><input type="text" id="pnSeen" placeholder="the moment you saw it"></div>
@@ -4625,15 +4636,16 @@
         <label>NAME</label><input type="text" id="pplN" placeholder="e.g. Isha" autocomplete="off">
         <label>RELATION · TAP ONE</label><div class="pp-rels" id="pplRels"></div>
         <input type="text" id="pplR" class="hidden" placeholder="their relation, in a word (e.g. godmother, mama)">
-        <div class="pp-two"><div><label>BORN (YEAR)</label><input type="text" id="pplB" inputmode="numeric" maxlength="4" placeholder="2020"></div>
-          <div><label>OR AGE</label><input type="text" id="pplA" inputmode="numeric" maxlength="3" placeholder="6"></div></div>
+        <label>DATE OF BIRTH · DAY AND MONTH OPTIONAL</label>
+        <div class="pp-dob"><input type="text" id="pplD" inputmode="numeric" maxlength="2" placeholder="day"><select id="pplM"></select><input type="text" id="pplB" inputmode="numeric" maxlength="4" placeholder="year"></div>
+        <div class="pp-ageln" id="pplAgeLn"></div>
         <label>ONE LINE</label><input type="text" id="pplL" placeholder="what to remember about them">
         <div class="pp-tog"><button type="button" class="pp-tg" id="pplPin">📌 Show on the button</button><button type="button" class="pp-tg" id="pplPast">✦ In memory</button>
           <input type="text" id="pplPY" class="hidden" inputmode="numeric" maxlength="4" placeholder="year"></div>
         <div class="pp-fb"><button type="button" class="pp-del hidden" id="pplDel">Delete</button><span class="sp"></span><button type="button" class="pp-cn" id="pplCancel">Cancel</button><button type="button" class="pp-sv" id="pplSave">Save</button></div>
       </div></div>
       <div class="p-pan pan-pri" id="pPanPri">
-        <div class="p-panh"><span class="p-pant">Priorities</span><span class="p-cn" id="pNextSum"></span><span class="sp"></span>
+        <div class="p-panh"><span class="p-pant"><span class="p-pg" style="display:inline-grid;vertical-align:1px;margin-right:4px"><i style="background:#9c3f4a"></i><i style="background:#2E6640"></i><i style="background:#a06a2c"></i><i style="background:#5f6b85"></i></span>Priorities</span><span class="p-cn" id="pNextSum"></span><span class="sp"></span>
           <button class="p-cb solid" id="pIntAdd" type="button">Add</button><button class="p-cb" data-pan="pri" type="button">Close</button></div>
         <div class="p-stack" id="pIntMatrix"></div>
         <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
@@ -4643,7 +4655,7 @@
         </div>
       </div>
       <div class="p-pan pan-conv" id="pPanConv">
-        <div class="p-panh"><span class="p-pant">Recent conversation</span><span class="p-cn" id="pLsSum"></span><span class="sp"></span>
+        <div class="p-panh"><span class="p-pant"><span class="p-ci">💬</span> Conversations</span><span class="p-cn" id="pLsSum"></span><span class="sp"></span>
           <button class="p-cb solid" id="pTalkAdd" type="button">Record</button><button class="p-cb" data-pan="conv" type="button">Close</button></div>
         <div class="p-ls" id="pLastSpoke"></div>
       </div>
@@ -7384,13 +7396,15 @@ function renderPersona() {
   const oth = live.filter(x => !PPL_FAMW.test(x.r || '')).sort((a, b) => String(a.n || '').localeCompare(String(b.n || ''))).sort(byO);
   window.pPplGroups_ = { fam: fam.map(x => x.id), oth: oth.map(x => x.id) };
   const pplInk = r => { const k = famRank(r); return PPL_FAMW.test(r || '') ? ['#a4553f', '#b08a3e', '#5b4a86', '#2f6b8a', '#6d5474'][k] : '#35786f'; };
-  const pplRow = (x, i, arr) => { const l = linkOf(x.n), b = /^\d{4}$/.test(String(x.b || '')) ? yr - +x.b : null, c = pplInk(x.r);
+  const pplRow = (x, i, arr) => { const l = linkOf(x.n), b = pplAge_(x.b), c = pplInk(x.r), bs = pplBdaySoon_(x.b);
     return '<div class="pp-row" data-pplform="' + escHtml(x.id) + '" style="--c:' + c + '">'
       + (ed ? '<span class="pp-mv"><button type="button" data-pplmv="' + escHtml(x.id) + ':-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">\u25B2</button>'
         + '<button type="button" data-pplmv="' + escHtml(x.id) + ':1"' + (i === arr.length - 1 ? ' disabled' : '') + ' aria-label="Move down">\u25BC</button></span>' : '')
       + '<span class="pp-av">' + escHtml(String(x.n || '?').trim().charAt(0).toUpperCase()) + '</span>'
-      + '<div class="pp-m"><div class="pp-nl">' + (x.r ? '<span class="pp-rp">' + escHtml(String(x.r).charAt(0).toUpperCase() + String(x.r).slice(1)) + '</span>' : '')
-      + '<b>' + escHtml(x.n || '') + '</b>' + (x.pin ? '<i class="pp-pin" title="On the button">📌</i>' : '') + (b !== null && b >= 0 ? '<span class="pp-age">' + b + '</span>' : '') + '</div>'
+      + '<div class="pp-m"><div class="pp-nl"><b>' + escHtml(x.n || '') + '</b>'   // CL-T1: name first, relation after
+      + (x.r ? '<span class="pp-rp">' + escHtml(String(x.r).charAt(0).toUpperCase() + String(x.r).slice(1)) + '</span>' : '')
+      + (x.pin ? '<i class="pp-pin" title="On the button">📌</i>' : '') + (b !== null && b >= 0 ? '<span class="pp-age">' + b + '</span>' : '')
+      + (bs ? '<span class="pp-bd">🎂 ' + escHtml(bs) + '</span>' : '') + '</div>'
       + (x.note ? '<div class="pp-ln">' + escHtml(x.note) + '</div>' : '') + '</div>'
       + (l ? '<button type="button" class="tp-lk" data-pplopen="' + escHtml(l.id) + '">IN MY CIRCLE →</button>' : '') + '<span class="pp-go">›</span></div>'; };
   let ph = '';
@@ -7421,16 +7435,16 @@ function renderPersona() {
   else wr += '<div class="p-read none">' + pAddLine_('read', 'my read of them, in one line…') + '</div>';
   el('pWhoRd').innerHTML = wr;
   let wh = '';
-  if (!ed) {   // CL-T3: reading - one row per group, its notes as soft chips
+  if (true) {   // CL-T1 (8 Nov 2026): chip rows in reading and Edit; tap a chip to change it, + (Edit) to add
     wh = '<div class="w-rows">' + P_WHO.map(g => {
       const its = who.filter(x => x.k === g.k);
-      const cap = 8, all = !!pMore[g.k], vis = all ? its : its.slice(0, cap);
+      const cap = 8, all = !!pMore[g.k] || ed, vis = all ? its : its.slice(0, cap);
       return '<div class="w-row" style="--wc:' + g.ink + '"><span class="w-lbl">' + g.lbl + '</span><span class="w-chips">'
-        + vis.map(x => '<i title="' + escHtml([x.seen ? 'Seen: ' + x.seen : '', x.on ? pMon_(x.on) : ''].filter(Boolean).join(' · ')) + '">' + escHtml(x.t)
+        + vis.map(x => '<i class="pn-tap" data-pnform="who:' + escHtml(x.id) + '" title="' + escHtml([x.seen ? 'Seen: ' + x.seen : '', x.on ? pMon_(x.on) : ''].filter(Boolean).join(' · ')) + '">' + escHtml(x.t)
           + (x.seen ? '<small>' + escHtml(x.seen) + '</small>' : '') + '</i>').join('')
-        + (its.length ? '' : '<em class="w-none">nothing yet</em>')
+        + (its.length || ed ? '' : '<em class="w-none">nothing yet</em>')
         + (its.length > cap && !all ? '<button class="p-more" type="button" data-pmore="' + g.k + '">+ ' + (its.length - cap) + ' more</button>' : '')
-        + pAddLine_('who:' + g.k, g.ph, { seen: true, month: true }) + '</span></div>';
+        + (ed ? '<button type="button" class="w-plus" data-pnform="who:new:' + g.k + '" aria-label="Add">\uFF0B</button>' : '') + '</span></div>';
     }).join('') + '</div>';
   } else wh += '<div class="p-g3">' + P_WHO.map(g => {
     const its = who.filter(x => x.k === g.k);
@@ -7481,16 +7495,28 @@ function pnAboutPaint_(cur) {
     + '<button type="button" class="pp-rc' + (!known ? ' on' : '') + '" data-pnab="">+ new</button>';
   el('pnAboutIn').classList.toggle('hidden', known); el('pnAboutIn').value = known ? '' : c;
 }
-function pnForm_(k, id) {
+let pnWk_ = 'trait';
+const pnSing_ = k => ({ trait: 'Trait', beh: 'Behaviour', bias: 'Bias' })[k] || 'Note';
+function pnKindPaint_() {
+  el('pnKind').innerHTML = P_WHO.map(g => '<button type="button" class="pp-rc' + (g.k === pnWk_ ? ' on' : '') + '" data-pnkind="' + g.k + '" style="--kc:' + g.ink + '">' + pnSing_(g.k) + '</button>').join('');
+  const g = P_WHO.find(z => z.k === pnWk_) || P_WHO[0];
+  if (pnK_ === 'who') { el('pnFh').textContent = (pnId_ ? 'Change ' : 'A ') + pnSing_(g.k).toLowerCase(); el('pnT').placeholder = g.ph.replace(/^add /, ''); el('pnSave').style.background = g.ink; }
+}
+function pnForm_(k, id, wk) {
   try { pCommitPending_(); } catch (e) {}
-  const arr = k === 'adv' ? (pData.advice || []) : (pData.learn || []), x = id === 'new' ? null : arr.find(a => a.id === id);
+  const arr = k === 'adv' ? (pData.advice || []) : k === 'lrn' ? (pData.learn || []) : (pData.who || []), x = id === 'new' ? null : arr.find(a => a.id === id);
   pnK_ = k; pnId_ = x ? x.id : null; pnPin_ = !!(x && x.pin);
+  el('pnSave').style.background = '';
   el('pnFh').textContent = k === 'adv' ? (x ? 'Change their words' : 'Their words') : (x ? 'Change the lesson' : 'What I learned');
-  el('pnTl').textContent = k === 'adv' ? 'WHAT THEY SAID' : 'THE LESSON';
+  el('pnTl').textContent = k === 'adv' ? 'WHAT THEY SAID' : k === 'who' ? 'IN A FEW WORDS' : 'THE LESSON';
   el('pnT').placeholder = k === 'adv' ? 'in their words\u2026' : 'something you learned from them, or about yourself\u2026';
   el('pnT').value = x ? (x.t || '') : '';
+  el('pnT').rows = k === 'who' ? 2 : 3;
+  el('pnKindW').classList.toggle('hidden', k !== 'who');
+  if (k === 'who') { pnWk_ = x ? x.k : (wk || 'trait'); pnKindPaint_(); }
+  el('pnSeenW').querySelector('label').textContent = k === 'who' ? 'WHERE I SAW IT (OPTIONAL)' : 'WHAT HAPPENED (OPTIONAL)';
   el('pnAboutW').classList.toggle('hidden', k !== 'adv'); el('pnPinW').classList.toggle('hidden', k !== 'adv');
-  el('pnSeenW').classList.toggle('hidden', k !== 'lrn'); el('pnSeen').value = x ? (x.seen || '') : '';
+  el('pnSeenW').classList.toggle('hidden', k === 'adv'); el('pnSeen').value = x ? (x.seen || '') : '';
   if (k === 'adv') pnAboutPaint_(x ? x.about : '');
   const on = x && /^\d{4}-\d{2}/.test(String(x.on || '')) ? String(x.on) : istToday().slice(0, 7);
   el('pnM').innerHTML = '<option value="">\u2014</option>' + PN_MON.map((m, i) => '<option value="' + String(i + 1).padStart(2, '0') + '">' + m + '</option>').join('');
@@ -7506,12 +7532,13 @@ el('pnAbout').addEventListener('click', e => {
   if (b.dataset.pnab) { const was = b.classList.contains('on'); pnAboutPaint_(was ? '' : b.dataset.pnab); }
   else { el('pnAbout').querySelectorAll('.pp-rc').forEach(c => c.classList.toggle('on', c === b)); el('pnAboutIn').classList.remove('hidden'); el('pnAboutIn').focus(); }
 });
+el('pnKind').addEventListener('click', e => { const b = e.target.closest('[data-pnkind]'); if (!b) return; pnWk_ = b.dataset.pnkind; pnKindPaint_(); });
 el('pnPin').addEventListener('click', () => { pnPin_ = !pnPin_; el('pnPin').classList.toggle('on', pnPin_); });
 el('pnCancel').addEventListener('click', pnClose_);
 el('pnOv').addEventListener('click', e => { if (e.target === el('pnOv')) pnClose_(); });
-el('pnOv').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); pnClose_(); } if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); el('pnSave').click(); } });
+el('pnOv').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); pnClose_(); } if (e.key === 'Enter' && (e.target.tagName === 'INPUT' || (pnK_ === 'who' && e.target.id === 'pnT' && !e.shiftKey))) { e.preventDefault(); el('pnSave').click(); } });
 el('pnSave').addEventListener('click', () => {
-  const t = el('pnT').value.trim(); if (!t) { toast(pnK_ === 'adv' ? 'Their words, please' : 'The lesson, please'); el('pnT').focus(); return; }
+  const t = el('pnT').value.trim(); if (!t) { toast(pnK_ === 'adv' ? 'Their words, please' : pnK_ === 'who' ? 'A few words, please' : 'The lesson, please'); el('pnT').focus(); return; }
   const y = el('pnY').value.replace(/\D/g, '').slice(0, 4), m = el('pnM').value, on = /^\d{4}$/.test(y) ? y + (m ? '-' + m : '') : '';
   if (pnK_ === 'adv') {
     const ab = el('pnAbout').querySelector('.pp-rc.on'), about = ab && ab.dataset.pnab ? ab.dataset.pnab : el('pnAboutIn').value.trim();
@@ -7520,20 +7547,53 @@ el('pnSave').addEventListener('click', () => {
     if (!x) { x = { id: pUid_() }; pData.advice.push(x); }
     if (pnPin_) pData.advice.forEach(a => { a.pin = false; });
     Object.assign(x, { t, about, on, pin: pnPin_ });
+  } else if (pnK_ === 'who') {
+    pData.who = pData.who || [];
+    let x = pnId_ ? pData.who.find(a => a.id === pnId_) : null;
+    if (!x) { x = { id: pUid_() }; pData.who.push(x); }
+    Object.assign(x, { k: pnWk_, t, seen: el('pnSeen').value.trim(), on });
   } else {
     pData.learn = pData.learn || [];
     let x = pnId_ ? pData.learn.find(a => a.id === pnId_) : null;
     if (!x) { x = { id: pUid_() }; pData.learn.push(x); }
     Object.assign(x, { t, seen: el('pnSeen').value.trim(), on });
   }
-  if (pnK_ === 'adv') pOpenSecs.add('adv'); else pOpenSecs.add('lrn');
+  if (pnK_ === 'adv') pOpenSecs.add('adv'); else if (pnK_ === 'lrn') pOpenSecs.add('lrn');
   pnClose_(); schedulePersonSave(); renderPersona();
 });
 el('pnDel').addEventListener('click', () => {
-  if (!confirm(pnK_ === 'adv' ? 'Delete these words?' : 'Delete this lesson?')) return;
-  if (pnK_ === 'adv') pData.advice = (pData.advice || []).filter(a => a.id !== pnId_); else pData.learn = (pData.learn || []).filter(a => a.id !== pnId_);
+  if (!confirm(pnK_ === 'adv' ? 'Delete these words?' : pnK_ === 'who' ? 'Delete this note?' : 'Delete this lesson?')) return;
+  if (pnK_ === 'adv') pData.advice = (pData.advice || []).filter(a => a.id !== pnId_); else if (pnK_ === 'who') pData.who = (pData.who || []).filter(a => a.id !== pnId_); else pData.learn = (pData.learn || []).filter(a => a.id !== pnId_);
   pnClose_(); schedulePersonSave(); renderPersona();
 });
+// CL-T1 (8 Nov 2026): date of birth - 'YYYY', 'YYYY-MM' or 'YYYY-MM-DD'; old year-only entries stay as they are
+function pplDob_() {
+  const y = el('pplB').value.replace(/\D/g, '').slice(0, 4), m = el('pplM').value, d = parseInt(el('pplD').value, 10);
+  if (!/^\d{4}$/.test(y)) return '';
+  if (!m) return y;
+  const dim = new Date(+y, +m, 0).getDate();
+  return y + '-' + m + (d >= 1 && d <= dim ? '-' + String(d).padStart(2, '0') : '');
+}
+function pplAge_(b) {
+  const m = String(b || '').match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/); if (!m) return null;
+  const t = istToday(), ty = +t.slice(0, 4), tmd = t.slice(5, 10);
+  let a = ty - +m[1];
+  if (m[2] && m[3] && tmd < m[2] + '-' + m[3]) a -= 1;
+  else if (m[2] && !m[3] && t.slice(5, 7) < m[2]) a -= 1;
+  return a;
+}
+function pplBdaySoon_(b) {   // '14 Mar' when the birthday is in the next 30 days (needs day and month)
+  const m = String(b || '').match(/^(\d{4})-(\d{2})-(\d{2})/); if (!m) return '';
+  const t = istToday(), today = new Date(t + 'T00:00:00Z');
+  let nx = new Date(Date.UTC(+t.slice(0, 4), +m[2] - 1, +m[3])); if (nx < today) nx = new Date(Date.UTC(+t.slice(0, 4) + 1, +m[2] - 1, +m[3]));
+  const days = Math.round((nx - today) / 864e5); if (days > 30) return '';
+  const age = nx.getUTCFullYear() - +m[1], lbl = +m[3] + ' ' + PN_MON[+m[2] - 1].slice(0, 3);
+  return days === 0 ? 'turns ' + age + ' today' : 'turns ' + age + ' on ' + lbl;
+}
+function pplAgeLn_() {
+  const b = pplDob_(), a = pplAge_(b), s = pplBdaySoon_(b);
+  el('pplAgeLn').textContent = a !== null && a >= 0 ? 'Age ' + a + (s ? ' \u00B7 ' + s : '') : 'If you only know their age, type the year they were born.';
+}
 // CL-PPL: the person form
 const PPL_RELS = ['Husband', 'Wife', 'Son', 'Daughter', 'Mother', 'Father', 'Brother', 'Sister', 'Friend', 'Colleague'];
 let pplId_ = null, pplPin_ = false, pplPast_ = false;
@@ -7549,8 +7609,10 @@ function pplForm_(id) {
   const x = id === 'new' ? null : (pData.people || []).find(p => p.id === id);
   pplId_ = x ? x.id : null; pplPin_ = !!(x && x.pin); pplPast_ = !!(x && x.past);
   el('pplFh').textContent = x ? (x.n || 'Someone') : 'Add someone close to them';
-  el('pplN').value = x ? (x.n || '') : ''; el('pplB').value = x ? (x.b || '') : ''; el('pplL').value = x ? (x.note || '') : '';
-  el('pplA').value = x && /^\d{4}$/.test(String(x.b || '')) ? String(new Date().getFullYear() - +x.b) : '';
+  el('pplN').value = x ? (x.n || '') : ''; el('pplL').value = x ? (x.note || '') : '';
+  { const m = String(x && x.b || '').match(/^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?/);
+    el('pplM').innerHTML = '<option value="">month</option>' + PN_MON.map((mm, i) => '<option value="' + String(i + 1).padStart(2, '0') + '">' + mm + '</option>').join('');
+    el('pplB').value = m ? m[1] : ''; el('pplM').value = m && m[2] ? m[2] : ''; el('pplD').value = m && m[3] ? String(+m[3]) : ''; pplAgeLn_(); }
   el('pplPY').value = x ? (x.pastOn || '') : '';
   pplRelPaint_(x ? x.r : '');
   el('pplPin').classList.toggle('on', pplPin_); el('pplPast').classList.toggle('on', pplPast_); el('pplPY').classList.toggle('hidden', !pplPast_);
@@ -7566,8 +7628,8 @@ el('pplRels').addEventListener('click', e => {
   else { el('pplRels').querySelectorAll('.pp-rc').forEach(c => c.classList.toggle('on', c === b)); el('pplR').classList.remove('hidden'); el('pplR').value = ''; el('pplR').dataset.v = ''; el('pplR').focus(); }
 });
 el('pplR').addEventListener('input', () => { el('pplR').dataset.v = el('pplR').value; });
-el('pplA').addEventListener('input', () => { const a = parseInt(el('pplA').value, 10); if (a >= 0 && a < 130) el('pplB').value = String(new Date().getFullYear() - a); });
-el('pplB').addEventListener('input', () => { const b = el('pplB').value; el('pplA').value = /^\d{4}$/.test(b) ? String(new Date().getFullYear() - +b) : ''; });
+['pplD', 'pplM', 'pplB'].forEach(id => el(id).addEventListener('input', pplAgeLn_));
+el('pplM').addEventListener('change', pplAgeLn_);
 el('pplPin').addEventListener('click', () => { pplPin_ = !pplPin_; el('pplPin').classList.toggle('on', pplPin_); });
 el('pplPast').addEventListener('click', () => { pplPast_ = !pplPast_; el('pplPast').classList.toggle('on', pplPast_); el('pplPY').classList.toggle('hidden', !pplPast_); el('pplPin').classList.toggle('hidden', pplPast_); });
 el('pplCancel').addEventListener('click', pplClose_);
@@ -7576,7 +7638,7 @@ el('pplOv').addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopP
 el('pplSave').addEventListener('click', () => {
   const n = el('pplN').value.trim(); if (!n) { toast('A name, please'); el('pplN').focus(); return; }
   const on = el('pplRels').querySelector('.pp-rc.on'); const r = on && on.dataset.pplrel ? on.dataset.pplrel.toLowerCase() : el('pplR').value.trim();
-  const b = el('pplB').value.replace(/\D/g, '').slice(0, 4), note = el('pplL').value.trim(), pastOn = el('pplPY').value.replace(/\D/g, '').slice(0, 4);
+  const b = pplDob_(), note = el('pplL').value.trim(), pastOn = el('pplPY').value.replace(/\D/g, '').slice(0, 4);
   pData.people = pData.people || [];
   let x = pplId_ ? pData.people.find(p => p.id === pplId_) : null;
   if (!x) { x = { id: pUid_() }; pData.people.push(x); }
@@ -7675,7 +7737,7 @@ function pCommitPending_() {
     if (pb) { const nx = pPan === pb.dataset.pan ? null : pb.dataset.pan; if (!nx) { pPanClose_(); return; } pPan = nx; renderPersona(); return; }
     if (e.target.id === 'pPanBg') { pPanClose_(); return; }
     const ad = e.target.closest('[data-psadd]');
-    if (ad) { const k = ad.dataset.psadd; if (k === 'ppl') { pplForm_('new'); return; } if (k === 'adv' || k === 'lrn') { pnForm_(k, 'new'); return; } pFocusAdd_(k === 'who' ? 'who:trait' : k); return; }
+    if (ad) { const k = ad.dataset.psadd; if (k === 'ppl') { pplForm_('new'); return; } if (k === 'adv' || k === 'lrn') { pnForm_(k, 'new'); return; } if (k === 'who') { pnForm_('who', 'new', 'trait'); return; } pFocusAdd_(k); return; }
     const mv = e.target.closest('[data-pplmv]');   // CL-O1: ▲▼ in Edit move someone within their group
     if (mv) { e.stopPropagation(); const [id, d] = mv.dataset.pplmv.split(':'), G = window.pPplGroups_ || {};
       const g = (G.fam || []).includes(id) ? G.fam.slice() : (G.oth || []).slice(), i = g.indexOf(id), j = i + Number(d);
@@ -7683,7 +7745,7 @@ function pCommitPending_() {
       [g[i], g[j]] = [g[j], g[i]];
       g.forEach((pid, k) => { const x = (pData.people || []).find(p => p.id === pid); if (x) x.o = (k + 1) * 10; });
       schedulePersonSave(); renderPersona(); return; }
-    const nf = e.target.closest('[data-pnform]'); if (nf) { const [k, id] = nf.dataset.pnform.split(':'); pnForm_(k, id); return; }
+    const nf = e.target.closest('[data-pnform]'); if (nf) { const [k, id, wk] = nf.dataset.pnform.split(':'); pnForm_(k, id, wk); return; }
     const pf = e.target.closest('[data-pplform]'); if (pf && !e.target.closest('[data-pplopen]')) { pplForm_(pf.dataset.pplform); return; }
     const em = e.target.closest('[data-pempty]');
     if (em) {
@@ -8293,7 +8355,7 @@ function pPersonaParts_(pg) {
   const who = P_WHO.map(g => ({ lbl: g.lbl, ink: g.ink, items: (pg.who || []).filter(x => x.k === g.k) })).filter(g => g.items.length);
   const advice = (pg.advice || []).slice().sort((a, b) => (a.pin - b.pin) || String(b.on || '').localeCompare(String(a.on || '')));
   const yr = new Date().getFullYear();
-  const people = (pg.people || []).filter(x => x && x.n).map(x => ({ n: x.n, r: x.r || '', age: /^\d{4}$/.test(String(x.b || '')) ? yr - +x.b : null, note: x.note || '', past: !!x.past, pastOn: x.pastOn || '' }));
+  const people = (pg.people || []).filter(x => x && x.n).map(x => ({ n: x.n, r: x.r || '', age: pplAge_(x.b), note: x.note || '', past: !!x.past, pastOn: x.pastOn || '' }));
   const learn = (pg.learn || []).slice().sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
   const ok = (pg.deal || []).filter(d => d.k === 'ok'), no = (pg.deal || []).filter(d => d.k === 'no');
   return { read: String(pg.read || '').trim(), facts, people, who, advice, learn, ok, no,
