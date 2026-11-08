@@ -6598,7 +6598,7 @@ el('mantraList').addEventListener('click', e => {
   if (k) { mmAddKind = k.dataset.mmk; el('mantraList').querySelectorAll('[data-mmk]').forEach(b => b.classList.toggle('on', b === k)); const q = el('mmQ'); if (q) q.focus(); return; }
   if (e.target.closest('.mm-qa')) return;
   const mo = e.target.closest('[data-mopen]');
-  if (mo && !e.target.closest('[data-mgrip]')) { location.href = 'introspection.html?open=' + encodeURIComponent(mo.dataset.mopen); return; }   // a musing's full note lives in Inner Life
+  if (mo && !e.target.closest('[data-mgrip]')) { const q = '?open=' + encodeURIComponent(mo.dataset.mopen); if (window.iwOpen_) window.iwOpen_(q); else location.href = 'introspection.html' + q; return; }   // IW-2: opens inside My Why   // a musing's full note lives in Inner Life
   const ed = e.target.closest('[data-medit]'); if (ed) { openMantra(ed.dataset.medit); return; }
   if (e.target.closest('#mantraAdd')) { newMantra(); return; }
   const card = e.target.closest('.mcard:not(.add)');
@@ -12827,7 +12827,7 @@ boot();
 </script>
 <!-- IW-1 (8 Nov 2026): Inner Life lives inside My Why. Its whole page (a copy of introspection.html, kept in the
      sealed block below) runs in a frame of its own, so its styles and code can never collide with My Why's.
-     Rooms routed here so far: IW_ROUTED. Everything else still opens introspection.html. -->
+     IW-2: every door now opens in here - the five Inner Life chips, search results, musing links and ?open= links. -->
 <style>
   .iw-host { position:fixed; inset:0; z-index:1000; visibility:hidden; pointer-events:none; background:#f6f8fb; }
   .iw-host.on { visibility:visible; pointer-events:auto; }
@@ -16361,10 +16361,10 @@ if (IW_EMBED) {
 </script>
 <script>
 (function () {
-  const IW_ROUTED = ['writing'];                 // IW-1: round 1 - only My Writings opens in here
+  const IW_ROUTED = ['diary', 'experience', 'trip', 'writing', 'wip'];   // IW-2: every Inner Life room
   const host = document.getElementById('iwHost');
   let frame = null, loaded = false, want = null, pendChip = null;
-  const routed = qs => { const p = new URLSearchParams(qs); const v = p.get('view'); return !!v && IW_ROUTED.includes(v) && !p.get('open'); };
+  const routed = qs => { const p = new URLSearchParams(qs); const v = p.get('view'); return !!p.get('open') || (!!v && IW_ROUTED.includes(v)); };
   function ensure(qs) {
     if (frame) return;
     let t = document.getElementById('iwSrc').textContent.replace(/<@/g, '<');
