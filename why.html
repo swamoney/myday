@@ -2083,6 +2083,37 @@
     border:3px solid var(--p-acc,#35786f); border-radius:10px; padding:6px 14px; min-width:100px; background:rgba(255,255,255,0.5);
     box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3.5px var(--p-acc,#35786f); font-family:var(--mono); pointer-events:none; }
   .p-stamp:empty { display:none; }
+  /* CL-R3 (8 Nov 2026): easier to read - bigger, darker text throughout (labels 11-12px, buttons 13px, body 18-19.5px,
+     quotes 21px, section titles 28px) and each section on its own white card with a thin ring-colour line on top. */
+  #personWin .pin { font-size:17px; }
+  #personWin .peyebrow { font-size:0.72rem !important; }
+  #personWin .pnote { font-size:0.95rem !important; color:#4a5568 !important; }
+  #personWin .p-rd { font-size:1.32rem !important; color:#1f2a44 !important; }
+  #personWin .p-rd small, #personWin .p-hq span { font-size:0.68rem !important; color:#5d6880 !important; }
+  #personWin .p-hq q { font-size:1.25rem !important; line-height:1.5 !important; color:#1f2a44 !important; }   /* the same as every advice quote below (H1) */
+  #personWin .p-pb { font-size:0.78rem !important; padding:9px 14px !important; }
+  #personWin .p-pb * { font-size:inherit; }
+  #personWin .p-ci { font-size:1rem !important; }
+  #personWin .p-kf i { font-size:0.66rem !important; color:#5d6880 !important; letter-spacing:0.12em; }
+  #personWin .p-kf span { font-size:1.15rem !important; color:#1f2a44 !important; }
+  #personWin .pst { font-size:1.65rem !important; color:#16213a !important; }
+  #personWin .pst small { font-size:1rem !important; }
+  #personWin .psn { font-size:0.72rem !important; color:#5d6880 !important; }
+  #personWin .p-q { font-size:1.25rem !important; line-height:1.5 !important; color:#1f2a44 !important; }
+  #personWin .p-q span { font-size:0.68rem !important; color:#5d6880 !important; }
+  #personWin .p-ln .t { font-size:1.15rem !important; color:#1f2a44 !important; }
+  #personWin .p-ln .k { font-size:0.68rem !important; color:#5d6880 !important; }
+  #personWin .mo-t, #personWin .mo-tr { font-size:1.08rem !important; color:#1f2a44 !important; }
+  #personWin .mo-y { font-size:0.8rem !important; }
+  #personWin .pfoot .eb { font-size:0.8rem !important; }
+  #personWin .ps, #personWin .p-kf { background:#fff; border:1px solid #dfe5ee; border-top:3px solid color-mix(in srgb, var(--p-acc,#35786f) 60%, #fff);
+    border-radius:14px; padding:16px 20px 18px !important; margin:16px 0 !important; box-shadow:0 4px 14px rgba(30,47,82,0.05); }
+  #personWin .p-kf { border-top-width:1px; }
+  /* moments: a wrapping line to read, the one-line box only while editing (it used to cut long moments off on a phone) */
+  #personWin .mo-tr { flex:1; min-width:0; line-height:1.45; overflow-wrap:anywhere; }
+  body:not(.p-editing) #personWin .mo-t { display:none; }
+  body.p-editing #personWin .mo-tr { display:none; }
+  @media (max-width:640px) { #personWin .ps, #personWin .p-kf { padding:14px 14px 16px !important; } }
   .p-stamp b { display:block; font-family:var(--serif); font-size:1.45rem; letter-spacing:0.04em; line-height:1.15; padding:2px 0; }
   .p-stamp b.long { font-size:1.05rem; }
   .p-stamp span { display:block; font-size:0.62rem; letter-spacing:0.14em; }
@@ -7659,6 +7690,7 @@ function renderMoments() {
       '<span class="mo-y ro" data-mopen="' + i + '" tabindex="0" role="button" title="Change the date">'
         + (m.y ? escHtml(moShow_(m.y)) : '<i>set date</i>') + '</span>' +
       '<input class="mo-y edit" type="date" data-my="' + i + '" value="' + escHtml(moIso_(m.y)) + '" aria-label="When">' +
+      '<span class="mo-tr">' + escHtml(m.t || '') + '</span>' +   // CL-R3: what you read (wraps)
       '<input class="mo-t" data-mt="' + i + '" value="' + escHtml(m.t || '') + '" placeholder="What happened\u2026">' +
       '<button class="mo-x" data-mx="' + i + '" type="button" aria-label="Remove">&times;</button>' +
     '</div>'
@@ -7895,7 +7927,7 @@ function pMomEdit_(e) {
     return;
   }
   const t = e.target.closest('[data-mt]');
-  if (t) { pData.moments[+t.dataset.mt].t = t.value; schedulePersonSave(); }
+  if (t) { pData.moments[+t.dataset.mt].t = t.value; const tr = t.parentNode.querySelector('.mo-tr'); if (tr) tr.textContent = t.value; schedulePersonSave(); }
 }
 el('pMoments').addEventListener('input', pMomEdit_);
 el('pMoments').addEventListener('change', pMomEdit_);
