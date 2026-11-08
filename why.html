@@ -2114,6 +2114,42 @@
   body:not(.p-editing) #personWin .mo-t { display:none; }
   body.p-editing #personWin .mo-tr { display:none; }
   @media (max-width:640px) { #personWin .ps, #personWin .p-kf { padding:14px 14px 16px !important; } }
+  /* CL-A1 (8 Nov 2026): the pinned advice is the person's line - straight under the name, upright, large, in the ring colour */
+  #personWin .p-hq { order:3 !important; border:none !important; padding:0 !important; margin:14px 0 4px !important; max-width:700px; }
+  #personWin .p-hq q { font-style:normal !important; font-family:var(--serif) !important; font-weight:600 !important; font-size:1.7rem !important;
+    line-height:1.3 !important; color:var(--p-acc,#35786f) !important; quotes:none !important; }
+  #personWin .p-hq q::before { content:'\201C'; display:block; font-size:3.2rem; line-height:0.6; margin-bottom:4px; color:color-mix(in srgb, var(--p-acc,#35786f) 45%, #fff); }
+  #personWin .p-hq span { text-transform:uppercase; }
+  @media (max-width:640px) { #personWin .p-hq q { font-size:1.3rem !important; } #personWin .p-hq q::before { font-size:2.6rem; } }
+  /* CL-K1 (8 Nov 2026): read like a kundli - Direct advice, Indirect learning and Important moments are houses: a cream panel
+     with a fine double border and ring-colour corner marks, a numbered seal (I, II, III), what the house holds, and upright
+     items on dotted dividers. Advice is never italic now. */
+  #personWin #psAdv, #personWin #psLrn, #personWin #psMom {
+    --hc: var(--p-acc,#35786f);
+    background:
+      linear-gradient(var(--hc),var(--hc)) left top / 14px 2px no-repeat, linear-gradient(var(--hc),var(--hc)) left top / 2px 14px no-repeat,
+      linear-gradient(var(--hc),var(--hc)) right top / 14px 2px no-repeat, linear-gradient(var(--hc),var(--hc)) right top / 2px 14px no-repeat,
+      linear-gradient(var(--hc),var(--hc)) left bottom / 14px 2px no-repeat, linear-gradient(var(--hc),var(--hc)) left bottom / 2px 14px no-repeat,
+      linear-gradient(var(--hc),var(--hc)) right bottom / 14px 2px no-repeat, linear-gradient(var(--hc),var(--hc)) right bottom / 2px 14px no-repeat,
+      #fffdf8;
+    border:1px solid #d9c9a3 !important; outline:1px solid #e6dcc4; outline-offset:-6px; border-radius:4px !important; box-shadow:0 4px 14px rgba(60,45,20,0.05) !important;
+    padding:20px 24px 16px !important; }
+  #personWin #psAdv .psh, #personWin #psLrn .psh, #personWin #psMom .psh { border-bottom:1px solid #e6dcc4; padding-bottom:10px; margin-bottom:6px; flex-wrap:wrap; align-items:center; }
+  #personWin #psAdv .pst::before, #personWin #psLrn .pst::before, #personWin #psMom .pst::before {
+    position:static; display:inline-grid; place-items:center; width:30px; height:30px; margin-right:10px; vertical-align:3px; background:none;
+    border:1.5px solid #a4553f; border-radius:50%; color:#a4553f; font-family:var(--serif); font-weight:600; font-size:0.95rem; }
+  #personWin #psAdv .pst::before { content:'I'; } #personWin #psLrn .pst::before { content:'II'; } #personWin #psMom .pst::before { content:'III'; }
+  #personWin #psAdv .psn, #personWin #psLrn .psn, #personWin #psMom .psn { color:#8a6f43 !important; text-transform:uppercase; letter-spacing:0.1em; }
+  #personWin #psAdv .psn:not(:empty)::after { content:' \00B7  their words to me'; }
+  #personWin #psLrn .psn:not(:empty)::after { content:' \00B7  from them, about me'; }
+  #personWin #psMom .psn:not(:empty)::after { content:' \00B7  that made us'; }
+  #personWin #psAdv .p-q, #personWin #psAdv .p-q * { font-style:normal !important; }
+  #personWin #psAdv .p-q { font-family:var(--serif) !important; border-top:none !important; border-bottom:1px dotted #e0d4b8; padding:10px 2px !important; }
+  #personWin #psLrn .p-ln { border-top:none !important; border-bottom:1px dotted #e0d4b8; padding:10px 2px !important; }
+  #personWin #psMom .mo { border-bottom:1px dotted #e0d4b8 !important; }
+  #personWin #psAdv .p-q:last-child, #personWin #psLrn .p-ln:last-child, #personWin #psMom .mo:last-child { border-bottom:none !important; }
+  #personWin #psMom .mo-y.ro { color:#8a6f43 !important; font-family:var(--mono); letter-spacing:0.06em; }
+  @media (max-width:640px) { #personWin #psAdv, #personWin #psLrn, #personWin #psMom { padding:16px 16px 12px !important; } }
   .p-stamp b { display:block; font-family:var(--serif); font-size:1.45rem; letter-spacing:0.04em; line-height:1.15; padding:2px 0; }
   .p-stamp b.long { font-size:1.05rem; }
   .p-stamp span { display:block; font-size:0.62rem; letter-spacing:0.14em; }
@@ -7120,7 +7156,7 @@ function renderPersona() {
   // --- pinned quote under the name
   const pin = (pData.advice || []).find(a => a.pin);
   const hq = el('pQuote');
-  hq.innerHTML = pin ? '<q>' + escHtml(pin.t) + '</q><span>ADVICE' + (pin.about ? ' · ON ' + escHtml(pin.about.toUpperCase()) : '') + (pin.on ? ' · ' + escHtml(pMon_(pin.on)) : '') + '</span>' : '';
+  hq.innerHTML = pin ? '<q>' + escHtml(pin.t) + '</q><span>IN THEIR WORDS' + (pin.about ? ' · ON ' + escHtml(pin.about.toUpperCase()) : '') + (pin.on ? ' · ' + escHtml(pMon_(pin.on)) : '') + '</span>' : '';   // CL-A1
   hq.style.display = pin ? '' : 'none';
   // --- the three buttons
   const ints = pData.intents || [];
