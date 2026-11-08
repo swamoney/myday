@@ -1584,6 +1584,9 @@
   .pp-gc.fam { background:#a4553f; } .pp-gc.oth { background:#4f6690; }
   .pp-row { display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #dcdfd3; box-shadow:0 1px 3px rgba(30,47,82,0.05); border-radius:12px; padding:10px 12px; margin-bottom:6px; cursor:pointer; }
   .pp-row:hover { border-color:color-mix(in srgb, var(--c) 45%, #fff); }
+  .pp-mv { display:flex; flex-direction:column; gap:3px; flex:none; }
+  .pp-mv button { font-size:0.6rem; line-height:1.2; color:#6b7589; border:1px solid #d6dde8; border-radius:5px; padding:1px 6px; background:#fff; cursor:pointer; }
+  .pp-mv button:disabled { opacity:0.3; cursor:default; }
   .pp-av { flex:none; width:40px; height:40px; border-radius:50%; display:grid; place-items:center; font-family:var(--serif); font-weight:600; font-size:1.05rem;
     color:var(--c); background:color-mix(in srgb, var(--c) 14%, #fff); border:1.5px solid color-mix(in srgb, var(--c) 40%, #fff); }
   .pp-m { flex:1; min-width:0; }
@@ -7342,7 +7345,7 @@ function renderPersona() {
   // "in memory" moves someone to one quiet line, never deletes; a same-name page in My Circle is linked.
   const ppl = pData.people || [], live = ppl.filter(x => !x.past), gone = ppl.filter(x => x.past);
   // P2 (28 Oct 2026): pinned people's first names, then a quiet "+N" for the rest; no pins -> the first three
-  const pinned = live.filter(x => x.pin), onBtn = pinned.length ? pinned : live.slice(0, 3), more = live.length - onBtn.length;
+  const pinned = live.filter(x => x.pin), onBtn = pinned.length ? pinned : live.slice().sort((a, b) => (Number.isFinite(a.o) ? a.o : 1e9) - (Number.isFinite(b.o) ? b.o : 1e9)).slice(0, 3), more = live.length - onBtn.length;
   el('pBtnTp').innerHTML = '<span class="p-ci">\uD83D\uDC6A</span>Their people'
     + (live.length ? '<span class="nms">' + onBtn.map(x => escHtml(String(x.n || '').trim().split(/\s+/)[0])).join(' \u00B7 ') + '</span>'
         + (more > 0 ? '<span class="ppin">+' + more + '</span>' : '') : '<b>none yet</b>')
@@ -7355,11 +7358,17 @@ function renderPersona() {
   const PPL_FAMW = /husband|wife|partner|spouse|son|daughter|child|mother|father|mom|mum|dad|parent|brother|sister|sibling|in-law|grand|cousin|uncle|aunt|nephew|niece|chacha|chachi|mama|mami|kaka|kaki|mausi|masi|atya|aatya|atyaa|bua|tau|tai|vahini|vahinee|bhabhi|jiju|dada|dadi|nana|nani|aaji|aajoba|ajji|ajoba/i;
   const famRank = r => { r = String(r || '').toLowerCase();
     return /husband|wife|partner|spouse/.test(r) ? 0 : /son|daughter|child/.test(r) ? 1 : /mother|father|mom|mum|dad|parent/.test(r) ? 2 : /brother|sister|sibling/.test(r) ? 3 : 4; };
-  const fam = live.filter(x => PPL_FAMW.test(x.r || '')).sort((a, b) => famRank(a.r) - famRank(b.r));
-  const oth = live.filter(x => !PPL_FAMW.test(x.r || '')).sort((a, b) => String(a.n || '').localeCompare(String(b.n || '')));
+  // CL-O1: an order you set with the arrows in Edit (x.o) wins; anyone without one follows in the default order
+  const byO = (a, b) => (Number.isFinite(a.o) ? a.o : 1e9) - (Number.isFinite(b.o) ? b.o : 1e9);
+  const fam = live.filter(x => PPL_FAMW.test(x.r || '')).sort((a, b) => famRank(a.r) - famRank(b.r)).sort(byO);
+  const oth = live.filter(x => !PPL_FAMW.test(x.r || '')).sort((a, b) => String(a.n || '').localeCompare(String(b.n || ''))).sort(byO);
+  window.pPplGroups_ = { fam: fam.map(x => x.id), oth: oth.map(x => x.id) };
   const pplInk = r => { const k = famRank(r); return PPL_FAMW.test(r || '') ? ['#a4553f', '#b08a3e', '#5b4a86', '#2f6b8a', '#6d5474'][k] : '#35786f'; };
-  const pplRow = x => { const l = linkOf(x.n), b = /^\d{4}$/.test(String(x.b || '')) ? yr - +x.b : null, c = pplInk(x.r);
-    return '<div class="pp-row" data-pplform="' + escHtml(x.id) + '" style="--c:' + c + '"><span class="pp-av">' + escHtml(String(x.n || '?').trim().charAt(0).toUpperCase()) + '</span>'
+  const pplRow = (x, i, arr) => { const l = linkOf(x.n), b = /^\d{4}$/.test(String(x.b || '')) ? yr - +x.b : null, c = pplInk(x.r);
+    return '<div class="pp-row" data-pplform="' + escHtml(x.id) + '" style="--c:' + c + '">'
+      + (ed ? '<span class="pp-mv"><button type="button" data-pplmv="' + escHtml(x.id) + ':-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">\u25B2</button>'
+        + '<button type="button" data-pplmv="' + escHtml(x.id) + ':1"' + (i === arr.length - 1 ? ' disabled' : '') + ' aria-label="Move down">\u25BC</button></span>' : '')
+      + '<span class="pp-av">' + escHtml(String(x.n || '?').trim().charAt(0).toUpperCase()) + '</span>'
       + '<div class="pp-m"><div class="pp-nl">' + (x.r ? '<span class="pp-rp">' + escHtml(String(x.r).charAt(0).toUpperCase() + String(x.r).slice(1)) + '</span>' : '')
       + '<b>' + escHtml(x.n || '') + '</b>' + (x.pin ? '<i class="pp-pin" title="On the button">📌</i>' : '') + (b !== null && b >= 0 ? '<span class="pp-age">' + b + '</span>' : '') + '</div>'
       + (x.note ? '<div class="pp-ln">' + escHtml(x.note) + '</div>' : '') + '</div>'
@@ -7582,6 +7591,13 @@ function pCommitPending_() {
     if (e.target.id === 'pPanBg') { pPanClose_(); return; }
     const ad = e.target.closest('[data-psadd]');
     if (ad) { const k = ad.dataset.psadd; if (k === 'ppl') { pplForm_('new'); return; } pFocusAdd_(k === 'who' ? 'who:trait' : k); return; }
+    const mv = e.target.closest('[data-pplmv]');   // CL-O1: ▲▼ in Edit move someone within their group
+    if (mv) { e.stopPropagation(); const [id, d] = mv.dataset.pplmv.split(':'), G = window.pPplGroups_ || {};
+      const g = (G.fam || []).includes(id) ? G.fam.slice() : (G.oth || []).slice(), i = g.indexOf(id), j = i + Number(d);
+      if (i < 0 || j < 0 || j >= g.length) return;
+      [g[i], g[j]] = [g[j], g[i]];
+      g.forEach((pid, k) => { const x = (pData.people || []).find(p => p.id === pid); if (x) x.o = (k + 1) * 10; });
+      schedulePersonSave(); renderPersona(); return; }
     const pf = e.target.closest('[data-pplform]'); if (pf && !e.target.closest('[data-pplopen]')) { pplForm_(pf.dataset.pplform); return; }
     const em = e.target.closest('[data-pempty]');
     if (em) {
