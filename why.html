@@ -7245,7 +7245,7 @@ function pApplySections() {
   const openN = ints.filter(t => (t.status || 'open') === 'open').length;
   const doneN = ints.filter(t => t.status && t.status !== 'open').length;
   set('pNextSum', [openN ? openN + ' open' : '', doneN ? doneN + ' closed' : ''].filter(Boolean).join(' \u00B7 '));
-  const momN = (pData.moments || []).filter(m => (m.y || '').trim() || (m.t || '').trim()).length;
+  const momN = (pData.moments || []).filter(m => String(m.t || '').trim()).length;
   set('pMomSum', momN ? String(momN) : '');
   const words = NoteEditor.toPlain(pData.essay || '').trim().split(/\s+/).filter(Boolean).length;
   set('pNoteSum', words ? words + (words === 1 ? ' word' : ' words') : '');
@@ -7317,7 +7317,7 @@ function pHas_() {
     who: !!(pData.who || []).length || !!String(pData.read || '').trim(),
     adv: !!(pData.advice || []).length,
     lrn: !!(pData.learn || []).length,
-    mom: (pData.moments || []).some(m => (m.y || '').trim() || (m.t || '').trim())
+    mom: (pData.moments || []).some(m => String(m.t || '').trim())
   };
 }
 function renderPersona() {
@@ -8078,6 +8078,10 @@ function setPersonEditing(on) {
   if (window.MyAlbum && userId && pId !== null && el('pAlbum')) MyAlbum.setEditing(el('pAlbum'), !!on);
   const b = el('pEdit'); if (b) b.classList.toggle('hot', !!on);
   const l = el('pEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
+  // CL-T2 (8 Nov 2026): a moment added and left blank (no words) is dropped on Done, never shown while reading
+  if (!on && pData && Array.isArray(pData.moments) && pData.moments.some(m => !String(m && m.t || '').trim())) {
+    pData.moments = pData.moments.filter(m => String(m && m.t || '').trim()); renderMoments(); schedulePersonSave();
+  }
   if (!on) renderPersonRead();
 }
 // Older moments hold just a year; keep them readable rather than blanking them.
@@ -8100,7 +8104,8 @@ function renderMoments() {
   const list = el('pMoments'); if (!list) return;
   // The full date is stored; only month and year are ever shown, so you can
   // still sort by date or find an anniversary years from now.
-  const rows = (pData.moments || []).map((m, i) =>
+  const ed = document.body.classList.contains('p-editing');
+  const rows = (pData.moments || []).map((m, i) => (!ed && !String(m.t || '').trim()) ? '' :
     '<div class="mo">' +
       '<span class="mo-y ro" data-mopen="' + i + '" tabindex="0" role="button" title="Change the date">'
         + (m.y ? escHtml(moShow_(m.y)) : '<i>set date</i>') + '</span>' +
