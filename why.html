@@ -1609,7 +1609,8 @@
   #pWho .pn-tap { cursor:pointer; }
   /* CL-E1 */
   /* CL-T1: + Add on advice, learning and moments - Edit only, all three alike */
-  body.p-editing #personWin #psAdv .psa, body.p-editing #personWin #psLrn .psa, body.p-editing #personWin #pMomAdd { display:inline-block !important; background:var(--p-acc,#35786f) !important; color:#fff !important; border:none !important; border-radius:6px; padding:4px 9px; }
+  /* CL-T3 (8 Nov 2026): the header + Add is gone from all three - the dashed row at the end of each list is the one way to add */
+  #personWin #psAdv .psa, #personWin #psLrn .psa, #personWin #pMomAdd { display:none !important; }
   body:not(.p-editing) #personWin .pn-addrow { display:none !important; }
   #personWin .pn-tap { cursor:pointer; }
   #personWin .pn-tap:hover { background:color-mix(in srgb, var(--p-acc,#35786f) 5%, transparent); }
@@ -7745,6 +7746,7 @@ function pCommitPending_() {
       [g[i], g[j]] = [g[j], g[i]];
       g.forEach((pid, k) => { const x = (pData.people || []).find(p => p.id === pid); if (x) x.o = (k + 1) * 10; });
       schedulePersonSave(); renderPersona(); return; }
+    if (e.target.closest('[data-momadd]')) { el('pMomAdd').click(); return; }
     const nf = e.target.closest('[data-pnform]'); if (nf) { const [k, id, wk] = nf.dataset.pnform.split(':'); pnForm_(k, id, wk); return; }
     const pf = e.target.closest('[data-pplform]'); if (pf && !e.target.closest('[data-pplopen]')) { pplForm_(pf.dataset.pplform); return; }
     const em = e.target.closest('[data-pempty]');
@@ -8115,7 +8117,7 @@ function renderMoments() {
       '<button class="mo-x" data-mx="' + i + '" type="button" aria-label="Remove">&times;</button>' +
     '</div>'
   ).join('');
-  list.innerHTML = rows;   // empty means empty; the Add button is the invitation
+  list.innerHTML = rows + '<button type="button" class="pn-addrow" data-momadd="1">\uFF0B Add a moment</button>';   // CL-T3: Edit only (hidden while reading)
   // Every section is always listed; collapsing is what keeps the page short.
 }
 function schedulePersonSave() {
