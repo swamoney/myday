@@ -1179,13 +1179,22 @@ let userId = null;
 let rows = [];         // iw_entries
 let notes = [];        // wip_notes
 let activeView = 'diary';   // DX-5: evenings open on the nightly door
+// IW-1 (8 Nov 2026): this page can also run inside My Why (why.html), sealed in a frame. There it has no address of
+// its own: what it should show comes from IW_PARAMS, and links that leave Inner Life are handed to My Why.
+const IW_EMBED = !!window.IW_EMBED;
+function iwQ_() { return IW_EMBED ? String(window.IW_PARAMS || '') : location.search; }
+function iwGoto_(url, replace) {
+  if (IW_EMBED && window.parent && window.parent.iwLeave_) { window.parent.iwLeave_(url); return; }
+  if (replace) location.replace(url); else location.href = url;
+}
+function iwReload_() { if (IW_EMBED) window.parent.location.reload(); else window.location.reload(); }
 // M3 (3 Nov 2026): ?view=<room> lands on that room (the grouped nav links here from My Why)
-{ const vq = new URLSearchParams(location.search).get('view'); if (vq && ['diary','introspection','experience','trip','writing','wip'].includes(vq)) activeView = vq; }
+{ const vq = new URLSearchParams(iwQ_()).get('view'); if (vq && ['diary','introspection','experience','trip','writing','wip'].includes(vq)) activeView = vq; }
 // LE-2 (Nov 2026): the old My Musings & Learnings room is retired - musings live in My Why's My Mantras & Musings.
 // A link to ?view=introspection (with no ?open) goes there; a musing still opened by ?open= keeps its page here,
 // and its Back returns to My Mantras & Musings.
 const IL_MUSING_HOME = 'why.html?sec=mantra';
-if (activeView === 'introspection' && !new URLSearchParams(location.search).get('open')) location.replace(IL_MUSING_HOME);
+if (activeView === 'introspection' && !new URLSearchParams(iwQ_()).get('open')) iwGoto_(IL_MUSING_HOME, true);
 let readerEntry = null;
 let rdBaseline = null, rdVTimer = null;
 let rdDirty = false;
@@ -1384,7 +1393,7 @@ async function handleSignIn() {
 window.__supa = supa;
 async function handleSignOut() {
   if (!confirm('Sign out?')) return;
-  await supa.auth.signOut(); window.location.reload();
+  await supa.auth.signOut(); iwReload_();
 }
 
 // ===== DATA =====
@@ -1392,7 +1401,7 @@ async function loadAll() {
   await Promise.all([loadRows(), loadNotes()]);
   // S2b (3 Nov 2026): ?open=<id> - My Mantras & Musings (in My Why) opens a musing's full page here
   if (!loadAll._opened) { loadAll._opened = true;
-    const oq = new URLSearchParams(location.search).get('open');
+    const oq = new URLSearchParams(iwQ_()).get('open');
     const r = oq && rows.find(x => String(x.id) === String(oq));
     if (r) { activeView = displayKind(r.kind); render(); openReader(r.id); } }
 }
@@ -2697,7 +2706,7 @@ function closeReader() {
   saveRd_(true);
   setRdEditing(false);
   el('readerOverlay').classList.add('hidden');
-  if (wasMusing) location.href = IL_MUSING_HOME;   // LE-2: the musings room is retired - Back goes to My Mantras & Musings
+  if (wasMusing) iwGoto_(IL_MUSING_HOME);   // LE-2: the musings room is retired - Back goes to My Mantras & Musings
 }
 
 // ----- in-reader writing (shared editor) -----
@@ -3308,7 +3317,7 @@ async function renderSoulDots() {
     box._wired = true;
     box.addEventListener('click', e => {
       const d = e.target.closest('[data-rm]');
-      if (d) location.href = 'why.html?rm=' + encodeURIComponent(d.dataset.rm);
+      if (d) iwGoto_('why.html?rm=' + encodeURIComponent(d.dataset.rm));
     });
   } catch (e2) { console.error(e2); }
 }
@@ -3324,7 +3333,7 @@ el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; 
 el('searchInput').placeholder = 'Search all of My Why\u2026';
 // Bind to the tab spans only — clicking the inner label span has no data-view
 // and would set activeView to undefined.
-el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { if (s.dataset.view === 'introspection') { location.href = IL_MUSING_HOME; return; } activeView = s.dataset.view; musOrdering = false; render(); }));
+el('seg').querySelectorAll(':scope > span').forEach(s => s.addEventListener('click', () => { if (s.dataset.view === 'introspection') { iwGoto_(IL_MUSING_HOME); return; } activeView = s.dataset.view; musOrdering = false; render(); }));
 
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
@@ -3336,7 +3345,7 @@ boot();
 </script>
 <!-- App lock (PIN) — unlock once per app session, covers all pages; + sign-out-all -->
 <script>
-(function(){
+(function(){ if (window.IW_EMBED) return;   // IW-1: inside My Why, My Why's lock covers this frame
   'use strict';
   if (window.__applockLoaded) return; window.__applockLoaded = true;
   var LS_PIN='applock.pin.v1', LS_SALT='applock.salt.v1', LS_IDLE='applock.idlemin.v1';
@@ -3478,6 +3487,37 @@ boot();
   new MutationObserver(sync).observe(orig, { subtree: true, attributes: true, attributeFilter: ['class'] });
   sync();
 })();
+</script>
+<script>
+/* IW-1 (8 Nov 2026): inside My Why. My Why asks for a room or a page with iwGo_('?view=..' | '?open=..');
+   any link that leaves Inner Life is handed to My Why, so nothing ever loads inside the frame. */
+if (IW_EMBED) {
+  window.iwGo_ = function (qs) {
+    window.IW_PARAMS = qs || '';
+    const p = new URLSearchParams(window.IW_PARAMS), v = p.get('view'), o = p.get('open');
+    if (!el('readerOverlay').classList.contains('hidden')) { try { closeReader(); } catch (e) {} }
+    if (v === 'introspection' && !o) { iwGoto_(IL_MUSING_HOME); return; }
+    if (v && ['diary','experience','trip','writing','wip'].includes(v)) activeView = v;
+    if (!loadAll._opened) return;   // still loading: loadAll reads IW_PARAMS itself
+    render(); window.scrollTo(0, 0);
+    const r = o && rows.find(x => String(x.id) === String(o));
+    if (r) { activeView = displayKind(r.kind); render(); openReader(r.id); }
+  };
+  // My Why's auto-lock counts activity on its own page only; tell it we're busy in here (at most every 5 s)
+  let iwPing = 0;
+  ['mousemove','keydown','touchstart','click','scroll'].forEach(ev => document.addEventListener(ev, () => {
+    const t = Date.now(); if (t - iwPing < 5000) return; iwPing = t;
+    try { window.parent.document.dispatchEvent(new window.parent.Event('scroll')); } catch (e) {}
+  }, { passive: true, capture: true }));
+  document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href]'); if (!a || e.defaultPrevented) return;
+    const h = a.getAttribute('href') || '';
+    if (!h || h[0] === '#' || /^(https?:|blob:|data:|mailto:|tel:|javascript:)/i.test(h) || a.target === '_blank' || a.hasAttribute('download')) return;
+    e.preventDefault();
+    if (/^introspection\.html/i.test(h)) { window.iwGo_(h.replace(/^introspection\.html/i, '')); return; }
+    iwGoto_(h);
+  });
+}
 </script>
 </body>
 </html>
