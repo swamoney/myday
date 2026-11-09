@@ -671,15 +671,8 @@
   #mmDoors .mm-door.wide .mm-dl { display:flex; align-items:baseline; gap:10px; }
   #mmDoors .mm-door.wide .mm-t { flex-shrink:0; }
   /* P1 + F3 (31 Oct 2026): the door pop-up - the heading filled with the door's colour, its counts beneath */
-  .mm-dpop { width:min(480px, 100%); max-height:calc(100vh - 40px); overflow:auto; background:#fff; border-radius:16px; box-shadow:0 24px 60px rgba(20,30,50,0.32); }
-  .mm-dpop > .mm-door { border:none; background:#fff; box-shadow:none; border-radius:16px; overflow:hidden; }
-  .mm-dpop .mm-dph { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:20px 20px 16px; background:linear-gradient(135deg, var(--a), color-mix(in srgb, var(--a) 70%, #000)); color:#fff; }
-  .mm-dpop .mm-dph .mm-t { display:inline-block; font-family:var(--mono); font-size:0.6875rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:#fff; background:rgba(255,255,255,0.16); padding:3px 8px; border-radius:5px; margin:0; }
-  .mm-dpop .mm-dph .mm-q { font-family:var(--serif); font-style:italic; font-size:1.375rem; font-weight:500; line-height:1.25; color:#fff; margin-top:8px; }
-  .mm-dpop .mm-dpc { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.14em; color:rgba(255,255,255,0.72); margin-top:7px; }
   .mm-dpx { background:none; border:none; color:rgba(255,255,255,0.75); font-size:1.75rem; line-height:1; cursor:pointer; padding:0 2px; }
   .mm-dpx:hover { color:#fff; } .mm-dpx:focus:not(:focus-visible) { outline:none; }
-  .mm-dpop .mm-dbody { border-top:none; padding:4px 14px 14px; }
   .mm-recs { display:grid; grid-template-columns:1fr; gap:16px; align-items:start; }
   .mm-ob { background:#fff; border:1px solid #dfe4ec; border-radius:14px; padding:18px 20px 8px; box-shadow:0 10px 28px rgba(30,47,82,0.07); min-width:0; }
   #mmList .mm-or { display:grid; grid-template-columns:4px 1fr auto auto; gap:12px; align-items:start; padding:10px 0; margin:0; border:none; border-bottom:1px solid #eef1f6; border-radius:0; background:none; box-shadow:none; transform:none; cursor:pointer; }
@@ -949,6 +942,11 @@
   .mm2-already { display:flex; align-items:center; gap:10px; margin-top:10px; border-radius:12px; padding:9px 12px; background:#fff8f6; border:1px solid color-mix(in srgb, var(--a) 30%, transparent); font-family:var(--serif); font-size:0.95rem; color:#1e2f52; }
   .mm2-already small { display:block; font-family:var(--mono); font-size:0.52rem; letter-spacing:0.12em; color:var(--a); font-weight:700; }
   .mm2-already button { margin-left:auto; font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; color:var(--a); background:none; border:none; border-bottom:1px dashed var(--a); cursor:pointer; white-space:nowrap; padding:0 0 1px; }
+  .mm2-delask { margin:10px 0; border-radius:12px; padding:12px 14px; background:#fdf4f2; border:1px solid #efcfc9; font-family:var(--serif); grid-column:1 / -1; }
+  .mm2-delask .q { font-size:1rem; color:#7a3528; } .mm2-delask .w { font-size:0.85rem; color:#6b7488; font-style:italic; margin-top:2px; }
+  .mm2-delask .r { display:flex; justify-content:flex-end; gap:8px; margin-top:10px; }
+  .mm2-delask button { font-family:var(--sans,system-ui,sans-serif); font-size:0.86rem; border-radius:9px; padding:7px 14px; cursor:pointer; }
+  .mm2-delask .keep { border:1px solid #d6dbe6; background:#fff; color:#1e2f52; } .mm2-delask .del { border:none; background:#a5402f; color:#fff; font-weight:700; }
   .mm2-kdoor { display:inline-block; font-family:var(--mono); font-size:0.62rem; letter-spacing:0.16em; font-weight:700; color:#fff; background:var(--a); border-radius:6px; padding:4px 10px; margin-bottom:10px; }
   .mm2-tk { width:18px; height:18px; border-radius:50%; background:#fff; color:var(--a); display:grid; place-items:center; font-size:0.72rem; font-weight:700; flex:none; font-family:var(--sans,system-ui,sans-serif); }
   .mm2-kcard { border-radius:16px; padding:14px 16px 6px; margin:4px 0 12px; background:color-mix(in srgb, var(--a, #2f4f8a) 8%, #fff); border:1px solid color-mix(in srgb, var(--a, #2f4f8a) 22%, transparent); }
@@ -4360,7 +4358,7 @@
     <div id="mmKStep2" class="hidden">
     <!-- S2 (9 Nov 2026): one soft card in the door's colour - the sentence, its question, the line -->
     <div class="mm2-kcard" id="mmKCard"><div id="mmKChips"></div><div class="mm2-kthread" aria-hidden="true"></div>
-    <div class="fld mm2-kline"><label id="mmKAsk">Say it in a line</label><input id="fMmTitle" placeholder="e.g. Can&rsquo;t stop thinking about the scan on Friday"></div></div>
+    <div class="fld mm2-kline"><label id="mmKAsk">Say it in a line</label><input id="fMmTitle" placeholder="e.g. Can&rsquo;t stop thinking about the review on the 20th"></div></div>
     <div class="mm-kfold" id="mmKFold"><button type="button" id="mmFoldNext">+ Step</button><button type="button" id="mmFoldPillar">+ Pillar</button><button type="button" id="mmFoldBoth">+ Both</button></div>
     <div class="fld hidden" id="fMmNextWrap"><label>Next step (optional tonight)</label><input id="fMmNext" placeholder="one thing, however small">
       <div class="mm-quick" id="mmQuick" style="display:none"></div></div>
@@ -4388,7 +4386,6 @@
 </div>
 
 <!-- P1 + F3 (31 Oct 2026): a door opens as a pop-up over the dimmed page -->
-<div class="modal-overlay hidden" id="mmDoorModal"><div class="mm-dpop" id="mmDoorPop" role="dialog" aria-modal="true"></div></div>
 <div class="modal-overlay hidden" id="mmSettleModal">
   <div class="modal mm-setm">
     <!-- T3 + B3 (31 Oct 2026): settling in two steps - how it ended, then the record, under big serif headings -->
@@ -9369,18 +9366,18 @@ const MM_DESK = {
     { k:"oneway", q:"One-way or two-way", ask:"Which choice can I undo later?", why:"Decide reversible things fast, irreversible ones slowly.", ex:["Mumbai I can leave in a year; closing the Pune office I can’t undo.", "Physio I can stop any time; surgery I can’t undo.", "A flat nearby can change; selling their house can’t."] },
     { k:"livewith", q:"The loss I can live with", ask:"Which loss could I live with, calmly?", why:"Pick the cost, not the perfect.", ex:["Less money for two years.", "A slower recovery.", "Less space at home for a while."] } ],
   anx: [
-    { k:"fear", q:"The fear", ask:"What exactly am I afraid will happen?", why:"One sentence. A named fear is a smaller fear.", ex:["That the scan shows something serious.", "That the chest pain is my heart.", "That my son won’t settle in the new city."] },
-    { k:"fact", q:"The facts", ask:"What do I actually know for sure, right now?", why:"Only what you could show someone. If a doctor or another professional should check it, that is a fact worth getting.", ex:["The doctor called it routine. Last year’s scan was clear.", "Last year’s ECG was normal. The pain comes after meals.", "He has called twice this week. He mentioned one friend."] },
-    { k:"unknown", q:"The unknown", ask:"What don’t I know yet — and when will I know it?", why:"Most fear lives in the gap. Name the gap, and the day it closes.", ex:["What the scan shows, and the report comes on Monday.", "What the doctor finds on Friday.", "How he feels after the first month."], knowBy:true },   // U1 (27 Oct 2026): the uncertainty fold
-    { q:"Worst · likely · best", ask:"Honestly, how could this go?", why:"The likely one is the one fear skips.", split:[["worst","Worst case",["It’s serious and needs treatment.", "Something is wrong and needs treatment.", "He is unhappy and wants to come home."]],["likely","Most likely",["Nothing serious; a follow-up in six months.", "Acidity, and a change of diet.", "A hard first month, then friends."]],["best","Best case",["All clear.", "Nothing at all.", "He loves it by Diwali."]]] },
-    { q:"Mine · not mine", ask:"What part of this is in my hands — and what isn’t?", why:"Put your energy only on the first list.", split:[["control","In my hands",["Going on Friday. Writing my questions down.", "Booking the test. What I eat tonight.", "Calling on Sunday. Visiting next month."]],["dont","Not in my hands",["What the scan shows.", "What the test shows.", "Whether he makes friends."]]] },
-    { k:"instead", q:"Instead", ask:"When the worry pulls at me, what will I do instead?", why:"One small action to replace checking or replaying.", ex:["No searching symptoms after 9 pm. Walk in the evening.", "Stop searching symptoms; write my questions for the doctor.", "Send one message, then put the phone away."] } ],
+    { k:"fear", q:"The fear", ask:"What exactly am I afraid will happen?", why:"One sentence. A named fear is a smaller fear.", ex:["That the review goes badly and the client leaves.", "That the chest pain is my heart.", "That my son won’t settle in the new city."] },
+    { k:"fact", q:"The facts", ask:"What do I actually know for sure, right now?", why:"Only what you could show someone. If a doctor or another professional should check it, that is a fact worth getting.", ex:["They renewed last year. They’ve sent me two referrals.", "Last year’s ECG was normal. The pain comes after meals.", "He has called twice this week. He mentioned one friend."] },
+    { k:"unknown", q:"The unknown", ask:"What don’t I know yet — and when will I know it?", why:"Most fear lives in the gap. Name the gap, and the day it closes.", ex:["What they decide, and I’ll know on the 20th.", "What the doctor finds on Friday.", "How he feels after the first month."], knowBy:true },   // U1 (27 Oct 2026): the uncertainty fold
+    { q:"Worst · likely · best", ask:"Honestly, how could this go?", why:"The likely one is the one fear skips.", split:[["worst","Worst case",["They move to someone else.", "Something is wrong and needs treatment.", "He is unhappy and wants to come home."]],["likely","Most likely",["A few hard questions, then they stay.", "Acidity, and a change of diet.", "A hard first month, then friends."]],["best","Best case",["They stay and refer a friend.", "Nothing at all.", "He loves it by Diwali."]]] },
+    { q:"Mine · not mine", ask:"What part of this is in my hands — and what isn’t?", why:"Put your energy only on the first list.", split:[["control","In my hands",["Preparing the numbers. Calling them before the 20th.", "Booking the test. What I eat tonight.", "Calling on Sunday. Visiting next month."]],["dont","Not in my hands",["What they decide.", "What the test shows.", "Whether he makes friends."]]] },
+    { k:"instead", q:"Instead", ask:"When the worry pulls at me, what will I do instead?", why:"One small action to replace checking or replaying.", ex:["Prepare once, then stop rehearsing it. Walk in the evening.", "Stop searching symptoms; write my questions for the doctor.", "Send one message, then put the phone away."] } ],
   ins: [
-    { k:"compare", q:"The comparison", ask:"Who am I comparing myself to — and on what?", why:"One person, one measure. Be specific.", ex:["R’s practice — his AUM is twice mine.", "My cousin — she runs marathons; I get breathless on stairs.", "Other parents — they seem to have it all handled."] },
-    { q:"Both sides", ask:"Is it really true that I’m behind?", why:"Write both sides, like a fair judge would.", split:[["evfor","What says yes",["His AUM.", "My stamina is low.", "I lost my temper twice this week."]],["evagainst","What says no",["My margin. My client retention.", "I walk every day. My numbers beat last year’s.", "My children talk to me. We eat together most nights."]]] },
-    { k:"friend", q:"To a friend", ask:"If a friend said this about themselves, what would I tell them?", why:"We are kinder — and truer — to friends than to ourselves.", ex:["AUM isn’t the scoreboard you chose.", "You started a year ago. Look how far you’ve come.", "Tired isn’t the same as failing."] },
+    { k:"compare", q:"The comparison", ask:"Who am I comparing myself to — and on what?", why:"One person, one measure. Be specific.", ex:["A school friend — he seems further ahead in everything.", "My cousin — she runs marathons; I get breathless on stairs.", "Other parents — they seem to have it all handled."] },
+    { q:"Both sides", ask:"Is it really true that I’m behind?", why:"Write both sides, like a fair judge would.", split:[["evfor","What says yes",["His bigger house and new car.", "My stamina is low.", "I lost my temper twice this week."]],["evagainst","What says no",["A home I love. Clients who stay with me for years.", "I walk every day. My numbers beat last year’s.", "My children talk to me. We eat together most nights."]]] },
+    { k:"friend", q:"To a friend", ask:"If a friend said this about themselves, what would I tell them?", why:"We are kinder — and truer — to friends than to ourselves.", ex:["His life isn’t the scoreboard you chose.", "You started a year ago. Look how far you’ve come.", "Tired isn’t the same as failing."] },
     { k:"step", q:"One step", ask:"What is one small thing I could learn or do this month?", why:"Something real and learnable — not “be better”.", ex:["Sit in on one of his client reviews.", "Add one short run a week.", "One evening a week with the phone away."] },
-    { k:"keep", q:"The line", ask:"What one sentence do I want to remember from this?", why:"The line you would say to yourself next time. It comes back the next time you are at this door.", ex:["Twice the AUM, half the margin.", "My pace, my progress.", "Present beats perfect."] } ],
+    { k:"keep", q:"The line", ask:"What one sentence do I want to remember from this?", why:"The line you would say to yourself next time. It comes back the next time you are at this door.", ex:["His race, not mine.", "My pace, my progress.", "Present beats perfect."] } ],
   obs: [
     { k:"barrier", q:"The block", ask:"What exactly is in the way?", why:"As specific as a receipt.", ex:["The ₹1.2L course fee isn’t in this year’s budget.", "The physio only has slots during work hours.", "The landlord won’t fix the leak."] },
     { k:"routes", q:"Ways through", ask:"How could I get past it?", why:"Try each: remove it · go around it · wait it out · change the goal.", ex:["Remove: ask for instalments. Around: a cheaper module first. Wait: next year. Change: self-study.", "Remove: ask for a Saturday slot. Around: exercises at home. Wait: after the busy month. Change: a clinic near work.", "Remove: a written request. Around: fix it and deduct it. Wait: the lease ends in May. Change: move."] },
@@ -9663,39 +9660,14 @@ function renderMind() {
     + '</div>' : '';
   // M4 (30 Oct 2026): Feeling | Facing as two columns of slim door rows; Not sure across the foot. A tapped door lights its
   // row and opens its knots in a full-width panel beneath (a half column was too narrow on a phone).
-  const doorRow = (d, wide) => { const D = MM_DOORS[d], n = open.filter(k => k.door === d || k.door2 === d).length, isOpen = mmDoor === d;
-    return '<div class="mm-door ' + D.cls + (isOpen ? ' open' : '') + (wide ? ' wide' : '') + (n ? '' : ' z') + '"><button class="mm-dh" type="button" data-mmdoor="' + d + '" aria-expanded="' + isOpen + '">'
-      + '<span class="mm-dl"><span class="mm-t">' + D.lbl + '</span><span class="mm-q">' + (wide ? 'can’t tell which? ' : '') + D.q + '</span></span><span class="mm-dc"><b>' + n + '</b><span class="mm-chev">' + (isOpen ? '⌃' : '⌄') + '</span></span></button></div>'; };
-  const doorPanel = d => {   // MM-C3: the pop-up is titled in your own words; its knots are loops; the door's past and last lesson beneath
-    const D = MM_DOORS[d];
-    const mine = open.concat(carry).filter(k => k.door === d || k.door2 === d)
-      .sort((a, b) => String(b.opened_on || '').localeCompare(String(a.opened_on || '')) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
-    const here = done.filter(k => k.door === d || k.door2 === d), settledHere = here.length;
-    let past = '';
-    if (settledHere) {
-      const by = {}; here.forEach(k => { const o = k.outcome || 'resolved'; by[o] = (by[o] || 0) + 1; });
-      const keys = Object.keys(by).sort((a, b) => by[b] - by[a]);
-      past = '<div class="mm2-pbox past"><span class="mm2-pl">AT THIS DOOR, BEFORE</span><div class="mm2-meter">' + keys.map(o => '<i style="width:' + (100 * by[o] / settledHere).toFixed(1) + '%;background:' + (MM_OUT_INK[o] || '#2E6640') + '"></i>').join('') + '</div>'
-        + '<div class="mm2-pi">' + keys.slice(0, 3).map(o => by[o] + ' ' + escHtml((MM_OUTS[o] || MM_OUTS.resolved).low || String((MM_OUTS[o] || MM_OUTS.resolved).lbl).toLowerCase())).join(' \u00B7 ') + '</div></div>';
-    }
-    const ls = mmLessons_(d)[0];
-    const lesson = ls ? '<div class="mm2-pbox les"><span class="mm2-pl">LAST TIME YOU TOLD YOURSELF</span><div class="mm2-lq">\u201C' + escHtml(ls.t) + '\u201D</div></div>' : '';
-    return '<div class="mm-door open ' + D.cls + '"><div class="mm-dph"><div><span class="mm-t">' + D.lbl + '</span><div class="mm-q">\u201CI ' + escHtml(MM_SAY[d] || D.q) + '\u201D</div><div class="mm-dpc">' + mine.length + ' FIRING \u00B7 ' + settledHere + ' CLOSED</div></div><button type="button" class="mm-dpx" data-mmpopx="1" aria-label="Close">&times;</button></div><div class="mm-dbody">'
-      + (mine.length ? mine.map(k => mmLoopCard_(k, true)).join('') : '<div class="mm-demp">Nothing open here.</div>')
-      + (past || lesson ? '<div class="mm2-pboxes">' + past + lesson + '</div>' : '')
-      + '<div class="mm-dfoot"><button type="button" class="mm-dadd" data-mmaddat="' + d + '">+ Open a new loop here</button>'
-      + (settledHere ? '<button type="button" class="mm-dseen" data-mmseen="1">' + settledHere + ' closed here \u203A</button>' : '') + '</div></div></div>';
-  };
   // MM-C3: the doors as sentences - "inside me" and "out in the world" as two soft halves, "can't say why" beneath
   const pill = d => { const D = MM_DOORS[d], n = open.filter(k => k.door === d || k.door2 === d).length, lw = carry.filter(k => k.door === d || k.door2 === d).length;
-    return '<button type="button" class="mm2-sp ' + D.cls + (n ? ' hot' : '') + (mmDoor === d ? ' open' : '') + (d === 'gen' ? ' gen' : '') + '" data-mmdoor="' + d + '" title="' + escHtml(D.lbl) + '"><i></i>' + escHtml(MM_SAY[d] || D.q)
+    return '<button type="button" class="mm2-sp ' + D.cls + (n ? ' hot' : '') + (d === 'gen' ? ' gen' : '') + '" data-mmdoor="' + d + '" title="' + escHtml(D.lbl) + '"><i></i>' + escHtml(MM_SAY[d] || D.q)
       + (n ? '<b>' + n + '</b>' : lw ? '<b class="lw">\u221E</b>' : '') + '</button>'; };
   el('mmDoors').innerHTML = '<div class="mm2-halves">' + MM_FAMILIES.slice(0, 2).map((F, fi) =>
       '<div class="mm2-half ' + (fi ? 'out' : 'in') + '"><div class="mm2-grp">' + (fi ? '\u2026 OUT IN THE WORLD' : '\u2026 INSIDE ME') + '</div><div class="mm2-sents">' + F.doors.map(pill).join('') + '</div></div>').join('') + '</div>'
     + mmFogHtml_(MM_FAMILIES.slice(2).map(F => F.doors.map(pill).join('')).join(''));
   // P1: the open door lives in a pop-up over the dimmed page; repaint it whenever the knots change underneath
-  const pop = el('mmDoorPop'), pm = el('mmDoorModal');
-  if (pop && pm) { if (mmDoor !== 'all' && MM_DOORS[mmDoor]) { pop.innerHTML = doorPanel(mmDoor); pm.classList.remove('hidden'); } else { pm.classList.add('hidden'); pop.innerHTML = ''; } }
   const shown = open.slice()
     .sort((a, b) => String(b.opened_on || '').localeCompare(String(a.opened_on || '')) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
   // L3 (26 Oct 2026): the knots are THE RECORD - a timeline on a white sheet, not more door cards. Open knots lead
@@ -9742,7 +9714,7 @@ function renderMind() {
 // MM-F2: the question under the line, and its example, per door
 const MM_ASK = { anx:'What\u2019s the worry, in your own words?', ins:'What brought this feeling on?', over:'What\u2019s on your plate right now?', dil:'Which two things are pulling at you?',   // W4 (9 Nov 2026): softer, a friend asking
   obs:'What seems to be in the way?', cha:'What are you working towards?', conf:'Who is it with, and what\u2019s it about?', loss:'Who or what are you missing?', gen:'How would you describe it, roughly?' };
-const MM_EG = { anx:'e.g. The scan on Friday \u2014 what if it\u2019s serious?', ins:'e.g. Everyone at the meet seemed further ahead', over:'e.g. Three filings, a wedding and the office move this week',
+const MM_EG = { anx:'e.g. The client review on the 20th \u2014 what if it goes badly?', ins:'e.g. Everyone at the meet seemed further ahead', over:'e.g. Three filings, a wedding and the office move this week',
   dil:'e.g. Take the Baner office, or stay?', obs:'e.g. Bank won\u2019t release the loan until the NOC', cha:'e.g. Running my first 10 km', conf:'e.g. R and I disagree on the fee', loss:'e.g. Baba', gen:'e.g. Flat for weeks' };
 let mmKStep_ = 1;
 function mmFogHtml_(inner) { return '<div class="mm2-fog"><div class="mm2-grp">\u2026 CAN\u2019T TELL WHICH</div><div class="mm2-sents">' + inner + '</div><div class="mm2-fnote">That\u2019s a door too. You can name it later.</div></div>'; }
@@ -9771,7 +9743,7 @@ function mmPaintPick_() {
   el('mmFoldBoth').classList.toggle('hidden', mmPickDoors_.length !== 1);
   el('mmKAsk').innerHTML = d0 ? '<span>' + escHtml(MM_ASK[d0]) + '<small>A name or a word is enough.</small></span>' : 'Say it in a line';
   el('mmKAsk').parentNode.className = 'fld mm2-kline' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
-  el('fMmTitle').placeholder = d0 ? MM_EG[d0] : 'e.g. Can\u2019t stop thinking about the scan on Friday';
+  el('fMmTitle').placeholder = d0 ? MM_EG[d0] : 'e.g. Can\u2019t stop thinking about the review on the 20th';
   const qk = el('mmQuick');
   if (qk) {
     const Q = mmQuickFor_(mmPickDoors_);
@@ -10458,9 +10430,25 @@ function mmLessons_(door, notId) {
   });
   return out.sort((a, b) => String(b.on).localeCompare(String(a.on)));
 }
-async function mmDelete_(id) {
+// X1 (9 Nov 2026): "are you sure?" as a soft rose strip in the app's own voice, under what you tapped - never the browser's box
+function mmAskDelete_(anchor, id) {
+  const k = mmById_(id); if (!k || !anchor) return;
+  document.querySelectorAll('.mm2-delask').forEach(x => x.remove());
+  const st = document.createElement('div'); st.className = 'mm2-delask';
+  st.innerHTML = '<div class="q">Delete \u201C' + escHtml(k.title || 'this loop') + '\u201D for good?</div>'
+    + '<div class="w">Its desk and notes go too.' + (k.status === 'settled' ? '' : ' If it\u2019s simply over, settling it keeps the record.') + '</div>'
+    + '<div class="r"><button type="button" class="keep">Keep it</button><button type="button" class="del">Delete</button></div>';
+  anchor.insertAdjacentElement('afterend', st);
+  st.addEventListener('click', async e => {
+    e.stopPropagation();
+    if (e.target.closest('.keep')) { st.remove(); return; }
+    if (e.target.closest('.del')) { st.remove(); if (String(mmKnotEditing_) === String(id)) closeMmKnot_(); await mmDelete_(id, true); }
+  });
+  try { st.scrollIntoView({ behavior:'smooth', block:'nearest' }); st.querySelector('.keep').focus(); } catch (x) {}
+}
+async function mmDelete_(id, asked) {
   const k = mmById_(id); if (!k) return false;
-  if (!confirm('Delete “' + (k.title || 'this knot') + '”? It leaves the record entirely.')) return false;
+  if (!asked) return false;   // X1: every delete goes through mmAskDelete_ first
   const { error } = await supa.from('why_mind').delete().eq('id', k.id).eq('user_id', userId);
   if (error) { console.error(error); toast('Could not delete'); return false; }
   if (String(mmPageId_) === String(id)) closeMmPage_();
@@ -10472,26 +10460,6 @@ el('mmDoors').addEventListener('click', e => {
   const d = e.target.closest('[data-mmdoor]'); if (!d) return;
   // D1 (9 Nov 2026): a sentence always opens the form, its door ticked - no pop-up
   openMmKnot_(null); mmPickDoors_ = [d.dataset.mmdoor]; mmPaintPick_();
-});
-// P1: open and close the door pop-up. Opening adds a history step, so the phone's Back closes it rather than leaving the page.
-function mmOpenDoor_(d) {
-  if (!MM_DOORS[d]) return;
-  if (mmDoor === 'all') { try { history.pushState({ mmpop: 1 }, ''); } catch (x) {} }
-  mmDoor = d; renderMind();
-  setTimeout(() => { try { el('mmDoorPop').querySelector('.mm-dpx').focus(); } catch (x) {} }, 30);
-}
-function mmCloseDoor_(viaBack) {
-  if (mmDoor === 'all') return;
-  mmDoor = 'all'; renderMind();
-  if (!viaBack) { try { if (history.state && history.state.mmpop) history.back(); } catch (x) {} }
-}
-window.addEventListener('popstate', () => { if (mmDoor !== 'all') mmCloseDoor_(true); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && mmDoor !== 'all') mmCloseDoor_(); });
-el('mmDoorModal').addEventListener('click', e => {
-  if (e.target === el('mmDoorModal') || e.target.closest('[data-mmpopx]')) { mmCloseDoor_(); return; }
-  const kn = e.target.closest('[data-mmknot]'); if (kn) { const id = kn.dataset.mmknot; mmCloseDoor_(); openMmPage(id); return; }
-  const ad = e.target.closest('[data-mmaddat]'); if (ad) { const dd = ad.dataset.mmaddat; mmCloseDoor_(); openMmKnot_(null); mmPickDoors_ = [dd]; mmPaintPick_(); return; }
-  if (e.target.closest('[data-mmseen]')) { mmCloseDoor_(); mmSetOpen_ = true; mmYrOpen_ = new Set(mind.map(k => String(k.settled_on || '').slice(0, 4))); renderMind(); try { el('mmList').scrollIntoView({ behavior:'smooth', block:'start' }); } catch (x) {} return; }
 });
 el('mmOpenCnt').addEventListener('click', e => { if (e.target.closest('[data-mmall]')) { mmDoor = 'all'; renderMind(); } });
 el('mmNudge').addEventListener('click', e => {
@@ -10510,12 +10478,12 @@ el('mmList').addEventListener('click', e => {
   const yb = e.target.closest('[data-mmyr]'); if (yb) { const y = yb.dataset.mmyr; if (mmYrOpen_.has(y)) mmYrOpen_.delete(y); else mmYrOpen_.add(y); renderMind(); return; }
   const dl = e.target.closest('[data-mmdec]'); if (dl) { e.stopPropagation(); mmOpenDec_(dl.dataset.mmdec); return; }
   const x = e.target.closest('[data-mmx]');
-  if (x) { e.stopPropagation(); mmDelete_(x.dataset.mmx); return; }
+  if (x) { e.stopPropagation(); mmAskDelete_(x.closest('.mm2-crow, .mm2-loop') || x, x.dataset.mmx); return; }
   const r = e.target.closest('[data-mmknot]');
   if (r) openMmPage(r.dataset.mmknot);
 });
 el('mmLoops').addEventListener('click', e => {   // MM-C3
-  const x = e.target.closest('[data-mmx]'); if (x) { e.stopPropagation(); mmDelete_(x.dataset.mmx); return; }
+  const x = e.target.closest('[data-mmx]'); if (x) { e.stopPropagation(); mmAskDelete_(x.closest('.mm2-crow, .mm2-loop') || x, x.dataset.mmx); return; }
   const r = e.target.closest('[data-mmknot]'); if (r) openMmPage(r.dataset.mmknot);
 });
 el('mmPick').addEventListener('click', e => {
@@ -10621,7 +10589,7 @@ el('mmKnowDue').addEventListener('click', async e => {
 });
 el('mmPrintKnot').addEventListener('click', mmPrintKnot_);
 el('mmSettleBtn').addEventListener('click', () => { const k = mmById_(mmPageId_); if (!k) return; if (k.status === 'settled') mmReopen_(); else openMmSettle_(); });
-el('mmKnotDel').addEventListener('click', async () => { const id = mmKnotEditing_; if (id == null) return; closeMmKnot_(); await mmDelete_(id); });
+el('mmKnotDel').addEventListener('click', () => { const id = mmKnotEditing_; if (id == null) return; mmAskDelete_(el('mmKnotDel').closest('.modal-actions'), id); });
 el('mmOuts').addEventListener('click', e => { const b = e.target.closest('[data-mmout]'); if (!b) return; mmSettleOut_ = b.dataset.mmout; mmPaintSettle_(); });
 el('mmSettleHelped').addEventListener('click', e => {
   const a = e.target.closest('[data-mmshelpadd]');
