@@ -916,6 +916,35 @@
   .mm-csub label { display:flex; gap:8px; align-items:baseline; padding:4px 0; border-top:1px dashed #eef1f6; cursor:pointer; }
   .mm-csub label b { font-family:var(--mono); font-size:0.5rem; color:#8B97AC; font-weight:400; margin-left:auto; white-space:nowrap; }
   @media (max-width:560px) { .mm-csub { padding-left:12px; } .mm-tri button { padding:4px 6px; } }
+  /* MM-F2 (9 Nov 2026): the two-step form; G2 fog for "can't tell which" */
+  .mm2-fog { border-radius:14px; padding:2px 14px 12px; margin-top:10px; background:radial-gradient(circle at 15% 30%, rgba(255,255,255,0.9) 0 18%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.8) 0 15%, transparent 35%), linear-gradient(160deg,#e7e6ee,#efeef2); }
+  .mm2-fnote { font-family:var(--serif); font-style:italic; color:#6b6a5e; font-size:0.86rem; margin-top:7px; }
+  #mmKnotModal .modal { position:relative; }
+  .mm2-ksteps { display:flex; gap:6px; margin:0 36px 12px 0; } .mm2-ksteps i { height:4px; flex:1; border-radius:3px; background:#e3e6ee; } .mm2-ksteps i.on { background:#2f4f8a; }
+  .mm2-kx { position:absolute; right:14px; top:10px; width:30px; height:30px; border-radius:50%; border:1px solid #d6dbe6; background:#fff; color:#6b7488; font-size:1.1rem; line-height:1; cursor:pointer; }
+  .mm2-kstep { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.14em; font-weight:700; color:#6b7488; margin:10px 0 2px; }
+  #mmKnotModal .mm2-stem { font-size:1.5rem; margin:2px 0 6px; }
+  #mmPick .mm2-halves { margin-top:6px; }
+  #mmPick .mm2-sp { font-family:var(--serif) !important; font-size:0.95rem !important; padding:8px 14px 8px 12px; background:#fff; letter-spacing:0; text-transform:none; }
+  #mmPick .mm2-sp { border-radius:999px !important; color:var(--a) !important; border:1.5px solid color-mix(in srgb, var(--a) 28%, transparent) !important; }
+  #mmPick .mm2-sp.gen { border-style:dashed !important; }
+  #mmPick .mm2-sp.on { background:var(--a) !important; color:#fff !important; border-color:var(--a) !important; }
+  #mmKNext { white-space:nowrap; flex:none; }
+  .mm2-sp.on { background:var(--a); color:#fff; border-color:var(--a); box-shadow:0 4px 12px color-mix(in srgb, var(--a) 30%, transparent); } .mm2-sp.on i { background:#fff; } .mm2-sp.on b { background:#fff; color:var(--a); }
+  .mm2-kfoot { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid #eef0f4; }
+  .mm2-kfoot .btn-primary:disabled { background:#c9d0de; border-color:#c9d0de; cursor:default; }
+  .mm2-tray { display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-width:0; }
+  .mm2-tchip { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:5px 11px; background:var(--a); color:#fff; font-family:var(--serif); font-size:0.86rem; }
+  .mm2-tchip em { font-style:normal; font-family:var(--mono); font-size:0.55rem; background:#fff; color:var(--a); border-radius:7px; padding:0 5px; font-weight:700; }
+  .mm2-tchip.big { font-size:0.95rem; padding:6px 8px 6px 13px; }
+  .mm2-tchip button { font-family:var(--mono); font-size:0.55rem; letter-spacing:0.1em; color:#fff; opacity:0.85; background:none; border:none; border-left:1px solid rgba(255,255,255,0.4); padding:2px 4px 2px 8px; margin-left:4px; cursor:pointer; }
+  .mm2-tempty { border:1.5px dashed #c9cfdc; border-radius:999px; padding:5px 12px; font-family:var(--serif); font-size:0.84rem; color:#8a92a6; font-style:italic; }
+  .mm2-kchips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px; }
+  .mm2-kboth { font-family:var(--mono); font-size:0.58rem; letter-spacing:0.1em; border:1.5px dashed #c9cfdc; border-radius:999px; padding:5px 11px; color:#5b6478; background:#fff; cursor:pointer; }
+  .mm2-kline label { color:var(--a, #6b7488) !important; }
+  .mm2-kline input { border:none !important; border-bottom:2px solid var(--a, #d6dbe6) !important; border-radius:0 !important; background:transparent !important; font-family:var(--serif) !important; font-size:1.3rem !important; padding:8px 2px !important; box-shadow:none !important; }
+  .mm2-kone { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.12em; color:#8a92a6; margin:-4px 0 10px; }
+  @media (max-width: 700px) { #mmPick .mm2-halves { grid-template-columns:1fr; } .mm2-kfoot { position:sticky; bottom:-1px; background:#fff; } }
   /* MM-C3 (9 Nov 2026): Right now I... + Open loops on a faint neuron web; proof; Closed loops on the same panel */
   .mm2-room, .mm2-closed { position:relative; overflow:hidden; background:#f4f5f9; border-radius:18px; padding:22px 24px; box-shadow:0 10px 30px rgba(30,47,82,0.10); }
   .mm2-closed { padding:10px 20px 16px; }
@@ -4288,11 +4317,22 @@
 <div class="modal-overlay hidden" id="mmKnotModal">
   <div class="modal">
     <div id="mmKForm">
+    <!-- MM-F2 (9 Nov 2026): two steps - 1 tap the sentence (a second if it's both) and Next; 2 say it in a line -->
+    <div class="mm2-ksteps"><i id="mmKBar1" class="on"></i><i id="mmKBar2"></i></div>
+    <button type="button" class="mm2-kx" id="mmKnotX" aria-label="Close">&times;</button>
     <div class="modal-title" id="mmKnotTitle">Something's on my mind</div>
     <div class="mm-ksub" id="mmKnotSub">Sixty seconds. The rest can wait for morning.</div>
-    <!-- K1 (31 Oct 2026): the line first, then the doors as slim rows in two columns; the step and the pillar fold behind a + -->
-    <div class="fld"><label>Say it in a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div>
-    <div class="fld"><label>Which is it? <span class="mm-klh">&middot; a second if it&rsquo;s both</span></label><div class="mm-pick" id="mmPick"></div></div>
+    <div id="mmKStep1">
+      <div class="mm2-kstep">STEP 1 OF 2</div>
+      <div class="mm2-stem">Right now <em>I&hellip;</em></div>
+      <div class="mm-pick" id="mmPick"></div>
+      <div class="mm2-kfoot"><div class="mm2-tray" id="mmKTray"></div><button class="btn-primary" id="mmKNext" type="button">Next &rsaquo;</button></div>
+    </div>
+    <div id="mmKStep2" class="hidden">
+    <div class="mm2-kstep">STEP 2 OF 2 &middot; RIGHT NOW I&hellip;</div>
+    <div class="mm2-kchips" id="mmKChips"></div>
+    <div class="fld mm2-kline"><label id="mmKAsk">Say it in a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div>
+    <div class="mm2-kone">ONE LINE IS ENOUGH. THE REST CAN WAIT.</div>
     <div class="mm-kfold" id="mmKFold"><button type="button" id="mmFoldNext">+ A next step</button><button type="button" id="mmFoldPillar">+ A pillar</button></div>
     <div class="fld hidden" id="fMmNextWrap"><label>Next step (optional tonight)</label><input id="fMmNext" placeholder="one thing, however small">
       <div class="mm-quick" id="mmQuick" style="display:none"></div></div>
@@ -4300,9 +4340,11 @@
     <div class="fld hidden" id="fMmPillarWrap"><label>Pillar (optional)</label><select id="fMmPillar"><option value="">&mdash;</option></select></div>
     <div class="modal-actions">
       <button class="mm-kdel hidden" id="mmKnotDel" type="button">DELETE THIS KNOT</button>
+      <button class="btn-ghost" id="mmKBack" type="button">&lsaquo; Back</button>
       <span style="flex:1"></span>
-      <button class="btn-ghost" id="mmKnotCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="mmKnotSave" type="button">Open the knot</button>
+      <button class="btn-ghost hidden" id="mmKnotCancel" type="button">Cancel</button>
+      <button class="btn-primary" id="mmKnotSave" type="button">Open the loop</button>
+    </div>
     </div>
     <div class="mm-sos in" id="mmSosPick"></div>
     </div>
@@ -9622,7 +9664,7 @@ function renderMind() {
       + (n ? '<b>' + n + '</b>' : lw ? '<b class="lw">\u221E</b>' : '') + '</button>'; };
   el('mmDoors').innerHTML = '<div class="mm2-halves">' + MM_FAMILIES.slice(0, 2).map((F, fi) =>
       '<div class="mm2-half ' + (fi ? 'out' : 'in') + '"><div class="mm2-grp">' + (fi ? '\u2026 OUT IN THE WORLD' : '\u2026 INSIDE ME') + '</div><div class="mm2-sents">' + F.doors.map(pill).join('') + '</div></div>').join('') + '</div>'
-    + '<div class="mm2-grp">\u2026 OR</div><div class="mm2-sents">' + MM_FAMILIES.slice(2).map(F => F.doors.map(pill).join('')).join('') + '</div>';
+    + mmFogHtml_(MM_FAMILIES.slice(2).map(F => F.doors.map(pill).join('')).join(''));
   // P1: the open door lives in a pop-up over the dimmed page; repaint it whenever the knots change underneath
   const pop = el('mmDoorPop'), pm = el('mmDoorModal');
   if (pop && pm) { if (mmDoor !== 'all' && MM_DOORS[mmDoor]) { pop.innerHTML = doorPanel(mmDoor); pm.classList.remove('hidden'); } else { pm.classList.add('hidden'); pop.innerHTML = ''; } }
@@ -9669,17 +9711,44 @@ function renderMind() {
   list.innerHTML = html;
 }
 /* ---- the sixty-second door (also the knot's head editor) ---- */
+// MM-F2: the question under the line, and its example, per door
+const MM_ASK = { anx:'What are you afraid will happen?', ins:'What made you feel not enough?', over:'What\u2019s piling up?', dil:'Torn between what and what?',
+  obs:'What\u2019s in the way?', cha:'What are you working at?', conf:'With whom, and about what?', loss:'What, or who, is gone?', gen:'Say it any way it comes.' };
+const MM_EG = { anx:'e.g. Market down 5% \u2014 what if it keeps falling?', ins:'e.g. Everyone at the meet seemed further ahead', over:'e.g. Three filings, a wedding and the office move this week',
+  dil:'e.g. Take the Baner office, or stay?', obs:'e.g. Bank won\u2019t release the loan until the NOC', cha:'e.g. Running my first 10 km', conf:'e.g. R and I disagree on the fee', loss:'e.g. Baba', gen:'e.g. Flat for weeks' };
+let mmKStep_ = 1;
+function mmFogHtml_(inner) { return '<div class="mm2-fog"><div class="mm2-grp">\u2026 CAN\u2019T TELL WHICH</div><div class="mm2-sents">' + inner + '</div><div class="mm2-fnote">That\u2019s a door too. You can name it later.</div></div>'; }
 function mmPaintPick_() {
-  // K1: the same slim rows as the My Mind page - Feeling | Facing in two columns, Not sure across the foot, a tick on the chosen
-  const row = d => '<button type="button" class="mm-prow ' + MM_DOORS[d].cls + (mmPickDoors_.includes(d) ? ' on' : '') + (d === 'gen' ? ' wide' : '') + '" data-mmpick="' + d + '" title="' + escHtml(MM_DOORS[d].lbl) + '"><span>' + MM_DOORS[d].pick + '</span><i class="mm-ptk">' + (mmPickDoors_.includes(d) ? '\u2713' : '') + '</i></button>';
-  el('mmPick').innerHTML = '<div class="mm-pcols">' + MM_FAMILIES.slice(0, 2).map(F => '<div><div class="mm-pch">' + F.h + '</div>' + F.doors.map(row).join('') + '</div>').join('') + '</div>'
-    + MM_FAMILIES.slice(2).map(F => F.doors.map(row).join('')).join('');
+  // MM-F2: the room's own sentences in two halves; tapped ones fill with their colour and carry 1 / 2; "can't tell" in the fog
+  const row = d => { const i = mmPickDoors_.indexOf(d);
+    return '<button type="button" class="mm2-sp ' + MM_DOORS[d].cls + (i >= 0 ? ' on' : '') + (d === 'gen' ? ' gen' : '') + '" data-mmpick="' + d + '" title="' + escHtml(MM_DOORS[d].lbl) + '"><i></i>' + escHtml(MM_SAY[d]) + (i >= 0 ? '<b>' + (i + 1) + '</b>' : '') + '</button>'; };
+  el('mmPick').innerHTML = '<div class="mm2-halves">' + MM_FAMILIES.slice(0, 2).map((F, fi) => '<div class="mm2-half ' + (fi ? 'out' : 'in') + '"><div class="mm2-grp">' + (fi ? '\u2026 OUT IN THE WORLD' : '\u2026 INSIDE ME') + '</div><div class="mm2-sents">' + F.doors.map(row).join('') + '</div></div>').join('') + '</div>'
+    + mmFogHtml_(MM_FAMILIES.slice(2).map(F => F.doors.map(row).join('')).join(''));
+  // H2: the tray beside Next - what Next will carry, and an empty slot for a second
+  const chip = (d, i) => '<span class="mm2-tchip ' + MM_DOORS[d].cls + '">' + (mmPickDoors_.length > 1 ? '<em>' + (i + 1) + '</em>' : '') + escHtml(MM_SAY[d]) + '</span>';
+  el('mmKTray').innerHTML = !mmPickDoors_.length ? '<span class="mm2-tempty">tap the one that fits</span>'
+    : mmPickDoors_.map(chip).join('') + (mmPickDoors_.length < 2 ? '<span class="mm2-tempty">\uFF0B second, if it\u2019s both</span>' : '');
+  el('mmKNext').disabled = !mmPickDoors_.length;
+  // step 2: the chips, the door's own question
+  el('mmKChips').innerHTML = mmPickDoors_.map((d, i) => '<span class="mm2-tchip big ' + MM_DOORS[d].cls + '">' + escHtml(MM_SAY[d]) + '<button type="button" data-mmkchip="' + (i ? 'drop' : 'change') + '">' + (i ? 'DROP' : 'CHANGE') + '</button></span>').join('')
+    + (mmPickDoors_.length === 1 ? '<button type="button" class="mm2-kboth" data-mmkchip="both">\uFF0B IT\u2019S BOTH</button>' : '');
+  const d0 = mmPickDoors_[0];
+  el('mmKAsk').textContent = d0 ? MM_ASK[d0] : 'Say it in a line';
+  el('mmKAsk').parentNode.className = 'fld mm2-kline' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
+  el('fMmTitle').placeholder = d0 ? MM_EG[d0] : 'e.g. Market down 5%, what if it keeps falling';
   const qk = el('mmQuick');
   if (qk) {
     const Q = mmQuickFor_(mmPickDoors_);
     qk.style.display = Q ? '' : 'none';
     qk.innerHTML = Q ? Q.map(t => '<button type="button" data-mmquick="' + escHtml(t) + '">' + escHtml(t) + '</button>').join('') : '';
   }
+}
+function mmKGo_(n) {
+  mmKStep_ = n;
+  el('mmKStep1').classList.toggle('hidden', n !== 1); el('mmKStep2').classList.toggle('hidden', n !== 2);
+  el('mmKBar2').classList.toggle('on', n === 2);
+  document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
+  if (n === 2) setTimeout(() => { try { el('fMmTitle').focus(); } catch (e) {} }, 30);
 }
 // 31 Oct 2026: if opening the form ever fails on a device, say why on screen instead of doing nothing
 function openMmKnot_(id) {
@@ -9700,14 +9769,13 @@ function mmOpenKnotForm_(id) {
   el('fMmNext').value = k ? (k.next_step || '') : '';
   el('fMmBy').value = k ? (k.next_by || '') : '';
   mmKFold_('next', !!(k && k.next_step)); mmKFold_('pillar', !!(k && k.pillar_id));
-  el('mmKnotSave').textContent = k ? 'Save' : 'Open the knot';
+  el('mmKnotSave').textContent = k ? 'Save' : 'Open the loop';
+  mmKGo_(k ? 2 : 1);
   el('mmKnotDel').classList.toggle('hidden', !k);
   const sp = el('mmSosPick'); if (sp) sp.innerHTML = mmSosHtml_();
   el('mmKForm').classList.remove('hidden'); el('mmKSaved').classList.add('hidden');
   document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
   el('mmKnotModal').classList.remove('hidden');
-  // AU-E: a new knot starts at the doors - focusing the line would raise the phone keyboard over them
-  if (k) setTimeout(() => { try { el('fMmTitle').focus(); } catch (e) {} }, 30);
 }
 function mmKNeed_(id, msg) {
   document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
@@ -9721,7 +9789,7 @@ async function saveMmKnot_() {
   const title = el('fMmTitle').value.trim();
   // 31 Oct 2026: say what is missing right where it is missing, not only in a toast
   if (!title) { mmKNeed_('fMmTitle', 'Say it in a line first \u2014 a few words is enough.'); return; }
-  if (!mmPickDoors_.length) { mmKNeed_('mmPick', 'Which is it? Pick the one closest.'); return; }
+  if (!mmPickDoors_.length) { mmKGo_(1); mmKNeed_('mmPick', 'Which is it? Pick the one closest.'); return; }
   const next = el('fMmNext').value.trim();
   const rec = { user_id: userId, door: mmPickDoors_[0], door2: mmPickDoors_[1] || null, title,
     pillar_id: el('fMmPillar').value || null, next_step: next || null, next_by: next ? (el('fMmBy').value || null) : null,
@@ -10416,11 +10484,21 @@ el('mmPick').addEventListener('click', e => {
   const b = e.target.closest('[data-mmpick]'); if (!b) return;
   const d = b.dataset.mmpick;
   if (mmPickDoors_.includes(d)) mmPickDoors_ = mmPickDoors_.filter(x => x !== d);
-  else { mmPickDoors_.push(d); if (mmPickDoors_.length > 2) mmPickDoors_.shift(); }
+  else if (mmPickDoors_.length >= 2) { const was = mmPickDoors_[1]; mmPickDoors_[1] = d; toast('Only two: swapped ' + MM_DOORS[was].lbl + ' for ' + MM_DOORS[d].lbl); }
+  else mmPickDoors_.push(d);
   document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
   mmPaintPick_();
 });
 el('mmKnotSave').addEventListener('click', saveMmKnot_);
+el('mmKNext').addEventListener('click', () => { if (mmPickDoors_.length) mmKGo_(2); });
+el('mmKBack').addEventListener('click', () => mmKGo_(1));
+el('mmKnotX').addEventListener('click', closeMmKnot_);
+el('mmKChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-mmkchip]'); if (!b) return;
+  const a = b.dataset.mmkchip;
+  if (a === 'drop') { mmPickDoors_ = mmPickDoors_.slice(0, 1); mmPaintPick_(); return; }
+  mmKGo_(1);   // CHANGE and IT'S BOTH both go back to the sentences
+});
 el('fMmTitle').addEventListener('input', () => { document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove()); });
 el('mmKnotCancel').addEventListener('click', closeMmKnot_);
 el('mmPageBack').addEventListener('click', closeMmPage_);
