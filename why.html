@@ -939,6 +939,7 @@
   .mm2-tchip.big { font-size:0.95rem; padding:6px 8px 6px 13px; }
   .mm2-tchip button { font-family:var(--mono); font-size:0.55rem; letter-spacing:0.1em; color:#fff; opacity:0.85; background:none; border:none; border-left:1px solid rgba(255,255,255,0.4); padding:2px 4px 2px 8px; margin-left:4px; cursor:pointer; }
   .mm2-tempty { border:1.5px dashed #c9cfdc; border-radius:999px; padding:5px 12px; font-family:var(--serif); font-size:0.84rem; color:#8a92a6; font-style:italic; }
+  .mm2-kdoor { display:inline-block; font-family:var(--mono); font-size:0.62rem; letter-spacing:0.16em; font-weight:700; color:#fff; background:var(--a); border-radius:6px; padding:4px 10px; margin-bottom:10px; }
   .mm2-tk { width:18px; height:18px; border-radius:50%; background:#fff; color:var(--a); display:grid; place-items:center; font-size:0.72rem; font-weight:700; flex:none; font-family:var(--sans,system-ui,sans-serif); }
   .mm2-kcard { border-radius:16px; padding:14px 16px 6px; margin:4px 0 12px; background:color-mix(in srgb, var(--a, #2f4f8a) 8%, #fff); border:1px solid color-mix(in srgb, var(--a, #2f4f8a) 22%, transparent); }
   .mm2-ktag { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; font-family:var(--serif); font-size:1rem; color:var(--a); }
@@ -952,8 +953,8 @@
   #mmKStep2 .mm-kfold button { font-size:0.6rem; }
   /* Q3 (9 Nov 2026): the question is the box's header - a filled band in the door's colour joined to the line */
   .mm2-kcard .mm2-kline { border:1.5px solid var(--a); border-radius:12px; overflow:hidden; background:#fff; margin-bottom:8px; }
-  .mm2-kcard .mm2-kline label { display:flex !important; align-items:center; gap:8px; margin:0 !important; padding:9px 12px !important; background:color-mix(in srgb, var(--a) 14%, #fff) !important; color:var(--a) !important; font-family:var(--serif) !important; font-size:1.05rem !important; font-weight:600 !important; letter-spacing:0 !important; text-transform:none !important; }
-  .mm2-kcard .mm2-kline label::before { content:'?'; width:22px; height:22px; border-radius:50%; background:color-mix(in srgb, var(--a) 20%, #fff); display:grid; place-items:center; font-family:var(--sans,system-ui,sans-serif); font-size:0.8rem; flex:none; }
+  .mm2-kcard .mm2-kline label { display:flex !important; align-items:center; gap:8px; margin:0 !important; padding:9px 12px !important; background:var(--a) !important; color:#fff !important; font-family:var(--serif) !important; font-size:1.05rem !important; font-weight:600 !important; letter-spacing:0 !important; text-transform:none !important; }
+  .mm2-kcard .mm2-kline label::before { content:'?'; width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.22); display:grid; place-items:center; font-family:var(--sans,system-ui,sans-serif); font-size:0.8rem; flex:none; }
   .mm2-kcard .mm2-kline label small { display:block; font-weight:400; font-style:italic; font-size:0.85rem; opacity:0.85; margin-top:1px; }
   .mm2-kcard .mm2-kline input { border:none !important; border-radius:0 !important; margin:0 !important; }
   .mm2-kchips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px; }
@@ -4348,7 +4349,7 @@
     <div id="mmKStep2" class="hidden">
     <!-- S2 (9 Nov 2026): one soft card in the door's colour - the sentence, its question, the line -->
     <div class="mm2-kcard" id="mmKCard"><div id="mmKChips"></div>
-    <div class="fld mm2-kline"><label id="mmKAsk">Say it in a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div></div>
+    <div class="fld mm2-kline"><label id="mmKAsk">Say it in a line</label><input id="fMmTitle" placeholder="e.g. Can&rsquo;t stop thinking about the scan on Friday"></div></div>
     <div class="mm-kfold" id="mmKFold"><button type="button" id="mmFoldNext">+ Step</button><button type="button" id="mmFoldPillar">+ Pillar</button><button type="button" id="mmFoldBoth">+ Both</button></div>
     <div class="fld hidden" id="fMmNextWrap"><label>Next step (optional tonight)</label><input id="fMmNext" placeholder="one thing, however small">
       <div class="mm-quick" id="mmQuick" style="display:none"></div></div>
@@ -9357,12 +9358,12 @@ const MM_DESK = {
     { k:"oneway", q:"One-way or two-way", ask:"Which choice can I undo later?", why:"Decide reversible things fast, irreversible ones slowly.", ex:["Mumbai I can leave in a year; closing the Pune office I can’t undo.", "Physio I can stop any time; surgery I can’t undo.", "A flat nearby can change; selling their house can’t."] },
     { k:"livewith", q:"The loss I can live with", ask:"Which loss could I live with, calmly?", why:"Pick the cost, not the perfect.", ex:["Less money for two years.", "A slower recovery.", "Less space at home for a while."] } ],
   anx: [
-    { k:"fear", q:"The fear", ask:"What exactly am I afraid will happen?", why:"One sentence. A named fear is a smaller fear.", ex:["That the market keeps falling and I panic-sell at the bottom.", "That the chest pain is my heart.", "That my son won’t settle in the new city."] },
-    { k:"fact", q:"The facts", ask:"What do I actually know for sure, right now?", why:"Only what you could show someone. If a doctor or another professional should check it, that is a fact worth getting.", ex:["The index is 5% off its high. My plan says rebalance at 10%.", "Last year’s ECG was normal. The pain comes after meals.", "He has called twice this week. He mentioned one friend."] },
-    { k:"unknown", q:"The unknown", ask:"What don’t I know yet — and when will I know it?", why:"Most fear lives in the gap. Name the gap, and the day it closes.", ex:["What the market does in the next three months.", "What the doctor finds on Friday.", "How he feels after the first month."], knowBy:true },   // U1 (27 Oct 2026): the uncertainty fold
-    { q:"Worst · likely · best", ask:"Honestly, how could this go?", why:"The likely one is the one fear skips.", split:[["worst","Worst case",["Down 30%; two years to recover.", "Something is wrong and needs treatment.", "He is unhappy and wants to come home."]],["likely","Most likely",["An 8–12% dip, back within a year.", "Acidity, and a change of diet.", "A hard first month, then friends."]],["best","Best case",["Back at the high within a year.", "Nothing at all.", "He loves it by Diwali."]]] },
-    { q:"Mine · not mine", ask:"What part of this is in my hands — and what isn’t?", why:"Put your energy only on the first list.", split:[["control","In my hands",["How often I open the app. The SIP.", "Booking the test. What I eat tonight.", "Calling on Sunday. Visiting next month."]],["dont","Not in my hands",["What the market does next.", "What the test shows.", "Whether he makes friends."]]] },
-    { k:"instead", q:"Instead", ask:"When the worry pulls at me, what will I do instead?", why:"One small action to replace checking or replaying.", ex:["Open the portfolio only on the 1st. Walk in the evening.", "Stop searching symptoms; write my questions for the doctor.", "Send one message, then put the phone away."] } ],
+    { k:"fear", q:"The fear", ask:"What exactly am I afraid will happen?", why:"One sentence. A named fear is a smaller fear.", ex:["That the scan shows something serious.", "That the chest pain is my heart.", "That my son won’t settle in the new city."] },
+    { k:"fact", q:"The facts", ask:"What do I actually know for sure, right now?", why:"Only what you could show someone. If a doctor or another professional should check it, that is a fact worth getting.", ex:["The doctor called it routine. Last year’s scan was clear.", "Last year’s ECG was normal. The pain comes after meals.", "He has called twice this week. He mentioned one friend."] },
+    { k:"unknown", q:"The unknown", ask:"What don’t I know yet — and when will I know it?", why:"Most fear lives in the gap. Name the gap, and the day it closes.", ex:["What the scan shows, and the report comes on Monday.", "What the doctor finds on Friday.", "How he feels after the first month."], knowBy:true },   // U1 (27 Oct 2026): the uncertainty fold
+    { q:"Worst · likely · best", ask:"Honestly, how could this go?", why:"The likely one is the one fear skips.", split:[["worst","Worst case",["It’s serious and needs treatment.", "Something is wrong and needs treatment.", "He is unhappy and wants to come home."]],["likely","Most likely",["Nothing serious; a follow-up in six months.", "Acidity, and a change of diet.", "A hard first month, then friends."]],["best","Best case",["All clear.", "Nothing at all.", "He loves it by Diwali."]]] },
+    { q:"Mine · not mine", ask:"What part of this is in my hands — and what isn’t?", why:"Put your energy only on the first list.", split:[["control","In my hands",["Going on Friday. Writing my questions down.", "Booking the test. What I eat tonight.", "Calling on Sunday. Visiting next month."]],["dont","Not in my hands",["What the scan shows.", "What the test shows.", "Whether he makes friends."]]] },
+    { k:"instead", q:"Instead", ask:"When the worry pulls at me, what will I do instead?", why:"One small action to replace checking or replaying.", ex:["No searching symptoms after 9 pm. Walk in the evening.", "Stop searching symptoms; write my questions for the doctor.", "Send one message, then put the phone away."] } ],
   ins: [
     { k:"compare", q:"The comparison", ask:"Who am I comparing myself to — and on what?", why:"One person, one measure. Be specific.", ex:["R’s practice — his AUM is twice mine.", "My cousin — she runs marathons; I get breathless on stairs.", "Other parents — they seem to have it all handled."] },
     { q:"Both sides", ask:"Is it really true that I’m behind?", why:"Write both sides, like a fair judge would.", split:[["evfor","What says yes",["His AUM.", "My stamina is low.", "I lost my temper twice this week."]],["evagainst","What says no",["My margin. My client retention.", "I walk every day. My numbers beat last year’s.", "My children talk to me. We eat together most nights."]]] },
@@ -9730,7 +9731,7 @@ function renderMind() {
 // MM-F2: the question under the line, and its example, per door
 const MM_ASK = { anx:'What\u2019s the worry, in your own words?', ins:'What brought this feeling on?', over:'What\u2019s on your plate right now?', dil:'Which two things are pulling at you?',   // W4 (9 Nov 2026): softer, a friend asking
   obs:'What seems to be in the way?', cha:'What are you working towards?', conf:'Who is it with, and what\u2019s it about?', loss:'Who or what are you missing?', gen:'How would you describe it, roughly?' };
-const MM_EG = { anx:'e.g. Market down 5% \u2014 what if it keeps falling?', ins:'e.g. Everyone at the meet seemed further ahead', over:'e.g. Three filings, a wedding and the office move this week',
+const MM_EG = { anx:'e.g. The scan on Friday \u2014 what if it\u2019s serious?', ins:'e.g. Everyone at the meet seemed further ahead', over:'e.g. Three filings, a wedding and the office move this week',
   dil:'e.g. Take the Baner office, or stay?', obs:'e.g. Bank won\u2019t release the loan until the NOC', cha:'e.g. Running my first 10 km', conf:'e.g. R and I disagree on the fee', loss:'e.g. Baba', gen:'e.g. Flat for weeks' };
 let mmKStep_ = 1;
 function mmFogHtml_(inner) { return '<div class="mm2-fog"><div class="mm2-grp">\u2026 CAN\u2019T TELL WHICH</div><div class="mm2-sents">' + inner + '</div><div class="mm2-fnote">That\u2019s a door too. You can name it later.</div></div>'; }
@@ -9748,13 +9749,14 @@ function mmPaintPick_() {
   el('mmKNext').disabled = !mmPickDoors_.length;
   // step 2: the chips, the door's own question
   // S2: the card - your sentence (CHANGE), a second one beneath (DROP), then the main door's question and the line
-  el('mmKChips').innerHTML = mmPickDoors_.map((d, i) => '<div class="mm2-ktag ' + MM_DOORS[d].cls + (i ? ' sub' : '') + '"><span><span class="mm2-tk on">\u2713</span><span><span class="mm2-rn">' + (i ? 'and I' : 'Right now I') + '</span> <em>' + escHtml(MM_SAY[d]) + '</em></span></span><button type="button" data-mmkchip="' + (i ? 'drop' : 'change') + '">' + (i ? 'DROP' : 'CHANGE') + '</button></div>').join('');
+  el('mmKChips').innerHTML = (mmPickDoors_.length === 1 ? '<span class="mm2-kdoor">' + escHtml(MM_DOORS[mmPickDoors_[0]].lbl.toUpperCase()) + '</span>' : '')   // N1: the door's name, one door only
+    + mmPickDoors_.map((d, i) => '<div class="mm2-ktag ' + MM_DOORS[d].cls + (i ? ' sub' : '') + '"><span><span class="mm2-tk on">\u2713</span><span><span class="mm2-rn">' + (i ? 'and I' : 'Right now I') + '</span> <em>' + escHtml(MM_SAY[d]) + '</em></span></span><button type="button" data-mmkchip="' + (i ? 'drop' : 'change') + '">' + (i ? 'DROP' : 'CHANGE') + '</button></div>').join('');
   const d0 = mmPickDoors_[0];
   el('mmKCard').className = 'mm2-kcard' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
   el('mmFoldBoth').classList.toggle('hidden', mmPickDoors_.length !== 1);
   el('mmKAsk').innerHTML = d0 ? '<span>' + escHtml(MM_ASK[d0]) + '<small>A name or a word is enough.</small></span>' : 'Say it in a line';
   el('mmKAsk').parentNode.className = 'fld mm2-kline' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
-  el('fMmTitle').placeholder = d0 ? MM_EG[d0] : 'e.g. Market down 5%, what if it keeps falling';
+  el('fMmTitle').placeholder = d0 ? MM_EG[d0] : 'e.g. Can\u2019t stop thinking about the scan on Friday';
   const qk = el('mmQuick');
   if (qk) {
     const Q = mmQuickFor_(mmPickDoors_);
