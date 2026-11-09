@@ -942,8 +942,11 @@
   .mm2-tk { width:18px; height:18px; border-radius:50%; background:#fff; color:var(--a); display:grid; place-items:center; font-size:0.72rem; font-weight:700; flex:none; font-family:var(--sans,system-ui,sans-serif); }
   .mm2-kcard { border-radius:16px; padding:14px 16px 6px; margin:4px 0 12px; background:color-mix(in srgb, var(--a, #2f4f8a) 8%, #fff); border:1px solid color-mix(in srgb, var(--a, #2f4f8a) 22%, transparent); }
   .mm2-ktag { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; font-family:var(--serif); font-size:1rem; color:var(--a); }
-  .mm2-ktag span { display:inline-flex; align-items:center; gap:7px; } .mm2-ktag i { width:9px; height:9px; border-radius:50%; background:var(--a); flex:none; }
-  .mm2-ktag.sub { font-size:0.92rem; margin-top:-2px; } .mm2-ktag.sub span { font-style:italic; }
+  .mm2-ktag > span { display:inline-flex; align-items:flex-start; gap:8px; line-height:1.35; }   /* C1 (9 Nov 2026): tick + the whole sentence */
+  .mm2-ktag { font-size:1.2rem; align-items:flex-start; } .mm2-ktag em { color:var(--a); } .mm2-rn { color:#4a5068; }
+  .mm2-tk.on { background:var(--a); color:#fff; width:20px; height:20px; margin-top:3px; }
+  .mm2-ktag.sub { font-size:0.95rem; margin-top:-2px; } .mm2-ktag.sub .mm2-tk.on { width:18px; height:18px; font-size:0.66rem; margin-top:1px; }
+  .mm2-ktag button { margin-top:5px; }
   .mm2-ktag button { font-family:var(--mono); font-size:0.55rem; letter-spacing:0.12em; color:#6b7488; background:none; border:none; border-bottom:1px dashed #c9cfdc; padding:0 0 1px; cursor:pointer; }
   .mm2-kcard .mm2-kline input { background:#fff !important; border:1px solid color-mix(in srgb, var(--a) 30%, transparent) !important; border-radius:10px !important; font-size:1.15rem !important; padding:10px 12px !important; }
   #mmKStep2 .mm-kfold button { font-size:0.6rem; }
@@ -9739,7 +9742,7 @@ function mmPaintPick_() {
   el('mmKNext').disabled = !mmPickDoors_.length;
   // step 2: the chips, the door's own question
   // S2: the card - your sentence (CHANGE), a second one beneath (DROP), then the main door's question and the line
-  el('mmKChips').innerHTML = mmPickDoors_.map((d, i) => '<div class="mm2-ktag ' + MM_DOORS[d].cls + (i ? ' sub' : '') + '"><span>' + (i ? 'and ' : '') + '<i></i>' + escHtml(MM_SAY[d]) + '</span><button type="button" data-mmkchip="' + (i ? 'drop' : 'change') + '">' + (i ? 'DROP' : 'CHANGE') + '</button></div>').join('');
+  el('mmKChips').innerHTML = mmPickDoors_.map((d, i) => '<div class="mm2-ktag ' + MM_DOORS[d].cls + (i ? ' sub' : '') + '"><span><span class="mm2-tk on">\u2713</span><span><span class="mm2-rn">' + (i ? 'and I' : 'Right now I') + '</span> <em>' + escHtml(MM_SAY[d]) + '</em></span></span><button type="button" data-mmkchip="' + (i ? 'drop' : 'change') + '">' + (i ? 'DROP' : 'CHANGE') + '</button></div>').join('');
   const d0 = mmPickDoors_[0];
   el('mmKCard').className = 'mm2-kcard' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
   el('mmFoldBoth').classList.toggle('hidden', mmPickDoors_.length !== 1);
