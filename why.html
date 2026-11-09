@@ -946,6 +946,9 @@
   /* E2 (9 Nov 2026): Delete beside Save, as a red outline button; Back alone on the left */
   #mmKnotModal .mm2-kdel { font-family:var(--sans,system-ui,sans-serif); font-size:0.88rem; letter-spacing:0; text-transform:none; color:#a5402f; background:#fff; border:1.5px solid #e2b8b0; border-radius:10px; padding:9px 14px; margin:0; cursor:pointer; }
   #mmKnotModal .mm2-kdel:hover { background:#fdf4f2; border-color:#a5402f; }
+  .mm2-already { display:flex; align-items:center; gap:10px; margin-top:10px; border-radius:12px; padding:9px 12px; background:#fff8f6; border:1px solid color-mix(in srgb, var(--a) 30%, transparent); font-family:var(--serif); font-size:0.95rem; color:#1e2f52; }
+  .mm2-already small { display:block; font-family:var(--mono); font-size:0.52rem; letter-spacing:0.12em; color:var(--a); font-weight:700; }
+  .mm2-already button { margin-left:auto; font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; color:var(--a); background:none; border:none; border-bottom:1px dashed var(--a); cursor:pointer; white-space:nowrap; padding:0 0 1px; }
   .mm2-kdoor { display:inline-block; font-family:var(--mono); font-size:0.62rem; letter-spacing:0.16em; font-weight:700; color:#fff; background:var(--a); border-radius:6px; padding:4px 10px; margin-bottom:10px; }
   .mm2-tk { width:18px; height:18px; border-radius:50%; background:#fff; color:var(--a); display:grid; place-items:center; font-size:0.72rem; font-weight:700; flex:none; font-family:var(--sans,system-ui,sans-serif); }
   .mm2-kcard { border-radius:16px; padding:14px 16px 6px; margin:4px 0 12px; background:color-mix(in srgb, var(--a, #2f4f8a) 8%, #fff); border:1px solid color-mix(in srgb, var(--a, #2f4f8a) 22%, transparent); }
@@ -4351,6 +4354,7 @@
       <div class="mm2-kstep">STEP 1 OF 2</div>
       <div class="mm2-stem">Right now <em>I&hellip;</em></div>
       <div class="mm-pick" id="mmPick"></div>
+      <div id="mmKAlready"></div>
       <div class="mm2-kfoot"><div class="mm2-tray" id="mmKTray"></div><button class="btn-primary" id="mmKNext" type="button">Next &rsaquo;</button></div>
     </div>
     <div id="mmKStep2" class="hidden">
@@ -9754,6 +9758,10 @@ function mmPaintPick_() {
   el('mmKTray').innerHTML = !mmPickDoors_.length ? '<span class="mm2-tempty">tap the one that fits</span>'
     : mmPickDoors_.map(chip).join('') + (mmPickDoors_.length < 2 ? '<span class="mm2-tempty">\uFF0B second, if it\u2019s both</span>' : '');
   el('mmKNext').disabled = !mmPickDoors_.length;
+  // D1: a soft line when a chosen door already has a loop open - open it instead of starting a twin
+  { const opened = mmKnotEditing_ ? [] : mind.filter(k => k.status !== 'settled' && mmPickDoors_.some(d => k.door === d || k.door2 === d))
+      .sort((a, b) => String(b.opened_on || '').localeCompare(String(a.opened_on || ''))).slice(0, 3);
+    el('mmKAlready').innerHTML = opened.map(k => '<div class="mm2-already ' + (MM_DOORS[k.door] || MM_DOORS.anx).cls + '"><span><small>ALREADY OPEN HERE</small>' + escHtml(k.title || '') + '</span><button type="button" data-mmkopen="' + escHtml(String(k.id)) + '">OPEN IT \u203A</button></div>').join(''); }
   // step 2: the chips, the door's own question
   // S2: the card - your sentence (CHANGE), a second one beneath (DROP), then the main door's question and the line
   el('mmKChips').innerHTML = (mmPickDoors_.length === 1 ? '<span class="mm2-kdoor">' + escHtml(MM_DOORS[mmPickDoors_[0]].lbl.toUpperCase()) + '</span>' : '')   // N1: the door's name, one door only
@@ -10462,7 +10470,8 @@ async function mmDelete_(id) {
 el('mmAddBtn').addEventListener('click', () => openMmKnot_(null));
 el('mmDoors').addEventListener('click', e => {
   const d = e.target.closest('[data-mmdoor]'); if (!d) return;
-  mmOpenDoor_(d.dataset.mmdoor);
+  // D1 (9 Nov 2026): a sentence always opens the form, its door ticked - no pop-up
+  openMmKnot_(null); mmPickDoors_ = [d.dataset.mmdoor]; mmPaintPick_();
 });
 // P1: open and close the door pop-up. Opening adds a history step, so the phone's Back closes it rather than leaving the page.
 function mmOpenDoor_(d) {
@@ -10523,6 +10532,7 @@ el('mmKNext').addEventListener('click', () => { if (mmPickDoors_.length) mmKGo_(
 el('mmKBack').addEventListener('click', () => mmKGo_(1));
 el('mmKnotX').addEventListener('click', closeMmKnot_);
 el('mmFoldBoth').addEventListener('click', () => mmKGo_(1));
+el('mmKAlready').addEventListener('click', e => { const b = e.target.closest('[data-mmkopen]'); if (!b) return; const id = b.dataset.mmkopen; closeMmKnot_(); openMmPage(id); });
 el('mmKChips').addEventListener('click', e => {
   const b = e.target.closest('[data-mmkchip]'); if (!b) return;
   const a = b.dataset.mmkchip;
