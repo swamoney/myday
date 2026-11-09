@@ -939,6 +939,14 @@
   .mm2-tchip.big { font-size:0.95rem; padding:6px 8px 6px 13px; }
   .mm2-tchip button { font-family:var(--mono); font-size:0.55rem; letter-spacing:0.1em; color:#fff; opacity:0.85; background:none; border:none; border-left:1px solid rgba(255,255,255,0.4); padding:2px 4px 2px 8px; margin-left:4px; cursor:pointer; }
   .mm2-tempty { border:1.5px dashed #c9cfdc; border-radius:999px; padding:5px 12px; font-family:var(--serif); font-size:0.84rem; color:#8a92a6; font-style:italic; }
+  .mm2-tk { width:18px; height:18px; border-radius:50%; background:#fff; color:var(--a); display:grid; place-items:center; font-size:0.72rem; font-weight:700; flex:none; font-family:var(--sans,system-ui,sans-serif); }
+  .mm2-kcard { border-radius:16px; padding:14px 16px 6px; margin:4px 0 12px; background:color-mix(in srgb, var(--a, #2f4f8a) 8%, #fff); border:1px solid color-mix(in srgb, var(--a, #2f4f8a) 22%, transparent); }
+  .mm2-ktag { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; font-family:var(--serif); font-size:1rem; color:var(--a); }
+  .mm2-ktag span { display:inline-flex; align-items:center; gap:7px; } .mm2-ktag i { width:9px; height:9px; border-radius:50%; background:var(--a); flex:none; }
+  .mm2-ktag.sub { font-size:0.92rem; margin-top:-2px; } .mm2-ktag.sub span { font-style:italic; }
+  .mm2-ktag button { font-family:var(--mono); font-size:0.55rem; letter-spacing:0.12em; color:#6b7488; background:none; border:none; border-bottom:1px dashed #c9cfdc; padding:0 0 1px; cursor:pointer; }
+  .mm2-kcard .mm2-kline input { background:#fff !important; border:1px solid color-mix(in srgb, var(--a) 30%, transparent) !important; border-radius:10px !important; font-size:1.15rem !important; padding:10px 12px !important; }
+  #mmKStep2 .mm-kfold button { font-size:0.6rem; }
   .mm2-kchips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px; }
   .mm2-kboth { font-family:var(--mono); font-size:0.58rem; letter-spacing:0.1em; border:1.5px dashed #c9cfdc; border-radius:999px; padding:5px 11px; color:#5b6478; background:#fff; cursor:pointer; }
   .mm2-kline label { color:var(--a, #6b7488) !important; }
@@ -4329,11 +4337,10 @@
       <div class="mm2-kfoot"><div class="mm2-tray" id="mmKTray"></div><button class="btn-primary" id="mmKNext" type="button">Next &rsaquo;</button></div>
     </div>
     <div id="mmKStep2" class="hidden">
-    <div class="mm2-kstep">STEP 2 OF 2 &middot; RIGHT NOW I&hellip;</div>
-    <div class="mm2-kchips" id="mmKChips"></div>
-    <div class="fld mm2-kline"><label id="mmKAsk">Say it in a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div>
-    <div class="mm2-kone">ONE LINE IS ENOUGH. THE REST CAN WAIT.</div>
-    <div class="mm-kfold" id="mmKFold"><button type="button" id="mmFoldNext">+ A next step</button><button type="button" id="mmFoldPillar">+ A pillar</button></div>
+    <!-- S2 (9 Nov 2026): one soft card in the door's colour - the sentence, its question, the line -->
+    <div class="mm2-kcard" id="mmKCard"><div id="mmKChips"></div>
+    <div class="fld mm2-kline"><label id="mmKAsk">Say it in a line</label><input id="fMmTitle" placeholder="e.g. Market down 5%, what if it keeps falling"></div></div>
+    <div class="mm-kfold" id="mmKFold"><button type="button" id="mmFoldNext">+ Step</button><button type="button" id="mmFoldPillar">+ Pillar</button><button type="button" id="mmFoldBoth">+ Both</button></div>
     <div class="fld hidden" id="fMmNextWrap"><label>Next step (optional tonight)</label><input id="fMmNext" placeholder="one thing, however small">
       <div class="mm-quick" id="mmQuick" style="display:none"></div></div>
     <div class="fld hidden" id="fMmByWrap"><label>By</label><input type="date" id="fMmBy"></div>
@@ -9721,7 +9728,8 @@ function mmFogHtml_(inner) { return '<div class="mm2-fog"><div class="mm2-grp">\
 function mmPaintPick_() {
   // MM-F2: the room's own sentences in two halves; tapped ones fill with their colour and carry 1 / 2; "can't tell" in the fog
   const row = d => { const i = mmPickDoors_.indexOf(d);
-    return '<button type="button" class="mm2-sp ' + MM_DOORS[d].cls + (i >= 0 ? ' on' : '') + (d === 'gen' ? ' gen' : '') + '" data-mmpick="' + d + '" title="' + escHtml(MM_DOORS[d].lbl) + '"><i></i>' + escHtml(MM_SAY[d]) + (i >= 0 ? '<b>' + (i + 1) + '</b>' : '') + '</button>'; };
+    // T1: a chosen sentence wears a white tick where its dot was; the second one adds a small 2
+    return '<button type="button" class="mm2-sp ' + MM_DOORS[d].cls + (i >= 0 ? ' on' : '') + (d === 'gen' ? ' gen' : '') + '" data-mmpick="' + d + '" title="' + escHtml(MM_DOORS[d].lbl) + '">' + (i >= 0 ? '<span class="mm2-tk">\u2713</span>' : '<i></i>') + escHtml(MM_SAY[d]) + (i === 1 ? '<b>2</b>' : '') + '</button>'; };
   el('mmPick').innerHTML = '<div class="mm2-halves">' + MM_FAMILIES.slice(0, 2).map((F, fi) => '<div class="mm2-half ' + (fi ? 'out' : 'in') + '"><div class="mm2-grp">' + (fi ? '\u2026 OUT IN THE WORLD' : '\u2026 INSIDE ME') + '</div><div class="mm2-sents">' + F.doors.map(row).join('') + '</div></div>').join('') + '</div>'
     + mmFogHtml_(MM_FAMILIES.slice(2).map(F => F.doors.map(row).join('')).join(''));
   // H2: the tray beside Next - what Next will carry, and an empty slot for a second
@@ -9730,9 +9738,11 @@ function mmPaintPick_() {
     : mmPickDoors_.map(chip).join('') + (mmPickDoors_.length < 2 ? '<span class="mm2-tempty">\uFF0B second, if it\u2019s both</span>' : '');
   el('mmKNext').disabled = !mmPickDoors_.length;
   // step 2: the chips, the door's own question
-  el('mmKChips').innerHTML = mmPickDoors_.map((d, i) => '<span class="mm2-tchip big ' + MM_DOORS[d].cls + '">' + escHtml(MM_SAY[d]) + '<button type="button" data-mmkchip="' + (i ? 'drop' : 'change') + '">' + (i ? 'DROP' : 'CHANGE') + '</button></span>').join('')
-    + (mmPickDoors_.length === 1 ? '<button type="button" class="mm2-kboth" data-mmkchip="both">\uFF0B IT\u2019S BOTH</button>' : '');
+  // S2: the card - your sentence (CHANGE), a second one beneath (DROP), then the main door's question and the line
+  el('mmKChips').innerHTML = mmPickDoors_.map((d, i) => '<div class="mm2-ktag ' + MM_DOORS[d].cls + (i ? ' sub' : '') + '"><span>' + (i ? 'and ' : '') + '<i></i>' + escHtml(MM_SAY[d]) + '</span><button type="button" data-mmkchip="' + (i ? 'drop' : 'change') + '">' + (i ? 'DROP' : 'CHANGE') + '</button></div>').join('');
   const d0 = mmPickDoors_[0];
+  el('mmKCard').className = 'mm2-kcard' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
+  el('mmFoldBoth').classList.toggle('hidden', mmPickDoors_.length !== 1);
   el('mmKAsk').textContent = d0 ? MM_ASK[d0] : 'Say it in a line';
   el('mmKAsk').parentNode.className = 'fld mm2-kline' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
   el('fMmTitle').placeholder = d0 ? MM_EG[d0] : 'e.g. Market down 5%, what if it keeps falling';
@@ -9747,6 +9757,7 @@ function mmKGo_(n) {
   mmKStep_ = n;
   el('mmKStep1').classList.toggle('hidden', n !== 1); el('mmKStep2').classList.toggle('hidden', n !== 2);
   el('mmKBar2').classList.toggle('on', n === 2);
+  el('mmKnotTitle').classList.toggle('hidden', n === 2); el('mmKnotSub').classList.toggle('hidden', n === 2);   // S2: the bar already says step 2
   document.querySelectorAll('#mmKForm .mm-kneed').forEach(x => x.remove());
   if (n === 2) setTimeout(() => { try { el('fMmTitle').focus(); } catch (e) {} }, 30);
 }
@@ -10493,6 +10504,7 @@ el('mmKnotSave').addEventListener('click', saveMmKnot_);
 el('mmKNext').addEventListener('click', () => { if (mmPickDoors_.length) mmKGo_(2); });
 el('mmKBack').addEventListener('click', () => mmKGo_(1));
 el('mmKnotX').addEventListener('click', closeMmKnot_);
+el('mmFoldBoth').addEventListener('click', () => mmKGo_(1));
 el('mmKChips').addEventListener('click', e => {
   const b = e.target.closest('[data-mmkchip]'); if (!b) return;
   const a = b.dataset.mmkchip;
@@ -10562,7 +10574,7 @@ let mmSavedId_ = null;
 function mmKFold_(which, open) {
   if (which === 'next') { el('fMmNextWrap').classList.toggle('hidden', !open); el('fMmByWrap').classList.toggle('hidden', !open); el('mmFoldNext').classList.toggle('hidden', open); }
   else { el('fMmPillarWrap').classList.toggle('hidden', !open); el('mmFoldPillar').classList.toggle('hidden', open); }
-  el('mmKFold').classList.toggle('hidden', !el('fMmNextWrap').classList.contains('hidden') && !el('fMmPillarWrap').classList.contains('hidden'));
+  el('mmKFold').classList.toggle('hidden', !el('fMmNextWrap').classList.contains('hidden') && !el('fMmPillarWrap').classList.contains('hidden') && el('mmFoldBoth').classList.contains('hidden'));
 }
 el('mmFoldNext').addEventListener('click', () => { mmKFold_('next', true); try { el('fMmNext').focus(); } catch (x) {} });
 el('mmFoldPillar').addEventListener('click', () => { mmKFold_('pillar', true); });
