@@ -952,8 +952,9 @@
   #mmKStep2 .mm-kfold button { font-size:0.6rem; }
   /* Q3 (9 Nov 2026): the question is the box's header - a filled band in the door's colour joined to the line */
   .mm2-kcard .mm2-kline { border:1.5px solid var(--a); border-radius:12px; overflow:hidden; background:#fff; margin-bottom:8px; }
-  .mm2-kcard .mm2-kline label { display:flex !important; align-items:center; gap:8px; margin:0 !important; padding:9px 12px !important; background:var(--a) !important; color:#fff !important; font-family:var(--serif) !important; font-size:1.05rem !important; font-weight:600 !important; letter-spacing:0 !important; text-transform:none !important; }
-  .mm2-kcard .mm2-kline label::before { content:'?'; width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,0.22); display:grid; place-items:center; font-family:var(--sans,system-ui,sans-serif); font-size:0.8rem; flex:none; }
+  .mm2-kcard .mm2-kline label { display:flex !important; align-items:center; gap:8px; margin:0 !important; padding:9px 12px !important; background:color-mix(in srgb, var(--a) 14%, #fff) !important; color:var(--a) !important; font-family:var(--serif) !important; font-size:1.05rem !important; font-weight:600 !important; letter-spacing:0 !important; text-transform:none !important; }
+  .mm2-kcard .mm2-kline label::before { content:'?'; width:22px; height:22px; border-radius:50%; background:color-mix(in srgb, var(--a) 20%, #fff); display:grid; place-items:center; font-family:var(--sans,system-ui,sans-serif); font-size:0.8rem; flex:none; }
+  .mm2-kcard .mm2-kline label small { display:block; font-weight:400; font-style:italic; font-size:0.85rem; opacity:0.85; margin-top:1px; }
   .mm2-kcard .mm2-kline input { border:none !important; border-radius:0 !important; margin:0 !important; }
   .mm2-kchips { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:6px; }
   .mm2-kboth { font-family:var(--mono); font-size:0.58rem; letter-spacing:0.1em; border:1.5px dashed #c9cfdc; border-radius:999px; padding:5px 11px; color:#5b6478; background:#fff; cursor:pointer; }
@@ -9727,8 +9728,8 @@ function renderMind() {
 }
 /* ---- the sixty-second door (also the knot's head editor) ---- */
 // MM-F2: the question under the line, and its example, per door
-const MM_ASK = { anx:'What are you afraid will happen?', ins:'What made you feel not enough?', over:'What\u2019s piling up?', dil:'Torn between what and what?',
-  obs:'What\u2019s in the way?', cha:'What are you working at?', conf:'With whom, and about what?', loss:'What, or who, is gone?', gen:'Say it any way it comes.' };
+const MM_ASK = { anx:'What\u2019s the worry, in your own words?', ins:'What brought this feeling on?', over:'What\u2019s on your plate right now?', dil:'Which two things are pulling at you?',   // W4 (9 Nov 2026): softer, a friend asking
+  obs:'What seems to be in the way?', cha:'What are you working towards?', conf:'Who is it with, and what\u2019s it about?', loss:'Who or what are you missing?', gen:'How would you describe it, roughly?' };
 const MM_EG = { anx:'e.g. Market down 5% \u2014 what if it keeps falling?', ins:'e.g. Everyone at the meet seemed further ahead', over:'e.g. Three filings, a wedding and the office move this week',
   dil:'e.g. Take the Baner office, or stay?', obs:'e.g. Bank won\u2019t release the loan until the NOC', cha:'e.g. Running my first 10 km', conf:'e.g. R and I disagree on the fee', loss:'e.g. Baba', gen:'e.g. Flat for weeks' };
 let mmKStep_ = 1;
@@ -9751,7 +9752,7 @@ function mmPaintPick_() {
   const d0 = mmPickDoors_[0];
   el('mmKCard').className = 'mm2-kcard' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
   el('mmFoldBoth').classList.toggle('hidden', mmPickDoors_.length !== 1);
-  el('mmKAsk').textContent = d0 ? MM_ASK[d0] : 'Say it in a line';
+  el('mmKAsk').innerHTML = d0 ? '<span>' + escHtml(MM_ASK[d0]) + '<small>A name or a word is enough.</small></span>' : 'Say it in a line';
   el('mmKAsk').parentNode.className = 'fld mm2-kline' + (d0 ? ' ' + MM_DOORS[d0].cls : '');
   el('fMmTitle').placeholder = d0 ? MM_EG[d0] : 'e.g. Market down 5%, what if it keeps falling';
   const qk = el('mmQuick');
