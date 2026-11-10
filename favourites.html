@@ -404,20 +404,40 @@
   /* LD-1: the Learning Diary shelf */
   /* LD-13: today's three at the diary's head */
   .ld-today { background:#fff; border:1px solid #dfe5ee; border-radius:14px; padding:12px 14px; margin:2px 0 12px; }   /* the door's block, on the shelf */
-  .ld-three { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
-  @media (max-width:560px) { .ld-three { grid-template-columns:1fr; } }
   .ld-today .h { display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
   .ld-today .eb2 { font-family:var(--mono); font-size:0.5313rem; letter-spacing:0.18em; color:#8a97b3; flex:1; }
   .ld-today .sh { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.12em; color:#3D4866; background:none; border:none; cursor:pointer; }
   .ld-today .ld-c { color:#3D4866; background:#fff; border:1px solid #cfd0c8; }
+  /* LD-M1 (11 Nov 2026): today's three as the hub's hand of flashcards (HT-M1) - navy backs with a gold line,
+     the front card turns into a cream quote card, ✓ I KNEW IT, then the next card is dealt forward */
+  .ld-today .prog { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.14em; color:#2f6146; }
+  .ldh { position:relative; height:232px; max-width:640px; margin:2px auto 4px; }
+  .ldc { position:absolute; top:12px; left:29%; width:42%; height:200px; perspective:900px; transform-origin:50% 130%; transition:transform .45s ease; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .ldc .fi { position:relative; width:100%; height:100%; transition:transform .5s ease; transform-style:preserve-3d; }
+  .ldc.flip .fi { transform:rotateY(180deg); }
+  .ldc .fa, .ldc .fb { position:absolute; inset:0; -webkit-backface-visibility:hidden; backface-visibility:hidden; border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; box-shadow:0 10px 24px rgba(35,47,69,0.14); }
+  .ldc .fa { background:linear-gradient(160deg,#1c2f5e,#0F2D5C 55%,#0A1325); color:#fff; font-family:var(--serif); }
+  .ldc .fa::after { content:''; position:absolute; inset:7px; border-radius:9px; border:1px solid rgba(244,196,48,0.45); pointer-events:none; }
+  .ldc .fa .q { font-style:italic; font-size:1rem; margin:10px 0 auto; }
+  .ldc .fa .hint { font-size:0.85rem; color:#b9c6e0; line-height:1.4; } .ldc .fa .hint span { filter:blur(4px); }
+  .ldc .fa .tap { font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#b9c6e0; margin-top:6px; }
+  .ldc .ld-c { align-self:flex-start; color:#3D4866; background:#fff; border:1px solid #cfd0c8; }
+  .ldc .fa .ld-c { color:#fff; background:transparent; border-color:#4a5f8f; }
+  .ldc .fb { transform:rotateY(180deg); background:linear-gradient(135deg,#fbf7ee,#fff 60%); border:1px solid #efe6d2; padding:16px 18px; }
+  .ldc .fb .qm { position:absolute; right:14px; top:-10px; font-family:var(--serif); font-size:4.4rem; font-weight:700; color:#d9c48c; opacity:0.55; line-height:1; pointer-events:none; }
+  .ldc .fb .t { font-family:var(--serif); font-size:1.1rem; font-weight:500; line-height:1.35; color:#232f45; margin:8px 26px auto 0; overflow-wrap:anywhere; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5; overflow:hidden; }
+  .ldc .fb .t:hover { text-decoration:underline; text-decoration-color:#d9c48c; text-underline-offset:3px; }
+  .ldc .ft { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .ldc .ago { font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
+  .ldc .ok { font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:5px 9px; cursor:pointer; white-space:nowrap; }
+  .ldc.done .ok { background:#2f6146; color:#fff; cursor:default; }
+  .ldc.done .fb { border-color:#2f6146; box-shadow:0 0 0 2px #e4efe6, 0 10px 24px rgba(35,47,69,0.12); }
+  .ldc.p0 { transform:translateX(-58%) rotate(-7deg); z-index:1; } .ldc.p1 { z-index:3; } .ldc.p2 { transform:translateX(58%) rotate(7deg); z-index:2; }
+  .ldc.p0 .fa, .ldc.p2 .fa { filter:brightness(0.92); }
+  .ldhint { text-align:center; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin-top:2px; }
+  @media (max-width:560px) { .ldh { height:252px; } .ldc { width:64%; left:18%; height:220px; } .ldc.p0 { transform:translateX(-22%) rotate(-5deg); } .ldc.p2 { transform:translateX(22%) rotate(5deg); } .ldc .fb .t { font-size:0.95rem; margin-right:12px; } .ldc .fb { padding:14px 14px; } }
+  @media (prefers-reduced-motion:reduce) { .ldc, .ldc .fi { transition:none; } }
   /* the door's card (P4 ledger grey): chip at the top, the heading takes the slack, the ago line + pill at the foot */
-  .ld-tr { background:#f5f5f2; border:1px solid #e3e3dc; border-radius:12px; padding:12px; display:grid; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; gap:6px 10px; cursor:pointer; }
-  .ld-tr .ld-c { grid-column:1; grid-row:1; justify-self:start; align-self:start; }
-  .ld-tr .t { grid-column:1 / span 2; grid-row:2; align-self:start; font-family:var(--serif); font-size:0.9375rem; font-weight:600; color:#232f45; min-width:0; overflow-wrap:anywhere; line-height:1.3; }
-  .ld-tr .ago { grid-column:1; grid-row:3; align-self:center; font-family:var(--mono); font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
-  .ld-tr .ok { grid-column:2; grid-row:3; justify-self:end; align-self:center; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; }   /* K1: the door's pill */
-  @media (max-width:560px) { .ld-tr { padding:10px 12px; } .ld-tr .t { font-size:0.875rem; } }
-  .ld-tr.done { opacity:0.62; } .ld-tr.done .ok { background:#2f6146; color:#fff; cursor:default; }
   .ld-chips { display:flex; gap:6px; flex-wrap:wrap; margin:4px 0 8px; }
   .ld-chip { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:999px; padding:5px 10px; background:#fff; border:1px solid #c9d6ea; color:#2f5187; cursor:pointer; }
   .ld-chip.on { background:#2f5187; color:#fff; border-color:#2f5187; }
@@ -1130,26 +1150,46 @@ async function ldThreeRefresh_() {
   ldThree_ = await MyRecall.todays(rows.filter(x => secOf(x) === 'learning'));
   if (activeSection === 'learning') render();
 }
+let ldFront_ = null, ldOpen_ = {};   // LD-M1: which card is in front, which have been turned over (this visit)
 function ldTodaysHtml_(list) {
   if (!window.MyRecall) return '';
   if (!ldThree_) { ldThreeRefresh_(); return ''; }
   const three = ldThree_;
   if (three.length < 3) return '';
   const today = MyRecall.today();
-  return '<div class="ld-today"><div class="h"><span class="eb2">TODAY\u2019S THREE</span><button type="button" class="sh" id="ldShuffle">\u21BB SHUFFLE</button></div><div class="ld-three">' +
-    three.map(r => { const done = String(r.recalled_on || '').slice(0, 10) === today;
-      // exactly the door's card: chip, heading, one quiet line, the pill
-      return '<div class="ld-tr' + (done ? ' done' : '') + '" data-open="' + escHtml(r.id) + '"><span class="ld-c">' + escHtml(String(r.forCat || '').toUpperCase()) + '</span>' +
-        '<span class="t">' + escHtml(r.title || '') + '</span><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' \u00B7 ' : '') + MyRecall.recalledLine(r) + '</span>' +
-        '<button type="button" class="ok" data-recall="' + escHtml(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713 RECALLED' + (done ? ' TODAY' : '') + '</button></div>'; }).join('') + '</div></div>';
+  const isDone = r => String(r.recalled_on || '').slice(0, 10) === today;
+  const ids = three.map(r => String(r.id));
+  if (!ids.includes(String(ldFront_))) { const f = three.find(r => !isDone(r)) || three[1]; ldFront_ = String(f.id); }
+  const others = ids.filter(x => x !== String(ldFront_));
+  const pos = {}; pos[String(ldFront_)] = 1; pos[others[0]] = 0; pos[others[1]] = 2;
+  const words = t => { const w = String(t || '').split(/\s+/); return escHtml(w.slice(0, 3).join(' ')) + (w.length > 3 ? ' <span>' + escHtml(w.slice(3).join(' ')) + '</span>' : ''); };
+  return '<div class="ld-today"><div class="h"><span class="eb2">TODAY’S THREE</span><span class="prog">' + three.filter(isDone).length + ' OF 3</span><button type="button" class="sh" id="ldShuffle">↻ SHUFFLE</button></div><div class="ldh" id="ldHand">' +
+    three.map(r => { const id = String(r.id), done = isDone(r), open = done || !!ldOpen_[id];
+      const cat = escHtml(String(r.forCat || '').toUpperCase());
+      return '<div class="ldc p' + pos[id] + (open ? ' flip' : '') + (done ? ' done' : '') + '" data-rid="' + escHtml(id) + '"><div class="fi">' +
+        '<div class="fa"><span class="ld-c">' + cat + '</span><div class="q">Do you remember…</div><div class="hint">' + words(r.title) + '</div><span class="tap">TAP TO REVEAL</span></div>' +
+        '<div class="fb"><span class="qm" aria-hidden="true">“</span><span class="ld-c">' + cat + '</span>' +
+        '<span class="t" data-open="' + escHtml(id) + '">' + escHtml(r.title || '') + '</span>' +
+        '<div class="ft"><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' · ' : '') + MyRecall.recalledLine(r) + '</span>' +
+        '<button type="button" class="ok" data-recall="' + escHtml(id) + '"' + (done ? ' disabled' : '') + '>✓ ' + (done ? 'KNEW IT TODAY' : 'I KNEW IT') + '</button></div></div>' +
+        '</div></div>'; }).join('') + '</div><div class="ldhint">TAP THE FRONT CARD TO TURN IT · TAP A SIDE CARD TO BRING IT FORWARD</div></div>';
 }
 function ldTodaysWire_(wrap) {
-  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldThree_ = await MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
-  wrap.querySelectorAll('.ld-tr[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-recall]')) return; openReader(c.dataset.open); }));
-  wrap.querySelectorAll('.ld-tr [data-recall]').forEach(b => b.addEventListener('click', async e => {
-    e.stopPropagation(); const r = rows.find(x => String(x.id) === String(b.dataset.recall)); if (!r) return;
-    await ldMarkRecalled_(r); ldThree_ = await MyRecall.todays(rows.filter(x => secOf(x) === 'learning')); render();
-  }));
+  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldFront_ = null; ldOpen_ = {}; ldThree_ = await MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
+  const hand = el('ldHand'); if (!hand) return;
+  hand.addEventListener('click', async e => {
+    const ok = e.target.closest('[data-recall]');
+    if (ok) { e.stopPropagation(); if (ok.disabled) return; const r = rows.find(x => String(x.id) === String(ok.dataset.recall)); if (!r) return;
+      await ldMarkRecalled_(r); ldThree_ = await MyRecall.todays(rows.filter(x => secOf(x) === 'learning')); render();   // shows it ticked in front first
+      const today = MyRecall.today(), next = (ldThree_ || []).find(x => String(x.recalled_on || '').slice(0, 10) !== today);
+      if (next) setTimeout(() => { ldFront_ = String(next.id); if (activeSection === 'learning') render(); }, 650);   // then the next card is dealt forward
+      return; }
+    const t = e.target.closest('.fb .t[data-open]'); if (t) { openReader(t.dataset.open); return; }   // the line itself opens it in the reader
+    const c = e.target.closest('.ldc'); if (!c) return;
+    const id = c.dataset.rid;
+    if (c.classList.contains('p1')) { if (!c.classList.contains('done')) { ldOpen_[id] = !ldOpen_[id]; c.classList.toggle('flip', !!ldOpen_[id]); } return; }
+    ldFront_ = id; render();
+  });
 }
 async function ldMarkRecalled_(r) {
   const today = MyRecall.today();
