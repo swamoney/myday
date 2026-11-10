@@ -1314,7 +1314,7 @@
   .mt-qm { position:absolute; right:12px; top:-8px; font-family:var(--serif); font-size:4.6rem; line-height:1; font-weight:700; color:var(--mti); opacity:0.2; pointer-events:none; }
   .mt-bar { display:block; width:34px; height:4px; border-radius:2px; background:var(--mti); margin-bottom:10px; }
   .mt-tile .m-body { padding-right:0; }
-  .mt-tile .mtext { font-size:1.25rem; font-weight:600; line-height:1.32; letter-spacing:-0.005em; padding-right:30px; white-space:normal; }
+  .mt-tile .mtext { font-size:1.25rem; font-weight:500; line-height:1.32; letter-spacing:-0.005em; padding-right:30px; white-space:normal; }
   .mt-tile .mmean { font-style:italic; font-size:0.95rem; line-height:1.45; color:#5b6150; margin-top:8px; padding-top:0; border-top:none; }
   .mt-tile .msrc { font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mti); margin-top:10px; }
   /* MT-T1: musings hang on one violet thread - a dot per musing, each a white card, the line in italic, no year */
@@ -1326,7 +1326,7 @@
   @media (max-width:640px) { .mt-leaf { width:34px; height:34px; right:10px; } .mt-jr .mtext { padding-right:34px !important; } }
   #mantraList .mcard.mt-jr::before { content:''; position:absolute; left:-29px; top:16px; width:10px; height:10px; border-radius:50%; background:var(--mti); box-shadow:0 0 0 3px #eef0f6; }
   .mt-jr .m-body { padding-right:0; }
-  .mt-jr .mtext { font-size:1.15rem; font-weight:400; font-style:italic; line-height:1.4; padding-right:0; white-space:normal; }
+  .mt-jr .mtext { font-size:1.15rem; font-weight:500; font-style:normal; line-height:1.4; padding-right:0; white-space:normal; }
   .mt-jr .mmean { font-size:0.95rem; line-height:1.6; color:#3d4559; margin-top:8px; padding-top:0; border-top:none; }
   .mt-yr { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; color:#9aa0b0; white-space:nowrap; padding-top:3px; }
   #mantraList .m-star { color:#c9a227; font-style:normal; }
@@ -1339,13 +1339,27 @@
   #mantraList .mt-qa { margin-top:10px; border:1.5px dashed color-mix(in srgb, var(--mto) 45%, transparent); border-radius:10px; padding:9px 12px; }
   #mantraList .mt-qa input { font-family:var(--sans,system-ui); font-style:normal; font-size:0.875rem; color:#1d2536; }
   #mantraList .mt-qa input::placeholder { color:var(--mto); }
-  body.editing .mt-tiles { grid-template-columns:1fr; }
-  #mantraList #mantraAdd { display:none !important; }
-  body.editing #mantraList .mcard.mt-jr { padding-right:46px; } body.editing .mt-jl { margin-left:22px; } body.editing #mantraList .mt-jr .m-body { padding-right:0; }   /* MT-D2: one add row only */
-  body.editing #mantraList .mcard.mt-tile, body.editing #mantraList .mcard.mt-jr { min-height:78px; }   /* reorder by drag in one column */
-  body.editing #mantraList .mcard .m-body { padding-right:44px; }
-  body.editing #mantraList .mt-jr .m-edit { position:absolute; right:13px; bottom:12px; }
+  #mantraList #mantraAdd { display:none !important; }   /* MT-D2: one add row only */
   #mantraList .mcard .m-grip { left:-2px; }
+  /* MT-E2a (10 Nov 2026): in Edit every card folds to its line - mantras keep their two columns (order reads left to right,
+     row by row), musings a short list on the thread - with a wide handle strip on the left, its place number, pen and x */
+  body.editing #mantraList .mt-tile .mmean, body.editing #mantraList .mt-tile .msrc, body.editing #mantraList .mt-jr .mmean,
+  body.editing #mantraList .mt-qm, body.editing #mantraList .mt-bar, body.editing #mantraList .mt-leaf { display:none; }
+  body.editing #mantraList .mcard.mt-tile, body.editing #mantraList .mcard.mt-jr { padding:11px 96px 11px 46px; min-height:50px; display:flex; align-items:center; }
+  body.editing #mantraList .mcard .m-body { min-width:0; width:100%; padding-right:0; }
+  body.editing #mantraList .mcard .mtext { font-size:1rem !important; padding-right:0 !important; white-space:nowrap !important; overflow:hidden; text-overflow:ellipsis; }
+  body.editing #mantraList .mtext p { display:inline; }
+  body.editing #mantraList .mcard .m-grip { left:0; top:0; bottom:0; transform:none; width:34px; height:auto; justify-content:center; align-items:center; border-right:1px dashed color-mix(in srgb, var(--mti, #9aa0b0) 40%, #fff); cursor:grab; touch-action:none; color:#9aa0b0; }
+  body.editing #mantraList .mcard .m-grip svg { width:18px; height:18px; }
+  body.editing #mantraList .mcard .m-x { top:50%; right:10px; transform:translateY(-50%); }
+  body.editing #mantraList .mcard .m-edit { top:50%; bottom:auto; right:40px; transform:translateY(-50%); }
+  .mt-pos { display:none; position:absolute; right:62px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:0.5625rem; color:#8a92a6; }
+  body.editing #mantraList .mt-pos { display:block; }
+  body.editing .mt-tiles { gap:8px; }
+  body.editing #mantraList .mcard.mt-jr { margin-bottom:6px; }
+  body.editing #mantraList .mcard.mt-jr::before { top:50%; transform:translateY(-50%); }
+  #mantraList .mcard.mt-drag { opacity:1; transform:rotate(-1deg); box-shadow:0 10px 24px rgba(30,47,82,0.18); border-color:var(--mti, #6b6f88); outline:2px dashed var(--mti, #6b6f88); outline-offset:3px; z-index:3; }
+  #mantraList .mcard.mt-over { box-shadow:none; }
   @media (max-width:640px) { .mt-tiles { grid-template-columns:1fr; gap:10px; } .mt-seg { display:flex; } .mt-seg button { flex:1; padding:8px 6px; } .mt-tile .mtext { font-size:1.05rem; } }
   body.editing .mcard.add { display:block; }
   .m-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
@@ -6940,7 +6954,8 @@ function renderMantras() {
     + '<button type="button" data-mmf="u" class="mu' + (mmFilter === 'u' ? ' on' : '') + '">Musings<small>' + nU + '</small></button></div>'
     + '<div class="mt-hh"><h3>' + (mmFilter === 'm' ? 'My Mantras' : 'My Musings') + '</h3><span' + (mmFilter === 'u' ? ' class="mu"' : '') + '>' + side.length + ' · ' + (mmFilter === 'm' ? 'LINES I LIVE BY' : 'THINGS I’VE NOTICED') + '</span></div>';
   const star = r => r && r.favourite ? '<span class="m-star" title="Starred" aria-label="Starred">★</span> ' : '';
-  const tools = id => '<button class="m-grip" data-mgrip="' + id + '" type="button" aria-label="Drag to reorder" title="Drag to reorder">' + M_GRIP + '</button>';
+  let posN = 0;
+  const tools = id => '<span class="mt-pos">' + (++posN) + '</span><button class="m-grip" data-mgrip="' + id + '" type="button" aria-label="Drag to reorder" title="Drag to reorder">' + M_GRIP + '</button>';
   const items = shown.map(x => {
     if (x.t === 'u' && x.src === 'iw') {
       const r = x.r, id = 'u:' + escHtml(String(r.id));
@@ -7011,11 +7026,14 @@ el('mantraList').addEventListener('keydown', async e => {
   const q = el('mmQ'); if (q) { if (!ok) { q.disabled = false; q.value = t; } q.focus(); }
 });
 let mtDrag = null;
-function mtCardAt_(y) {
-  const cards = Array.from(el('mantraList').querySelectorAll('.mcard[data-mid]'));
+function mtCardAt_(x, y, box) {
+  // MT-E2a: in the two-column mantra grid the order runs left to right, row by row - a card is "before" the pointer
+  // when the pointer is above its row, or on its row and left of its middle; in a list only the height counts
+  const cards = Array.from((box || el('mantraList')).querySelectorAll('.mcard[data-mid]'));
+  const grid = !!box && box.classList.contains('mt-tiles') && getComputedStyle(box).gridTemplateColumns.trim().split(/\s+/).length > 1;
   for (const c of cards) {
     const r = c.getBoundingClientRect();
-    if (y < r.top + r.height / 2) return c;
+    if (grid ? (y < r.top || (y <= r.bottom && x < r.left + r.width / 2)) : y < r.top + r.height / 2) return c;
   }
   return null;
 }
@@ -7031,7 +7049,7 @@ el('mantraList').addEventListener('pointermove', e => {
   if (!mtDrag) return;
   const list = el('mantraList');
   list.querySelectorAll('.mt-over').forEach(c => c.classList.remove('mt-over'));
-  const before = mtCardAt_(e.clientY);
+  const before = mtCardAt_(e.clientX, e.clientY, mtDrag.card.parentNode);
   if (before && before !== mtDrag.card) before.classList.add('mt-over');
   if (before !== mtDrag.card) {
     const box = mtDrag.card.parentNode;   // MT-D2: cards live in the side's own box (tiles or journal)
