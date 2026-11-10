@@ -590,7 +590,8 @@
                        'bucket_items','why_places','note_versions',
                        'wealth_holdings','wealth_snapshots','wealth_meta','money_decisions',
                        'why_journeys','why_decisions','why_decision_points','day_budgets',
-                       'attachments'];   /* GD-1: the album's rows (paths, captions) - files ride the album zip */
+                       'attachments',   /* GD-1: the album's rows (paths, captions) - files ride the album zip */
+                       'why_mind','why_place_visits'];   /* AUD-1 (10 Nov 2026): My Mind and the Explore List visits were missing from the complete backup */
   function _dl(name, text, type) {
     var blob = new Blob([text], { type: type });
     var url = URL.createObjectURL(blob);

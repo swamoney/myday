@@ -822,7 +822,7 @@
     color:var(--o); background:#fff; border:2px solid color-mix(in srgb, var(--o) 45%, transparent); border-radius:6px; padding:12px 6px; cursor:pointer; opacity:0.78; margin:0; }
   #mmOuts .mm-ostamp:hover { opacity:1; }
   #mmOuts .mm-ostamp.on { opacity:1; border-color:var(--o); background:color-mix(in srgb, var(--o) 6%, #fff); box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3px var(--o); }
-  .mm-shint { font-family:var(--serif); font-style:italic; font-size:0.875rem; line-height:1.45; color:#2f4f8a; background:#eef2fa; border-radius:8px; padding:8px 11px; margin-top:12px; }
+  #mmSettleModal .mm-shint { font-family:var(--serif); font-style:italic; font-size:0.875rem; line-height:1.45; color:#2f4f8a; background:#eef2fa; border-radius:8px; padding:8px 11px; margin-top:12px; }
   .mm-scorner { --o:#2f6146; position:absolute; top:18px; right:20px; max-width:110px; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; line-height:1.3; text-align:center;
     color:var(--o); background:color-mix(in srgb, var(--o) 6%, #fff); border:2px solid var(--o); border-radius:5px; padding:5px 8px; transform:rotate(-7deg); box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3px color-mix(in srgb, var(--o) 60%, transparent); cursor:pointer; }
   .mm-sbig { width:100%; box-sizing:border-box; font-family:var(--serif); font-size:1.125rem; line-height:1.4; color:#1d2536; border:1px solid #e3e6ee; border-radius:12px; padding:12px 14px; min-height:74px; resize:vertical; background:#fff; }
@@ -3765,7 +3765,7 @@
 <body>
 
 <script src="config.js?v=20260802b"></script>
-<script src="note-editor.js?v=20260822a"></script>
+<script src="note-editor.js?v=20261110a"></script>
 <script src="attachments.js?v=20261107a"></script>
 <script src="stickies.js?v=20260904a"></script>
 
@@ -5194,8 +5194,8 @@ async function exportWhy() {
       sort_order: p.sort_order
     })), null, 2));
     zip.file('mantras.json', JSON.stringify(mantras.map(m => ({
-      text: m.text, text_html: m.text_html, meaning: m.meaning,
-      meaning_html: m.meaning_html, source: m.source, created_at: m.created_at
+      id: m.id, kind: m.kind || 'mantra', text: m.text, text_html: m.text_html, meaning: m.meaning,   // AUD-1: kind, so mantras and musings stay apart
+      meaning_html: m.meaning_html, source: m.source, favourite: !!m.favourite, sort_order: m.sort_order == null ? null : m.sort_order, created_at: m.created_at
     })), null, 2));
     zip.file('circle.json', JSON.stringify(circle.map(c => {
       const pg = pParse(c.page);
@@ -5685,7 +5685,11 @@ function xsOpenWhy_(sec, id, wait) {
   let tries = 0;
   const go = () => {
     const arr = pick[sec]() || [];
-    if (arr.some(r => String(r.id) === String(id))) { showSection(sec); open[sec](id); return; }
+    const hit = arr.find(r => String(r.id) === String(id));
+    if (hit) {
+      if (sec === 'mantra') { mmFilter = hit.kind === 'musing' ? 'u' : 'm'; try { localStorage.setItem('mt_side', mmFilter); } catch (e) {} }   // AUD-1: land on the hit's side of the switch
+      showSection(sec); if (sec === 'mantra' && typeof renderMantras === 'function') renderMantras(); open[sec](id); return;
+    }
     if (wait && ++tries < 40) setTimeout(go, 150);
   };
   go();
@@ -14658,7 +14662,7 @@ boot();
 <body>
 
 <@script src="config.js?v=20260802b"><@/script>
-<@script src="note-editor.js?v=20260822a"><@/script>
+<@script src="note-editor.js?v=20261110a"><@/script>
 <@script src="attachments.js?v=20261107a"><@/script>
 
 <div class="auth-overlay hidden" id="authOverlay">
