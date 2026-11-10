@@ -2029,8 +2029,15 @@
   .bp-card.ask { --a:#B0721A; --w:#fbf3e6; } .bp-card.wip { --a:#5b4a86; --w:#f1eef8; } .bp-card.lived { --a:#2E7A4E; --w:#eaf5ee; } .bp-card.canx { --a:#7A6F68; --w:#f4f2f0; }   /* P1 */
   .bp-sub { font-family:var(--mono); font-size:0.56rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; margin:16px 0 0; }   /* O2 */
   .bp-sub.wip { color:#5b4a86; } .bp-sub.ask { color:#B0721A; } .bp-sub.ahead { color:#3D6A99; }
+  /* BK-C1 (10 Nov 2026): the tally line; BK-B2: a lived dream's year, large and faint behind its card */
+  .bp-tally { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 18px; background:#fff; border:1px solid #e1e5ec; border-radius:12px; padding:10px 16px; margin:2px 0 14px; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase; color:#6b7488; }
+  .bp-tally b { font-family:var(--serif); font-size:1.15rem; font-weight:600; letter-spacing:0; margin-right:5px; }
+  .bp-tally .lived b { color:#2E7A4E; } .bp-tally .wip b { color:#5b4a86; } .bp-tally .ask b { color:#B0721A; } .bp-tally .ahead b { color:#3D6A99; } .bp-tally .canx b { color:#7A6F68; }
+  .bp-card.lived { overflow:hidden; } .bp-card.lived .bp-b, .bp-card.lived .bp-seal { position:relative; z-index:1; }
+  .bp-yr { position:absolute; right:112px; top:50%; transform:translateY(-50%); font-family:var(--serif); font-size:4.6rem; font-weight:700; line-height:1; color:#2E7A4E; opacity:0.08; pointer-events:none; z-index:0; }
+  @media (max-width:640px) { .bp-yr { right:0; top:-6px; transform:none; font-size:2rem; opacity:0.1; } .bp-tally { gap:4px 14px; padding:9px 13px; } }
   .dcl-dv + .bp-sub { margin-top:4px; }
-  .dcl-book > .bp-sub:first-child { margin-top:2px; }
+  .dcl-book > .bp-sub:first-child, .dcl-book > .bp-tally + .bp-sub { margin-top:2px; }
   /* A4 (6 Nov 2026): a decided dream's pill carries a small live dot that blinks gently */
   .bp-card.wip .bp-cd { position:relative; padding-left:22px; }
   .bp-card.wip .bp-cd:before { content:''; position:absolute; left:9px; top:50%; width:7px; height:7px; margin-top:-3.5px; border-radius:50%; background:#fff; animation:bpLive 1.4s ease-in-out infinite; }
@@ -11892,6 +11899,11 @@ function dcBucketHtml_() {
   desk.sort((a, b) => keyDate(a).localeCompare(keyDate(b)) || String(a.created_at).localeCompare(String(b.created_at)));
   const trail = mine.filter(d => d.status === 'trail').sort(dcTrailSort_);
   let h = '';   // L1 (6 Nov 2026): no 'The lineup' heading or total - the room opens on its first group label
+  // BK-C1 (10 Nov 2026): one slim count line at the top - how many dreams sit at each stage, each number in its stage's colour
+  { const tl = mine.filter(d => d.status === 'trail'), nCx = tl.filter(dcCanx_).length, parts = [
+      [tl.length - nCx, 'Lived', 'lived'], [desk.filter(d => stateOf(d) === 'wip').length, 'On the way', 'wip'],
+      [desk.filter(d => stateOf(d) === 'ask').length, 'Making up my mind', 'ask'], [desk.filter(d => stateOf(d) === 'ahead').length, 'Someday', 'ahead'], [nCx, 'Let go', 'canx']];
+    if (mine.length) h += '<div class="bp-tally">' + parts.map(([n, l, c]) => '<span class="' + c + '"><b>' + n + '</b>' + l + '</span>').join('') + '</div>'; }
   const deskCard = d => {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
     // W1 + E2 (6 Nov 2026): a decided dream is ON THE WAY; in the list the stamp shows when it should happen
@@ -11914,7 +11926,7 @@ function dcBucketHtml_() {
     const canx = dcCanx_(d), w = d.happened_on || d.decided_on, r = Number(d.satisfaction) || 0, note = (d.rating_note || '').trim();
     const extra = (r ? '<div class="bp-stars">' + dcStarsRO_(d) + '</div>' : '') + (note ? '<div class="bp-q">\u201C' + escHtml(note) + '\u201D</div>' : '');
     return canx ? card(d, 'canx', 'LET GO' + (w ? ' \u00B7 ' + monLong(w) : ''), '', seal('canx', 'LET', mon(w) || '\u2715', 'GO'), extra)
-                : card(d, 'lived', 'LIVED' + (w ? ' ' + monLong(w) : ''), '', seal('lived', BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''), extra);
+                : card(d, 'lived', 'LIVED' + (w ? ' ' + monLong(w) : ''), '', seal('lived', BP_FLAG + ' LIVED', mon(w) || BP_FLAG, ''), extra + (w ? '<span class="bp-yr" aria-hidden="true">' + String(w).slice(0, 4) + '</span>' : ''));   // BK-B2: the year, large and faint
   };
   h += lived.map(tcard).join('');
   if (!lived.length) h += '<div class="dcl-empty">no dreams lived yet</div>';
