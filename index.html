@@ -198,16 +198,36 @@
   .recall .h { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
   .recall .eb2 { font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; letter-spacing:0.18em; color:#8a97b3; flex:1; }
   .recall .sh { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.12em; color:#3D4866; background:none; border:none; cursor:pointer; }
-  .recall .three { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; }
-  /* P4: ledger grey - warm-neutral paper, an ink outline chip; nothing to tire of */
-  .rc { background:#f5f5f2; border:1px solid #e3e3dc; border-radius:12px; padding:12px; display:grid; grid-template-columns:1fr auto; grid-template-rows:auto 1fr auto; gap:6px 10px; }
-  .rc .c { grid-column:1; grid-row:1; justify-self:start; align-self:start; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:#3D4866; background:#fff; border:1px solid #cfd0c8; border-radius:6px; padding:3px 8px; }
-  .rc .t { grid-column:1 / span 2; grid-row:2; align-self:start; display:block; font-family:'Fraunces',Georgia,serif; font-size:0.9375rem; font-weight:600; color:#232f45; margin:0; line-height:1.3; text-decoration:none; overflow-wrap:anywhere; }
-  .rc .t:hover { text-decoration:underline; text-decoration-color:#cfd0c8; text-underline-offset:3px; }
-  .rc .ago { grid-column:1; grid-row:3; align-self:center; font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
-  .rc .ok { grid-column:2; grid-row:3; justify-self:end; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; }
-  .rc.done { opacity:0.62; } .rc.done .ok { background:#2f6146; color:#fff; cursor:default; }
-  @media (max-width:560px) { .recall .three { grid-template-columns:1fr; } .rc { padding:10px 12px; } .rc .t { font-size:0.875rem; } }
+  /* HT-M1 (10 Nov 2026): today's three as a hand of flashcards - fanned, face-down in the hub's navy with a thin gold line;
+     the front card turns over into a cream quote card (try to remember first, then see it), the next is dealt forward */
+  .recall .prog { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.14em; color:#2f6146; }
+  .rhand { position:relative; height:232px; max-width:640px; margin:2px auto 4px; }
+  .rhc { position:absolute; top:12px; left:29%; width:42%; height:200px; perspective:900px; transform-origin:50% 130%; transition:transform .45s ease; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .rhc .fi { position:relative; width:100%; height:100%; transition:transform .5s ease; transform-style:preserve-3d; }
+  .rhc.flip .fi { transform:rotateY(180deg); }
+  .rhc .fa, .rhc .fb { position:absolute; inset:0; -webkit-backface-visibility:hidden; backface-visibility:hidden; border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; box-shadow:0 10px 24px rgba(35,47,69,0.14); }
+  .rhc .fa { background:linear-gradient(160deg,#1c2f5e,#0F2D5C 55%,#0A1325); color:#fff; font-family:'Fraunces',Georgia,serif; }
+  .rhc .fa::after { content:''; position:absolute; inset:7px; border-radius:9px; border:1px solid rgba(244,196,48,0.45); pointer-events:none; }
+  .rhc .fa .q { font-style:italic; font-size:1rem; margin:10px 0 auto; }
+  .rhc .fa .hint { font-size:0.85rem; color:#b9c6e0; line-height:1.4; } .rhc .fa .hint span { filter:blur(4px); }
+  .rhc .fa .tap { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.14em; color:#b9c6e0; margin-top:6px; }
+  .rhc .c { align-self:flex-start; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:#3D4866; background:#fff; border:1px solid #cfd0c8; border-radius:6px; padding:3px 6px; }
+  .rhc .fa .c { color:#fff; background:transparent; border-color:#4a5f8f; }
+  .rhc .fb { transform:rotateY(180deg); background:linear-gradient(135deg,#fbf7ee,#fff 60%); border:1px solid #efe6d2; padding:16px 18px; }
+  .rhc .fb .qm { position:absolute; right:14px; top:-10px; font-family:'Fraunces',Georgia,serif; font-size:4.4rem; font-weight:700; color:#d9c48c; opacity:0.55; line-height:1; pointer-events:none; }
+  .rhc .fb .t { display:block; font-family:'Fraunces',Georgia,serif; font-size:1.1rem; font-weight:500; line-height:1.35; color:#232f45; margin:8px 26px auto 0; text-decoration:none; overflow-wrap:anywhere; }
+  .rhc .fb .t { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:5; overflow:hidden; }
+  .rhc .fb .t:hover { text-decoration:underline; text-decoration-color:#d9c48c; text-underline-offset:3px; }
+  .rhc .ft { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .rhc .ago { font-family:'IBM Plex Mono',monospace; font-size:0.4688rem; letter-spacing:0.12em; color:#9a9a90; }
+  .rhc .ok { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:5px 9px; cursor:pointer; white-space:nowrap; }
+  .rhc.done .ok { background:#2f6146; color:#fff; cursor:default; }
+  .rhc.done .fb { border-color:#2f6146; box-shadow:0 0 0 2px #e4efe6, 0 10px 24px rgba(35,47,69,0.12); }
+  .rhc.p0 { transform:translateX(-58%) rotate(-7deg); z-index:1; } .rhc.p1 { z-index:3; } .rhc.p2 { transform:translateX(58%) rotate(7deg); z-index:2; }
+  .rhc.p0 .fa, .rhc.p2 .fa { filter:brightness(0.92); }
+  .rhint { text-align:center; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin-top:2px; }
+  @media (max-width:560px) { .rhand { height:252px; } .rhc { width:64%; left:18%; height:220px; } .rhc.p0 { transform:translateX(-22%) rotate(-5deg); } .rhc.p2 { transform:translateX(22%) rotate(5deg); } .rhc .fb .t { font-size:0.95rem; margin-right:12px; } .rhc .fb { padding:14px 14px; } }
+  @media (prefers-reduced-motion:reduce) { .rhc, .rhc .fi { transition:none; } }
   .spine { position:relative; padding-left:34px; margin-top:6px; }
   .spine::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:3px; border-radius:2px; background:linear-gradient(180deg,#7a63c6 0 var(--yr, 0%), #cfd6e4 var(--yr, 0%)); }
   .srow { display:block; position:relative; padding:14px 0 16px; border-bottom:1px dotted #cfd6e4; text-decoration:none; color:inherit; cursor:pointer; }
@@ -305,8 +325,9 @@
   </div>
 
   <div class="recall hidden" id="hubRecall">
-    <div class="h"><span class="eb2">TODAY&rsquo;S THREE &middot; FROM THE LEARNING DIARY</span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div>
-    <div class="three" id="hubRecallCards"></div>
+    <div class="h"><span class="eb2">TODAY&rsquo;S THREE &middot; FROM THE LEARNING DIARY</span><span class="prog" id="hubRecallProg"></span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div>
+    <div class="rhand" id="hubRecallCards"></div>
+    <div class="rhint">TAP THE FRONT CARD TO TURN IT &middot; TAP A SIDE CARD TO BRING IT FORWARD</div>
   </div>
 
   <div class="spine" id="hubSpine">
@@ -607,21 +628,44 @@ async function loadRecall() {
     paintRecall(await MyRecall.todays(recallRows_));
   } catch (e) {}
 }
+let recallFront_ = null, recallOpen_ = {};   // HT-M1: which card is in front, which have been turned over (this visit)
 function paintRecall(three) {
   const box = el('hubRecall'); if (!box) return;
   if (!three || three.length < 3) { box.classList.add('hidden'); return; }
   box.classList.remove('hidden');
   const today = MyRecall.today();
+  const isDone = r => String(r.recalled_on || '').slice(0, 10) === today;
+  const ids = three.map(r => String(r.id));
+  if (!ids.includes(String(recallFront_))) { const f = three.find(r => !isDone(r)) || three[1]; recallFront_ = String(f.id); }
+  // the front card sits in the middle; the other two keep their order at the sides
+  const fi = ids.indexOf(String(recallFront_)), others = ids.filter(x => x !== String(recallFront_));
+  const pos = {}; pos[ids[fi]] = 1; pos[others[0]] = 0; pos[others[1]] = 2;
+  const words = t => { const w = String(t || '').split(/\s+/); return _esc(w.slice(0, 3).join(' ')) + (w.length > 3 ? ' <span>' + _esc(w.slice(3).join(' ')) + '</span>' : ''); };
   el('hubRecallCards').innerHTML = three.map(r => {
-    const done = String(r.recalled_on || '').slice(0, 10) === today;
-    // chip first, then the words, then how far away and how often; the exact date lives on the page
-    return '<div class="rc' + (done ? ' done' : '') + '" data-rid="' + _esc(r.id) + '"><span class="c">' + _esc(String(r.forCat || '').toUpperCase()) + '</span>' +
-      '<a class="t" href="' + ROOMS.favourites + '?open=' + encodeURIComponent(r.id) + '">' + _esc(r.title || '') + '</a>' +
-      '<div class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' \u00B7 ' : '') + MyRecall.recalledLine(r) + '</div>' +
-      '<button type="button" class="ok" data-recall="' + _esc(r.id) + '"' + (done ? ' disabled' : '') + '>\u2713 RECALLED' + (done ? ' TODAY' : '') + '</button></div>';
+    const id = String(r.id), done = isDone(r), open = done || !!recallOpen_[id];
+    const cat = _esc(String(r.forCat || '').toUpperCase());
+    return '<div class="rhc p' + pos[id] + (open ? ' flip' : '') + (done ? ' done' : '') + '" data-rid="' + _esc(id) + '"><div class="fi">'
+      + '<div class="fa"><span class="c">' + cat + '</span><div class="q">Do you remember…</div><div class="hint">' + words(r.title) + '</div><span class="tap">TAP TO REVEAL</span></div>'
+      + '<div class="fb"><span class="qm" aria-hidden="true">“</span><span class="c">' + cat + '</span>'
+      + '<a class="t" href="' + ROOMS.favourites + '?open=' + encodeURIComponent(r.id) + '">' + _esc(r.title || '') + '</a>'
+      + '<div class="ft"><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' · ' : '') + MyRecall.recalledLine(r) + '</span>'
+      + '<button type="button" class="ok" data-recall="' + _esc(id) + '"' + (done ? ' disabled' : '') + '>✓ ' + (done ? 'KNEW IT TODAY' : 'I KNEW IT') + '</button></div></div>'
+      + '</div></div>';
   }).join('');
-  el('hubRecallCards').querySelectorAll('[data-recall]').forEach(b => b.addEventListener('click', () => markRecalled(b.dataset.recall)));
+  el('hubRecallProg').textContent = three.filter(isDone).length + ' OF 3';
 }
+// one listener: tap the front card to turn it, a side card to bring it forward; the line itself opens the diary
+document.addEventListener('DOMContentLoaded', () => {
+  const box = el('hubRecallCards'); if (!box) return;
+  box.addEventListener('click', e => {
+    const ok = e.target.closest('[data-recall]'); if (ok) { e.preventDefault(); if (!ok.disabled) markRecalled(ok.dataset.recall); return; }
+    if (e.target.closest('a.t')) return;
+    const c = e.target.closest('.rhc'); if (!c) return;
+    const id = c.dataset.rid;
+    if (c.classList.contains('p1')) { if (!c.classList.contains('done')) { recallOpen_[id] = !recallOpen_[id]; c.classList.toggle('flip', !!recallOpen_[id]); } return; }
+    recallFront_ = id; MyRecall.todays(recallRows_).then(paintRecall);
+  });
+});
 async function markRecalled(id) {
   const r = recallRows_.find(x => String(x.id) === String(id)); if (!r) return;
   const today = MyRecall.today();
@@ -631,9 +675,12 @@ async function markRecalled(id) {
   const { error } = await supa.from('bookmarks').update(patch).eq('id', r.id).eq('user_id', uid);
   if (error) { console.error(error); return; }
   Object.assign(r, patch);
-  paintRecall(await MyRecall.todays(recallRows_));
+  const three = await MyRecall.todays(recallRows_);
+  paintRecall(three);   // shows it ticked in front first
+  const next = (three || []).find(x => String(x.recalled_on || '').slice(0, 10) !== today);
+  if (next) setTimeout(() => { recallFront_ = String(next.id); paintRecall(three); }, 650);   // HT-M1: then the next card is dealt forward
 }
-document.addEventListener('DOMContentLoaded', () => { const b = el('hubRecallShuffle'); if (b) b.addEventListener('click', async () => paintRecall(await MyRecall.shuffle(recallRows_))); });
+document.addEventListener('DOMContentLoaded', () => { const b = el('hubRecallShuffle'); if (b) b.addEventListener('click', async () => { recallFront_ = null; recallOpen_ = {}; paintRecall(await MyRecall.shuffle(recallRows_)); }); });
 
 async function refreshPulses() {
   try {
