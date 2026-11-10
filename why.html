@@ -1309,21 +1309,25 @@
   .mt-hh h3 { margin:0; font-family:var(--serif); font-size:1.25rem; font-weight:600; color:#1d2536; }
   .mt-hh span { font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.16em; color:var(--mto); text-align:right; }
   .mt-tiles { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }   /* MT-T1: two across */
-  #mantraList .mcard.mt-tile { display:block; background:#fff; border:1px solid #e3e6dc; border-top:3px solid var(--mto); border-radius:4px 4px 12px 12px; padding:14px 16px 12px; box-shadow:none; }
+  /* MT-I2b: each mantra its own ink - a short bar, a big faint quote mark, the source - on a wash of it from the top-left corner */
+  #mantraList .mcard.mt-tile { --mti:#8a8f78; display:block; position:relative; overflow:hidden; background:linear-gradient(150deg, color-mix(in srgb, var(--mti) 12%, #fff) 0%, #fff 62%); border:1px solid color-mix(in srgb, var(--mti) 18%, #fff); border-radius:14px; padding:16px 18px 14px; box-shadow:none; }
+  .mt-qm { position:absolute; right:12px; top:-8px; font-family:var(--serif); font-size:4.6rem; line-height:1; font-weight:700; color:var(--mti); opacity:0.2; pointer-events:none; }
+  .mt-bar { display:block; width:34px; height:4px; border-radius:2px; background:var(--mti); margin-bottom:10px; }
   .mt-tile .m-body { padding-right:0; }
-  .mt-tile .mtext { font-size:1.3rem; font-weight:700; line-height:1.28; padding-right:0; white-space:normal; }
+  .mt-tile .mtext { font-size:1.25rem; font-weight:600; line-height:1.32; letter-spacing:-0.005em; padding-right:30px; white-space:normal; }
   .mt-tile .mmean { font-style:italic; font-size:0.95rem; line-height:1.45; color:#5b6150; margin-top:8px; padding-top:0; border-top:none; }
-  .mt-tile .msrc { font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase; color:#8a8f78; margin-top:10px; }
+  .mt-tile .msrc { font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mti); margin-top:10px; }
   /* MT-T1: musings hang on one violet thread - a dot per musing, each a white card, the line in italic, no year */
   .mt-jl { border-left:2px solid color-mix(in srgb, var(--mtu) 35%, transparent); margin-left:8px; padding-left:20px; }
-  #mantraList .mcard.mt-jr { display:block; position:relative; background:#fff; border:1px solid #e4e5ee; border-radius:12px; padding:12px 16px; margin-bottom:10px; box-shadow:none; }
-  #mantraList .mcard.mt-jr::before { content:''; position:absolute; left:-27px; top:16px; width:10px; height:10px; border-radius:50%; background:var(--mtu); box-shadow:0 0 0 3px #eef0f6; }
+  #mantraList .mcard.mt-jr { display:block; position:relative; background:#fff; border:1px solid #e4e5ee; border-left:4px solid var(--mtu); border-radius:12px; padding:14px 18px; margin-bottom:12px; box-shadow:none; }   /* MT-B1: white, a violet left edge, the whole page */
+  #mantraList .mcard.mt-jr::before { content:''; position:absolute; left:-30px; top:16px; width:10px; height:10px; border-radius:50%; background:var(--mtu); box-shadow:0 0 0 3px #eef0f6; }
   .mt-jr .m-body { padding-right:0; }
-  .mt-jr .mtext { font-size:1.08rem; font-weight:400; font-style:italic; line-height:1.4; padding-right:0; white-space:normal; }
-  .mt-jr .mmean { font-size:0.875rem; line-height:1.5; color:#6b7488; margin-top:4px; padding-top:0; border-top:none; }
+  .mt-jr .mtext { font-size:1.15rem; font-weight:400; font-style:italic; line-height:1.4; padding-right:0; white-space:normal; }
+  .mt-jr .mmean { font-size:0.95rem; line-height:1.6; color:#3d4559; margin-top:8px; padding-top:0; border-top:none; }
   .mt-yr { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; color:#9aa0b0; white-space:nowrap; padding-top:3px; }
   #mantraList .m-star { color:#c9a227; font-style:normal; }
-  .mt-tiles .mtext p, .mt-jl .mtext p, .mt-tiles .mmean p, .mt-jl .mmean p { margin:0; }
+  .mt-tiles .mtext p, .mt-jl .mtext p, .mt-tiles .mmean p { margin:0; }
+  .mt-jl .mmean p { margin:0 0 8px; } .mt-jl .mmean > :last-child { margin-bottom:0; } .mt-jl .mmean img { max-width:100%; height:auto; border-radius:8px; }
   .mt-hh span.mu { color:var(--mtu); }
   #mantraList.mt-u .mt-more, #mantraList.mt-u .mt-qa input::placeholder { color:var(--mtu); }
   #mantraList.mt-u .mt-more, #mantraList.mt-u .mt-qa { border-color:color-mix(in srgb, var(--mtu) 40%, transparent); }
@@ -6925,7 +6929,7 @@ function renderMantras() {
   const side = all.filter(x => x.t === mmFilter);
   const nM = all.filter(x => x.t === 'm').length, nU = all.length - nM;
   const editing = document.body.classList.contains('editing');
-  const cap = mmFilter === 'm' ? 8 : 6, fold = !editing && !mmMore_[mmFilter] && side.length > cap;
+  const cap = side.length, fold = false;   // MT-I2b: everything shows, no fold
   const shown = fold ? side.slice(0, cap) : side;
   let html = '<div class="mt-seg" role="tablist">'
     + '<button type="button" data-mmf="m" class="' + (mmFilter === 'm' ? 'on' : '') + '">Mantras<small>' + nM + '</small></button>'
@@ -6936,10 +6940,9 @@ function renderMantras() {
   const items = shown.map(x => {
     if (x.t === 'u' && x.src === 'iw') {
       const r = x.r, id = 'u:' + escHtml(String(r.id));
-      const note = NoteEditor.toPlain(r.body || '').replace(/\s+/g, ' ').trim();
-      const yr = r.created_at ? String(r.created_at).slice(0, 4) : '';
+      const body = r.body && NoteEditor.toPlain(r.body).trim() ? NoteEditor.sanitize(r.body) : '';   // MT-B1: the whole page
       return '<div class="mcard mu mt-jr" data-mid="' + id + '" data-mopen="' + escHtml(String(r.id)) + '">' + tools(id)
-        + '<div class="m-body"><div class="mtext">' + star(r) + escHtml(r.title || '') + '</div>' + (note ? '<div class="mmean mm-clamp">' + escHtml(note) + '</div>' : '') + '</div>'
+        + '<div class="m-body"><div class="mtext">' + star(r) + escHtml(r.title || '') + '</div>' + (body ? '<div class="mmean nk-content">' + body + '</div>' : '') + '</div>'
         + '</div>';
     }
     const m = x.r, mean = mtRich(m, 'meaning');
@@ -6947,9 +6950,10 @@ function renderMantras() {
     const ctl = '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>'
       + '<button class="m-x" data-mx="' + m.id + '" type="button" aria-label="Delete">&times;</button>';
     if (x.t === 'u') return '<div class="mcard mu mt-jr" data-mid="' + m.id + '">' + tools(m.id)
-      + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content mm-clamp">' + mean + '</div>' : '') + '</div>'
+      + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '') + '</div>'
       + ctl + '</div>';
-    return '<div class="mcard mt-tile" data-mid="' + m.id + '">' + tools(m.id)
+    const ink = M_SHADES[side.indexOf(x) % M_SHADES.length].acc;   // MT-I2b: each mantra its own ink, in the order written
+    return '<div class="mcard mt-tile" data-mid="' + m.id + '" style="--mti:' + ink + '">' + tools(m.id) + '<span class="mt-qm" aria-hidden="true">\u201C</span><span class="mt-bar" aria-hidden="true"></span>'
       + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '')
       + (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') + '</div>' + ctl + '</div>';
   }).join('');
