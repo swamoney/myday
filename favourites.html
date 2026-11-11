@@ -229,6 +229,7 @@
   .bkp .facts { display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border:1px solid #dfe5ee; border-radius:14px; margin-bottom:14px; } .bkp .facts > div { padding:12px 16px; border-left:1px solid #eef1f6; } .bkp .facts > div:first-child { border-left:none; } .bkp .facts .l { font-size:.54rem; color:#8a97b3; } .bkp .facts .v { font-family:var(--serif); font-size:1rem; margin-top:3px; color:#232f45; }
   .bkp .sec { background:#fffdf6; border:1px solid #ece2c4; border-radius:14px; padding:16px 20px; margin-bottom:14px; scroll-margin-top:70px; }
   .bkp .sh { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; border-bottom:1px solid #ece2c4; padding-bottom:10px; margin-bottom:12px; } .bkp .sh .n { width:28px; height:28px; border-radius:50%; border:1.5px solid #a65a3a; color:#a65a3a; font-family:var(--serif); display:inline-flex; align-items:center; justify-content:center; font-size:.85rem; align-self:center; flex:0 0 28px; } .bkp .sh h3 { font-family:var(--serif); font-weight:500; font-size:1.45rem; margin:0; color:#232f45; } .bkp .sh .m { font-size:.58rem; color:#a08b55; }
+  .bkp .ntc .sh { cursor:pointer; user-select:none; } .bkp .ntc .tg { margin-left:auto; font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:#a08b55; align-self:center; } .bkp .ntc.fold .sh { border-bottom:none; padding-bottom:0; margin-bottom:0; } .bkp .ntc.fold .nt { display:none; }
   .bkp .thr { position:relative; padding-left:46px; } .bkp .thr::before { content:''; position:absolute; left:16px; top:10px; bottom:10px; width:2px; background:color-mix(in srgb, var(--bc) 50%, #fff); }
   .bkp .hl { position:relative; padding:6px 0 12px; border-bottom:1px dotted #e6dcc4; margin-bottom:10px; } .bkp .hl:last-child { border:none; margin:0; }
   .bkp .hl .d { position:absolute; left:-46px; top:2px; width:34px; height:34px; border-radius:50%; background:radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--bc) 60%, #fff), var(--bc)); color:#fff; font-family:var(--serif); font-weight:600; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 3px #fffdf6, 0 0 0 4px color-mix(in srgb, var(--bc) 40%, #fff); }
@@ -311,6 +312,13 @@
   .bk-acts { display:flex; gap:10px; margin-top:20px; align-items:center; } .bk-acts button { border:1px solid #e1e5ee; border-radius:10px; padding:11px 20px; font-weight:600; color:#6b7488; background:#fff; cursor:pointer; font-size:.92rem; }
   .bk-acts .sv { background:#232f45; color:#fff; border-color:#232f45; } .bk-acts .sv:disabled { opacity:.4; cursor:default; } .bk-acts .dl { color:#b03a2e; }
   @media (max-width:640px) { .bkp .bkef { grid-template-columns:1fr !important; } .bk-r2 { flex-direction:column; align-items:stretch; } .bk-r2 > div { flex:none; } .bkp .bkfr { padding:16px 14px 18px; } }
+  /* BP-T (11 Nov 2026): on a book page the buttons sit in the top bar, right side, like My Circle; no History; Delete only while editing */
+  .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
+  body.fr-book .frbar-btns { display:flex; }
+  body.fr-book .fr-headbtns { display:none !important; }
+  .frbar-btns .eb { padding:6px 12px; font-size:.82rem; } .frbar-btns .eb svg { width:15px; height:15px; }
+  body.fr-book:not(.fr-editing) .frbar-btns #frDel { display:none; }
+  @media (max-width:640px) { .frbar-btns { gap:6px; } .frbar-btns .eb span { display:none; } .frbar-btns .eb { padding:6px 8px; } body.fr-book .fr-wc, body.fr-book .fr-save { display:none; } }
   .row-actions { display:flex; align-items:center; gap:10px; flex-shrink:0; }
   .row-edit { width:30px; height:30px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); background:rgba(0,0,0,0.02); color:#8189a0; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; }
   .row-edit svg { width:15px; height:15px; }
@@ -968,6 +976,7 @@
     <span class="fr-ttl" id="frTtl"></span>
     <span class="fr-wc" id="frWc"></span>
     <span class="fr-save" id="frSave"></span>
+    <div class="frbar-btns" id="frBarBtns"></div>
   </div>
   <div class="fr-scroll">
     <div class="fr-in">
@@ -2160,9 +2169,13 @@ function bkRender_() {
   if (P.lv.length) h += '<div class="sec" id="bkS_lv"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Lived it</h3><span class="m mono">' + P.lv.length + ' · WHAT I CHANGED</span></div><div class="use">' +
     P.lv.map(t => { let c = 'nn', lb = 'NOTED'; if (/^[✓✔✅]/.test(t)) { c = ''; lb = '✓ DONE'; } else if (/^[◷⏳⌛]/.test(t)) { c = 'tr'; lb = '◷ TRYING'; }
       const body = t.replace(/^[✓✔✅◷⏳⌛]\s*/, ''); return '<div class="' + c + '"><b>' + lb + '</b>' + escHtml(body) + '</div>'; }).join('') + '</div></div>';
-  if (P.any && P.notes) h += '<div class="sec" id="bkS_nt"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Notes</h3></div><div class="nt">' + P.notes + '</div></div>';
+  if (P.any && P.notes) { const nw = (P.notes.replace(/<[^>]*>/g, ' ').trim().match(/\S+/g) || []).length;
+    h += '<div class="sec ntc fold" id="bkS_nt"><div class="sh" role="button" tabindex="0"><span class="n">' + roman[n++] + '</span><h3>Notes</h3><span class="m mono">' + nw + (nw === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ SHOW</span></div><div class="nt">' + P.notes + '</div></div>'; }
   pg.innerHTML = h;
-  pg.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const t = el('bkS_' + b.dataset.go); if (t) t.scrollIntoView({ behavior:'smooth', block:'start' }); }));
+  const ntS = el('bkS_nt'), ntSet = open => { if (!ntS) return; ntS.classList.toggle('fold', !open); ntS.querySelector('.tg').textContent = open ? '▴ HIDE' : '▾ SHOW'; };
+  if (ntS) { const sh = ntS.querySelector('.sh'), tog = () => ntSet(ntS.classList.contains('fold'));
+    sh.addEventListener('click', tog); sh.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } }); }
+  pg.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.go === 'nt') ntSet(true); const t = el('bkS_' + b.dataset.go); if (t) t.scrollIntoView({ behavior:'smooth', block:'start' }); }));
 }
 async function bkSaveField_(field, v) {
   const r = rows.find(x => String(x.id) === String(frId)); if (!r || secOf(r) !== 'books') return;
@@ -3335,7 +3348,13 @@ el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; 
 // BP-H1: the book page re-draws whenever a page opens or Edit closes
 openReader = (function (o) { return function () {
   if (bkEd_) { el('frBodyInp').innerHTML = bkCompose_(NoteEditor.sanitize(el('frBodyInp').innerHTML)); bkEd_ = null; }   // BP-E1: leave the last book whole
-  const x = o.apply(this, arguments); try { const r0 = rows.find(z => String(z.id) === String(frId)); el('frBodyInp').setAttribute('data-placeholder', r0 && secOf(r0) === 'books' ? 'What this book meant to me. Where I read it. What I\u2019d tell a friend\u2026' : 'Your highlight or note\u2026'); } catch (e) {} try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(openReader);
+  const x = o.apply(this, arguments);
+  try {   // BP-T: book pages carry Delete / Edit / ★ in the top bar; other pages keep them by the heading
+    const book = document.body.classList.contains('fr-book'), box = el('frBarBtns'), hb = document.querySelector('.fr-headbtns');
+    if (book) ['frDel', 'frEdit', 'frStar'].forEach(id => box.appendChild(el(id)));
+    else if (el('frDel').parentNode === box) { hb.insertBefore(el('frDel'), el('frHist')); hb.appendChild(el('frEdit')); hb.appendChild(el('frStar')); }
+  } catch (e) { console.error(e); }
+  try { const r0 = rows.find(z => String(z.id) === String(frId)); el('frBodyInp').setAttribute('data-placeholder', r0 && secOf(r0) === 'books' ? 'What this book meant to me. Where I read it. What I\u2019d tell a friend\u2026' : 'Your highlight or note\u2026'); } catch (e) {} try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(openReader);
 setFrEditing = (function (o) { return function (on) {
   if (!on && bkEd_) { el('frBodyInp').innerHTML = bkCompose_(NoteEditor.sanitize(el('frBodyInp').innerHTML)); bkEd_ = null; }   // BP-E1: sections back into the one note
   const x = o.apply(this, arguments);
