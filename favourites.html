@@ -296,6 +296,9 @@
   .bkp .bklong { background:#fff; border:1px solid #e3e3ea; border-top:2px solid #9a8aa8; border-bottom:none; border-radius:16px 16px 0 0; padding:14px 22px 4px; position:relative; margin-top:6px; }
   .bkp .bklong::before { content:''; position:absolute; top:8px; left:22px; width:34px; height:3px; background:var(--bc); }
   .bkp .bklong h3 { font-family:var(--serif); font-weight:500; font-size:1.6rem; margin:10px 0 6px; color:#232f45; }
+  .bkp .bklong { cursor:pointer; display:flex; align-items:baseline; gap:6px 12px; flex-wrap:wrap; user-select:none; } .bkp .bklong h3 { white-space:nowrap; } .bkp .bklong .m, .bkp .bklong .tg { font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:#8a7f99; white-space:nowrap; } .bkp .bklong .tg { margin-left:auto; align-self:center; }
+  body.fr-book.fr-editing.bk-lnfold .bkp .bklong { border-bottom:1px solid #e3e3ea; border-radius:16px; padding-bottom:12px; margin-bottom:18px; }
+  body.fr-book.fr-editing.bk-lnfold #frToolbar, body.fr-book.fr-editing.bk-lnfold #frAlbum, body.fr-book.fr-editing.bk-lnfold #frBodyInp { display:none !important; }   /* BP-L: the long note folded */
   body.fr-book.fr-editing #frToolbar { background:#fff; border:1px solid #e3e3ea; border-top:none; border-bottom:none; border-radius:0; margin:0; padding:6px 22px; }
   body.fr-book.fr-editing #frBodyInp { background:#fff; border:1px solid #e3e3ea; border-top:none; border-radius:0 0 16px 16px; padding:14px 22px 34px; min-height:150px; margin:-14px 0 18px !important; position:relative; }
   body.fr-book.fr-editing #frAlbum { background:#fff; border:1px solid #e3e3ea; border-top:none; border-bottom:none; margin:0; padding:0 22px; }   /* the long note card runs unbroken */
@@ -2257,9 +2260,19 @@ function bkRenderEdit_(r, pg) {
     E.tk.length ? '<ol class="tk">' + E.tk.map((x, i) => '<li class="tap" data-it="tk:' + i + '">' + e(x) + '</li>').join('') + '</ol>' : '', 'Add a takeaway', 'tk');
   h += fr('III', 'Lived it', E.lv.length ? '' : 'what I changed because of it', E.lv.length ? E.lv.length + ' · WHAT I CHANGED' : '',
     E.lv.length ? '<div class="use">' + E.lv.map((x, i) => '<div class="tap ' + (x.st === 'd' ? '' : x.st === 't' ? 'tr' : 'nn') + '" data-it="lv:' + i + '"><b>' + (x.st === 'd' ? '✓ DONE' : x.st === 't' ? '◷ TRYING' : 'NOTED') + '</b>' + e(x.t) + '</div>').join('') + '</div>' : '', 'Add something I changed', 'lv');
-  h += '<div class="bklong"><h3>The long note</h3></div>';
+  h += '<div class="bklong" id="bkLong" role="button" tabindex="0"><h3>The long note</h3><span class="m"></span><span class="tg"></span></div>';
   pg.innerHTML = h;
-  bkWireEdit_(r, pg);
+  bkWireEdit_(r, pg); bkLongSet_();
+  const L = el('bkLong'), tog = () => { bkLnOpen_ = !bkLnOpen_; bkLongSet_(); if (bkLnOpen_) { try { el('frBodyInp').focus(); } catch (e) {} } };
+  L.addEventListener('click', tog); L.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tog(); } });
+}
+let bkLnOpen_ = false;   // BP-L: the long note starts folded each time Edit is switched on
+function bkLongSet_() {
+  const L = el('bkLong'); if (!L) return;
+  const w = ((el('frBodyInp').innerText || '').trim().match(/\S+/g) || []).length;
+  document.body.classList.toggle('bk-lnfold', !bkLnOpen_);
+  L.querySelector('.m').textContent = bkLnOpen_ ? '' : (w ? w + (w === 1 ? ' WORD' : ' WORDS') : 'EMPTY');
+  L.querySelector('.tg').textContent = bkLnOpen_ ? '▴ FOLD' : (w ? '▾ OPEN' : '▾ WRITE');
 }
 function bkWireEdit_(r, pg) {
   const again = () => bkRenderEdit_(r, pg);
@@ -3358,6 +3371,7 @@ openReader = (function (o) { return function () {
 setFrEditing = (function (o) { return function (on) {
   if (!on && bkEd_) { el('frBodyInp').innerHTML = bkCompose_(NoteEditor.sanitize(el('frBodyInp').innerHTML)); bkEd_ = null; }   // BP-E1: sections back into the one note
   const x = o.apply(this, arguments);
+  if (on) bkLnOpen_ = false; else document.body.classList.remove('bk-lnfold');
   if (on && !bkEd_ && !frHasDoc && document.body.classList.contains('fr-book')) bkEditSplit_();
   try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(setFrEditing);
 boot();
