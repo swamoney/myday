@@ -147,6 +147,9 @@
   .lk-row.lk-editing { grid-column:1/-1; cursor:default; }
   .lk-row:hover { box-shadow:0 8px 18px rgba(15,45,92,.09); }
   .lk-kinds + .lk-gh { margin-top:2px; }
+  /* LK-I: a drawn kind symbol sizes to where it sits */
+  .lk-ic svg { width:22px; height:22px; } .lk-gh i svg, .lk-k i svg, .kp-c i svg { width:1.05em; height:1.05em; display:block; }
+  .lk-gh i, .lk-k i, .kp-c i { display:inline-flex; align-items:center; }
   /* LK-B4a (11 Nov 2026): each box washed and outlined in My Mantras' soft ink for its kind (--kb: sage, plum, rose, gold, sky);
      headings, icon tiles, pills and chips keep the full kind colour (--kc) */
   .lk-row { position:relative; overflow:hidden; background:linear-gradient(150deg, color-mix(in srgb, var(--kb, var(--kc)) 14%, #fff) 0%, #fff 62%); border:1.5px solid color-mix(in srgb, var(--kb, var(--kc)) 40%, #fff); box-shadow:none; border-radius:14px; }
@@ -1871,11 +1874,13 @@ function render_() {
 }
 // LK-A: what kind a link is, read from the type you typed (Music / Podcast / Audiobook / E-book)
 var lkKind_ = 'all';
+// LK-I · A1 (11 Nov 2026): Audiobooks' symbol is drawn (book + headphones), not the 🎧 emoji that greyed out on the plum tile
+const LK_ICON_AUDIOBOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V8.5a1.5 1.5 0 0 1 1.5-1.5H12v12H6.5A1.5 1.5 0 0 0 5 20.5"/><path d="M12 7h5.5A1.5 1.5 0 0 1 19 8.5V19h-7"/><path d="M4 9.5a8 8 0 0 1 16 0"/><rect x="2.6" y="12" width="2.6" height="5" rx="1.2"/><rect x="18.8" y="12" width="2.6" height="5" rx="1.2"/></svg>';
 const LK_ORDER = ['music', 'podcast', 'audiobook', 'ebook', 'other'];
 const LK_KINDS = {
   music:     { l:'Music',     p:'Music',      c:'#1a6a6a', kb:'#5f938c', i:'♪',      a:'PLAY' },
   podcast:   { l:'Podcast',   p:'Podcasts',   c:'#4a3a7a', kb:'#96789e', i:'\u{1F399}', a:'PLAY' },
-  audiobook: { l:'Audiobook', p:'Audiobooks', c:'#7a3550', kb:'#c0707e', i:'\u{1F3A7}', a:'LISTEN' },
+  audiobook: { l:'Audiobook', p:'Audiobooks', c:'#7a3550', kb:'#c0707e', i:LK_ICON_AUDIOBOOK, a:'LISTEN' },
   ebook:     { l:'E-book',    p:'E-books',    c:'#8A1F1A', kb:'#a8935f', i:'\u{1F4D6}', a:'READ' },
   other:     { l:'Link',      p:'Other links', c:'#0F2D5C', kb:'#7086a8', i:'\u{1F517}', a:'OPEN' }
 };
