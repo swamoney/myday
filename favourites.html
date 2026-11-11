@@ -147,6 +147,14 @@
   .lk-row.lk-editing { grid-column:1/-1; cursor:default; }
   .lk-row:hover { box-shadow:0 8px 18px rgba(15,45,92,.09); }
   .lk-kinds + .lk-gh { margin-top:2px; }
+  /* LK-S2 (11 Nov 2026): one kind choice (= the saved type) + an optional tags line, in Keep a link and in edit */
+  .kp { flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:2px 0; }
+  .kp-l { font-family:var(--mono); font-size:.56rem; font-weight:700; letter-spacing:.16em; color:#8a97b3; margin-right:4px; }
+  .kp-c { display:inline-flex; align-items:center; gap:5px; font-size:.8rem; font-weight:600; color:#3D4866; background:#fff; border:1.5px solid #dfe5ee; border-radius:999px; padding:5px 11px; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .kp-c i { font-style:normal; color:var(--kc); } .kp-c.on { background:var(--kc); border-color:var(--kc); color:#fff; } .kp-c.on i { color:#fff; }
+  .kp-auto { font-family:var(--mono); font-size:.56rem; letter-spacing:.1em; color:#2f6146; margin-left:4px; }
+  .kp-tags { flex-basis:100%; }
+  .lk-row .lk-kind { display:none; }
   .row-actions { display:flex; align-items:center; gap:10px; flex-shrink:0; }
   .row-edit { width:30px; height:30px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); background:rgba(0,0,0,0.02); color:#8189a0; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; }
   .row-edit svg { width:15px; height:15px; }
@@ -911,25 +919,53 @@ const DOOR_HINTS = {
   'learning': 'what did you learn?',
 };
 // LR-5: rows edit where they stand - the popup is fully retired.
+// LK-S2: the kind chips (Music / Podcast / Audiobook / E-book / Other) - the chip IS the saved type
+const LK_SAVE = { music:'Music', podcast:'Podcast', audiobook:'Audiobook', ebook:'E-book', other:'' };
+function lkGuess_(u) {
+  u = String(u || '').toLowerCase(); if (!u) return null;
+  if (/open\.spotify\.com\/(show|episode)|podcasts\.apple|pocketcasts|podbean|anchor\.fm|castbox/.test(u)) return 'podcast';
+  if (/audible|storytel|kukufm|pocketfm|audiobook/.test(u)) return 'audiobook';
+  if (/read\.amazon|kindle|books\.google|play\.google\.com\/store\/books|\.epub|\.pdf/.test(u)) return 'ebook';
+  if (/spotify|music\.youtube|jiosaavn|saavn|gaana|wynk|music\.apple|soundcloud/.test(u)) return 'music';
+  return null;
+}
+function lkPickerHtml_(sel, auto) {
+  return '<div class="kp" data-kp="' + sel + '"><span class="kp-l">KIND</span>' +
+    LK_ORDER.map(k => '<span class="kp-c' + (k === sel ? ' on' : '') + '" data-k="' + k + '" style="--kc:' + LK_KINDS[k].c + '"><i>' + LK_KINDS[k].i + '</i>' + (k === 'other' ? 'Other' : LK_KINDS[k].l) + '</span>').join('') +
+    '<span class="kp-auto"' + (auto ? '' : ' hidden') + '>✓ picked from the link — tap to change</span></div>';
+}
+function lkWirePicker_(box, urlInput) {
+  const kp = box.querySelector('.kp'); if (!kp) return;
+  let touched = false;
+  const set = (k, auto) => { kp.dataset.kp = k; kp.querySelectorAll('.kp-c').forEach(c => c.classList.toggle('on', c.dataset.k === k)); kp.querySelector('.kp-auto').hidden = !auto; };
+  kp.querySelectorAll('.kp-c').forEach(c => c.addEventListener('click', e => { e.stopPropagation(); touched = true; set(c.dataset.k, false); }));
+  if (urlInput) urlInput.addEventListener('input', () => { if (touched) return; const g = lkGuess_(urlInput.value); if (g) set(g, true); });
+}
+function lkTags_(v) { const out = []; String(v || '').split(',').forEach(t => { t = t.trim(); if (t && !out.some(x => x.toLowerCase() === t.toLowerCase())) out.push(t); }); return out; }
 function _rowInlineEdit(rowEl, id) {
   const r = rows.find(x => String(x.id) === String(id));
   if (!r || !rowEl) return;
+  const isLk = rowEl.classList.contains('lk-row');   // LK-S2: links get the kind chips + tags
   rowEl.innerHTML =
     '<div class="door-form" style="width:100%;">' +
     '<input type="text" class="door-in grow" id="rieT" value="' + escHtml(r.title || '') + '">' +
     '<input type="url" class="door-in" id="rieU" value="' + escHtml(r.url || '') + '" placeholder="link\u2026">' +
+    (isLk ? lkPickerHtml_(lkKindOf_(r.type), false) + '<input type="text" class="door-in kp-tags" id="rieTags" value="' + escHtml((r.tags || []).join(', ')) + '" placeholder="tags \u2014 Morning, Drive\u2026 (optional)">' : '') +
     '<button type="button" class="door-go" id="rieGo">SAVE</button>' +
     '<button type="button" class="rie-del" id="rieDel" title="Delete">\u2298</button></div>';
+  if (isLk) lkWirePicker_(rowEl, null);
   rowEl.querySelector('#rieGo').addEventListener('click', async () => {
     const t = (rowEl.querySelector('#rieT').value || '').trim();
     const u = normalizeUrl(rowEl.querySelector('#rieU').value || '');
     if (!t) return;
+    const patch = { title: t, url: u, updated_at: new Date().toISOString() };
+    if (isLk) { patch.type = LK_SAVE[rowEl.querySelector('.kp').dataset.kp] || ''; patch.tags = lkTags_(rowEl.querySelector('#rieTags').value); }
     try {
       const { error } = await supa.from('bookmarks')
-        .update({ title: t, url: u, updated_at: new Date().toISOString() })
+        .update(patch)
         .eq('id', id).eq('user_id', userId);
       if (error) throw error;
-      r.title = t; r.url = u; toast('Saved'); render();
+      Object.assign(r, patch); toast('Saved'); render();
     } catch (e) { toast('Could not save'); }
   });
   rowEl.querySelector('#rieDel').addEventListener('click', async () => {
@@ -1393,12 +1429,14 @@ function _openShelfDoor() {
   form.innerHTML = two
     ? '<input type="text" id="doorT" class="door-in" placeholder="' + hint[0] + '">' +
       '<input type="url" id="doorU" class="door-in" placeholder="' + hint[1] + '" inputmode="url">' +
+      (sec === 'all-time' ? lkPickerHtml_(lkKind_ !== 'all' ? lkKind_ : 'other', false) + '<input type="text" id="doorTags" class="door-in kp-tags" placeholder="tags \u2014 Morning, Drive\u2026 (optional)">' : '') +
       '<button type="button" class="door-go" id="doorGo">ADD</button>'
     : '<input type="text" id="doorT" class="door-in grow" placeholder="' + hint + '">' +
       '<button type="button" class="door-go" id="doorGo">' +
         (s.kind === 'notes' ? 'OPEN THE PAGE' : 'ADD') + '</button>';
   el('shelfDoor').classList.add('hidden');
   form.classList.remove('hidden');
+  if (sec === 'all-time') lkWirePicker_(form, el('doorU'));   // LK-S2
   const t = el('doorT');
   t.focus();
   const go = () => _doorCreate(sec, two);
@@ -1422,6 +1460,7 @@ async function _doorCreate(sec, two) {
     source_url: '', type: '', tags: [], note: '', essence: '',
     updated_at: new Date().toISOString(),
   };
+  if (sec === 'all-time') { const kp = el('doorForm').querySelector('.kp'); record.type = LK_SAVE[kp ? kp.dataset.kp : 'other'] || ''; record.tags = lkTags_((el('doorTags') || {}).value); }   // LK-S2
   if (sec === 'learning') { record.learned_on = new Date().toISOString().slice(0, 10); record.category = ''; }
   try {
     const { data, error } = await supa.from('bookmarks').insert(record).select();
