@@ -167,7 +167,7 @@
   .bb .bk-tags{display:flex;flex-wrap:wrap;gap:4px}
   .bb-list{display:flex;flex-direction:column;gap:12px}
   /* desktop: C2 big card */
-  .bb{display:flex;gap:20px;background:linear-gradient(150deg,#fbf3df,#fff 60%);border:1.5px solid #ecdcb2;border-radius:16px;padding:16px;cursor:pointer}
+  .bb{display:flex;gap:20px;background:linear-gradient(90deg,color-mix(in srgb,var(--bw,#8a6f2f) 6%,#fff),#fff 45%);border:1px solid #e3e8f0;border-radius:16px;padding:16px;cursor:pointer}
   .bb-cv{flex:0 0 108px;width:108px;aspect-ratio:2/3;border-radius:3px 9px 9px 3px;background:linear-gradient(135deg,color-mix(in srgb,var(--bc) 85%,#fff),var(--bc) 60%,color-mix(in srgb,var(--bc) 70%,#000));color:#fff;padding:12px 10px 10px 14px;display:flex;flex-direction:column;box-shadow:0 8px 18px rgba(20,25,40,.18),inset 5px 0 0 rgba(0,0,0,.18);position:relative}
   .bb-cv::after{content:'';position:absolute;left:14px;right:10px;bottom:30px;height:1px;background:rgba(244,196,48,.6)}
   .bb-cvt{font-family:var(--serif);font-weight:600;font-size:.84rem;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
@@ -299,6 +299,8 @@
   .bkp .bklong { cursor:pointer; display:flex; align-items:baseline; gap:6px 12px; flex-wrap:wrap; user-select:none; } .bkp .bklong h3 { white-space:nowrap; } .bkp .bklong .m, .bkp .bklong .tg { font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; color:#8a7f99; white-space:nowrap; } .bkp .bklong .tg { margin-left:auto; align-self:center; }
   body.fr-book.fr-editing.bk-lnfold .bkp .bklong { border-bottom:1px solid #e3e3ea; border-radius:16px; padding-bottom:12px; margin-bottom:18px; }
   body.fr-book.fr-editing.bk-lnfold #frToolbar, body.fr-book.fr-editing.bk-lnfold #frAlbum, body.fr-book.fr-editing.bk-lnfold #frBodyInp { display:none !important; }   /* BP-L: the long note folded */
+  body.fr-book:not(.fr-editing).bk-rdfold #frBody { display:none !important; }
+  .bkp .bklong.rd { border-bottom:1px solid #e3e3ea; border-radius:16px; padding-bottom:12px; margin:18px 0 0; } .bkp .bklong.rd.open { margin-bottom:6px; }
   body.fr-book.fr-editing #frToolbar { background:#fff; border:1px solid #e3e3ea; border-top:none; border-bottom:none; border-radius:0; margin:0; padding:6px 22px; }
   body.fr-book.fr-editing #frBodyInp { background:#fff; border:1px solid #e3e3ea; border-top:none; border-radius:0 0 16px 16px; padding:14px 22px 34px; min-height:150px; margin:-14px 0 18px !important; position:relative; }
   body.fr-book.fr-editing #frAlbum { background:#fff; border:1px solid #e3e3ea; border-top:none; border-bottom:none; margin:0; padding:0 22px; }   /* the long note card runs unbroken */
@@ -2071,15 +2073,23 @@ function lkAppOf_(u) {
 const BK_PAL = ['#7a2e2e','#1f4e5f','#2f5a3a','#5b3a6e','#8a6f2f','#26324a','#7a4b2a','#3e5c76'];
 function bkCol_(t) { let h = 0; for (const c of String(t || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; return BK_PAL[h % BK_PAL.length]; }   // fixed per title
 function bkIni_(t) { return String(t || '?').replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase() || '?'; }
+// BK-5 (11 Nov 2026): the shelf's quote line - ★ highlight, else My take, else first highlight, else the start of the note
+function bkShelfLine_(r) {
+  if (isDoc(r.note)) return r.essence || '';
+  const pl = t => String(t || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+  const P = bkParse_(r.note || ''), nop = t => pl(t).replace(/[★⭐]/g, '').replace(/\s+[—–-]\s*p\.?\s*\d+\S*\s*$/i, '').trim();
+  const st = P.hl.find(t => /[★⭐]/.test(t));
+  return (st && nop(st)) || (r.essence || '').trim() || (P.hl[0] && nop(P.hl[0])) || pl(P.any ? P.notes : NoteEditor.toPlain(r.note || ''));
+}
 function renderBooks_(list, wrap) {
   list = list.slice().sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
   const star = '<svg viewBox="0 0 24 24" width="13" height="13" fill="#f4c430" stroke="#c99a12" stroke-width="1.2"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
   wrap.innerHTML = '<div class="rows bb-list">' + list.map(r => {
-    const q = isDoc(r.note) ? '' : NoteEditor.toPlain(r.note).trim();
-    return '<div class="bb" data-open="' + escHtml(r.id) + '">' +
+    const q = bkShelfLine_(r);
+    return '<div class="bb" data-open="' + escHtml(r.id) + '" style="--bw:' + bkColFor_(r) + '">' +
       '<div class="bb-cv" style="--bc:' + bkColFor_(r) + '" data-i="' + escHtml(bkIni_(r.title)) + '"><div class="bb-cvt">' + escHtml(r.title) + '</div><div class="bb-cva">' + escHtml(r.type || '') + '</div></div>' +
       '<div class="bb-m"><div class="bb-t">' + escHtml(r.title) + (r.favourite ? ' ' + star : '') + '</div>' + (r.type ? '<div class="bb-a">' + escHtml(r.type) + '</div>' : '') +
-      (q ? '<div class="bb-q">' + escHtml(q.slice(0, 260)) + '</div>' : '') +
+      (q ? '<div class="bb-q">“' + escHtml(q.length > 220 ? q.slice(0, 219).replace(/\s+\S*$/, '') + '…' : q) + '”</div>' : '') +
       (bkTagsShown_(r).length ? '<div class="bk-tags">' + bkTagsShown_(r).map(t => '<span class="bk-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') + '</div>' +
       '<button class="bb-ed" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button></div>';
   }).join('') + '</div>';
@@ -2145,7 +2155,7 @@ function bkMonth_(d) { const m = String(d || '').match(/^(\d{4})-(\d{2})/); retu
 function bkRender_() {
   const pg = el('bkPage'); if (!pg) return;
   const r = rows.find(x => String(x.id) === String(frId));
-  if (!r || secOf(r) !== 'books') { pg.innerHTML = ''; document.body.classList.remove('bk-struct'); return; }
+  if (!r || secOf(r) !== 'books') { pg.innerHTML = ''; document.body.classList.remove('bk-struct', 'bk-rdfold'); return; }
   const P = bkParse_(el('frBody').classList.contains('empty') ? '' : el('frBody').innerHTML);
   document.body.classList.toggle('bk-struct', P.any);
   const strip = t => t.replace(/[★⭐]/g, '').trim();
@@ -2174,7 +2184,13 @@ function bkRender_() {
       const body = t.replace(/^[✓✔✅◷⏳⌛]\s*/, ''); return '<div class="' + c + '"><b>' + lb + '</b>' + escHtml(body) + '</div>'; }).join('') + '</div></div>';
   if (P.any && P.notes) { const nw = (P.notes.replace(/<[^>]*>/g, ' ').trim().match(/\S+/g) || []).length;
     h += '<div class="sec ntc fold" id="bkS_nt"><div class="sh" role="button" tabindex="0"><span class="n">' + roman[n++] + '</span><h3>Notes</h3><span class="m mono">' + nw + (nw === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ SHOW</span></div><div class="nt">' + P.notes + '</div></div>'; }
+  const solo = !P.any && !frHasDoc && P.notes && (P.notes.replace(/<[^>]*>/g, ' ').trim().match(/\S+/g) || []).length;   // BP-L2: a note-only book folds its long note too
+  if (solo) h += '<div class="bklong rd" id="bkLongRd" role="button" tabindex="0"><h3>The long note</h3><span class="m">' + solo + (solo === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ OPEN</span></div>';
+  document.body.classList.toggle('bk-rdfold', !!solo);
   pg.innerHTML = h;
+  const rd = el('bkLongRd');
+  if (rd) { const tg = () => { const f = document.body.classList.toggle('bk-rdfold'); rd.classList.toggle('open', !f); rd.querySelector('.tg').textContent = f ? '▾ OPEN' : '▴ FOLD'; };
+    rd.addEventListener('click', tg); rd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }); }
   const ntS = el('bkS_nt'), ntSet = open => { if (!ntS) return; ntS.classList.toggle('fold', !open); ntS.querySelector('.tg').textContent = open ? '▴ HIDE' : '▾ SHOW'; };
   if (ntS) { const sh = ntS.querySelector('.sh'), tog = () => ntSet(ntS.classList.contains('fold'));
     sh.addEventListener('click', tog); sh.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } }); }
