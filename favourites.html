@@ -264,7 +264,23 @@
   /* chip themes = the section washes (t-bg = w2, t-acc = acc) */
   /* LR-3: one ink for every chip - the Library blue, the Links chip's exact
      clothes on all seven. The seven-ink round retires. */
-  .fav-seg > span { --t-acc:#2f5187; }
+  /* LK-C · P1 (11 Nov 2026): like My Why's section bar - each shelf its own colour (My Why's tints): a soft tint at rest, solid when on */
+  .fav-seg > span { --t-acc:#2f5187; opacity:1; background:var(--t-bg,transparent); color:var(--t-acc); }
+  .fav-seg > span[data-sec='all-time'] { --t-bg:#dff0ed; --t-acc:#1f6a63; }
+  .fav-seg > span[data-sec='books'] { --t-bg:#f0e2c6; --t-acc:#8a6f2f; }
+  .fav-seg > span[data-sec='podcasts'] { --t-bg:#e9e4f2; --t-acc:#5b4a86; }
+  .fav-seg > span[data-sec='marathi'] { --t-bg:#f7e2e7; --t-acc:#98455a; }
+  .fav-seg > span[data-sec='movies'] { --t-bg:#fbe3d3; --t-acc:#b4541f; }
+  .fav-seg > span[data-sec='music'] { --t-bg:#eceedd; --t-acc:#63682f; }
+  .fav-seg > span[data-sec='wisdom'] { --t-bg:#d9e5f5; --t-acc:#2f5187; }
+  .fav-seg > span[data-sec='learning'] { --t-bg:#e4e8f0; --t-acc:#4A5878; }
+  .fav-seg > span[data-sec='lenses'] { --t-bg:#e2e5ea; --t-acc:#2b3242; }
+  .fav-seg > span.on { background:var(--t-acc); color:#fff; box-shadow:0 2px 6px color-mix(in srgb, var(--t-acc) 40%, transparent); }
+  /* LK-T2 · V1: on Now Playing the big kind chips come first, the small tags sit under them on the right */
+  body[data-sec='all-time'] #tagsRow { justify-content:flex-end; margin:-4px 0 6px; }
+  .lk-kinds.lk-top { margin:4px 0 10px; }
+  body[data-sec='all-time'] .lk-k.on { background:#1f6a63; border-color:#1f6a63; }
+  body[data-sec='all-time'] .sh-plus { background:#1f6a63; }
   /* Small wrapping chips at every width, as My Why has. A grid stretches them
      into buttons and costs three times the height. */
   @media (max-width:560px){
@@ -727,7 +743,7 @@
       </div>
 
       <div class="fav-seg" id="favSeg">
-        <span data-sec="all-time" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 14.6 8.6 21 9.3 16.3 13.6 17.6 20 12 16.8 6.4 20 7.7 13.6 3 9.3 9.4 8.6"/></svg><i class="sl">Links</i></span>
+        <span data-sec="all-time" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 14.6 8.6 21 9.3 16.3 13.6 17.6 20 12 16.8 6.4 20 7.7 13.6 3 9.3 9.4 8.6"/></svg><i class="sl">Now Playing</i></span>
         <span data-sec="books"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h3.2v16H4zM9 4h3.2v16H9z"/><path d="m14.6 4.6 3.3-.7 3 15.7-3.3.7z"/></svg><i class="sl">Books</i></span>
         <span data-sec="podcasts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M8.8 8.8a4.6 4.6 0 0 0 0 6.4M15.2 8.8a4.6 4.6 0 0 1 0 6.4M5.9 5.9a8.8 8.8 0 0 0 0 12.2M18.1 5.9a8.8 8.8 0 0 1 0 12.2"/></svg><i class="sl">Podcasts</i></span>
         <span data-sec="marathi"><svg viewBox="0 0 24 24"><text x="12" y="17.5" text-anchor="middle" font-size="16" font-weight="600" fill="currentColor" font-family="Noto Sans Devanagari, sans-serif">म</text></svg><i class="sl">मराठी</i></span>
@@ -1475,7 +1491,7 @@ async function _doorCreate(sec, two) {
 }
 const SECTIONS = {
   // A (Aug 2026): renamed from 'All-Time'; the 'all-time' KEY is law and never changes.
-  'all-time': { lbl:'My Favourite Links', kind:'links' },
+  'all-time': { lbl:'Now Playing', kind:'links' },   // LK-C (11 Nov 2026): was 'My Favourite Links' / chip 'Links'
   'books':    { lbl:'Books', kind:'notes', srcReq:false, eyebrow:'Book note' },
   'podcasts': { lbl:'Podcasts', kind:'notes', srcReq:false, eyebrow:'Podcast note' },
   'marathi':  { lbl:'\u092e\u0930\u093e\u0920\u0940', kind:'notes', srcReq:false, eyebrow:'\u092e\u0930\u093e\u0920\u0940' },
@@ -1688,7 +1704,12 @@ function renderTags() {
 }
 function render() {
   document.body.setAttribute('data-sec', activeSection);
+  document.querySelectorAll('.lk-kinds.lk-top').forEach(x => x.remove());   // LK-T2: last render's moved kind row
   render_();
+  if (activeSection === 'all-time') {   // LK-T2 · V1: kind chips above the tags
+    const k = document.querySelector('#rowsWrap .lk-kinds'), t = el('tagsRow');
+    if (k && t) { k.classList.add('lk-top'); t.parentNode.insertBefore(k, t); }
+  }
   const wrap = el('rowsWrap');
   if (wrap && !wrap.querySelector('.shelf-head') && !wrap.querySelector('.empty')) {
     const sec = SECTIONS[activeSection] || SECTIONS['all-time']; const n = filteredRows().length;
