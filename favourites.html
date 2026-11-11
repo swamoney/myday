@@ -479,6 +479,9 @@
   body.fr-learning .fr-h1 .hp { margin:0 auto 0.75em; } body.fr-learning .fr-h1 .hp:last-child { margin-bottom:0; }
   body.fr-learning .fr-learn, body.fr-learning .fr-srcline { justify-content:center; }
   body.fr-learning .fr-sticky { border-bottom:none; }
+  body.fr-learning .fr-h1.fr-h1-edit { white-space:pre-line; }   /* LD-P (A): your own breaks show while editing */
+  .fr-h1hint { display:none; margin:2px auto 8px; font-family:var(--mono); font-size:0.5rem; letter-spacing:0.14em; color:#9a8a5a; }
+  body.fr-learning.fr-editing .fr-h1hint { display:block; }
   @media (max-width:640px) { body.fr-learning .fr-headtxt { padding:50px 18px 18px; } body.fr-learning .fr-headtxt::before { font-size:4rem; top:4px; } body.fr-learning .fr-headbtns { align-self:stretch; } body.fr-learning .fr-h1.ln-m { font-size:1.15rem; } body.fr-learning .fr-h1.ln-l { font-size:1.02rem; } }
   .fr-learn { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0 10px; }
   .fr-learn.hidden { display:none; }
@@ -772,6 +775,7 @@
           <div class="fr-headtxt">
             <div class="fr-eyebrow" id="frEyebrow"></div>
             <div class="fr-h1" id="frH1"></div>
+            <div class="fr-h1hint">ENTER = NEW PARAGRAPH · TAP DONE TO SAVE</div>
             <div class="fr-learn hidden" id="frLearn">
               <button type="button" class="fr-lpill dt" id="frLearnDate" title="Tap to change the date"></button>
               <input type="date" id="frLearnDateIn" class="hidden">
@@ -2016,7 +2020,9 @@ function setFrEditing(on) {
       h1._frTitleWired = true;
       h1.addEventListener('input', () => ldHeadSize_(h1, h1.textContent));
       h1.addEventListener('keydown', ev => {
-        if (ev.key === 'Enter') { ev.preventDefault(); h1.blur(); }
+        if (ev.key === 'Enter') { ev.preventDefault();
+          if (document.body.classList.contains('fr-learning')) { document.execCommand('insertLineBreak'); return; }   // LD-P (A): Enter = new paragraph; Done saves
+          h1.blur(); }
       });
     }
   } else {
@@ -2030,7 +2036,7 @@ function setFrEditing(on) {
       el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
       el('frBody').classList.toggle('empty', !html);
     }
-    if (wasEditing) { _frTitleCommit(h1.textContent); }
+    if (wasEditing) { const lrn = document.body.classList.contains('fr-learning'); _frTitleCommit(lrn ? ldHeadText_(h1) : h1.textContent, lrn); }
   } else {
     nk.refresh();
   }
@@ -2057,23 +2063,33 @@ function ldHeadSize_(h, t) {
   h.classList.toggle('ln-m', learn && n > 110 && n <= 260);
   h.classList.toggle('ln-l', learn && n > 260);
 }
+function ldHeadText_(h) {   // LD-P: the heading's text with your breaks (a typed newline, <br> or a new block all count)
+  const c = h.cloneNode(true);
+  c.querySelectorAll('br').forEach(x => x.replaceWith('\n'));
+  c.querySelectorAll('div, p').forEach(x => x.prepend('\n'));
+  return c.textContent;
+}
 function ldHeadFmt_(t) {
   const h = el('frH1'); if (!h) return;
   if (t == null) { const r = rows.find(x => String(x.id) === String(frId)); t = r ? (r.title || '') : h.textContent; }
   t = String(t || '');
   ldHeadSize_(h, t);
   let ss = [t];
-  try { ss = t.split(/(?<=[.!?…]["”’)]?)\s+(?=[A-Z“"‘(0-9])/); } catch (e) {}
-  if (document.body.classList.contains('fr-learning') && !h.isContentEditable && t.length > 260 && ss.length > 2) {
+  try { ss = t.replace(/\n/g, ' ').split(/(?<=[.!?…]["”’)]?)\s+(?=[A-Z“"‘(0-9])/); } catch (e) {}
+  const own = t.split('\n').map(x => x.trim()).filter(Boolean);   // LD-P: your own breaks win over the automatic split
+  if (document.body.classList.contains('fr-learning') && !h.isContentEditable && own.length > 1) {
+    h.innerHTML = own.map(x => '<p class="hp">' + escHtml(x) + '</p>').join('');
+  } else if (document.body.classList.contains('fr-learning') && !h.isContentEditable && t.length > 260 && ss.length > 2) {
     const g = []; for (let i = 0; i < ss.length; i += 2) g.push(ss.slice(i, i + 2).join(' '));
     h.innerHTML = g.map(x => '<p class="hp">' + escHtml(x) + '</p>').join('');
   } else if (h.querySelector('.hp') || h.textContent !== t) h.textContent = t;
 }
-async function _frTitleCommit(raw) {
+async function _frTitleCommit(raw, keepBreaks) {
   if (!frId) return;
   const r = rows.find(x => String(x.id) === String(frId));
   if (!r) return;
-  const t = String(raw || '').replace(/\s+/g, ' ').trim();
+  const t = keepBreaks ? String(raw || '').split(/\n+/).map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n')   // LD-P: keep your paragraph breaks
+                     : String(raw || '').replace(/\s+/g, ' ').trim();
   if (!t || t === r.title) { ldHeadFmt_(r.title || ''); return; }
   try {
     const { error } = await supa.from('bookmarks').update({ title: t })
@@ -2194,7 +2210,7 @@ el('frStar').addEventListener('click', () => { if (frId) { toggleFav(frId); el('
 function frMd_() {
   const r = rows.find(x => x.id === frId) || {};
   const sec = SECTIONS[secOf(r)] || {};
-  let md = '# ' + (r.title || '') + '\n\n';
+  let md = '# ' + String(r.title || '').replace(/\n+/g, ' ') + '\n\n';   // LD-P: one heading line
   if (r.type) md += '- **' + (sec.eyebrow || 'Source') + ':** ' + r.type + '\n';
   if ((r.source_url || '').trim()) md += '- **Link:** ' + normalizeUrl(r.source_url) + '\n';
   if (secOf(r) === 'learning' && (r.url || '').trim()) md += '- **Also:** ' + normalizeUrl(r.url) + '\n';
@@ -2296,7 +2312,7 @@ el('frPrint').addEventListener('click', () => {
   const src = (r.source_url || '').trim();
   const style = "<style>@page{margin:20mm}body{font-family:'Fraunces',Georgia,serif;color:#1c2331;line-height:1.75;max-width:720px;margin:40px auto;padding:0 24px}.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:0.625rem;letter-spacing:.18em;text-transform:uppercase;color:#9aa4ba}h1{font-weight:600;font-size:1.875rem;margin:6px 0 4px}.meta{font-family:'IBM Plex Sans',sans-serif;font-size:0.8125rem;color:#5a6478;margin-bottom:20px}.body{font-size:1.125rem}.body h3{font-size:1.3125rem;margin:18px 0 6px}.body blockquote{border-left:3px solid #e0c98a;padding-left:16px;color:#5a6478;font-style:italic;margin:12px 0}.body ul{padding-left:24px}.body img{max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block}</style>" + '<style>' + NoteEditor.contentCSS('.body') + '</style>';
   const meta = [sec.learning ? ('Learned ' + esc(ldFmt_(ldDate_(r), true))) : '', sec.learning && ldCats_(r).length ? esc(ldCats_(r).join(' \u00B7 ')) : '', esc(r.type||''), src ? esc(normalizeUrl(src)) : '', sec.learning && (r.url || '').trim() ? esc(normalizeUrl(r.url)) : ''].filter(Boolean).join(' &middot; ');
-  const body = '<div class="eyebrow">' + esc(sec.eyebrow || sec.lbl || '') + '</div><h1>' + esc(r.title||'') + '</h1>' +
+  const body = '<div class="eyebrow">' + esc(sec.eyebrow || sec.lbl || '') + '</div><h1>' + esc(r.title||'').replace(/\n/g, '<br>') + '</h1>' +
     (meta ? '<div class="meta">' + meta + '</div>' : '') + '<div class="body">' + (NoteEditor.toHtml(NoteEditor.sanitize(r.note)) || '') + '</div>';
   NoteEditor.openPrint('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Note') + '</title><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500&family=Noto+Sans+Devanagari:wght@400;500&display=swap" rel="stylesheet">' + style + '</head><body>' + body + '<scr'+'ipt>window.onload=function(){setTimeout(function(){window.print();},400);};</scr'+'ipt></body></html>');
 });
