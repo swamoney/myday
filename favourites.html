@@ -465,6 +465,21 @@
 
   .ld-clear { margin-top:8px; color:#a8323f; border-color:#e0b8bc; }
   .ld-clear:hover { color:#7A2F38; border-color:#a8323f; }
+  /* LD-H2 (11 Nov 2026): a learning page's heading is a full-width cream quote card (R3), centred like a page title;
+     the buttons sit above it on the right. Long headings step down in size (ln-m, ln-l) and, over ~260 characters,
+     show as paragraphs of two sentences each (display only - the saved title is one line, Edit shows it whole) */
+  body.fr-learning .fr-headrow { flex-direction:column-reverse; align-items:stretch; gap:14px; }
+  body.fr-learning .fr-headbtns { align-self:flex-end; width:auto; }
+  body.fr-learning .fr-headtxt { background:linear-gradient(160deg,#fbf7ee,#fff 55%,#fbf7ee); border:1px solid #efe6d2; border-radius:18px; box-shadow:0 10px 26px rgba(35,47,69,0.08); position:relative; padding:62px 48px 26px; text-align:center; }
+  body.fr-learning .fr-headtxt::before { content:'\201C'; position:absolute; left:50%; transform:translateX(-50%); top:6px; font-family:var(--serif); font-size:5rem; font-weight:700; color:#d9c48c; opacity:0.7; line-height:1; pointer-events:none; }
+  body.fr-learning .fr-eyebrow { text-align:center; }
+  body.fr-learning .fr-h1 { font-weight:500; color:#232f45; max-width:760px; margin:6px auto 14px; text-wrap:balance; }
+  body.fr-learning .fr-h1.ln-m { font-size:1.45rem; line-height:1.35; }
+  body.fr-learning .fr-h1.ln-l { font-size:1.2rem; line-height:1.5; }
+  body.fr-learning .fr-h1 .hp { margin:0 auto 0.75em; } body.fr-learning .fr-h1 .hp:last-child { margin-bottom:0; }
+  body.fr-learning .fr-learn, body.fr-learning .fr-srcline { justify-content:center; }
+  body.fr-learning .fr-sticky { border-bottom:none; }
+  @media (max-width:640px) { body.fr-learning .fr-headtxt { padding:50px 18px 18px; } body.fr-learning .fr-headtxt::before { font-size:4rem; top:4px; } body.fr-learning .fr-headbtns { align-self:stretch; } body.fr-learning .fr-h1.ln-m { font-size:1.15rem; } body.fr-learning .fr-h1.ln-l { font-size:1.02rem; } }
   .fr-learn { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0 10px; }
   .fr-learn.hidden { display:none; }
   .fr-lpill { font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.1em; border-radius:6px; padding:4px 9px; border:none; cursor:pointer; }
@@ -1888,6 +1903,7 @@ function openReader(id, keepNav, forcePage) {
   // LD-1: the learning page wears its date and category under the title
   el('frLearn').classList.toggle('hidden', !sec.learning);
   document.body.classList.toggle('fr-learning', !!sec.learning);
+  ldHeadFmt_(r.title || '');   // LD-H2
   if (sec.learning) {
     ldLinkPills_(r);
     ldRecallPills_(r);
@@ -1995,8 +2011,10 @@ function setFrEditing(on) {
   if (on) {
     h1.setAttribute('contenteditable', 'true');
     h1.classList.add('fr-h1-edit');
+    ldHeadFmt_();   // LD-H2: back to one plain line to edit
     if (!h1._frTitleWired) {
       h1._frTitleWired = true;
+      h1.addEventListener('input', () => ldHeadSize_(h1, h1.textContent));
       h1.addEventListener('keydown', ev => {
         if (ev.key === 'Enter') { ev.preventDefault(); h1.blur(); }
       });
@@ -2033,22 +2051,40 @@ async function _frPassageCommit(raw) {
     toast('Passage saved');
   } catch (e) { toast('Could not save the passage'); }
 }
+// LD-H2: size a learning heading by its length; when reading (not editing) a long one shows as paragraphs of two sentences
+function ldHeadSize_(h, t) {
+  const learn = document.body.classList.contains('fr-learning'), n = String(t || '').length;
+  h.classList.toggle('ln-m', learn && n > 110 && n <= 260);
+  h.classList.toggle('ln-l', learn && n > 260);
+}
+function ldHeadFmt_(t) {
+  const h = el('frH1'); if (!h) return;
+  if (t == null) { const r = rows.find(x => String(x.id) === String(frId)); t = r ? (r.title || '') : h.textContent; }
+  t = String(t || '');
+  ldHeadSize_(h, t);
+  let ss = [t];
+  try { ss = t.split(/(?<=[.!?…]["”’)]?)\s+(?=[A-Z“"‘(0-9])/); } catch (e) {}
+  if (document.body.classList.contains('fr-learning') && !h.isContentEditable && t.length > 260 && ss.length > 2) {
+    const g = []; for (let i = 0; i < ss.length; i += 2) g.push(ss.slice(i, i + 2).join(' '));
+    h.innerHTML = g.map(x => '<p class="hp">' + escHtml(x) + '</p>').join('');
+  } else if (h.querySelector('.hp') || h.textContent !== t) h.textContent = t;
+}
 async function _frTitleCommit(raw) {
   if (!frId) return;
   const r = rows.find(x => String(x.id) === String(frId));
   if (!r) return;
   const t = String(raw || '').replace(/\s+/g, ' ').trim();
-  if (!t || t === r.title) { el('frH1').textContent = r.title || ''; return; }
+  if (!t || t === r.title) { ldHeadFmt_(r.title || ''); return; }
   try {
     const { error } = await supa.from('bookmarks').update({ title: t })
       .eq('id', frId).eq('user_id', userId);
     if (error) throw error;
     r.title = t;
-    el('frH1').textContent = t;
+    ldHeadFmt_(t);
     toast('Title saved');
     render();
   } catch (e) {
-    el('frH1').textContent = r.title || '';
+    ldHeadFmt_(r.title || '');
     toast('Could not save the title');
   }
 }
