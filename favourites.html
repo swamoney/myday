@@ -147,6 +147,10 @@
   .lk-row.lk-editing { grid-column:1/-1; cursor:default; }
   .lk-row:hover { box-shadow:0 8px 18px rgba(15,45,92,.09); }
   .lk-kinds + .lk-gh { margin-top:2px; }
+  /* LK-B4a (11 Nov 2026): each box washed and outlined in My Mantras' soft ink for its kind (--kb: sage, plum, rose, gold, sky);
+     headings, icon tiles, pills and chips keep the full kind colour (--kc) */
+  .lk-row { position:relative; overflow:hidden; background:linear-gradient(150deg, color-mix(in srgb, var(--kb, var(--kc)) 14%, #fff) 0%, #fff 62%); border:1.5px solid color-mix(in srgb, var(--kb, var(--kc)) 40%, #fff); box-shadow:none; border-radius:14px; }
+  .lk-row:hover { box-shadow:0 8px 18px rgba(15,45,92,.07); }
   /* LK-S2 (11 Nov 2026): one kind choice (= the saved type) + an optional tags line, in Keep a link and in edit */
   .kp { flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:2px 0; }
   .kp-l { font-family:var(--mono); font-size:.56rem; font-weight:700; letter-spacing:.16em; color:#8a97b3; margin-right:4px; }
@@ -1841,7 +1845,7 @@ function render_() {
       g.map(r => {
         const tagsHtml = (r.tags || []).slice(0, 2).map(t => '<span class="lk-tag">' + escHtml(t) + '</span>').join('');
         const app = lkAppOf_(r.url);
-        return '<div class="lk-row row-lk' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '" style="--kc:' + K.c + '">' +
+        return '<div class="lk-row row-lk' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '" style="--kc:' + K.c + ';--kb:' + K.kb + '">' +
           '<div class="lk-ic">' + K.i + '</div>' +
           '<div class="lk-mid"><div class="lk-t">' + escHtml(r.title) + '</div><div class="lk-m">' +
             '<span class="lk-kind">' + escHtml(r.type || K.l) + '</span>' + (app ? '<span class="lk-app">' + escHtml(app) + '</span>' : '') + tagsHtml + '</div></div>' +
@@ -1869,11 +1873,11 @@ function render_() {
 var lkKind_ = 'all';
 const LK_ORDER = ['music', 'podcast', 'audiobook', 'ebook', 'other'];
 const LK_KINDS = {
-  music:     { l:'Music',     p:'Music',      c:'#1a6a6a', i:'♪',      a:'PLAY' },
-  podcast:   { l:'Podcast',   p:'Podcasts',   c:'#4a3a7a', i:'\u{1F399}', a:'PLAY' },
-  audiobook: { l:'Audiobook', p:'Audiobooks', c:'#7a3550', i:'\u{1F3A7}', a:'LISTEN' },
-  ebook:     { l:'E-book',    p:'E-books',    c:'#8A1F1A', i:'\u{1F4D6}', a:'READ' },
-  other:     { l:'Link',      p:'Other links', c:'#0F2D5C', i:'\u{1F517}', a:'OPEN' }
+  music:     { l:'Music',     p:'Music',      c:'#1a6a6a', kb:'#5f938c', i:'♪',      a:'PLAY' },
+  podcast:   { l:'Podcast',   p:'Podcasts',   c:'#4a3a7a', kb:'#96789e', i:'\u{1F399}', a:'PLAY' },
+  audiobook: { l:'Audiobook', p:'Audiobooks', c:'#7a3550', kb:'#c0707e', i:'\u{1F3A7}', a:'LISTEN' },
+  ebook:     { l:'E-book',    p:'E-books',    c:'#8A1F1A', kb:'#a8935f', i:'\u{1F4D6}', a:'READ' },
+  other:     { l:'Link',      p:'Other links', c:'#0F2D5C', kb:'#7086a8', i:'\u{1F517}', a:'OPEN' }
 };
 const LK_STAR = '<svg viewBox="0 0 24 24" width="13" height="13" fill="#f4c430" stroke="#c99a12" stroke-width="1.2"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
 function lkKindOf_(t) {
