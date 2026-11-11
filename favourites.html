@@ -244,6 +244,40 @@
     .bkp .sec { padding:14px; } .bkp .sh h3 { font-size:1.2rem; } .bkp .use { grid-template-columns:1fr; } .bkp .hl .q { font-size:1rem; }
     .bkx #bkFrom, .bkx #bkTake { width:100%; }
   }
+
+  /* BP-E1 (11 Nov 2026): editing a book looks like reading it - the plate stays, dashed text is typed in place,
+     each section has its own "+ add", Notes keeps the full editor */
+  body.fr-book.fr-editing .fr-headtxt { display:none; }
+  body.fr-book.fr-editing .bkp { display:block; }
+  body.fr-book .fr-headbtns { align-self:flex-end; }
+  body.fr-book .fr-sticky { position:static; }   /* the book page is long; nothing sticks over it */
+  .bkp [contenteditable] { outline:1.5px dashed color-mix(in srgb, var(--bc) 40%, #fff); outline-offset:3px; border-radius:6px; background:rgba(255,255,255,.55); cursor:text; min-width:40px; }
+  .bkp [contenteditable]:focus { outline:2px solid color-mix(in srgb, var(--bc) 70%, #fff); background:#fff; }
+  .bkp [contenteditable]:empty::before { content:attr(data-ph); color:#a9b2c4; font-style:italic; }
+  .bkp .bkeh { font-size:.6rem; color:#8a6f2f; margin:0 0 10px; }
+  .bkp .by[contenteditable] { display:inline-block; padding:2px 6px; }
+  .bkp .take .v[contenteditable] { padding:2px 6px; }
+  .bkp .chip button { border:none; background:none; color:#8a97b3; cursor:pointer; padding:0 0 0 2px; font-size:.8rem; }
+  .bkp .addt { font-size:.72rem; color:#8a97b3; border:1px dashed #cfd6e3; border-radius:999px; padding:3px 10px; background:#fff; cursor:pointer; }
+  .bkp .tagin { font-size:.74rem; border:1px dashed #cfd6e3; border-radius:999px; padding:3px 10px; width:130px; }
+  .bkp .cvx { display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .bkp .pick { display:flex; flex-wrap:wrap; justify-content:center; gap:5px; max-width:118px; } .bkp .pick button { width:16px; height:16px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #cfd6e3; padding:0; cursor:pointer; } .bkp .pick button.on { box-shadow:0 0 0 2px #232f45; }
+  .bkp .hero .q .ph { color:#a9b2c4; }
+  .bkp .facts input { font-family:var(--serif); font-size:1rem; border:none; border-bottom:1px dashed #cfd6e3; background:none; padding:2px 0; width:100%; color:#232f45; }
+  .bkp .eit { display:flex; align-items:flex-start; gap:8px; }
+  .bkp .eit [contenteditable] { flex:1; padding:3px 8px; }
+  .bkp .eit .x { border:none; background:none; color:#b8c2d0; cursor:pointer; font-size:1rem; padding:2px 4px; }
+  .bkp .hl .s button { border:none; background:none; font:inherit; letter-spacing:inherit; color:#a08b55; cursor:pointer; padding:0; }
+  .bkp .hl .s button.on { color:#c99a12; }
+  .bkp .tke { display:flex; flex-direction:column; gap:8px; } .bkp .tke .eit::before { content:counter(tk) '.'; counter-increment:tk; font-family:var(--serif); font-weight:600; color:var(--bc); padding-top:4px; min-width:18px; } .bkp .tke { counter-reset:tk; }
+  .bkp .lve { display:flex; flex-direction:column; gap:10px; }
+  .bkp .lvsel { display:inline-flex; gap:4px; margin-bottom:6px; } .bkp .lvsel button { font-family:var(--mono); font-size:.52rem; letter-spacing:.12em; border:1px solid #dfe5ee; border-radius:999px; padding:2px 8px; color:#8a97b3; background:#fff; cursor:pointer; } .bkp .lvsel button.on { background:#2f6146; color:#fff; border-color:#2f6146; } .bkp .lvsel button.on.tr { background:#8a6f2f; border-color:#8a6f2f; }
+  .bkp .addl { display:flex; align-items:center; gap:10px; margin-top:10px; padding:4px 6px 4px 12px; border:1.5px dashed #e3cf9a; border-radius:10px; background:#fff; }
+  .bkp .addl input { flex:1; border:none; outline:none; font-family:var(--serif); font-size:1rem; padding:8px 0; background:none; min-width:0; }
+  .bkp .addl b { font-family:var(--mono); font-size:.56rem; letter-spacing:.12em; color:#a08b55; font-weight:400; white-space:nowrap; }
+  .bkp .sec.ntsec { margin-bottom:8px; padding-bottom:10px; }
+  body.fr-book.fr-editing #frBodyInp { background:#fff; border:1.5px dashed #e3cf9a; border-radius:12px; padding:12px 14px; min-height:120px; margin:6px 0 14px; }
+  @media (max-width:640px) { .bkp .addl b { display:none; } .bkp .eit [contenteditable] { font-size:1rem; } .bkp .pick { max-width:80px; } .bkp .pick button { width:14px; height:14px; } }
   .row-actions { display:flex; align-items:center; gap:10px; flex-shrink:0; }
   .row-edit { width:30px; height:30px; border-radius:8px; border:1px solid rgba(0,0,0,0.08); background:rgba(0,0,0,0.02); color:#8189a0; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; }
   .row-edit svg { width:15px; height:15px; }
@@ -1992,12 +2026,13 @@ const BK_PAL = ['#7a2e2e','#1f4e5f','#2f5a3a','#5b3a6e','#8a6f2f','#26324a','#7a
 function bkCol_(t) { let h = 0; for (const c of String(t || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0; return BK_PAL[h % BK_PAL.length]; }   // fixed per title
 function bkIni_(t) { return String(t || '?').replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase() || '?'; }
 function renderBooks_(list, wrap) {
+  if (!bkCovers_) bkCoversLoad_().then(() => { if (activeSection === 'books') render(); });
   list = list.slice().sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0) || String(b.created_at || '').localeCompare(String(a.created_at || '')));
   const star = '<svg viewBox="0 0 24 24" width="13" height="13" fill="#f4c430" stroke="#c99a12" stroke-width="1.2"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
   wrap.innerHTML = '<div class="rows bb-list">' + list.map(r => {
     const q = isDoc(r.note) ? '' : NoteEditor.toPlain(r.note).trim();
     return '<div class="bb" data-open="' + escHtml(r.id) + '">' +
-      '<div class="bb-cv" style="--bc:' + bkCol_(r.title) + '" data-i="' + escHtml(bkIni_(r.title)) + '"><div class="bb-cvt">' + escHtml(r.title) + '</div><div class="bb-cva">' + escHtml(r.type || '') + '</div></div>' +
+      '<div class="bb-cv" style="--bc:' + bkColFor_(r) + '" data-i="' + escHtml(bkIni_(r.title)) + '"><div class="bb-cvt">' + escHtml(r.title) + '</div><div class="bb-cva">' + escHtml(r.type || '') + '</div></div>' +
       '<div class="bb-m"><div class="bb-t">' + escHtml(r.title) + (r.favourite ? ' ' + star : '') + '</div>' + (r.type ? '<div class="bb-a">' + escHtml(r.type) + '</div>' : '') +
       (q ? '<div class="bb-q">' + escHtml(q.slice(0, 260)) + '</div>' : '') +
       ((r.tags || []).length ? '<div class="bk-tags">' + r.tags.map(t => '<span class="bk-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') + '</div>' +
@@ -2052,8 +2087,8 @@ function bkParse_(html) {
     return (n.nodeType === 3 ? n.textContent : c.textContent).split('\n').map(x => x.trim()).filter(Boolean);
   };
   [...box.childNodes].forEach(n => {
-    if (n.nodeType === 1 && /^H[1-6]$/.test(n.tagName)) { const t = n.textContent.trim(); const m = BK_SECS.find(x => x.re.test(t)); cur = m ? m.k : null; if (!m) rest.push(n.outerHTML); return; }
-    if (cur) { if (n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim())) out[cur].push(...items(n)); return; }
+    if (n.nodeType === 1 && /^H[1-6]$/.test(n.tagName)) { const t = n.textContent.trim(); if (/^(my\s+)?notes?\s*$/i.test(t)) { cur = 'nt'; return; } const m = BK_SECS.find(x => x.re.test(t)); cur = m ? m.k : null; if (!m) rest.push(n.outerHTML); return; }
+    if (cur && cur !== 'nt') { if (n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim())) out[cur].push(...items(n)); return; }
     rest.push(n.nodeType === 1 ? n.outerHTML : escHtml(n.textContent));
   });
   out.notes = rest.join('').trim();
@@ -2073,7 +2108,7 @@ function bkRender_() {
   const heroRaw = starred || P.hl[0] || '';
   const [heroT, heroRef] = bkPageRef_(strip(heroRaw));
   const read = bkMonth_(r.learned_on), auth = (r.type || '').trim(), from = (r.category || '').trim(), take = (r.essence || '').trim();
-  pg.style.setProperty('--bc', bkCol_(r.title));
+  pg.style.setProperty('--bc', bkColFor_(r)); if (bkEd_ && document.body.classList.contains('fr-editing')) { bkRenderEdit_(r, pg); return; }
   const tags = (r.tags || []).map(t => '<span class="chip"><i></i>' + escHtml(t) + '</span>').join('');
   let h = '<div class="bk1"><div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · BOOKS' + (read ? ' · READ ' + escHtml(read.toUpperCase()) : '') + '</div>' +
     '<h1>' + escHtml(r.title || '') + '</h1>' + (tags ? '<div>' + tags + '</div>' : '') + '<div class="ul"></div>' + (auth ? '<div class="by">' + escHtml(auth) + '</div>' : '') + '</div>' +
@@ -2109,6 +2144,118 @@ document.addEventListener('DOMContentLoaded', () => {
   bind('bkRead', 'learned_on', v => v ? v + '-01' : '');
   bind('bkFrom', 'category'); bind('bkTake', 'essence');
 });
+
+// ===== BP-E1 (11 Nov 2026): writing a book page in place =====
+let bkEd_ = null;        // while editing a book: { hl:[{t,star}], tk:[t], lv:[{t,st}] } - the Notes editor (#frBodyInp) holds the rest
+let bkCovers_ = null;    // cover colour you picked per book (user_prefs.prefs.book_covers)
+function bkColFor_(r) { return (bkCovers_ && bkCovers_[r.id]) || bkCol_(r.title); }
+async function bkCoversLoad_() {
+  if (bkCovers_) return; bkCovers_ = {};
+  try { const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle(); bkCovers_ = (q && q.data && q.data.prefs && q.data.prefs.book_covers) || {}; } catch (e) {}
+}
+async function bkCoverSave_(id, c) {
+  bkCovers_ = bkCovers_ || {}; bkCovers_[id] = c;
+  try {
+    const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle();
+    const prefs = Object.assign({}, (q && q.data && q.data.prefs) || {}); prefs.book_covers = Object.assign({}, prefs.book_covers || {}, bkCovers_);
+    await supa.from('user_prefs').upsert({ user_id: userId, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  } catch (e) { toast('Could not save the colour'); }
+}
+function frNoteHtml_() { const n = NoteEditor.sanitize(el('frBodyInp').innerHTML); return bkEd_ ? NoteEditor.sanitize(bkCompose_(n)) : n; }
+function bkEditSplit_() {
+  const P = bkParse_(NoteEditor.sanitize(el('frBodyInp').innerHTML));
+  bkEd_ = { hl: P.hl.map(t => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim() })),
+            tk: P.tk.map(t => t.replace(/^[-•*]\s*/, '')),
+            lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
+  el('frBodyInp').innerHTML = P.notes;
+}
+function bkCompose_(notes) {
+  const E = bkEd_, out = [], e = escHtml;
+  const hl = E.hl.filter(x => x.t.trim()), tk = E.tk.filter(x => x.trim()), lv = E.lv.filter(x => x.t.trim());
+  if (hl.length) out.push('<h3>Highlights</h3>' + hl.map(x => '<p>' + (x.star ? '★ ' : '') + e(x.t.trim()) + '</p>').join(''));
+  if (tk.length) out.push('<h3>Takeaways</h3><ul>' + tk.map(x => '<li>' + e(x.trim()) + '</li>').join('') + '</ul>');
+  if (lv.length) out.push('<h3>Lived it</h3>' + lv.map(x => '<p>' + (x.st === 'd' ? '✓ ' : x.st === 't' ? '◷ ' : '') + e(x.t.trim()) + '</p>').join(''));
+  const box = document.createElement('div'); box.innerHTML = notes || '';
+  const hasNotes = !!(box.textContent.trim() || box.querySelector('img,hr,iframe,input'));
+  if (!out.length) return notes || '';
+  if (hasNotes) out.push('<h3>Notes</h3>' + notes);
+  return out.join('');
+}
+function bkRenderEdit_(r, pg) {
+  const E = bkEd_, e = escHtml, auth = r.type || '';
+  const star = E.hl.find(x => x.star) || E.hl[0];
+  const [heroT] = star ? bkPageRef_(star.t) : [''];
+  const cur = bkColFor_(r);
+  let h = '<div class="bkeh mono">✎ EDITING — TAP ANY DASHED TEXT TO CHANGE IT</div>' +
+    '<div class="bk1"><div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · BOOKS · EDITING</div>' +
+    '<h1 contenteditable="true" id="bkeT" data-ph="Book title">' + e(r.title || '') + '</h1>' +
+    '<div>' + (r.tags || []).map(t => '<span class="chip"><i></i>' + e(t) + '<button type="button" data-rmt="' + e(t) + '" aria-label="Remove">×</button></span>').join('') +
+      '<button type="button" class="addt" id="bkeTagAdd">+ tag</button></div>' +
+    '<div class="ul"></div><div class="by" contenteditable="true" id="bkeA" data-ph="Author">' + e(auth) + '</div></div>' +
+    '<div class="cvx"><div class="cv"><div class="t">' + e(r.title || '') + '</div><div class="a">' + e(auth) + '</div></div>' +
+      '<div class="pick">' + BK_PAL.map(c => '<button type="button" data-col="' + c + '" class="' + (c === cur ? 'on' : '') + '" style="background:' + c + '" aria-label="Cover colour"></button>').join('') + '</div></div></div>' +
+    '<div class="hero"><div class="q"><em>✦</em> ' + (heroT ? e(heroT) : '<span class="ph">your ★ highlight shows here</span>') + ' <em>✦</em></div><div class="s mono">PICKED FROM HIGHLIGHTS — TAP ☆ ON ANY LINE</div></div>' +
+    '<div class="take"><div class="l mono">MY TAKE IN ONE LINE</div><div class="v" contenteditable="true" id="bkeK" data-ph="your verdict on the book, in one line">' + e(r.essence || '') + '</div></div></div>';
+  h += '<div class="facts" style="grid-template-columns:1fr 1fr;margin-top:14px"><div><div class="l mono">READ</div><input type="month" id="bkeR" value="' + (r.learned_on ? String(r.learned_on).slice(0, 7) : '') + '"></div>' +
+    '<div><div class="l mono">CAME FROM</div><input type="text" id="bkeF" placeholder="who recommended it / where you found it" value="' + e(r.category || '') + '" maxlength="120"></div></div>';
+  const add = (k, ph, hint) => '<div class="addl"><input type="text" data-add="' + k + '" placeholder="' + ph + '" maxlength="600">' + (hint ? '<b>' + hint + '</b>' : '') + '</div>';
+  h += '<div class="sec"><div class="sh"><span class="n">I</span><h3>Highlights</h3><span class="m mono">THE BOOK’S WORDS · ONE PER LINE</span></div><div class="thr">' +
+    E.hl.map((x, i) => '<div class="hl"><span class="d">' + (i + 1) + '</span><div class="eit"><div class="q" contenteditable="true" data-k="hl" data-i="' + i + '" data-ph="a line from the book">' + e(x.t) + '</div><button type="button" class="x" data-del="hl" data-i="' + i + '" aria-label="Remove">×</button></div>' +
+      '<div class="s mono"><button type="button" data-star="' + i + '" class="' + (x.star ? 'on' : '') + '">' + (x.star ? '★ TOP LINE' : '☆ MAKE THIS THE TOP LINE') + '</button></div></div>').join('') + '</div>' +
+    add('hl', '+ add a highlight', 'ENTER = NEXT · END WITH “— P. 34” FOR THE PAGE') + '</div>';
+  h += '<div class="sec"><div class="sh"><span class="n">II</span><h3>My takeaways</h3><span class="m mono">IN MY WORDS</span></div><div class="tke">' +
+    E.tk.map((x, i) => '<div class="eit"><div contenteditable="true" data-k="tk" data-i="' + i + '" data-ph="what I took from it">' + e(x) + '</div><button type="button" class="x" data-del="tk" data-i="' + i + '" aria-label="Remove">×</button></div>').join('') + '</div>' +
+    add('tk', '+ add a takeaway', 'ENTER = NEXT') + '</div>';
+  h += '<div class="sec"><div class="sh"><span class="n">III</span><h3>Lived it</h3><span class="m mono">WHAT I CHANGED</span></div><div class="lve">' +
+    E.lv.map((x, i) => '<div><div class="lvsel"><button type="button" data-st="d" data-i="' + i + '" class="' + (x.st === 'd' ? 'on' : '') + '">✓ DONE</button><button type="button" data-st="t" data-i="' + i + '" class="tr ' + (x.st === 't' ? 'on' : '') + '">◷ TRYING</button></div>' +
+      '<div class="eit"><div contenteditable="true" data-k="lv" data-i="' + i + '" data-ph="something I changed">' + e(x.t) + '</div><button type="button" class="x" data-del="lv" data-i="' + i + '" aria-label="Remove">×</button></div></div>').join('') + '</div>' +
+    add('lv', '+ add something you changed', 'ENTER = NEXT') + '</div>';
+  h += '<div class="sec ntsec"><div class="sh" style="margin-bottom:0;border-bottom:none"><span class="n">IV</span><h3>Notes</h3><span class="m mono">ANYTHING ELSE · FULL EDITOR BELOW</span></div></div>';
+  pg.innerHTML = h;
+  bkWireEdit_(r, pg);
+}
+function bkWireEdit_(r, pg) {
+  const again = (focusAdd) => { bkRenderEdit_(r, pg); if (focusAdd) { const i = pg.querySelector('[data-add="' + focusAdd + '"]'); if (i) i.focus(); } };
+  const blurOnEnter = n => n.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); n.blur(); } });
+  // title: mirrored into the page heading, saved on Done like any title
+  const t = el('bkeT'); blurOnEnter(t); t.addEventListener('input', () => { el('frH1').textContent = t.textContent; });
+  const a = el('bkeA'); blurOnEnter(a); a.addEventListener('blur', () => bkSaveField_('type', a.textContent.replace(/\s+/g, ' ').trim()));
+  const k = el('bkeK'); blurOnEnter(k); k.addEventListener('blur', () => bkSaveField_('essence', k.textContent.replace(/\s+/g, ' ').trim()));
+  el('bkeR').addEventListener('change', e => bkSaveField_('learned_on', e.target.value ? e.target.value + '-01' : ''));
+  const f = el('bkeF'); blurOnEnter(f); f.addEventListener('change', () => bkSaveField_('category', f.value.replace(/\s+/g, ' ').trim()));
+  // tags
+  pg.querySelectorAll('[data-rmt]').forEach(b => b.addEventListener('click', () => bkTagsEd_(r, (r.tags || []).filter(x => x !== b.dataset.rmt), pg)));
+  el('bkeTagAdd').addEventListener('click', ev => {
+    const inp = document.createElement('input'); inp.className = 'tagin'; inp.placeholder = 'tag, Enter'; inp.maxLength = 40; ev.target.replaceWith(inp); inp.focus();
+    inp.addEventListener('keydown', e2 => { if (e2.key === 'Enter') { e2.preventDefault(); const v = lkTags_(inp.value); if (v.length) bkTagsEd_(r, lkTags_((r.tags || []).concat(v).join(',')), pg, true); } if (e2.key === 'Escape') again(); });
+    inp.addEventListener('blur', () => { if (!inp.value.trim()) setTimeout(() => { if (document.activeElement !== inp) again(); }, 120); });
+  });
+  // cover colour
+  pg.querySelectorAll('[data-col]').forEach(b => b.addEventListener('click', async () => { await bkCoverSave_(r.id, b.dataset.col); pg.style.setProperty('--bc', b.dataset.col); again(); }));
+  // items: type in place
+  pg.querySelectorAll('[data-k][data-i]').forEach(n => {
+    const K = n.dataset.k, i = +n.dataset.i;
+    n.addEventListener('input', () => { const v = n.textContent; if (K === 'tk') bkEd_.tk[i] = v; else bkEd_[K][i].t = v; scheduleFrSave(); });
+    n.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); const nx = pg.querySelector('[data-add="' + K + '"]'); if (nx) nx.focus(); } });
+    n.addEventListener('blur', () => { const v = n.textContent.replace(/\s+/g, ' ').trim(); if (!v) { bkEd_[K].splice(i, 1); scheduleFrSave(); setTimeout(() => again(), 0); } });
+  });
+  pg.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { bkEd_[b.dataset.del].splice(+b.dataset.i, 1); scheduleFrSave(); again(); }));
+  pg.querySelectorAll('[data-star]').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.star, on = !bkEd_.hl[i].star; bkEd_.hl.forEach(x => { x.star = false; }); bkEd_.hl[i].star = on; scheduleFrSave(); again(); }));
+  pg.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => { const x = bkEd_.lv[+b.dataset.i]; x.st = x.st === b.dataset.st ? '' : b.dataset.st; scheduleFrSave(); again(); }));
+  // + add: Enter adds and stays for the next; a pasted block of lines becomes one item per line
+  pg.querySelectorAll('[data-add]').forEach(inp => {
+    const K = inp.dataset.add;
+    const push = lines => { lines.map(x => x.replace(/\s+/g, ' ').trim()).filter(Boolean).forEach(v => { if (K === 'tk') bkEd_.tk.push(v.replace(/^[-•*]\s*/, '')); else if (K === 'lv') bkEd_.lv.push({ st: /^[✓✔✅]/.test(v) ? 'd' : /^[◷]/.test(v) ? 't' : '', t: v.replace(/^[✓✔✅◷]\s*/, '') }); else bkEd_.hl.push({ star: false, t: v.replace(/^[“"]|[”"]$/g, '') }); }); scheduleFrSave(); again(K); };
+    inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); if (inp.value.trim()) push([inp.value]); } });
+    inp.addEventListener('paste', ev => { const tx = (ev.clipboardData || window.clipboardData).getData('text'); if (/\n/.test(tx)) { ev.preventDefault(); push(tx.split(/\r?\n/)); } });
+  });
+}
+async function bkTagsEd_(r, tags, pg, reopen) {
+  const { error } = await supa.from('bookmarks').update({ tags }).eq('id', r.id).eq('user_id', userId);
+  if (error) { toast('Could not save the tags'); return; }
+  r.tags = tags; renderTags(); bkRenderEdit_(r, pg);
+  if (reopen) { const b = el('bkeTagAdd'); if (b) b.click(); }
+}
 
 // ===== NOTES READER PAGE =====
 let frId = null, frTimer = null, frHasDoc = false;
@@ -2150,7 +2297,7 @@ NoteEditor.versions.connect(() => ({ supa, userId }));
 function frSessionEnd_() {
   clearInterval(frVTimer); frVTimer = null;
   if (frId === null || frBaseline === null) return;
-  const cur = NoteEditor.sanitize(el('frBodyInp').innerHTML);
+  const cur = frNoteHtml_();
   if (cur !== frBaseline) NoteEditor.versions.record('bookmark', frId, frBaseline);
   frBaseline = null;
 }
@@ -2295,7 +2442,7 @@ function openReader(id, keepNav, forcePage) {
   clearInterval(frVTimer);
   frVTimer = setInterval(() => {          // marathon-session safety snapshot
     if (frId === null) return;
-    const cur = NoteEditor.sanitize(el('frBodyInp').innerHTML);
+    const cur = frNoteHtml_();
     if (cur !== frBaseline) { NoteEditor.versions.record('bookmark', frId, frBaseline); frBaseline = cur; }
   }, 600000);
   setFrEditing(false);
@@ -2457,7 +2604,7 @@ async function saveFrCore_(force) {
   if (frId === null) return;
   if (frHasDoc) return;   // the saved page IS the body; never overwrite it
   const r = rows.find(x => x.id === frId); if (!r) return;
-  const val = NoteEditor.sanitize(el('frBodyInp').innerHTML);
+  const val = frNoteHtml_();   // BP-E1: a book in Edit is its sections + the Notes editor
   if (r.note === val) { frDirty = false; el('frSave').textContent = 'Saved'; return; }
   NoteEditor.guard.begin();
   try {
@@ -2478,6 +2625,7 @@ async function saveFrCore_(force) {
           r.note = theirs.note || ''; r.updated_at = theirs.updated_at; frLoadedUpd = theirs.updated_at;
           frBaseline = html; frDirty = false;
           el('frBodyInp').innerHTML = html;
+          if (bkEd_) { bkEd_ = null; bkEditSplit_(); bkRender_(); }   // BP-E1
           el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
           el('frBody').classList.toggle('empty', !html);
           el('frSave').textContent = 'Saved';
@@ -2519,10 +2667,11 @@ el('frHist').addEventListener('click', () => {
   if (frId === null) return;
   NoteEditor.openHistory({
     source: 'bookmark', sourceId: frId,
-    getCurrent: () => NoteEditor.sanitize(el('frBodyInp').innerHTML),
+    getCurrent: () => frNoteHtml_(),
     applyRestore: (content) => {
       frBaseline = content;
       el('frBodyInp').innerHTML = content;
+      if (bkEd_) { bkEd_ = null; bkEditSplit_(); bkRender_(); }   // BP-E1
       el('frBody').innerHTML = content || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
       el('frBody').classList.toggle('empty', !content);
       saveFr_(true);                     // CAS + conflict path
@@ -2536,7 +2685,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('frPage
 el('frEdit').addEventListener('click', () => {
   const on = !document.body.classList.contains('fr-editing');
   setFrEditing(on);
-  if (on) nk.focusEnd(); else saveFr_(true);
+  if (on) { if (!bkEd_) nk.focusEnd(); } else saveFr_(true);
 });
 el('frStar').addEventListener('click', () => { if (frId) { toggleFav(frId); el('frStar').classList.toggle('on'); } });
 
@@ -3099,8 +3248,14 @@ function syncTypeChips() {
 el('searchInput').addEventListener('input', e => { searchTerm = e.target.value; render(); });
 
 // BP-H1: the book page re-draws whenever a page opens or Edit closes
-openReader = (function (o) { return function () { const x = o.apply(this, arguments); try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(openReader);
-setFrEditing = (function (o) { return function (on) { const x = o.apply(this, arguments); if (!on) try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(setFrEditing);
+openReader = (function (o) { return function () {
+  if (bkEd_) { el('frBodyInp').innerHTML = bkCompose_(NoteEditor.sanitize(el('frBodyInp').innerHTML)); bkEd_ = null; }   // BP-E1: leave the last book whole
+  const x = o.apply(this, arguments); if (!bkCovers_) bkCoversLoad_().then(() => { try { bkRender_(); } catch (e) {} }); try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(openReader);
+setFrEditing = (function (o) { return function (on) {
+  if (!on && bkEd_) { el('frBodyInp').innerHTML = bkCompose_(NoteEditor.sanitize(el('frBodyInp').innerHTML)); bkEd_ = null; }   // BP-E1: sections back into the one note
+  const x = o.apply(this, arguments);
+  if (on && !bkEd_ && !frHasDoc && document.body.classList.contains('fr-book')) bkEditSplit_();
+  try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(setFrEditing);
 boot();
 </script>
 <!-- App lock (PIN) — unlock once per app session, covers all pages; + sign-out-all -->
