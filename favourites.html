@@ -459,6 +459,9 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .rc-b.h { background:#f1eef8; border:1px solid #e2dcef; border-bottom-left-radius:4px; align-self:stretch; color:#2b2347; } .bkp .rc-b.h small { color:#8a97b3; }
   .bkp .rc-b.g { background:#5b4a86; color:#fff; border-bottom-left-radius:4px; align-self:stretch; } .bkp .rc-b.g small { color:#d6cdea; } .bkp .rc-b.g.tapme { cursor:pointer; }
   .bkp .rc-b.g .rc-bl { border-bottom-color:#fff; } .bkp .rc-b.g .rc-rv { background:rgba(255,255,255,.2); border-radius:4px; padding:0 4px; }
+  .bkp .rc-ctl.lr { position:relative; justify-content:space-between; align-items:center; flex-wrap:nowrap; max-width:640px; margin:6px auto 0; } .bkp .rc-ctl.lr .rc-prog { position:absolute; left:50%; transform:translateX(-50%); margin:0; white-space:nowrap; pointer-events:none; }
+  .bkp .rc-ctl.lr .rc-sp { width:84px; } .bkp .rc-ctl.lr button.bk { border-color:#dfe5ee; background:#fff; }
+  body:not(.fr-pod) .bkp .rc-ctl.lr { max-width:none; margin:22px 10px 0; }
   body.fr-editing .bkp .rcs { display:none; }
   @media (max-width:640px) { .bkp .rcs .rc-stack { height:240px; margin:6px 4px 16px; } .bkp .rc-ic .q { font-size:1.08rem; } .bkp .rc-b { max-width:94%; } }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
@@ -3933,9 +3936,9 @@ function rcInit_(r, P) {
     } else {
       h = '<div class="rc-stack"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.ref ? escHtml(it.ref.toUpperCase()) + ' · ' : '') + 'CARD ' + Math.min(pos, items.length) + ' OF ' + items.length + '</div><div class="q">“' + rcCloze_(text, bl, S.open) + '”</div></div></div>';
     }
-    h += '<div class="rc-ctl">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '') + (S.open ? '<button type="button" class="go" data-rc="got">Next ›</button>'
-      : '<button type="button" class="go" data-rc="reveal">' + (pod ? 'Tap to fill' : 'Reveal') + '</button>') + '</div>' +
-      '<div class="rc-prog mono">' + (items.length - left) + ' OF ' + items.length + ' DONE</div>';
+    h += '<div class="rc-ctl lr">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '<span class="rc-sp"></span>') +   // A: Back left, count middle, Next right
+      '<span class="rc-prog mono">' + (items.length - left) + ' OF ' + items.length + ' DONE</span>' +
+      (S.open ? '<button type="button" class="go" data-rc="got">Next ›</button>' : '<button type="button" class="go" data-rc="reveal">' + (pod ? 'Tap to fill' : 'Reveal') + '</button>') + '</div>';
     box.innerHTML = h;
     const act = a => {
       if (a === 'back') { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); return; }   // ‹ Back: the previous card, shown answered

@@ -133,6 +133,8 @@ Written August 2026.
 
 **X1 (9 Nov 2026) · "Are you sure?" in the app's own voice.** Deleting a knot no longer uses the browser's confirm box. Delete (in the knot form, or the × on a loop in Edit) opens a soft rose strip right under it (mmAskDelete_): "Delete '<title>' for good? Its desk and notes go too. If it's simply over, settling it keeps the record." (the settling line is shown only for open loops), with **Keep it** and a red **Delete**. mmDelete_ now refuses unless it has been asked. No SQL.
 
+**BR1/PR9-A (12 Nov 2026) · Test me buttons: Back left, Next right.** One row (.rc-ctl.lr): ‹ Back pill on the far left (an empty spacer on the first card, so Next never moves), the 'n OF m DONE' count in the middle, Next › / Reveal / Tap to fill on the far right. Books: the row spans the card width; podcasts: the 640px chat column. No SQL.
+
 **PR9-C (12 Nov 2026) · Podcast Test me centred.** The host/guest bubbles sit in a 640px column centred in the section (bubbles fill it), and the buttons and the 'n OF m DONE' line are centred too, like the book card stack. No SQL.
 
 **BR1/PR9-S (12 Nov 2026) · Shuffle button removed from Test me.** Cards are still dealt in a random order each visit; only the ⤨ Shuffle button is gone. Buttons are now just ‹ Back, Reveal / Tap to fill, Next ›. No SQL.
