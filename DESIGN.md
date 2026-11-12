@@ -133,6 +133,8 @@ Written August 2026.
 
 **X1 (9 Nov 2026) · "Are you sure?" in the app's own voice.** Deleting a knot no longer uses the browser's confirm box. Delete (in the knot form, or the × on a loop in Edit) opens a soft rose strip right under it (mmAskDelete_): "Delete '<title>' for good? Its desk and notes go too. If it's simply over, settling it keeps the record." (the settling line is shown only for open loops), with **Keep it** and a red **Delete**. mmDelete_ now refuses unless it has been asked. No SQL.
 
+**MR-L1 · Sage (12 Nov 2026) · Marathi goes soft sage instead of maroon.** Same design as MR-1 (booklet tile, card, page spine, drop cap, quote line); only colour changed. Accent #98455a → #5f7d63 (chips, buttons, spine via bkColFor_ and --bc, drop cap, blockquote, links, tab chip --t-acc); card tint #fbf1f3 → #f3f8f1, lines #ecdde2/#e2c4cc → #dde8da/#c9dcc6, ornament #c9a9b2 → #a9c2ab, tab --t-bg #f7e2e7 → #e3eee1. The booklet tile turns light: gradient #e6efe3→#cfe0cc with dark ink #3e5a43 and a fainter spine (.08). Sage chosen because no other section uses green (Music is a yellower olive); marigold would clash with Books, mist blue with Wisdom.
+
 **MR-1 · A1 + B1 + C1 (12 Nov 2026) · Marathi articles redesigned, with "add from a link".**
 - Data (no SQL): title; type = author (लेखक); category = source (स्रोत); source_url = original link; learned_on = article date; note = the article (HTML); essence = my take.
 - Shelf (renderMr_): article cards - maroon म booklet tile, title in Noto Serif Devanagari, author · source · month · minutes, my take or the article's first sentence, tags; author chips (mrAuthor_) when useful; phone compact rows. Round ＋ / foot door → pdMenuOpen_ (marathi branch): From a link / Type it myself.
