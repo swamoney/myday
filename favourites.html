@@ -3917,7 +3917,7 @@ function rcInit_(r, P) {
   deal();
   const draw = () => {
     if (!S.q.length) {
-      box.innerHTML = '<div class="rc-done"><b>' + (pod ? 'Episode replayed.' : 'Deck done.') + '</b> You got ' + S.got + ' of ' + items.length + ' first time.<div class="rc-ctl"><button type="button" class="go" data-rc="again-all">↻ Start again</button></div></div>';
+      box.innerHTML = '<div class="rc-done"><b>' + (pod ? 'Episode replayed.' : 'Deck done.') + '</b> All ' + items.length + (pod ? ' snips' : ' cards') + ' gone through.<div class="rc-ctl"><button type="button" class="go" data-rc="again-all">↻ Start again</button></div></div>';
       box.innerHTML = box.innerHTML.replace('<div class="rc-ctl">', '<div class="rc-ctl"><button type="button" data-rc="back">‹ Back</button>');
       box.querySelector('[data-rc="again-all"]').onclick = () => { deal(); draw(); };
       box.querySelector('[data-rc="back"]').onclick = () => { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); }; return;
@@ -3934,9 +3934,9 @@ function rcInit_(r, P) {
     } else {
       h = '<div class="rc-stack"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.ref ? escHtml(it.ref.toUpperCase()) + ' · ' : '') + 'CARD ' + Math.min(pos, items.length) + ' OF ' + items.length + '</div><div class="q">“' + rcCloze_(text, bl, S.open) + '”</div></div></div>';
     }
-    h += '<div class="rc-ctl">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '') + (S.open ? '<button type="button" data-rc="again">↺ Again</button><button type="button" class="go" data-rc="got">✓ Got it' + (pod ? ' · next' : '') + '</button>'
+    h += '<div class="rc-ctl">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '') + (S.open ? '<button type="button" class="go" data-rc="got">Next ›</button>'
       : '<button type="button" data-rc="shuffle">⤨ Shuffle</button><button type="button" class="go" data-rc="reveal">' + (pod ? 'Tap to fill' : 'Reveal') + '</button>') + '</div>' +
-      '<div class="rc-prog mono">' + (items.length - left) + ' DONE · GOT ' + S.got + '</div>';
+      '<div class="rc-prog mono">' + (items.length - left) + ' OF ' + items.length + ' DONE</div>';
     box.innerHTML = h;
     const act = a => {
       if (a === 'back') { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); return; }   // ‹ Back: the previous card, shown answered
