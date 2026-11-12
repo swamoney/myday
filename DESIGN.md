@@ -133,6 +133,8 @@ Written August 2026.
 
 **X1 (9 Nov 2026) · "Are you sure?" in the app's own voice.** Deleting a knot no longer uses the browser's confirm box. Delete (in the knot form, or the × on a loop in Edit) opens a soft rose strip right under it (mmAskDelete_): "Delete '<title>' for good? Its desk and notes go too. If it's simply over, settling it keeps the record." (the settling line is shown only for open loops), with **Keep it** and a red **Delete**. mmDelete_ now refuses unless it has been asked. No SQL.
 
+**BR1/PR9-S (12 Nov 2026) · Shuffle button removed from Test me.** Cards are still dealt in a random order each visit; only the ⤨ Shuffle button is gone. Buttons are now just ‹ Back, Reveal / Tap to fill, Next ›. No SQL.
+
 **BR1/PR9-N (12 Nov 2026) · Test me: just Back and Next.** Again and Got it are gone. After Reveal / Tap to fill there is only ‹ Back and Next ›; before it, ‹ Back (once past the first card), ⤨ Shuffle and Reveal. No score: the line under the card reads 'n OF m DONE', and the done screen says 'All N cards (snips) gone through' with ‹ Back and Start again. No SQL.
 
 **BR1/PR9-B (12 Nov 2026) · ‹ Back in Test me.** A quiet ‹ Back button appears once you've moved on (also on the done screen). It steps to the previous card, shown answered, and undoes its Got it / Again (score and order restored from a history stack S.hist). Start again clears the history. No SQL.
