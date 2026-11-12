@@ -409,6 +409,10 @@
   body:not(.bk-focus) .bkp .thr.pd-mus .hl .k { color:var(--mti); } body:not(.bk-focus) .bkp .thr.pd-mus .hl .q { padding-right:52px; font-size:1.15rem; } body:not(.bk-focus) .bkp .thr.pd-mus .hl .pts { color:#3d4559; }
   body:not(.bk-focus) .bkp .thr.pd-mus .hl.tap { cursor:pointer; } body:not(.bk-focus) .bkp .thr.pd-mus .hl.tap:hover { border-color:var(--mti); }
   @media (max-width:640px) { body:not(.bk-focus) .bkp .thr.pd-mus { padding-left:16px; margin-left:4px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl { padding:14px 14px 12px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl::before { left:-24px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl::after { width:34px; height:34px; right:10px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl .q { padding-right:34px; font-size:1.04rem; } }
+  /* BK-M2 (12 Nov 2026): book highlights hang the same way, on the book's own thread, with an open book for a leaf */
+  body:not(.bk-focus) .bkp .thr.bk-mus { border-left-color:color-mix(in srgb, var(--bc) 35%, transparent); }
+  body:not(.bk-focus) .bkp .thr.bk-mus .hl::after { -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%23000%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M2%205.5c2.5-1.3%205.8-1.3%2010%20.8v13c-4.2-2.1-7.5-2.1-10-.8z%27/%3E%3Cpath%20d%3D%27M22%205.5c-2.5-1.3-5.8-1.3-10%20.8v13c4.2-2.1%207.5-2.1%2010-.8z%27/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%23000%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M2%205.5c2.5-1.3%205.8-1.3%2010%20.8v13c-4.2-2.1-7.5-2.1-10-.8z%27/%3E%3Cpath%20d%3D%27M22%205.5c-2.5-1.3-5.8-1.3-10%20.8v13c4.2-2.1%207.5-2.1%2010-.8z%27/%3E%3C/svg%3E") center/contain no-repeat; opacity:.28; }
+  body:not(.bk-focus) .bkp .thr.bk-mus .hl .s { color:var(--mti); }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
   body.fr-book .frbar-btns { display:flex; }
   body.fr-book .fr-headbtns { display:none !important; }
@@ -2271,8 +2275,8 @@ function bkRender_() {
   if (F.length) h += '<div class="facts" style="grid-template-columns:repeat(' + F.length + ',1fr)">' + F.map(x => '<div><div class="l mono">' + x[0] + '</div><div class="v">' + escHtml(x[1]) + '</div></div>').join('') + '</div>';
   const roman = ['I','II','III','IV']; let n = 0;
   if (P.hl.length && isPod_(r)) h += pdHlSec_(P.hl, roman[n++]);
-  else if (P.hl.length) h += '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Highlights</h3><span class="m mono">' + P.hl.length + (P.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS</span></div><div class="thr">' +
-    P.hl.map((t, i) => { const [q, ref] = bkPageRef_(strip(t)); return '<div class="hl"><span class="d">' + (i + 1) + '</span><div class="q">“' + escHtml(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (ref ? '<div class="s mono">' + escHtml(ref) + '</div>' : '') + '</div>'; }).join('') + '</div></div>';
+  else if (P.hl.length) h += '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Highlights</h3><span class="m mono">' + P.hl.length + (P.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS</span></div><div class="thr pd-mus bk-mus">' +
+    P.hl.map((t, i) => { const [q, ref] = bkPageRef_(strip(t)); return '<div class="hl" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span><div class="q">“' + escHtml(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (ref ? '<div class="s mono">' + escHtml(ref) + '</div>' : '') + '</div>'; }).join('') + '</div></div>';
   if (P.tk.length) h += '<div class="sec" id="bkS_tk"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>My takeaways</h3><span class="m mono">' + P.tk.length + ' · IN MY WORDS</span></div><ol class="tk">' + P.tk.map(t => '<li>' + escHtml(t.replace(/^[-•*]\s*/, '')) + '</li>').join('') + '</ol></div>';
   if (P.lv.length) h += '<div class="sec" id="bkS_lv"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Lived it</h3><span class="m mono">' + P.lv.length + ' · WHAT I CHANGED</span></div><div class="use">' +
     P.lv.map(t => { let c = 'nn', lb = 'NOTED'; if (/^[✓✔✅]/.test(t)) { c = ''; lb = '✓ DONE'; } else if (/^[◷⏳⌛]/.test(t)) { c = 'tr'; lb = '◷ TRYING'; }
@@ -2368,7 +2372,7 @@ function bkRenderEdit_(r, pg) {
   const fr = (n, title, sub, meta, inner, add, k) => '<div class="bkfr"><span class="bl"></span><span class="br"></span><div class="sh"><span class="n">' + n + '</span><h3>' + title + '</h3>' + (meta ? '<span class="m mono">' + meta + '</span>' : '') + '</div>' +
     (sub ? '<div class="sub">' + sub + '</div>' : '') + inner + '<button type="button" class="bkadd" data-new="' + k + '">＋ ' + add + '</button></div>';
   h += fr('I', 'Highlights', E.hl.length ? '' : 'in the book’s words', E.hl.length ? E.hl.length + (E.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS' : '',
-    E.hl.length ? '<div class="thr">' + E.hl.map((x, i) => { const [q, ref] = bkPageRef_(x.t); return '<div class="hl tap" data-it="hl:' + i + '"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + ((ref || x.star) ? '<div class="s mono">' + e(ref) + (ref && x.star ? ' · ' : '') + (x.star ? '★ TOP LINE' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '',
+    E.hl.length ? '<div class="thr pd-mus bk-mus">' + E.hl.map((x, i) => { const [q, ref] = bkPageRef_(x.t); return '<div class="hl tap" data-it="hl:' + i + '" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + ((ref || x.star) ? '<div class="s mono">' + e(ref) + (ref && x.star ? ' · ' : '') + (x.star ? '★ TOP LINE' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '',
     'Add a highlight', 'hl');
   h += fr('II', 'My takeaways', E.tk.length ? '' : 'in my own words', E.tk.length ? E.tk.length + ' · IN MY WORDS' : '',
     E.tk.length ? '<ol class="tk">' + E.tk.map((x, i) => '<li class="tap" data-it="tk:' + i + '">' + e(x) + '</li>').join('') + '</ol>' : '', 'Add a takeaway', 'tk');
@@ -3487,6 +3491,7 @@ function pdSnip_(t) {
   return { k: m[1].trim(), title, pts };
 }
 function pdSnipStr_(s) { return (s.k ? '[' + s.k.charAt(0).toUpperCase() + s.k.slice(1).toLowerCase() + '] ' : '') + s.title.trim() + (s.pts.length ? ' — ' + s.pts.join(' • ') : ''); }
+const BK_INK = ['#c0707e', '#6f9a86', '#7086a8', '#a8935f', '#96789e', '#5f938c'];   // BK-M2: book highlights take the My Musings inks in turn
 const PD_INK = { insight:'#96789e', idea:'#96789e', advice:'#a8935f', tip:'#a8935f', anecdote:'#6f9a86', story:'#6f9a86', quote:'#c0707e', fact:'#7086a8', note:'#7086a8' };   // M2: the Musings inks, one per kind
 function pdInk_(k) { return PD_INK[String(k || '').toLowerCase()] || '#7086a8'; }
 function pdKindCol_(k) { return PD_KINDS[String(k || '').toLowerCase()] || '#5b4a86'; }
