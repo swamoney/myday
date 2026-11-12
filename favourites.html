@@ -163,23 +163,25 @@
   .kp-tags { flex-basis:100%; }
   .lk-row .lk-kind { display:none; }
   /* BK-4 (11 Nov 2026): Books - C2 cream cards on desktop (full cover, title, author, your line as a gold-ruled quote, tags), K2 compact rows on a phone (small cover with the first letter, two lines of the note) */
-  .bb .bk-tag{font-size:.66rem;color:#5a6680;background:#f1f4f9;border-radius:999px;padding:1px 8px}
+  .bb .bk-tag{font-size:.66rem;color:#5a6680;background:#fff;border:1px solid #dfe6f0;border-radius:999px;padding:1px 8px}
   .bb .bk-tags{display:flex;flex-wrap:wrap;gap:4px}
   .bb-list{display:flex;flex-direction:column;gap:12px}
   /* desktop: C2 big card */
-  .bb{display:flex;gap:20px;background:linear-gradient(90deg,color-mix(in srgb,var(--bw,#8a6f2f) 6%,#fff),#fff 45%);border:1px solid #e3e8f0;border-radius:16px;padding:16px;cursor:pointer}
-  .bb-cv{flex:0 0 108px;width:108px;aspect-ratio:2/3;border-radius:3px 9px 9px 3px;background:linear-gradient(135deg,color-mix(in srgb,var(--bc) 85%,#fff),var(--bc) 60%,color-mix(in srgb,var(--bc) 70%,#000));color:#fff;padding:12px 10px 10px 14px;display:flex;flex-direction:column;box-shadow:0 8px 18px rgba(20,25,40,.18),inset 5px 0 0 rgba(0,0,0,.18);position:relative}
-  .bb-cv::after{content:'';position:absolute;left:14px;right:10px;bottom:30px;height:1px;background:rgba(244,196,48,.6)}
-  .bb-cvt{font-family:var(--serif);font-weight:600;font-size:.84rem;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
-  .bb-cva{margin-top:auto;font-family:var(--mono);font-size:.44rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .bb-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+  .bb{display:flex;gap:20px;align-items:center;background:linear-gradient(180deg,#fff,#edf2f9);border:1px solid #e3e8f0;border-radius:16px;padding:16px;cursor:pointer}
+  .bb-cv{flex:0 0 72px;width:72px;aspect-ratio:2/3;border-radius:3px 9px 9px 3px;background:linear-gradient(135deg,color-mix(in srgb,var(--bc) 85%,#fff),var(--bc) 60%,color-mix(in srgb,var(--bc) 70%,#000));color:#fff;padding:8px 7px 7px 10px;display:flex;flex-direction:column;box-shadow:0 8px 18px rgba(20,25,40,.18),inset 5px 0 0 rgba(0,0,0,.18);position:relative}
+  .bb-cv::after{content:'';position:absolute;left:10px;right:7px;bottom:22px;height:1px;background:rgba(244,196,48,.6)}
+  .bb-cvt{font-family:var(--serif);font-weight:600;font-size:.66rem;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
+  .bb-cva{margin-top:auto;font-family:var(--mono);font-size:.38rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bb-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  .bb-k{font-family:var(--mono);font-size:.56rem;font-weight:600;letter-spacing:.14em;color:var(--bw)}   /* BK-6: kind eyebrow in the book's colour */
   .bb-t{font-family:var(--serif);font-weight:600;font-size:1.25rem;color:#1c2331;line-height:1.25}
-  .bb-a{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#8a6f2f;margin-top:-4px}
-  .bb-q{font-family:var(--serif);font-style:italic;font-size:1rem;line-height:1.55;color:#3a4458;border-left:3px solid #d9c48c;padding-left:12px}
+  .bb-a{font-family:var(--mono);font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:#5a6680;margin-top:-2px}
+  .bb-q{font-family:var(--serif);font-style:italic;font-size:1rem;line-height:1.55;color:#3a4458;border-left:3px solid #c3d2e6;padding-left:12px}
   /* phone: K2 compact row */
   @media(max-width:640px){
    .bb-list{gap:10px}
-   .bb{gap:14px;background:#fff;border:1px solid #e3e8f0;border-radius:14px;padding:12px;align-items:flex-start}
+   .bb{gap:14px;background:linear-gradient(180deg,#fff,#edf2f9);border:1px solid #e3e8f0;border-radius:14px;padding:12px;align-items:flex-start}
+   .bb-k{font-size:.5rem}
    .bb-cv{flex-basis:56px;width:56px;padding:6px 4px 6px 8px;align-items:center;justify-content:center;border-radius:2px 6px 6px 2px}
    .bb-cv .bb-cvt,.bb-cv .bb-cva{display:none}
    .bb-cv::before{content:attr(data-i);font-family:var(--serif);font-weight:600;font-size:1.3rem;color:#fff;line-height:1}
@@ -2143,7 +2145,7 @@ function renderBooks_(list, wrap) {
     const q = bkShelfLine_(r);
     return '<div class="bb" data-open="' + escHtml(r.id) + '" style="--bw:' + bkColFor_(r) + '">' +
       '<div class="bb-cv" style="--bc:' + bkColFor_(r) + '" data-i="' + escHtml(bkIni_(r.title)) + '"><div class="bb-cvt">' + escHtml(r.title) + '</div><div class="bb-cva">' + escHtml(r.type || '') + '</div></div>' +
-      '<div class="bb-m"><div class="bb-t">' + escHtml(r.title) + (r.favourite ? ' ' + star : '') + '</div>' + (r.type ? '<div class="bb-a">' + escHtml(r.type) + '</div>' : '') +
+      '<div class="bb-m"><div class="bb-k">' + (bkKind_(r) === 'f' ? 'FICTION' : bkKind_(r) === 'n' ? 'NON-FICTION' : 'BOOK') + '</div><div class="bb-t">' + escHtml(r.title) + (r.favourite ? ' ' + star : '') + '</div>' + (r.type ? '<div class="bb-a">' + escHtml(r.type) + '</div>' : '') +
       (q ? '<div class="bb-q">“' + escHtml(q.length > 220 ? q.slice(0, 219).replace(/\s+\S*$/, '') + '…' : q) + '”</div>' : '') +
       (bkTagsShown_(r).length ? '<div class="bk-tags">' + bkTagsShown_(r).map(t => '<span class="bk-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') + '</div>' +
       '<button class="bb-ed" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button></div>';
