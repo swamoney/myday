@@ -438,6 +438,12 @@ body.fr-pod .bkp .bk1 .hero::after{content:'';position:absolute;left:52px;right:
 body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.fr-pod .bkp .bk1 .hero .q{font-style:italic;font-weight:500;color:#2b2347}
   @media (max-width:640px) { body.fr-book:not(.fr-pod) .bkp .bk1 .hero .q { font-size:1.12rem; } body.fr-pod .bkp .bk1 .hero { padding-left:44px; } body.fr-pod .bkp .bk1 .hero::before { width:32px; height:32px; } body.fr-pod .bkp .bk1 .hero::after { left:44px; } }
+  /* BP-L3 (12 Nov 2026): reading page - the long note wears the same bar as in Edit (no number, accent dash, ▾ OPEN) */
+  .bkp .lnr { margin:0 0 14px; scroll-margin-top:70px; } .bkp .lnr .bklong { margin-top:0; }
+  .bkp .lnr.fold .bklong { border-bottom:1px solid #e3e3ea; border-radius:16px; padding-bottom:12px; }
+  .bkp .lnr .nt { background:#fff; border:1px solid #e3e3ea; border-top:none; border-radius:0 0 16px 16px; padding:6px 22px 18px; font-family:var(--serif); font-size:1.05rem; line-height:1.7; color:#232f45; }
+  .bkp .lnr.fold .nt { display:none; }
+  body.bk-focus:not(.fr-editing) .bkp .lnr { max-width:680px; margin:0 auto 34px; }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
   body.fr-book .frbar-btns { display:flex; }
   body.fr-book .fr-headbtns { display:none !important; }
@@ -2293,7 +2299,7 @@ function bkRender_() {
     '<div class="cv"><div class="t">' + escHtml(r.title || '') + '</div><div class="a">' + escHtml(auth) + '</div></div></div>' +
     (heroT ? '<div class="hero"><div class="q"><em>✦</em> ' + escHtml(heroT) + ' <em>✦</em></div><div class="s mono">' + (auth ? 'IN ' + escHtml(auth.toUpperCase()) + '’S WORDS' : 'IN THE BOOK’S WORDS') + (heroRef ? ' · ' + escHtml(heroRef.toUpperCase()) : '') + '</div></div>' : '') +
     (take ? '<div class="take"><div class="l mono">MY TAKE IN ONE LINE</div><div class="v">' + escHtml(take) + '</div></div>' : '') + '</div>';
-  const S = [['hl','✍ HIGHLIGHTS',P.hl.length],['tk','💡 MY TAKEAWAYS',P.tk.length],['lv','✓ LIVED IT',P.lv.length],['nt','📝 NOTES',P.notes ? '' : 0]].filter(x => x[2] !== 0);
+  const S = [['hl','✍ HIGHLIGHTS',P.hl.length],['tk','💡 MY TAKEAWAYS',P.tk.length],['lv','✓ LIVED IT',P.lv.length],['nt','📝 LONG NOTE',P.notes ? '' : 0]].filter(x => x[2] !== 0);
   if (P.any && S.length > 1) h += '<div class="sb">' + S.map(x => '<button type="button" data-go="' + x[0] + '">' + x[1] + (x[2] ? ' <b>' + x[2] + '</b>' : '') + '</button>').join('') + '</div>';
   else h += '<div style="height:12px"></div>';
   const F = isPod_(r) ? pdFacts_(r) : [['AUTHOR', auth], ['KIND', kind ? (kind === 'f' ? 'Fiction' : 'Non-fiction') : ''], ['CAME FROM', from]].filter(x => x[1]);   // only what's filled in
@@ -2307,7 +2313,7 @@ function bkRender_() {
     P.lv.map(t => { let c = 'nn', lb = 'NOTED'; if (/^[✓✔✅]/.test(t)) { c = ''; lb = '✓ DONE'; } else if (/^[◷⏳⌛]/.test(t)) { c = 'tr'; lb = '◷ TRYING'; }
       const body = t.replace(/^[✓✔✅◷⏳⌛]\s*/, ''); return '<div class="' + c + '"><b>' + lb + '</b>' + escHtml(body) + '</div>'; }).join('') + '</div></div>';
   if (P.any && P.notes) { const nw = (P.notes.replace(/<[^>]*>/g, ' ').trim().match(/\S+/g) || []).length;
-    h += '<div class="sec ntc fold" id="bkS_nt"><div class="sh" role="button" tabindex="0"><span class="n">' + roman[n++] + '</span><h3>Notes</h3><span class="m mono">' + nw + (nw === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ SHOW</span></div><div class="nt">' + P.notes + '</div></div>'; }
+    h += '<div class="ntc lnr fold" id="bkS_nt"><div class="bklong" role="button" tabindex="0"><h3>The long note</h3><span class="m">' + nw + (nw === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ OPEN</span></div><div class="nt">' + P.notes + '</div></div>'; }   // BP-L3: the reading page names it the long note too
   const solo = !P.any && !frHasDoc && P.notes && (P.notes.replace(/<[^>]*>/g, ' ').trim().match(/\S+/g) || []).length;   // BP-L2: a note-only book folds its long note too
   if (solo) h += '<div class="bklong rd" id="bkLongRd" role="button" tabindex="0"><h3>The long note</h3><span class="m">' + solo + (solo === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ OPEN</span></div>';
   document.body.classList.toggle('bk-rdfold', !!solo);
@@ -2316,8 +2322,8 @@ function bkRender_() {
   const rd = el('bkLongRd');
   if (rd) { const tg = () => { const f = document.body.classList.toggle('bk-rdfold'); rd.classList.toggle('open', !f); rd.querySelector('.tg').textContent = f ? '▾ OPEN' : '▴ FOLD'; };
     rd.addEventListener('click', tg); rd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }); }
-  const ntS = el('bkS_nt'), ntSet = open => { if (!ntS) return; ntS.classList.toggle('fold', !open); ntS.querySelector('.tg').textContent = open ? '▴ HIDE' : '▾ SHOW'; };
-  if (ntS) { const sh = ntS.querySelector('.sh'), tog = () => ntSet(ntS.classList.contains('fold'));
+  const ntS = el('bkS_nt'), ntSet = open => { if (!ntS) return; ntS.classList.toggle('fold', !open); ntS.querySelector('.tg').textContent = open ? '▴ FOLD' : '▾ OPEN'; };
+  if (ntS) { const sh = ntS.querySelector('.bklong'), tog = () => ntSet(ntS.classList.contains('fold'));
     sh.addEventListener('click', tog); sh.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } }); }
   pg.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { if (b.dataset.go === 'nt') ntSet(true); const t = el('bkS_' + b.dataset.go); if (t) t.scrollIntoView({ behavior:'smooth', block:'start' }); }));
 }
