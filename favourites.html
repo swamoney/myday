@@ -399,6 +399,16 @@
   body.bk-focus:not(.fr-editing) .bkp .hl .q { font-size:1.22rem; line-height:1.7; } body.bk-focus:not(.fr-editing) .bkp .hl .pts { font-size:1.05rem; line-height:1.75; } body.bk-focus:not(.fr-editing) .bkp .tk li { font-size:1.1rem; line-height:1.75; }
   body.bk-focus:not(.fr-editing) .bkp .bklong.rd { max-width:680px; margin:0 auto; }
   @media (max-width:640px) { body.bk-focus:not(.fr-editing) #bkPage::before { font-size:1.3rem; margin:10px 0 22px; } body.bk-focus:not(.fr-editing) .bkp .hl .q { font-size:1.1rem; } }
+  /* PD-M2 (12 Nov 2026): podcast snips hang like My Musings - one thread, a dot each, a card washed in its kind's ink, a faint leaf */
+  body:not(.bk-focus) .bkp .thr.pd-mus { padding-left:22px; margin-left:8px; border-left:2px solid color-mix(in srgb, #5b4a86 35%, transparent); }
+  body:not(.bk-focus) .bkp .thr.pd-mus::before, body:not(.bk-focus) .bkp .thr.pd-mus .hl .d { display:none; }
+  body:not(.bk-focus) .bkp .thr.pd-mus .hl { position:relative; background:linear-gradient(150deg, color-mix(in srgb, var(--mti) 12%, #fff) 0%, #fff 62%); border:1.5px solid color-mix(in srgb, var(--mti) 45%, #fff); border-radius:14px; padding:16px 18px 14px; margin:0 0 12px; }
+  body:not(.bk-focus) .bkp .thr.pd-mus .hl:last-child { margin-bottom:0; border:1.5px solid color-mix(in srgb, var(--mti) 45%, #fff); }
+  body:not(.bk-focus) .bkp .thr.pd-mus .hl::before { content:''; position:absolute; left:-31px; top:18px; width:10px; height:10px; border-radius:50%; background:var(--mti); box-shadow:0 0 0 3px #fff; }
+  body:not(.bk-focus) .bkp .thr.pd-mus .hl::after { content:''; position:absolute; right:14px; top:10px; width:46px; height:46px; background:var(--mti); opacity:.2; -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M8%2040%20C8%2018%2022%206%2042%206%20C42%2026%2030%2040%208%2040Z%27%20fill%3D%27%23000%27/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M8%2040%20C8%2018%2022%206%2042%206%20C42%2026%2030%2040%208%2040Z%27%20fill%3D%27%23000%27/%3E%3C/svg%3E") center/contain no-repeat; pointer-events:none; }
+  body:not(.bk-focus) .bkp .thr.pd-mus .hl .k { color:var(--mti); } body:not(.bk-focus) .bkp .thr.pd-mus .hl .q { padding-right:52px; font-size:1.15rem; } body:not(.bk-focus) .bkp .thr.pd-mus .hl .pts { color:#3d4559; }
+  body:not(.bk-focus) .bkp .thr.pd-mus .hl.tap { cursor:pointer; } body:not(.bk-focus) .bkp .thr.pd-mus .hl.tap:hover { border-color:var(--mti); }
+  @media (max-width:640px) { body:not(.bk-focus) .bkp .thr.pd-mus { padding-left:16px; margin-left:4px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl { padding:14px 14px 12px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl::before { left:-24px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl::after { width:34px; height:34px; right:10px; } body:not(.bk-focus) .bkp .thr.pd-mus .hl .q { padding-right:34px; font-size:1.04rem; } }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
   body.fr-book .frbar-btns { display:flex; }
   body.fr-book .fr-headbtns { display:none !important; }
@@ -3477,6 +3487,8 @@ function pdSnip_(t) {
   return { k: m[1].trim(), title, pts };
 }
 function pdSnipStr_(s) { return (s.k ? '[' + s.k.charAt(0).toUpperCase() + s.k.slice(1).toLowerCase() + '] ' : '') + s.title.trim() + (s.pts.length ? ' — ' + s.pts.join(' • ') : ''); }
+const PD_INK = { insight:'#96789e', idea:'#96789e', advice:'#a8935f', tip:'#a8935f', anecdote:'#6f9a86', story:'#6f9a86', quote:'#c0707e', fact:'#7086a8', note:'#7086a8' };   // M2: the Musings inks, one per kind
+function pdInk_(k) { return PD_INK[String(k || '').toLowerCase()] || '#7086a8'; }
 function pdKindCol_(k) { return PD_KINDS[String(k || '').toLowerCase()] || '#5b4a86'; }
 function pdNum_(title) { const m = String(title || '').match(/\s*[·-]?\s*#(\d+)\s*$/); return m ? [String(title).slice(0, m.index).trim(), m[1]] : [String(title || ''), '']; }
 function pdIni_(show) { return String(show || '?').replace(/^(the|a|an)\s+/i, '').trim().charAt(0).toUpperCase() || '?'; }
@@ -3745,12 +3757,12 @@ function pdFacts_(r) { const [, no] = pdNum_(r.title); return [['SHOW', (r.type 
 function pdSnipHtml_(t, i, tapKey) {
   const e = escHtml, star = /[★⭐]/.test(t), sn = pdSnip_(t);
   const attr = tapKey ? ' tap" data-it="' + tapKey : '';
-  if (!sn) return '<div class="hl' + attr + '"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(t.replace(/[★⭐]/g, '').trim().replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (star ? '<div class="s mono">★ TOP LINE</div>' : '') + '</div>';
-  return '<div class="hl sn' + attr + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★ TOP LINE</b>' : '') + '</div>' +
+  if (!sn) return '<div class="hl' + attr + '" style="--mti:#7086a8"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(t.replace(/[★⭐]/g, '').trim().replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (star ? '<div class="s mono">★ TOP LINE</div>' : '') + '</div>';
+  return '<div class="hl sn' + attr + '" style="--mti:' + pdInk_(sn.k) + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★ TOP LINE</b>' : '') + '</div>' +
     '<div class="q">' + e(sn.title) + '</div>' + (sn.pts.length ? '<ul class="pts">' + sn.pts.map(p => '<li>' + e(p) + '</li>').join('') + '</ul>' : '') + '</div>';
 }
 function pdHlSec_(hl, n) {
-  return '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + n + '</span><h3>Highlights</h3><span class="m mono">' + hl.length + (hl.length === 1 ? ' SNIP' : ' SNIPS') + ' · FROM THE EPISODE</span></div><div class="thr">' +
+  return '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + n + '</span><h3>Highlights</h3><span class="m mono">' + hl.length + (hl.length === 1 ? ' SNIP' : ' SNIPS') + ' · FROM THE EPISODE</span></div><div class="thr pd-mus">' +
     hl.map((t, i) => pdSnipHtml_(t, i)).join('') + '</div></div>';
 }
 // ---- C1: editing - the book editor, with show / guest / link and "add more from a PDF" ----
@@ -3772,7 +3784,7 @@ function pdRenderEdit_(r, pg) {
   const fr = (n, title, sub, meta, inner, add, k, extra) => '<div class="bkfr"><span class="bl"></span><span class="br"></span><div class="sh"><span class="n">' + n + '</span><h3>' + title + '</h3>' + (meta ? '<span class="m mono">' + meta + '</span>' : '') + '</div>' +
     (sub ? '<div class="sub">' + sub + '</div>' : '') + inner + '<button type="button" class="bkadd" data-new="' + k + '">＋ ' + add + '</button>' + (extra || '') + '</div>';
   h += fr('I', 'Highlights', E.hl.length ? '' : 'the snips worth keeping', E.hl.length ? E.hl.length + (E.hl.length === 1 ? ' SNIP' : ' SNIPS') + ' · FROM THE EPISODE' : '',
-    E.hl.length ? '<div class="thr">' + E.hl.map((x, i) => pdSnipHtml_((x.star ? '★ ' : '') + x.t, i, 'hl:' + i)).join('') + '</div>' : '', 'Add a snip', 'hl',
+    E.hl.length ? '<div class="thr pd-mus">' + E.hl.map((x, i) => pdSnipHtml_((x.star ? '★ ' : '') + x.t, i, 'hl:' + i)).join('') + '</div>' : '', 'Add a snip', 'hl',
     '<button type="button" class="bkadd pd-more" id="pdMore">⇪ Add more from a PDF</button>');
   h += fr('II', 'My takeaways', E.tk.length ? '' : 'in my own words', E.tk.length ? E.tk.length + ' · IN MY WORDS' : '',
     E.tk.length ? '<ol class="tk">' + E.tk.map((x, i) => '<li class="tap" data-it="tk:' + i + '">' + e(x) + '</li>').join('') + '</ol>' : '', 'Add a takeaway', 'tk');
