@@ -377,6 +377,26 @@
   .bk-acts .sv { background:#232f45; color:#fff; border-color:#232f45; } .bk-acts .sv:disabled { opacity:.4; cursor:default; } .bk-acts .dl { color:#b03a2e; }
   @media (max-width:640px) { .bkp .bkef { grid-template-columns:1fr !important; } .bk-r2 { flex-direction:column; align-items:stretch; } .bk-r2 > div { flex:none; } .bkp .bkfr { padding:16px 14px 18px; } }
   /* BP-T (11 Nov 2026): on a book page the buttons sit in the top bar, right side, like My Circle; no History; Delete only while editing */
+
+  /* BP-R1 (12 Nov 2026): calmer sections for reading - smaller headings, more air, a comfortable line length */
+  .bkp .sh { gap:10px; padding-bottom:8px; margin-bottom:10px; } .bkp .sh .n { width:22px; height:22px; flex:0 0 22px; font-size:.62rem; border-width:1px; } .bkp .sh h3 { font-size:1.08rem; font-weight:600; letter-spacing:.01em; } .bkp .sh .m { font-size:.5rem; opacity:.85; }
+  .bkp .sec { padding:18px 26px; } .bkp .thr, .bkp .tk, .bkp .use, .bkp .nt { max-width:680px; }
+  .bkp .hl .q { font-size:1.16rem; line-height:1.65; } .bkp .hl .pts { font-size:1.02rem; line-height:1.7; max-width:640px; } .bkp .tk li { font-size:1.08rem; line-height:1.7; }
+  @media (max-width:640px) { .bkp .sec { padding:14px; } .bkp .sh h3 { font-size:1rem; } .bkp .hl .q { font-size:1.04rem; } .bkp .hl .pts, .bkp .tk li { font-size:.98rem; } }
+  /* BP-R2: the Focus button - the page becomes the title and the words, nothing else */
+  #frFocus { display:none; } body.fr-book:not(.fr-editing) #frFocus { display:inline-flex; } body.bk-focus #frFocus { background:#efeaf7; border-color:#5b4a86; color:#5b4a86; }
+  body.bk-focus:not(.fr-editing) .bkp .bk1, body.bk-focus:not(.fr-editing) .bkp .sb, body.bk-focus:not(.fr-editing) .bkp .facts { display:none !important; }
+  body.bk-focus:not(.fr-editing) #bkPage::before { content:attr(data-ft); display:block; max-width:680px; margin:18px auto 30px; font-family:var(--serif); font-size:1.6rem; font-weight:600; color:#1c2331; line-height:1.25; }
+  body.bk-focus:not(.fr-editing) .bkp .sec { background:none !important; border:none !important; border-radius:0; padding:0 !important; max-width:680px; margin:0 auto 34px; }
+  body.bk-focus:not(.fr-editing) .bkp .sh { border-bottom:1px solid rgba(0,0,0,.09) !important; padding-bottom:6px; margin-bottom:14px; gap:8px; }
+  body.bk-focus:not(.fr-editing) .bkp .sh .n { border:none; width:auto; height:auto; flex:none; font-family:var(--mono); font-size:.6rem; letter-spacing:.14em; color:#8a97b3; } body.bk-focus:not(.fr-editing) .bkp .sh .n::after { content:' ·'; }
+  body.bk-focus:not(.fr-editing) .bkp .sh h3 { font-family:var(--mono); font-size:.68rem; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:#3D4866; } body.bk-focus:not(.fr-editing) .bkp .sh .m { margin-left:auto; }
+  body.bk-focus:not(.fr-editing) .bkp .ntc .sh .m { margin-left:0; }
+  body.bk-focus:not(.fr-editing) .bkp .thr { padding-left:0; } body.bk-focus:not(.fr-editing) .bkp .thr::before, body.bk-focus:not(.fr-editing) .bkp .hl .d { display:none; }
+  body.bk-focus:not(.fr-editing) .bkp .hl { border-bottom:none; padding:4px 0 18px; margin:0; }
+  body.bk-focus:not(.fr-editing) .bkp .hl .q { font-size:1.22rem; line-height:1.7; } body.bk-focus:not(.fr-editing) .bkp .hl .pts { font-size:1.05rem; line-height:1.75; } body.bk-focus:not(.fr-editing) .bkp .tk li { font-size:1.1rem; line-height:1.75; }
+  body.bk-focus:not(.fr-editing) .bkp .bklong.rd { max-width:680px; margin:0 auto; }
+  @media (max-width:640px) { body.bk-focus:not(.fr-editing) #bkPage::before { font-size:1.3rem; margin:10px 0 22px; } body.bk-focus:not(.fr-editing) .bkp .hl .q { font-size:1.1rem; } }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
   body.fr-book .frbar-btns { display:flex; }
   body.fr-book .fr-headbtns { display:none !important; }
@@ -1040,7 +1060,7 @@
     <span class="fr-ttl" id="frTtl"></span>
     <span class="fr-wc" id="frWc"></span>
     <span class="fr-save" id="frSave"></span>
-    <div class="frbar-btns" id="frBarBtns"></div>
+    <div class="frbar-btns" id="frBarBtns"><button class="eb" id="frFocus" type="button" title="Focus — just the words" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.2" fill="currentColor"/></svg><span>Focus</span></button></div>
   </div>
   <div class="fr-scroll">
     <div class="fr-in">
@@ -2251,6 +2271,7 @@ function bkRender_() {
   if (solo) h += '<div class="bklong rd" id="bkLongRd" role="button" tabindex="0"><h3>The long note</h3><span class="m">' + solo + (solo === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ OPEN</span></div>';
   document.body.classList.toggle('bk-rdfold', !!solo);
   pg.innerHTML = h;
+  pg.dataset.ft = isPod_(r) ? pdNum_(r.title)[0] : (r.title || '');   // BP-R2: the title Focus shows
   const rd = el('bkLongRd');
   if (rd) { const tg = () => { const f = document.body.classList.toggle('bk-rdfold'); rd.classList.toggle('open', !f); rd.querySelector('.tg').textContent = f ? '▾ OPEN' : '▴ FOLD'; };
     rd.addEventListener('click', tg); rd.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tg(); } }); }
@@ -3807,6 +3828,14 @@ setFrEditing = (function (o) { return function (on) {
   if (on) bkLnOpen_ = false; else document.body.classList.remove('bk-lnfold');
   if (on && !bkEd_ && !frHasDoc && document.body.classList.contains('fr-book')) bkEditSplit_();
   try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(setFrEditing);
+
+// BP-R2 (12 Nov 2026): Focus - remembered on this device only
+(function () {
+  let on = false; try { on = localStorage.getItem('myday.bkFocus') === '1'; } catch (e) {}
+  const set = v => { on = v; document.body.classList.toggle('bk-focus', v); const b = el('frFocus'); if (b) b.setAttribute('aria-pressed', v ? 'true' : 'false'); try { localStorage.setItem('myday.bkFocus', v ? '1' : '0'); } catch (e) {} };
+  set(on);
+  const b = el('frFocus'); if (b) b.addEventListener('click', () => { set(!on); window.scrollTo({ top: 0 }); const fp = el('frPage'); if (fp) fp.scrollTop = 0; });
+})();
 boot();
 </script>
 <!-- App lock (PIN) — unlock once per app session, covers all pages; + sign-out-all -->
