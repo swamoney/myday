@@ -444,6 +444,24 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .lnr .nt { background:#fff; border:1px solid #e3e3ea; border-top:none; border-radius:0 0 16px 16px; padding:6px 22px 18px; font-family:var(--serif); font-size:1.05rem; line-height:1.7; color:#232f45; }
   .bkp .lnr.fold .nt { display:none; }
   body.bk-focus:not(.fr-editing) .bkp .lnr { max-width:680px; margin:0 auto 34px; }
+  /* BR1 + PR9 (12 Nov 2026): Test me */
+  .bkp .rcs .rc-stack { position:relative; height:220px; margin:8px 10px 18px; }
+  .bkp .rc-ic { position:absolute; inset:0; border-radius:6px; padding:12px 20px; box-shadow:0 8px 20px rgba(20,25,40,.12); background:linear-gradient(#fffef9 34px, transparent 34px), repeating-linear-gradient(#fffef9 0 25px, #dfe6f2 25px 26px); border-top:4px solid var(--mti, #c0707e); overflow:hidden; }
+  .bkp .rc-ic.b2 { transform:rotate(-3deg) translate(-4px,8px); opacity:.7; border-top-color:#d6dbe4; } .bkp .rc-ic.b1 { transform:rotate(2deg) translate(6px,4px); opacity:.88; border-top-color:#d6dbe4; }
+  .bkp .rc-ic .t { font-size:.55rem; letter-spacing:.14em; color:var(--mti); } .bkp .rc-ic .q { font-family:var(--serif); font-size:1.25rem; line-height:26px; margin-top:22px; color:#232f45; }
+  .bkp .rc-bl { display:inline-block; min-width:4.5em; border-bottom:2px solid var(--bc); color:transparent; margin:0 2px; line-height:1; overflow:hidden; vertical-align:baseline; }
+  .bkp .rc-rv { background:linear-gradient(transparent 52%, color-mix(in srgb, #f4c430 45%, #fff) 52% 92%, transparent 92%); font-weight:600; padding:0 2px; }
+  .bkp .rc-ctl { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:4px; } .bkp .rc-ctl button { border:1px solid #dfe5ee; background:#fff; border-radius:999px; padding:8px 16px; font-size:.84rem; font-weight:600; color:#3D4866; cursor:pointer; } .bkp .rc-ctl button.go { background:var(--bc); border-color:var(--bc); color:#fff; }
+  .bkp .rc-prog { text-align:center; font-size:.52rem; letter-spacing:.14em; color:#8a97b3; margin-top:10px; }
+  .bkp .rc-done { text-align:center; font-family:var(--serif); font-size:1.05rem; color:#232f45; padding:18px 0 6px; } .bkp .rc-done .rc-ctl { margin-top:12px; }
+  .bkp .rc-chat { display:flex; flex-direction:column; gap:10px; max-width:560px; margin:4px 0 14px; }
+  .bkp .rc-b { max-width:86%; padding:11px 15px; border-radius:16px; font-family:var(--serif); font-size:1.02rem; line-height:1.5; } .bkp .rc-b small { display:block; font-family:var(--mono); font-size:.5rem; letter-spacing:.14em; margin-bottom:4px; }
+  .bkp .rc-b.h { background:#f1eef8; border:1px solid #e2dcef; border-bottom-left-radius:4px; align-self:flex-start; color:#2b2347; } .bkp .rc-b.h small { color:#8a97b3; }
+  .bkp .rc-b.g { background:#5b4a86; color:#fff; border-bottom-left-radius:4px; align-self:flex-start; } .bkp .rc-b.g small { color:#d6cdea; } .bkp .rc-b.g.tapme { cursor:pointer; }
+  .bkp .rc-b.g .rc-bl { border-bottom-color:#fff; } .bkp .rc-b.g .rc-rv { background:rgba(255,255,255,.2); border-radius:4px; padding:0 4px; }
+  body.fr-pod .bkp .rc-ctl { justify-content:flex-start; } body.fr-pod .bkp .rc-prog { text-align:left; }
+  body.fr-editing .bkp .rcs { display:none; }
+  @media (max-width:640px) { .bkp .rcs .rc-stack { height:240px; margin:6px 4px 16px; } .bkp .rc-ic .q { font-size:1.08rem; } .bkp .rc-b { max-width:94%; } }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
   body.fr-book .frbar-btns { display:flex; }
   body.fr-book .fr-headbtns { display:none !important; }
@@ -2304,7 +2322,7 @@ function bkRender_() {
   else h += '<div style="height:12px"></div>';
   const F = isPod_(r) ? pdFacts_(r) : [['AUTHOR', auth], ['KIND', kind ? (kind === 'f' ? 'Fiction' : 'Non-fiction') : ''], ['CAME FROM', from]].filter(x => x[1]);   // only what's filled in
   if (F.length) h += '<div class="facts" style="grid-template-columns:repeat(' + F.length + ',1fr)">' + F.map(x => '<div><div class="l mono">' + x[0] + '</div><div class="v">' + escHtml(x[1]) + '</div></div>').join('') + '</div>';
-  const roman = ['I','II','III','IV']; let n = 0;
+  const roman = ['I','II','III','IV','V']; let n = 0;
   if (P.hl.length && isPod_(r)) h += pdHlSec_(P.hl, roman[n++]);
   else if (P.hl.length) h += '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Highlights</h3><span class="m mono">' + P.hl.length + (P.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS</span></div><div class="thr pd-mus bk-mus">' +
     P.hl.map((t, i) => { const [q, ref] = bkPageRef_(strip(t)); return '<div class="hl" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span><div class="q">“' + escHtml(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (ref ? '<div class="s mono">' + escHtml(ref) + '</div>' : '') + '</div>'; }).join('') + '</div></div>';
@@ -2316,8 +2334,10 @@ function bkRender_() {
     h += '<div class="ntc lnr fold" id="bkS_nt"><div class="bklong" role="button" tabindex="0"><h3>The long note</h3><span class="m">' + nw + (nw === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ OPEN</span></div><div class="nt">' + P.notes + '</div></div>'; }   // BP-L3: the reading page names it the long note too
   const solo = !P.any && !frHasDoc && P.notes && (P.notes.replace(/<[^>]*>/g, ' ').trim().match(/\S+/g) || []).length;   // BP-L2: a note-only book folds its long note too
   if (solo) h += '<div class="bklong rd" id="bkLongRd" role="button" tabindex="0"><h3>The long note</h3><span class="m">' + solo + (solo === 1 ? ' WORD' : ' WORDS') + '</span><span class="tg">▾ OPEN</span></div>';
+  if (!frHasDoc && P.hl.length >= 2) h += '<div class="sec rcs' + (isPod_(r) ? ' rc-pod' : '') + '" id="bkS_rc"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Test me</h3><span class="m mono">' + P.hl.length + (isPod_(r) ? ' SNIPS' : ' CARDS') + ' · FROM YOUR HIGHLIGHTS</span></div><div class="rcb"></div></div>';   // BR1 + PR9
   document.body.classList.toggle('bk-rdfold', !!solo);
   pg.innerHTML = h;
+  if (el('bkS_rc')) rcInit_(r, P);
   pg.dataset.ft = isPod_(r) ? pdNum_(r.title)[0] : (r.title || '');   // BP-R2: the title Focus shows
   const rd = el('bkLongRd');
   if (rd) { const tg = () => { const f = document.body.classList.toggle('bk-rdfold'); rd.classList.toggle('open', !f); rd.querySelector('.tg').textContent = f ? '▾ OPEN' : '▴ FOLD'; };
@@ -3863,6 +3883,73 @@ function pdItemOpen_(i, r, pg) {
   };
 }
 
+
+// ===== BR1 + PR9 (12 Nov 2026): "Test me" - active recall at the end of a book or podcast page =====
+// Books: a fanned stack of index cards, key words blanked, Reveal shows them in highlighter. Podcasts: the host asks, the guest's reply has words missing, tap to fill.
+// Got it / Again live only while the page is open (nothing saved).
+const RC_STOP = new Set('about above after again against also among another because been before being below between both could does doing down during each even every from further have having here into just like make made many might more most much must never only other over same should some such than that their them then there these they this those through under until very want were what when where which while will with would your yours always things people really something'.split(' '));
+function rcPlain_(t) { return String(t || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/[★⭐]/g, '').replace(/\s+/g, ' ').trim(); }
+function rcPick_(text, salt) {   // the words to blank: the longest / rarest, 1 for a short line, 2 otherwise
+  const re = /[A-Za-z][A-Za-z'’-]{3,}/g, words = []; let m;
+  while ((m = re.exec(text))) { const w = m[0].replace(/['’-]+$/, ''); if (w.length >= 4 && !RC_STOP.has(w.toLowerCase())) words.push({ w, at: m.index, len: w.length }); }
+  if (!words.length) return [];
+  const want = text.split(/\s+/).length < 7 ? 1 : 2;
+  const h = s => { let x = salt * 2654435761 >>> 0; for (const c of s) x = (x ^ c.charCodeAt(0)) * 16777619 >>> 0; return x / 4294967296; };
+  const seen = new Set();
+  return words.map(o => ({ ...o, sc: o.len + h(o.w) * 4 })).sort((a, b) => b.sc - a.sc)
+    .filter(o => { const k = o.w.toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, want).sort((a, b) => a.at - b.at);
+}
+function rcCloze_(text, blanks, shown) {
+  let out = '', i = 0;
+  blanks.forEach(b => { out += escHtml(text.slice(i, b.at)) + (shown ? '<span class="rc-rv">' + escHtml(b.w) + '</span>' : '<span class="rc-bl" aria-label="blank">' + '_'.repeat(Math.min(10, b.w.length)) + '</span>'); i = b.at + b.w.length; });
+  return out + escHtml(text.slice(i));
+}
+function rcInit_(r, P) {
+  const box = el('bkS_rc').querySelector('.rcb'), pod = isPod_(r), guest = (r.category || '').trim();
+  const items = P.hl.map((t, i) => {
+    if (pod) { const sn = pdSnip_(t); if (sn) return { kind: sn.k, title: sn.title, ans: sn.pts.length ? sn.pts[0] : sn.title, ink: pdInk_(sn.k), titleOnly: !sn.pts.length };
+      return { kind: '', title: '', ans: rcPlain_(t), ink: '#7086a8', titleOnly: true }; }
+    const [q, ref] = bkPageRef_(rcPlain_(t)); return { ans: q.replace(/^[“"]|[”"]$/g, ''), ref, ink: BK_INK[i % BK_INK.length] };
+  }).filter(x => x.ans);
+  if (items.length < 2) { el('bkS_rc').remove(); return; }
+  const S = { q: [], got: 0, open: false, salt: 1 };
+  const deal = () => { S.q = items.map((_, i) => i).sort(() => Math.random() - .5); S.got = 0; S.open = false; S.salt = 1 + Math.floor(Math.random() * 999); };
+  deal();
+  const draw = () => {
+    if (!S.q.length) {
+      box.innerHTML = '<div class="rc-done"><b>' + (pod ? 'Episode replayed.' : 'Deck done.') + '</b> You got ' + S.got + ' of ' + items.length + ' first time.<div class="rc-ctl"><button type="button" class="go" data-rc="again-all">↻ Start again</button></div></div>';
+      box.querySelector('[data-rc]').onclick = () => { deal(); draw(); }; return;
+    }
+    const it = items[S.q[0]], left = S.q.length, pos = items.length - left + 1;
+    const text = it.ans, bl = rcPick_(text, S.salt + S.q[0]);
+    let h;
+    if (pod) {
+      const who = guest ? guest.toUpperCase() : 'THE EPISODE', name = guest ? guest.split(/\s+/)[0] : 'they';
+      const ask = it.titleOnly ? (it.kind ? 'There was a ' + it.kind.toLowerCase() + ' you saved — how did it go?' : 'Finish this line from the episode:')
+        : 'What did ' + name + ' mean by “' + it.title + '”?';
+      h = '<div class="rc-chat"><div class="rc-b h"><small>HOST · ' + (it.kind ? escHtml(it.kind.toUpperCase()) + ' · ' : '') + Math.min(pos, items.length) + ' OF ' + items.length + '</small>' + escHtml(ask) + '</div>' +
+        '<div class="rc-b g' + (S.open ? '' : ' tapme') + '" role="button" tabindex="0" style="--mti:' + it.ink + '"><small>' + escHtml(who) + '</small>' + rcCloze_(text, bl, S.open) + '</div></div>';
+    } else {
+      h = '<div class="rc-stack"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.ref ? escHtml(it.ref.toUpperCase()) + ' · ' : '') + 'CARD ' + Math.min(pos, items.length) + ' OF ' + items.length + '</div><div class="q">“' + rcCloze_(text, bl, S.open) + '”</div></div></div>';
+    }
+    h += '<div class="rc-ctl">' + (S.open ? '<button type="button" data-rc="again">↺ Again</button><button type="button" class="go" data-rc="got">✓ Got it' + (pod ? ' · next' : '') + '</button>'
+      : '<button type="button" data-rc="shuffle">⤨ Shuffle</button><button type="button" class="go" data-rc="reveal">' + (pod ? 'Tap to fill' : 'Reveal') + '</button>') + '</div>' +
+      '<div class="rc-prog mono">' + (items.length - left) + ' DONE · GOT ' + S.got + '</div>';
+    box.innerHTML = h;
+    const act = a => {
+      if (a === 'reveal') S.open = true;
+      else if (a === 'shuffle') { S.q.sort(() => Math.random() - .5); S.salt++; }
+      else if (a === 'got') { S.got += it.again ? 0 : 1; S.q.shift(); S.open = false; }
+      else if (a === 'again') { it.again = true; S.q.push(S.q.shift()); S.open = false; }
+      draw();
+    };
+    box.querySelectorAll('[data-rc]').forEach(b => b.onclick = () => act(b.dataset.rc));
+    const tap = box.querySelector('.tapme'); if (tap) { tap.onclick = () => act('reveal'); tap.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act('reveal'); } }; }
+    const card = box.querySelector('.rc-ic:not(.b1):not(.b2)'); if (card && !S.open) { card.style.cursor = 'pointer'; card.onclick = () => act('reveal'); }
+  };
+  items.forEach(x => { x.again = false; });
+  draw();
+}
 // BP-H1: the book page re-draws whenever a page opens or Edit closes
 openReader = (function (o) { return function () {
   if (bkEd_) { el('frBodyInp').innerHTML = bkCompose_(NoteEditor.sanitize(el('frBodyInp').innerHTML)); bkEd_ = null; }   // BP-E1: leave the last book whole
