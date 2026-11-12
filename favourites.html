@@ -480,6 +480,21 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .rc-stack.sn .tt2 { font-family:var(--serif); font-weight:600; font-size:1.08rem; color:#2b2347; margin:8px 0 0; padding-right:48px; } .bkp .rc-stack.sn .q { margin-top:12px; line-height:1.6; }
   body.fr-pod .bkp .rc-ctl.lr { max-width:none; margin:22px 10px 0; }
   @media (max-width:640px) { .bkp .rc-stack.sn { height:260px; } }
+  /* P1 (12 Nov 2026): designed print for book and podcast pages */
+  @media print {
+    body.bk-print { background:#fff !important; } body.bk-print * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+    html:has(body.bk-print), body.bk-print { height:auto !important; overflow:visible !important; }
+    body.bk-print > *:not(#frPage) { display:none !important; }
+    html:has(body.bk-print) { background:#fff !important; } body.bk-print::before, body.bk-print::after { display:none !important; content:none !important; } body.bk-print #frPage ~ * { display:none !important; }
+    body.bk-print #frPage { position:static !important; display:block !important; inset:auto !important; background:#fff !important; }
+    body.bk-print .fr-scroll { overflow:visible !important; }
+    body.bk-print .fr-bar, body.bk-print .fr-foot, body.bk-print #bkS_rc, body.bk-print .bkp .sb, body.bk-print .fr-headbtns, body.bk-print #frBarBtns, body.bk-print #frToolbar, body.bk-print #frAlbum, body.bk-print .bkp .lnr .bklong .tg, body.bk-print .bkp .bklong.rd .tg { display:none !important; }
+    body.bk-print .fr-in { max-width:none !important; padding:6px 4px !important; }
+    body.bk-print .bkp .lnr .nt { display:block !important; } body.bk-print .bkp .lnr .bklong { border-bottom:none !important; border-radius:16px 16px 0 0 !important; padding-bottom:4px !important; }
+    body.bk-print .bkp .bk1, body.bk-print .bkp .facts, body.bk-print .bkp .hl, body.bk-print .bkp .tk li, body.bk-print .bkp .use > div, body.bk-print .bkp .sh { break-inside:avoid; }
+    body.bk-print .bkp .sh, body.bk-print .bkp .lnr .bklong { break-after:avoid; } body.bk-print .bkp .lnr .nt > :first-child { break-before:avoid; }
+  }
+  @page { margin:10mm 8mm; }
   body.fr-editing .bkp .rcs { display:none; }
   @media (max-width:640px) { .bkp .rcs .rc-stack { height:240px; margin:6px 4px 16px; } .bkp .rc-ic .q { font-size:1.08rem; } .bkp .rc-b { max-width:94%; } }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
@@ -3092,6 +3107,7 @@ el('frLearnCatIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e
 
 el('frPrint').addEventListener('click', () => {
   const r = rows.find(x => x.id === frId) || {};
+  if (isBk_(r)) { bkPrint_(); return; }   // P1: books and podcasts print the page as it looks
   const sec = SECTIONS[secOf(r)] || {};
   const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const src = (r.source_url || '').trim();
@@ -3969,6 +3985,17 @@ function rcInit_(r, P) {
     const card = box.querySelector('.rc-ic:not(.b1):not(.b2)'); if (card && !S.open) { card.style.cursor = 'pointer'; card.onclick = () => act('reveal'); }
   };
   draw();
+}
+
+// P1 (12 Nov 2026): print a book / podcast page as it looks - long note opened, buttons and Margin quiz / Replay left out
+function bkPrint_() {
+  const b = document.body, nt = el('bkS_nt'), wasFold = nt && nt.classList.contains('fold'), wasRd = b.classList.contains('bk-rdfold');
+  if (b.classList.contains('fr-editing')) setFrEditing(false);
+  if (nt) nt.classList.remove('fold');
+  b.classList.remove('bk-rdfold'); b.classList.add('bk-print');
+  const done = () => { b.classList.remove('bk-print'); if (nt && wasFold) nt.classList.add('fold'); if (wasRd) b.classList.add('bk-rdfold'); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(() => { window.print(); setTimeout(() => { if (b.classList.contains('bk-print') && !matchMedia('print').matches) done(); }, 1500); }, 60);
 }
 // BP-H1: the book page re-draws whenever a page opens or Edit closes
 openReader = (function (o) { return function () {
