@@ -133,6 +133,8 @@ Written August 2026.
 
 **X1 (9 Nov 2026) · "Are you sure?" in the app's own voice.** Deleting a knot no longer uses the browser's confirm box. Delete (in the knot form, or the × on a loop in Edit) opens a soft rose strip right under it (mmAskDelete_): "Delete '<title>' for good? Its desk and notes go too. If it's simply over, settling it keeps the record." (the settling line is shown only for open loops), with **Keep it** and a red **Delete**. mmDelete_ now refuses unless it has been asked. No SQL.
 
+**BP-W1 (12 Nov 2026) · Book and podcast pages get their own section colour.** The numbered sections (.sec, reading) and the bracketed edit frames (.bkfr) were cream on both. Now book pages fade white → #edf2f9 (Bucket List blue, matching the Books cards) with border #dbe4f0; podcast pages fade white → #f1eef8 (soft lavender) with border #e2dcef. Scoped by body.fr-book:not(.fr-pod) / body.fr-pod. The edit frame's inner cream ring is dropped (box-shadow:none); the corner brackets stay. No watermark. No SQL.
+
 **BK-6 · B1 + V3 (12 Nov 2026) · Books shelf cards: podcast height, Bucket List colour.** Desktop cover 72 × 108 (was 108 × 162) so a book card is the same height as a podcast card; cover text scaled down (title .66rem, 4 lines). Every card wears the Bucket List gradient - white fading to #edf2f9, grey hairline - on desktop and phone. New kind eyebrow above the title (.bb-k): FICTION / NON-FICTION / BOOK, in the book's colour (bkColFor_). Author line now grey; quote rule soft blue; tags white chips. Replaces BK-5's cover-colour glow. No SQL.
 
 **PD-1 · A2 + B1 + C1 + D2 (11 Nov 2026) · Podcasts redesigned, with Snipd PDF import.**
