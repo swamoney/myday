@@ -3829,12 +3829,13 @@ setFrEditing = (function (o) { return function (on) {
   if (on && !bkEd_ && !frHasDoc && document.body.classList.contains('fr-book')) bkEditSplit_();
   try { bkRender_(); } catch (e) { console.error(e); } return x; }; })(setFrEditing);
 
-// BP-R2 (12 Nov 2026): Focus - remembered on this device only
+// BP-R2 (12 Nov 2026): Focus - each page opens in the normal view; Focus is for this page only
 (function () {
-  let on = false; try { on = localStorage.getItem('myday.bkFocus') === '1'; } catch (e) {}
-  const set = v => { on = v; document.body.classList.toggle('bk-focus', v); const b = el('frFocus'); if (b) b.setAttribute('aria-pressed', v ? 'true' : 'false'); try { localStorage.setItem('myday.bkFocus', v ? '1' : '0'); } catch (e) {} };
-  set(on);
+  let on = false;
+  const set = v => { on = v; document.body.classList.toggle('bk-focus', v); const b = el('frFocus'); if (b) b.setAttribute('aria-pressed', v ? 'true' : 'false'); };
+  try { localStorage.removeItem('myday.bkFocus'); } catch (e) {}
   const b = el('frFocus'); if (b) b.addEventListener('click', () => { set(!on); window.scrollTo({ top: 0 }); const fp = el('frPage'); if (fp) fp.scrollTop = 0; });
+  const _open = openReader; openReader = function () { set(false); return _open.apply(this, arguments); };
 })();
 boot();
 </script>
