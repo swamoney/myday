@@ -451,7 +451,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .rc-ic .t { font-size:.55rem; letter-spacing:.14em; color:var(--mti); } .bkp .rc-ic .q { font-family:var(--serif); font-size:1.25rem; line-height:26px; margin-top:22px; color:#232f45; }
   .bkp .rc-bl { display:inline-block; min-width:4.5em; border-bottom:2px solid var(--bc); color:transparent; margin:0 2px; line-height:1; overflow:hidden; vertical-align:baseline; }
   .bkp .rc-rv { background:linear-gradient(transparent 52%, color-mix(in srgb, #f4c430 45%, #fff) 52% 92%, transparent 92%); font-weight:600; padding:0 2px; }
-  .bkp .rc-ctl { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:4px; } .bkp .rc-ctl button { border:1px solid #dfe5ee; background:#fff; border-radius:999px; padding:8px 16px; font-size:.84rem; font-weight:600; color:#3D4866; cursor:pointer; } .bkp .rc-ctl button.go { background:var(--bc); border-color:var(--bc); color:#fff; }
+  .bkp .rc-ctl { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:4px; } .bkp .rc-ctl button { border:1px solid #dfe5ee; background:#fff; border-radius:999px; padding:8px 16px; font-size:.84rem; font-weight:600; color:#3D4866; cursor:pointer; } .bkp .rc-ctl button.go { background:var(--bc); border-color:var(--bc); color:#fff; } .bkp .rc-ctl button.bk { border-color:transparent; background:none; color:#6b7488; }
   .bkp .rc-prog { text-align:center; font-size:.52rem; letter-spacing:.14em; color:#8a97b3; margin-top:10px; }
   .bkp .rc-done { text-align:center; font-family:var(--serif); font-size:1.05rem; color:#232f45; padding:18px 0 6px; } .bkp .rc-done .rc-ctl { margin-top:12px; }
   .bkp .rc-chat { display:flex; flex-direction:column; gap:10px; max-width:560px; margin:4px 0 14px; }
@@ -3912,13 +3912,15 @@ function rcInit_(r, P) {
     const [q, ref] = bkPageRef_(rcPlain_(t)); return { ans: q.replace(/^[“"]|[”"]$/g, ''), ref, ink: BK_INK[i % BK_INK.length] };
   }).filter(x => x.ans);
   if (items.length < 2) { el('bkS_rc').remove(); return; }
-  const S = { q: [], got: 0, open: false, salt: 1 };
-  const deal = () => { S.q = items.map((_, i) => i).sort(() => Math.random() - .5); S.got = 0; S.open = false; S.salt = 1 + Math.floor(Math.random() * 999); };
+  const S = { q: [], got: 0, open: false, salt: 1, hist: [] };
+  const deal = () => { S.q = items.map((_, i) => i).sort(() => Math.random() - .5); S.got = 0; S.open = false; S.hist = []; items.forEach(x => { x.again = false; }); S.salt = 1 + Math.floor(Math.random() * 999); };
   deal();
   const draw = () => {
     if (!S.q.length) {
       box.innerHTML = '<div class="rc-done"><b>' + (pod ? 'Episode replayed.' : 'Deck done.') + '</b> You got ' + S.got + ' of ' + items.length + ' first time.<div class="rc-ctl"><button type="button" class="go" data-rc="again-all">↻ Start again</button></div></div>';
-      box.querySelector('[data-rc]').onclick = () => { deal(); draw(); }; return;
+      box.innerHTML = box.innerHTML.replace('<div class="rc-ctl">', '<div class="rc-ctl"><button type="button" data-rc="back">‹ Back</button>');
+      box.querySelector('[data-rc="again-all"]').onclick = () => { deal(); draw(); };
+      box.querySelector('[data-rc="back"]').onclick = () => { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); }; return;
     }
     const it = items[S.q[0]], left = S.q.length, pos = items.length - left + 1;
     const text = it.ans, bl = rcPick_(text, S.salt + S.q[0]);
@@ -3932,11 +3934,13 @@ function rcInit_(r, P) {
     } else {
       h = '<div class="rc-stack"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.ref ? escHtml(it.ref.toUpperCase()) + ' · ' : '') + 'CARD ' + Math.min(pos, items.length) + ' OF ' + items.length + '</div><div class="q">“' + rcCloze_(text, bl, S.open) + '”</div></div></div>';
     }
-    h += '<div class="rc-ctl">' + (S.open ? '<button type="button" data-rc="again">↺ Again</button><button type="button" class="go" data-rc="got">✓ Got it' + (pod ? ' · next' : '') + '</button>'
+    h += '<div class="rc-ctl">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '') + (S.open ? '<button type="button" data-rc="again">↺ Again</button><button type="button" class="go" data-rc="got">✓ Got it' + (pod ? ' · next' : '') + '</button>'
       : '<button type="button" data-rc="shuffle">⤨ Shuffle</button><button type="button" class="go" data-rc="reveal">' + (pod ? 'Tap to fill' : 'Reveal') + '</button>') + '</div>' +
       '<div class="rc-prog mono">' + (items.length - left) + ' DONE · GOT ' + S.got + '</div>';
     box.innerHTML = h;
     const act = a => {
+      if (a === 'back') { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); return; }   // ‹ Back: the previous card, shown answered
+      if (a === 'got' || a === 'again') S.hist.push({ q: S.q.slice(), got: S.got, i: S.q[0], ag: it.again });
       if (a === 'reveal') S.open = true;
       else if (a === 'shuffle') { S.q.sort(() => Math.random() - .5); S.salt++; }
       else if (a === 'got') { S.got += it.again ? 0 : 1; S.q.shift(); S.open = false; }
@@ -3947,7 +3951,6 @@ function rcInit_(r, P) {
     const tap = box.querySelector('.tapme'); if (tap) { tap.onclick = () => act('reveal'); tap.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act('reveal'); } }; }
     const card = box.querySelector('.rc-ic:not(.b1):not(.b2)'); if (card && !S.open) { card.style.cursor = 'pointer'; card.onclick = () => act('reveal'); }
   };
-  items.forEach(x => { x.again = false; });
   draw();
 }
 // BP-H1: the book page re-draws whenever a page opens or Edit closes
