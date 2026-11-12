@@ -283,8 +283,10 @@
   .bkp .facts { display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border:1px solid #dfe5ee; border-radius:14px; margin-bottom:14px; } .bkp .facts > div { padding:12px 16px; border-left:1px solid #eef1f6; } .bkp .facts > div:first-child { border-left:none; } .bkp .facts .l { font-size:.54rem; color:#8a97b3; } .bkp .facts .v { font-family:var(--serif); font-size:1rem; margin-top:3px; color:#232f45; }
   .bkp .sec { background:#fffdf6; border:1px solid #ece2c4; border-radius:14px; padding:16px 20px; margin-bottom:14px; scroll-margin-top:70px; }
   /* BP-W1 (12 Nov 2026): each page wears its own shelf colour - books fade to the Bucket List blue, podcasts to soft lavender */
-  body.fr-book:not(.fr-pod) .bkp .sec, body.fr-book:not(.fr-pod) .bkp .bkfr { background:linear-gradient(180deg,#fff,#edf2f9); border-color:#dbe4f0; }
-  body.fr-pod .bkp .sec, body.fr-pod .bkp .bkfr { background:linear-gradient(180deg,#fff,#f1eef8); border-color:#e2dcef; }
+  /* N2 (12 Nov 2026): white sections, one accent per page (a book's cover colour, podcasts purple), page held to a reading width */
+  body.fr-book .bkp .sec, body.fr-book .bkp .bkfr { background:#fff; border-color:#e3e8f0; }
+  body.fr-book .bkp .sh .n { border-color:var(--bc); color:var(--bc); } body.fr-book .bkp .sh .m { color:#8a97b3; }
+  body.fr-book .fr-in { max-width:880px; margin-left:auto; margin-right:auto; }
   body.fr-book .bkp .sec .sh, body.fr-book .bkp .bkfr .sh { border-bottom-color:rgba(0,0,0,.07); }
   body.fr-book .bkp .bkfr { box-shadow:none; }
   .bkp .sh { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; border-bottom:1px solid #ece2c4; padding-bottom:10px; margin-bottom:12px; } .bkp .sh .n { width:28px; height:28px; border-radius:50%; border:1.5px solid #a65a3a; color:#a65a3a; font-family:var(--serif); display:inline-flex; align-items:center; justify-content:center; font-size:.85rem; align-self:center; flex:0 0 28px; } .bkp .sh h3 { font-family:var(--serif); font-weight:500; font-size:1.45rem; margin:0; color:#232f45; } .bkp .sh .m { font-size:.58rem; color:#a08b55; }
@@ -380,8 +382,8 @@
 
   /* BP-R1 (12 Nov 2026): calmer sections for reading - smaller headings, more air, a comfortable line length */
   .bkp .sh { gap:10px; padding-bottom:8px; margin-bottom:10px; } .bkp .sh .n { width:22px; height:22px; flex:0 0 22px; font-size:.62rem; border-width:1px; } .bkp .sh h3 { font-size:1.08rem; font-weight:600; letter-spacing:.01em; } .bkp .sh .m { font-size:.5rem; opacity:.85; }
-  .bkp .sec { padding:18px 26px; } .bkp .thr, .bkp .tk, .bkp .use, .bkp .nt { max-width:680px; }
-  .bkp .hl .q { font-size:1.16rem; line-height:1.65; } .bkp .hl .pts { font-size:1.02rem; line-height:1.7; max-width:640px; } .bkp .tk li { font-size:1.08rem; line-height:1.7; }
+  .bkp .sec { padding:18px 26px; }
+  .bkp .hl .q { font-size:1.16rem; line-height:1.65; } .bkp .hl .pts { font-size:1.02rem; line-height:1.7; } .bkp .tk li { font-size:1.08rem; line-height:1.7; }
   @media (max-width:640px) { .bkp .sec { padding:14px; } .bkp .sh h3 { font-size:1rem; } .bkp .hl .q { font-size:1.04rem; } .bkp .hl .pts, .bkp .tk li { font-size:.98rem; } }
   /* BP-R2: the Focus button - the page becomes the title and the words, nothing else */
   #frFocus { display:none; } body.fr-book:not(.fr-editing) #frFocus { display:inline-flex; } body.bk-focus #frFocus { background:#efeaf7; border-color:#5b4a86; color:#5b4a86; }
@@ -2297,7 +2299,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== BP-E1 (11 Nov 2026): writing a book page in place =====
 let bkEd_ = null;        // while editing a book: { hl:[{t,star}], tk:[t], lv:[{t,st}] } - the Notes editor (#frBodyInp) holds the rest
 let bkCovers_ = null;    // cover colour you picked per book (user_prefs.prefs.book_covers)
-function bkColFor_(r) { if (isPod_(r)) return bkCol_((r.type || '').trim() || r.title); const k = bkKind_(r); return k === 'f' ? '#7a2e2e' : k === 'n' ? '#1f4e5f' : bkCol_(r.title); }   // BP-C2: the cover follows the kind
+function bkColFor_(r) { if (isPod_(r)) return '#5b4a86';   // N2-Q1: every podcast wears the one Podcasts purple
+  const k = bkKind_(r); return k === 'f' ? '#7a2e2e' : k === 'n' ? '#1f4e5f' : bkCol_(r.title); }   // BP-C2: the cover follows the kind
 // BP-C2: a book's kind lives in its tags as 'Fiction' / 'Non-fiction' (an older 'Non-Fiction' style tag counts too)
 const BK_KIND_RE = /^(non[\s-]*fic\w*|fiction)$/i;
 function bkKind_(r) { const t = (r.tags || []).find(x => BK_KIND_RE.test(String(x).trim())); return t ? (/^non/i.test(t) ? 'n' : 'f') : ''; }
