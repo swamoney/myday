@@ -133,6 +133,8 @@ Written August 2026.
 
 **X1 (9 Nov 2026) · "Are you sure?" in the app's own voice.** Deleting a knot no longer uses the browser's confirm box. Delete (in the knot form, or the × on a loop in Edit) opens a soft rose strip right under it (mmAskDelete_): "Delete '<title>' for good? Its desk and notes go too. If it's simply over, settling it keeps the record." (the settling line is shown only for open loops), with **Keep it** and a red **Delete**. mmDelete_ now refuses unless it has been asked. No SQL.
 
+**PR-C2 (12 Nov 2026) · Podcast Replay now works like the book Margin quiz.** The host/guest bubbles (PR9, PR9-C, PR9-S3) are replaced: podcasts get the same fanned card stack, Reveal (or tap the card) and ‹ Back · count · Next › row as books, but each card is a Musings-style snip card (.rc-stack.sn - wash in the kind's ink, 1.5px border, faint leaf): kind + n OF m, the snip title, then its first point with 1-2 words blanked (title-only snips blank the title). Revealed words in the yellow highlighter. No SQL.
+
 **BR1/PR9-R (12 Nov 2026) · Test me renamed.** The recall section is now called **Margin quiz** on book pages and **Replay** on podcast pages (heading only; behaviour unchanged). Earlier notes that say 'Test me' mean this section. No SQL.
 
 **PR9-S3 (12 Nov 2026) · Podcast Test me: the answer is an indented reply.** The guest's bubble steps in 48px (30px on phone) with a curved line (::before) from the host's question, and the gap between them is 18px. No SQL.

@@ -466,6 +466,13 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .rc-chat { gap:18px; } .bkp .rc-b.g { margin-left:48px; position:relative; border-top-left-radius:4px; border-bottom-left-radius:16px; }
   .bkp .rc-b.g::before { content:''; position:absolute; left:-30px; top:-18px; width:22px; height:40px; border-left:2px solid #c9bfe0; border-bottom:2px solid #c9bfe0; border-bottom-left-radius:14px; pointer-events:none; }
   @media (max-width:640px) { .bkp .rc-b.g { margin-left:30px; } .bkp .rc-b.g::before { left:-20px; width:14px; } }
+  /* C2 (12 Nov 2026): podcast Replay = the book stack in snip-card dress */
+  .bkp .rc-stack.sn .rc-ic { background:linear-gradient(150deg, color-mix(in srgb, var(--mti) 14%, #fff), #fff 62%); border:1.5px solid color-mix(in srgb, var(--mti) 45%, #fff); border-radius:16px; padding:16px 22px; }
+  .bkp .rc-stack.sn .rc-ic.b1, .bkp .rc-stack.sn .rc-ic.b2 { border-color:#e6e1ef; }
+  .bkp .rc-stack.sn .rc-ic:not(.b1):not(.b2)::after { content:''; position:absolute; right:16px; top:12px; width:40px; height:40px; background:var(--mti); opacity:.2; -webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M8%2040%20C8%2018%2022%206%2042%206%20C42%2026%2030%2040%208%2040Z%27%20fill%3D%27%23000%27/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%2048%2048%27%3E%3Cpath%20d%3D%27M8%2040%20C8%2018%2022%206%2042%206%20C42%2026%2030%2040%208%2040Z%27%20fill%3D%27%23000%27/%3E%3C/svg%3E") center/contain no-repeat; pointer-events:none; }
+  .bkp .rc-stack.sn .tt2 { font-family:var(--serif); font-weight:600; font-size:1.08rem; color:#2b2347; margin:8px 0 0; padding-right:48px; } .bkp .rc-stack.sn .q { margin-top:12px; line-height:1.6; }
+  body.fr-pod .bkp .rc-ctl.lr { max-width:none; margin:22px 10px 0; }
+  @media (max-width:640px) { .bkp .rc-stack.sn { height:260px; } }
   body.fr-editing .bkp .rcs { display:none; }
   @media (max-width:640px) { .bkp .rcs .rc-stack { height:240px; margin:6px 4px 16px; } .bkp .rc-ic .q { font-size:1.08rem; } .bkp .rc-b { max-width:94%; } }
   .frbar-btns { display:none; gap:8px; align-items:center; margin-left:auto; }
@@ -3931,18 +3938,15 @@ function rcInit_(r, P) {
     const it = items[S.q[0]], left = S.q.length, pos = items.length - left + 1;
     const text = it.ans, bl = rcPick_(text, S.salt + S.q[0]);
     let h;
-    if (pod) {
-      const who = guest ? guest.toUpperCase() : 'THE EPISODE', name = guest ? guest.split(/\s+/)[0] : 'they';
-      const ask = it.titleOnly ? (it.kind ? 'There was a ' + it.kind.toLowerCase() + ' you saved — how did it go?' : 'Finish this line from the episode:')
-        : 'What did ' + name + ' mean by “' + it.title + '”?';
-      h = '<div class="rc-chat"><div class="rc-b h"><small>HOST · ' + (it.kind ? escHtml(it.kind.toUpperCase()) + ' · ' : '') + Math.min(pos, items.length) + ' OF ' + items.length + '</small>' + escHtml(ask) + '</div>' +
-        '<div class="rc-b g' + (S.open ? '' : ' tapme') + '" role="button" tabindex="0" style="--mti:' + it.ink + '"><small>' + escHtml(who) + '</small>' + rcCloze_(text, bl, S.open) + '</div></div>';
+    if (pod) {   // C2 (12 Nov 2026): the book card stack, each card a Musings-style snip card
+      h = '<div class="rc-stack sn"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.kind ? escHtml(it.kind.toUpperCase()) + ' · ' : '') + Math.min(pos, items.length) + ' OF ' + items.length + '</div>' +
+        (it.titleOnly ? '' : '<div class="tt2">' + escHtml(it.title) + '</div>') + '<div class="q">' + rcCloze_(text, bl, S.open) + '</div></div></div>';
     } else {
       h = '<div class="rc-stack"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.ref ? escHtml(it.ref.toUpperCase()) + ' · ' : '') + 'CARD ' + Math.min(pos, items.length) + ' OF ' + items.length + '</div><div class="q">“' + rcCloze_(text, bl, S.open) + '”</div></div></div>';
     }
     h += '<div class="rc-ctl lr">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '<span class="rc-sp"></span>') +   // A: Back left, count middle, Next right
       '<span class="rc-prog mono">' + (items.length - left) + ' OF ' + items.length + ' DONE</span>' +
-      (S.open ? '<button type="button" class="go" data-rc="got">Next ›</button>' : '<button type="button" class="go" data-rc="reveal">' + (pod ? 'Tap to fill' : 'Reveal') + '</button>') + '</div>';
+      (S.open ? '<button type="button" class="go" data-rc="got">Next ›</button>' : '<button type="button" class="go" data-rc="reveal">' + 'Reveal' + '</button>') + '</div>';
     box.innerHTML = h;
     const act = a => {
       if (a === 'back') { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); return; }   // ‹ Back: the previous card, shown answered
