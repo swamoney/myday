@@ -614,6 +614,15 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body[data-sec='music'] #tagsRow .tag { background:#f1f5fb; border-color:#d8e2ef; color:#3d5578; }
   body[data-sec='music'] #tagsRow .tag.active { background:#dbe5f2; border-color:#b9cbe4; color:#2F5A94; font-weight:600; }
   @media (max-width:640px) { .mu-xc { padding:12px 14px; gap:10px; } .mu-seal { width:58px; height:58px; } .mu-xnm { font-size:1.12rem; } }
+  /* MU-10 (13 Nov 2026) · T4: compact singles - one line (name, singer in handwriting), tags as tiny light chips under, a small ▶ */
+  .mu-xc.mu-xs { padding:8px 12px 8px 14px; gap:10px; }
+  .mu-xs .mu-xl { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:10px; row-gap:3px; }
+  .mu-xs .mu-xnm { font-size:1.02rem; margin:0; } .mu-xs .mu-xfv { font-size:1.12rem; line-height:1.1; }
+  .mu-xs .mu-xtg { flex-basis:100%; display:flex; flex-wrap:wrap; gap:4px; }
+  .mu-xs .mu-xtg i { font-style:normal; font-size:0.6rem; font-weight:600; line-height:1; color:#3d5578; background:#eef3fa; border:1px solid #dde7f3; border-radius:999px; padding:2px 7px; }
+  .mu-xs .mu-seal { width:34px; height:34px; transform:none; border-width:1.5px; } .mu-xs .mu-seal::before { display:none; } .mu-xs .mu-seal i { font-size:0.7rem; }
+  .mu-xno { display:none; font-family:var(--mono); font-size:0.66rem; font-weight:600; color:#9aa3b5; } body.editing .mu-xs .mu-xno { display:inline; }
+  @media (max-width:640px) { .mu-xs .mu-seal { width:34px; height:34px; } .mu-xs .mu-xnm { font-size:1rem; } }
   /* MV-6 · TR1: the trailer - a frame of film in ink teal, sprocket holes both sides; plays in place */
   .bkp .mv-film { position:relative; padding:14px 28px; background:color-mix(in srgb, var(--bc) 88%, #000); border-radius:14px; }
   .bkp .mv-film::before, .bkp .mv-film::after { content:''; position:absolute; top:10px; bottom:10px; width:10px; background:radial-gradient(circle, #fff 0 3px, transparent 3.4px) 50% 0/10px 16px repeat-y; }
@@ -5284,9 +5293,14 @@ function renderMusic_(list, wrap) {
     '<div class="mu-gh3 mono">SINGLES</div>';
   if (S.length) {
     h += '<div class="mu-list' + (muOpen_ ? ' open' : '') + '">' + S.map((r, k) => {
-      const [t, who] = muSplit_(r);
-      const eb = String(allS.indexOf(r) + 1).padStart(2, '0') + (r.tags || []).map(x => ' · ' + e(String(x).toUpperCase())).join('');
-      return row(r, eb, t, who, k >= MU_FOLD ? ' mu-x' : '', false);
+      const [t, who] = muSplit_(r), tg = (r.tags || []).filter(Boolean);
+      // MU-10 (T4): a single is one line - name ★ and singer in handwriting - with its tags as tiny light chips under; a small ▶.
+      // The number shows only in Edit (where you move songs); the app is left out to keep it short.
+      return '<div class="mu-xc mu-xs' + (k >= MU_FOLD ? ' mu-x' : '') + '" data-mup="' + e(r.id) + '">' +
+        '<div class="mu-xl"><span class="mu-xno">' + String(allS.indexOf(r) + 1).padStart(2, '0') + '</span><span class="mu-xnm">' + e(t) + (r.favourite ? star : '') + '</span>' +
+        (who ? '<span class="mu-xfv">' + e(who) + '</span>' : '') +
+        (tg.length ? '<span class="mu-xtg">' + tg.map(x => '<i>' + e(x) + '</i>').join('') + '</span>' : '') + '</div>' +
+        '<span class="mu-seal" aria-hidden="true"><i>▶</i></span>' + tools(r.id) + '</div>';
     }).join('') + '</div>';
     if (S.length > MU_FOLD) h += '<button type="button" class="mu-tog" data-muo="' + (muOpen_ ? '0' : '1') + '">' + (muOpen_ ? 'Show less' : 'Show all ' + S.length + ' songs') + '</button>';
   } else h += '<div class="mu-none">' + (allS.length ? 'No songs under this filter.' : 'No songs yet.') + '</div>';
