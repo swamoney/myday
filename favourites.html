@@ -1144,7 +1144,15 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .ld-ey { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:6px; padding-right:44px; font-family:var(--mono); font-size:0.5313rem; font-weight:700; letter-spacing:0.12em; color:#7a8296; }
   .ld-ey .ld-d { color:#7a8296; } .ld-ey i { font-style:normal; color:var(--ldi); } .ld-ey i::before { content:'\00B7  '; color:#b4bac8; }
   .ld-mc .ld-t { display:block; font-family:var(--serif); font-size:1.08rem; font-weight:500; line-height:1.42; color:#232f45; padding-right:40px; }
-  .ld-star { color:#c9a227; }
+  /* LD-H3: the card's heading laid out like the page - paragraphs, bullet / numbered lists, long ones a size smaller */
+  .ld-mc .ld-t .hp { margin:0 0 0.55em; } .ld-mc .ld-t .hp:last-of-type { margin-bottom:0; }
+  .ld-mc .ld-t .hl, body.fr-learning .fr-h1 .hl { margin:0.2em 0 0.55em; padding-left:1.25em; } .ld-mc .ld-t .hl li, body.fr-learning .fr-h1 .hl li { margin:0.15em 0; }
+  .ld-mc .ld-t .hl li::marker, body.fr-learning .fr-h1 .hl li::marker { color:var(--ldi, #6b6f88); }
+  .ld-mc .ld-t > :last-child { margin-bottom:0; }
+  .ld-mc .ld-t.ln-m { font-size:1rem; line-height:1.45; } .ld-mc .ld-t.ln-l { font-size:0.94rem; line-height:1.5; }
+  body.fr-learning .fr-h1 .hl { text-align:left; }
+  .ld-star { color:#c9a227; } .ld-ey .ld-star { font-size:0.8rem; letter-spacing:0; }
+  body.fr-learning .fr-h1 .hl li { text-wrap:pretty; }
   .ld-act { position:absolute; right:10px; bottom:8px; display:flex; gap:6px; align-items:center; }
   .ld-mc .ld-edit { display:none; }   /* LD-M1: pencil and x only while Edit is on */
   body.editing .ld-row.ld-mc .ld-edit { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px; border:1px solid #d5dbe6; border-radius:7px; background:#fff; color:#5a6680; opacity:1; padding:0; cursor:pointer; }
@@ -1974,8 +1982,8 @@ function renderLearning_(list, wrap, secTint) {
     const fl = ldFirstLine_(r);
     html += '<div class="ld-row ld-mc' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '" style="--ldi:' + ldInk_(r) + '">' +
       '<span class="ld-leaf" aria-hidden="true">' + LD_LEAF + '</span>' +
-      '<div class="ld-ey"><span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' + ldCats_(r).map(c => '<i>' + escHtml(c.toUpperCase()) + '</i>').join('') + '</div>' +
-      '<div class="ld-t">' + escHtml(fl.first) + (r.favourite ? ' <span class="ld-star">\u2605</span>' : '') + '</div>' +
+      '<div class="ld-ey"><span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' + ldCats_(r).map(c => '<i>' + escHtml(c.toUpperCase()) + '</i>').join('') + (r.favourite ? '<span class="ld-star">\u2605</span>' : '') + '</div>' +
+      '<div class="ld-t' + ldHeadCls_(r.title || fl.first) + '">' + ((r.title || '').trim() ? ldHeadHtml_(r.title) : escHtml(fl.first)) + '</div>' +   // LD-H3: laid out like the page
       '<span class="ld-act"><button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
       '<button class="ld-x" data-ldx="' + escHtml(r.id) + '" type="button" aria-label="Remove" title="Remove">\u00D7</button></span>' +
       '</div>';
@@ -3167,6 +3175,29 @@ function ldHeadText_(h) {   // LD-P: the heading's text with your breaks (a type
   c.querySelectorAll('div, p').forEach(x => x.prepend('\n'));
   return c.textContent;
 }
+// LD-H3 (13 Nov 2026): one way to lay out a learning's heading, used by the diary's cards and the page alike -
+// your own line breaks become paragraphs; lines starting with - • * or 1. become a bullet / numbered list;
+// one long run (over ~260 characters, 3+ sentences) shows as paragraphs of two sentences
+function ldHeadCls_(t) { const n = String(t || '').length; return n > 260 ? ' ln-l' : n > 140 ? ' ln-m' : ''; }   // longer headings step down a size, as on the page
+function ldHeadHtml_(t) {
+  t = String(t || '');
+  const own = t.split('\n').map(x => x.trim()).filter(Boolean);
+  const isB = x => /^[-•*–]\s+/.test(x), isN = x => /^\d+[.)]\s+/.test(x);
+  if (own.length > 1 || own.some(x => isB(x) || isN(x))) {
+    let h = '', list = null;
+    own.forEach(x => {
+      const k = isB(x) ? 'ul' : isN(x) ? 'ol' : '';
+      if (k !== list) { if (list) h += '</' + list + '>'; if (k) h += '<' + k + ' class="hl">'; list = k || null; }
+      h += k ? '<li>' + escHtml(x.replace(k === 'ul' ? /^[-•*–]\s+/ : /^\d+[.)]\s+/, '')) + '</li>' : '<p class="hp">' + escHtml(x) + '</p>';
+    });
+    if (list) h += '</' + list + '>';
+    return h;
+  }
+  let ss = [t];
+  try { ss = t.split(/(?<=[.!?…]["”’)]?)\s+(?=[A-Z“"‘(0-9])/); } catch (e) {}
+  if (t.length > 260 && ss.length > 2) { const g = []; for (let i = 0; i < ss.length; i += 2) g.push(ss.slice(i, i + 2).join(' ')); return g.map(x => '<p class="hp">' + escHtml(x) + '</p>').join(''); }
+  return escHtml(t);
+}
 function ldHeadFmt_(t) {
   const h = el('frH1'); if (!h) return;
   if (t == null) { const r = rows.find(x => String(x.id) === String(frId)); t = r ? (r.title || '') : h.textContent; }
@@ -3174,13 +3205,9 @@ function ldHeadFmt_(t) {
   ldHeadSize_(h, t);
   let ss = [t];
   try { ss = t.replace(/\n/g, ' ').split(/(?<=[.!?…]["”’)]?)\s+(?=[A-Z“"‘(0-9])/); } catch (e) {}
-  const own = t.split('\n').map(x => x.trim()).filter(Boolean);   // LD-P: your own breaks win over the automatic split
-  if (document.body.classList.contains('fr-learning') && !h.isContentEditable && own.length > 1) {
-    h.innerHTML = own.map(x => '<p class="hp">' + escHtml(x) + '</p>').join('');
-  } else if (document.body.classList.contains('fr-learning') && !h.isContentEditable && t.length > 260 && ss.length > 2) {
-    const g = []; for (let i = 0; i < ss.length; i += 2) g.push(ss.slice(i, i + 2).join(' '));
-    h.innerHTML = g.map(x => '<p class="hp">' + escHtml(x) + '</p>').join('');
-  } else if (h.querySelector('.hp') || h.textContent !== t) h.textContent = t;
+  const fmt = ldHeadHtml_(t);   // LD-H3: paragraphs and lists, the same as the diary's cards
+  if (document.body.classList.contains('fr-learning') && !h.isContentEditable && fmt !== escHtml(t)) h.innerHTML = fmt;
+  else if (h.querySelector('.hp, .hl') || h.textContent !== t) h.textContent = t;
 }
 async function _frTitleCommit(raw, keepBreaks) {
   if (!frId) return;
