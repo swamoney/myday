@@ -1151,6 +1151,15 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .ld-mc .ld-t > :last-child { margin-bottom:0; }
   .ld-mc .ld-t.ln-m { font-size:1rem; line-height:1.45; } .ld-mc .ld-t.ln-l { font-size:0.94rem; line-height:1.5; }
   body.fr-learning .fr-h1 .hl { text-align:left; }
+  /* LD-T1: the heading's own small toolbar (Edit only, learning pages) and formatted headings on page and card */
+  .ld-htb { display:none; } body.fr-learning.fr-editing .ld-htb { display:flex; flex-wrap:wrap; align-items:center; gap:2px; width:fit-content; margin:4px 0 8px; padding:4px; background:#fff; border:1px solid #e3e7ef; border-radius:10px; }
+  .ld-htb button { min-width:32px; height:30px; border:none; background:none; border-radius:7px; color:#3a4a6a; font:600 0.9rem/1 var(--sans); cursor:pointer; padding:0 6px; } .ld-htb button:hover { background:#eef2f8; }
+  .ld-htb .hlx { background:#fdecb0; padding:0 4px; border-radius:3px; } .ld-htb .sep { width:1px; height:18px; background:#e3e7ef; margin:0 3px; }
+  .fr-h1 .hl-yellow, .ld-t .hl-yellow { background:#fdecb0; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+  body.fr-learning .fr-h1 p, .ld-mc .ld-t p { margin:0 0 0.55em; } body.fr-learning .fr-h1 > :last-child, .ld-mc .ld-t > :last-child { margin-bottom:0; }
+  body.fr-learning .fr-h1 ul, body.fr-learning .fr-h1 ol, .ld-mc .ld-t ul, .ld-mc .ld-t ol { margin:0.2em 0 0.55em; padding-left:1.25em; text-align:left; }
+  body.fr-learning .fr-h1 li::marker, .ld-mc .ld-t li::marker { color:var(--ldi, #6b6f88); }
+  body.fr-learning #frPassage { display:none !important; }   /* a learning's essence is its formatted heading, not a passage */
   .ld-star { color:#c9a227; } .ld-ey .ld-star { font-size:0.8rem; letter-spacing:0; }
   body.fr-learning .fr-h1 .hl li { text-wrap:pretty; }
   .ld-act { position:absolute; right:10px; bottom:8px; display:flex; gap:6px; align-items:center; }
@@ -1463,8 +1472,11 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
         <div class="fr-headrow">
           <div class="fr-headtxt">
             <div class="fr-eyebrow" id="frEyebrow"></div>
+            <div class="ld-htb" id="ldHtb" role="toolbar" aria-label="Format the heading">
+              <button type="button" data-ldc="bold" title="Bold"><b>B</b></button><button type="button" data-ldc="italic" title="Italic"><i>I</i></button><button type="button" data-ldc="underline" title="Underline"><u>U</u></button><button type="button" data-ldc="hl" title="Highlight"><span class="hlx">A</span></button><span class="sep"></span><button type="button" data-ldc="insertUnorderedList" title="Bullet list">&bull;&#8801;</button><button type="button" data-ldc="insertOrderedList" title="Numbered list">1&#8801;</button><span class="sep"></span><button type="button" data-ldc="clear" title="Clear formatting">T<sub>x</sub></button>
+            </div>
             <div class="fr-h1" id="frH1"></div>
-            <div class="fr-h1hint">ENTER = NEW PARAGRAPH · TAP DONE TO SAVE</div>
+            <div class="fr-h1hint">SELECT WORDS TO FORMAT · ENTER = NEW PARAGRAPH · TAP DONE TO SAVE</div>
             <div class="fr-learn hidden" id="frLearn">
               <button type="button" class="fr-lpill dt" id="frLearnDate" title="Tap to change the date"></button>
               <input type="date" id="frLearnDateIn" class="hidden">
@@ -1983,7 +1995,7 @@ function renderLearning_(list, wrap, secTint) {
     html += '<div class="ld-row ld-mc' + (r.favourite ? ' is-fav' : '') + '" data-open="' + escHtml(r.id) + '" style="--ldi:' + ldInk_(r) + '">' +
       '<span class="ld-leaf" aria-hidden="true">' + LD_LEAF + '</span>' +
       '<div class="ld-ey"><span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' + ldCats_(r).map(c => '<i>' + escHtml(c.toUpperCase()) + '</i>').join('') + (r.favourite ? '<span class="ld-star">\u2605</span>' : '') + '</div>' +
-      '<div class="ld-t' + ldHeadCls_(r.title || fl.first) + '">' + ((r.title || '').trim() ? ldHeadHtml_(r.title) : escHtml(fl.first)) + '</div>' +   // LD-H3: laid out like the page
+      '<div class="ld-t' + ldHeadCls_(r.title || fl.first) + '">' + ((r.title || '').trim() ? ldHeadView_(r) : escHtml(fl.first)) + '</div>' +   // LD-H3: laid out like the page
       '<span class="ld-act"><button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
       '<button class="ld-x" data-ldx="' + escHtml(r.id) + '" type="button" aria-label="Remove" title="Remove">\u00D7</button></span>' +
       '</div>';
@@ -2299,7 +2311,7 @@ function filteredRows() {
     const q = searchTerm.toLowerCase();
     out = out.filter(r =>
       (r.title || '').toLowerCase().includes(q) ||
-      (r.essence || '').toLowerCase().includes(q) ||
+      (r.essence || '').replace(/<[^>]+>/g, ' ').toLowerCase().includes(q) ||   // LD-T1: a formatted heading searches by its words
       (r.type || '').toLowerCase().includes(q) ||
       NoteEditor.toPlain(r.note).toLowerCase().includes(q) ||
       (r.url || '').toLowerCase().includes(q) ||
@@ -3121,13 +3133,14 @@ function setFrEditing(on) {
   if (on) {
     h1.setAttribute('contenteditable', 'true');
     h1.classList.add('fr-h1-edit');
-    ldHeadFmt_();   // LD-H2: back to one plain line to edit
+    if (document.body.classList.contains('fr-learning')) { document.execCommand('defaultParagraphSeparator', false, 'p'); ldHtbWire_(); }
+    ldHeadFmt_();   // LD-H2 / LD-T1: a learning edits its formatted heading in place
     if (!h1._frTitleWired) {
       h1._frTitleWired = true;
       h1.addEventListener('input', () => ldHeadSize_(h1, h1.textContent));
       h1.addEventListener('keydown', ev => {
         if (ev.key === 'Enter') { ev.preventDefault();
-          if (document.body.classList.contains('fr-learning')) { document.execCommand('insertLineBreak'); return; }   // LD-P (A): Enter = new paragraph; Done saves
+          if (document.body.classList.contains('fr-learning')) { document.execCommand('insertParagraph'); return; }   // LD-T1: Enter = new paragraph (or list item); Done saves
           h1.blur(); }
       });
     }
@@ -3142,7 +3155,7 @@ function setFrEditing(on) {
       el('frBody').innerHTML = html || '<span class="empty">Nothing written yet \u2014 tap Edit to begin.</span>';
       el('frBody').classList.toggle('empty', !html);
     }
-    if (wasEditing) { const lrn = document.body.classList.contains('fr-learning'); _frTitleCommit(lrn ? ldHeadText_(h1) : h1.textContent, lrn); }
+    if (wasEditing) { if (document.body.classList.contains('fr-learning')) _ldHeadCommit(h1); else _frTitleCommit(h1.textContent, false); }   // LD-T1
   } else {
     nk.refresh();
   }
@@ -3168,6 +3181,69 @@ function ldHeadSize_(h, t) {
   const learn = document.body.classList.contains('fr-learning'), n = String(t || '').length;
   h.classList.toggle('ln-m', learn && n > 110 && n <= 260);
   h.classList.toggle('ln-l', learn && n > 260);
+}
+// LD-T1 (13 Nov 2026): a learning's heading can be formatted (bold, italic, underline, highlight, lists) with its own small
+// toolbar in Edit. The formatted heading is kept in essence, marked LDH; the title keeps a plain copy (lists as "- " / "1. "
+// lines) so search, the hub's flashcards, Notion and .md export carry on with plain words. Cards and page show the formatted one.
+const LDH = '<!--ldh-->';
+function ldRich_(r) { const e = String((r && r.essence) || ''); return e.indexOf(LDH) === 0 ? NoteEditor.sanitize(e.slice(LDH.length)) : ''; }
+function ldHeadView_(r) { return ldRich_(r) || ldHeadHtml_((r && r.title) || ''); }
+function ldHtmlPlain_(html) {   // formatted heading -> the plain title: one line per paragraph, list items as "- " / "1. "
+  const box = document.createElement('div'); box.innerHTML = html; const out = [];
+  const walk = n => Array.from(n.childNodes).forEach(c => {
+    if (c.nodeType === 3) { const t = c.textContent.replace(/\s+/g, ' ').trim(); if (t) { if (!out.length || out[out.length - 1] === null) out.push(t); else out[out.length - 1] += ' ' + t; } return; }
+    if (c.nodeType !== 1) return; const tg = c.tagName;
+    if (tg === 'BR') { out.push(null); return; }
+    if (tg === 'UL' || tg === 'OL') { let k = 0; Array.from(c.children).forEach(li => { k++; const t = li.textContent.replace(/\s+/g, ' ').trim(); if (t) out.push((tg === 'OL' ? k + '. ' : '- ') + t); }); out.push(null); return; }
+    if (tg === 'P' || tg === 'DIV' || tg === 'H3' || tg === 'BLOCKQUOTE') { out.push(null); walk(c); out.push(null); return; }
+    walk(c);
+  });
+  walk(box);
+  return out.filter(x => x).map(x => x.trim()).filter(Boolean).join('\n');
+}
+function ldHasInline_(html) { return /<(b|strong|i|em|u|s|strike|del)\b|class="[^"]*hl-/i.test(html); }
+function ldHtbWire_() {
+  const tb = el('ldHtb'); if (!tb || tb._w) return; tb._w = true;
+  tb.addEventListener('mousedown', e => e.preventDefault());   // keep the selection in the heading
+  tb.addEventListener('click', e => {
+    const b = e.target.closest('[data-ldc]'); if (!b) return; const h = el('frH1'); if (!h || !h.isContentEditable) return;
+    h.focus(); const c = b.dataset.ldc;
+    if (c === 'hl') {
+      const sel = getSelection(); if (!sel.rangeCount || sel.isCollapsed) return;
+      const n = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode), on = n && n.closest && n.closest('span.hl-yellow');
+      if (on && h.contains(on)) { while (on.firstChild) on.parentNode.insertBefore(on.firstChild, on); on.remove(); return; }
+      document.execCommand('styleWithCSS', false, true); document.execCommand('hiliteColor', false, '#fdecb0');
+      h.querySelectorAll('span[style*="background"]').forEach(sp => { sp.removeAttribute('style'); sp.className = 'hl-yellow'; });
+      document.execCommand('styleWithCSS', false, false); return;
+    }
+    if (c === 'clear') {
+      document.execCommand('removeFormat');
+      const sel = getSelection(); if (sel.rangeCount) { const rg = sel.getRangeAt(0); h.querySelectorAll('span.hl-yellow').forEach(sp => { if (rg.intersectsNode(sp)) { while (sp.firstChild) sp.parentNode.insertBefore(sp.firstChild, sp); sp.remove(); } }); }
+      return;
+    }
+    if (!/List$/.test(c)) { document.execCommand(c); return; }
+    // lists: Chrome nests the new list inside the paragraph and drops the caret at its start - lift it out and put the caret back
+    const sel = getSelection(); let mk = null;
+    if (sel.rangeCount && sel.isCollapsed) { mk = document.createElement('span'); mk.id = 'ldCaret'; mk.textContent = '\u200b'; sel.getRangeAt(0).insertNode(mk); }
+    document.execCommand(c);
+    h.querySelectorAll('p > ul, p > ol').forEach(l => { const pp = l.parentNode; pp.parentNode.insertBefore(l, pp.nextSibling); if (!pp.textContent.trim() && !pp.querySelector('img')) pp.remove(); });
+    let m = h.querySelector('#ldCaret');
+    if (!m) { const tw = document.createTreeWalker(h, NodeFilter.SHOW_TEXT); let n; while ((n = tw.nextNode())) { const i = n.textContent.indexOf('\u200b'); if (i >= 0) { n.textContent = n.textContent.replace('\u200b', ''); try { sel.collapse(n, i); } catch (e) {} break; } } }
+    else { const prev = m.previousSibling, rg = document.createRange(); if (prev && prev.nodeType === 3) { rg.setStart(prev, prev.length); } else rg.setStartBefore(m); rg.collapse(true); m.remove(); sel.removeAllRanges(); sel.addRange(rg); }
+  });
+}
+async function _ldHeadCommit(h) {   // Done on a learning page: save the plain title and, when formatted, the formatted heading
+  if (!frId) return; const r = rows.find(x => String(x.id) === String(frId)); if (!r) return;
+  const html = NoteEditor.sanitize(h.innerHTML).replace(/\u200b/g, '').replace(/<p>\s*(<br>)?\s*<\/p>/g, '').replace(/<li>\s*(<br>)?\s*<\/li>/g, '').trim();
+  const title = ldHtmlPlain_(html);
+  if (!title) { ldHeadFmt_(); return; }
+  const essence = ldHasInline_(html) ? LDH + html : (ldRich_(r) ? '' : (r.essence || ''));
+  if (title === r.title && essence === (r.essence || '')) { ldHeadFmt_(); return; }
+  try {
+    const { error } = await supa.from('bookmarks').update({ title, essence }).eq('id', frId).eq('user_id', userId);
+    if (error) throw error;
+    r.title = title; r.essence = essence; ldHeadFmt_(); toast('Title saved'); render();
+  } catch (e) { console.error(e); ldHeadFmt_(); toast('Could not save the title'); }
 }
 function ldHeadText_(h) {   // LD-P: the heading's text with your breaks (a typed newline, <br> or a new block all count)
   const c = h.cloneNode(true);
@@ -3205,8 +3281,11 @@ function ldHeadFmt_(t) {
   ldHeadSize_(h, t);
   let ss = [t];
   try { ss = t.replace(/\n/g, ' ').split(/(?<=[.!?…]["”’)]?)\s+(?=[A-Z“"‘(0-9])/); } catch (e) {}
+  const lrn = document.body.classList.contains('fr-learning'), cur = rows.find(x => String(x.id) === String(frId));
+  if (lrn && cur) {   // LD-T1: formatted (or laid out) - reading and Edit alike; in Edit each line sits in its own paragraph
+    const v = ldHeadView_(cur); h.innerHTML = h.isContentEditable && !/^\s*<(p|ul|ol|div|h3|blockquote)\b/i.test(v) ? '<p>' + v + '</p>' : v; return; }
   const fmt = ldHeadHtml_(t);   // LD-H3: paragraphs and lists, the same as the diary's cards
-  if (document.body.classList.contains('fr-learning') && !h.isContentEditable && fmt !== escHtml(t)) h.innerHTML = fmt;
+  if (lrn && !h.isContentEditable && fmt !== escHtml(t)) h.innerHTML = fmt;
   else if (h.querySelector('.hp, .hl') || h.textContent !== t) h.textContent = t;
 }
 async function _frTitleCommit(raw, keepBreaks) {
