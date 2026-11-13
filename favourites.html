@@ -530,6 +530,8 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .mv-trl { display:block; } .bkp .mv-trl span { display:block; font-size:.52rem; letter-spacing:.14em; color:#8a97b3; margin-bottom:6px; }
   .bkp .mv-trl input { width:100%; box-sizing:border-box; border:1.5px dashed #c9d1df; border-radius:10px; padding:10px 12px; font-family:var(--serif); font-size:1rem; background:#fff; color:#232f45; outline:none; } .bkp .mv-trl input:focus { border-color:var(--bc); border-style:solid; }
   @media (max-width:640px) { .bkp .mv-film { padding:10px 22px; } .bkp .mv-film::before { left:6px; } .bkp .mv-film::after { right:6px; } .bkp .mv-film .mv-trb .pl { width:52px; height:36px; } }
+  .bkp .mv-sc.vid .mv-scf { margin-top:12px; } .bkp .mv-sc .mv-trc .no { display:none; }
+  @media (max-width:640px) { .bkp .mv-sc.vid .mv-scf { margin-left:-40px; } }
   /* MV-2 · V1: a scene's video - thumbnail on the right, the player opens inside the card */
   .bkp .mv-sc.vid { padding-right:18px; } .bkp .mv-v1 { display:flex; gap:16px; align-items:flex-start; } .bkp .mv-v1 .tx { flex:1; min-width:0; }
   .bkp .mv-yt { flex:0 0 156px; height:88px; margin-left:auto; position:relative; border:none; padding:0; border-radius:10px; overflow:hidden; background:#14161c; cursor:pointer; }
@@ -4802,8 +4804,8 @@ function mvYt_(u) { const m = String(u || '').match(/(?:youtube\.com\/(?:watch\?
 function mvScRead_(x, i) {
   const e = escHtml, y = mvYt_(x.url);
   const tx = '<div class="st">' + e(x.t) + (x.pin ? '<b class="mv-top mono">★ TOP LINE</b>' : '') + '</div>' + (x.d ? '<div class="sx">' + e(x.d) + '</div>' : '');
-  if (y) return '<div class="mv-sc vid"><span class="no">' + (i + 1) + '</span><div class="mv-v1"><div class="tx">' + tx + '</div>' +
-    '<button type="button" class="mv-yt" data-yt="' + e(y) + '" aria-label="Play the scene"><img src="https://i.ytimg.com/vi/' + e(y) + '/hqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="pl"></span><span class="lb mono">YOUTUBE</span></button></div></div>';
+  if (y) return '<div class="mv-sc vid"><span class="no">' + (i + 1) + '</span>' + tx + '<div class="mv-film mv-scf"><div class="mv-sc mv-trc"><button type="button" class="mv-yt mv-trb" data-yt="' + e(y) + '" aria-label="Play the scene">' +
+    '<img src="https://i.ytimg.com/vi/' + e(y) + '/hqdefault.jpg" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'"><span class="pl"></span><span class="lb mono">TAP TO PLAY</span></button></div></div></div>';   // MV-8 (S3): the clip in a frame of film, like the trailer
   return '<div class="mv-sc"><span class="no">' + (i + 1) + '</span>' + tx + (x.url ? '<a class="mv-wpill" href="' + e(x.url) + '" target="_blank" rel="noopener">▶ Watch the scene ↗</a>' : '') + '</div>';
 }
 function mvTrailer_(url, title, small) {   // MV-6 (TR1): the trailer inside a frame of film; tap to play in place
