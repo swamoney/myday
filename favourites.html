@@ -505,6 +505,18 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.fr-editing .bkp .thr.mv-mus .hl::after { display:none; }   /* in Edit the star takes the corner */
   .bkp .mv-pin { font-size:1.1rem; color:#c3cad8; } .bkp .mv-pin.on { color:#e0a800; }
   .bkp .mvh .q { font-style:italic; } .bkp .mvh .q2 { font-family:var(--serif); font-size:1.04rem; color:#3a4458; margin-top:2px; }
+  /* MV-4 · T2: the heading is a cinema ticket - an ink-teal stub down the left, a white tear-line, two notches */
+  body.fr-mv .bkp .bk1.mv1 { background:#fff; border:1px solid #e3e8f0; padding-left:152px; min-height:240px; }
+  .bkp .mv-stub { position:absolute; left:-1px; top:-1px; bottom:-1px; width:120px; border-radius:18px 0 0 18px; background:linear-gradient(160deg, color-mix(in srgb, var(--bc) 85%, #fff), color-mix(in srgb, var(--bc) 90%, #000)); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:20px 6px; text-align:center; }
+  .bkp .mv-stub svg { width:26px; height:26px; opacity:.92; } .bkp .mv-stub .ad { writing-mode:vertical-rl; transform:rotate(180deg); font-size:.62rem; letter-spacing:.4em; white-space:nowrap; } .bkp .mv-stub .no { font-size:.5rem; letter-spacing:.1em; line-height:1.5; opacity:.85; min-height:1px; }
+  .bkp .mv-tear { position:absolute; left:118px; top:0; bottom:0; border-left:2px dashed #fff; pointer-events:none; }
+  .bkp .mv-nt { position:absolute; left:104px; width:28px; height:28px; border-radius:50%; background:var(--r-bg, #fbfcfe); z-index:1; pointer-events:none; } .bkp .mv-nt.a { top:-15px; } .bkp .mv-nt.b { bottom:-15px; }
+  body.bk-print .bkp .mv-nt { background:#fff; }
+  @media (max-width:640px) {
+    body.fr-mv .bkp .bk1.mv1 { padding-left:88px; min-height:0; }
+    .bkp .mv-stub { width:70px; padding:14px 3px; } .bkp .mv-stub svg { width:20px; height:20px; } .bkp .mv-stub .ad { font-size:.5rem; letter-spacing:.3em; } .bkp .mv-stub .no { font-size:.42rem; }
+    .bkp .mv-tear { left:68px; } .bkp .mv-nt { left:55px; width:26px; height:26px; } .bkp .mv-nt.a { top:-14px; } .bkp .mv-nt.b { bottom:-14px; }
+  }
   /* MV-2 · V1: a scene's video - thumbnail on the right, the player opens inside the card */
   .bkp .mv-sc.vid { padding-right:18px; } .bkp .mv-v1 { display:flex; gap:16px; align-items:flex-start; } .bkp .mv-v1 .tx { flex:1; min-width:0; }
   .bkp .mv-yt { flex:0 0 156px; height:88px; margin-left:auto; position:relative; border:none; padding:0; border-radius:10px; overflow:hidden; background:#14161c; cursor:pointer; }
@@ -780,7 +792,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .fav-seg > span[data-sec='books'] { --t-bg:#f0e2c6; --t-acc:#8a6f2f; }
   .fav-seg > span[data-sec='podcasts'] { --t-bg:#e9e4f2; --t-acc:#5b4a86; }
   .fav-seg > span[data-sec='marathi'] { --t-bg:#e6efe4; --t-acc:#6b8a6e; }
-  .fav-seg > span[data-sec='movies'] { --t-bg:#fbe3d3; --t-acc:#b4541f; }
+  .fav-seg > span[data-sec='movies'] { --t-bg:#dbe9ee; --t-acc:#2f6577; }   /* MV-4: ink teal */
   .fav-seg > span[data-sec='music'] { --t-bg:#eceedd; --t-acc:#63682f; }
   .fav-seg > span[data-sec='wisdom'] { --t-bg:#d9e5f5; --t-acc:#2f5187; }
   .fav-seg > span[data-sec='learning'] { --t-bg:#e4e8f0; --t-acc:#4A5878; }
@@ -2569,7 +2581,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== BP-E1 (11 Nov 2026): writing a book page in place =====
 let bkEd_ = null;        // while editing a book: { hl:[{t,star}], tk:[t], lv:[{t,st}] } - the Notes editor (#frBodyInp) holds the rest
 let bkCovers_ = null;    // cover colour you picked per book (user_prefs.prefs.book_covers)
-function bkColFor_(r) { if (isMr_(r)) return '#6b8a6e'; if (isMv_(r)) return mvKindOf_(r)[1]; if (isPod_(r)) return '#5b4a86';   // N2-Q1: every podcast wears the one Podcasts purple
+function bkColFor_(r) { if (isMr_(r)) return '#6b8a6e'; if (isMv_(r)) return MV_COL; if (isPod_(r)) return '#5b4a86';   // N2-Q1: every podcast wears the one Podcasts purple
   const k = bkKind_(r); return k === 'f' ? '#7a2e2e' : k === 'n' ? '#1f4e5f' : bkCol_(r.title); }   // BP-C2: the cover follows the kind
 // BP-C2: a book's kind lives in its tags as 'Fiction' / 'Non-fiction' (an older 'Non-Fiction' style tag counts too)
 const BK_KIND_RE = /^(non[\s-]*fic\w*|fiction)$/i;
@@ -4402,6 +4414,7 @@ const MV_IC = {
   clap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="m4 11-.6-3.4 15.8-2.8.6 3.4z"/><path d="m8.5 7 2 3M13.5 6l2 3"/></svg>',
   pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 5 3 3v2H7v-2l3-3z"/><path d="M12 14v6"/></svg>'
 };
+const MV_COL = '#2f6577';   // MV-4 (C2): every Movies / Shows page and card wears ink teal; the kind keeps its colour only on chip dots
 let mvKindF_ = '';            // the kind chip picked on the shelf ('' = all)
 const mvThumbs_ = {};         // entry id -> signed thumb url (the cover photo), filled in one query per shelf
 const mvCovers_ = {};         // entry id -> MyAlbum cover object, for the page
@@ -4466,6 +4479,13 @@ function mvSplit_() {
   el('frBodyInp').innerHTML = P.notes;
 }
 function mvPinned_(P) { const d = P.dl.find(x => x.pin); if (d) return { k:'dl', d }; const s = P.sc.find(x => x.pin); if (s) return { k:'sc', s }; return P.why[0] ? { k:'why', t: P.why[0] } : null; }
+function mvStub_(r, k, where) {   // MV-4 (T2): the ticket's stub - clapper, the word for the kind, the date you went
+  const w = String(where || ''), home = /\b(home|netflix|prime|hotstar|jio|zee5?|sony|ott|tv|laptop|mobile|phone|youtube|mubi|apple tv)\b/i.test(w);
+  const word = mvLive_(k) ? 'ADMIT ONE' : k[0] === 'Series' ? 'AT HOME' : k[0] === 'Movie' ? (home ? 'AT HOME' : 'ADMIT ONE') : 'NOW SHOWING';
+  const m = String(r.learned_on || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const dt = m ? +m[3] + ' ' + ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][+m[2] - 1] + '<br>' + m[1] : '';
+  return '<div class="mv-stub" aria-hidden="true">' + MV_IC.clap + '<span class="ad mono">' + word + '</span><span class="no mono">' + dt + '</span></div><span class="mv-tear"></span><span class="mv-nt a"></span><span class="mv-nt b"></span>';
+}
 function mvFrom_(k) { return 'FROM THE ' + ({ 'Movie': 'MOVIE', 'Series': 'SERIES', 'Drama / Play': 'PLAY', 'Stand-up': 'SHOW', 'Concert': 'CONCERT', 'Documentary': 'DOCUMENTARY' }[k[0]] || 'SHOW'); }
 function mvHero_(P, editing, k) {   // MV-3: like the podcast's top snip - round clapper, the line in italics, FROM THE MOVIE · who, the dashed line
   const e = escHtml, p = mvPinned_(P), fr = mvFrom_(k || MV_KINDS[0]);
@@ -4504,7 +4524,7 @@ function renderMv_(list, wrap) {
     const meta = [k[0], (r.category || '').trim(), (r.type || '').trim(), mvDate_(r.learned_on)].filter(Boolean);
     const q = !p ? '' : p.k === 'dl' ? p.d.t : p.k === 'sc' ? p.s.t : p.t;
     const th = mvThumbs_[r.id];
-    return '<div class="pc" data-open="' + escHtml(r.id) + '" style="--pc:' + k[1] + '">' +
+    return '<div class="pc" data-open="' + escHtml(r.id) + '" style="--pc:' + MV_COL + '">' +
       '<div class="pt' + (th ? ' pic' : '') + '" data-th="' + escHtml(r.id) + '"' + (th ? ' style="background-image:url(&quot;' + escHtml(th) + '&quot;)"' : '') + '><span class="s">' + escHtml(r.title || '') + '</span><span class="w">' + MV_IC[k[2]] + escHtml(k[0].toUpperCase()) + '</span></div>' +
       '<div class="pm"><div class="t">' + escHtml(r.title || 'Untitled') + (r.favourite ? ' ' + star : '') + '</div>' +
       '<div class="a"><b>' + escHtml(meta[0]) + '</b>' + (meta.length > 1 ? ' · ' + escHtml(meta.slice(1).join(' · ')) : '') + '</div>' +
@@ -4621,12 +4641,12 @@ function mvHost_(u) { const h = (hostOf(u) || '').replace(/^www\./, ''); const M
   for (const d in M) if (h === d || h.endsWith('.' + d)) return M[d]; return h || 'Watch'; }
 function mvRender_(r, pg) {
   const e = escHtml, k = mvKindOf_(r);
-  pg.style.setProperty('--bc', k[1]);
+  pg.style.setProperty('--bc', MV_COL);
   if (bkEd_ && bkEd_.mv && document.body.classList.contains('fr-editing')) { mvRenderEdit_(r, pg); return; }
   const P = mvParse_(el('frBody').classList.contains('empty') ? '' : el('frBody').innerHTML);
   document.body.classList.add('bk-struct'); document.body.classList.remove('bk-rdfold');
   const dir = (r.type || '').trim(), lang = (r.category || '').trim(), tags = mvTagsShown_(r);
-  let h = '<div class="bk1 mv1"><div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · MOVIES / SHOWS · ' + e(k[0].toUpperCase()) + '</div>' +
+  let h = '<div class="bk1 mv1">' + mvStub_(r, k, P.where) + '<div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · MOVIES / SHOWS · ' + e(k[0].toUpperCase()) + '</div>' +
     '<h1>' + e(r.title || '') + '</h1>' + (tags.length ? '<div>' + tags.map(t => '<span class="chip"><i></i>' + e(t) + '</span>').join('') + '</div>' : '') + '<div class="ul"></div>' +
     ((dir || lang) ? '<div class="by">' + [dir ? 'directed by ' + e(dir) : '', e(lang)].filter(Boolean).join(' · ') + '</div>' : '') + '</div>' +
     '<div class="cv mvc" id="mvCv"><div class="t">' + e(r.title || '') + '</div><div class="a">' + MV_IC[k[2]] + e(k[0].toUpperCase()) + '</div></div></div>' +
@@ -4657,10 +4677,10 @@ function mvRender_(r, pg) {
 // ---- C: editing on the page itself ----
 function mvRenderEdit_(r, pg) {
   const E = bkEd_, e = escHtml, k = mvKindOf_(r);
-  pg.style.setProperty('--bc', k[1]);
+  pg.style.setProperty('--bc', MV_COL);
   const P = { why: E.why, dl: E.dl, sc: E.sc };
   let h = '<div class="bkeh mono">✎ EDITING — TAP ANY DASHED TEXT, OR ANY LINE, TO CHANGE IT</div>' +
-    '<div class="bk1 mv1"><div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · MOVIES / SHOWS</div>' +
+    '<div class="bk1 mv1">' + mvStub_(r, k, E.where) + '<div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · MOVIES / SHOWS</div>' +
     '<div class="mv-kp mv-kped">' + MV_KINDS.map(x => '<button type="button" data-kind="' + e(x[0]) + '" style="--k:' + x[1] + '"' + (x[0] === k[0] ? ' class="on"' : '') + '><i></i>' + e(x[0]) + '</button>').join('') + '</div>' +
     '<h1 contenteditable="true" id="bkeT" data-ph="Title">' + e(r.title || '') + '</h1>' +
     '<div>' + mvTagsShown_(r).map(t => '<span class="chip"><i></i>' + e(t) + '<button type="button" data-rmt="' + e(t) + '" aria-label="Remove">×</button></span>').join('') +
