@@ -5057,8 +5057,11 @@ function renderMusic_(list, wrap) {
   const tools = id => '<span class="mu-tl"><button type="button" class="mu-t" data-mv="' + e(id) + '|up" aria-label="Move up" title="Move up">▲</button>' +
     '<button type="button" class="mu-t" data-mv="' + e(id) + '|down" aria-label="Move down" title="Move down">▼</button>' +
     '<button type="button" class="mu-t mu-ed" data-mue="' + e(id) + '" aria-label="Edit" title="Edit">✎</button></span>';
-  let h = '<div class="mu-page"><div class="shelf-head mu-gh2"><span class="mono">SINGLES · ' + S.length + '</span><i></i>' +
-    '<button type="button" class="sh-plus" id="shelfPlus" title="Add a song or playlist" aria-label="Add a song or playlist">+</button></div>';
+  // MU-4 (A1): the same top line as every section - the count on the left, the round + on the right (adds a song or a playlist)
+  const cnt = S.length + (S.length === 1 ? ' SONG' : ' SONGS') + ' · ' + P.length + (P.length === 1 ? ' PLAYLIST' : ' PLAYLISTS');
+  let h = '<div class="mu-page"><div class="shelf-head"><span class="sh-count">' + cnt + '</span>' +
+    '<button type="button" class="sh-plus" id="shelfPlus" title="Add a song or playlist" aria-label="Add a song or playlist">+</button></div>' +
+    '<div class="mu-gh2"><span class="mono">SINGLES · ' + S.length + '</span><i></i></div>';
   const song = (r, k, cls) => {
     const n = allS.indexOf(r), hu = muHue_(n), [t, who] = muSplit_(r), app = (typeof lkAppOf_ === 'function' ? lkAppOf_(r.url) : '') || '';
     const tag = (r.tags || [])[0] || 'Song', sub = [who, app].filter(Boolean).join(' · ');
