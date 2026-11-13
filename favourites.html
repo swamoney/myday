@@ -564,6 +564,11 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
     .mu-bx { padding:8px 8px 8px 12px; gap:8px; } .mu-bx .t { font-size:1rem; } .mu-t { width:28px; height:28px; } .mu-tl { gap:4px; }
     .mu-pg { grid-template-columns:1fr; }
   }
+  /* MU-3 (13 Nov 2026) · D1: desktop singles in two columns, numbers running down each, each column on its own rainbow line */
+  .mu-two { display:grid; grid-template-columns:1fr 1fr; gap:0 26px; align-items:start; }
+  .mu-tog { display:block; margin:14px auto 0; border:none; background:var(--c); color:#fff; border-radius:999px; padding:8px 18px; font:700 .8rem/1.2 inherit; font-family:inherit; cursor:pointer;
+    box-shadow:0 3px 8px color-mix(in srgb, var(--c) 35%, transparent); }
+  body.editing .mu-tog { display:none; }
   /* MV-6 · TR1: the trailer - a frame of film in ink teal, sprocket holes both sides; plays in place */
   .bkp .mv-film { position:relative; padding:14px 28px; background:color-mix(in srgb, var(--bc) 88%, #000); border-radius:14px; }
   .bkp .mv-film::before, .bkp .mv-film::after { content:''; position:absolute; top:10px; bottom:10px; width:10px; background:radial-gradient(circle, #fff 0 3px, transparent 3.4px) 50% 0/10px 16px repeat-y; }
@@ -3678,6 +3683,7 @@ el('signOutBtn').addEventListener('click', handleSignOut);
 function _libToggleEditing() {
   var on = document.body.classList.toggle('editing');
   var t = el('editToggleTop'); if (t) t.textContent = on ? 'Done' : 'Edit';
+  if (activeSection === 'music' && typeof muWide_ === 'function' && muWide_()) render();   // MU-3: desktop Music re-splits its two columns for Edit
   return on;
 }
 el('editToggleTop').addEventListener('click', _libToggleEditing);
@@ -5027,8 +5033,11 @@ const MU_HUES = [   // My Why's rainbow (why.html RAINBOW): lt, mid, deep, ink
   ['#F9A79F','#F2867C','#C9564A','#5E1810'], ['#F8C894','#F0A85F','#C87B25','#5C3205'], ['#FFE79A','#F7D368','#D3AC2C','#544006'],
   ['#A6D6B2','#7FBE92','#4E9060','#153A21'], ['#A8C6EA','#7FA8DA','#4C7BB5','#10294A'], ['#BCB8E8','#9A95D4','#6A64AE','#1E1B47'], ['#D6B0E2','#BC8ECC','#8C61A0','#361A40']];
 const MU_P1 = [0, 3, 6, 2, 4, 1, 5];   // red, green, violet, yellow, blue, orange, indigo - then round again
-const MU_FOLD = 7;
+const MU_FOLD = 7, MU_FOLD2 = 8;   // phone: 7 then a faded peek · desktop: 8 in two columns
 let muOpen_ = false;
+const MU_MQ = window.matchMedia ? window.matchMedia('(min-width: 641px)') : null;
+function muWide_() { return !!(MU_MQ && MU_MQ.matches); }
+if (MU_MQ && MU_MQ.addEventListener) MU_MQ.addEventListener('change', () => { if (activeSection === 'music' && typeof render === 'function') render(); });   // MU-3: re-lay on crossing phone/desktop
 function muHue_(i) { return MU_HUES[MU_P1[i % MU_P1.length]]; }
 function muPill_(h) { return h[2] === '#D3AC2C' ? '#B8921F' : h[2]; }   // yellow's label one step darker, as on My Why
 function muHasOrder_() { return rows.some(r => secOf(r) === 'music' && ('sort_order' in r)); }
@@ -5050,18 +5059,25 @@ function renderMusic_(list, wrap) {
     '<button type="button" class="mu-t mu-ed" data-mue="' + e(id) + '" aria-label="Edit" title="Edit">✎</button></span>';
   let h = '<div class="mu-page"><div class="shelf-head mu-gh2"><span class="mono">SINGLES · ' + S.length + '</span><i></i>' +
     '<button type="button" class="sh-plus" id="shelfPlus" title="Add a song or playlist" aria-label="Add a song or playlist">+</button></div>';
-  if (S.length) {
-    h += '<div class="mu-sl' + (muOpen_ ? ' open' : '') + '">' + S.map((r, k) => {
-      const n = allS.indexOf(r), hu = muHue_(n), [t, who] = muSplit_(r), app = (typeof lkAppOf_ === 'function' ? lkAppOf_(r.url) : '') || '';
-      const tag = (r.tags || [])[0] || 'Song', sub = [who, app].filter(Boolean).join(' · ');
-      const cls = k >= MU_FOLD ? ' mu-x' + (k === MU_FOLD ? ' mu-pk' : '') : '';
-      return '<div class="mu-sr' + cls + '" data-mup="' + e(r.id) + '" style="--lt:' + hu[0] + ';--m:' + hu[1] + ';--d:' + hu[2] + ';--ink:' + hu[3] + '">' +
-        '<span class="mu-orb">' + String(n + 1).padStart(2, '0') + '</span>' +
-        '<div class="mu-bx"><div class="tx"><span class="mu-pl" style="background:' + muPill_(hu) + '">' + e(tag.toUpperCase()) + '</span>' +
-          '<div class="t">' + e(t) + (r.favourite ? star : '') + '</div>' + (sub ? '<div class="a">' + e(sub) + '</div>' : '') + '</div>' +
-          '<span class="mu-pp" aria-hidden="true">▶</span>' + tools(r.id) + '</div>' +
-        (k === MU_FOLD ? '<div class="mu-fade"></div><button type="button" class="mu-more" data-muo="1">Show all ' + S.length + ' songs ↓</button>' : '') + '</div>';
-    }).join('') + '</div>' + (S.length > MU_FOLD ? '<button type="button" class="mu-less" data-muo="0">Show less ↑</button>' : '');
+  const song = (r, k, cls) => {
+    const n = allS.indexOf(r), hu = muHue_(n), [t, who] = muSplit_(r), app = (typeof lkAppOf_ === 'function' ? lkAppOf_(r.url) : '') || '';
+    const tag = (r.tags || [])[0] || 'Song', sub = [who, app].filter(Boolean).join(' · ');
+    return '<div class="mu-sr' + cls + '" data-mup="' + e(r.id) + '" style="--lt:' + hu[0] + ';--m:' + hu[1] + ';--d:' + hu[2] + ';--ink:' + hu[3] + '">' +
+      '<span class="mu-orb">' + String(n + 1).padStart(2, '0') + '</span>' +
+      '<div class="mu-bx"><div class="tx"><span class="mu-pl" style="background:' + muPill_(hu) + '">' + e(tag.toUpperCase()) + '</span>' +
+        '<div class="t">' + e(t) + (r.favourite ? star : '') + '</div>' + (sub ? '<div class="a">' + e(sub) + '</div>' : '') + '</div>' +
+        '<span class="mu-pp" aria-hidden="true">▶</span>' + tools(r.id) + '</div>' +
+      (cls.indexOf('mu-pk') >= 0 ? '<div class="mu-fade"></div><button type="button" class="mu-more" data-muo="1">Show all ' + S.length + ' songs ↓</button>' : '') + '</div>';
+  };
+  if (S.length && muWide_()) {
+    // MU-3 (D1): desktop - two columns, numbers running down each (01-04 left, 05-08 right), each on its own line;
+    // 8 show (both columns end level), then Show all; Edit opens everything in the same two columns
+    const all = muOpen_ || document.body.classList.contains('editing'), V = all ? S : S.slice(0, MU_FOLD2), half = Math.ceil(V.length / 2);
+    h += '<div class="mu-two">' + [V.slice(0, half), V.slice(half)].map(c => c.length ? '<div class="mu-sl open">' + c.map(r => song(r, 0, '')).join('') + '</div>' : '<div></div>').join('') + '</div>';
+    if (S.length > MU_FOLD2) h += '<button type="button" class="mu-tog" data-muo="' + (muOpen_ ? '0' : '1') + '">' + (muOpen_ ? 'Show less ↑' : 'Show all ' + S.length + ' songs ↓') + '</button>';
+  } else if (S.length) {
+    h += '<div class="mu-sl' + (muOpen_ ? ' open' : '') + '">' + S.map((r, k) => song(r, k, k >= MU_FOLD ? ' mu-x' + (k === MU_FOLD ? ' mu-pk' : '') : '')).join('') + '</div>' +
+      (S.length > MU_FOLD ? '<button type="button" class="mu-less" data-muo="0">Show less ↑</button>' : '');
   } else h += '<div class="mu-none">' + (allS.length ? 'No songs under this filter.' : 'No songs yet.') + '</div>';
   h += '<button type="button" class="shelf-door mu-add" data-mua="s"><span class="pl">＋</span> Add a song</button>';
   if (P.length || allP.length) {
