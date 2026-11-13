@@ -879,7 +879,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .fav-seg > span[data-sec='lenses'] { --t-bg:#e2e5ea; --t-acc:#2b3242; }
   .fav-seg > span.on { background:var(--t-acc); color:#fff; box-shadow:0 2px 6px color-mix(in srgb, var(--t-acc) 40%, transparent); }
   /* LK-T2 · V1: on Now Playing the big kind chips come first, the small tags sit under them on the right */
-  body[data-sec='all-time'] #tagsRow { justify-content:flex-end; margin:-4px 0 6px; }
+  body[data-sec='all-time'] #tagsRow { justify-content:flex-start; margin:0 0 8px; }   /* NP-B1: tags under the count line, left */
   .lk-kinds.lk-top { margin:4px 0 10px; }
   body[data-sec='all-time'] .lk-k.on { background:#1f6a63; border-color:#1f6a63; }
   body[data-sec='all-time'] .sh-plus { background:#1f6a63; }
@@ -2315,7 +2315,7 @@ function renderTags() {
 }
 function render() {
   document.body.setAttribute('data-sec', activeSection);
-  document.querySelectorAll('.lk-kinds.lk-top').forEach(x => x.remove());   // LK-T2: last render's moved kind row
+  document.querySelectorAll('.lk-kinds.lk-top, .shelf-head.np-top').forEach(x => x.remove());   // LK-T2 / NP-B1: last render's moved rows
   render_();
   if (activeSection === 'all-time') {   // LK-T2 · V1: kind chips above the tags
     const k = document.querySelector('#rowsWrap .lk-kinds'), t = el('tagsRow');
@@ -2327,6 +2327,10 @@ function render() {
     wrap.insertAdjacentHTML('afterbegin', '<div class="shelf-head"><span class="sh-count">' + n + ' ' + escHtml(_shelfNoun_(activeSection, n)) + '</span>' +
       '<button type="button" class="sh-plus" id="shelfPlus" title="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '" aria-label="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '">+</button></div>');
     _wirePlus_();
+  }
+  if (activeSection === 'all-time') {   // NP-B1: the count and + above the tags (kinds → count & + → tags → links)
+    const hd = wrap && wrap.querySelector(':scope > .shelf-head'), t = el('tagsRow');
+    if (hd && t) { hd.classList.add('np-top'); t.parentNode.insertBefore(hd, t); }
   }
 }
 function _shelfNoun_(sec, n) {
