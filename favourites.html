@@ -161,6 +161,18 @@
   .lk-row .lk-ic { background:rgba(255,255,255,.18); box-shadow:none; color:#fff; }
   .lk-row .lk-go { background:#fff; color:var(--kc); border-color:#fff; }
   .lk-row .lk-tag { background:rgba(255,255,255,.18); color:#fff; border-color:transparent; }
+  /* NP-N2 (13 Nov 2026): Now Playing boxes in Music's soft style (MU-2) - a light tint of the kind's My Why colour fading to white,
+     a soft tilted orb for the icon, the ▶ pill in the colour; one colour per kind, headings match (kind chips unchanged) */
+  .lk-grid2 { gap:14px; }
+  .lk-row { background:linear-gradient(90deg, color-mix(in srgb, var(--lt) 40%, #fff), #fff); border:1px solid color-mix(in srgb, var(--m) 60%, #fff); border-radius:10px; box-shadow:none; }
+  .lk-row:hover { box-shadow:0 6px 16px color-mix(in srgb, var(--d) 18%, transparent); }
+  .lk-row .lk-t { color:#0A1325; font-weight:700; } .lk-row .lk-m { color:#5A6478; }
+  .lk-row .lk-app { color:#5A6478; font-family:var(--serif); font-style:italic; font-size:.8rem; letter-spacing:0; }
+  .lk-row .lk-ic { position:relative; border-radius:50%; transform:rotate(-8deg); color:var(--ink);
+    background:radial-gradient(circle at 38% 34%, color-mix(in srgb, var(--lt) 70%, #fff), color-mix(in srgb, var(--m) 85%, #fff)); box-shadow:0 3px 8px color-mix(in srgb, var(--d) 25%, transparent); }
+  .lk-row .lk-ic::after { content:''; position:absolute; inset:3px; border-radius:50%; border:1px dashed rgba(255,255,255,.85); }
+  .lk-row .lk-go { background:var(--d); color:#fff; border-color:transparent; opacity:.85; }
+  .lk-row .lk-tag { background:#f1f4f9; color:#5a6680; }
   /* LK-S2 (11 Nov 2026): one kind choice (= the saved type) + an optional tags line, in Keep a link and in edit */
   .kp { flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:2px 0; }
   .kp-l { font-family:var(--mono); font-size:.56rem; font-weight:700; letter-spacing:.16em; color:#8a97b3; margin-right:4px; }
@@ -2423,11 +2435,11 @@ function render_() {
     if (lkKind_ !== 'all' && lkKind_ !== k) return;
     const g = list.filter(r => lkKindOf_(r.type) === k); if (!g.length) return;   // list is already ★-first
     const K = LK_KINDS[k];
-    html += '<div class="lk-gh" style="--kc:' + K.c + '"><i>' + K.i + '</i>' + K.p.toUpperCase() + '<b>' + g.length + '</b></div><div class="lk-grid2">' +
+    html += '<div class="lk-gh" style="--kc:' + npHue_(k)[2] + '"><i>' + K.i + '</i>' + K.p.toUpperCase() + '<b>' + g.length + '</b></div><div class="lk-grid2">' +
       g.map(r => {
         const tagsHtml = (r.tags || []).slice(0, 2).map(t => '<span class="lk-tag">' + escHtml(t) + '</span>').join('');
         const app = lkAppOf_(r.url);
-        return '<div class="lk-row row-lk' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '" style="--kc:' + K.c + ';--kb:' + K.kb + '">' +
+        return '<div class="lk-row row-lk' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '" style="--kc:' + K.c + ';--kb:' + K.kb + ';' + npVars_(k) + '">' +
           '<div class="lk-ic">' + K.i + '</div>' +
           '<div class="lk-mid"><div class="lk-t">' + escHtml(r.title) + '</div><div class="lk-m">' +
             '<span class="lk-kind">' + escHtml(r.type || K.l) + '</span>' + (app ? '<span class="lk-app">' + escHtml(app) + '</span>' : '') + tagsHtml + '</div></div>' +
@@ -2456,6 +2468,10 @@ var lkKind_ = 'all';
 // LK-I · A1 (11 Nov 2026): Audiobooks' symbol is drawn (book + headphones), not the 🎧 emoji that greyed out on the plum tile
 const LK_ICON_AUDIOBOOK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19V8.5a1.5 1.5 0 0 1 1.5-1.5H12v12H6.5A1.5 1.5 0 0 0 5 20.5"/><path d="M12 7h5.5A1.5 1.5 0 0 1 19 8.5V19h-7"/><path d="M4 9.5a8 8 0 0 1 16 0"/><rect x="2.6" y="12" width="2.6" height="5" rx="1.2"/><rect x="18.8" y="12" width="2.6" height="5" rx="1.2"/></svg>';
 const LK_ORDER = ['music', 'podcast', 'audiobook', 'ebook', 'other'];
+// NP-N2 (13 Nov 2026): Now Playing in Music's soft style, one My Why colour per kind
+const NP_KH = { music:3, podcast:5, audiobook:0, ebook:1, other:4 };   // green, indigo, red, orange, blue (MU_HUES)
+function npHue_(k) { return MU_HUES[NP_KH[k] != null ? NP_KH[k] : 4]; }
+function npVars_(k) { const h = npHue_(k); return '--lt:' + h[0] + ';--m:' + h[1] + ';--d:' + h[2] + ';--ink:' + h[3] + ';--pl:' + muPill_(h); }
 const LK_KINDS = {
   music:     { l:'Music',     p:'Music',      c:'#1a6a6a', kb:'#5f938c', i:'♪',      a:'PLAY' },
   podcast:   { l:'Podcast',   p:'Podcasts',   c:'#4a3a7a', kb:'#96789e', i:'\u{1F399}', a:'PLAY' },
