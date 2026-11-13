@@ -552,6 +552,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .mv-mos .tools button, .bkp .mv-rc .tools button { width:28px; height:28px; border-radius:50%; border:none; background:rgba(255,255,255,.94); color:#1c2331; font-size:.8rem; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.2); }
   .bkp .mv-rc .tools button { background:#f1f4f9; box-shadow:none; }
   .bkp .bkfr .mv-hlb .sub, .bkp .bkfr .mv-recb .sub { margin-bottom:6px; }
+  .bkp .mv-upst { font-size:.6rem; letter-spacing:.06em; color:var(--bc); background:color-mix(in srgb, var(--bc) 7%, #fff); border:1px dashed color-mix(in srgb, var(--bc) 35%, #fff); border-radius:10px; padding:9px 12px; margin-bottom:10px; } .bkp .mv-upst.bad { color:#b03a2e; background:#fdf2f0; border-color:#e8b4ac; }
   /* MV-2 · recordings */
   .bkp .mv-rc { display:flex; align-items:center; gap:14px; border:1px solid #e3e8f0; border-radius:14px; padding:12px 14px; margin-bottom:10px; background:linear-gradient(90deg, color-mix(in srgb, var(--bc) 5%, #fff), #fff 50%); }
   .bkp .mv-rc .pb { flex:0 0 42px; height:42px; border-radius:50%; border:none; background:var(--bc); cursor:pointer; display:flex; align-items:center; justify-content:center; }
@@ -746,7 +747,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .btn-delete:hover { background:var(--ember-soft); }
   .modal-error { font-family:var(--mono); font-size:0.6875rem; color:var(--warn); padding:6px 10px; background:#FCE9E2; border-radius:6px; margin-top:10px; }
 
-  .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:0.8125rem; box-shadow:0 8px 24px rgba(0,0,0,0.2); transition:transform 0.3s; z-index:300; }
+  .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:var(--paper); padding:10px 18px; border-radius:999px; font-size:0.8125rem; box-shadow:0 8px 24px rgba(0,0,0,0.2); transition:transform 0.3s; z-index:1100; }   /* MV-7: was 300 - hidden under the reading page */
   .toast.show { transform:translateX(-50%) translateY(0); }
   /* edit-mode toggle: read = clean, edit reveals per-item controls */
   .card-edit, .row-edit { display:none; }
@@ -4919,24 +4920,33 @@ function mvVideoInfo_(file) {   // a poster frame (webp) and the length
 }
 function mvAudioDur_(file) { return new Promise(res => { const a = document.createElement('audio'); a.preload = 'metadata'; a.onloadedmetadata = () => { URL.revokeObjectURL(a.src); res(isFinite(a.duration) ? a.duration : 0); }; a.onerror = () => res(0); setTimeout(() => res(0), 6000); a.src = URL.createObjectURL(file); }); }
 function mvUpErr_(err) {
-  const m = String((err && (err.message || err.error || err.details)) || err || '');
-  if (/mime|not allowed|invalid.*type|violates check|kind_check|payload too large|exceeded the maximum|413/i.test(m)) toast('Storage refused it — run allow_media.sql once (see DESIGN.md)');
-  else toast('Could not upload it');
+  const m = String((err && (err.message || err.error || err.details || err.statusCode)) || err || '');
+  const w = /mime|not allowed|invalid.*type|violates check|kind_check/i.test(m) ? 'Storage refused this file type — run allow_media.sql once'
+    : /payload too large|exceeded the maximum|too large|413/i.test(m) ? 'Too big for your storage (over its size limit)'
+    : 'Could not upload it' + (m ? ' — ' + m.slice(0, 120) : '');
+  toast(w); return w;
+}
+function mvUpSt_(pg, which, txt, bad) {   // MV-7: a status line inside the section, so an upload is never silent
+  const box = pg.querySelector(which === 'hl' ? '#mvS_hl .mv-hlb' : '#mvS_rec .mv-recb'); if (!box) return;
+  let st = box.querySelector('.mv-upst'); if (!st) { st = document.createElement('div'); st.className = 'mv-upst mono'; box.prepend(st); }
+  st.classList.toggle('bad', !!bad); st.textContent = txt;
 }
 function mvUpload_(r, pg, which) {
   document.querySelectorAll('input.mv-file').forEach(x => x.remove());   // a picker closed without a file leaves its input behind
   const inp = document.createElement('input'); inp.type = 'file'; inp.className = 'mv-file'; inp.multiple = which === 'hl';
-  inp.accept = which === 'hl' ? 'image/*,video/*' : 'audio/*,.m4a,.mp3,.wav,.aac,.ogg,.opus,.amr';
+  inp.accept = which === 'hl' ? 'image/*,video/*' : 'audio/*,.m4a,.mp3,.wav,.aac,.ogg,.opus,.amr,.3gp,.3ga,.flac,.webm';
   inp.style.cssText = 'position:absolute;left:-9999px;top:0;opacity:0;'; document.body.appendChild(inp);
   inp.onchange = async () => {
     const files = [...(inp.files || [])]; inp.remove(); if (!files.length) return;
     const id = String(r.id), room = which === 'hl' ? 'library-hl' : 'library-rec';
     const M = await mvMediaLoad_(r.id, true); let order = (which === 'hl' ? M.hl : M.rec).length, kept = 0;
     for (const f of files) {
-      const isImg = /^image\//.test(f.type), isVid = /^video\//.test(f.type), isAud = /^audio\//.test(f.type) || /\.(m4a|mp3|wav|aac|ogg|opus|amr)$/i.test(f.name);
+      const isAudN = /\.(m4a|mp3|wav|aac|ogg|oga|opus|amr|3gp|3ga|weba|webm|flac|caf|mp4)$/i.test(f.name);
+      const isImg = /^image\//.test(f.type), isAud = which === 'rec' ? (/^audio\//.test(f.type) || isAudN || /3gpp/.test(f.type)) : /^audio\//.test(f.type), isVid = !isAud && /^video\//.test(f.type);
       if (which === 'hl' && !isImg && !isVid) { toast('Only photos or videos here'); continue; }
-      if (which === 'rec' && !isAud) { toast('Only audio files here'); continue; }
-      if (!isImg && f.size > MV_MAX_) { toast('Too big (' + Math.round(f.size / 1048576) + ' MB) — up to 50 MB. Longer: YouTube unlisted + a scene link'); continue; }
+      if (which === 'rec' && !isAud) { mvUpSt_(pg, which, '✕ ' + f.name + ' is not an audio file', true); toast('Only audio files here'); continue; }
+      if (!isImg && f.size > MV_MAX_) { mvUpSt_(pg, which, '✕ ' + f.name + ' is ' + Math.round(f.size / 1048576) + ' MB — the limit is 50 MB', true); toast('Too big — up to 50 MB'); continue; }
+      mvUpSt_(pg, which, '⏳ Uploading ' + f.name + ' · ' + (f.size / 1048576).toFixed(1) + ' MB — keep this page open…');
       try {
         const t = Date.now().toString(36) + Math.random().toString(36).slice(2, 7), base = userId + '/' + room + '/' + id + '/' + t;
         let rec;
@@ -4950,7 +4960,7 @@ function mvUpload_(r, pg, which) {
           toast(isVid ? 'Uploading the video… keep this page open' : 'Uploading the recording… keep this page open');
           const ext = (f.name.match(/\.[A-Za-z0-9]{2,5}$/) || [isVid ? '.mp4' : '.m4a'])[0].toLowerCase();
           const info = isVid ? await mvVideoInfo_(f) : { thumb: null, dur: await mvAudioDur_(f) };
-          let up = await supa.storage.from('myday-album').upload(base + ext, f, { contentType: f.type || (isVid ? 'video/mp4' : 'audio/mp4') }); if (up.error) throw up.error;
+          let up = await supa.storage.from('myday-album').upload(base + ext, f, { contentType: (isAud && /^video\//.test(f.type)) ? 'audio/' + (ext.slice(1) === '3gp' ? '3gpp' : 'mp4') : (f.type || (isVid ? 'video/mp4' : 'audio/mp4')) }); if (up.error) throw up.error;
           let tp = null; if (info.thumb) { up = await supa.storage.from('myday-album').upload(base + '_t.webp', info.thumb, { contentType: 'image/webp' }); if (!up.error) tp = base + '_t.webp'; }
           rec = { kind: isVid ? 'video' : 'audio', path: base + ext, thumb_path: tp, bytes: f.size + (info.thumb ? info.thumb.size : 0), cover_cfg: info.dur ? { dur: Math.round(info.dur) } : null };
         }
@@ -4958,7 +4968,7 @@ function mvUpload_(r, pg, which) {
         const { error } = await supa.from('attachments').insert(row);
         if (error) { await supa.storage.from('myday-album').remove([row.path, row.thumb_path].filter(Boolean)); throw error; }
         kept++;
-      } catch (err) { mvUpErr_(err); }
+      } catch (err) { mvUpSt_(pg, which, '✕ ' + f.name + ': ' + mvUpErr_(err), true); }
     }
     if (kept) { toast(kept === 1 ? 'Kept' : kept + ' kept'); await mvMediaLoad_(r.id, true); mvMediaPaint_(r, pg, true); }
   };
