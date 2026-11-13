@@ -595,6 +595,23 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .mu-c1 .mu-tog { display:block; margin:12px auto 0; border:1px solid #d5dbe6; background:#fff; color:var(--c); border-radius:999px; padding:7px 16px; font:600 0.78rem/1.2 var(--sans); box-shadow:none; cursor:pointer; }
   body.editing .mu-c1 .mu-tog { display:none; } body.editing .mu-c1 .mu-pp { display:none; } body.editing .mu-tr { cursor:default; }
   @media (max-width:640px) { .mu-tr { gap:10px; padding:10px 12px; } .mu-tr .mu-app { display:none; } }
+  /* MU-8 (13 Nov 2026) · X1 + P1: songs as My Why Explore List cards (blue), playlists the same in teal; very light tag chips */
+  .mu-c1 .mu-list { background:none; border:none; border-radius:0; overflow:visible; display:flex; flex-direction:column; gap:10px; }
+  .mu-xc { --xa:#3E6BA8; --xw:#eef3fb; position:relative; display:grid; grid-template-columns:1fr auto; gap:14px; align-items:center; padding:14px 18px; border-radius:14px; border:1px solid #e3e8f0; background:linear-gradient(180deg, #fff, var(--xw)); cursor:pointer; }
+  .mu-xc.mu-xp { --xa:#1f6a63; --xw:#e9f5f3; } .mu-c1 .mu-ght { color:#1f6a63; }
+  .mu-xc:hover .mu-xnm { text-decoration:underline; text-decoration-color:#c9d2e0; text-underline-offset:3px; }
+  .mu-xl { min-width:0; } .mu-xeb { font-family:var(--mono); font-size:0.5625rem; font-weight:600; letter-spacing:0.14em; color:var(--xa); }
+  .mu-xnm { font-family:var(--serif); font-size:1.25rem; font-weight:700; line-height:1.22; color:#0A1325; margin:3px 0 1px; overflow-wrap:anywhere; }
+  .mu-xfv { font-family:'Caveat', cursive; font-size:1.3rem; font-weight:500; line-height:1.15; color:var(--xa); overflow-wrap:anywhere; }
+  .mu-xrow { margin-top:6px; } .mu-xc .mu-app { font-size:0.7rem; color:#6a7486; }
+  .mu-seal { width:70px; height:70px; border-radius:50%; border:2.5px solid var(--xa); display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--xa); transform:rotate(-12deg); position:relative; flex-shrink:0; }
+  .mu-seal::before { content:''; position:absolute; inset:5px; border-radius:50%; border:1px dashed var(--xa); }
+  .mu-seal i { font-style:normal; font-size:1rem; line-height:1; } .mu-seal b { font-family:var(--mono); font-size:0.46rem; font-weight:700; letter-spacing:0.12em; margin-top:3px; }
+  .mu-c1 .mu-list .mu-x { display:none; } .mu-c1 .mu-list.open .mu-x, body.editing .mu-c1 .mu-list .mu-x { display:grid; }
+  .mu-xc .mu-tl { grid-column:2; } body.editing .mu-xc .mu-seal { display:none; } body.editing .mu-xc { cursor:default; }
+  body[data-sec='music'] #tagsRow .tag { background:#f1f5fb; border-color:#d8e2ef; color:#3d5578; }
+  body[data-sec='music'] #tagsRow .tag.active { background:#dbe5f2; border-color:#b9cbe4; color:#2F5A94; font-weight:600; }
+  @media (max-width:640px) { .mu-xc { padding:12px 14px; gap:10px; } .mu-seal { width:58px; height:58px; } .mu-xnm { font-size:1.12rem; } }
   /* MV-6 · TR1: the trailer - a frame of film in ink teal, sprocket holes both sides; plays in place */
   .bkp .mv-film { position:relative; padding:14px 28px; background:color-mix(in srgb, var(--bc) 88%, #000); border-radius:14px; }
   .bkp .mv-film::before, .bkp .mv-film::after { content:''; position:absolute; top:10px; bottom:10px; width:10px; background:radial-gradient(circle, #fff 0 3px, transparent 3.4px) 50% 0/10px 16px repeat-y; }
@@ -5252,24 +5269,29 @@ function renderMusic_(list, wrap) {
   const tools = id => '<span class="mu-tl"><button type="button" class="mu-t" data-mv="' + e(id) + '|up" aria-label="Move up" title="Move up">▲</button>' +
     '<button type="button" class="mu-t" data-mv="' + e(id) + '|down" aria-label="Move down" title="Move down">▼</button>' +
     '<button type="button" class="mu-t mu-ed" data-mue="' + e(id) + '" aria-label="Edit" title="Edit">✎</button></span>';
-  const row = (r, no, t, sub, cls) => '<div class="mu-tr' + cls + '" data-mup="' + e(r.id) + '">' + no +
-    '<div class="tx"><div class="t">' + e(t) + (r.favourite ? star : '') + '</div>' + (sub ? '<div class="a">' + e(sub) + '</div>' : '') + '</div>' +
-    muApp_(r.url) + '<span class="mu-pp" aria-hidden="true">▶</span>' + tools(r.id) + '</div>';
+  // MU-8 (X1 + P1): each song its own card in the My Why Explore List style - white fading to a very light tint, a mono
+  // top line (number · tags), the name in bold serif, the singer in handwriting, the app; a tilted ▶ PLAY seal on the right.
+  // Playlists the same in teal. In Edit the seal gives way to ▲ ▼ ✎.
+  const row = (r, eb, t, sub, cls, pl) => '<div class="mu-xc' + (pl ? ' mu-xp' : '') + cls + '" data-mup="' + e(r.id) + '">' +
+    '<div class="mu-xl"><div class="mu-xeb">' + eb + '</div><div class="mu-xnm">' + e(t) + (r.favourite ? star : '') + '</div>' +
+    (sub ? '<div class="mu-xfv">' + e(sub) + '</div>' : '') + (muApp_(r.url) ? '<div class="mu-xrow">' + muApp_(r.url) + '</div>' : '') + '</div>' +
+    '<span class="mu-seal" aria-hidden="true"><i>▶</i><b>' + (pl ? 'PLAYLIST' : 'PLAY') + '</b></span>' + tools(r.id) + '</div>';
   const cnt = S.length + (S.length === 1 ? ' SONG' : ' SONGS') + ' · ' + P.length + (P.length === 1 ? ' PLAYLIST' : ' PLAYLISTS');
   let h = '<div class="mu-page mu-c1"><div class="shelf-head"><span class="sh-count">' + cnt + '</span>' +
     '<button type="button" class="sh-plus" id="shelfPlus" title="Add a song or playlist" aria-label="Add a song or playlist">+</button></div>' +
     '<div class="mu-gh3 mono">SINGLES</div>';
   if (S.length) {
     h += '<div class="mu-list' + (muOpen_ ? ' open' : '') + '">' + S.map((r, k) => {
-      const [t, who] = muSplit_(r), tag = (r.tags || [])[0] || '';
-      return row(r, '<span class="mu-no">' + String(allS.indexOf(r) + 1).padStart(2, '0') + '</span>', t, [who, tag].filter(Boolean).join(' · '), k >= MU_FOLD ? ' mu-x' : '');
+      const [t, who] = muSplit_(r);
+      const eb = String(allS.indexOf(r) + 1).padStart(2, '0') + (r.tags || []).map(x => ' · ' + e(String(x).toUpperCase())).join('');
+      return row(r, eb, t, who, k >= MU_FOLD ? ' mu-x' : '', false);
     }).join('') + '</div>';
     if (S.length > MU_FOLD) h += '<button type="button" class="mu-tog" data-muo="' + (muOpen_ ? '0' : '1') + '">' + (muOpen_ ? 'Show less' : 'Show all ' + S.length + ' songs') + '</button>';
   } else h += '<div class="mu-none">' + (allS.length ? 'No songs under this filter.' : 'No songs yet.') + '</div>';
   h += '<button type="button" class="shelf-door mu-add" data-mua="s"><span class="pl">＋</span> Add a song</button>';
   if (P.length || allP.length) {
-    h += '<div class="mu-gh3 mono mu-gp">PLAYLISTS</div>' + (P.length ? '<div class="mu-list open">' +
-      P.map(r => row(r, '<span class="mu-no pi">≡</span>', r.title || '', String(r.category || '').trim(), '')).join('') + '</div>'
+    h += '<div class="mu-gh3 mono mu-gp mu-ght">PLAYLISTS</div>' + (P.length ? '<div class="mu-list open">' +
+      P.map(r => row(r, '≡ PLAYLIST', r.title || '', String(r.category || '').trim(), '', true)).join('') + '</div>'
       : '<div class="mu-none">No playlists under this filter.</div>');
   }
   h += '<button type="button" class="shelf-door mu-add" data-mua="p"><span class="pl">＋</span> Add a playlist</button>';
