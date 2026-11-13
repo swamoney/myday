@@ -1159,6 +1159,8 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.fr-learning .fr-h1 p, .ld-mc .ld-t p { margin:0 0 0.55em; } body.fr-learning .fr-h1 > :last-child, .ld-mc .ld-t > :last-child { margin-bottom:0; }
   body.fr-learning .fr-h1 ul, body.fr-learning .fr-h1 ol, .ld-mc .ld-t ul, .ld-mc .ld-t ol { margin:0.2em 0 0.55em; padding-left:1.25em; text-align:left; }
   body.fr-learning .fr-h1 li::marker, .ld-mc .ld-t li::marker { color:var(--ldi, #6b6f88); }
+  body.fr-learning .fr-h1 blockquote, .ld-mc .ld-t blockquote { margin:0.3em 0 0.55em; padding:0.1em 0 0.1em 0.9em; border-left:3px solid var(--ldi, #6b6f88); font-style:italic; color:#3d4559; }   /* LD-Q1: a quote - ink bar, italic */
+  .ld-htb .ldq { font-family:var(--serif); font-size:1.15rem; }
   body.fr-learning #frPassage { display:none !important; }   /* a learning's essence is its formatted heading, not a passage */
   .ld-star { color:#c9a227; } .ld-ey .ld-star { font-size:0.8rem; letter-spacing:0; }
   body.fr-learning .fr-h1 .hl li { text-wrap:pretty; }
@@ -1473,7 +1475,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
           <div class="fr-headtxt">
             <div class="fr-eyebrow" id="frEyebrow"></div>
             <div class="ld-htb" id="ldHtb" role="toolbar" aria-label="Format the heading">
-              <button type="button" data-ldc="bold" title="Bold"><b>B</b></button><button type="button" data-ldc="italic" title="Italic"><i>I</i></button><button type="button" data-ldc="underline" title="Underline"><u>U</u></button><button type="button" data-ldc="hl" title="Highlight"><span class="hlx">A</span></button><span class="sep"></span><button type="button" data-ldc="insertUnorderedList" title="Bullet list">&bull;&#8801;</button><button type="button" data-ldc="insertOrderedList" title="Numbered list">1&#8801;</button><span class="sep"></span><button type="button" data-ldc="clear" title="Clear formatting">T<sub>x</sub></button>
+              <button type="button" data-ldc="bold" title="Bold"><b>B</b></button><button type="button" data-ldc="italic" title="Italic"><i>I</i></button><button type="button" data-ldc="underline" title="Underline"><u>U</u></button><button type="button" data-ldc="hl" title="Highlight"><span class="hlx">A</span></button><span class="sep"></span><button type="button" data-ldc="insertUnorderedList" title="Bullet list">&bull;&#8801;</button><button type="button" data-ldc="insertOrderedList" title="Numbered list">1&#8801;</button><button type="button" data-ldc="quote" title="Quote" class="ldq">&#8220;</button><span class="sep"></span><button type="button" data-ldc="clear" title="Clear formatting">T<sub>x</sub></button>
             </div>
             <div class="fr-h1" id="frH1"></div>
             <div class="fr-h1hint">SELECT WORDS TO FORMAT · ENTER = NEW PARAGRAPH · TAP DONE TO SAVE</div>
@@ -3201,7 +3203,7 @@ function ldHtmlPlain_(html) {   // formatted heading -> the plain title: one lin
   walk(box);
   return out.filter(x => x).map(x => x.trim()).filter(Boolean).join('\n');
 }
-function ldHasInline_(html) { return /<(b|strong|i|em|u|s|strike|del)\b|class="[^"]*hl-/i.test(html); }
+function ldHasInline_(html) { return /<(b|strong|i|em|u|s|strike|del|blockquote)\b|class="[^"]*hl-/i.test(html); }   // LD-Q1: a quote counts as formatting
 function ldHtbWire_() {
   const tb = el('ldHtb'); if (!tb || tb._w) return; tb._w = true;
   tb.addEventListener('mousedown', e => e.preventDefault());   // keep the selection in the heading
@@ -3215,6 +3217,13 @@ function ldHtbWire_() {
       document.execCommand('styleWithCSS', false, true); document.execCommand('hiliteColor', false, '#fdecb0');
       h.querySelectorAll('span[style*="background"]').forEach(sp => { sp.removeAttribute('style'); sp.className = 'hl-yellow'; });
       document.execCommand('styleWithCSS', false, false); return;
+    }
+    if (c === 'quote') {   // LD-Q1: the line with the cursor becomes a quote; tap again to turn it back
+      const sel = getSelection(); if (!sel.rangeCount) return;
+      const n = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode), q = n && n.closest && n.closest('blockquote');
+      if (q && h.contains(q)) { const pp = document.createElement('p'); while (q.firstChild) pp.appendChild(q.firstChild); q.replaceWith(pp); const rg = document.createRange(); rg.selectNodeContents(pp); rg.collapse(false); sel.removeAllRanges(); sel.addRange(rg); }
+      else document.execCommand('formatBlock', false, 'blockquote');
+      return;
     }
     if (c === 'clear') {
       document.execCommand('removeFormat');
