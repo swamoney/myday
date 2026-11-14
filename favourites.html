@@ -1216,6 +1216,11 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .ld-new .lab { font-family:var(--mono); font-size:0.55rem; font-weight:700; letter-spacing:0.16em; color:#5a6680; margin:12px 0 6px; }
   .ld-new .cs { display:flex; flex-wrap:wrap; gap:6px; } .ld-new .c { font:600 0.74rem var(--sans); border:1px solid #d5dbe6; border-radius:999px; padding:5px 11px; background:#fff; color:#3a4a6a; cursor:pointer; }
   .ld-new .c.on { background:#7a4fa0; border-color:#7a4fa0; color:#fff; } .ld-new .c.add { border-style:dashed; color:#7a4fa0; }
+  .ld-mv .h { margin-bottom:12px; } .ld-mv .nums { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; } .ld-mv .nums div { background:#f6f2fb; border-radius:12px; padding:10px; text-align:center; }
+  .ld-mv .nums b { font:700 1.3rem var(--serif); color:#6b6f88; } .ld-mv .nums b.to { color:#7a4fa0; } .ld-mv .nums span { margin:0 6px; color:#9aa3b5; } .ld-mv .nums small { display:block; font:700 0.5rem var(--mono); letter-spacing:0.14em; color:#8a93a6; margin-top:3px; }
+  .ld-mv .pl { list-style:none; margin:0 0 6px; padding:0; max-height:32vh; overflow:auto; border:1px solid #eceff4; border-radius:10px; } .ld-mv .pl li { display:flex; gap:8px; justify-content:space-between; padding:8px 10px; border-top:1px solid #f1f3f7; font:500 0.88rem/1.35 var(--serif); } .ld-mv .pl li:first-child { border-top:none; }
+  .ld-mv .pl i { font:600 0.6rem var(--sans); font-style:normal; color:#7a4fa0; white-space:nowrap; } .ld-mv .pl li.more { color:#8a93a6; font-style:italic; }
+  .ld-mv .sel { width:100%; border:1px solid #d5dbe6; border-radius:10px; padding:9px 11px; font:inherit; font-size:0.88rem; background:#fff; } .ld-mv .err:not(:empty) { margin-top:10px; background:#fdecec; color:#9a2a2a; border-radius:8px; padding:8px 10px; font-size:0.8rem; }
   .ld-new .bk-acts .sv { background:#7a4fa0; border-color:#7a4fa0; } .ld-new .tiny { font-size:0.7rem; color:#8a93a6; text-align:right; margin-top:8px; }
   body:not(.editing) .ld-jl ~ .shelf-door, body:not(.editing) .ld-jl ~ .door-form { display:none !important; }
   /* LD-D1 (14 Nov 2026): the live diary, bolder - a solid thread, a thick ink edge on each card, a stronger wash, filled dots with a halo */
@@ -1267,7 +1272,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.editing .ld-jl:empty + .ld-ardoor { margin-left:0; width:100%; }
   body.editing .ld-ardoor { display:flex; align-items:center; gap:12px; width:calc(100% - 30px); margin:4px 0 0 30px; padding:12px 14px; border:1.5px dashed #c9c3dc; border-radius:14px; background:#fbfaff; cursor:pointer; text-align:left; font:inherit; color:inherit; }
   .ld-ardoor .fi { font-size:1.3rem; } .ld-ardoor .tx { flex:1; display:flex; flex-direction:column; } .ld-ardoor b { font-family:var(--serif); font-size:1rem; } .ld-ardoor small { font-size:0.72rem; color:#7a8296; } .ld-ardoor .fg { font-size:1.3rem; color:#7a4fa0; }
-  body.editing .ld-row.ld-mc .ld-arc { display:inline-flex; align-items:center; height:26px; padding:0 9px; border:1px solid #d9cfea; border-radius:7px; background:#fff; color:#7a4fa0; font:600 0.68rem var(--sans); cursor:pointer; }
+  body.editing .ld-row.ld-mc .ld-arc, body.editing .ld-row.ld-ban .ld-arc { display:inline-flex; align-items:center; height:26px; padding:0 9px; border:1px solid #d9cfea; border-radius:7px; background:#fff; color:#7a4fa0; font:600 0.68rem var(--sans); cursor:pointer; }
   .ld-arf { max-width:520px; } .ld-arh { display:flex; align-items:center; gap:10px; margin-bottom:12px; } .ld-arh b { font-family:var(--serif); font-size:1.3rem; }
   .ld-arh .cnt { font-family:var(--mono); font-size:0.6rem; font-weight:700; background:#eceff4; border-radius:999px; padding:3px 8px; } .ld-arh .x { margin-left:auto; border:none; background:none; font-size:1.5rem; cursor:pointer; color:#5a6680; }
   .ld-arf input[type=text] { width:100%; box-sizing:border-box; border:1px solid #d5dbe6; border-radius:10px; padding:9px 11px; font:inherit; font-size:0.85rem; margin-bottom:10px; }
@@ -2108,11 +2113,44 @@ async function ldSetArch_(list, on, addCat) {   // archive / bring back a set of
       const tags = (r.tags || []).filter(t => t !== LD_ARCH); if (on) tags.push(LD_ARCH);
       const upd = { tags };
       if (!on && addCat && !ldCats_(r).some(c => c.toLowerCase() === addCat.toLowerCase())) upd.category = ldCatsJoin_(ldCats_(r).concat(addCat));
-      const { error } = await supa.from('bookmarks').update(upd).eq('id', r.id).eq('user_id', userId);
-      if (error) { bad++; console.error(error); return; } Object.assign(r, upd);
+      // LD-M1 fix: ask for the changed row back - a silent "0 rows changed" (no error) now counts as a failure too
+      const { data, error } = await supa.from('bookmarks').update(upd).eq('id', r.id).eq('user_id', userId).select('id');
+      if (error || !data || !data.length) { bad++; console.error('Archive move failed', r.id, error || 'no row changed'); if (!ldMvErr_) ldMvErr_ = error ? (error.message || String(error)) : 'the database changed nothing (permission?)'; return; }
+      Object.assign(r, upd);
     }));
   }
   ldThree_ = null; render(); return bad;
+}
+let ldMvErr_ = '';
+// LD-M1 (14 Nov 2026): every move between Archive and Diary asks first in a popup with the totals before -> after,
+// the list of what moves, and (bringing back) the Show under choice. Failures show Supabase's own words.
+function ldMoveConfirm_(list, on) {
+  const ov = pdOv_('ldMvOv'), e = escHtml, n = list.length;
+  const arcN = rows.filter(x => secOf(x) === 'learning' && ldArch_(x)).length, diaN = ldLive_().length;
+  const a2 = on ? arcN + n : arcN - n, d2 = on ? diaN - n : diaN + n, word = n === 1 ? 'learning' : 'learnings';
+  const dcats = [...new Set([].concat(...rows.filter(x => secOf(x) === 'learning').map(ldCats_)))].sort((a, b) => a.localeCompare(b));
+  const li = list.slice(0, 60).map(r => '<li><span>' + e(ldFirstLine_(r).first || r.title || '') + '</span><i>' + e(ldCats_(r).join(' · ')) + '</i></li>').join('') + (n > 60 ? '<li class="more">+ ' + (n - 60) + ' more</li>' : '');
+  ov.innerHTML = '<div class="bk-form ld-new ld-mv"><div class="h">' + (on ? 'Send ' + n + ' to the Archive?' : 'Bring ' + n + ' back to the Diary?') + '</div>' +
+    '<div class="nums"><div><b>' + arcN + '</b><span>\u2192</span><b class="to">' + a2 + '</b><small>IN THE ARCHIVE</small></div><div><b>' + diaN + '</b><span>\u2192</span><b class="to">' + d2 + '</b><small>IN THE DIARY</small></div></div>' +
+    '<ul class="pl">' + li + '</ul>' +
+    (on ? '<div class="tiny" style="text-align:left">Nothing is deleted. You can bring any back from the Archive.</div>' :
+      '<div class="lab">SHOW UNDER</div><select class="sel" id="ldMvT"><option value="">Its own category</option>' + dcats.map(c => '<option>' + e(c) + '</option>').join('') + '</select>') +
+    '<div class="err" id="ldMvE"></div>' +
+    '<div class="bk-acts"><span style="flex:1"></span><button type="button" id="ldMvNo">Cancel</button><button type="button" class="sv" id="ldMvOk">' + (on ? 'Archive ' + n : 'Move ' + n + ' to Diary') + '</button></div></div>';
+  ov.classList.remove('hidden');
+  el('ldMvNo').onclick = () => ov.classList.add('hidden');
+  el('ldMvOk').onclick = async () => {
+    const b = el('ldMvOk'); b.disabled = true; b.textContent = 'Moving\u2026'; ldMvErr_ = '';
+    const bad = await ldSetArch_(list, on, on ? '' : el('ldMvT').value), ok = n - bad;
+    if (bad) {   // stay open and say exactly what went wrong
+      el('ldMvE').textContent = (ok ? ok + ' moved, ' : '') + bad + ' could not be moved: ' + ldMvErr_;
+      b.disabled = false; b.textContent = 'Try again'; list = list.filter(r => on ? !ldArch_(r) : ldArch_(r)); return;
+    }
+    ov.classList.add('hidden'); ldArSel_.clear();
+    const A = rows.filter(x => secOf(x) === 'learning' && ldArch_(x)).length, D = ldLive_().length;
+    if (!on) { ldArView_ = false; ldCat_ = ''; window.scrollTo(0, 0); render(); }   // show them straight away in the Diary
+    toast('\u2713 ' + n + ' ' + word + (on ? ' archived' : ' back in the Diary') + ' \u00B7 Archive ' + A + ' \u00B7 Diary ' + D);
+  };
 }
 let ldArSel_ = new Set(), ldArQ_ = '', ldArCat_ = '';
 // LD-R1 (14 Nov 2026): the Archive is its own index in the diary's place (not a popup) - reached only from Edit.
@@ -2130,7 +2168,7 @@ function ldArchiveRender_(wrap) {
     '<input type="text" class="ld-arq" id="ldArQ" placeholder="Search the archive…" value="' + e(ldArQ_) + '">' +
     '<div class="ld-chips ld-arc2"><button type="button" class="ld-chip' + (ldArCat_ ? '' : ' on') + '" data-arc="">ALL · ' + all.length + '</button>' + names.map(c => '<button type="button" class="ld-chip' + (ldArCat_ === c ? ' on' : '') + '" data-arc="' + e(c) + '">' + e(c.toUpperCase()) + ' · ' + cats[c] + '</button>').join('') + '</div>' +
     '<div id="ldArList"></div>' +
-    '<div class="ld-arb" id="ldArBar"><span id="ldArN">0 picked</span><label>Show under <select id="ldArT"><option value="">its own category</option>' + dcats.map(c => '<option>' + e(c) + '</option>').join('') + '</select></label><button type="button" id="ldArOk" disabled>Add to Diary</button></div>' +
+    '<div class="ld-arb" id="ldArBar"><span id="ldArN" style="flex:1">0 picked</span><button type="button" id="ldArOk" disabled>Add to Diary</button></div>' +
     (live.length ? '<button type="button" class="ld-arall" id="ldArAll">Move all ' + live.length + ' diary learnings into the Archive</button>' : '') + '</div>';
   const MONL = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   const paintList = () => {
@@ -2157,13 +2195,9 @@ function ldArchiveRender_(wrap) {
   wrap.querySelectorAll('[data-arc]').forEach(b => b.onclick = () => { ldArCat_ = b.dataset.arc; render(); });
   el('ldArOk').onclick = async () => {
     const pick = all.filter(r => ldArSel_.has(String(r.id))); if (!pick.length) return;
-    el('ldArOk').disabled = true; const bad = await ldSetArch_(pick, false, el('ldArT').value);
-    ldArSel_.clear(); toast(bad ? 'Some could not be moved' : pick.length + (pick.length === 1 ? ' learning' : ' learnings') + ' back in the diary');
+    ldMoveConfirm_(pick, false);
   };
-  const ab = el('ldArAll'); if (ab) ab.onclick = async () => {
-    if (!confirm('Move all ' + live.length + ' diary learnings into the hidden Archive? Nothing is deleted; you can bring any back.')) return;
-    ab.disabled = true; ab.textContent = 'Moving…'; const bad = await ldSetArch_(live, true); toast(bad ? 'Some could not be moved' : 'Moved into the Archive');
-  };
+  const ab = el('ldArAll'); if (ab) ab.onclick = () => ldMoveConfirm_(live, true);
 }
 // LD-W1 (14 Nov 2026): "What did you learn?" - a new learning starts in a popup: one box with the heading's toolbar,
 // the date (today, changeable), category chips (or a new one). Save puts it on top of the diary; notes come later on its page.
@@ -2263,7 +2297,7 @@ function renderLearning_(list, wrap, secTint) {
   el('ldArDoor').addEventListener('click', ldArchiveOpen_);
   wrap.querySelectorAll('[data-ldarc]').forEach(b => b.addEventListener('click', async e => {
     e.stopPropagation(); const r = rows.find(x => String(x.id) === String(b.dataset.ldarc)); if (!r) return;
-    const bad = await ldSetArch_([r], true); toast(bad ? 'Could not move it' : 'Moved to the Archive');
+    ldMoveConfirm_([r], true);
   }));
   wrap.querySelectorAll('[data-ldcat]').forEach(b => b.addEventListener('click', () => { ldCat_ = b.dataset.ldcat; render(); }));
   ldTodaysWire_(wrap);
