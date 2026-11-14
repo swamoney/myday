@@ -1218,6 +1218,27 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .ld-new .c.on { background:#7a4fa0; border-color:#7a4fa0; color:#fff; } .ld-new .c.add { border-style:dashed; color:#7a4fa0; }
   .ld-new .bk-acts .sv { background:#7a4fa0; border-color:#7a4fa0; } .ld-new .tiny { font-size:0.7rem; color:#8a93a6; text-align:right; margin-top:8px; }
   body:not(.editing) .ld-jl ~ .shelf-door, body:not(.editing) .ld-jl ~ .door-form { display:none !important; }
+  /* LD-D1 (14 Nov 2026): the live diary, bolder - a solid thread, a thick ink edge on each card, a stronger wash, filled dots with a halo */
+  .ld-jl:not(.ld-arl2) { border-left:3px solid #c9c1dc; }
+  .ld-row.ld-mc { background:linear-gradient(150deg, color-mix(in srgb, var(--ldi) 20%, #fff) 0%, #fff 70%); border:1.5px solid color-mix(in srgb, var(--ldi) 50%, #fff); border-left:6px solid var(--ldi); }
+  .ld-row.ld-mc:hover { background:linear-gradient(150deg, color-mix(in srgb, var(--ldi) 26%, #fff) 0%, #fff 70%); }
+  .ld-row.ld-mc::before { left:-35px; width:13px; height:13px; box-shadow:0 0 0 3px var(--paper, #F8FAFC), 0 0 0 6px color-mix(in srgb, var(--ldi) 25%, transparent); }
+  /* LD-R1: the Archive in the diary's place - faded on purpose */
+  .ld-arv { padding-top:2px; } .ld-arbar { display:flex; align-items:center; gap:10px; background:#efecf5; border-radius:12px; padding:10px 12px; margin-bottom:10px; }
+  .ld-arbar .back { border:none; background:none; font:600 0.8rem var(--sans); color:#7a4fa0; cursor:pointer; padding:0; } .ld-arbar .ttl { font-family:var(--serif); font-size:1.2rem; font-weight:600; margin-left:4px; }
+  .ld-arbar .cnt { margin-left:auto; font-family:var(--mono); font-size:0.58rem; font-weight:700; letter-spacing:0.1em; background:#fff; border-radius:999px; padding:3px 8px; color:#6b6f88; }
+  .ld-arq { width:100%; box-sizing:border-box; border:1px solid #d5dbe6; border-radius:10px; padding:9px 11px; font:inherit; font-size:0.85rem; margin-bottom:10px; background:#fff; }
+  .ld-arc2 .ld-chip { border-color:#d6d1e4; color:#5a5f78; } .ld-arc2 .ld-chip.on { background:#6b6f88; border-color:#6b6f88; color:#fff; }
+  .ld-arl2 { border-left:2px dashed #cfcad9; } .ld-arl2 .ld-month { color:#9a9fb3; }
+  .ld-ac { position:relative; background:linear-gradient(150deg, color-mix(in srgb, var(--ldi) 6%, #fff), #fff 60%); border:1.5px dashed color-mix(in srgb, var(--ldi) 35%, #e3e3ea); border-radius:14px; padding:12px 14px; margin-bottom:12px; cursor:pointer; }
+  .ld-ac::before { content:''; position:absolute; left:-29px; top:16px; width:10px; height:10px; border-radius:50%; background:var(--paper, #F8FAFC); border:2px solid color-mix(in srgb, var(--ldi) 70%, #999); box-sizing:border-box; }
+  .ld-ac .ld-ey { color:#9aa0b0; } .ld-ac .ld-ey i { color:color-mix(in srgb, var(--ldi) 70%, #888); }
+  #rowsWrap:has(.ld-arv) > .shelf-head { display:none; }
+  .ld-ac .ld-t { font-weight:500; font-family:var(--serif); font-size:1rem; line-height:1.42; color:#4a5266; padding-right:28px; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .ld-ac .tick { position:absolute; right:10px; top:10px; width:22px; height:22px; border-radius:50%; border:1.5px solid #cfcad9; display:grid; place-items:center; font-size:0.72rem; color:#fff; background:#fff; }
+  .ld-ac.sel { border-style:solid; border-color:#7a4fa0; background:linear-gradient(150deg, #f3eefa, #fff 60%); } .ld-ac.sel .ld-t { color:#1c2331; } .ld-ac.sel .tick { background:#7a4fa0; border-color:#7a4fa0; }
+  .ld-arv .ld-arb { position:sticky; bottom:12px; z-index:5; box-shadow:0 8px 20px rgba(10,20,40,.25); }
+  body.editing .ld-arv ~ .shelf-door { display:none !important; }
   /* LD-A1: hidden Archive - door and per-card button only in Edit; the picker sheet */
   .ld-ardoor, .ld-arc { display:none; }
   .ld-empty { margin:18px 0 10px; color:#7a8296; font-family:var(--serif); font-style:italic; font-size:0.95rem; } body.editing .ld-empty { display:none; }
@@ -2072,42 +2093,55 @@ async function ldSetArch_(list, on, addCat) {   // archive / bring back a set of
   ldThree_ = null; render(); return bad;
 }
 let ldArSel_ = new Set(), ldArQ_ = '', ldArCat_ = '';
-function ldArchiveOpen_() {
-  const ov = pdOv_('ldArOv'), e = escHtml;
-  const paint = () => {
-    const all = rows.filter(x => secOf(x) === 'learning' && ldArch_(x));
-    const cats = {}; all.forEach(r => ldCats_(r).forEach(c => { cats[c] = (cats[c] || 0) + 1; }));
-    const names = Object.keys(cats).sort((a, b) => cats[b] - cats[a] || a.localeCompare(b));
-    if (ldArCat_ && !cats[ldArCat_]) ldArCat_ = '';
+// LD-R1 (14 Nov 2026): the Archive is its own index in the diary's place (not a popup) - reached only from Edit.
+// Faded on purpose: a dashed grey thread, hollow dots, pale cards, grey headings; tap a card to tick it, the dark bar adds them back.
+let ldArView_ = false;
+function ldArchiveOpen_() { ldArView_ = true; ldArSel_.clear(); window.scrollTo(0, 0); render(); }
+function ldArchiveClose_() { ldArView_ = false; render(); }
+function ldArchiveRender_(wrap) {
+  const e = escHtml, all = rows.filter(x => secOf(x) === 'learning' && ldArch_(x));
+  const cats = {}; all.forEach(r => ldCats_(r).forEach(c => { cats[c] = (cats[c] || 0) + 1; }));
+  const names = Object.keys(cats).sort((a, b) => cats[b] - cats[a] || a.localeCompare(b));
+  if (ldArCat_ && !cats[ldArCat_]) ldArCat_ = '';
+  const live = ldLive_(), dcats = [...new Set([].concat(...live.map(ldCats_)).concat(names))].sort((a, b) => a.localeCompare(b));
+  wrap.innerHTML = '<div class="ld-arv"><div class="ld-arbar"><button type="button" class="back" id="ldArBack">← Diary</button><span class="ttl">Archive</span><span class="cnt">' + all.length + ' hidden</span></div>' +
+    '<input type="text" class="ld-arq" id="ldArQ" placeholder="Search the archive…" value="' + e(ldArQ_) + '">' +
+    '<div class="ld-chips ld-arc2"><button type="button" class="ld-chip' + (ldArCat_ ? '' : ' on') + '" data-arc="">ALL · ' + all.length + '</button>' + names.map(c => '<button type="button" class="ld-chip' + (ldArCat_ === c ? ' on' : '') + '" data-arc="' + e(c) + '">' + e(c.toUpperCase()) + ' · ' + cats[c] + '</button>').join('') + '</div>' +
+    '<div id="ldArList"></div>' +
+    '<div class="ld-arb" id="ldArBar"><span id="ldArN">0 picked</span><label>Show under <select id="ldArT"><option value="">its own category</option>' + dcats.map(c => '<option>' + e(c) + '</option>').join('') + '</select></label><button type="button" id="ldArOk" disabled>Add to Diary</button></div>' +
+    (live.length ? '<button type="button" class="ld-arall" id="ldArAll">Move all ' + live.length + ' diary learnings into the Archive</button>' : '') + '</div>';
+  const MONL = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+  const paintList = () => {
     const q = ldArQ_.toLowerCase();
-    let L = all.filter(r => (!ldArCat_ || ldCats_(r).includes(ldArCat_)) && (!q || (r.title || '').toLowerCase().includes(q) || NoteEditor.toPlain(r.note).toLowerCase().includes(q)));
-    L.sort((a, b) => ldDate_(b).localeCompare(ldDate_(a)));
-    const live = ldLive_(), dcats = [...new Set([].concat(...live.map(ldCats_)).concat(names))].sort((a, b) => a.localeCompare(b));
+    const L = all.filter(r => (!ldArCat_ || ldCats_(r).includes(ldArCat_)) && (!q || (r.title || '').toLowerCase().includes(q) || NoteEditor.toPlain(r.note).toLowerCase().includes(q)))
+      .sort((a, b) => ldDate_(b).localeCompare(ldDate_(a)));
+    let h = '', last = '';
+    L.forEach(r => {
+      const iso = ldDate_(r), ym = iso.slice(0, 7);
+      if (ym && ym !== last) { const t = new Date(iso + 'T00:00:00'); h += '<div class="ld-month">' + (isNaN(t) ? e(ym) : MONL[t.getMonth()] + ' ' + t.getFullYear()) + '</div>'; last = ym; }
+      const on = ldArSel_.has(String(r.id));
+      h += '<div class="ld-ac' + (on ? ' sel' : '') + '" data-ars="' + e(r.id) + '" style="--ldi:' + ldInk_(r) + '"><span class="tick">' + (on ? '✓' : '') + '</span>' +
+        '<div class="ld-ey"><span class="ld-d">' + e(ldFmt_(iso, false)) + '</span>' + ldCats_(r).map(c => '<i>' + e(c.toUpperCase()) + '</i>').join('') + '</div>' +
+        '<div class="ld-t">' + e(ldFirstLine_(r).first || r.title || '') + '</div></div>';
+    });
+    el('ldArList').innerHTML = L.length ? '<div class="ld-jl ld-arl2">' + h + '</div>' : '<div class="ld-arn">' + (all.length ? 'Nothing matches.' : 'The Archive is empty.') + '</div>';
     const n = [...ldArSel_].filter(id => all.some(r => String(r.id) === id)).length;
-    ov.innerHTML = '<div class="bk-form ld-arf"><div class="ld-arh"><b>Archive</b><span class="cnt">' + all.length + ' hidden</span><button type="button" class="x" id="ldArX" aria-label="Close">\u00D7</button></div>' +
-      '<input type="text" id="ldArQ" placeholder="Search the archive\u2026" value="' + e(ldArQ_) + '">' +
-      '<div class="ld-chips"><button type="button" class="ld-chip' + (ldArCat_ ? '' : ' on') + '" data-arc="">ALL \u00B7 ' + all.length + '</button>' + names.map(c => '<button type="button" class="ld-chip' + (ldArCat_ === c ? ' on' : '') + '" data-arc="' + e(c) + '">' + e(c.toUpperCase()) + ' \u00B7 ' + cats[c] + '</button>').join('') + '</div>' +
-      (L.length ? '<div class="ld-arl">' + L.map(r => '<label class="ld-ar' + (ldArSel_.has(String(r.id)) ? ' sel' : '') + '"><input type="checkbox" data-ars="' + e(r.id) + '"' + (ldArSel_.has(String(r.id)) ? ' checked' : '') + '><div class="tx"><div class="t">' + e(ldFirstLine_(r).first || r.title || '') + '</div><div class="m">' + e(ldFmt_(ldDate_(r), true)) + (ldCats_(r).length ? ' \u00B7 ' + e(ldCats_(r).join(', ')) : '') + '</div></div></label>').join('') + '</div>'
-        : '<div class="ld-arn">' + (all.length ? 'Nothing matches.' : 'The Archive is empty.') + '</div>') +
-      '<div class="ld-arb"><span>' + n + ' picked</span><label>Show under <select id="ldArT"><option value="">its own category</option>' + dcats.map(c => '<option>' + e(c) + '</option>').join('') + '</select></label>' +
-      '<button type="button" id="ldArOk"' + (n ? '' : ' disabled') + '>Add to Diary</button></div>' +
-      (live.length ? '<button type="button" class="ld-arall" id="ldArAll">Move all ' + live.length + ' diary learnings into the Archive</button>' : '') + '</div>';
-    ov.classList.remove('hidden');
-    el('ldArX').onclick = () => ov.classList.add('hidden');
-    const qi = el('ldArQ'); qi.oninput = () => { ldArQ_ = qi.value; const pos = qi.selectionStart; paint(); const q2 = el('ldArQ'); q2.focus(); q2.setSelectionRange(pos, pos); };
-    ov.querySelectorAll('[data-arc]').forEach(b => b.onclick = () => { ldArCat_ = b.dataset.arc; paint(); });
-    ov.querySelectorAll('[data-ars]').forEach(c => c.onchange = () => { c.checked ? ldArSel_.add(c.dataset.ars) : ldArSel_.delete(c.dataset.ars); paint(); });
-    el('ldArOk').onclick = async () => {
-      const pick = all.filter(r => ldArSel_.has(String(r.id))); if (!pick.length) return;
-      el('ldArOk').disabled = true; const bad = await ldSetArch_(pick, false, el('ldArT').value);
-      ldArSel_.clear(); toast(bad ? 'Some could not be moved' : pick.length + (pick.length === 1 ? ' learning' : ' learnings') + ' back in the diary'); paint();
-    };
-    const ab = el('ldArAll'); if (ab) ab.onclick = async () => {
-      if (!confirm('Move all ' + live.length + ' diary learnings into the hidden Archive? Nothing is deleted; you can bring any back.')) return;
-      ab.disabled = true; ab.textContent = 'Moving\u2026'; const bad = await ldSetArch_(live, true); toast(bad ? 'Some could not be moved' : 'Moved into the Archive'); paint();
-    };
+    el('ldArN').textContent = n + ' picked'; el('ldArOk').disabled = !n; el('ldArBar').classList.toggle('on', n > 0);
+    el('ldArList').querySelectorAll('[data-ars]').forEach(c => c.onclick = () => { const id = c.dataset.ars; ldArSel_.has(id) ? ldArSel_.delete(id) : ldArSel_.add(id); paintList(); });
   };
-  paint();
+  paintList();
+  el('ldArBack').onclick = ldArchiveClose_;
+  el('ldArQ').oninput = ev => { ldArQ_ = ev.target.value; paintList(); };
+  wrap.querySelectorAll('[data-arc]').forEach(b => b.onclick = () => { ldArCat_ = b.dataset.arc; render(); });
+  el('ldArOk').onclick = async () => {
+    const pick = all.filter(r => ldArSel_.has(String(r.id))); if (!pick.length) return;
+    el('ldArOk').disabled = true; const bad = await ldSetArch_(pick, false, el('ldArT').value);
+    ldArSel_.clear(); toast(bad ? 'Some could not be moved' : pick.length + (pick.length === 1 ? ' learning' : ' learnings') + ' back in the diary');
+  };
+  const ab = el('ldArAll'); if (ab) ab.onclick = async () => {
+    if (!confirm('Move all ' + live.length + ' diary learnings into the hidden Archive? Nothing is deleted; you can bring any back.')) return;
+    ab.disabled = true; ab.textContent = 'Moving…'; const bad = await ldSetArch_(live, true); toast(bad ? 'Some could not be moved' : 'Moved into the Archive');
+  };
 }
 // LD-W1 (14 Nov 2026): "What did you learn?" - a new learning starts in a popup: one box with the heading's toolbar,
 // the date (today, changeable), category chips (or a new one). Save puts it on top of the diary; notes come later on its page.
@@ -2164,6 +2198,8 @@ function ldNewOpen_() {
   };
 }
 function renderLearning_(list, wrap, secTint) {
+  if (ldArView_ && document.body.classList.contains('editing')) { ldArchiveRender_(wrap); return; }   // LD-R1
+  ldArView_ = false;
   const cats = {};
   list.forEach(r => ldCats_(r).forEach(c => { cats[c] = (cats[c] || 0) + 1; }));
   const catNames = Object.keys(cats).sort((a, b) => cats[b] - cats[a] || a.localeCompare(b));
@@ -2625,6 +2661,7 @@ function render_() {
     '<button type="button" class="sh-plus" id="shelfPlus" title="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '" aria-label="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '">+</button></div>';
 
   if (activeSection === 'lenses') { renderLenses_(list, wrap); return; }   // its own shelf, empty state included
+  if (activeSection === 'learning' && ldArView_ && document.body.classList.contains('editing')) { ldArchiveRender_(wrap); return; }   // LD-R1
   if (list.length === 0 && activeSection === 'learning' && !(activeType || activeTag || searchTerm) && rows.some(x => secOf(x) === 'learning' && ldArch_(x))) {
     // LD-A1: everything is in the Archive - a quiet empty diary, the Archive door still there in Edit
     wrap.innerHTML = headHtml + '<div class="ld-empty">Your diary is empty. Tap <b>Edit</b>, then <b>Archive</b>, to bring learnings back.</div>' +
@@ -4063,6 +4100,7 @@ function _libToggleEditing() {
   var on = document.body.classList.toggle('editing');
   var t = el('editToggleTop'); if (t) t.textContent = on ? 'Done' : 'Edit';
   if (activeSection === 'music' && typeof muWide_ === 'function' && muWide_()) render();   // MU-3: desktop Music re-splits its two columns for Edit
+  if (activeSection === 'learning' && !on && ldArView_) { ldArView_ = false; render(); }   // LD-R1: Done closes the Archive
   return on;
 }
 el('editToggleTop').addEventListener('click', _libToggleEditing);
