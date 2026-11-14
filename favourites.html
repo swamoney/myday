@@ -1243,6 +1243,10 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .ld-ac .tick { position:absolute; right:10px; top:10px; width:22px; height:22px; border-radius:50%; border:1.5px solid #cfcad9; display:grid; place-items:center; font-size:0.72rem; color:#fff; background:#fff; }
   .ld-ac.sel { border-style:solid; border-color:#7a4fa0; background:linear-gradient(150deg, #f3eefa, #fff 60%); } .ld-ac.sel .ld-t { color:#1c2331; } .ld-ac.sel .tick { background:#7a4fa0; border-color:#7a4fa0; }
   .ld-arv .ld-arb { position:sticky; bottom:12px; z-index:5; box-shadow:0 8px 20px rgba(10,20,40,.25); }
+  /* LD-M1b: once something is picked the bar floats on the screen (sticky failed on phones - it sat below the last card) */
+  .ld-arv .ld-arb.on { position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom, 0px)); width:min(560px, calc(100% - 24px)); margin:0; z-index:900; padding:11px 12px; font-size:0.85rem; }
+  .ld-arv .ld-arb.on button { padding:9px 14px; font-size:0.82rem; background:#c9a7ee; color:#1c2331; }
+  .ld-arv:has(.ld-arb.on) #ldArList { padding-bottom:80px; }
   body.editing .ld-arv ~ .shelf-door { display:none !important; }
   /* LD-B2 (14 Nov 2026): starred learnings as a framed print - white, a fine double frame in the learning's ink, a small quote mark,
      the words centred in big italic, a gold star with the date and category; it steps off the thread and sits centred */
@@ -2168,7 +2172,7 @@ function ldArchiveRender_(wrap) {
     '<input type="text" class="ld-arq" id="ldArQ" placeholder="Search the archive…" value="' + e(ldArQ_) + '">' +
     '<div class="ld-chips ld-arc2"><button type="button" class="ld-chip' + (ldArCat_ ? '' : ' on') + '" data-arc="">ALL · ' + all.length + '</button>' + names.map(c => '<button type="button" class="ld-chip' + (ldArCat_ === c ? ' on' : '') + '" data-arc="' + e(c) + '">' + e(c.toUpperCase()) + ' · ' + cats[c] + '</button>').join('') + '</div>' +
     '<div id="ldArList"></div>' +
-    '<div class="ld-arb" id="ldArBar"><span id="ldArN" style="flex:1">0 picked</span><button type="button" id="ldArOk" disabled>Add to Diary</button></div>' +
+    '<div class="ld-arb" id="ldArBar"><span id="ldArN" style="flex:1">0 picked</span><button type="button" id="ldArOk" disabled>Add to Diary \u2192</button></div>' +
     (live.length ? '<button type="button" class="ld-arall" id="ldArAll">Move all ' + live.length + ' diary learnings into the Archive</button>' : '') + '</div>';
   const MONL = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
   const paintList = () => {
@@ -2190,7 +2194,10 @@ function ldArchiveRender_(wrap) {
     el('ldArList').querySelectorAll('[data-ars]').forEach(c => c.onclick = () => { const id = c.dataset.ars; ldArSel_.has(id) ? ldArSel_.delete(id) : ldArSel_.add(id); paintList(); });
   };
   paintList();
-  el('ldArBack').onclick = ldArchiveClose_;
+  el('ldArBack').onclick = () => {   // LD-M1b: picked some? "← Diary" brings them along (asks first) instead of dropping the picks
+    const pick = all.filter(r => ldArSel_.has(String(r.id)));
+    if (pick.length) ldMoveConfirm_(pick, false); else ldArchiveClose_();
+  };
   el('ldArQ').oninput = ev => { ldArQ_ = ev.target.value; paintList(); };
   wrap.querySelectorAll('[data-arc]').forEach(b => b.onclick = () => { ldArCat_ = b.dataset.arc; render(); });
   el('ldArOk').onclick = async () => {
