@@ -1206,6 +1206,18 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.fr-learning .fr-h1 blockquote, .ld-mc .ld-t blockquote { margin:0.3em 0 0.55em; padding:0.1em 0 0.1em 0.9em; border-left:3px solid var(--ldi, #6b6f88); font-style:italic; color:#3d4559; }   /* LD-Q1: a quote - ink bar, italic */
   .ld-htb .ldq { font-family:var(--serif); font-size:1.15rem; }
   body.fr-learning #frPassage { display:none !important; }   /* a learning's essence is its formatted heading, not a passage */
+  /* LD-W1: the "What did you learn?" popup; and the diary's bottom buttons only in Edit */
+  .ld-new .h { font-family:var(--serif); font-size:1.45rem; font-weight:600; } .ld-new .dt input { border:none; background:none; font-family:var(--mono); font-size:0.66rem; font-weight:700; letter-spacing:0.1em; color:#7a4fa0; padding:4px 0; margin:2px 0 10px; }
+  .ld-new .box { position:relative; border:1.5px solid #c9c3dc; border-radius:12px; padding:12px; min-height:84px; max-height:46vh; overflow-y:auto; font-family:var(--serif); font-size:1.08rem; line-height:1.45; outline:none; }
+  .ld-new .box.emp::before { content:attr(data-ph); position:absolute; color:#a9b0bf; font-style:italic; } .ld-new .box:focus { border-color:#7a4fa0; }
+  .ld-new .box p { margin:0 0 .5em; } .ld-new .box > :last-child { margin-bottom:0; } .ld-new .box ul, .ld-new .box ol { margin:.2em 0 .5em; padding-left:1.25em; }
+  .ld-new .box blockquote { margin:.3em 0 .5em; padding:.1em 0 .1em .9em; border-left:3px solid #7a4fa0; font-style:italic; color:#3d4559; } .ld-new .box .hl-yellow { background:#fdecb0; border-radius:3px; padding:0 2px; }
+  .ld-new .ld-ntb { display:flex; margin:8px 0 4px; }
+  .ld-new .lab { font-family:var(--mono); font-size:0.55rem; font-weight:700; letter-spacing:0.16em; color:#5a6680; margin:12px 0 6px; }
+  .ld-new .cs { display:flex; flex-wrap:wrap; gap:6px; } .ld-new .c { font:600 0.74rem var(--sans); border:1px solid #d5dbe6; border-radius:999px; padding:5px 11px; background:#fff; color:#3a4a6a; cursor:pointer; }
+  .ld-new .c.on { background:#7a4fa0; border-color:#7a4fa0; color:#fff; } .ld-new .c.add { border-style:dashed; color:#7a4fa0; }
+  .ld-new .bk-acts .sv { background:#7a4fa0; border-color:#7a4fa0; } .ld-new .tiny { font-size:0.7rem; color:#8a93a6; text-align:right; margin-top:8px; }
+  body:not(.editing) .ld-jl ~ .shelf-door, body:not(.editing) .ld-jl ~ .door-form { display:none !important; }
   /* LD-A1: hidden Archive - door and per-card button only in Edit; the picker sheet */
   .ld-ardoor, .ld-arc { display:none; }
   .ld-empty { margin:18px 0 10px; color:#7a8296; font-family:var(--serif); font-style:italic; font-size:0.95rem; } body.editing .ld-empty { display:none; }
@@ -2097,6 +2109,60 @@ function ldArchiveOpen_() {
   };
   paint();
 }
+// LD-W1 (14 Nov 2026): "What did you learn?" - a new learning starts in a popup: one box with the heading's toolbar,
+// the date (today, changeable), category chips (or a new one). Save puts it on top of the diary; notes come later on its page.
+function ldNewOpen_() {
+  const ov = pdOv_('ldNewOv'), e = escHtml;
+  const live = ldLive_(), cnt = {}; live.forEach(r => ldCats_(r).forEach(c => { cnt[c] = (cnt[c] || 0) + 1; }));
+  let cats = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a] || a.localeCompare(b)), pick = '';
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const btn = (c, l) => '<button type="button" data-ldnc="' + c + '">' + l + '</button>';
+  ov.innerHTML = '<div class="bk-form ld-new"><div class="h">What did you learn?</div>' +
+    '<label class="dt"><input type="date" id="ldnD" value="' + today + '"></label>' +
+    '<div class="box" id="ldnT" contenteditable="true" data-ph="Write it in a line or two…"></div>' +
+    '<div class="ld-htb ld-ntb">' + btn('bold', '<b>B</b>') + btn('italic', '<i>I</i>') + btn('underline', '<u>U</u>') + btn('hl', '<span class="hlx">A</span>') + '<span class="sep"></span>' +
+      btn('insertUnorderedList', '&bull;&#8801;') + btn('insertOrderedList', '1&#8801;') + btn('quote', '&#8220;') + '<span class="sep"></span>' + btn('clear', 'T<sub>x</sub>') + '</div>' +
+    '<div class="lab">CATEGORY</div><div class="cs" id="ldnC"></div>' +
+    '<div class="bk-acts"><span style="flex:1"></span><button type="button" id="ldnNo">Cancel</button><button type="button" class="sv" id="ldnOk">Save</button></div>' +
+    '<div class="tiny">Saved straight into the diary. Open it later to add notes.</div></div>';
+  ov.classList.remove('hidden');
+  const paintC = () => { el('ldnC').innerHTML = cats.map(c => '<button type="button" class="c' + (c === pick ? ' on' : '') + '" data-ldcc="' + e(c) + '">' + e(c) + '</button>').join('') + '<button type="button" class="c add" id="ldnAdd">＋ new</button>';
+    el('ldnC').querySelectorAll('[data-ldcc]').forEach(b => b.onclick = () => { pick = pick === b.dataset.ldcc ? '' : b.dataset.ldcc; paintC(); });
+    el('ldnAdd').onclick = () => { const n = (prompt('New category') || '').replace(/\s+/g, ' ').trim(); if (!n) return; const ex = cats.find(c => c.toLowerCase() === n.toLowerCase()); if (!ex) cats.push(n); pick = ex || n; paintC(); }; };
+  paintC();
+  const box = el('ldnT'); document.execCommand('defaultParagraphSeparator', false, 'p');
+  box.innerHTML = '<p><br></p>'; box.focus(); { const rg = document.createRange(); rg.setStart(box.firstChild, 0); rg.collapse(true); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); }
+  const emp = () => box.classList.toggle('emp', !box.textContent.trim() && !box.querySelector('li')); emp(); box.addEventListener('input', emp);
+  ov.querySelector('.ld-ntb').addEventListener('mousedown', ev => ev.preventDefault());
+  ov.querySelector('.ld-ntb').addEventListener('click', ev => {
+    const b = ev.target.closest('[data-ldnc]'); if (!b) return; box.focus(); const c = b.dataset.ldnc, sel = getSelection();
+    if (c === 'hl') { if (!sel.rangeCount || sel.isCollapsed) return; const n0 = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode), on = n0 && n0.closest && n0.closest('span.hl-yellow');
+      if (on && box.contains(on)) { while (on.firstChild) on.parentNode.insertBefore(on.firstChild, on); on.remove(); return; }
+      document.execCommand('styleWithCSS', false, true); document.execCommand('hiliteColor', false, '#fdecb0'); box.querySelectorAll('span[style*="background"]').forEach(sp => { sp.removeAttribute('style'); sp.className = 'hl-yellow'; }); document.execCommand('styleWithCSS', false, false); return; }
+    if (c === 'quote') { const n0 = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode), q = n0 && n0.closest && n0.closest('blockquote');
+      if (q && box.contains(q)) { const pp = document.createElement('p'); while (q.firstChild) pp.appendChild(q.firstChild); q.replaceWith(pp); } else document.execCommand('formatBlock', false, 'blockquote'); return; }
+    if (c === 'clear') { document.execCommand('removeFormat'); return; }
+    if (!/List$/.test(c)) { document.execCommand(c); return; }
+    let mk = null; if (sel.rangeCount && sel.isCollapsed) { mk = document.createElement('span'); mk.id = 'ldnCaret'; mk.textContent = '\u200b'; sel.getRangeAt(0).insertNode(mk); }
+    document.execCommand(c);
+    box.querySelectorAll('p > ul, p > ol').forEach(l => { const pp = l.parentNode; pp.parentNode.insertBefore(l, pp.nextSibling); if (!pp.textContent.replace(/\u200b/g, '').trim()) pp.remove(); });
+    const m = box.querySelector('#ldnCaret');
+    if (m) { const prev = m.previousSibling, rg = document.createRange(); if (prev && prev.nodeType === 3) rg.setStart(prev, prev.length); else rg.setStartBefore(m); rg.collapse(true); m.remove(); sel.removeAllRanges(); sel.addRange(rg); }
+    else { const tw = document.createTreeWalker(box, NodeFilter.SHOW_TEXT); let n; while ((n = tw.nextNode())) { const i = n.textContent.indexOf('\u200b'); if (i >= 0) { n.textContent = n.textContent.replace('\u200b', ''); try { sel.collapse(n, i); } catch (x) {} break; } } }
+    emp();
+  });
+  el('ldnNo').onclick = () => ov.classList.add('hidden');
+  el('ldnOk').onclick = async () => {
+    const html = NoteEditor.sanitize(box.innerHTML).replace(/​/g, '').replace(/<p>\s*(<br>)?\s*<\/p>/g, '').replace(/<li>\s*(<br>)?\s*<\/li>/g, '').trim();
+    const title = ldHtmlPlain_(html); if (!title) { box.focus(); return; }
+    const rec = { user_id: userId, section: 'learning', title, url: '', source_url: '', type: '', tags: [], note: '', essence: ldHasInline_(html) ? LDH + html : '',
+      learned_on: el('ldnD').value || today, category: pick, updated_at: new Date().toISOString() };
+    el('ldnOk').disabled = true;
+    try { const { error } = await supa.from('bookmarks').insert(rec).select(); if (error) throw error;
+      ov.classList.add('hidden'); toast('Saved'); ldCat_ = ''; await loadRows(); }
+    catch (x) { console.error(x); toast('Could not save'); el('ldnOk').disabled = false; }
+  };
+}
 function renderLearning_(list, wrap, secTint) {
   const cats = {};
   list.forEach(r => ldCats_(r).forEach(c => { cats[c] = (cats[c] || 0) + 1; }));
@@ -2197,6 +2263,7 @@ function _appendShelfDoor(wrap) {
 }
 function _openShelfDoor(ev) {
   const sec = activeSection;
+  if (sec === 'learning') { ldNewOpen_(); return; }   // LD-W1: a new learning starts with the question
   if (sec === 'music') { muAddOpen_(null, 's'); return; }   // MU-1
   if (sec === 'podcasts' || sec === 'marathi') { if (ev && ev.stopPropagation) ev.stopPropagation(); pdMenuOpen_((ev && ev.currentTarget && ev.currentTarget.getBoundingClientRect) ? ev.currentTarget : el('shelfDoor')); return; }   // PD-1 (D2)
   // LR-8: the wisdom door takes the FILE itself - pick the saved page and
@@ -2535,6 +2602,7 @@ function _wirePlus_() {
     if (activeSection === 'podcasts' || activeSection === 'marathi') { ev.stopPropagation(); pdMenuOpen_(b); return; }   // PD-1 (D2)
     if (activeSection === 'movies') { ev.stopPropagation(); mvAddOpen_(); return; }   // MV-1
     if (activeSection === 'music') { ev.stopPropagation(); muAddOpen_(null, 's'); return; }   // MU-1
+    if (activeSection === 'learning') { ev.stopPropagation(); ldNewOpen_(); return; }   // LD-W1
     const door = el('shelfDoor');
     if (door) { door.click(); const f = el('doorForm'); if (f && !f.classList.contains('hidden')) f.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     else { _appendShelfDoor(el('rowsWrap')); el('shelfDoor').click(); }
