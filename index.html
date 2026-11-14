@@ -616,13 +616,13 @@ async function loadRecall() {
     const s = await supa.auth.getSession();
     const uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
     if (!uid || !window.MyRecall) return;
-    let q = await supa.from('bookmarks').select('id, title, category, learned_on, recall_count, recalled_on, recall_off').eq('user_id', uid).eq('section', 'learning').limit(5000);
+    let q = await supa.from('bookmarks').select('id, title, category, learned_on, recall_count, recalled_on, recall_off, tags').eq('user_id', uid).eq('section', 'learning').limit(5000);
     if (q && q.error) {   // migrate_recall.sql not run yet: read without the log columns (all count as never recalled)
       console.warn('recall: log columns missing - run migrate_recall.sql', q.error.message);
-      q = await supa.from('bookmarks').select('id, title, category, learned_on').eq('user_id', uid).eq('section', 'learning').limit(5000);
+      q = await supa.from('bookmarks').select('id, title, category, learned_on, tags').eq('user_id', uid).eq('section', 'learning').limit(5000);
     }
     if (!q || q.error) { console.warn('recall: could not read the diary', q && q.error); return; }
-    recallRows_ = q.data || [];
+    recallRows_ = (q.data || []).filter(r => !(r.tags || []).includes('__arch'));   // LD-A1: archived learnings stay out of Today's three
     if (!window.MyRecall) { console.warn('recall.js is not loaded'); return; }
     MyRecall.setStore(MyRecall.prefsStore(supa, uid));   // the same three on every device
     paintRecall(await MyRecall.todays(recallRows_));

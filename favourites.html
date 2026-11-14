@@ -1206,6 +1206,25 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.fr-learning .fr-h1 blockquote, .ld-mc .ld-t blockquote { margin:0.3em 0 0.55em; padding:0.1em 0 0.1em 0.9em; border-left:3px solid var(--ldi, #6b6f88); font-style:italic; color:#3d4559; }   /* LD-Q1: a quote - ink bar, italic */
   .ld-htb .ldq { font-family:var(--serif); font-size:1.15rem; }
   body.fr-learning #frPassage { display:none !important; }   /* a learning's essence is its formatted heading, not a passage */
+  /* LD-A1: hidden Archive - door and per-card button only in Edit; the picker sheet */
+  .ld-ardoor, .ld-arc { display:none; }
+  .ld-empty { margin:18px 0 10px; color:#7a8296; font-family:var(--serif); font-style:italic; font-size:0.95rem; } body.editing .ld-empty { display:none; }
+  body.editing .ld-jl:empty + .ld-ardoor { margin-left:0; width:100%; }
+  body.editing .ld-ardoor { display:flex; align-items:center; gap:12px; width:calc(100% - 30px); margin:4px 0 0 30px; padding:12px 14px; border:1.5px dashed #c9c3dc; border-radius:14px; background:#fbfaff; cursor:pointer; text-align:left; font:inherit; color:inherit; }
+  .ld-ardoor .fi { font-size:1.3rem; } .ld-ardoor .tx { flex:1; display:flex; flex-direction:column; } .ld-ardoor b { font-family:var(--serif); font-size:1rem; } .ld-ardoor small { font-size:0.72rem; color:#7a8296; } .ld-ardoor .fg { font-size:1.3rem; color:#7a4fa0; }
+  body.editing .ld-row.ld-mc .ld-arc { display:inline-flex; align-items:center; height:26px; padding:0 9px; border:1px solid #d9cfea; border-radius:7px; background:#fff; color:#7a4fa0; font:600 0.68rem var(--sans); cursor:pointer; }
+  .ld-arf { max-width:520px; } .ld-arh { display:flex; align-items:center; gap:10px; margin-bottom:12px; } .ld-arh b { font-family:var(--serif); font-size:1.3rem; }
+  .ld-arh .cnt { font-family:var(--mono); font-size:0.6rem; font-weight:700; background:#eceff4; border-radius:999px; padding:3px 8px; } .ld-arh .x { margin-left:auto; border:none; background:none; font-size:1.5rem; cursor:pointer; color:#5a6680; }
+  .ld-arf input[type=text] { width:100%; box-sizing:border-box; border:1px solid #d5dbe6; border-radius:10px; padding:9px 11px; font:inherit; font-size:0.85rem; margin-bottom:10px; }
+  .ld-arl { max-height:50vh; overflow-y:auto; border:1px solid #e3e7ef; border-radius:12px; }
+  .ld-ar .t { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .ld-ar { display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border-top:1px solid #eef1f5; cursor:pointer; } .ld-ar:first-child { border-top:none; } .ld-ar.sel { background:#f6f2fb; }
+  .ld-ar input { margin-top:3px; accent-color:#7a4fa0; width:16px; height:16px; } .ld-ar .tx { flex:1; min-width:0; } .ld-ar .t { font-family:var(--serif); font-size:0.92rem; line-height:1.35; } .ld-ar .m { font-size:0.68rem; color:#8a93a6; margin-top:2px; }
+  .ld-arn { padding:20px; text-align:center; color:#8a93a6; font-style:italic; }
+  .ld-arb { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px; background:#1c2331; color:#fff; border-radius:12px; padding:9px 10px; font-size:0.76rem; }
+  .ld-arb label { flex:1; color:#cfd5e1; } .ld-arb select { margin-left:4px; font:inherit; font-size:0.76rem; border-radius:6px; border:none; padding:3px 4px; max-width:150px; }
+  .ld-arb button { border:none; background:#fff; color:#1c2331; border-radius:8px; padding:7px 11px; font:700 0.74rem var(--sans); cursor:pointer; } .ld-arb button:disabled { opacity:0.45; cursor:default; }
+  .ld-arall { display:block; margin:12px auto 0; border:none; background:none; color:#8a6d4a; font:600 0.74rem var(--sans); text-decoration:underline; cursor:pointer; }
   .ld-star { color:#c9a227; } .ld-ey .ld-star { font-size:0.8rem; letter-spacing:0; }
   body.fr-learning .fr-h1 .hl li { text-wrap:pretty; }
   .ld-act { position:absolute; right:10px; bottom:8px; display:flex; gap:6px; align-items:center; }
@@ -1943,7 +1962,7 @@ let ldThree_ = null;   // today's three, resolved once per load (and after mark 
 async function ldThreeRefresh_() {
   if (!window.MyRecall || !userId) return;
   MyRecall.setStore(MyRecall.prefsStore(supa, userId));
-  ldThree_ = await MyRecall.todays(rows.filter(x => secOf(x) === 'learning'));
+  ldThree_ = await MyRecall.todays(ldLive_());
   if (activeSection === 'learning') render();
 }
 let ldFront_ = null, ldOpen_ = {};   // LD-M1: which card is in front, which have been turned over (this visit)
@@ -1971,12 +1990,12 @@ function ldTodaysHtml_(list) {
         '</div></div>'; }).join('') + '</div><div class="ldhint">TAP THE FRONT CARD TO TURN IT · TAP A SIDE CARD TO BRING IT FORWARD</div></div>';
 }
 function ldTodaysWire_(wrap) {
-  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldFront_ = null; ldOpen_ = {}; ldThree_ = await MyRecall.shuffle(rows.filter(x => secOf(x) === 'learning')); render(); });
+  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldFront_ = null; ldOpen_ = {}; ldThree_ = await MyRecall.shuffle(ldLive_()); render(); });
   const hand = el('ldHand'); if (!hand) return;
   hand.addEventListener('click', async e => {
     const ok = e.target.closest('[data-recall]');
     if (ok) { e.stopPropagation(); if (ok.disabled) return; const r = rows.find(x => String(x.id) === String(ok.dataset.recall)); if (!r) return;
-      await ldMarkRecalled_(r); ldThree_ = await MyRecall.todays(rows.filter(x => secOf(x) === 'learning')); render();   // shows it ticked in front first
+      await ldMarkRecalled_(r); ldThree_ = await MyRecall.todays(ldLive_()); render();   // shows it ticked in front first
       const today = MyRecall.today(), next = (ldThree_ || []).find(x => String(x.recalled_on || '').slice(0, 10) !== today);
       if (next) setTimeout(() => { ldFront_ = String(next.id); if (activeSection === 'learning') render(); }, 650);   // then the next card is dealt forward
       return; }
@@ -2021,6 +2040,63 @@ function ldInk_(r) {   // categories in A-Z order take the six inks in turn, so 
   const all = [...new Set([].concat(...rows.filter(x => secOf(x) === 'learning').map(x => ldCats_(x).map(y => y.toLowerCase()))))].sort();
   const i = all.indexOf(c); return LD_INKS[(i < 0 ? 0 : i) % LD_INKS.length];
 }
+// LD-A1 (14 Nov 2026): a hidden Archive. An archived learning carries the tag '__arch' (no SQL); it never shows in the diary,
+// its chips, the tag row, search, or Today's three. The way in is only inside Edit: an "Archive" row at the diary's end opens a
+// picker sheet (search, categories, tick several, show under a tag, Add to Diary). Each diary card gets "↓ Archive" in Edit.
+const LD_ARCH = '__arch';
+function ldArch_(r) { return (r.tags || []).includes(LD_ARCH); }
+function ldLive_() { return rows.filter(x => secOf(x) === 'learning' && !ldArch_(x)); }
+async function ldSetArch_(list, on, addCat) {   // archive / bring back a set of learnings; addCat = also file it under this category
+  let bad = 0;
+  for (let i = 0; i < list.length; i += 15) {
+    await Promise.all(list.slice(i, i + 15).map(async r => {
+      const tags = (r.tags || []).filter(t => t !== LD_ARCH); if (on) tags.push(LD_ARCH);
+      const upd = { tags };
+      if (!on && addCat && !ldCats_(r).some(c => c.toLowerCase() === addCat.toLowerCase())) upd.category = ldCatsJoin_(ldCats_(r).concat(addCat));
+      const { error } = await supa.from('bookmarks').update(upd).eq('id', r.id).eq('user_id', userId);
+      if (error) { bad++; console.error(error); return; } Object.assign(r, upd);
+    }));
+  }
+  ldThree_ = null; render(); return bad;
+}
+let ldArSel_ = new Set(), ldArQ_ = '', ldArCat_ = '';
+function ldArchiveOpen_() {
+  const ov = pdOv_('ldArOv'), e = escHtml;
+  const paint = () => {
+    const all = rows.filter(x => secOf(x) === 'learning' && ldArch_(x));
+    const cats = {}; all.forEach(r => ldCats_(r).forEach(c => { cats[c] = (cats[c] || 0) + 1; }));
+    const names = Object.keys(cats).sort((a, b) => cats[b] - cats[a] || a.localeCompare(b));
+    if (ldArCat_ && !cats[ldArCat_]) ldArCat_ = '';
+    const q = ldArQ_.toLowerCase();
+    let L = all.filter(r => (!ldArCat_ || ldCats_(r).includes(ldArCat_)) && (!q || (r.title || '').toLowerCase().includes(q) || NoteEditor.toPlain(r.note).toLowerCase().includes(q)));
+    L.sort((a, b) => ldDate_(b).localeCompare(ldDate_(a)));
+    const live = ldLive_(), dcats = [...new Set([].concat(...live.map(ldCats_)).concat(names))].sort((a, b) => a.localeCompare(b));
+    const n = [...ldArSel_].filter(id => all.some(r => String(r.id) === id)).length;
+    ov.innerHTML = '<div class="bk-form ld-arf"><div class="ld-arh"><b>Archive</b><span class="cnt">' + all.length + ' hidden</span><button type="button" class="x" id="ldArX" aria-label="Close">\u00D7</button></div>' +
+      '<input type="text" id="ldArQ" placeholder="Search the archive\u2026" value="' + e(ldArQ_) + '">' +
+      '<div class="ld-chips"><button type="button" class="ld-chip' + (ldArCat_ ? '' : ' on') + '" data-arc="">ALL \u00B7 ' + all.length + '</button>' + names.map(c => '<button type="button" class="ld-chip' + (ldArCat_ === c ? ' on' : '') + '" data-arc="' + e(c) + '">' + e(c.toUpperCase()) + ' \u00B7 ' + cats[c] + '</button>').join('') + '</div>' +
+      (L.length ? '<div class="ld-arl">' + L.map(r => '<label class="ld-ar' + (ldArSel_.has(String(r.id)) ? ' sel' : '') + '"><input type="checkbox" data-ars="' + e(r.id) + '"' + (ldArSel_.has(String(r.id)) ? ' checked' : '') + '><div class="tx"><div class="t">' + e(ldFirstLine_(r).first || r.title || '') + '</div><div class="m">' + e(ldFmt_(ldDate_(r), true)) + (ldCats_(r).length ? ' \u00B7 ' + e(ldCats_(r).join(', ')) : '') + '</div></div></label>').join('') + '</div>'
+        : '<div class="ld-arn">' + (all.length ? 'Nothing matches.' : 'The Archive is empty.') + '</div>') +
+      '<div class="ld-arb"><span>' + n + ' picked</span><label>Show under <select id="ldArT"><option value="">its own category</option>' + dcats.map(c => '<option>' + e(c) + '</option>').join('') + '</select></label>' +
+      '<button type="button" id="ldArOk"' + (n ? '' : ' disabled') + '>Add to Diary</button></div>' +
+      (live.length ? '<button type="button" class="ld-arall" id="ldArAll">Move all ' + live.length + ' diary learnings into the Archive</button>' : '') + '</div>';
+    ov.classList.remove('hidden');
+    el('ldArX').onclick = () => ov.classList.add('hidden');
+    const qi = el('ldArQ'); qi.oninput = () => { ldArQ_ = qi.value; const pos = qi.selectionStart; paint(); const q2 = el('ldArQ'); q2.focus(); q2.setSelectionRange(pos, pos); };
+    ov.querySelectorAll('[data-arc]').forEach(b => b.onclick = () => { ldArCat_ = b.dataset.arc; paint(); });
+    ov.querySelectorAll('[data-ars]').forEach(c => c.onchange = () => { c.checked ? ldArSel_.add(c.dataset.ars) : ldArSel_.delete(c.dataset.ars); paint(); });
+    el('ldArOk').onclick = async () => {
+      const pick = all.filter(r => ldArSel_.has(String(r.id))); if (!pick.length) return;
+      el('ldArOk').disabled = true; const bad = await ldSetArch_(pick, false, el('ldArT').value);
+      ldArSel_.clear(); toast(bad ? 'Some could not be moved' : pick.length + (pick.length === 1 ? ' learning' : ' learnings') + ' back in the diary'); paint();
+    };
+    const ab = el('ldArAll'); if (ab) ab.onclick = async () => {
+      if (!confirm('Move all ' + live.length + ' diary learnings into the hidden Archive? Nothing is deleted; you can bring any back.')) return;
+      ab.disabled = true; ab.textContent = 'Moving\u2026'; const bad = await ldSetArch_(live, true); toast(bad ? 'Some could not be moved' : 'Moved into the Archive'); paint();
+    };
+  };
+  paint();
+}
 function renderLearning_(list, wrap, secTint) {
   const cats = {};
   list.forEach(r => ldCats_(r).forEach(c => { cats[c] = (cats[c] || 0) + 1; }));
@@ -2043,11 +2119,19 @@ function renderLearning_(list, wrap, secTint) {
       '<div class="ld-ey"><span class="ld-d">' + escHtml(ldFmt_(iso, false)) + '</span>' + ldCats_(r).map(c => '<i>' + escHtml(c.toUpperCase()) + '</i>').join('') + (r.favourite ? '<span class="ld-star">\u2605</span>' : '') + '</div>' +
       '<div class="ld-t' + ldHeadCls_(r.title || fl.first) + '">' + ((r.title || '').trim() ? ldHeadView_(r) : escHtml(fl.first)) + '</div>' +   // LD-H3: laid out like the page
       '<span class="ld-act"><button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
+      '<button class="ld-arc" data-ldarc="' + escHtml(r.id) + '" type="button" title="Send to the hidden Archive">\u2193 Archive</button>' +
       '<button class="ld-x" data-ldx="' + escHtml(r.id) + '" type="button" aria-label="Remove" title="Remove">\u00D7</button></span>' +
       '</div>';
   });
   html += '</div>';
+  const nArc = rows.filter(x => secOf(x) === 'learning' && ldArch_(x)).length;   // LD-A1: the door to the Archive, only in Edit
+  html += '<button type="button" class="ld-ardoor" id="ldArDoor"><span class="fi">\uD83D\uDDC2</span><span class="tx"><b>Archive \u00B7 ' + nArc + '</b><small>Pick what comes back</small></span><span class="fg">\u203A</span></button>';
   wrap.innerHTML = html;
+  el('ldArDoor').addEventListener('click', ldArchiveOpen_);
+  wrap.querySelectorAll('[data-ldarc]').forEach(b => b.addEventListener('click', async e => {
+    e.stopPropagation(); const r = rows.find(x => String(x.id) === String(b.dataset.ldarc)); if (!r) return;
+    const bad = await ldSetArch_([r], true); toast(bad ? 'Could not move it' : 'Moved to the Archive');
+  }));
   wrap.querySelectorAll('[data-ldcat]').forEach(b => b.addEventListener('click', () => { ldCat_ = b.dataset.ldcat; render(); }));
   ldTodaysWire_(wrap);
   wrap.querySelectorAll('.ld-row[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit],[data-ldx]') || document.body.classList.contains('editing')) return; openReader(c.dataset.open); }));
@@ -2346,13 +2430,14 @@ function allTypes() {
 }
 function allTags() {
   const set = new Set();
-  rows.forEach(r => { if (secOf(r) === activeSection) (r.tags || []).forEach(t => set.add(t)); });
+  rows.forEach(r => { if (secOf(r) === activeSection && !(activeSection === 'learning' && ldArch_(r))) (r.tags || []).forEach(t => { if (t !== LD_ARCH) set.add(t); }); });
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
 function filteredRows() {
   let out = rows.filter(r => secOf(r) === activeSection);
   if (activeType) out = out.filter(r => (r.type || '') === activeType);
   if (activeTag) out = out.filter(r => (r.tags || []).includes(activeTag));
+  if (activeSection === 'learning') out = out.filter(r => !ldArch_(r));   // LD-A1: the Archive stays hidden
   if (searchTerm) {
     const q = searchTerm.toLowerCase();
     out = out.filter(r =>
@@ -2472,6 +2557,12 @@ function render_() {
     '<button type="button" class="sh-plus" id="shelfPlus" title="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '" aria-label="' + escHtml(SHELF_DOORS[activeSection] || 'New') + '">+</button></div>';
 
   if (activeSection === 'lenses') { renderLenses_(list, wrap); return; }   // its own shelf, empty state included
+  if (list.length === 0 && activeSection === 'learning' && !(activeType || activeTag || searchTerm) && rows.some(x => secOf(x) === 'learning' && ldArch_(x))) {
+    // LD-A1: everything is in the Archive - a quiet empty diary, the Archive door still there in Edit
+    wrap.innerHTML = headHtml + '<div class="ld-empty">Your diary is empty. Tap <b>Edit</b>, then <b>Archive</b>, to bring learnings back.</div>' +
+      '<div class="ld-rows ld-jl"></div><button type="button" class="ld-ardoor" id="ldArDoor"><span class="fi">\uD83D\uDDC2</span><span class="tx"><b>Archive \u00B7 ' + rows.filter(x => secOf(x) === 'learning' && ldArch_(x)).length + '</b><small>Pick what comes back</small></span><span class="fg">\u203A</span></button>';
+    _wirePlus_(); el('ldArDoor').addEventListener('click', ldArchiveOpen_); return;
+  }
   if (list.length === 0) {
     const label = sec.lbl;
     wrap.innerHTML = '<div class="empty"><div class="big">Nothing in ' + escHtml(label) + ' yet</div>' +
