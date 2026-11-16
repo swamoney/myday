@@ -274,6 +274,11 @@
   @media (min-width:641px) { html body .bkp .thr.pd-mus.pd-pr .hl.pr { width:78%; } }
   @media (max-width:640px) { html body .bkp .thr.pd-mus.pd-pr .hl.pr .in { padding:12px 14px; } html body .bkp .thr.pd-mus.pd-pr .hl.pr .q { font-size:1.15rem; } }
   @media print { html body .bkp .thr.pd-mus.pd-pr .hl.pr { width:auto; break-inside:avoid; box-shadow:none; } }
+  /* LD-S1: the diary's lightbulb + a faint share mark at the end of the date line */
+  .ld-ban .qm.sym { height:auto; line-height:0; opacity:.7; color:var(--ldi); } .ld-ban.st .qm.sym { color:#c9a227; }
+  .ld-ban .bm { position:relative; } .ld-ban .ld-shb { position:absolute; right:-10px; top:50%; transform:translateY(-50%); border:none; background:none; padding:8px 10px; margin:0; cursor:pointer; font:500 .95rem var(--sans); letter-spacing:0; line-height:1; color:color-mix(in srgb, var(--ldi) 55%, #9aa3b5); opacity:.6; }
+  .ld-ban.st .ld-shb { color:#b89a4a; } .ld-ban .ld-shb:hover, .ld-ban .ld-shb:focus-visible { opacity:1; }
+  @media print { .ld-ban .ld-shb { display:none !important; } }
   /* PD-Y1: the symbol at the top of a print; book prints */
   html body .bkp .thr.pd-mus.pd-pr .hl.pr .qm.sym { height:auto; line-height:0; opacity:.7; color:var(--mti); } html body .bkp .thr.pd-mus.pd-pr .hl.pr.st .qm.sym { color:#c9a227; }
   html body .bkp .thr.pd-mus.pd-pr .hl.pr.bkq .q { font-size:1.36rem; } html body .bkp .thr.pd-mus.pd-pr .hl.pr.st .q { color:#6b3a46; }
@@ -2354,9 +2359,9 @@ function renderLearning_(list, wrap, secTint) {
     if (ym && ym !== lastYm) { const t = new Date(iso + 'T00:00:00'); html += '<div class="ld-month">' + (isNaN(t) ? escHtml(ym) : MONL[t.getMonth()] + ' ' + t.getFullYear()) + '</div>'; lastYm = ym; }
     const fl = ldFirstLine_(r);
     {   // LD-B2 / LD-A1F (14 Nov 2026): every diary learning is a framed print; a starred one is framed in gold with a ★ tab
-      html += '<div class="ld-row ld-ban' + (r.favourite ? ' st' : '') + '" data-open="' + escHtml(r.id) + '" style="--ldi:' + ldInk_(r) + '"><div class="in"><div class="qm" aria-hidden="true">\u201C</div>' +
+      html += '<div class="ld-row ld-ban' + (r.favourite ? ' st' : '') + '" data-open="' + escHtml(r.id) + '" style="--ldi:' + ldInk_(r) + '"><div class="in">' + prIcon_('l') +   // LD-S1: a lightbulb in place of the “
         '<div class="ld-t">' + ((r.title || '').trim() ? ldHeadView_(r) : escHtml(fl.first)) + '</div>' +
-        '<div class="bm">' + (r.favourite ? '<span class="sg">\u2605</span> ' : '') + escHtml(ldFmt_(iso, false)) + (ldCats_(r).length ? ' \u00B7 ' + escHtml(ldCats_(r).join(' \u00B7 ').toUpperCase()) : '') + '</div>' +
+        '<div class="bm">' + (r.favourite ? '<span class="sg">\u2605</span> ' : '') + escHtml(ldFmt_(iso, false)) + (ldCats_(r).length ? ' \u00B7 ' + escHtml(ldCats_(r).join(' \u00B7 ').toUpperCase()) : '') + '<button type="button" class="ld-shb" data-ldsh="' + escHtml(r.id) + '" aria-label="Share as a picture" title="Share as a picture">\u2934</button></div>' +
         '<span class="ld-act"><button class="nedit ld-edit" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
         '<button class="ld-arc" data-ldarc="' + escHtml(r.id) + '" type="button" title="Send to the hidden Archive">\u2193 Archive</button>' +
         '<button class="ld-x" data-ldx="' + escHtml(r.id) + '" type="button" aria-label="Remove" title="Remove">\u00D7</button></span></div>' + (r.favourite ? '<span class="tab" aria-hidden="true"><svg viewBox="0 0 24 24" width="12" height="12"><path d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z" fill="currentColor"/></svg></span>' : '') + '</div>';
@@ -4952,7 +4957,7 @@ function pdHead_(r, P) {
 }
 function pdFacts_(r) { const [, no] = pdNum_(r.title); return [['SHOW', (r.type || '').trim()], ['GUEST', (r.category || '').trim()], ['EPISODE', [no ? '#' + no : '', pdMon_(r.learned_on)].filter(Boolean).join(' · ')]].filter(x => x[1]); }
 // PD-Y1 (16 Nov 2026): the subtle symbol at the top of a print - a microphone for podcasts, an open book for books
-const PR_ICON = { p: 'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6', b: 'M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5zM12 6.5v13' };
+const PR_ICON = { l: 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z', p: 'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6', b: 'M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5zM12 6.5v13' };
 function prIcon_(k) { return '<div class="qm sym" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="' + PR_ICON[k] + '"/></svg></div>'; }
 function pdSnipHtml_(t, i, tapKey, trs) {
   const e = escHtml, star = /[★⭐]/.test(t), sn = pdSnip_(t);
@@ -5033,22 +5038,80 @@ async function pdShareOpen_(i) {
   const r = rows.find(x => String(x.id) === String(frId)); if (!r) return;
   const t = bkParse_(isDoc(r.note) ? '' : (r.note || '')).hl[i]; if (!t) return;
   try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
-  const out = pdShareCanvas_(r, t, i), url = out.cv.toDataURL('image/png'), ov = pdOv_('pdShOv');
-  ov.innerHTML = '<div class="bk-form pd-shr"><div class="bk-fh">Share this snip</div><div class="prev"><img alt="" src="' + url + '"></div>' +
-    '<div class="bk-acts"><span style="flex:1"></span><button type="button" id="pdShSave">Save image</button><button type="button" class="sv" id="pdShGo">Share…</button></div>' +
-    '<div class="tiny">Share opens WhatsApp, Messages, Mail… on your phone. On a computer it saves the picture.</div></div>';
+  prShareSheet_(pdShareCanvas_(r, t, i), isPod_(r) ? 'Share this snip' : 'Share this line');
+}
+async function prShareSheet_(out, head) {   // the one share sheet (podcasts, books, the diary): preview, Save image, Share…
+  const url = out.cv.toDataURL('image/png'), ov = pdOv_('pdShOv');
+  ov.innerHTML = '<div class="bk-form pd-shr"><div class="bk-fh">' + escHtml(head) + '</div><div class="prev"><img alt="" src="' + url + '"></div>' +
+    '<div class="bk-acts"><span style="flex:1"></span><button type="button" id="pdShSave">Save image</button><button type="button" class="sv" id="pdShGo">Share\u2026</button></div>' +
+    '<div class="tiny">Share opens WhatsApp, Messages, Mail\u2026 on your phone. On a computer it saves the picture.</div></div>';
   ov.classList.remove('hidden');
   const blob = await new Promise(res => out.cv.toBlob(res, 'image/png')), file = new File([blob], out.name, { type: 'image/png' });
   const save = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = out.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast('Picture saved'); };
   el('pdShSave').onclick = save;
   el('pdShGo').onclick = async () => {
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: out.name.replace(/-snip\.png$/, ''), text: '' }); ov.classList.add('hidden'); }
+      try { await navigator.share({ files: [file], title: out.name.replace(/(-snip)?\.png$/, ''), text: '' }); ov.classList.add('hidden'); }
       catch (e) { if (e && e.name !== 'AbortError') { console.error(e); save(); } }
     } else save();
   };
 }
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-shr]'); if (!b) return; ev.stopPropagation(); pdShareOpen_(+b.dataset.shr); }, true);
+// ===== LD-S1 (16 Nov 2026): share one diary learning as a picture - its heading only (never the page's notes) =====
+function ldShareCanvas_(r) {
+  const box = document.createElement('div'); box.innerHTML = (r.title || '').trim() ? ldHeadView_(r) : escHtml(ldFirstLine_(r).first || '');
+  const blocks = [];   // the heading as blocks: paragraphs (centred italic), list items (a left list), quotes
+  const walk = n => { [...n.childNodes].forEach(ch => {
+    if (ch.nodeType === 3) { const t = ch.textContent.replace(/\s+/g, ' ').trim(); if (t) blocks.push({ k: 'p', t }); return; }
+    if (ch.nodeType !== 1) return; const tg = ch.tagName;
+    if (tg === 'UL' || tg === 'OL') { [...ch.children].forEach((li, j) => { const t = li.textContent.replace(/\s+/g, ' ').trim(); if (t) blocks.push({ k: 'li', t, n: tg === 'OL' ? (j + 1) + '.' : '•' }); }); return; }
+    if (tg === 'BLOCKQUOTE') { const t = ch.textContent.replace(/\s+/g, ' ').trim(); if (t) blocks.push({ k: 'q', t }); return; }
+    if (tg === 'P' || tg === 'DIV' || tg === 'H3') { if (ch.querySelector('ul,ol,blockquote,p')) { walk(ch); return; } const t = ch.textContent.replace(/\s+/g, ' ').trim(); if (t) blocks.push({ k: 'p', t }); return; }
+    const t = ch.textContent.replace(/\s+/g, ' ').trim(); if (t) { const last = blocks[blocks.length - 1]; if (last && last.k === 'p' && !last.closed) last.t += ' ' + t; else blocks.push({ k: 'p', t }); }
+  }); };
+  walk(box); if (!blocks.length) blocks.push({ k: 'p', t: (r.title || '').trim() });
+  const star = !!r.favourite, ink = star ? '#c9a227' : ldInk_(r), tink = star ? '#6b3a46' : ldInk_(r);
+  const S = 2, W = 540, PAD = 26, IN = 18, TW = W - 2 * (PAD + IN + 14);
+  const cv = document.createElement('canvas'), c = cv.getContext('2d');
+  const F = { t: 'italic 500 23px Fraunces, Georgia, serif', l: '400 16px Fraunces, Georgia, serif', sh: '400 12.5px "IBM Plex Sans", system-ui, sans-serif', mk: '700 8px "IBM Plex Mono", monospace' };
+  const wrap = (txt, font, w) => { c.font = font; const out = []; let line = ''; String(txt).split(/\s+/).forEach(wd => { const tt = line ? line + ' ' + wd : wd; if (c.measureText(tt).width > w && line) { out.push(line); line = wd; } else line = tt; }); if (line) out.push(line); return out; };
+  const L = blocks.map(b => ({ ...b, lines: b.k === 'li' ? wrap(b.t, F.l, TW - 22) : wrap(b.t, F.t, b.k === 'q' ? TW - 20 : TW) }));
+  const iso = ldDate_(r), dt = new Date(iso + 'T00:00:00'), when = isNaN(dt) ? '' : dt.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + ' ' + dt.getFullYear();
+  const sub = [when, ldCats_(r).join(' · ')].filter(Boolean).join(' · ');
+  const bodyH = L.reduce((a, b, j) => a + b.lines.length * (b.k === 'li' ? 24 : 32) + (j ? (b.k === 'li' && L[j - 1].k === 'li' ? 4 : 10) : 0), 0);
+  const h = PAD + IN + 10 + bodyH + 22 + (sub ? 22 : 0) + 24 + IN + PAD + (star ? 10 : 0);
+  cv.width = W * S; cv.height = h * S; c.scale(S, S); c.fillStyle = '#fff'; c.fillRect(0, 0, W, h);
+  const rr = (x, y, w, hh, rad) => { c.beginPath(); c.moveTo(x + rad, y); c.arcTo(x + w, y, x + w, y + hh, rad); c.arcTo(x + w, y + hh, x, y + hh, rad); c.arcTo(x, y + hh, x, y, rad); c.arcTo(x, y, x + w, y, rad); c.closePath(); };
+  const top = PAD + (star ? 10 : 0), mix = a => { c.globalAlpha = a; };
+  rr(PAD, top, W - 2 * PAD, h - top - PAD, 16); c.lineWidth = 1.5; c.strokeStyle = ink; mix(.8); c.stroke(); mix(1);
+  rr(PAD + 6, top + 6, W - 2 * PAD - 12, h - top - PAD - 12, 12); c.lineWidth = 1; mix(.45); c.stroke(); mix(1);
+  if (star) { c.beginPath(); c.arc(W / 2, top, 13, 0, Math.PI * 2); c.fillStyle = '#fff'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#c9a227'; c.stroke();
+    c.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rad = k % 2 ? 2.6 : 6.2; c.lineTo(W / 2 + Math.cos(a) * rad, top + Math.sin(a) * rad); } c.closePath(); c.fillStyle = '#c9a227'; c.fill(); }
+  let y = top + IN + 30;
+  { const ic = new Path2D(PR_ICON.l); c.save(); c.translate(W / 2 - 13, y - 26); c.scale(26 / 24, 26 / 24); c.strokeStyle = ink; c.lineWidth = 1.6; c.lineCap = 'round'; c.lineJoin = 'round'; mix(.7); c.stroke(ic); mix(1); c.restore(); }
+  y -= 6; c.textAlign = 'center';
+  let li = null;   // consecutive list items share one left edge, centred as a block
+  L.forEach((b, j) => {
+    if (j) y += (b.k === 'li' && L[j - 1].k === 'li') ? 4 : 10;
+    if (b.k === 'li') {
+      if (!li || L[j - 1].k !== 'li') { const run = []; for (let k = j; k < L.length && L[k].k === 'li'; k++) run.push(...L[k].lines); c.font = F.l; li = (W - Math.min(TW, Math.max(...run.map(x => c.measureText(x).width)) + 22)) / 2; }
+      c.font = F.l; c.fillStyle = '#3a4458'; c.textAlign = 'left'; b.lines.forEach((l, k) => { y += 24; if (!k) c.fillText(b.n, li, y); c.fillText(l, li + 22, y); }); c.textAlign = 'center'; return;
+    }
+    c.font = F.t; c.fillStyle = tink; b.lines.forEach(l => { y += 32; c.fillText(l, W / 2, y); });
+  });
+  y += 16; c.setLineDash([4, 4]); c.strokeStyle = star ? '#e6cf86' : ink; mix(.5); c.beginPath(); c.moveTo(PAD + IN + 20, y); c.lineTo(W - PAD - IN - 20, y); c.stroke(); mix(1); c.setLineDash([]);
+  if (sub) { y += 22; c.font = F.sh; c.fillStyle = '#5a6680'; c.fillText(sub, W / 2, y); }
+  c.font = F.mk; c.fillStyle = '#a3abbd'; c.fillText('MY LEARNING DIARY', W / 2, h - PAD - IN + 6);
+  const first = blocks[0].t;
+  return { cv, name: (first.replace(/[^\w\- ]+/g, '').trim().slice(0, 36).replace(/\s+/g, '-') || 'learning') + '.png' };
+}
+async function ldShareOpen_(id) {
+  const r = rows.find(x => String(x.id) === String(id)); if (!r) return;
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+  prShareSheet_(ldShareCanvas_(r), 'Share this learning');
+}
+document.addEventListener('click', ev => { const b = ev.target.closest('[data-ldsh]'); if (!b) return; ev.stopPropagation(); ev.preventDefault(); ldShareOpen_(b.dataset.ldsh); }, true);
+
 // ---- C1: editing - the book editor, with show / guest / link and "add more from a PDF" ----
 function pdRenderEdit_(r, pg) {
   const E = bkEd_, e = escHtml, show = r.type || '', [, no] = pdNum_(r.title);
