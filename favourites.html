@@ -259,6 +259,21 @@
   .pd-menu button { display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; border:none; background:none; padding:10px; border-radius:10px; cursor:pointer; color:#1c2331; font:inherit; } .pd-menu button:hover, .pd-menu button:first-child { background:#efeaf7; } .pd-menu button:first-child:hover { background:#e6def5; }
   .pd-menu i { font-style:normal; font-size:1.1rem; width:22px; text-align:center; color:#5b4a86; } .pd-menu b { display:block; font-size:.9rem; } .pd-menu small { color:#6b7488; font-size:.74rem; }
   .bk-form.pd-rev { max-width:760px; padding:22px 20px 0; }
+  /* PD-P2: podcast highlights as Learning-Diary prints (reading page only; Edit keeps the cards) */
+  html body .bkp .thr.pd-mus.pd-pr { border-left:none; padding-left:0; margin-left:0; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr { display:block; position:relative; margin:0 auto 22px; padding:6px; text-align:center; background:#fff; border:1.5px solid color-mix(in srgb, var(--mti) 60%, #fff); border-radius:16px; box-shadow:0 4px 14px color-mix(in srgb, var(--mti) 14%, transparent); border-bottom-width:1.5px; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr::before, html body .bkp .thr.pd-mus.pd-pr .hl.pr::after { display:none; content:none; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .in { border:1px solid color-mix(in srgb, var(--mti) 35%, #fff); border-radius:12px; padding:14px 22px; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .qm { font-family:var(--serif); font-size:2.2rem; font-weight:700; line-height:1; height:20px; color:var(--mti); opacity:.55; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .q { font-family:var(--serif); font-style:italic; font-weight:500; font-size:1.28rem; line-height:1.4; padding:0; margin:6px 0 8px; color:color-mix(in srgb, var(--mti) 55%, #1c2331); }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .pts { display:inline-block; text-align:left; margin:0 0 4px; padding-left:1.2em; font-size:.98rem; color:#3a4458; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .bm { margin-top:8px; font-size:.54rem; font-weight:700; letter-spacing:.16em; color:color-mix(in srgb, var(--mti) 70%, #555); }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .pd-tr { text-align:left; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr.st { border-color:#d9b44a; box-shadow:0 6px 18px rgba(201,162,39,.18); margin-top:26px; } html body .bkp .thr.pd-mus.pd-pr .hl.pr.st .in { border-color:#e6cf86; } html body .bkp .thr.pd-mus.pd-pr .hl.pr.st .bm { color:#a8862a; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .tab { position:absolute; left:50%; top:-12px; transform:translateX(-50%); width:24px; height:24px; border-radius:50%; background:#fff; border:1.5px solid #c9a227; display:grid; place-items:center; line-height:0; padding:0; box-sizing:border-box; } html body .bkp .thr.pd-mus.pd-pr .hl.pr .tab svg { display:block; }
+  @media (min-width:641px) { html body .bkp .thr.pd-mus.pd-pr .hl.pr { width:78%; } }
+  @media (max-width:640px) { html body .bkp .thr.pd-mus.pd-pr .hl.pr .in { padding:12px 14px; } html body .bkp .thr.pd-mus.pd-pr .hl.pr .q { font-size:1.15rem; } }
+  @media print { html body .bkp .thr.pd-mus.pd-pr .hl.pr { width:auto; break-inside:avoid; box-shadow:none; } }
   /* PD-N1: a transcript fold under a podcast snip card */
   .bkp .hl .pd-trb { margin-top:10px; display:inline-flex; align-items:center; gap:4px; font:600 .76rem var(--sans); color:#3E6BA8; border:1px solid #d3def0; border-radius:999px; padding:5px 12px; background:#fff; cursor:pointer; }
   .bkp .hl .pd-trb.hidden, .bkp .hl .pd-tr.hidden { display:none; }
@@ -4931,12 +4946,21 @@ function pdSnipHtml_(t, i, tapKey, trs) {
   const tr = sn && trs && trs.length ? trs.find(x => pdTrKey_(x.title) === pdTrKey_(sn.title)) : null;   // PD-N1
   const fold = tr ? '<button type="button" class="pd-trb" data-trt>📚 Transcript ›</button><div class="pd-tr hidden"><div class="tl mono">📚 TRANSCRIPT' + (tr.time ? ' · ' + e(tr.time) : '') + '<span data-trt>Close ▴</span></div>' + tr.html + '</div>' : '';
   const attr = tapKey ? ' tap" data-it="' + tapKey : '';
+  if (!tapKey) {   // PD-P2 (16 Nov 2026): on the reading page each snip is a Learning-Diary print - double frame, centred italic title, points as a list inside
+    const STAR = '<span class="tab"><svg viewBox="0 0 24 24" width="12" height="12" fill="#c9a227" aria-hidden="true"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></span>';
+    const ink = sn && PD_INK[String(sn.k || '').toLowerCase()] ? pdInk_(sn.k) : BK_INK[i % BK_INK.length];
+    const title = sn ? sn.title : t.replace(/[★⭐]/g, '').trim().replace(/^[“"]|[”"]$/g, '');
+    const foot = [star ? '★' : '', tr && tr.time ? e(tr.time) : '', sn && sn.k ? e(sn.k.toUpperCase()) : ''].filter(Boolean).join(' · ').replace('★ · ', '★ ');
+    return '<div class="hl sn pr' + (star ? ' st' : '') + '" style="--mti:' + ink + '">' + (star ? STAR : '') + '<div class="in"><div class="qm" aria-hidden="true">“</div>' +
+      '<div class="q">' + e(title) + '</div>' + (sn && sn.pts.length ? '<ul class="pts">' + sn.pts.map(p => '<li>' + e(p) + '</li>').join('') + '</ul>' : '') +
+      (foot ? '<div class="bm mono">' + foot + '</div>' : '') + fold + '</div></div>';
+  }
   if (!sn) return '<div class="hl' + attr + '" style="--mti:#7086a8"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(t.replace(/[★⭐]/g, '').trim().replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (star ? '<div class="s mono">★ TOP LINE</div>' : '') + '</div>';
   return '<div class="hl sn' + attr + '" style="--mti:' + pdInk_(sn.k) + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★ TOP LINE</b>' : '') + (tr && tr.time ? ' <span class="tm">· ' + e(tr.time) + '</span>' : '') + '</div>' +
     '<div class="q">' + e(sn.title) + '</div>' + (sn.pts.length ? '<ul class="pts">' + sn.pts.map(p => '<li>' + e(p) + '</li>').join('') + '</ul>' : '') + fold + '</div>';
 }
 function pdHlSec_(hl, n, trs) {
-  return '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + n + '</span><h3>Highlights</h3><span class="m mono">' + hl.length + (hl.length === 1 ? ' SNIP' : ' SNIPS') + ' · FROM THE EPISODE</span></div><div class="thr pd-mus">' +
+  return '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + n + '</span><h3>Highlights</h3><span class="m mono">' + hl.length + (hl.length === 1 ? ' SNIP' : ' SNIPS') + ' · FROM THE EPISODE</span></div><div class="thr pd-mus pd-pr">' +
     hl.map((t, i) => pdSnipHtml_(t, i, null, trs)).join('') + '</div></div>';
 }
 // ---- C1: editing - the book editor, with show / guest / link and "add more from a PDF" ----
