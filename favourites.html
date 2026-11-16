@@ -232,6 +232,15 @@
   .pd-menu button { display:flex; gap:10px; align-items:flex-start; width:100%; text-align:left; border:none; background:none; padding:10px; border-radius:10px; cursor:pointer; color:#1c2331; font:inherit; } .pd-menu button:hover, .pd-menu button:first-child { background:#efeaf7; } .pd-menu button:first-child:hover { background:#e6def5; }
   .pd-menu i { font-style:normal; font-size:1.1rem; width:22px; text-align:center; color:#5b4a86; } .pd-menu b { display:block; font-size:.9rem; } .pd-menu small { color:#6b7488; font-size:.74rem; }
   .bk-form.pd-rev { max-width:760px; padding:22px 20px 0; }
+  /* PD-M2: many PDFs at once */
+  .pd-mul .pm-r { display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; padding:11px 2px; border-top:1px solid #eef1f5; } .pd-mul .pm-r.off { opacity:.55; }
+  .pd-mul .pm-r .m { flex:1 1 100%; min-width:0; } .pd-mul .pm-r .m b { display:block; font:600 .98rem/1.3 var(--serif); } .pd-mul .pm-r .m small { display:block; font-size:.74rem; color:#5a6680; }
+  .pd-mul small.ok { color:#2f7a4a !important; } .pd-mul small.warn { color:#8a6410 !important; } .pd-mul small.bad { color:#9a2a2a !important; }
+  .pd-mul .seg { display:inline-flex; border:1px solid #d5dbe6; border-radius:8px; overflow:hidden; } .pd-mul .seg button { font:600 .7rem var(--sans); padding:6px 10px; border:none; border-left:1px solid #d5dbe6; background:#fff; color:#3a4a6a; cursor:pointer; } .pd-mul .seg button:first-child { border-left:none; } .pd-mul .seg button.on { background:#3E6BA8; color:#fff; }
+  .pd-mul .op { margin-left:auto; border:none; background:none; font:600 .76rem var(--sans); color:#3E6BA8; cursor:pointer; }
+  .pd-mul .bk-acts .sv { background:#3E6BA8; border-color:#3E6BA8; } .pd-mul .bk-acts .sv:disabled { opacity:.5; } .pd-mul .tiny { font-size:.72rem; color:#8a93a6; text-align:right; margin:8px 0 16px; }
+  .pd-mul .err:not(:empty) { margin-top:10px; background:#fdecec; color:#9a2a2a; border-radius:8px; padding:8px 10px; font-size:.8rem; }
+
   .pd-drop { border:2px dashed #b9acd8; background:#efeaf7; border-radius:16px; padding:26px; text-align:center; color:#5b4a86; margin-bottom:22px; } .pd-drop b { display:block; margin:6px 0 2px; } .pd-drop small { color:#7d72a0; }
   .pd-warn { background:#fff7e8; border:1px solid #efd9a8; border-radius:12px; padding:12px 14px; font-size:.9rem; line-height:1.5; margin:12px 0; color:#4a3a14; } .pd-warn.bad { background:#fdf0ef; border-color:#f0c9c4; color:#6a1f17; }
   .pd-found { display:grid; grid-template-columns:1.1fr 1.6fr 1fr .8fr; gap:8px; margin:14px 0 10px; } .pd-found .l { font-size:.52rem; letter-spacing:.14em; color:#8a97b3; margin-bottom:4px; }
@@ -4365,8 +4374,8 @@ function pdMenuOpen_(btn) {
 function pdPickPdf_(into) {
   let fi = el('pdFile');
   if (!fi) { fi = document.createElement('input'); fi.type = 'file'; fi.id = 'pdFile'; fi.accept = 'application/pdf,.pdf'; fi.className = 'hidden'; document.body.appendChild(fi);
-    fi.addEventListener('change', () => { const f = fi.files && fi.files[0]; fi.value = ''; if (f) pdImport_(f, fi._into || null); }); }
-  fi._into = into || null; fi.click();
+    fi.addEventListener('change', () => { const fs = [...(fi.files || [])]; fi.value = ''; if (!fs.length) return; if (fs.length > 1 && !fi._into) pdMulti_(fs); else pdImport_(fs[0], fi._into || null); }); }
+  fi._into = into || null; fi.multiple = !into; fi.click();
 }
 
 // ---- reading the PDF (pdf.js, in the browser - nothing leaves the device) ----
@@ -4444,14 +4453,14 @@ function pdParse_(title, lines) {
 }
 
 // ---- B1: review & save ----
-async function pdImport_(file, into) {
+async function pdImport_(file, into, cb) {   // cb (PD-M2): called with true/false when a review opened from the many-PDFs sheet ends
   if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') { toast('That is not a PDF'); return; }
   const ov = pdOv_('pdRevOv');
   ov.innerHTML = '<div class="bk-form pd-rev"><div class="pd-drop"><div style="font-size:1.6rem">⏳</div><b>Reading ' + escHtml(file.name) + '…</b><small>finding the snips</small></div></div>';
   ov.classList.remove('hidden');
   let R;
   try { const got = await pdLines_(await file.arrayBuffer()); R = pdParse_(got.title, got.lines); R.pages = got.pages; R.chars = got.lines.join('').length; }
-  catch (e) { console.error(e); ov.innerHTML = '<div class="bk-form pd-rev"><div class="pd-warn bad">Could not open this PDF' + (/load/.test(String(e && e.message)) ? ' — the PDF reader did not load (check the internet connection).' : '.') + '</div><div class="bk-acts"><span style="flex:1"></span><button type="button" id="pdX">Close</button></div></div>'; el('pdX').onclick = () => ov.classList.add('hidden'); return; }
+  catch (e) { console.error(e); ov.innerHTML = '<div class="bk-form pd-rev"><div class="pd-warn bad">Could not open this PDF' + (/load/.test(String(e && e.message)) ? ' — the PDF reader did not load (check the internet connection).' : '.') + '</div><div class="bk-acts"><span style="flex:1"></span><button type="button" id="pdX">Close</button></div></div>'; el('pdX').onclick = () => { ov.classList.add('hidden'); if (cb) cb(false); }; return; }
   if (!R.snips.length) {
     const scan = R.chars < 40;
     ov.innerHTML = '<div class="bk-form pd-rev"><div class="pd-warn bad">' + (scan ? 'This PDF looks like a scan (pictures of text), so there is nothing to read.' : 'No snips found in this PDF. It reads Snipd “Your snips for…” emails saved as PDF.') + '</div>' +
@@ -4489,18 +4498,85 @@ async function pdImport_(file, into) {
     ov.querySelectorAll('[data-all]').forEach(b => b.addEventListener('click', () => { keepVals(); R.snips.forEach(s => { if (!s.had) s.act = b.dataset.all; }); draw(); }));
     if (el('pdAskAdd')) el('pdAskAdd').onclick = () => { keepVals(); mode = 'add'; draw(); };
     if (el('pdAskNew')) el('pdAskNew').onclick = () => { keepVals(); mode = 'new'; target = null; R.snips.forEach(s => { if (s.had) { s.had = false; s.act = s.rep ? 'skip' : 'keep'; } }); draw(); };
-    el('pdNo').onclick = () => ov.classList.add('hidden');
-    el('pdOk').onclick = () => { keepVals(); pdSave_(R, mode === 'ask' ? 'new' : mode, target, ov); };
+    el('pdNo').onclick = () => { ov.classList.add('hidden'); if (cb) cb(false); };
+    el('pdOk').onclick = () => { keepVals(); pdSave_(R, mode === 'ask' ? 'new' : mode, target, ov, cb); };
+  };
+  draw();
+}
+// PD-M2 (16 Nov 2026): many PDFs at once - one sheet lists every episode found; each row New page / Add new / Skip,
+// one button imports them all (every snip kept as a highlight), "Review ›" opens today's full review for that one.
+async function pdMulti_(files) {
+  const ov = pdOv_('pdMulOv'), e = escHtml;
+  const pdfs = files.filter(f => /\.pdf$/i.test(f.name) || f.type === 'application/pdf');
+  if (!pdfs.length) { toast('No PDFs in what you picked'); return; }
+  const norm = t => String(t || '').toLowerCase().replace(/#\d+/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const L = [];
+  ov.classList.remove('hidden');
+  for (let i = 0; i < pdfs.length; i++) {
+    ov.innerHTML = '<div class="bk-form pd-rev"><div class="pd-drop"><div style="font-size:1.6rem">⏳</div><b>Reading ' + (i + 1) + ' of ' + pdfs.length + '…</b><small>' + e(pdfs[i].name) + '</small></div></div>';
+    const it = { file: pdfs[i], R: null, err: '', choice: 'new', target: null, fresh: 0, done: '' };
+    try { const got = await pdLines_(await pdfs[i].arrayBuffer()); it.R = pdParse_(got.title, got.lines); it.R.pages = got.pages; it.R.chars = got.lines.join('').length; }
+    catch (x) { console.error(x); it.err = /load/.test(String(x && x.message)) ? 'the PDF reader did not load' : 'could not open it'; }
+    if (it.R && !it.R.snips.length) it.err = it.R.chars < 40 ? 'no snips found (a scan?)' : 'no snips found';
+    if (!it.err) {
+      const R = it.R, seen = {}; R.snips.forEach(s => { const k = norm(s.title); s.act = seen[k] ? 'skip' : 'keep'; s.rep = !!seen[k]; seen[k] = 1; s.star = false; });
+      const dup = R.ep && (rows.find(x => isPod_(x) && norm(pdNum_(x.title)[0]) === norm(R.ep)) || L.find(o => o.R && !o.err && norm(o.R.ep) === norm(R.ep)));
+      if (dup && dup.file) it.choice = 'skip', it.twin = true;   // the same episode twice in this pick
+      else if (dup) {
+        const P = bkParse_(dup.note || ''), had = t => P.hl.some(h => { const sn = pdSnip_(h); return norm(sn ? sn.title : h) === norm(t); }) || P.tk.some(k => norm(k).startsWith(norm(t)));
+        R.snips.forEach(s => { if (had(s.title)) { s.act = 'skip'; s.had = true; } });
+        it.target = dup; it.fresh = R.snips.filter(s => s.act === 'keep').length; it.choice = it.fresh ? 'add' : 'skip';
+      }
+    } else it.choice = 'skip';
+    L.push(it);
+  }
+  const kept = it => it.R ? it.R.snips.filter(s => s.act === 'keep').length : 0;
+  const kept0 = it => it.R.snips.filter(s => !s.rep).length;   // what the PDF has, repeats left out
+  const draw = () => {
+    const go = L.filter(it => !it.err && !it.done && it.choice !== 'skip'), snips = go.reduce((a, it) => a + (it.choice === 'add' ? it.fresh : kept(it)), 0);
+    const total = L.filter(it => !it.err).reduce((a, it) => a + kept0(it), 0);
+    let h = '<div class="bk-form pd-rev pd-mul"><div class="bk-fh">Import ' + pdfs.length + ' PDFs</div><div class="bk-fs mono">' + total + ' SNIPS FOUND · ALL KEPT AS HIGHLIGHTS</div>';
+    L.forEach((it, i) => {
+      if (it.err) { h += '<div class="pm-r off"><div class="m"><b>' + e(it.file.name) + '</b><small class="bad">' + e(it.err) + ' — left out</small></div></div>'; return; }
+      const R = it.R, sub = [R.show, R.no ? '#' + R.no : '', R.guest].filter(Boolean).map(e).join(' · ');
+      if (it.done) { h += '<div class="pm-r"><div class="m"><b>' + e(R.ep || it.file.name) + '</b><small class="ok">✓ ' + e(it.done) + '</small></div></div>'; return; }
+      const seg = (v, l) => '<button type="button" data-pmc="' + i + ':' + v + '"' + (it.choice === v ? ' class="on"' : '') + '>' + l + '</button>';
+      h += '<div class="pm-r' + (it.choice === 'skip' ? ' off' : '') + '"><div class="m"><b>' + e(R.ep || it.file.name) + '</b>' + (sub ? '<small>' + sub + '</small>' : '') +
+        '<small class="' + (it.target || it.twin ? 'warn' : 'ok') + '">' + kept0(it) + ' snip' + (kept0(it) === 1 ? '' : 's') + (it.target ? ' · already on your shelf · ' + it.fresh + ' new' : it.twin ? ' · same episode as another PDF here' : '') + '</small></div>' +
+        '<span class="seg">' + (it.target ? (it.fresh ? seg('add', 'Add ' + it.fresh + ' new') : '') + seg('new', 'New page') : seg('new', 'New page')) + seg('skip', 'Skip') + '</span>' +
+        '<button type="button" class="op" data-pmr="' + i + '">Review ›</button></div>';
+    });
+    h += '<div class="err" id="pmE"></div><div class="bk-acts"><span style="flex:1"></span><button type="button" id="pmNo">' + (L.some(it => it.done) ? 'Close' : 'Cancel') + '</button><button type="button" class="sv" id="pmOk"' + (go.length ? '' : ' disabled') + '>Import ' + go.length + ' episode' + (go.length === 1 ? '' : 's') + '</button></div>' +
+      '<div class="tiny">Tap “Review ›” on any one to pick Keep / Takeaway / Skip and the ★ first.' + (snips ? ' ' + snips + ' snips will come in.' : '') + '</div></div>';
+    ov.innerHTML = h;
+    ov.querySelectorAll('[data-pmc]').forEach(b => b.onclick = () => { const [i, v] = b.dataset.pmc.split(':'); L[+i].choice = v; draw(); });
+    ov.querySelectorAll('[data-pmr]').forEach(b => b.onclick = () => {
+      const it = L[+b.dataset.pmr]; ov.classList.add('hidden');
+      pdImport_(it.file, null, ok => { if (ok) it.done = 'saved after review'; ov.classList.remove('hidden'); draw(); });
+    });
+    el('pmNo').onclick = async () => { ov.classList.add('hidden'); if (L.some(it => it.done)) { await loadRows(); render(); } };
+    el('pmOk').onclick = async () => {
+      const b = el('pmOk'); b.disabled = true; let bad = 0, n = 0, sn = 0;
+      for (const it of go) {
+        b.textContent = 'Importing ' + (++n) + ' of ' + go.length + '…';
+        if (it.choice === 'new') it.R.snips.forEach(s => { if (s.had) { s.had = false; s.act = s.rep ? 'skip' : 'keep'; } });
+        const c = kept(it), ok = await pdSave_(it.R, it.choice === 'add' ? 'add' : 'new', it.choice === 'add' ? it.target : null, ov, null, true);
+        if (ok) { it.done = it.choice === 'add' ? c + ' new snips added' : 'new page · ' + c + ' snips'; sn += c; } else bad++;
+      }
+      await loadRows(); render();
+      if (bad) { draw(); el('pmE').textContent = bad + ' could not be saved — try again, or open “Review ›”.'; return; }
+      ov.classList.add('hidden'); toast('✓ Imported ' + go.length + ' episode' + (go.length === 1 ? '' : 's') + ' · ' + sn + ' snips');
+    };
   };
   draw();
 }
 function pdOv_(id) { let ov = el(id); if (!ov) { ov = document.createElement('div'); ov.id = id; ov.className = 'bk-ov'; document.body.appendChild(ov); ov.addEventListener('click', e => { if (e.target === ov) ov.classList.add('hidden'); }); } return ov; }
-async function pdSave_(R, mode, target, ov) {
+async function pdSave_(R, mode, target, ov, cb, quiet) {   // quiet (PD-M2): batch import - no toast, no reload, returns true/false
   const keep = R.snips.filter(s => s.act === 'keep'), take = R.snips.filter(s => s.act === 'take');
   const hl = keep.map(s => ({ star: !!s.star, t: pdSnipStr_(s) })), tk = take.map(s => s.title + (s.pts.length ? ': ' + s.pts.join(' ') : ''));
   const btn = el('pdOk'); if (btn) btn.disabled = true;
   if (mode === 'add' && target) {
-    const open = bkEd_ && String(target.id) === String(frId);
+    const open = !quiet && bkEd_ && String(target.id) === String(frId);
     if (open) {   // the page is open in edit mode: add to it in place
       if (hl.some(x => x.star)) bkEd_.hl.forEach(x => { x.star = false; });
       bkEd_.hl.push(...hl); bkEd_.tk.push(...tk); scheduleFrSave(); ov.classList.add('hidden'); bkRender_(); toast('Added ' + (hl.length + tk.length)); return;
@@ -4510,18 +4586,19 @@ async function pdSave_(R, mode, target, ov) {
     if (hl.some(x => x.star)) bkEd_.hl.forEach((x, i) => { if (i < P.hl.length) x.star = false; });
     const note = NoteEditor.sanitize(bkCompose_(P.notes)); bkEd_ = was;
     const { error } = await supa.from('bookmarks').update({ note, updated_at: new Date().toISOString() }).eq('id', target.id).eq('user_id', userId);
-    if (error) { toast('Could not save'); if (btn) btn.disabled = false; return; }
-    target.note = note; ov.classList.add('hidden'); toast('Added ' + (hl.length + tk.length)); await loadRows(); openReader(target.id); return;
+    if (error) { if (quiet) { console.error(error); return false; } toast('Could not save'); if (btn) btn.disabled = false; return; }
+    target.note = note; if (quiet) return true;
+    ov.classList.add('hidden'); toast('Added ' + (hl.length + tk.length)); await loadRows(); if (cb) { cb(true); return; } openReader(target.id); return;
   }
   const was = bkEd_; bkEd_ = { hl, tk, lv: [] }; const note = NoteEditor.sanitize(bkCompose_('')); bkEd_ = was;
   const title = (R.ep || 'Untitled episode').trim() + (R.no ? ' #' + R.no : '');
   const rec = { user_id: userId, title, section: 'podcasts', url: '', source_url: '', type: (R.show || '').trim(), category: (R.guest || '').trim(), tags: [], note, essence: '', learned_on: R.date || null, updated_at: new Date().toISOString() };
   try {
     const { data, error } = await supa.from('bookmarks').insert(rec).select(); if (error) throw error;
-    const newId = (data && data[0] && data[0].id) || null;
+    const newId = (data && data[0] && data[0].id) || null; if (quiet) return true;
     ov.classList.add('hidden'); toast('Saved — ' + hl.length + ' snip' + (hl.length === 1 ? '' : 's')); await loadRows();
-    if (newId) openReader(newId);
-  } catch (e) { console.error(e); toast('Could not save'); if (btn) btn.disabled = false; }
+    if (cb) { cb(true); return; } if (newId) openReader(newId);
+  } catch (e) { console.error(e); if (quiet) return false; toast('Could not save'); if (btn) btn.disabled = false; }
 }
 // ---- typing it in myself ----
 function pdAddOpen_() {
@@ -4560,12 +4637,12 @@ function pdAddOpen_() {
 // drag a PDF onto the Podcasts shelf (desktop)
 (function () {
   let n = 0; const on = () => activeSection === 'podcasts' && !el('frPage').classList.contains('show');
-  const cover = () => { let c = el('pdDrop'); if (!c) { c = document.createElement('div'); c.id = 'pdDrop'; c.className = 'pd-dropall hidden'; c.innerHTML = '<div>⇪ Drop to import<small>a Snipd highlights PDF</small></div>'; document.body.appendChild(c); } return c; };
+  const cover = () => { let c = el('pdDrop'); if (!c) { c = document.createElement('div'); c.id = 'pdDrop'; c.className = 'pd-dropall hidden'; c.innerHTML = '<div>⇪ Drop to import<small>one or many Snipd highlights PDFs</small></div>'; document.body.appendChild(c); } return c; };
   const hasFile = e => e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files');
   document.addEventListener('dragenter', e => { if (!on() || !hasFile(e)) return; n++; cover().classList.remove('hidden'); });
   document.addEventListener('dragleave', () => { if (n > 0 && --n === 0) cover().classList.add('hidden'); });
   document.addEventListener('dragover', e => { if (on() && hasFile(e)) e.preventDefault(); });
-  document.addEventListener('drop', e => { if (!on() || !hasFile(e)) return; e.preventDefault(); n = 0; cover().classList.add('hidden'); const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f) pdImport_(f); });
+  document.addEventListener('drop', e => { if (!on() || !hasFile(e)) return; e.preventDefault(); n = 0; cover().classList.add('hidden'); const fs = [...((e.dataTransfer && e.dataTransfer.files) || [])]; if (fs.length > 1) pdMulti_(fs); else if (fs[0]) pdImport_(fs[0]); });
 })();
 // ---- C1: the podcast page (reading) - the book page's bones, a square show tile, snips as cards ----
 function pdHead_(r, P) {
