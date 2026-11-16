@@ -1672,6 +1672,13 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body[data-sec='all-time'] .lk-k { --kc:#3E6BA8; font-size:.7188rem; font-weight:500; padding:4px 11px 4px 9px; gap:5px; border-radius:20px; border:1px solid color-mix(in srgb, var(--kc) 25%, #fff); background:color-mix(in srgb, var(--kc) 6%, #fff); color:color-mix(in srgb, var(--kc) 80%, #000); }
   body[data-sec='all-time'] .lk-k[data-lkk="all"] { padding-left:11px; } body[data-sec='all-time'] .lk-k i { font-size:.85em; color:var(--kc); } body[data-sec='all-time'] .lk-k b { font-size:.56rem; color:inherit; opacity:.6; }
   body[data-sec='all-time'] .lk-k.on { background:var(--kc); border-color:var(--kc); color:#fff; } body[data-sec='all-time'] .lk-k.on i { color:#fff; } body[data-sec='all-time'] .lk-k.on b { color:#fff; opacity:.75; }
+  /* SG-2 (17 Nov 2026, B): the Library chips in two rows - your three "My" sections first, filling one line (no symbols on a phone so they fit);
+     a fine line (the ::before, as a full-width flex item); then the shelves. The chips stay direct children, so every tap and colour is unchanged. */
+  .fav-seg { display:flex; flex-wrap:wrap; row-gap:6px; width:100%; box-sizing:border-box; }
+  .fav-seg > span { order:2; flex:0 0 auto; }
+  .fav-seg > span[data-sec='all-time'], .fav-seg > span[data-sec='learning'], .fav-seg > span[data-sec='lenses'] { order:0; flex:1 1 auto; white-space:nowrap; padding:7px 8px; }
+  .fav-seg::before { content:''; order:1; flex:0 0 100%; height:0; border-top:1px solid rgba(30,45,80,.1); margin:0 2px; }
+  @media (max-width:640px) { .fav-seg > span[data-sec='all-time'] svg, .fav-seg > span[data-sec='learning'] svg, .fav-seg > span[data-sec='lenses'] svg { display:none; } }
 </style>
 </head>
 <body>
@@ -1721,7 +1728,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
         <span data-sec="movies"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="10" rx="2"/><path d="m3.5 10-.9-3.6L19.9 2.6l.9 3.6zM7.4 9.2 6 5.7M12.2 8 10.8 4.5M17 6.8 15.6 3.3"/></svg><i class="sl">Movies / Shows</i></span>
         <span data-sec="music"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><i class="sl">Music</i></span>
         <span data-sec="wisdom"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20"/></svg><i class="sl">Wisdom Library</i></span>
-        <span data-sec="learning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a1 1 0 0 1 1-1h11l4 4v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><i class="sl">Learning Diary</i></span>
+        <span data-sec="learning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a1 1 0 0 1 1-1h11l4 4v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><i class="sl">My Learning Diary</i></span>
         <span data-sec="lenses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.5"/></svg><i class="sl">My Lenses</i></span>
       </div>
 
@@ -2672,7 +2679,8 @@ const SECTIONS = {
   'wisdom':   { lbl:'Wisdom Library', kind:'notes', srcReq:false, eyebrow:'', essence:true },
   // LD-1 (Sep 2026): the Learning Diary - a notes shelf whose rows carry a
   // category and a learned-on date; read as a diary by month.
-  'learning': { lbl:'Learning Diary', kind:'notes', srcReq:false, eyebrow:'Learning note', learning:true },
+  'learning': { lbl:'My Learning Diary',   // SG-2 (17 Nov 2026): was 'Learning Diary'
+                kind:'notes', srcReq:false, eyebrow:'Learning note', learning:true },
   // L1 (28 Oct 2026): My Lenses - mental models as tools, with their own page.
   'lenses':   { lbl:'My Lenses', kind:'lenses', srcReq:false, eyebrow:'Lens' }
 };
