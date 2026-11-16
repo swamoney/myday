@@ -779,6 +779,17 @@
       if (st.host) st.host.innerHTML = '';
       delete mounts[key];
     },
+    // BK-CH (16 Nov 2026): keep a picture that did not come from the file picker (a PDF's picture) - returns its id for a <figure data-at> token
+    async addBlob(room, entryId, blob) {
+      const big = await shrink(blob, MAX_EDGE, QUALITY), th = await shrink(blob, THUMB_EDGE, 0.7);
+      const st = { room: room, entryId: String(entryId) }, p = newPath(st, '.webp'), tp = p.replace('.webp', '_t.webp');
+      let up = await supa.storage.from(BUCKET).upload(p, big, { contentType: 'image/webp' }); if (up.error) throw up.error;
+      up = await supa.storage.from(BUCKET).upload(tp, th, { contentType: 'image/webp' }); if (up.error) throw up.error;
+      const rec = { user_id: userId, room: room, entry_id: String(entryId), day_index: null, kind: 'photo', path: p, thumb_path: tp, caption: '', quiet: false,
+        sort_order: 0, bytes: (big.size || 0) + (th.size || 0) };
+      const { data, error } = await supa.from('attachments').insert(rec).select(); if (error) throw error;
+      return data[0].id;
+    },
     async deleteAll(room, entryId) {
       try {
         const { data, error } = await supa.from('attachments').select('id, path, thumb_path')
