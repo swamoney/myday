@@ -274,6 +274,12 @@
   @media (min-width:641px) { html body .bkp .thr.pd-mus.pd-pr .hl.pr { width:78%; } }
   @media (max-width:640px) { html body .bkp .thr.pd-mus.pd-pr .hl.pr .in { padding:12px 14px; } html body .bkp .thr.pd-mus.pd-pr .hl.pr .q { font-size:1.15rem; } }
   @media print { html body .bkp .thr.pd-mus.pd-pr .hl.pr { width:auto; break-inside:avoid; box-shadow:none; } }
+  /* PD-H1: share a print as a picture */
+  .bkp .hl.pr .pd-shb { margin:10px 0 0 6px; display:inline-flex; align-items:center; gap:4px; font:600 .76rem var(--sans); color:#5b4a86; border:1px solid #ddd3ee; border-radius:999px; padding:5px 12px; background:#f8f5fc; cursor:pointer; }
+  .bkp .hl.pr .pd-trb { margin-right:0; } .bkp .hl.pr .pd-tr:not(.hidden) ~ .pd-shb { display:none; }
+  .pd-shr .prev { background:#eef0f4; border-radius:12px; padding:14px; display:flex; justify-content:center; max-height:58vh; overflow:auto; margin-top:10px; } .pd-shr .prev img { width:100%; max-width:360px; height:auto; box-shadow:0 6px 16px rgba(0,0,0,.18); background:#fff; align-self:flex-start; }
+  .pd-shr .bk-acts .sv { background:#5b4a86; border-color:#5b4a86; } .pd-shr .tiny { font-size:.72rem; color:#8a93a6; margin:8px 0 14px; }
+  @media print { .bkp .hl.pr .pd-shb { display:none !important; } }
   /* PD-N1: a transcript fold under a podcast snip card */
   .bkp .hl .pd-trb { margin-top:10px; display:inline-flex; align-items:center; gap:4px; font:600 .76rem var(--sans); color:#3E6BA8; border:1px solid #d3def0; border-radius:999px; padding:5px 12px; background:#fff; cursor:pointer; }
   .bkp .hl .pd-trb.hidden, .bkp .hl .pd-tr.hidden { display:none; }
@@ -4953,7 +4959,7 @@ function pdSnipHtml_(t, i, tapKey, trs) {
     const foot = [star ? '★' : '', tr && tr.time ? e(tr.time) : '', sn && sn.k ? e(sn.k.toUpperCase()) : ''].filter(Boolean).join(' · ').replace('★ · ', '★ ');
     return '<div class="hl sn pr' + (star ? ' st' : '') + '" style="--mti:' + ink + '">' + (star ? STAR : '') + '<div class="in"><div class="qm" aria-hidden="true">“</div>' +
       '<div class="q">' + e(title) + '</div>' + (sn && sn.pts.length ? '<ul class="pts">' + sn.pts.map(p => '<li>' + e(p) + '</li>').join('') + '</ul>' : '') +
-      (foot ? '<div class="bm mono">' + foot + '</div>' : '') + fold + '</div></div>';
+      (foot ? '<div class="bm mono">' + foot + '</div>' : '') + fold + '<button type="button" class="pd-shb" data-shr="' + i + '">\u2934 Share</button></div></div>';
   }
   if (!sn) return '<div class="hl' + attr + '" style="--mti:#7086a8"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(t.replace(/[★⭐]/g, '').trim().replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (star ? '<div class="s mono">★ TOP LINE</div>' : '') + '</div>';
   return '<div class="hl sn' + attr + '" style="--mti:' + pdInk_(sn.k) + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★ TOP LINE</b>' : '') + (tr && tr.time ? ' <span class="tm">· ' + e(tr.time) + '</span>' : '') + '</div>' +
@@ -4963,6 +4969,69 @@ function pdHlSec_(hl, n, trs) {
   return '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + n + '</span><h3>Highlights</h3><span class="m mono">' + hl.length + (hl.length === 1 ? ' SNIP' : ' SNIPS') + ' · FROM THE EPISODE</span></div><div class="thr pd-mus pd-pr">' +
     hl.map((t, i) => pdSnipHtml_(t, i, null, trs)).join('') + '</div></div>';
 }
+// ===== PD-H1 (16 Nov 2026): share one podcast highlight as a picture of its print =====
+// Drawn on a canvas on the device (nothing uploaded): the print's frame (gold when ★), " mark, centred italic title, the points,
+// "time · KIND", then the episode + show · guest. Phone → the share sheet (WhatsApp, Messages…); computer / no sharing → saved as PNG.
+function pdShareCanvas_(r, t, i) {
+  const sn = pdSnip_(t) || { k: '', title: t.replace(/[★⭐]/g, '').trim(), pts: [] }, star = /[★⭐]/.test(t);
+  const P = bkParse_(isDoc(r.note) ? '' : (r.note || '')), tr = (P.tr || []).find(x => pdTrKey_(x.title) === pdTrKey_(sn.title));
+  const ink = star ? '#c9a227' : (PD_INK[String(sn.k || '').toLowerCase()] ? pdInk_(sn.k) : BK_INK[i % BK_INK.length]);
+  const titleInk = star ? '#6b3a46' : ink;
+  const S = 2, W = 540, PAD = 26, IN = 18, TW = W - 2 * (PAD + IN + 14);
+  const cv = document.createElement('canvas'), c = cv.getContext('2d');
+  const F = { t: 'italic 500 23px Fraunces, Georgia, serif', p: '400 15.5px Fraunces, Georgia, serif', m: '700 9px "IBM Plex Mono", monospace', ep: '600 15px Fraunces, Georgia, serif', sh: '400 12px "IBM Plex Sans", system-ui, sans-serif', mk: '700 8px "IBM Plex Mono", monospace', q: '700 40px Fraunces, Georgia, serif' };
+  const wrap = (txt, font, w) => { c.font = font; const out = []; let line = ''; String(txt).split(/\s+/).forEach(wd => { const tt = line ? line + ' ' + wd : wd; if (c.measureText(tt).width > w && line) { out.push(line); line = wd; } else line = tt; }); if (line) out.push(line); return out; };
+  const tl = wrap(sn.title, F.t, TW), pl = sn.pts.map(p => wrap(p, F.p, TW - 18));
+  const [ep, no] = pdNum_(r.title), show = (r.type || '').trim(), guest = (r.category || '').trim();
+  const el2 = wrap(ep, F.ep, TW), sub = [show + (no ? ' #' + no : ''), guest].filter(Boolean).join(' · ');
+  const foot = [star ? '★' : '', tr && tr.time ? tr.time : '', sn.k ? sn.k.toUpperCase() : ''].filter(Boolean).join(' · ').replace('★ · ', '★ ');
+  let h = PAD + IN + 10 + tl.length * 32 + 10 + pl.reduce((a, l) => a + l.length * 23 + 6, 0) + (foot ? 26 : 0) + 22 + el2.length * 21 + (sub ? 20 : 0) + 18 + IN + PAD + (star ? 10 : 0);
+  cv.width = W * S; cv.height = h * S; c.scale(S, S);
+  c.fillStyle = '#fff'; c.fillRect(0, 0, W, h);
+  const rr = (x, y, w, hh, rad) => { c.beginPath(); c.moveTo(x + rad, y); c.arcTo(x + w, y, x + w, y + hh, rad); c.arcTo(x + w, y + hh, x, y + hh, rad); c.arcTo(x, y + hh, x, y, rad); c.arcTo(x, y, x + w, y, rad); c.closePath(); };
+  const top = PAD + (star ? 10 : 0), mix = (a) => { c.globalAlpha = a; };
+  rr(PAD, top, W - 2 * PAD, h - top - PAD, 16); c.lineWidth = 1.5; c.strokeStyle = ink; mix(.8); c.stroke(); mix(1);
+  rr(PAD + 6, top + 6, W - 2 * PAD - 12, h - top - PAD - 12, 12); c.lineWidth = 1; mix(.45); c.stroke(); mix(1);
+  if (star) {   // the round star tab on the top edge
+    c.beginPath(); c.arc(W / 2, top, 13, 0, Math.PI * 2); c.fillStyle = '#fff'; c.fill(); c.lineWidth = 1.5; c.strokeStyle = '#c9a227'; c.stroke();
+    c.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rad = k % 2 ? 2.6 : 6.2; c.lineTo(W / 2 + Math.cos(a) * rad, top + Math.sin(a) * rad); } c.closePath(); c.fillStyle = '#c9a227'; c.fill();
+  }
+  c.textAlign = 'center'; c.textBaseline = 'alphabetic'; let y = top + IN + 30;
+  c.font = F.q; c.fillStyle = ink; mix(.5); c.fillText('“', W / 2, y); mix(1); y -= 6;
+  c.font = F.t; c.fillStyle = titleInk; tl.forEach(l => { y += 32; c.fillText(l, W / 2, y); }); y += 12;
+  if (pl.length) {   // the points: a left-aligned list, centred as a block
+    c.font = F.p; const bw = Math.min(TW, Math.max(...pl.flat().map(l => c.measureText(l).width)) + 18), x0 = (W - bw) / 2;
+    c.textAlign = 'left'; c.fillStyle = '#3a4458';
+    pl.forEach(lines => { lines.forEach((l, k) => { y += 23; if (!k) c.fillText('•', x0, y); c.fillText(l, x0 + 18, y); }); y += 6; });
+    c.textAlign = 'center';
+  }
+  if (foot) { y += 22; c.font = F.m; c.fillStyle = star ? '#a8862a' : ink; c.letterSpacing = '2px'; c.fillText(foot, W / 2, y); c.letterSpacing = '0px'; }
+  y += 14; c.setLineDash([4, 4]); c.strokeStyle = star ? '#e6cf86' : ink; mix(.5); c.beginPath(); c.moveTo(PAD + IN + 20, y); c.lineTo(W - PAD - IN - 20, y); c.stroke(); mix(1); c.setLineDash([]);
+  c.font = F.ep; c.fillStyle = '#1c2331'; el2.forEach(l => { y += 21; c.fillText(l, W / 2, y); });
+  if (sub) { y += 19; c.font = F.sh; c.fillStyle = '#5a6680'; c.fillText(sub, W / 2, y); }
+  c.font = F.mk; c.fillStyle = '#a3abbd'; c.fillText('MY LIBRARY · PODCASTS', W / 2, h - PAD - IN + 4);
+  return { cv, name: (ep || 'snip').replace(/[^\w\- ]+/g, '').trim().slice(0, 40).replace(/\s+/g, '-') + '-snip.png', text: sn.title + (sn.pts.length ? '\n• ' + sn.pts.join('\n• ') : '') + '\n— ' + ep + (show ? ' (' + show + ')' : '') };
+}
+async function pdShareOpen_(i) {
+  const r = rows.find(x => String(x.id) === String(frId)); if (!r) return;
+  const t = bkParse_(isDoc(r.note) ? '' : (r.note || '')).hl[i]; if (!t) return;
+  try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+  const out = pdShareCanvas_(r, t, i), url = out.cv.toDataURL('image/png'), ov = pdOv_('pdShOv');
+  ov.innerHTML = '<div class="bk-form pd-shr"><div class="bk-fh">Share this snip</div><div class="prev"><img alt="" src="' + url + '"></div>' +
+    '<div class="bk-acts"><span style="flex:1"></span><button type="button" id="pdShSave">Save image</button><button type="button" class="sv" id="pdShGo">Share…</button></div>' +
+    '<div class="tiny">Share opens WhatsApp, Messages, Mail… on your phone. On a computer it saves the picture.</div></div>';
+  ov.classList.remove('hidden');
+  const blob = await new Promise(res => out.cv.toBlob(res, 'image/png')), file = new File([blob], out.name, { type: 'image/png' });
+  const save = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = out.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast('Picture saved'); };
+  el('pdShSave').onclick = save;
+  el('pdShGo').onclick = async () => {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: out.name.replace(/-snip\.png$/, ''), text: '' }); ov.classList.add('hidden'); }
+      catch (e) { if (e && e.name !== 'AbortError') { console.error(e); save(); } }
+    } else save();
+  };
+}
+document.addEventListener('click', ev => { const b = ev.target.closest('[data-shr]'); if (!b) return; ev.stopPropagation(); pdShareOpen_(+b.dataset.shr); }, true);
 // ---- C1: editing - the book editor, with show / guest / link and "add more from a PDF" ----
 function pdRenderEdit_(r, pg) {
   const E = bkEd_, e = escHtml, show = r.type || '', [, no] = pdNum_(r.title);
