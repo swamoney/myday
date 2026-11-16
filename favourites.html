@@ -286,6 +286,16 @@
   @media (max-width:640px) { body.fr-book:not(.fr-pod):not(.fr-mr):not(.fr-mv):not(.fr-doc) .bkp :is(.sec, .bkfr) > .sh h3 { font-size:1.3rem; gap:10px; } }
   /* BK-L3: the AUTHOR / KIND / CAME FROM labels - a little heavier, darker, underlined in a soft tint of the book's colour */
   body.fr-book:not(.fr-pod):not(.fr-mr):not(.fr-mv):not(.fr-doc) .bkp .facts .l { font-weight:600; font-size:.6rem; letter-spacing:.16em; color:#4a5568; text-decoration:underline; text-decoration-color:color-mix(in srgb, var(--bc) 45%, #fff); text-decoration-thickness:1.5px; text-underline-offset:4px; }
+  /* BK-G1: a rich book highlight - first paragraph like the quote, the rest as reading text, lists left inside the print */
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich { font-style:normal; } html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich > * { margin:0 0 10px; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich > p:first-child, html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich > blockquote:first-child { font-style:italic; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich > p:not(:first-child) { font-style:normal; font-size:1.02rem; color:#3a4458; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich ul, html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich ol { display:inline-block; text-align:left; font-style:normal; font-size:1rem; line-height:1.5; color:#3a4458; padding-left:1.2em; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich li::marker { color:var(--mti); } html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich blockquote { border:none; padding:0; margin:0 0 10px; }
+  html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich > :last-child { margin-bottom:4px; }
+  .bkp .hl.tap .q.rich { font-style:normal; } .bkp .hl.tap .q.rich > * { margin:0 0 6px; } .bkp .hl.tap .q.rich ul, .bkp .hl.tap .q.rich ol { padding-left:1.2em; }
+  .bk-hle .bk-acts .sv { background:#1c2331; border-color:#1c2331; } .bk-hle .bk-acts .dl { color:#b03a2e; }
+  .bk-hle .ld-ntb { margin:10px 0 6px; } .bk-hle .box { min-height:120px; max-height:46vh; overflow:auto; } .bk-hle .box ul, .bk-hle .box ol { padding-left:1.3em; margin:4px 0 8px; } .bk-hle .box p { margin:0 0 8px; }
   /* BK-CH: chapters on a book page (L2 cards) and the chapter page (T1: a soft wash of the book's colour) */
   .bkp .ch-sec .sh { display:flex; align-items:baseline; gap:10px; } .bkp .ch-sec .ch-add { margin-left:auto; font:600 .74rem var(--sans); color:var(--bc); border:1px solid color-mix(in srgb, var(--bc) 30%, #fff); border-radius:999px; padding:5px 11px; background:#fff; cursor:pointer; white-space:nowrap; }
   .bkp .ch-list { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
@@ -3098,7 +3108,7 @@ const BK_SECS = [
 ];
 function bkParse_(html) {
   const box = document.createElement('div'); box.innerHTML = html || '';
-  const out = { hl:[], tk:[], lv:[], tr:[], notes:'' }; let cur = null; const rest = [];
+  const out = { hl:[], hlh:[], tk:[], lv:[], tr:[], notes:'' }; let cur = null; const rest = [];
   const items = n => {
     if (/^(UL|OL)$/.test(n.tagName)) return [...n.children].map(li => li.textContent.trim()).filter(Boolean);
     if (n.tagName === 'BLOCKQUOTE' && n.querySelector('p')) return [...n.querySelectorAll('p')].map(x => x.textContent.trim()).filter(Boolean);
@@ -3114,12 +3124,76 @@ function bkParse_(html) {
       return;
     }
     if (n.nodeType === 1 && /^H[1-6]$/.test(n.tagName)) { const t = n.textContent.trim(); if (/^(my\s+)?notes?\s*$/i.test(t)) { cur = 'nt'; return; } if (/^transcripts?\s*$/i.test(t)) { cur = 'tr'; return; } const m = BK_SECS.find(x => x.re.test(t)); cur = m ? m.k : null; if (!m) rest.push(n.outerHTML); return; }
+    if (cur === 'hl' && n.nodeType === 1 && n.tagName === 'DIV' && n.firstElementChild) { const R = bkHlRich_(n); if (R) { out.hl.push(R.t); out.hlh[out.hl.length - 1] = R.h; return; } }   // BK-G1
     if (cur && cur !== 'nt') { if (n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim())) out[cur].push(...items(n)); return; }
     rest.push(n.nodeType === 1 ? n.outerHTML : escHtml(n.textContent));
   });
   out.notes = rest.join('').trim();
   out.any = out.hl.length + out.tk.length + out.lv.length > 0;
   return out;
+}
+// ===== BK-G1 (17 Nov 2026): a book highlight can hold paragraphs and lists, like a Learning Diary entry =====
+// Stored inside the Highlights section as one <div>: an optional <p>★</p> (the top line), the highlight's own blocks,
+// and an optional last <p>— p. 133</p>. A one-paragraph, unformatted highlight stays the old plain <p> line.
+// P.hl keeps a plain-text version (for the quiz, the picture, the hero); P.hlh[i] holds the highlight's HTML.
+function bkHlPlain_(html) { const d = document.createElement('div'); d.innerHTML = html || ''; const out = [];
+  const walk = n => [...n.children].forEach(c => { if (/^(UL|OL)$/.test(c.tagName)) [...c.children].forEach(li => { const t = li.textContent.replace(/\s+/g, ' ').trim(); if (t) out.push('• ' + t); });
+    else if (c.tagName === 'DIV' || (c.tagName === 'BLOCKQUOTE' && c.querySelector('p,ul,ol'))) walk(c); else { const t = c.textContent.replace(/\s+/g, ' ').trim(); if (t) out.push(t); } });
+  walk(d); if (!out.length) { const t = d.textContent.replace(/\s+/g, ' ').trim(); if (t) out.push(t); } return out.join(' '); }
+function bkHlRich_(div) {
+  const kids = [...div.children].filter(c => c.textContent.trim() || c.querySelector('img,figure'));
+  let star = false, ref = '';
+  if (kids[0] && kids[0].tagName === 'P' && /^[★⭐]$/.test(kids[0].textContent.trim())) { star = true; kids.shift(); }
+  const last = kids[kids.length - 1];
+  if (last && last.tagName === 'P' && kids.length > 1) { const m = last.textContent.trim().match(/^[—–-]+\s*(p\.?\s*\d+[\w\s.,-]*|page\s*\d+[\w\s.,-]*|ch(apter)?\.?\s*\d+[\w\s.,-]*)$/i); if (m) { ref = m[1].trim(); kids.pop(); } }
+  if (!kids.length) return null;
+  const h = kids.map(k => k.outerHTML).join(''), t = bkHlPlain_(h);
+  return { t: (star ? '★ ' : '') + t + (ref ? ' — ' + ref : ''), h };
+}
+function bkHlItems_(P) { return P.hl.map((t, i) => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim(), h: (P.hlh && P.hlh[i]) || '' })); }
+function bkHlOpen_(i, r, pg) {   // the highlight editor: a small rich box (B, I, lists, quote), the page, ☆ top line
+  const ov = pdOv_('bkHlOv'), E = bkEd_, isNew = i < 0, it = isNew ? null : E.hl[i], e = escHtml;
+  const [q0, ref0] = it ? bkPageRef_(it.t) : ['', ''];
+  const btn = (c, l) => '<button type="button" data-hlc="' + c + '">' + l + '</button>';
+  ov.innerHTML = '<div class="bk-form ld-new bk-hle"><div class="h">' + (isNew ? 'Add a highlight' : 'Highlight') + '</div><div class="bk-fs mono">IN THE BOOK’S WORDS · PARAGRAPHS AND LISTS ARE FINE</div>' +
+    '<div class="ld-htb ld-ntb">' + btn('bold', '<b>B</b>') + btn('italic', '<i>I</i>') + '<span class="sep"></span>' + btn('insertUnorderedList', '&bull;&#8801;') + btn('insertOrderedList', '1&#8801;') + btn('quote', '&#8220;') + '<span class="sep"></span>' + btn('clear', 'T<sub>x</sub>') + '</div>' +
+    '<div class="box" id="bkHlT" contenteditable="true" data-ph="The line, or a few paragraphs and a list…"></div>' +
+    '<div class="bk-r2"><div><label class="mono">PAGE (OPTIONAL)</label><input type="text" id="bkHlP" value="' + e(ref0.replace(/^p\.?\s*/i, '')) + '" maxlength="30" placeholder="e.g. 34"></div>' +
+    '<label class="bk-chk"><input type="checkbox" id="bkHlS"' + (it && it.star ? ' checked' : '') + '> ★ Make it the top line</label></div>' +
+    '<div class="bk-acts">' + (isNew ? '' : '<button type="button" class="dl" id="bkHlD">Delete</button>') + '<span style="flex:1"></span><button type="button" id="bkHlN">Cancel</button><button type="button" class="sv" id="bkHlK">Save</button></div></div>';
+  ov.classList.remove('hidden');
+  const box = el('bkHlT'); document.execCommand('defaultParagraphSeparator', false, 'p');
+  box.innerHTML = it ? (it.h || '<p>' + e(q0) + '</p>') : '<p><br></p>';
+  box.focus(); { const rg = document.createRange(); rg.selectNodeContents(box); rg.collapse(false); const sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); }
+  const emp = () => box.classList.toggle('emp', !box.textContent.trim() && !box.querySelector('li')); emp(); box.addEventListener('input', emp);
+  const tb = ov.querySelector('.ld-ntb'); tb.addEventListener('mousedown', ev => ev.preventDefault());
+  tb.addEventListener('click', ev => {
+    const b = ev.target.closest('[data-hlc]'); if (!b) return; box.focus(); const c = b.dataset.hlc, sel = getSelection();
+    if (c === 'quote') { const n0 = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode), qq = n0 && n0.closest && n0.closest('blockquote');
+      if (qq && box.contains(qq)) { const pp = document.createElement('p'); while (qq.firstChild) pp.appendChild(qq.firstChild); qq.replaceWith(pp); } else document.execCommand('formatBlock', false, 'blockquote'); return; }
+    if (c === 'clear') { document.execCommand('removeFormat'); return; }
+    if (!/List$/.test(c)) { document.execCommand(c); return; }
+    let mk = null; if (sel.rangeCount && sel.isCollapsed) { mk = document.createElement('span'); mk.id = 'bkHlCaret'; mk.textContent = '​'; sel.getRangeAt(0).insertNode(mk); }
+    document.execCommand(c);
+    box.querySelectorAll('p > ul, p > ol').forEach(l => { const pp = l.parentNode; pp.parentNode.insertBefore(l, pp.nextSibling); if (!pp.textContent.replace(/​/g, '').trim()) pp.remove(); });
+    const m = box.querySelector('#bkHlCaret'); if (m) { const prev = m.previousSibling, rg = document.createRange(); if (prev && prev.nodeType === 3) rg.setStart(prev, prev.length); else rg.setStartBefore(m); rg.collapse(true); m.remove(); sel.removeAllRanges(); sel.addRange(rg); }
+    emp();
+  });
+  const close = () => ov.classList.add('hidden');
+  el('bkHlN').onclick = close;
+  if (!isNew) el('bkHlD').onclick = () => { E.hl.splice(i, 1); scheduleFrSave(); close(); bkRenderEdit_(r, pg); };
+  el('bkHlK').onclick = () => {
+    const html = NoteEditor.sanitize(box.innerHTML).replace(/​/g, '').replace(/<p>\s*(<br>)?\s*<\/p>/g, '').replace(/<li>\s*(<br>)?\s*<\/li>/g, '').trim();
+    const d = document.createElement('div'); d.innerHTML = html;
+    const plain = bkHlPlain_(html);
+    if (!plain) { if (!isNew) { E.hl.splice(i, 1); scheduleFrSave(); } close(); bkRenderEdit_(r, pg); return; }
+    const one = d.children.length === 1 && d.firstElementChild.tagName === 'P' && !ldHasInline_(html);   // a plain line stays a plain line
+    const pv = el('bkHlP').value.trim(), withPage = x => pv ? x + ' — ' + (/^\d/.test(pv) ? 'p. ' + pv : pv) : x;
+    const item = { star: el('bkHlS').checked, t: withPage(one ? d.textContent.replace(/\s+/g, ' ').trim() : plain), h: one ? '' : html };
+    if (item.star) E.hl.forEach(x => { x.star = false; });
+    if (isNew) E.hl.push(item); else E.hl.splice(i, 1, item);
+    scheduleFrSave(); close(); bkRenderEdit_(r, pg);
+  };
 }
 function bkPageRef_(t) { const m = String(t).match(/\s*[—–-]+\s*(p\.?\s*\d+[\w\s.,-]*|page\s*\d+[\w\s.,-]*|ch(apter)?\.?\s*\d+[\w\s.,-]*)$/i); return m ? [t.slice(0, m.index).trim(), m[1].trim()] : [t, '']; }
 function bkMonth_(d) { const m = String(d || '').match(/^(\d{4})-(\d{2})/); return m ? ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][+m[2] - 1] + ' ' + m[1] : ''; }
@@ -3134,7 +3208,9 @@ function bkRender_() {
   const strip = t => t.replace(/[★⭐]/g, '').trim();
   const starred = P.hl.find(t => /[★⭐]/.test(t));
   const heroRaw = starred || P.hl[0] || '';
-  const [heroT, heroRef] = bkPageRef_(strip(heroRaw));
+  let heroBase = strip(heroRaw); { const hi = P.hl.indexOf(heroRaw); if (hi > -1 && P.hlh[hi]) { const d = document.createElement('div'); d.innerHTML = P.hlh[hi];   // BK-G1: a rich top line shows its first paragraph
+    const rf = bkPageRef_(heroBase)[1]; heroBase = ((d.firstElementChild || d).textContent || '').replace(/\s+/g, ' ').trim() + (rf ? ' — ' + rf : ''); } }
+  const [heroT, heroRef] = bkPageRef_(heroBase);
   const kind = bkKind_(r), read = '', auth = (r.type || '').trim(), from = (r.category || '').trim(), take = (r.essence || '').trim();
   pg.style.setProperty('--bc', bkColFor_(r)); if (bkEd_ && document.body.classList.contains('fr-editing')) { bkRenderEdit_(r, pg); return; }
   const tags = bkTagsShown_(r).map(t => '<span class="chip"><i></i>' + escHtml(t) + '</span>').join('');
@@ -3151,7 +3227,7 @@ function bkRender_() {
   const roman = ['I','II','III','IV','V','VI']; let n = 0;
   if (P.hl.length && isPod_(r)) h += pdHlSec_(P.hl, roman[n++], P.tr);
   else if (P.hl.length) h += '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Highlights</h3><span class="m mono">' + P.hl.length + (P.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS</span></div><div class="thr pd-mus bk-mus pd-pr">' +
-    P.hl.map((t, i) => bkPrintHtml_(t, i)).join('') + '</div></div>';   // PD-Y1: book highlights as prints, with ⤴ Share
+    P.hl.map((t, i) => bkPrintHtml_(t, i, P.hlh[i])).join('') + '</div></div>';   // PD-Y1: book highlights as prints, with ⤴ Share
   if (!isPod_(r) && !frHasDoc) h += '<div class="sec ch-sec" id="bkS_ch" data-n="' + roman[n++] + '"></div>';   // BK-CH: chapters, filled when they arrive
   if (P.tk.length && isPod_(r)) h += '<div class="sec" id="bkS_tk"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>My takeaways</h3><span class="m mono">' + P.tk.length + ' · IN MY WORDS</span></div><ol class="tk">' + P.tk.map(t => '<li>' + escHtml(t.replace(/^[-•*]\s*/, '')) + '</li>').join('') + '</ol></div>';
   if (P.lv.length) h += '<div class="sec" id="bkS_lv"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Lived it</h3><span class="m mono">' + P.lv.length + ' · WHAT I CHANGED</span></div><div class="use">' +
@@ -3517,7 +3593,7 @@ function frNoteHtml_() { const n = NoteEditor.sanitize(el('frBodyInp').innerHTML
 function bkEditSplit_() {
   const r0 = rows.find(x => String(x.id) === String(frId)); if (isMv_(r0)) return mvSplit_();   // MV-1
   const P = bkParse_(NoteEditor.sanitize(el('frBodyInp').innerHTML));
-  bkEd_ = { hl: P.hl.map(t => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim() })), tr: P.tr,
+  bkEd_ = { hl: bkHlItems_(P), tr: P.tr,
             tk: P.tk.map(t => t.replace(/^[-•*]\s*/, '')),
             lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
   let notes = P.notes;
@@ -3531,7 +3607,7 @@ async function bkTkMigrate_(r) {
   if (!r || isPod_(r) || isMv_(r) || isMr_(r) || isDoc(r.note)) return false;
   const P = bkParse_(r.note || ''); if (!P.tk.length) return false;
   const was = bkEd_;
-  bkEd_ = { hl: P.hl.map(t => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim() })), tr: P.tr, tk: [],
+  bkEd_ = { hl: bkHlItems_(P), tr: P.tr, tk: [],
             lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
   let note; try { note = NoteEditor.sanitize(bkCompose_(bkTkNotes_(P.tk) + (P.notes || ''))); } finally { bkEd_ = was; }
   const { data, error } = await supa.from('bookmarks').update({ note, updated_at: new Date().toISOString() }).eq('id', r.id).eq('user_id', userId).select('id');
@@ -3542,7 +3618,8 @@ function bkCompose_(notes) {
   if (bkEd_ && bkEd_.mv) return mvCompose_(notes);   // MV-1
   const E = bkEd_, out = [], e = escHtml;
   const hl = E.hl.filter(x => x.t.trim()), tk = E.tk.filter(x => x.trim()), lv = E.lv.filter(x => x.t.trim());
-  if (hl.length) out.push('<h3>Highlights</h3>' + hl.map(x => '<p>' + (x.star ? '★ ' : '') + e(x.t.trim()) + '</p>').join(''));
+  if (hl.length) out.push('<h3>Highlights</h3>' + hl.map(x => { if (x.h) { const ref = bkPageRef_(x.t)[1]; return '<div>' + (x.star ? '<p>★</p>' : '') + x.h + (ref ? '<p>— ' + e(ref) + '</p>' : '') + '</div>'; }   // BK-G1
+    return '<p>' + (x.star ? '★ ' : '') + e(x.t.trim()) + '</p>'; }).join(''));
   if (tk.length) out.push('<h3>Takeaways</h3><ul>' + tk.map(x => '<li>' + e(x.trim()) + '</li>').join('') + '</ul>');
   if (lv.length) out.push('<h3>Lived it</h3>' + lv.map(x => '<p>' + (x.st === 'd' ? '✓ ' : x.st === 't' ? '◷ ' : '') + e(x.t.trim()) + '</p>').join(''));
   const box = document.createElement('div'); box.innerHTML = notes || '';
@@ -3575,7 +3652,7 @@ function bkRenderEdit_(r, pg) {
   const fr = (n, title, sub, meta, inner, add, k) => '<div class="bkfr"><span class="bl"></span><span class="br"></span><div class="sh"><span class="n">' + n + '</span><h3>' + title + '</h3>' + (meta ? '<span class="m mono">' + meta + '</span>' : '') + '</div>' +
     (sub ? '<div class="sub">' + sub + '</div>' : '') + inner + '<button type="button" class="bkadd" data-new="' + k + '">＋ ' + add + '</button></div>';
   h += fr('I', 'Highlights', E.hl.length ? '' : 'in the book’s words', E.hl.length ? E.hl.length + (E.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS' : '',
-    E.hl.length ? '<div class="thr pd-mus bk-mus">' + E.hl.map((x, i) => { const [q, ref] = bkPageRef_(x.t); return '<div class="hl tap" data-it="hl:' + i + '" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + ((ref || x.star) ? '<div class="s mono">' + e(ref) + (ref && x.star ? ' · ' : '') + (x.star ? '★ TOP LINE' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '',
+    E.hl.length ? '<div class="thr pd-mus bk-mus">' + E.hl.map((x, i) => { const [q, ref] = bkPageRef_(x.t); return '<div class="hl tap" data-it="hl:' + i + '" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span>' + (x.h ? '<div class="q rich">' + x.h + '</div>' : '<div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>') + ((ref || x.star) ? '<div class="s mono">' + e(ref) + (ref && x.star ? ' · ' : '') + (x.star ? '★ TOP LINE' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '',
     'Add a highlight', 'hl');
   h += '<div class="bkfr sec ch-sec" id="bkS_ch" data-n="II" data-ed="1"></div>';   // BK-E1 / BK-X1: Chapters (with ＋) where My takeaways was
   h += fr('III', 'Lived it', E.lv.length ? '' : 'what I changed because of it', E.lv.length ? E.lv.length + ' · WHAT I CHANGED' : '',
@@ -3615,6 +3692,7 @@ function bkWireEdit_(r, pg) {
 function bkItemOpen_(K, i, r, pg) {
   if (isMv_(r)) return mvItemOpen_(K, i, r, pg);   // MV-1
   if (K === 'hl' && isPod_(r)) return pdItemOpen_(i, r, pg);   // PD-1: a snip has a kind, a title and points
+  if (K === 'hl') return bkHlOpen_(i, r, pg);   // BK-G1: paragraphs and lists
   let ov = el('bkItemOv');
   if (!ov) { ov = document.createElement('div'); ov.id = 'bkItemOv'; ov.className = 'bk-ov'; document.body.appendChild(ov); }
   const E = bkEd_, isNew = i < 0, e = escHtml;
@@ -5370,12 +5448,12 @@ function pdSnipHtml_(t, i, tapKey, trs) {
   return '<div class="hl sn' + attr + '" style="--mti:' + pdInk_(sn.k) + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★ TOP LINE</b>' : '') + (tr && tr.time ? ' <span class="tm">· ' + e(tr.time) + '</span>' : '') + '</div>' +
     '<div class="q">' + e(sn.title) + '</div>' + (sn.pts.length ? '<ul class="pts">' + sn.pts.map(p => '<li>' + e(p) + '</li>').join('') + '</ul>' : '') + fold + '</div>';
 }
-function bkPrintHtml_(t, i) {   // PD-Y1 (16 Nov 2026): a book highlight as a Learning-Diary print - book symbol, the line centred in italic, page at the foot
+function bkPrintHtml_(t, i, rich) {   // PD-Y1 (16 Nov 2026): a book highlight as a Learning-Diary print - book symbol, the line centred in italic, page at the foot
   const e = escHtml, star = /[★⭐]/.test(t), [q, ref] = bkPageRef_(t.replace(/[★⭐]/g, '').trim());
   const STAR = '<span class="tab"><svg viewBox="0 0 24 24" width="12" height="12" fill="#c9a227" aria-hidden="true"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></span>';
   const foot = [star ? '★' : '', ref ? e(ref.toUpperCase()) : ''].filter(Boolean).join(' ');
   return '<div class="hl pr bkq' + (star ? ' st' : '') + '" style="--mti:' + BK_INK[i % BK_INK.length] + '">' + (star ? STAR : '') + '<div class="in">' + prIcon_('b') +
-    '<div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (foot ? '<div class="bm mono">' + foot + '</div>' : '') +
+    (rich ? '<div class="q rich">' + rich + '</div>' : '<div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>') + (foot ? '<div class="bm mono">' + foot + '</div>' : '') +
     '<button type="button" class="pd-shb" data-shr="' + i + '">⤴ Share</button></div></div>';
 }
 function pdHlSec_(hl, n, trs) {
