@@ -211,6 +211,15 @@
   /* ===== PD-1: Podcasts - episode cards, + menu, PDF review, the podcast page ===== */
   .pd-shows { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; } .pd-shows button { border:1px solid #d7dce8; background:#fff; border-radius:999px; padding:5px 12px; font-size:.8rem; color:#3D4866; cursor:pointer; } .pd-shows button b { font-weight:500; color:#8a97b3; margin-left:2px; } .pd-shows button.on { background:#5b4a86; border-color:#5b4a86; color:#fff; } .pd-shows button.on b { color:#e6def5; }
   .pd-list { display:flex; flex-direction:column; gap:12px; }
+  /* PD-A1: the Podcast Archive */
+  .pd-list + .pd-ardoor, #rowsWrap .pd-ardoor { width:100%; margin:12px 0 0; box-sizing:border-box; }
+  .pd-delbar button.ar { background:#fff; color:#1c2331; border-radius:9px; } .pd-delbar button.bb { background:#c9a7ee; color:#1c2331; border-radius:9px; }
+  .pd-arv .ld-arbar { margin-bottom:10px; } .pd-arv .ld-arq { margin-bottom:10px; } .pd-arv .pd-list { margin-top:10px; }
+  .pd-list .pc.fd { background:#f3f4f7; border-style:dashed; border-color:#cfd3dd; } .pd-list .pc.fd .t { color:#4a5060; } .pd-list .pc.fd.sel { border-style:solid; border-color:#5b4a86; box-shadow:0 0 0 1px #5b4a86; }
+  .pd-arv .pd-list .pc .pd-tk { display:flex; position:absolute; top:13px; right:14px; width:26px; height:26px; border-radius:50%; border:1.5px solid #c9cfdc; background:#fff; color:#fff; align-items:center; justify-content:center; font-size:.8rem; box-sizing:border-box; } .pd-arv .pd-list .pc .pd-tk.on { background:#5b4a86; border-color:#5b4a86; }
+  .pd-arv .pd-list .pc .pm { padding-right:40px; } .pd-arv:has(.pd-delbar.on) .pd-list { padding-bottom:70px; }
+  #rowsWrap:has(.pd-arv) > .shelf-head { display:none; }
+  .pd-mul .pm-all { font-size:.78rem; color:#3a4458; margin-top:10px; } .pd-mul .pm-all button { border:none; background:none; color:#3E6BA8; font:600 .78rem var(--sans); cursor:pointer; padding:2px 4px; text-decoration:underline; }
   /* PD-D2: tick episodes in Edit, delete together */
   .pd-list .pc .pd-tk { display:none; } body.editing .pd-list .pc .pd-tk { display:flex; position:absolute; top:13px; right:50px; width:26px; height:26px; border-radius:50%; border:1.5px solid #c9cfdc; background:#fff; color:#fff; align-items:center; justify-content:center; font-size:.8rem; box-sizing:border-box; }
   body.editing .pd-list .pc .pd-tk.on { background:#5b4a86; border-color:#5b4a86; } body.editing .pd-list .pc.sel { border-color:#5b4a86; box-shadow:0 0 0 1px #5b4a86; }
@@ -2644,14 +2653,14 @@ function allTypes() {
 }
 function allTags() {
   const set = new Set();
-  rows.forEach(r => { if (secOf(r) === activeSection && !(activeSection === 'learning' && ldArch_(r))) (r.tags || []).forEach(t => { if (t !== LD_ARCH) set.add(t); }); });
+  rows.forEach(r => { if (secOf(r) === activeSection && !((activeSection === 'learning' || activeSection === 'podcasts') && ldArch_(r))) (r.tags || []).forEach(t => { if (t !== LD_ARCH) set.add(t); }); });
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
 function filteredRows() {
   let out = rows.filter(r => secOf(r) === activeSection);
   if (activeType) out = out.filter(r => (r.type || '') === activeType);
   if (activeTag) out = out.filter(r => (r.tags || []).includes(activeTag));
-  if (activeSection === 'learning') out = out.filter(r => !ldArch_(r));   // LD-A1: the Archive stays hidden
+  if (activeSection === 'learning' || activeSection === 'podcasts') out = out.filter(r => !ldArch_(r));   // LD-A1 / PD-A1: the Archive stays hidden
   if (searchTerm) {
     const q = searchTerm.toLowerCase();
     out = out.filter(r =>
@@ -2773,6 +2782,7 @@ function render_() {
 
   if (activeSection === 'lenses') { renderLenses_(list, wrap); return; }   // its own shelf, empty state included
   if (activeSection === 'learning' && ldArView_ && document.body.classList.contains('editing')) { ldArchiveRender_(wrap); return; }   // LD-R1
+  if (activeSection === 'podcasts' && (pdArView_ || (!list.length && !(activeType || activeTag || searchTerm) && pdArRows_().length))) { renderPods_(list, wrap); return; }   // PD-A1
   if (list.length === 0 && activeSection === 'learning' && !(activeType || activeTag || searchTerm) && rows.some(x => secOf(x) === 'learning' && ldArch_(x))) {
     // LD-A1: everything is in the Archive - a quiet empty diary, the Archive door still there in Edit
     wrap.innerHTML = headHtml + '<div class="ld-empty">Your diary is empty. Tap <b>Edit</b>, then <b>Archive</b>, to bring learnings back.</div>' +
@@ -3076,7 +3086,7 @@ function bkColFor_(r) { if (isMr_(r)) return '#6b8a6e'; if (isMv_(r)) return MV_
 // BP-C2: a book's kind lives in its tags as 'Fiction' / 'Non-fiction' (an older 'Non-Fiction' style tag counts too)
 const BK_KIND_RE = /^(non[\s-]*fic\w*|fiction)$/i;
 function bkKind_(r) { const t = (r.tags || []).find(x => BK_KIND_RE.test(String(x).trim())); return t ? (/^non/i.test(t) ? 'n' : 'f') : ''; }
-function bkTagsShown_(r) { return (r.tags || []).filter(x => !BK_KIND_RE.test(String(x).trim())); }
+function bkTagsShown_(r) { return (r.tags || []).filter(x => x !== '__arch' && !BK_KIND_RE.test(String(x).trim())); }
 function bkWithKind_(tags, k) { return (tags || []).filter(x => !BK_KIND_RE.test(String(x).trim())).concat(k === 'f' ? ['Fiction'] : k === 'n' ? ['Non-fiction'] : []); }
 async function bkCoversLoad_() {
   if (bkCovers_) return; bkCovers_ = {};
@@ -4221,7 +4231,7 @@ function _libToggleEditing() {
   var t = el('editToggleTop'); if (t) t.textContent = on ? 'Done' : 'Edit';
   if (activeSection === 'music' && typeof muWide_ === 'function' && muWide_()) render();   // MU-3: desktop Music re-splits its two columns for Edit
   if (activeSection === 'learning' && !on && ldArView_) { ldArView_ = false; render(); }   // LD-R1: Done closes the Archive
-  if (activeSection === 'podcasts' && typeof pdSel_ !== 'undefined') { pdSel_.clear(); render(); }   // PD-D2: picks live only inside Edit
+  if (activeSection === 'podcasts' && typeof pdSel_ !== 'undefined') { pdSel_.clear(); if (!on) pdArView_ = false; render(); }   // PD-D2 / PD-A1: picks and the Archive live only inside Edit
   return on;
 }
 el('editToggleTop').addEventListener('click', _libToggleEditing);
@@ -4367,6 +4377,7 @@ function pdShows_() { const s = []; rows.forEach(x => { if (isPod_(x)) { const v
 
 // ---- A2: the shelf ----
 function renderPods_(list, wrap) {
+  if (pdArView_ && document.body.classList.contains('editing')) { pdArchiveRender_(wrap); return; } pdArView_ = false;   // PD-A1
   const shows = []; list.forEach(r => { const v = (r.type || '').trim() || 'No show'; const f = shows.find(x => x[0] === v); if (f) f[1]++; else shows.push([v, 1]); });
   if (pdShow_ && !shows.find(x => x[0] === pdShow_)) pdShow_ = '';
   const vis = list.filter(r => !pdShow_ || ((r.type || '').trim() || 'No show') === pdShow_)
@@ -4386,15 +4397,20 @@ function renderPods_(list, wrap) {
       '<button class="bb-ed" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
       '<span class="pd-tk" aria-hidden="true"></span></div>';
   }).join('') + '</div>';
-  h += '<div class="pd-delbar" id="pdDelBar"><span id="pdDelN"></span><button type="button" id="pdDelNo">Cancel</button><button type="button" class="rd" id="pdDelGo">Delete</button></div>';
+  if (!vis.length) h += '<div class="ld-empty">' + (list.length ? 'Nothing under this show.' : 'Your shelf is empty. Tap <b>Edit</b>, then <b>Archive</b>, to bring episodes back.') + '</div>';
+  const nArc = pdArRows_().length;   // PD-A1: the door to the Archive, only in Edit
+  h += '<button type="button" class="ld-ardoor pd-ardoor" id="pdArDoor"><span class="fi">\uD83D\uDDC2</span><span class="tx"><b>Archive \u00B7 ' + nArc + '</b><small>' + (nArc ? 'Pick what comes back' : 'Tick episodes, then Archive, to send them here') + '</small></span><span class="fg">\u203A</span></button>';
+  h += '<div class="pd-delbar" id="pdDelBar"><span id="pdDelN"></span><button type="button" id="pdDelNo">Cancel</button><button type="button" class="ar" id="pdArcGo">Archive</button><button type="button" class="rd" id="pdDelGo">Delete</button></div>';
   wrap.innerHTML = h;
   // PD-D2 (16 Nov 2026): in Edit, tapping an episode ticks it; the dark bar deletes the ticked ones (after a confirm popup)
   const paintSel = () => { [...pdSel_].forEach(id => { if (!list.some(r => String(r.id) === id)) pdSel_.delete(id); });
     wrap.querySelectorAll('.pc[data-open]').forEach(c => { const on = pdSel_.has(String(c.dataset.open)); c.classList.toggle('sel', on); const t = c.querySelector('.pd-tk'); t.classList.toggle('on', on); t.textContent = on ? '✓' : ''; });
-    const n = pdSel_.size; el('pdDelBar').classList.toggle('on', n > 0 && document.body.classList.contains('editing')); el('pdDelN').textContent = n + ' picked'; el('pdDelGo').textContent = 'Delete ' + n; };
+    const n = pdSel_.size; el('pdDelBar').classList.toggle('on', n > 0 && document.body.classList.contains('editing')); el('pdDelN').textContent = n + ' picked'; el('pdDelGo').textContent = 'Delete'; el('pdArcGo').textContent = 'Archive ' + n; };
   paintSel();
   el('pdDelNo').onclick = () => { pdSel_.clear(); paintSel(); };
   el('pdDelGo').onclick = () => pdDelConfirm_(list.filter(r => pdSel_.has(String(r.id))));
+  el('pdArcGo').onclick = () => pdMoveConfirm_(list.filter(r => pdSel_.has(String(r.id))), true);
+  el('pdArDoor').onclick = pdArchiveOpen_;
   el('shelfPlus').addEventListener('click', e => { e.stopPropagation(); pdMenuOpen_(e.currentTarget); });
   wrap.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => { pdShow_ = b.dataset.show; render(); }));
   wrap.querySelectorAll('.pc[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit]')) return;
@@ -4425,6 +4441,64 @@ function pdDelConfirm_(L) {
     if (bad) { el('pdDelE').textContent = bad + ' could not be deleted: ' + msg; b.disabled = false; b.textContent = 'Try again'; L = L.filter(r => rows.some(x => String(x.id) === String(r.id))); return; }
     ov.classList.add('hidden'); toast('✓ Deleted ' + (n === 1 ? '1 episode' : n + ' episodes'));
   };
+}
+// ===== PD-A1 (16 Nov 2026): a hidden Podcast Archive - like the Learning Diary's (tag '__arch', no SQL) =====
+// Archived episodes keep everything but leave the shelf, show chips, count and search. Reached only in Edit: tick episodes →
+// "Archive" in the dark bar, or the "🗂 Archive" door at the end of the list (opens in place of the list, faded).
+let pdArView_ = false, pdArSel_ = new Set(), pdArQ_ = '', pdArShow_ = '';
+function pdArRows_() { return rows.filter(x => isPod_(x) && ldArch_(x)); }
+function pdLiveRows_() { return rows.filter(x => isPod_(x) && !ldArch_(x)); }
+function pdArchiveOpen_() { pdArView_ = true; pdArSel_.clear(); pdSel_.clear(); window.scrollTo(0, 0); render(); }
+function pdMoveConfirm_(L, on) {
+  if (!L.length) return;
+  const ov = pdOv_('pdMvOv'), e = escHtml, n = L.length, A = pdArRows_().length, S = pdLiveRows_().length;
+  const li = L.slice(0, 60).map(r => '<li><span>' + e(pdNum_(r.title)[0]) + '</span><i>' + e((r.type || '').trim()) + '</i></li>').join('') + (n > 60 ? '<li class="more">+ ' + (n - 60) + ' more</li>' : '');
+  ov.innerHTML = '<div class="bk-form ld-new ld-mv pd-mv"><div class="h">' + (on ? 'Send ' + n + ' to the Archive?' : 'Bring ' + n + ' back to Podcasts?') + '</div>' +
+    '<div class="nums"><div><b>' + A + '</b><span>→</span><b class="to">' + (on ? A + n : A - n) + '</b><small>IN THE ARCHIVE</small></div><div><b>' + S + '</b><span>→</span><b class="to">' + (on ? S - n : S + n) + '</b><small>ON THE SHELF</small></div></div>' +
+    '<ul class="pl">' + li + '</ul>' + (on ? '<div class="tiny" style="text-align:left">Nothing is deleted — snips, transcripts and notes stay with each episode.</div>' : '') +
+    '<div class="err" id="pdMvE"></div><div class="bk-acts"><span style="flex:1"></span><button type="button" id="pdMvNo">Cancel</button><button type="button" class="sv" id="pdMvOk">' + (on ? 'Archive ' + n : 'Move ' + n) + '</button></div></div>';
+  ov.classList.remove('hidden');
+  el('pdMvNo').onclick = () => ov.classList.add('hidden');
+  el('pdMvOk').onclick = async () => {
+    const b = el('pdMvOk'); b.disabled = true; b.textContent = 'Moving…'; ldMvErr_ = '';
+    const bad = await ldSetArch_(L, on);
+    if (bad) { el('pdMvE').textContent = (n - bad ? (n - bad) + ' moved, ' : '') + bad + ' could not be moved: ' + ldMvErr_; b.disabled = false; b.textContent = 'Try again'; L = L.filter(r => on ? !ldArch_(r) : ldArch_(r)); return; }
+    ov.classList.add('hidden'); pdSel_.clear(); pdArSel_.clear();
+    if (!on) { pdArView_ = false; pdShow_ = ''; window.scrollTo(0, 0); }
+    render();
+    toast('✓ ' + n + (n === 1 ? ' episode' : ' episodes') + (on ? ' archived' : ' back on the shelf') + ' · Archive ' + pdArRows_().length + ' · Shelf ' + pdLiveRows_().length);
+  };
+}
+function pdArchiveRender_(wrap) {
+  const e = escHtml, all = pdArRows_();
+  const shows = {}; all.forEach(r => { const v = (r.type || '').trim() || 'No show'; shows[v] = (shows[v] || 0) + 1; });
+  const names = Object.keys(shows).sort((a, b) => shows[b] - shows[a] || a.localeCompare(b));
+  if (pdArShow_ && !shows[pdArShow_]) pdArShow_ = '';
+  wrap.innerHTML = '<div class="pd-arv"><div class="ld-arbar"><button type="button" class="back" id="pdArBack">← Podcasts</button><span class="ttl">Archive</span><span class="cnt">' + all.length + ' hidden</span></div>' +
+    '<input type="text" class="ld-arq" id="pdArQ" placeholder="Search the archive…" value="' + e(pdArQ_) + '">' +
+    '<div class="pd-shows"><button type="button" data-pas=""' + (pdArShow_ ? '' : ' class="on"') + '>All ' + all.length + '</button>' + names.map(c => '<button type="button" data-pas="' + e(c) + '"' + (pdArShow_ === c ? ' class="on"' : '') + '>' + e(c) + ' <b>' + shows[c] + '</b></button>').join('') + '</div>' +
+    '<div id="pdArList" class="rows pd-list"></div>' +
+    '<div class="pd-delbar" id="pdArBar"><span id="pdArN"></span><button type="button" id="pdArNo">Cancel</button><button type="button" class="bb" id="pdArOk">Bring back</button></div></div>';
+  const paint = () => {
+    const q = pdArQ_.toLowerCase();
+    const L = all.filter(r => (!pdArShow_ || ((r.type || '').trim() || 'No show') === pdArShow_) && (!q || [r.title, r.type, r.category].join(' ').toLowerCase().includes(q) || NoteEditor.toPlain(r.note).toLowerCase().includes(q)))
+      .sort((a, b) => String(b.learned_on || b.created_at || '').localeCompare(String(a.learned_on || a.created_at || '')));
+    el('pdArList').innerHTML = L.length ? L.map(r => {
+      const show = (r.type || '').trim(), [ep, no] = pdNum_(r.title), P = bkParse_(isDoc(r.note) ? '' : (r.note || '')), on = pdArSel_.has(String(r.id));
+      const meta = [show, (r.category || '').trim(), P.hl.length ? P.hl.length + (P.hl.length === 1 ? ' snip' : ' snips') : '', pdMon_(r.learned_on)].filter(Boolean).join(' · ');
+      return '<div class="pc fd' + (on ? ' sel' : '') + '" data-pa="' + e(r.id) + '" style="--pc:#a7a2b8"><div class="pt" data-i="' + e(pdIni_(show || ep)) + '"><span class="s">' + e(show || ep) + '</span><span class="w">' + (no ? '#' + e(no) : 'EP') + '</span></div>' +
+        '<div class="pm"><div class="t">' + e(ep) + '</div>' + (meta ? '<div class="a">' + e(meta) + '</div>' : '') + '</div><span class="pd-tk' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span></div>';
+    }).join('') : '<div class="ld-arn">' + (all.length ? 'Nothing matches.' : 'The Archive is empty.') + '</div>';
+    const n = [...pdArSel_].filter(id => all.some(r => String(r.id) === id)).length;
+    el('pdArN').textContent = n + ' picked'; el('pdArOk').textContent = 'Bring back ' + n + ' →'; el('pdArBar').classList.toggle('on', n > 0);
+    el('pdArList').querySelectorAll('[data-pa]').forEach(c => c.onclick = () => { const id = c.dataset.pa; pdArSel_.has(id) ? pdArSel_.delete(id) : pdArSel_.add(id); paint(); });
+  };
+  paint();
+  el('pdArBack').onclick = () => { const pick = all.filter(r => pdArSel_.has(String(r.id))); if (pick.length) pdMoveConfirm_(pick, false); else { pdArView_ = false; render(); } };
+  el('pdArQ').oninput = ev => { pdArQ_ = ev.target.value; paint(); };
+  wrap.querySelectorAll('[data-pas]').forEach(b => b.onclick = () => { pdArShow_ = b.dataset.pas; render(); });
+  el('pdArNo').onclick = () => { pdArSel_.clear(); paint(); };
+  el('pdArOk').onclick = () => pdMoveConfirm_(all.filter(r => pdArSel_.has(String(r.id))), false);
 }
 // ---- D2: the round + opens a small menu ----
 function pdMenuOpen_(btn) {
@@ -4699,14 +4773,16 @@ async function pdMulti_(files) {
       if (it.done) { h += '<div class="pm-r"><div class="m"><b>' + e(R.ep || it.file.name) + '</b><small class="ok">✓ ' + e(it.done) + '</small></div></div>'; return; }
       const seg = (v, l) => '<button type="button" data-pmc="' + i + ':' + v + '"' + (it.choice === v ? ' class="on"' : '') + '>' + l + '</button>';
       h += '<div class="pm-r' + (it.choice === 'skip' ? ' off' : '') + '"><div class="m"><b>' + e(R.ep || it.file.name) + '</b>' + (sub ? '<small>' + sub + '</small>' : '') +
-        '<small class="' + (it.target || it.twin ? 'warn' : 'ok') + '">' + kept0(it) + ' snip' + (kept0(it) === 1 ? '' : 's') + (R.snips.some(x => x.trHtml) ? ' · ' + R.snips.filter(x => x.trHtml).length + ' transcripts' : '') + (it.target ? ' · already on your shelf · ' + it.fresh + ' new' : it.twin ? ' · same episode as another PDF here' : '') + '</small></div>' +
-        '<span class="seg">' + (it.target ? (it.fresh || it.newTr ? seg('add', it.fresh ? 'Add ' + it.fresh + ' new' : 'Add transcripts') : '') + seg('new', 'New page') : seg('new', 'New page')) + seg('skip', 'Skip') + '</span>' +
+        '<small class="' + (it.target || it.twin ? 'warn' : 'ok') + '">' + kept0(it) + ' snip' + (kept0(it) === 1 ? '' : 's') + (R.snips.some(x => x.trHtml) ? ' · ' + R.snips.filter(x => x.trHtml).length + ' transcripts' : '') + (it.target ? (ldArch_(it.target) ? ' · already in your Archive · ' : ' · already on your shelf · ') + it.fresh + ' new' : it.twin ? ' · same episode as another PDF here' : '') + '</small></div>' +
+        '<span class="seg">' + (it.target ? (it.fresh || it.newTr ? seg('add', it.fresh ? 'Add ' + it.fresh + ' new' : 'Add transcripts') : '') + seg('new', 'New page') : seg('new', 'New page') + seg('arch', 'Archive')) + seg('skip', 'Skip') + '</span>' +
         '<button type="button" class="op" data-pmr="' + i + '">Review ›</button></div>';
     });
+    h += '<div class="pm-all">Set all: <button type="button" data-pmall="new">New page</button> · <button type="button" data-pmall="arch">Archive</button> · <button type="button" data-pmall="skip">Skip</button></div>';   // PD-A1 add-on
     h += '<div class="err" id="pmE"></div><div class="bk-acts"><span style="flex:1"></span><button type="button" id="pmNo">' + (L.some(it => it.done) ? 'Close' : 'Cancel') + '</button><button type="button" class="sv" id="pmOk"' + (go.length ? '' : ' disabled') + '>Import ' + go.length + ' episode' + (go.length === 1 ? '' : 's') + '</button></div>' +
       '<div class="tiny">Tap “Review ›” on any one to pick Keep / Takeaway / Skip and the ★ first.' + (snips ? ' ' + snips + ' snips will come in.' : '') + '</div></div>';
     ov.innerHTML = h;
     ov.querySelectorAll('[data-pmc]').forEach(b => b.onclick = () => { const [i, v] = b.dataset.pmc.split(':'); L[+i].choice = v; draw(); });
+    ov.querySelectorAll('[data-pmall]').forEach(b => b.onclick = () => { const v = b.dataset.pmall; L.forEach(it => { if (it.err || it.done) return; if (v === 'skip') it.choice = 'skip'; else if (!it.target && !it.twin) it.choice = v; }); draw(); });
     ov.querySelectorAll('[data-pmr]').forEach(b => b.onclick = () => {
       const it = L[+b.dataset.pmr]; ov.classList.add('hidden');
       pdImport_(it.file, null, ok => { if (ok) it.done = 'saved after review'; ov.classList.remove('hidden'); draw(); });
@@ -4717,8 +4793,9 @@ async function pdMulti_(files) {
       for (const it of go) {
         b.textContent = 'Importing ' + (++n) + ' of ' + go.length + '…';
         if (it.choice === 'new') it.R.snips.forEach(s => { if (s.had) { s.had = false; s.act = s.rep ? 'skip' : 'keep'; } });
+        it.R.arch = it.choice === 'arch';
         const c = kept(it), ok = await pdSave_(it.R, it.choice === 'add' ? 'add' : 'new', it.choice === 'add' ? it.target : null, ov, null, true);
-        if (ok) { it.done = it.choice === 'add' ? c + ' new snips added' : 'new page · ' + c + ' snips'; sn += c; } else bad++;
+        if (ok) { it.done = it.choice === 'add' ? c + ' new snips added' : (it.R.arch ? 'archived · ' : 'new page · ') + c + ' snips'; sn += c; } else bad++;
       }
       await loadRows(); render();
       if (bad) { draw(); el('pmE').textContent = bad + ' could not be saved — try again, or open “Review ›”.'; return; }
@@ -4751,7 +4828,7 @@ async function pdSave_(R, mode, target, ov, cb, quiet) {   // quiet (PD-M2): bat
   }
   const was = bkEd_; bkEd_ = { hl, tk, lv: [], tr: trOf([]) }; const note = NoteEditor.sanitize(bkCompose_('')); bkEd_ = was;
   const title = (R.ep || 'Untitled episode').trim() + (R.no ? ' #' + R.no : '');
-  const rec = { user_id: userId, title, section: 'podcasts', url: '', source_url: '', type: (R.show || '').trim(), category: (R.guest || '').trim(), tags: [], note, essence: '', learned_on: R.date || null, updated_at: new Date().toISOString() };
+  const rec = { user_id: userId, title, section: 'podcasts', url: '', source_url: '', type: (R.show || '').trim(), category: (R.guest || '').trim(), tags: R.arch ? [LD_ARCH] : [], note, essence: '', learned_on: R.date || null, updated_at: new Date().toISOString() };
   try {
     const { data, error } = await supa.from('bookmarks').insert(rec).select(); if (error) throw error;
     const newId = (data && data[0] && data[0].id) || null; if (quiet) return true;
