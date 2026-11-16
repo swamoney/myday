@@ -455,7 +455,7 @@
   .bkp .hero .q { font-family:var(--serif); font-weight:600; font-size:1.35rem; line-height:1.35; color:var(--bc); } .bkp .hero .q em { font-style:normal; color:var(--gold); font-size:.9em; }
   .bkp .hero .s { font-size:.58rem; color:#8a97b3; margin-top:6px; }
   .bkp .take { margin-top:16px; border-top:1px dashed #cfd6e3; padding-top:12px; max-width:640px; } .bkp .take .l { font-size:.56rem; color:#8a97b3; } .bkp .take .v { font-family:var(--serif); font-style:italic; font-size:1.1rem; margin-top:4px; }
-  .bkp .sb { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 12px; } .bkp .sb button { display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid #dfe5ee; border-radius:10px; padding:8px 12px; font-family:var(--mono); font-size:.62rem; font-weight:600; letter-spacing:.12em; color:#26324a; cursor:pointer; } .bkp .sb button b { color:#8a97b3; font-weight:400; }
+  .bkp .sb { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 12px; } .bkp .sb.few { visibility:hidden; height:0; margin:12px 0 0; overflow:hidden; } .bkp .sb button { display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid #dfe5ee; border-radius:10px; padding:8px 12px; font-family:var(--mono); font-size:.62rem; font-weight:600; letter-spacing:.12em; color:#26324a; cursor:pointer; } .bkp .sb button b { color:#8a97b3; font-weight:400; }
   .bkp .facts { display:grid; grid-template-columns:repeat(3,1fr); background:#fff; border:1px solid #dfe5ee; border-radius:14px; margin-bottom:14px; } .bkp .facts > div { padding:12px 16px; border-left:1px solid #eef1f6; } .bkp .facts > div:first-child { border-left:none; } .bkp .facts .l { font-size:.54rem; color:#8a97b3; } .bkp .facts .v { font-family:var(--serif); font-size:1rem; margin-top:3px; color:#232f45; }
   .bkp .sec { background:#fffdf6; border:1px solid #ece2c4; border-radius:14px; padding:16px 20px; margin-bottom:14px; scroll-margin-top:70px; }
   /* BP-W1 (12 Nov 2026): each page wears its own shelf colour - books fade to the Bucket List blue, podcasts to soft lavender */
@@ -3225,9 +3225,10 @@ function bkRender_() {
     '<div class="cv"><div class="t">' + escHtml(r.title || '') + '</div><div class="a">' + escHtml(auth) + '</div></div></div>' +
     (heroT ? '<div class="hero"><div class="q"><em>✦</em> ' + escHtml(heroT) + ' <em>✦</em></div><div class="s mono">' + (auth ? 'IN ' + escHtml(auth.toUpperCase()) + '’S WORDS' : 'IN THE BOOK’S WORDS') + (heroRef ? ' · ' + escHtml(heroRef.toUpperCase()) : '') + '</div></div>' : '') +
     (take ? '<div class="take"><div class="l mono">MY TAKE IN ONE LINE</div><div class="v">' + escHtml(take) + '</div></div>' : '') + '</div>';
-  const S = [['hl','✍ HIGHLIGHTS',P.hl.length],['tk','💡 MY TAKEAWAYS',isPod_(r) ? P.tk.length : 0],['lv','✓ LIVED IT',P.lv.length],['nt','📝 LONG NOTE',P.notes ? '' : 0]].filter(x => x[2] !== 0);
-  if (P.any && S.length > 1) h += '<div class="sb">' + S.map(x => '<button type="button" data-go="' + x[0] + '">' + x[1] + (x[2] ? ' <b>' + x[2] + '</b>' : '') + '</button>').join('') + '</div>';
-  else h += '<div style="height:12px"></div>';
+  // BK-J1 (17 Nov 2026): the jump bar shows whenever the page has two or more sections - Chapters (added when they arrive) and the Margin quiz count too
+  const S = [['hl','✍ HIGHLIGHTS',P.hl.length],['ch','📖 CHAPTERS',isPod_(r) ? 0 : ((chCache_[r.id] || []).length || 0)],['tk','💡 MY TAKEAWAYS',isPod_(r) ? P.tk.length : 0],['lv','✓ LIVED IT',P.lv.length],['nt','📝 LONG NOTE',(P.any && P.notes) ? '' : 0],
+    ['rc', isPod_(r) ? '↻ REPLAY' : '🃏 MARGIN QUIZ', (!frHasDoc && P.hl.length >= 2) ? '' : 0]].filter(x => x[2] !== 0);
+  h += '<div class="sb' + (S.length > 1 ? '' : ' few') + '" id="bkSb">' + S.map(x => '<button type="button" data-go="' + x[0] + '">' + x[1] + (x[2] ? ' <b>' + x[2] + '</b>' : '') + '</button>').join('') + '</div>';
   const F = isPod_(r) ? pdFacts_(r) : [['AUTHOR', auth], ['KIND', kind ? (kind === 'f' ? 'Fiction' : 'Non-fiction') : ''], ['CAME FROM', from]].filter(x => x[1]);   // only what's filled in
   if (F.length) h += '<div class="facts" style="grid-template-columns:repeat(' + F.length + ',1fr)">' + F.map(x => '<div><div class="l mono">' + x[0] + '</div><div class="v">' + escHtml(x[1]) + '</div></div>').join('') + '</div>';
   const roman = ['I','II','III','IV','V','VI']; let n = 0;
@@ -3294,6 +3295,7 @@ async function chLoad_(r) {
   let L = []; try { L = await chFetch_(r.id); } catch (x) { console.error(x); }
   const box = el('bkS_ch'); if (!box || String(frId) !== String(r.id)) return; const n = box.dataset.n || '';   // the page may have re-drawn while we waited
   const ed = !!box.dataset.ed;   // BK-E1: reading shows chapters only when there are some (no ＋); the book's Edit always shows them, with ＋
+  chSbSet_(L.length);   // BK-J1
   if (!ed && !L.length) { box.classList.add('hidden'); box.innerHTML = ''; chRenumber_(box); return; }
   box.classList.remove('hidden');
   box.innerHTML = '<div class="sh"><span class="n">' + n + '</span><h3>Chapters</h3><span class="m mono">' + (L.length ? L.length + (L.length === 1 ? ' CHAPTER' : ' CHAPTERS') : 'TYPE OR FROM A PDF') + '</span>' + (ed ? '<button type="button" class="ch-add" id="chAdd">＋ Chapter</button>' : '') + '</div>' +
@@ -3305,6 +3307,14 @@ async function chLoad_(r) {
   box.querySelectorAll('[data-ch]').forEach(c => { const go = () => chOpen_(r, c.dataset.ch); c.onclick = go; c.onkeydown = ev => { if (ev.key === 'Enter') go(); }; });
   const ad = box.querySelector('#chAdd'); if (ad) ad.onclick = ev => { ev.stopPropagation(); chMenu_(r, ev.currentTarget); };
   chRenumber_(box);
+}
+function chSbSet_(n) {   // BK-J1: keep the jump bar's Chapters button in step with what loaded
+  const sb = el('bkSb'); if (!sb) return; let b = sb.querySelector('[data-go="ch"]');
+  if (!n) { if (b) b.remove(); } else {
+    if (!b) { b = document.createElement('button'); b.type = 'button'; b.dataset.go = 'ch'; const hl = sb.querySelector('[data-go="hl"]'); if (hl) hl.after(b); else sb.prepend(b);
+      b.addEventListener('click', () => { const t = el('bkS_ch'); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); }); }
+    b.innerHTML = '📖 CHAPTERS <b>' + n + '</b>'; }
+  sb.classList.toggle('few', sb.querySelectorAll('button').length < 2);
 }
 function chRenumber_(box) {   // reading page: a hidden Chapters section must not leave a gap in I, II, III…
   const pg = box && box.closest('.bkp'); if (!pg || box.dataset.ed) return; const R = ['I','II','III','IV','V','VI','VII']; let i = 0;
