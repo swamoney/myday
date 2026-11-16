@@ -211,6 +211,13 @@
   /* ===== PD-1: Podcasts - episode cards, + menu, PDF review, the podcast page ===== */
   .pd-shows { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; } .pd-shows button { border:1px solid #d7dce8; background:#fff; border-radius:999px; padding:5px 12px; font-size:.8rem; color:#3D4866; cursor:pointer; } .pd-shows button b { font-weight:500; color:#8a97b3; margin-left:2px; } .pd-shows button.on { background:#5b4a86; border-color:#5b4a86; color:#fff; } .pd-shows button.on b { color:#e6def5; }
   .pd-list { display:flex; flex-direction:column; gap:12px; }
+  /* PD-S1: the Podcasts sort menu + snip badge */
+  .pd-srt { margin-left:auto; margin-right:10px; font:500 .74rem var(--sans); letter-spacing:0; color:#5a6680; border:1px solid #d5dbe6; border-radius:999px; padding:5px 11px; background:#fff; cursor:pointer; white-space:nowrap; } .pd-srt b { color:#5b4a86; font-weight:600; }
+  .pd-srtm { position:absolute; z-index:950; width:180px; background:#fff; border-radius:12px; box-shadow:0 12px 30px rgba(10,20,40,.2); padding:6px; display:flex; flex-direction:column; } .pd-srtm.hidden { display:none; }
+  .pd-srtm button { text-align:left; border:none; background:none; font:400 .86rem var(--sans); color:#1c2331; padding:8px 10px; border-radius:8px; cursor:pointer; } .pd-srtm button.on { background:#f1edf8; color:#5b4a86; font-weight:600; } .pd-srtm button:hover { background:#f6f4fa; }
+  .pd-list .pc .pd-sb { position:absolute; top:12px; right:14px; text-align:center; font:700 1.15rem var(--serif); color:#5b4a86; line-height:1; } .pd-list .pc .pd-sb small { display:block; font:700 .42rem var(--mono); letter-spacing:.12em; color:#8a93a6; margin-top:3px; }
+  body.editing .pd-list .pc .pd-sb { display:none; }
+  .pd-arq2 { display:flex; align-items:center; gap:8px; } .pd-arq2 .ld-arq { flex:1; } .pd-arq2 .pd-srt { margin:0 0 10px; }
   /* PD-A1: the Podcast Archive */
   .pd-list + .pd-ardoor, #rowsWrap .pd-ardoor { width:100%; margin:12px 0 0; box-sizing:border-box; }
   .pd-delbar button.ar { background:#fff; color:#1c2331; border-radius:9px; } .pd-delbar button.bb { background:#c9a7ee; color:#1c2331; border-radius:9px; }
@@ -4380,10 +4387,9 @@ function renderPods_(list, wrap) {
   if (pdArView_ && document.body.classList.contains('editing')) { pdArchiveRender_(wrap); return; } pdArView_ = false;   // PD-A1
   const shows = []; list.forEach(r => { const v = (r.type || '').trim() || 'No show'; const f = shows.find(x => x[0] === v); if (f) f[1]++; else shows.push([v, 1]); });
   if (pdShow_ && !shows.find(x => x[0] === pdShow_)) pdShow_ = '';
-  const vis = list.filter(r => !pdShow_ || ((r.type || '').trim() || 'No show') === pdShow_)
-    .sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0) || String(b.learned_on || b.created_at || '').localeCompare(String(a.learned_on || a.created_at || '')));
+  const vis = pdSortList_(list.filter(r => !pdShow_ || ((r.type || '').trim() || 'No show') === pdShow_));   // PD-S1: the chosen order
   const star = '<svg viewBox="0 0 24 24" width="13" height="13" fill="#f4c430" stroke="#c99a12" stroke-width="1.2"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg>';
-  let h = '<div class="shelf-head"><span class="sh-count">' + vis.length + ' ' + (vis.length === 1 ? 'EPISODE' : 'EPISODES') + '</span><button type="button" class="sh-plus" id="shelfPlus" title="Add an episode" aria-label="Add an episode">+</button></div>';
+  let h = '<div class="shelf-head"><span class="sh-count">' + vis.length + ' ' + (vis.length === 1 ? 'EPISODE' : 'EPISODES') + '</span>' + pdSortBtn_() + '<button type="button" class="sh-plus" id="shelfPlus" title="Add an episode" aria-label="Add an episode">+</button></div>';
   if (shows.length > 1) h += '<div class="pd-shows"><button type="button" data-show=""' + (pdShow_ ? '' : ' class="on"') + '>All ' + list.length + '</button>' +
     shows.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(x => '<button type="button" data-show="' + escHtml(x[0]) + '"' + (pdShow_ === x[0] ? ' class="on"' : '') + '>' + escHtml(x[0]) + ' <b>' + x[1] + '</b></button>').join('') + '</div>';
   h += '<div class="rows pd-list">' + vis.map(r => {
@@ -4395,7 +4401,7 @@ function renderPods_(list, wrap) {
       (q ? '<div class="q">“' + escHtml(q.length > 200 ? q.slice(0, 199).replace(/\s+\S*$/, '') + '…' : q) + '”</div>' : '') +
       (bkTagsShown_(r).length ? '<div class="bk-tags">' + bkTagsShown_(r).map(t => '<span class="bk-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') + '</div>' +
       '<button class="bb-ed" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
-      '<span class="pd-tk" aria-hidden="true"></span></div>';
+      pdSnipBadge_(r) + '<span class="pd-tk" aria-hidden="true"></span></div>';
   }).join('') + '</div>';
   if (!vis.length) h += '<div class="ld-empty">' + (list.length ? 'Nothing under this show.' : 'Your shelf is empty. Tap <b>Edit</b>, then <b>Archive</b>, to bring episodes back.') + '</div>';
   const nArc = pdArRows_().length;   // PD-A1: the door to the Archive, only in Edit
@@ -4411,6 +4417,7 @@ function renderPods_(list, wrap) {
   el('pdDelGo').onclick = () => pdDelConfirm_(list.filter(r => pdSel_.has(String(r.id))));
   el('pdArcGo').onclick = () => pdMoveConfirm_(list.filter(r => pdSel_.has(String(r.id))), true);
   el('pdArDoor').onclick = pdArchiveOpen_;
+  pdSortWire_(wrap);
   el('shelfPlus').addEventListener('click', e => { e.stopPropagation(); pdMenuOpen_(e.currentTarget); });
   wrap.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => { pdShow_ = b.dataset.show; render(); }));
   wrap.querySelectorAll('.pc[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit]')) return;
@@ -4475,30 +4482,56 @@ function pdArchiveRender_(wrap) {
   const names = Object.keys(shows).sort((a, b) => shows[b] - shows[a] || a.localeCompare(b));
   if (pdArShow_ && !shows[pdArShow_]) pdArShow_ = '';
   wrap.innerHTML = '<div class="pd-arv"><div class="ld-arbar"><button type="button" class="back" id="pdArBack">← Podcasts</button><span class="ttl">Archive</span><span class="cnt">' + all.length + ' hidden</span></div>' +
-    '<input type="text" class="ld-arq" id="pdArQ" placeholder="Search the archive…" value="' + e(pdArQ_) + '">' +
+    '<div class="pd-arq2"><input type="text" class="ld-arq" id="pdArQ" placeholder="Search the archive…" value="' + e(pdArQ_) + '">' + pdSortBtn_() + '</div>' +
     '<div class="pd-shows"><button type="button" data-pas=""' + (pdArShow_ ? '' : ' class="on"') + '>All ' + all.length + '</button>' + names.map(c => '<button type="button" data-pas="' + e(c) + '"' + (pdArShow_ === c ? ' class="on"' : '') + '>' + e(c) + ' <b>' + shows[c] + '</b></button>').join('') + '</div>' +
     '<div id="pdArList" class="rows pd-list"></div>' +
     '<div class="pd-delbar" id="pdArBar"><span id="pdArN"></span><button type="button" id="pdArNo">Cancel</button><button type="button" class="bb" id="pdArOk">Bring back</button></div></div>';
   const paint = () => {
     const q = pdArQ_.toLowerCase();
     const L = all.filter(r => (!pdArShow_ || ((r.type || '').trim() || 'No show') === pdArShow_) && (!q || [r.title, r.type, r.category].join(' ').toLowerCase().includes(q) || NoteEditor.toPlain(r.note).toLowerCase().includes(q)))
-      .sort((a, b) => String(b.learned_on || b.created_at || '').localeCompare(String(a.learned_on || a.created_at || '')));
+    pdSortList_(L);
     el('pdArList').innerHTML = L.length ? L.map(r => {
       const show = (r.type || '').trim(), [ep, no] = pdNum_(r.title), P = bkParse_(isDoc(r.note) ? '' : (r.note || '')), on = pdArSel_.has(String(r.id));
       const meta = [show, (r.category || '').trim(), P.hl.length ? P.hl.length + (P.hl.length === 1 ? ' snip' : ' snips') : '', pdMon_(r.learned_on)].filter(Boolean).join(' · ');
       return '<div class="pc fd' + (on ? ' sel' : '') + '" data-pa="' + e(r.id) + '" style="--pc:#a7a2b8"><div class="pt" data-i="' + e(pdIni_(show || ep)) + '"><span class="s">' + e(show || ep) + '</span><span class="w">' + (no ? '#' + e(no) : 'EP') + '</span></div>' +
-        '<div class="pm"><div class="t">' + e(ep) + '</div>' + (meta ? '<div class="a">' + e(meta) + '</div>' : '') + '</div><span class="pd-tk' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span></div>';
+        '<div class="pm"><div class="t">' + e(ep) + '</div>' + (meta ? '<div class="a">' + e(meta) + '</div>' : '') + '</div>' + pdSnipBadge_(r) + '<span class="pd-tk' + (on ? ' on' : '') + '">' + (on ? '✓' : '') + '</span></div>';
     }).join('') : '<div class="ld-arn">' + (all.length ? 'Nothing matches.' : 'The Archive is empty.') + '</div>';
     const n = [...pdArSel_].filter(id => all.some(r => String(r.id) === id)).length;
     el('pdArN').textContent = n + ' picked'; el('pdArOk').textContent = 'Bring back ' + n + ' →'; el('pdArBar').classList.toggle('on', n > 0);
     el('pdArList').querySelectorAll('[data-pa]').forEach(c => c.onclick = () => { const id = c.dataset.pa; pdArSel_.has(id) ? pdArSel_.delete(id) : pdArSel_.add(id); paint(); });
   };
   paint();
+  pdSortWire_(wrap);
   el('pdArBack').onclick = () => { const pick = all.filter(r => pdArSel_.has(String(r.id))); if (pick.length) pdMoveConfirm_(pick, false); else { pdArView_ = false; render(); } };
   el('pdArQ').oninput = ev => { pdArQ_ = ev.target.value; paint(); };
   wrap.querySelectorAll('[data-pas]').forEach(b => b.onclick = () => { pdArShow_ = b.dataset.pas; render(); });
   el('pdArNo').onclick = () => { pdArSel_.clear(); paint(); };
   el('pdArOk').onclick = () => pdMoveConfirm_(all.filter(r => pdArSel_.has(String(r.id))), false);
+}
+// ===== PD-S1 (16 Nov 2026): sort the Podcasts shelf - Newest (default) / Most snips / Fewest snips / Oldest / A–Z =====
+// Remembered on this device; starred episodes stay on top in every order; the Archive uses the same order.
+const PD_SORTS = [['new', 'Newest first'], ['most', 'Most snips'], ['few', 'Fewest snips'], ['old', 'Oldest first'], ['az', 'A – Z']];
+let pdSort_ = (() => { try { const v = localStorage.getItem('pdSort'); return PD_SORTS.some(x => x[0] === v) ? v : 'new'; } catch (e) { return 'new'; } })();
+function pdSnipN_(r) { return bkParse_(isDoc(r.note) ? '' : (r.note || '')).hl.length; }
+function pdSortList_(L) {
+  const n = new Map(), d = r => String(r.learned_on || r.created_at || ''), c = r => { if (!n.has(r)) n.set(r, pdSnipN_(r)); return n.get(r); };
+  const by = { new: (a, b) => d(b).localeCompare(d(a)), old: (a, b) => d(a).localeCompare(d(b)), most: (a, b) => c(b) - c(a) || d(b).localeCompare(d(a)),
+    few: (a, b) => c(a) - c(b) || d(b).localeCompare(d(a)), az: (a, b) => pdNum_(a.title)[0].localeCompare(pdNum_(b.title)[0], undefined, { sensitivity: 'base' }) }[pdSort_] || ((a, b) => d(b).localeCompare(d(a)));
+  return L.sort((a, b) => (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0) || by(a, b));
+}
+function pdSnipBadge_(r) { if (pdSort_ !== 'most' && pdSort_ !== 'few') return ''; const k = pdSnipN_(r); return '<span class="pd-sb">' + k + '<small>' + (k === 1 ? 'SNIP' : 'SNIPS') + '</small></span>'; }
+function pdSortBtn_() { const cur = (PD_SORTS.find(x => x[0] === pdSort_) || PD_SORTS[0])[1]; return '<button type="button" class="pd-srt" data-srt>Sort: <b>' + escHtml(cur.replace(' first', '')) + '</b> ▾</button>'; }
+function pdSortWire_(wrap) {
+  wrap.querySelectorAll('[data-srt]').forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); let m = el('pdSortMenu');
+    if (!m) { m = document.createElement('div'); m.id = 'pdSortMenu'; m.className = 'pd-srtm hidden'; document.body.appendChild(m);
+      document.addEventListener('click', e => { if (!e.target.closest('#pdSortMenu')) m.classList.add('hidden'); }); }
+    if (!m.classList.contains('hidden')) { m.classList.add('hidden'); return; }
+    m.innerHTML = PD_SORTS.map(x => '<button type="button" data-so="' + x[0] + '"' + (x[0] === pdSort_ ? ' class="on"' : '') + '>' + (x[0] === pdSort_ ? '✓ ' : '') + x[1] + '</button>').join('');
+    const rc = b.getBoundingClientRect(); m.style.top = (rc.bottom + window.scrollY + 6) + 'px'; m.style.left = Math.max(8, Math.min(rc.right + window.scrollX - 180, window.innerWidth - 188)) + 'px';
+    m.classList.remove('hidden');
+    m.querySelectorAll('[data-so]').forEach(o => o.onclick = () => { pdSort_ = o.dataset.so; try { localStorage.setItem('pdSort', pdSort_); } catch (e) {} m.classList.add('hidden'); render(); });
+  });
 }
 // ---- D2: the round + opens a small menu ----
 function pdMenuOpen_(btn) {
