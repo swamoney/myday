@@ -5113,7 +5113,7 @@ function ldShareCanvas_(r, qr) {   // qr (LD-Q2): { m: module matrix, host } whe
 async function ldShareOpen_(id) {
   const r = rows.find(x => String(x.id) === String(id)); if (!r) return;
   try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
-  const url = String(r.url || '').trim(); let qr = null;
+  const url = String(r.source_url || r.url || '').trim(); let qr = null;   // the diary keeps its reference link in source_url (Notion's Link); url is the older 'also' link
   if (/^https?:\/\//i.test(url) || /^[\w-]+(\.[\w-]+)+(\/|$)/.test(url)) {   // LD-Q2: a link → a QR code in the picture
     const full = /^https?:/i.test(url) ? url : 'https://' + url;
     try { const lib = await ldQrLib_(); const q = lib(0, 'M'); q.addData(full); q.make(); const n = q.getModuleCount(), m = [];
