@@ -2619,9 +2619,15 @@ let ldOpenAfterLoad_ = (() => { try { return new URLSearchParams(location.search
 async function loadRows() {
   ldThree_ = null;
   try {
-    const { data, error } = await supa.from('bookmarks').select('*').eq('user_id', userId).order('created_at', { ascending: false });
-    if (error) throw error;
-    rows = (data || []).map(r => ({ ...r, tags: parseTags(r.tags) }));
+    // LOAD-ALL (16 Nov 2026): Supabase hands back at most 1,000 rows per ask, so read in pages until the last one comes back short.
+    // (One ask silently dropped the OLDEST rows - Now Playing, Wisdom Library - once the library passed 1,000 rows.)
+    const data = [], PG = 1000;
+    for (let from = 0; ; from += PG) {
+      const { data: d, error } = await supa.from('bookmarks').select('*').eq('user_id', userId).order('created_at', { ascending: false }).order('id', { ascending: true }).range(from, from + PG - 1);
+      if (error) throw error;
+      data.push(...(d || [])); if (!d || d.length < PG) break;
+    }
+    rows = data.map(r => ({ ...r, tags: parseTags(r.tags) }));
     render();
   if (ldOpenAfterLoad_) { const id = ldOpenAfterLoad_; ldOpenAfterLoad_ = null; const r0 = rows.find(x => String(x.id) === String(id)); if (r0) { activeSection = secOf(r0); render(); openReader(r0.id); } }
   } catch (e) {
