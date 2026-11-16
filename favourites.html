@@ -1660,6 +1660,12 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
 .bb-list .bb{background:linear-gradient(160deg,color-mix(in srgb,var(--bw) 9%,#fff),#fff 70%);border:1px solid color-mix(in srgb,var(--bw) 22%,#fff);border-left:6px solid var(--bw);border-radius:5px 16px 16px 5px;position:relative;box-shadow:0 2px 8px rgba(20,30,60,.04)}
   .bb-list .bb::after{content:'';position:absolute;right:-1px;top:12px;bottom:12px;width:5px;border-radius:0 3px 3px 0;background:repeating-linear-gradient(180deg,#fff 0 2px,#d9dee7 2px 3px);border:1px solid #d9dee7;border-left:none}
   .bb-list .bb .bb-q{border-left-color:color-mix(in srgb,var(--bw) 35%,#fff)}
+  /* FV-1 (17 Nov 2026, F1): My Favourites (was Now Playing) wears Music's single cards, one colour per kind (--k = the kind heading's colour); e-books ↗ */
+  .fv-list { display:flex; flex-direction:column; gap:8px; margin-bottom:6px; }
+  .fv-c.mu-xc { --xa:var(--k); --xw:color-mix(in srgb, var(--k) 9%, #fff); }
+  .fv-c .mu-xs, .fv-c .mu-xl { min-width:0; }
+  .fv-c .row-edit { grid-column:2; grid-row:1; }
+  .fv-c.lk-editing { display:block; cursor:default; }
 </style>
 </head>
 <body>
@@ -1702,7 +1708,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
       </div>
 
       <div class="fav-seg" id="favSeg">
-        <span data-sec="all-time" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 14.6 8.6 21 9.3 16.3 13.6 17.6 20 12 16.8 6.4 20 7.7 13.6 3 9.3 9.4 8.6"/></svg><i class="sl">Now Playing</i></span>
+        <span data-sec="all-time" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 14.6 8.6 21 9.3 16.3 13.6 17.6 20 12 16.8 6.4 20 7.7 13.6 3 9.3 9.4 8.6"/></svg><i class="sl">My Favourites</i></span>
         <span data-sec="books"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h3.2v16H4zM9 4h3.2v16H9z"/><path d="m14.6 4.6 3.3-.7 3 15.7-3.3.7z"/></svg><i class="sl">Books</i></span>
         <span data-sec="podcasts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M8.8 8.8a4.6 4.6 0 0 0 0 6.4M15.2 8.8a4.6 4.6 0 0 1 0 6.4M5.9 5.9a8.8 8.8 0 0 0 0 12.2M18.1 5.9a8.8 8.8 0 0 1 0 12.2"/></svg><i class="sl">Podcasts</i></span>
         <span data-sec="marathi"><svg viewBox="0 0 24 24"><text x="12" y="17.5" text-anchor="middle" font-size="16" font-weight="600" fill="currentColor" font-family="Noto Sans Devanagari, sans-serif">म</text></svg><i class="sl">मराठी</i></span>
@@ -1875,7 +1881,7 @@ const SEC_THEMES = {
 };
 // LR-3: each shelf's own door - the words on the dashed way in at index end.
 const SHELF_DOORS = {
-  'all-time': 'Keep a link',
+  'all-time': 'Keep a favourite',   // FV-1
   'music':    'Add a song or playlist',
   'books':    'New book note',
   'podcasts': 'New podcast note',
@@ -1926,7 +1932,7 @@ function lkTags_(v) { const out = []; String(v || '').split(',').forEach(t => { 
 function _rowInlineEdit(rowEl, id) {
   const r = rows.find(x => String(x.id) === String(id));
   if (!r || !rowEl) return;
-  const isLk = rowEl.classList.contains('lk-row');   // LK-S2: links get the kind chips + tags
+  const isLk = rowEl.classList.contains('lk-row') || rowEl.classList.contains('fv-c');   // FV-1: the favourite card too   // LK-S2: links get the kind chips + tags
   rowEl.innerHTML =
     '<div class="door-form" style="width:100%;">' +
     '<input type="text" class="door-in grow" id="rieT" value="' + escHtml(r.title || '') + '">' +
@@ -2645,7 +2651,7 @@ async function _doorCreate(sec, two) {
 }
 const SECTIONS = {
   // A (Aug 2026): renamed from 'All-Time'; the 'all-time' KEY is law and never changes.
-  'all-time': { lbl:'Now Playing', kind:'links' },   // LK-C (11 Nov 2026): was 'My Favourite Links' / chip 'Links'
+  'all-time': { lbl:'My Favourites', kind:'links' },   // FV-1 (17 Nov 2026): was 'Now Playing'   // LK-C (11 Nov 2026): was 'My Favourite Links' / chip 'Links'
   'books':    { lbl:'Books', kind:'notes', srcReq:false, eyebrow:'Book note' },
   'podcasts': { lbl:'Podcasts', kind:'notes', srcReq:false, eyebrow:'Podcast note' },
   'marathi':  { lbl:'\u092e\u0930\u093e\u0920\u0940', kind:'notes', srcReq:false, eyebrow:'\u092e\u0930\u093e\u0920\u0940' },
@@ -2886,7 +2892,7 @@ function render() {
 }
 function _shelfNoun_(sec, n) {
   if (sec === 'movies') return n === 1 ? 'MOVIE / SHOW' : 'MOVIES / SHOWS';   // MV-1
-  const one = { 'all-time': 'link', books: 'book', podcasts: 'podcast', marathi: 'note', movies: 'movie / show', music: 'song', wisdom: 'page', learning: 'learning', lenses: 'lens' }[sec] || 'item';
+  const one = { 'all-time': 'favourite', books: 'book', podcasts: 'podcast', marathi: 'note', movies: 'movie / show', music: 'song', wisdom: 'page', learning: 'learning', lenses: 'lens' }[sec] || 'item';
   return (n === 1 ? one : one + (one === 'lens' ? 'es' : 's')).toUpperCase();
 }
 function _wirePlus_() {
@@ -2999,31 +3005,29 @@ function render_() {
     if (lkKind_ !== 'all' && lkKind_ !== k) return;
     const g = list.filter(r => lkKindOf_(r.type) === k); if (!g.length) return;   // list is already ★-first
     const K = LK_KINDS[k];
-    html += '<div class="lk-gh" style="--kc:' + npHue_(k)[2] + '"><i>' + K.i + '</i>' + K.p.toUpperCase() + '<b>' + g.length + '</b></div><div class="lk-grid2">' +
-      g.map(r => {
-        const tagsHtml = (r.tags || []).slice(0, 2).map(t => '<span class="lk-tag">' + escHtml(t) + '</span>').join('');
-        const app = lkAppOf_(r.url);
-        return '<div class="lk-row row-lk' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '" style="--kc:' + K.c + ';--kb:' + K.kb + ';' + npVars_(k) + '">' +
-          '<div class="lk-ic">' + K.i + '</div>' +
-          '<div class="lk-mid"><div class="lk-t">' + escHtml(r.title) + '</div><div class="lk-m">' +
-            '<span class="lk-kind">' + escHtml(r.type || K.l) + '</span>' + (app ? '<span class="lk-app">' + escHtml(app) + '</span>' : '') + tagsHtml + '</div></div>' +
-          (r.favourite ? '<span class="lk-star">' + LK_STAR + '</span>' : '') +
+    html += '<div class="lk-gh" style="--kc:' + npHue_(k)[2] + '"><i>' + K.i + '</i>' + K.p.toUpperCase() + '<b>' + g.length + '</b></div><div class="mu-list open fv-list">' +
+      g.map(r => {   // FV-1 (17 Nov 2026, F1): Music's single card - name, the app in handwriting, tags as tiny chips, a small round ▶ - in the kind's colour
+        const tg = (r.tags || []).filter(Boolean), app = lkAppOf_(r.url);
+        return '<div class="mu-xc mu-xs fv-c' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '" style="--k:' + npHue_(k)[2] + '">' +
+          '<div class="mu-xl"><span class="mu-xnm">' + escHtml(r.title) + (r.favourite ? '<span class="mu-star">★</span>' : '') + '</span>' +
+          (app ? '<span class="mu-xfv">' + escHtml(app) + '</span>' : '') +
+          (tg.length ? '<span class="mu-xtg">' + tg.map(x => '<i>' + escHtml(x) + '</i>').join('') + '</span>' : '') + '</div>' +
+          '<span class="mu-seal" aria-hidden="true" title="' + K.a + '"><i>' + (K.a === 'READ' || K.a === 'OPEN' ? '↗' : '▶') + '</i></span>' +
           '<button type="button" class="row-edit" data-edit="' + escHtml(r.id) + '" title="Edit" aria-label="Edit">' + FR_PEN + '</button>' +
-          '<span class="lk-go">' + (K.a === 'READ' || K.a === 'OPEN' ? '' : '▶ ') + K.a + '</span>' +
         '</div>';
       }).join('') + '</div>';
   });
   html += '</div>';
   wrap.innerHTML = html;
   wrap.querySelectorAll('.lk-k[data-lkk]').forEach(c => c.addEventListener('click', () => { lkKind_ = c.dataset.lkk; render(); }));
-  wrap.querySelectorAll('.lk-row[data-id]').forEach(row => {
+  wrap.querySelectorAll('.fv-c[data-id]').forEach(row => {
     row.addEventListener('click', e => {
       if (e.target.closest('[data-edit]') || row.classList.contains('lk-editing')) return;
       const r = rows.find(x => x.id === row.dataset.id); if (r) openLink(r.url);
     });
   });
-  wrap.querySelectorAll('.lk-row .row-edit').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); const row = btn.closest('.lk-row'); row.classList.add('lk-editing'); _rowInlineEdit(row, btn.dataset.edit); });
+  wrap.querySelectorAll('.fv-c .row-edit').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); const row = btn.closest('.fv-c'); row.classList.add('lk-editing'); _rowInlineEdit(row, btn.dataset.edit); });
   });
   _appendShelfDoor(wrap);
 }
