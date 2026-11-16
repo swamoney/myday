@@ -5058,7 +5058,7 @@ async function prShareSheet_(out, head) {   // the one share sheet (podcasts, bo
 }
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-shr]'); if (!b) return; ev.stopPropagation(); pdShareOpen_(+b.dataset.shr); }, true);
 // ===== LD-S1 (16 Nov 2026): share one diary learning as a picture - its heading only (never the page's notes) =====
-function ldShareCanvas_(r) {
+function ldShareCanvas_(r, qr) {   // qr (LD-Q2): { m: module matrix, host } when the learning has a link
   const box = document.createElement('div'); box.innerHTML = (r.title || '').trim() ? ldHeadView_(r) : escHtml(ldFirstLine_(r).first || '');
   const blocks = [];   // the heading as blocks: paragraphs (centred italic), list items (a left list), quotes
   const walk = n => { [...n.childNodes].forEach(ch => {
@@ -5079,7 +5079,7 @@ function ldShareCanvas_(r) {
   const iso = ldDate_(r), dt = new Date(iso + 'T00:00:00'), when = isNaN(dt) ? '' : dt.getDate() + ' ' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + ' ' + dt.getFullYear();
   const sub = [when, ldCats_(r).join(' · ')].filter(Boolean).join(' · ');
   const bodyH = L.reduce((a, b, j) => a + b.lines.length * (b.k === 'li' ? 24 : 32) + (j ? (b.k === 'li' && L[j - 1].k === 'li' ? 4 : 10) : 0), 0);
-  const h = PAD + IN + 10 + bodyH + 22 + (sub ? 22 : 0) + 24 + IN + PAD + (star ? 10 : 0);
+  const QS = 92, h = PAD + IN + 10 + bodyH + 22 + (sub ? 22 : 0) + (qr ? 14 + QS + 20 : 0) + 24 + IN + PAD + (star ? 10 : 0);
   cv.width = W * S; cv.height = h * S; c.scale(S, S); c.fillStyle = '#fff'; c.fillRect(0, 0, W, h);
   const rr = (x, y, w, hh, rad) => { c.beginPath(); c.moveTo(x + rad, y); c.arcTo(x + w, y, x + w, y + hh, rad); c.arcTo(x + w, y + hh, x, y + hh, rad); c.arcTo(x, y + hh, x, y, rad); c.arcTo(x, y, x + w, y, rad); c.closePath(); };
   const top = PAD + (star ? 10 : 0), mix = a => { c.globalAlpha = a; };
@@ -5101,6 +5101,11 @@ function ldShareCanvas_(r) {
   });
   y += 16; c.setLineDash([4, 4]); c.strokeStyle = star ? '#e6cf86' : ink; mix(.5); c.beginPath(); c.moveTo(PAD + IN + 20, y); c.lineTo(W - PAD - IN - 20, y); c.stroke(); mix(1); c.setLineDash([]);
   if (sub) { y += 22; c.font = F.sh; c.fillStyle = '#5a6680'; c.fillText(sub, W / 2, y); }
+  if (qr) {   // LD-Q2: the source as a QR code, centred, with "SCAN FOR THE SOURCE · website" under it
+    y += 14; const n = qr.m.length, cell = Math.floor(QS / n * 100) / 100, sz = cell * n, x0 = (W - sz) / 2;
+    c.fillStyle = '#1c2331'; for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) if (qr.m[a][b]) c.fillRect(x0 + b * cell, y + a * cell, cell + .3, cell + .3);
+    y += QS + 16; c.font = F.mk; c.fillStyle = '#8a93a6'; c.letterSpacing = '1px'; c.fillText('SCAN FOR THE SOURCE \u00B7 ' + qr.host, W / 2, y); c.letterSpacing = '0px';
+  }
   c.font = F.mk; c.fillStyle = '#a3abbd'; c.fillText('MY LEARNING DIARY', W / 2, h - PAD - IN + 6);
   const first = blocks[0].t;
   return { cv, name: (first.replace(/[^\w\- ]+/g, '').trim().slice(0, 36).replace(/\s+/g, '-') || 'learning') + '.png' };
@@ -5108,7 +5113,22 @@ function ldShareCanvas_(r) {
 async function ldShareOpen_(id) {
   const r = rows.find(x => String(x.id) === String(id)); if (!r) return;
   try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
-  prShareSheet_(ldShareCanvas_(r), 'Share this learning');
+  const url = String(r.url || '').trim(); let qr = null;
+  if (/^https?:\/\//i.test(url) || /^[\w-]+(\.[\w-]+)+(\/|$)/.test(url)) {   // LD-Q2: a link → a QR code in the picture
+    const full = /^https?:/i.test(url) ? url : 'https://' + url;
+    try { const lib = await ldQrLib_(); const q = lib(0, 'M'); q.addData(full); q.make(); const n = q.getModuleCount(), m = [];
+      for (let a = 0; a < n; a++) { m.push([]); for (let b = 0; b < n; b++) m[a].push(q.isDark(a, b)); }
+      let host = ''; try { host = new URL(full).hostname.replace(/^www\./, ''); } catch (e) {}
+      qr = { m, host };
+    } catch (e) { console.warn('QR maker did not load - sharing without the code', e); toast('No internet for the QR code - shared without it'); }
+  }
+  prShareSheet_(ldShareCanvas_(r, qr), 'Share this learning');
+}
+let ldQrP_ = null;
+function ldQrLib_() {   // LD-Q2: a small QR maker, fetched once on the first share with a link (like the PDF reader)
+  if (window.qrcode) return Promise.resolve(window.qrcode);
+  return ldQrP_ || (ldQrP_ = new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+    s.onload = () => window.qrcode ? ok(window.qrcode) : no(new Error('no qrcode')); s.onerror = () => { ldQrP_ = null; no(new Error('qr maker did not load')); }; document.head.appendChild(s); }));
 }
 document.addEventListener('click', ev => { const b = ev.target.closest('[data-ldsh]'); if (!b) return; ev.stopPropagation(); ev.preventDefault(); ldShareOpen_(b.dataset.ldsh); }, true);
 
