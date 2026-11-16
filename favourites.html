@@ -211,6 +211,17 @@
   /* ===== PD-1: Podcasts - episode cards, + menu, PDF review, the podcast page ===== */
   .pd-shows { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; } .pd-shows button { border:1px solid #d7dce8; background:#fff; border-radius:999px; padding:5px 12px; font-size:.8rem; color:#3D4866; cursor:pointer; } .pd-shows button b { font-weight:500; color:#8a97b3; margin-left:2px; } .pd-shows button.on { background:#5b4a86; border-color:#5b4a86; color:#fff; } .pd-shows button.on b { color:#e6def5; }
   .pd-list { display:flex; flex-direction:column; gap:12px; }
+  /* PD-D2: tick episodes in Edit, delete together */
+  .pd-list .pc .pd-tk { display:none; } body.editing .pd-list .pc .pd-tk { display:flex; position:absolute; top:13px; right:50px; width:26px; height:26px; border-radius:50%; border:1.5px solid #c9cfdc; background:#fff; color:#fff; align-items:center; justify-content:center; font-size:.8rem; box-sizing:border-box; }
+  body.editing .pd-list .pc .pd-tk.on { background:#5b4a86; border-color:#5b4a86; } body.editing .pd-list .pc.sel { border-color:#5b4a86; box-shadow:0 0 0 1px #5b4a86; }
+  body.editing .pd-list .pc .pm { padding-right:76px; }
+  .pd-delbar { display:none; } .pd-delbar.on { display:flex; align-items:center; gap:8px; position:fixed; left:50%; transform:translateX(-50%); bottom:calc(16px + env(safe-area-inset-bottom, 0px)); width:min(560px, calc(100% - 24px)); z-index:900; background:#1c2331; color:#fff; border-radius:12px; padding:10px 12px; font-size:.85rem; box-shadow:0 8px 20px rgba(10,20,40,.25); box-sizing:border-box; }
+  .pd-delbar span { flex:1; } .pd-delbar button { border:none; background:none; color:#cfd5e1; font:600 .8rem var(--sans); padding:8px 10px; cursor:pointer; } .pd-delbar button.rd, .pd-delpop .bk-acts .rd { background:#c0392b; border-color:#c0392b; color:#fff; border-radius:9px; }
+  .pd-list:has(+ .pd-delbar.on) { padding-bottom:70px; }
+  .pd-delpop ul { list-style:none; margin:12px 0 6px; padding:0; max-height:40vh; overflow:auto; border:1px solid #eceff4; border-radius:10px; } .pd-delpop li { padding:9px 12px; border-top:1px solid #f1f3f7; } .pd-delpop li:first-child { border-top:none; }
+  .pd-delpop li b { display:block; font:600 .95rem var(--serif); } .pd-delpop li small { font-size:.74rem; color:#5a6680; } .pd-delpop .warn { color:#9a2a2a; font-size:.84rem; margin:6px 0 2px; }
+  .pd-delpop .err:not(:empty) { margin-top:8px; background:#fdecec; color:#9a2a2a; border-radius:8px; padding:8px 10px; font-size:.8rem; }
+
   .pd-list .pc { position:relative; display:flex; gap:20px; background:linear-gradient(90deg, color-mix(in srgb, var(--pc) 6%, #fff), #fff 45%); border:1px solid #e3e8f0; border-radius:16px; padding:16px; cursor:pointer; }
   .pd-list .pt { flex:0 0 108px; width:108px; height:108px; border-radius:16px; background:linear-gradient(135deg, color-mix(in srgb, var(--pc) 80%, #fff), var(--pc) 60%, color-mix(in srgb, var(--pc) 70%, #000)); color:#fff; padding:11px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 8px 18px rgba(20,25,40,.18); position:relative; overflow:hidden; }
   .pd-list .pt::after { content:''; position:absolute; right:-20px; bottom:-20px; width:70px; height:70px; border-radius:50%; border:2px solid rgba(255,255,255,.25); box-shadow:0 0 0 10px rgba(255,255,255,.07); }
@@ -749,6 +760,8 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp .rc-stack.sn .tt2 span { text-decoration:underline; text-decoration-color:color-mix(in srgb, var(--mti) 70%, #fff); text-decoration-thickness:1.5px; text-underline-offset:5px; }
   body.fr-pod .bkp .rc-ctl.lr { max-width:none; margin:22px 10px 0; }
   @media (max-width:640px) { .bkp .rc-stack.sn { height:260px; } }
+  /* RP-R1 (16 Nov 2026): a podcast Replay card grows to fit its text - the top card sets the height, the two behind follow */
+  .bkp .rcs .rc-stack.sn { height:auto !important; min-height:200px; } .bkp .rc-stack.sn .rc-ic:not(.b1):not(.b2) { position:relative; inset:auto; min-height:200px; box-sizing:border-box; }
   /* P1 (12 Nov 2026): designed print for book and podcast pages */
   @media print {
     body.bk-print { background:#fff !important; } body.bk-print * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
@@ -4202,6 +4215,7 @@ function _libToggleEditing() {
   var t = el('editToggleTop'); if (t) t.textContent = on ? 'Done' : 'Edit';
   if (activeSection === 'music' && typeof muWide_ === 'function' && muWide_()) render();   // MU-3: desktop Music re-splits its two columns for Edit
   if (activeSection === 'learning' && !on && ldArView_) { ldArView_ = false; render(); }   // LD-R1: Done closes the Archive
+  if (activeSection === 'podcasts' && typeof pdSel_ !== 'undefined') { pdSel_.clear(); render(); }   // PD-D2: picks live only inside Edit
   return on;
 }
 el('editToggleTop').addEventListener('click', _libToggleEditing);
@@ -4363,14 +4377,48 @@ function renderPods_(list, wrap) {
       '<div class="pm"><div class="t">' + escHtml(ep) + (r.favourite ? ' ' + star : '') + '</div>' + (meta ? '<div class="a">' + escHtml(meta) + '</div>' : '') +
       (q ? '<div class="q">“' + escHtml(q.length > 200 ? q.slice(0, 199).replace(/\s+\S*$/, '') + '…' : q) + '”</div>' : '') +
       (bkTagsShown_(r).length ? '<div class="bk-tags">' + bkTagsShown_(r).map(t => '<span class="bk-tag">' + escHtml(t) + '</span>').join('') + '</div>' : '') + '</div>' +
-      '<button class="bb-ed" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button></div>';
+      '<button class="bb-ed" data-edit="' + escHtml(r.id) + '" type="button" aria-label="Edit">' + FR_PEN + '</button>' +
+      '<span class="pd-tk" aria-hidden="true"></span></div>';
   }).join('') + '</div>';
+  h += '<div class="pd-delbar" id="pdDelBar"><span id="pdDelN"></span><button type="button" id="pdDelNo">Cancel</button><button type="button" class="rd" id="pdDelGo">Delete</button></div>';
   wrap.innerHTML = h;
+  // PD-D2 (16 Nov 2026): in Edit, tapping an episode ticks it; the dark bar deletes the ticked ones (after a confirm popup)
+  const paintSel = () => { [...pdSel_].forEach(id => { if (!list.some(r => String(r.id) === id)) pdSel_.delete(id); });
+    wrap.querySelectorAll('.pc[data-open]').forEach(c => { const on = pdSel_.has(String(c.dataset.open)); c.classList.toggle('sel', on); const t = c.querySelector('.pd-tk'); t.classList.toggle('on', on); t.textContent = on ? '✓' : ''; });
+    const n = pdSel_.size; el('pdDelBar').classList.toggle('on', n > 0 && document.body.classList.contains('editing')); el('pdDelN').textContent = n + ' picked'; el('pdDelGo').textContent = 'Delete ' + n; };
+  paintSel();
+  el('pdDelNo').onclick = () => { pdSel_.clear(); paintSel(); };
+  el('pdDelGo').onclick = () => pdDelConfirm_(list.filter(r => pdSel_.has(String(r.id))));
   el('shelfPlus').addEventListener('click', e => { e.stopPropagation(); pdMenuOpen_(e.currentTarget); });
   wrap.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => { pdShow_ = b.dataset.show; render(); }));
-  wrap.querySelectorAll('.pc[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit]')) return; openReader(c.dataset.open); }));
+  wrap.querySelectorAll('.pc[data-open]').forEach(c => c.addEventListener('click', e => { if (e.target.closest('[data-edit]')) return;
+    if (document.body.classList.contains('editing')) { const id = String(c.dataset.open); pdSel_.has(id) ? pdSel_.delete(id) : pdSel_.add(id); paintSel(); return; }
+    openReader(c.dataset.open); }));
   wrap.querySelectorAll('.pc .bb-ed').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openReader(b.dataset.edit, false, true); setFrEditing(true); }));
   _appendShelfDoor(wrap);
+}
+let pdSel_ = new Set();
+function pdDelConfirm_(L) {
+  if (!L.length) return;
+  const ov = pdOv_('pdDelOv'), e = escHtml, n = L.length;
+  const li = L.map(r => { const P = bkParse_(isDoc(r.note) ? '' : (r.note || '')), bits = [P.hl.length ? P.hl.length + (P.hl.length === 1 ? ' snip' : ' snips') : '', P.tr.length ? P.tr.length + (P.tr.length === 1 ? ' transcript' : ' transcripts') : '', P.tk.length ? P.tk.length + ' takeaways' : '', P.notes ? 'notes' : ''].filter(Boolean);
+    return '<li><b>' + e(pdNum_(r.title)[0]) + '</b><small>' + e([(r.type || '').trim()].concat(bits).filter(Boolean).join(' · ')) + '</small></li>'; }).join('');
+  ov.innerHTML = '<div class="bk-form pd-delpop"><div class="bk-fh">Delete ' + (n === 1 ? 'this episode' : n + ' episodes') + '?</div><ul>' + li + '</ul>' +
+    '<div class="warn">This can’t be undone.</div><div class="err" id="pdDelE"></div><div class="bk-acts"><span style="flex:1"></span><button type="button" id="pdDelX">Cancel</button><button type="button" class="rd" id="pdDelOk">Delete' + (n > 1 ? ' ' + n : '') + '</button></div></div>';
+  ov.classList.remove('hidden');
+  el('pdDelX').onclick = () => ov.classList.add('hidden');
+  el('pdDelOk').onclick = async () => {
+    const b = el('pdDelOk'); b.disabled = true; b.textContent = 'Deleting…'; let bad = 0, msg = '';
+    for (const r of L) {
+      const { data, error } = await supa.from('bookmarks').delete().eq('id', r.id).eq('user_id', userId).select('id');
+      if (error || !data || !data.length) { bad++; if (!msg) msg = error ? (error.message || String(error)) : 'the database deleted nothing (permission?)'; continue; }
+      if (window.MyAlbum) { MyAlbum.deleteAll('library', r.id); MyAlbum.deleteAll('library-hl', r.id); MyAlbum.deleteAll('library-rec', r.id); }
+      pdSel_.delete(String(r.id));
+    }
+    await loadRows(); render();
+    if (bad) { el('pdDelE').textContent = bad + ' could not be deleted: ' + msg; b.disabled = false; b.textContent = 'Try again'; L = L.filter(r => rows.some(x => String(x.id) === String(r.id))); return; }
+    ov.classList.add('hidden'); toast('✓ Deleted ' + (n === 1 ? '1 episode' : n + ' episodes'));
+  };
 }
 // ---- D2: the round + opens a small menu ----
 function pdMenuOpen_(btn) {
