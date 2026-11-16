@@ -282,7 +282,7 @@
   .bkp .ch-card .cn { width:36px; height:36px; border-radius:50%; background:color-mix(in srgb, var(--bc) 10%, #fff); color:var(--bc); font:700 1rem var(--serif); display:flex; align-items:center; justify-content:center; flex:none; }
   .bkp .ch-card .cm { flex:1; min-width:0; } .bkp .ch-card b { font:600 1rem/1.3 var(--serif); color:#1c2331; } .bkp .ch-card p { margin:3px 0; font:400 .84rem/1.45 var(--serif); color:#5a5048; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .bkp .ch-card small { font-size:.68rem; color:#8a8278; } .bkp .ch-card i { font-style:normal; color:#b0a090; font-size:1.2rem; }
-  .bkp .ch-empty { font:italic 400 .9rem var(--serif); color:#8a8278; padding:6px 2px; }
+  .bkp .ch-empty { font:italic 400 .9rem var(--serif); color:#8a8278; padding:6px 2px; } .bkp .ch-sec.hidden { display:none; }
   .ch-pg { position:fixed; inset:0; z-index:880; overflow-y:auto; background:color-mix(in srgb, var(--bc, #1f4e5f) 7%, #fff); -webkit-overflow-scrolling:touch; } .ch-pg.hidden { display:none; }
   body.ch-open { overflow:hidden; }
   .ch-pg .ch-in { max-width:760px; margin:0 auto; padding:0 20px 60px; }
@@ -3103,7 +3103,7 @@ function bkRender_() {
     '<div class="cv"><div class="t">' + escHtml(r.title || '') + '</div><div class="a">' + escHtml(auth) + '</div></div></div>' +
     (heroT ? '<div class="hero"><div class="q"><em>✦</em> ' + escHtml(heroT) + ' <em>✦</em></div><div class="s mono">' + (auth ? 'IN ' + escHtml(auth.toUpperCase()) + '’S WORDS' : 'IN THE BOOK’S WORDS') + (heroRef ? ' · ' + escHtml(heroRef.toUpperCase()) : '') + '</div></div>' : '') +
     (take ? '<div class="take"><div class="l mono">MY TAKE IN ONE LINE</div><div class="v">' + escHtml(take) + '</div></div>' : '') + '</div>';
-  const S = [['hl','✍ HIGHLIGHTS',P.hl.length],['tk','💡 MY TAKEAWAYS',P.tk.length],['lv','✓ LIVED IT',P.lv.length],['nt','📝 LONG NOTE',P.notes ? '' : 0]].filter(x => x[2] !== 0);
+  const S = [['hl','✍ HIGHLIGHTS',P.hl.length],['tk','💡 MY TAKEAWAYS',isPod_(r) ? P.tk.length : 0],['lv','✓ LIVED IT',P.lv.length],['nt','📝 LONG NOTE',P.notes ? '' : 0]].filter(x => x[2] !== 0);
   if (P.any && S.length > 1) h += '<div class="sb">' + S.map(x => '<button type="button" data-go="' + x[0] + '">' + x[1] + (x[2] ? ' <b>' + x[2] + '</b>' : '') + '</button>').join('') + '</div>';
   else h += '<div style="height:12px"></div>';
   const F = isPod_(r) ? pdFacts_(r) : [['AUTHOR', auth], ['KIND', kind ? (kind === 'f' ? 'Fiction' : 'Non-fiction') : ''], ['CAME FROM', from]].filter(x => x[1]);   // only what's filled in
@@ -3113,7 +3113,7 @@ function bkRender_() {
   else if (P.hl.length) h += '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Highlights</h3><span class="m mono">' + P.hl.length + (P.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS</span></div><div class="thr pd-mus bk-mus pd-pr">' +
     P.hl.map((t, i) => bkPrintHtml_(t, i)).join('') + '</div></div>';   // PD-Y1: book highlights as prints, with ⤴ Share
   if (!isPod_(r) && !frHasDoc) h += '<div class="sec ch-sec" id="bkS_ch" data-n="' + roman[n++] + '"></div>';   // BK-CH: chapters, filled when they arrive
-  if (P.tk.length) h += '<div class="sec" id="bkS_tk"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>My takeaways</h3><span class="m mono">' + P.tk.length + ' · IN MY WORDS</span></div><ol class="tk">' + P.tk.map(t => '<li>' + escHtml(t.replace(/^[-•*]\s*/, '')) + '</li>').join('') + '</ol></div>';
+  if (P.tk.length && isPod_(r)) h += '<div class="sec" id="bkS_tk"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>My takeaways</h3><span class="m mono">' + P.tk.length + ' · IN MY WORDS</span></div><ol class="tk">' + P.tk.map(t => '<li>' + escHtml(t.replace(/^[-•*]\s*/, '')) + '</li>').join('') + '</ol></div>';
   if (P.lv.length) h += '<div class="sec" id="bkS_lv"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Lived it</h3><span class="m mono">' + P.lv.length + ' · WHAT I CHANGED</span></div><div class="use">' +
     P.lv.map(t => { let c = 'nn', lb = 'NOTED'; if (/^[✓✔✅]/.test(t)) { c = ''; lb = '✓ DONE'; } else if (/^[◷⏳⌛]/.test(t)) { c = 'tr'; lb = '◷ TRYING'; }
       const body = t.replace(/^[✓✔✅◷⏳⌛]\s*/, ''); return '<div class="' + c + '"><b>' + lb + '</b>' + escHtml(body) + '</div>'; }).join('') + '</div></div>';
@@ -3126,6 +3126,7 @@ function bkRender_() {
   pg.innerHTML = h;
   if (el('bkS_rc')) rcInit_(r, P);
   if (el('bkS_ch')) chLoad_(r);   // BK-CH
+  if (!isPod_(r) && P.tk.length) bkTkMigrate_(r).then(ok => { if (ok && String(frId) === String(r.id) && !document.body.classList.contains('fr-editing')) bkRender_(); });   // BK-X1
   pg.dataset.ft = isPod_(r) ? pdNum_(r.title)[0] : (r.title || '');   // BP-R2: the title Focus shows
   const rd = el('bkLongRd');
   if (rd) { const tg = () => { const f = document.body.classList.toggle('bk-rdfold'); rd.classList.toggle('open', !f); rd.querySelector('.tg').textContent = f ? '▾ OPEN' : '▴ FOLD'; };
@@ -3170,13 +3171,21 @@ async function chLoad_(r) {
   if (!el('bkS_ch')) return; const e = escHtml;
   let L = []; try { L = await chFetch_(r.id); } catch (x) { console.error(x); }
   const box = el('bkS_ch'); if (!box || String(frId) !== String(r.id)) return; const n = box.dataset.n || '';   // the page may have re-drawn while we waited
-  box.innerHTML = '<div class="sh"><span class="n">' + n + '</span><h3>Chapters</h3><span class="m mono">' + (L.length ? L.length + (L.length === 1 ? ' CHAPTER' : ' CHAPTERS') : 'TYPE OR FROM A PDF') + '</span><button type="button" class="ch-add" id="chAdd">＋ Chapter</button></div>' +
+  const ed = !!box.dataset.ed;   // BK-E1: reading shows chapters only when there are some (no ＋); the book's Edit always shows them, with ＋
+  if (!ed && !L.length) { box.classList.add('hidden'); box.innerHTML = ''; chRenumber_(box); return; }
+  box.classList.remove('hidden');
+  box.innerHTML = '<div class="sh"><span class="n">' + n + '</span><h3>Chapters</h3><span class="m mono">' + (L.length ? L.length + (L.length === 1 ? ' CHAPTER' : ' CHAPTERS') : 'TYPE OR FROM A PDF') + '</span>' + (ed ? '<button type="button" class="ch-add" id="chAdd">＋ Chapter</button>' : '') + '</div>' +
     (L.length ? '<div class="ch-list">' + L.map((c, i) => { const m = chMeta_(c);
       return '<div class="ch-card" data-ch="' + e(c.id) + '" role="button" tabindex="0"><span class="cn">' + e(String(chNum_(c, i))) + '</span><div class="cm"><b>' + e(c.title || 'Untitled') + '</b>' +
         (m.first ? '<p>' + e(m.first) + '</p>' : '') + '<small>' + m.min + ' min read' + (m.pics ? ' · ' + m.pics + (m.pics === 1 ? ' picture' : ' pictures') : '') + '</small></div><i>›</i></div>'; }).join('') + '</div>'
       : '<div class="ch-empty">No chapters yet — type one, or bring them in from your Notion PDFs.</div>');
   box.querySelectorAll('[data-ch]').forEach(c => { const go = () => chOpen_(r, c.dataset.ch); c.onclick = go; c.onkeydown = ev => { if (ev.key === 'Enter') go(); }; });
-  box.querySelector('#chAdd').onclick = ev => { ev.stopPropagation(); chMenu_(r, ev.currentTarget); };
+  const ad = box.querySelector('#chAdd'); if (ad) ad.onclick = ev => { ev.stopPropagation(); chMenu_(r, ev.currentTarget); };
+  chRenumber_(box);
+}
+function chRenumber_(box) {   // reading page: a hidden Chapters section must not leave a gap in I, II, III…
+  const pg = box && box.closest('.bkp'); if (!pg || box.dataset.ed) return; const R = ['I','II','III','IV','V','VI','VII']; let i = 0;
+  pg.querySelectorAll('.sec').forEach(sc => { if (sc.classList.contains('hidden')) return; const n = sc.querySelector(':scope > .sh > .n'); if (n) n.textContent = R[i++] || ''; });
 }
 function chMenu_(r, btn) {
   let m = el('chMenu'); if (!m) { m = document.createElement('div'); m.id = 'chMenu'; m.className = 'pd-srtm hidden'; document.body.appendChild(m); document.addEventListener('click', e => { if (!e.target.closest('#chMenu')) m.classList.add('hidden'); }); }
@@ -3466,7 +3475,23 @@ function bkEditSplit_() {
   bkEd_ = { hl: P.hl.map(t => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim() })), tr: P.tr,
             tk: P.tk.map(t => t.replace(/^[-•*]\s*/, '')),
             lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
-  el('frBodyInp').innerHTML = P.notes;
+  let notes = P.notes;
+  if (!isPod_(r0) && bkEd_.tk.length) { notes = bkTkNotes_(bkEd_.tk) + (notes || ''); bkEd_.tk = []; setTimeout(() => { try { scheduleFrSave(); } catch (e) {} }, 0); }   // BK-X1
+  el('frBodyInp').innerHTML = notes;
+}
+// BK-X1 (16 Nov 2026): books no longer have a My takeaways section - old takeaways move, once, to the top of the long note
+// (a bold line, not a heading: a "Takeaways" heading would be read back as the old section)
+function bkTkNotes_(tk) { return '<p><b>My takeaways</b></p><ul>' + tk.map(t => '<li>' + escHtml(String(t).replace(/^[-•*]\s*/, '')) + '</li>').join('') + '</ul>'; }
+async function bkTkMigrate_(r) {
+  if (!r || isPod_(r) || isMv_(r) || isMr_(r) || isDoc(r.note)) return false;
+  const P = bkParse_(r.note || ''); if (!P.tk.length) return false;
+  const was = bkEd_;
+  bkEd_ = { hl: P.hl.map(t => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim() })), tr: P.tr, tk: [],
+            lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
+  let note; try { note = NoteEditor.sanitize(bkCompose_(bkTkNotes_(P.tk) + (P.notes || ''))); } finally { bkEd_ = was; }
+  const { data, error } = await supa.from('bookmarks').update({ note, updated_at: new Date().toISOString() }).eq('id', r.id).eq('user_id', userId).select('id');
+  if (error || !data || !data.length) { console.warn('takeaways not moved', error); return false; }
+  r.note = note; return true;
 }
 function bkCompose_(notes) {
   if (bkEd_ && bkEd_.mv) return mvCompose_(notes);   // MV-1
@@ -3507,13 +3532,12 @@ function bkRenderEdit_(r, pg) {
   h += fr('I', 'Highlights', E.hl.length ? '' : 'in the book’s words', E.hl.length ? E.hl.length + (E.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS' : '',
     E.hl.length ? '<div class="thr pd-mus bk-mus">' + E.hl.map((x, i) => { const [q, ref] = bkPageRef_(x.t); return '<div class="hl tap" data-it="hl:' + i + '" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>' + ((ref || x.star) ? '<div class="s mono">' + e(ref) + (ref && x.star ? ' · ' : '') + (x.star ? '★ TOP LINE' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '',
     'Add a highlight', 'hl');
-  h += fr('II', 'My takeaways', E.tk.length ? '' : 'in my own words', E.tk.length ? E.tk.length + ' · IN MY WORDS' : '',
-    E.tk.length ? '<ol class="tk">' + E.tk.map((x, i) => '<li class="tap" data-it="tk:' + i + '">' + e(x) + '</li>').join('') + '</ol>' : '', 'Add a takeaway', 'tk');
+  h += '<div class="bkfr sec ch-sec" id="bkS_ch" data-n="II" data-ed="1"></div>';   // BK-E1 / BK-X1: Chapters (with ＋) where My takeaways was
   h += fr('III', 'Lived it', E.lv.length ? '' : 'what I changed because of it', E.lv.length ? E.lv.length + ' · WHAT I CHANGED' : '',
     E.lv.length ? '<div class="use">' + E.lv.map((x, i) => '<div class="tap ' + (x.st === 'd' ? '' : x.st === 't' ? 'tr' : 'nn') + '" data-it="lv:' + i + '"><b>' + (x.st === 'd' ? '✓ DONE' : x.st === 't' ? '◷ TRYING' : 'NOTED') + '</b>' + e(x.t) + '</div>').join('') + '</div>' : '', 'Add something I changed', 'lv');
   h += '<div class="bklong" id="bkLong" role="button" tabindex="0"><h3>The long note</h3><span class="m"></span><span class="tg"></span></div>';
   pg.innerHTML = h;
-  bkWireEdit_(r, pg); bkLongSet_();
+  bkWireEdit_(r, pg); bkLongSet_(); chLoad_(r);
   const L = el('bkLong'), tog = () => { bkLnOpen_ = !bkLnOpen_; bkLongSet_(); if (bkLnOpen_) { try { el('frBodyInp').focus(); } catch (e) {} } };
   L.addEventListener('click', tog); L.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tog(); } });
 }
