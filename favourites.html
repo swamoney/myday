@@ -295,7 +295,8 @@
   html body .bkp .thr.pd-mus.pd-pr .hl.pr .q.rich > :last-child { margin-bottom:4px; }
   .bkp .hl.tap .q.rich { font-style:normal; } .bkp .hl.tap .q.rich > * { margin:0 0 6px; } .bkp .hl.tap .q.rich ul, .bkp .hl.tap .q.rich ol { padding-left:1.2em; }
   .bk-hle .bk-acts .sv { background:#1c2331; border-color:#1c2331; } .bk-hle .bk-acts .dl { color:#b03a2e; }
-  .bk-hle .ld-ntb { margin:10px 0 6px; } .bk-hle .box { min-height:120px; max-height:46vh; overflow:auto; } .bk-hle .box ul, .bk-hle .box ol { padding-left:1.3em; margin:4px 0 8px; } .bk-hle .box p { margin:0 0 8px; }
+  .bk-hle .ld-ntb { margin:10px 0 6px; }
+  .bkp .q.rich .hl-yellow, .bkp .hl.tap .q.rich .hl-yellow { background:#fdecb0; border-radius:3px; padding:0 2px; box-decoration-break:clone; -webkit-box-decoration-break:clone; } .bk-hle .box { min-height:120px; max-height:46vh; overflow:auto; } .bk-hle .box ul, .bk-hle .box ol { padding-left:1.3em; margin:4px 0 8px; } .bk-hle .box p { margin:0 0 8px; }
   /* BK-CH: chapters on a book page (L2 cards) and the chapter page (T1: a soft wash of the book's colour) */
   .bkp .ch-sec .sh { display:flex; align-items:baseline; gap:10px; } .bkp .ch-sec .ch-add { margin-left:auto; font:600 .74rem var(--sans); color:var(--bc); border:1px solid color-mix(in srgb, var(--bc) 30%, #fff); border-radius:999px; padding:5px 11px; background:#fff; cursor:pointer; white-space:nowrap; }
   .bkp .ch-list { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
@@ -3156,7 +3157,7 @@ function bkHlOpen_(i, r, pg) {   // the highlight editor: a small rich box (B, I
   const [q0, ref0] = it ? bkPageRef_(it.t) : ['', ''];
   const btn = (c, l) => '<button type="button" data-hlc="' + c + '">' + l + '</button>';
   ov.innerHTML = '<div class="bk-form ld-new bk-hle"><div class="h">' + (isNew ? 'Add a highlight' : 'Highlight') + '</div><div class="bk-fs mono">IN THE BOOK’S WORDS · PARAGRAPHS AND LISTS ARE FINE</div>' +
-    '<div class="ld-htb ld-ntb">' + btn('bold', '<b>B</b>') + btn('italic', '<i>I</i>') + '<span class="sep"></span>' + btn('insertUnorderedList', '&bull;&#8801;') + btn('insertOrderedList', '1&#8801;') + btn('quote', '&#8220;') + '<span class="sep"></span>' + btn('clear', 'T<sub>x</sub>') + '</div>' +
+    '<div class="ld-htb ld-ntb">' + btn('bold', '<b>B</b>') + btn('italic', '<i>I</i>') + btn('underline', '<u>U</u>') + btn('hl', '<span class="hlx">A</span>') + '<span class="sep"></span>' + btn('insertUnorderedList', '&bull;&#8801;') + btn('insertOrderedList', '1&#8801;') + btn('quote', '&#8220;') + '<span class="sep"></span>' + btn('clear', 'T<sub>x</sub>') + '</div>' +
     '<div class="box" id="bkHlT" contenteditable="true" data-ph="The line, or a few paragraphs and a list…"></div>' +
     '<div class="bk-r2"><div><label class="mono">PAGE (OPTIONAL)</label><input type="text" id="bkHlP" value="' + e(ref0.replace(/^p\.?\s*/i, '')) + '" maxlength="30" placeholder="e.g. 34"></div>' +
     '<label class="bk-chk"><input type="checkbox" id="bkHlS"' + (it && it.star ? ' checked' : '') + '> ★ Make it the top line</label></div>' +
@@ -3169,6 +3170,11 @@ function bkHlOpen_(i, r, pg) {   // the highlight editor: a small rich box (B, I
   const tb = ov.querySelector('.ld-ntb'); tb.addEventListener('mousedown', ev => ev.preventDefault());
   tb.addEventListener('click', ev => {
     const b = ev.target.closest('[data-hlc]'); if (!b) return; box.focus(); const c = b.dataset.hlc, sel = getSelection();
+    if (c === 'hl') {   // the diary's highlighter: yellow marker on the selection, tap again to remove
+      if (!sel.rangeCount || sel.isCollapsed) return; const n0 = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode), on = n0 && n0.closest && n0.closest('span.hl-yellow');
+      if (on && box.contains(on)) { while (on.firstChild) on.parentNode.insertBefore(on.firstChild, on); on.remove(); return; }
+      document.execCommand('styleWithCSS', false, true); document.execCommand('hiliteColor', false, '#fdecb0');
+      box.querySelectorAll('span[style*="background"]').forEach(sp => { sp.removeAttribute('style'); sp.className = 'hl-yellow'; }); document.execCommand('styleWithCSS', false, false); return; }
     if (c === 'quote') { const n0 = sel.anchorNode && (sel.anchorNode.nodeType === 1 ? sel.anchorNode : sel.anchorNode.parentNode), qq = n0 && n0.closest && n0.closest('blockquote');
       if (qq && box.contains(qq)) { const pp = document.createElement('p'); while (qq.firstChild) pp.appendChild(qq.firstChild); qq.replaceWith(pp); } else document.execCommand('formatBlock', false, 'blockquote'); return; }
     if (c === 'clear') { document.execCommand('removeFormat'); return; }
