@@ -1666,6 +1666,12 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .fv-c .mu-xs, .fv-c .mu-xl { min-width:0; }
   .fv-c .row-edit { grid-column:2; grid-row:1; }
   .fv-c.lk-editing { display:block; cursor:default; }
+  /* FV-2 (17 Nov 2026): My Favourites' kind chips - small like every section's, a tiny symbol, a faint tint of the kind's colour; the picked one fills with it */
+  body[data-sec='all-time'] .lk-kinds.lk-top { gap:6px; margin:6px 0 14px; }
+  body[data-sec='all-time'] #tagsRow:empty { display:none; }
+  body[data-sec='all-time'] .lk-k { --kc:#3E6BA8; font-size:.7188rem; font-weight:500; padding:4px 11px 4px 9px; gap:5px; border-radius:20px; border:1px solid color-mix(in srgb, var(--kc) 25%, #fff); background:color-mix(in srgb, var(--kc) 6%, #fff); color:color-mix(in srgb, var(--kc) 80%, #000); }
+  body[data-sec='all-time'] .lk-k[data-lkk="all"] { padding-left:11px; } body[data-sec='all-time'] .lk-k i { font-size:.85em; color:var(--kc); } body[data-sec='all-time'] .lk-k b { font-size:.56rem; color:inherit; opacity:.6; }
+  body[data-sec='all-time'] .lk-k.on { background:var(--kc); border-color:var(--kc); color:#fff; } body[data-sec='all-time'] .lk-k.on i { color:#fff; } body[data-sec='all-time'] .lk-k.on b { color:#fff; opacity:.75; }
 </style>
 </head>
 <body>
@@ -1937,7 +1943,7 @@ function _rowInlineEdit(rowEl, id) {
     '<div class="door-form" style="width:100%;">' +
     '<input type="text" class="door-in grow" id="rieT" value="' + escHtml(r.title || '') + '">' +
     '<input type="url" class="door-in" id="rieU" value="' + escHtml(r.url || '') + '" placeholder="link\u2026">' +
-    (isLk ? lkPickerHtml_(lkKindOf_(r.type), false) + '<input type="text" class="door-in kp-tags" id="rieTags" value="' + escHtml((r.tags || []).join(', ')) + '" placeholder="tags \u2014 Morning, Drive\u2026 (optional)">' : '') +
+    (isLk ? lkPickerHtml_(lkKindOf_(r.type), false) : '') +   // FV-2: no tags box (tags already saved are kept)
     '<button type="button" class="door-go" id="rieGo">SAVE</button>' +
     '<button type="button" class="rie-del" id="rieDel" title="Delete">\u2298</button></div>';
   if (isLk) lkWirePicker_(rowEl, null);
@@ -1946,7 +1952,7 @@ function _rowInlineEdit(rowEl, id) {
     const u = normalizeUrl(rowEl.querySelector('#rieU').value || '');
     if (!t) return;
     const patch = { title: t, url: u, updated_at: new Date().toISOString() };
-    if (isLk) { patch.type = LK_SAVE[rowEl.querySelector('.kp').dataset.kp] || ''; patch.tags = lkTags_(rowEl.querySelector('#rieTags').value); }
+    if (isLk) { patch.type = LK_SAVE[rowEl.querySelector('.kp').dataset.kp] || ''; const tgI = rowEl.querySelector('#rieTags'); if (tgI) patch.tags = lkTags_(tgI.value); }
     try {
       const { error } = await supa.from('bookmarks')
         .update(patch)
@@ -2605,7 +2611,7 @@ function _openShelfDoor(ev) {
   form.innerHTML = two
     ? '<input type="text" id="doorT" class="door-in" placeholder="' + hint[0] + '">' +
       '<input type="url" id="doorU" class="door-in" placeholder="' + hint[1] + '" inputmode="url">' +
-      (sec === 'all-time' ? lkPickerHtml_(lkKind_ !== 'all' ? lkKind_ : 'other', false) + '<input type="text" id="doorTags" class="door-in kp-tags" placeholder="tags \u2014 Morning, Drive\u2026 (optional)">' : '') +
+      (sec === 'all-time' ? lkPickerHtml_(lkKind_ !== 'all' ? lkKind_ : 'other', false) : '') +   // FV-2: no tags box
       '<button type="button" class="door-go" id="doorGo">ADD</button>'
     : '<input type="text" id="doorT" class="door-in grow" placeholder="' + hint + '">' +
       '<button type="button" class="door-go" id="doorGo">' +
@@ -2802,7 +2808,7 @@ function allTags() {
 function filteredRows() {
   let out = rows.filter(r => secOf(r) === activeSection);
   if (activeType) out = out.filter(r => (r.type || '') === activeType);
-  if (activeTag) out = out.filter(r => (r.tags || []).includes(activeTag));
+  if (activeTag && activeSection !== 'all-time') out = out.filter(r => (r.tags || []).includes(activeTag));   // FV-2: no tag filter on My Favourites
   if (activeSection === 'learning' || activeSection === 'podcasts') out = out.filter(r => !ldArch_(r));   // LD-A1 / PD-A1: the Archive stays hidden
   if (searchTerm) {
     const q = searchTerm.toLowerCase();
@@ -2862,6 +2868,7 @@ function renderTags() {
   let tags = allTags();
   if (activeSection === 'movies') { const K = MV_KINDS.map(x => x[0].toLowerCase()); tags = tags.filter(t => !K.includes(String(t).toLowerCase())); }   // MV-1: the kind has its own chips
   const wrap = el('tagsRow');
+  if (activeSection === 'all-time') tags = [];   // FV-2 (17 Nov 2026): My Favourites has no tags
   if (!tags.length) { wrap.innerHTML = ''; return; }
   let html = '<span class="tag' + (activeTag === null ? ' active' : '') + '" data-tag="__all">All</span>';
   tags.forEach(t => { html += '<span class="tag' + (activeTag === t ? ' active' : '') + '" data-tag="' + escHtml(t) + '">' + escHtml(t) + '</span>'; });
@@ -2887,7 +2894,8 @@ function render() {
   }
   if (activeSection === 'all-time') {   // NP-B1: the count and + above the tags (kinds → count & + → tags → links)
     const hd = wrap && wrap.querySelector(':scope > .shelf-head'), t = el('tagsRow');
-    if (hd && t) { hd.classList.add('np-top'); t.parentNode.insertBefore(hd, t); }
+    const kk = document.querySelector('.lk-kinds.lk-top');   // FV-2: count & + first, then the kind chips - as on Podcasts
+    if (hd && kk) { hd.classList.add('np-top'); kk.parentNode.insertBefore(hd, kk); } else if (hd && t) { hd.classList.add('np-top'); t.parentNode.insertBefore(hd, t); }
   }
 }
 function _shelfNoun_(sec, n) {
@@ -2999,19 +3007,19 @@ function render_() {
   const kc = {}; list.forEach(r => { const k = lkKindOf_(r.type); kc[k] = (kc[k] || 0) + 1; });
   if (lkKind_ !== 'all' && !kc[lkKind_]) lkKind_ = 'all';
   let html = '<div class="rows lk-shelf"><div class="lk-kinds"><span class="lk-k' + (lkKind_ === 'all' ? ' on' : '') + '" data-lkk="all">All <b>' + list.length + '</b></span>' +
-    LK_ORDER.filter(k => kc[k] && k !== 'other').map(k => '<span class="lk-k' + (lkKind_ === k ? ' on' : '') + '" data-lkk="' + k + '" style="--kc:' + LK_KINDS[k].c + '"><i>' + LK_KINDS[k].i + '</i>' + LK_KINDS[k].p + ' <b>' + kc[k] + '</b></span>').join('') +
-    (kc.other ? '<span class="lk-k' + (lkKind_ === 'other' ? ' on' : '') + '" data-lkk="other" style="--kc:' + LK_KINDS.other.c + '"><i>' + LK_KINDS.other.i + '</i>Other <b>' + kc.other + '</b></span>' : '') + '</div>';
+    LK_ORDER.filter(k => kc[k] && k !== 'other').map(k => '<span class="lk-k' + (lkKind_ === k ? ' on' : '') + '" data-lkk="' + k + '" style="--kc:' + npHue_(k)[2] + '"><i>' + LK_KINDS[k].i + '</i>' + LK_KINDS[k].p + ' <b>' + kc[k] + '</b></span>').join('') +
+    (kc.other ? '<span class="lk-k' + (lkKind_ === 'other' ? ' on' : '') + '" data-lkk="other" style="--kc:' + npHue_('other')[2] + '"><i>' + LK_KINDS.other.i + '</i>Other <b>' + kc.other + '</b></span>' : '') + '</div>';
   LK_ORDER.forEach(k => {
     if (lkKind_ !== 'all' && lkKind_ !== k) return;
     const g = list.filter(r => lkKindOf_(r.type) === k); if (!g.length) return;   // list is already ★-first
     const K = LK_KINDS[k];
     html += '<div class="lk-gh" style="--kc:' + npHue_(k)[2] + '"><i>' + K.i + '</i>' + K.p.toUpperCase() + '<b>' + g.length + '</b></div><div class="mu-list open fv-list">' +
       g.map(r => {   // FV-1 (17 Nov 2026, F1): Music's single card - name, the app in handwriting, tags as tiny chips, a small round ▶ - in the kind's colour
-        const tg = (r.tags || []).filter(Boolean), app = lkAppOf_(r.url);
+        const app = lkAppOf_(r.url);
         return '<div class="mu-xc mu-xs fv-c' + (r.favourite ? ' is-fav' : '') + '" data-id="' + escHtml(r.id) + '" style="--k:' + npHue_(k)[2] + '">' +
           '<div class="mu-xl"><span class="mu-xnm">' + escHtml(r.title) + (r.favourite ? '<span class="mu-star">★</span>' : '') + '</span>' +
           (app ? '<span class="mu-xfv">' + escHtml(app) + '</span>' : '') +
-          (tg.length ? '<span class="mu-xtg">' + tg.map(x => '<i>' + escHtml(x) + '</i>').join('') + '</span>' : '') + '</div>' +
+          '</div>' +   // FV-2: no tag chips
           '<span class="mu-seal" aria-hidden="true" title="' + K.a + '"><i>' + (K.a === 'READ' || K.a === 'OPEN' ? '↗' : '▶') + '</i></span>' +
           '<button type="button" class="row-edit" data-edit="' + escHtml(r.id) + '" title="Edit" aria-label="Edit">' + FR_PEN + '</button>' +
         '</div>';
