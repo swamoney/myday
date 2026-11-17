@@ -1727,6 +1727,22 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bkp #bkS_rc .rc-ic .rc-shb:hover { background:#f4f0fb; }
   .bkp #bkS_rc .rc-stack.sn .rc-ic:not(.b1):not(.b2)::after { right:52px; }
   .bkp #bkS_rc .rc-stack:not(.sn) .rc-ic .t { padding-right:40px; }
+  /* T4 (17 Nov 2026): the diary's Today's three as a stack of open prints (as the front door's four) */
+  .ld-today .t4d { display:grid; max-width:520px; margin:8px auto 0; padding:0 8px 16px; }
+  .ld-today .t4c { grid-area:1/1; position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; min-height:220px; box-sizing:border-box; padding:34px 18px 16px; background:#fff; border:1.5px solid color-mix(in srgb, var(--k) 55%, #fff); border-radius:16px; box-shadow:0 6px 16px color-mix(in srgb, var(--k) 14%, transparent); transition:transform .35s ease, opacity .35s ease; }
+  .ld-today .t4c::before { content:''; position:absolute; inset:6px; border:1px solid color-mix(in srgb, var(--k) 30%, #fff); border-radius:11px; pointer-events:none; }
+  .ld-today .t4c .kl { position:absolute; left:14px; top:12px; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:var(--k); background:#fff; border:1px solid color-mix(in srgb, var(--k) 35%, #fff); border-radius:6px; padding:3px 6px; }
+  .ld-today .t4c .sym { color:var(--k); opacity:.75; margin-top:4px; flex:none; }
+  .ld-today .t4c .ln { font-family:var(--serif); font-style:italic; font-size:1.08rem; line-height:1.4; color:color-mix(in srgb, var(--k) 75%, #222); margin:10px 4px 6px; overflow-wrap:anywhere; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:7; overflow:hidden; cursor:pointer; }
+  .ld-today .t4c .src { margin-top:auto; padding-top:6px; font-family:var(--mono); font-size:0.47rem; letter-spacing:0.12em; color:#9a9a90; }
+  .ld-today .t4c .ok { margin-top:8px; font-family:var(--mono); font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; position:relative; z-index:2; }
+  .ld-today .t4c .ok.on { background:#2f6146; color:#fff; cursor:default; }
+  .ld-today .t4c.s0 { z-index:3; } .ld-today .t4c.s1 { z-index:2; transform:translate(6px,9px) rotate(1.6deg); } .ld-today .t4c.s2 { z-index:1; transform:translate(-5px,16px) rotate(-1.8deg); }
+  .ld-today .t4c.s1 > *, .ld-today .t4c.s2 > * { visibility:hidden; } .ld-today .t4c.s1, .ld-today .t4c.s2 { box-shadow:none; }
+  .ld-today .t4c.sx { z-index:4; opacity:0; transform:translateX(-60%) rotate(-8deg); pointer-events:none; } .ld-today .t4c.sh { z-index:0; opacity:0; pointer-events:none; }
+  .ld-today .t4n { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:4px; }
+  .ld-today .t4n button { width:34px; height:34px; border-radius:50%; border:1px solid #d7dde8; background:#fff; font-size:1.1rem; line-height:1; color:#1f4e5f; cursor:pointer; }
+  .ld-today .t4n .ct { font-family:var(--mono); font-size:0.7rem; font-weight:600; letter-spacing:0.14em; color:#5a6680; min-width:52px; text-align:center; }
 </style>
 </head>
 <body>
@@ -1734,7 +1750,7 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20261110a"></script>
 <script src="attachments.js?v=20261116a"></script>
-<script src="recall.js?v=20260911a"></script>
+<script src="recall.js?v=20261117a"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-box">
@@ -2267,54 +2283,47 @@ async function ldImportGo_() {
     alert('Could not finish the import.\n\n' + (e && (e.message || e.details) ? (e.message || e.details) : String(e)));
   } finally { btn.disabled = false; }
 }
-// ---- LD-13 (R1): today's three at the diary's head - the same three as the door ----
-let ldThree_ = null;   // today's three, resolved once per load (and after mark / shuffle)
+// ---- LD-13 (R1) + T4 (17 Nov 2026): the diary's own TODAY'S THREE (its own day-state - the front door now keeps its four apart) ----
+// Three different categories as before (archived left out), shown as a stack of open prints (B): ‹ n / 3 ›, swipe, ✓ I KNEW IT, ↻ Shuffle.
+let ldThree_ = null, ldAt_ = 0;   // today's three, resolved once per load (and after mark / shuffle); which card is on top
 async function ldThreeRefresh_() {
   if (!window.MyRecall || !userId) return;
-  MyRecall.setStore(MyRecall.prefsStore(supa, userId));
+  MyRecall.setStore(MyRecall.prefsStore(supa, userId), 'diary');
   ldThree_ = await MyRecall.todays(ldLive_());
   if (activeSection === 'learning') render();
 }
-let ldFront_ = null, ldOpen_ = {};   // LD-M1: which card is in front, which have been turned over (this visit)
+function ldT3Pos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 's0' : o === 1 ? 's1' : o === 2 ? 's2' : o === N - 1 ? 'sx' : 'sh'; }
 function ldTodaysHtml_(list) {
   if (!window.MyRecall) return '';
   if (!ldThree_) { ldThreeRefresh_(); return ''; }
   const three = ldThree_;
   if (three.length < 3) return '';
-  const today = MyRecall.today();
-  const isDone = r => String(r.recalled_on || '').slice(0, 10) === today;
-  const ids = three.map(r => String(r.id));
-  if (!ids.includes(String(ldFront_))) { const f = three.find(r => !isDone(r)) || three[1]; ldFront_ = String(f.id); }
-  const others = ids.filter(x => x !== String(ldFront_));
-  const pos = {}; pos[String(ldFront_)] = 1; pos[others[0]] = 0; pos[others[1]] = 2;
-  const words = t => { const w = String(t || '').split(/\s+/); return escHtml(w.slice(0, 3).join(' ')) + (w.length > 3 ? ' <span>' + escHtml(w.slice(3).join(' ')) + '</span>' : ''); };
-  return '<div class="ld-today"><div class="h"><span class="eb2">TODAY’S THREE</span><span class="prog">' + three.filter(isDone).length + ' OF 3</span><button type="button" class="sh" id="ldShuffle">↻ SHUFFLE</button></div><div class="ldh" id="ldHand">' +
-    three.map(r => { const id = String(r.id), done = isDone(r), open = done || !!ldOpen_[id];
-      const cat = escHtml(String(r.forCat || '').toUpperCase());
-      return '<div class="ldc p' + pos[id] + (open ? ' flip' : '') + (done ? ' done' : '') + '" data-rid="' + escHtml(id) + '"><div class="fi">' +
-        '<div class="fa"><span class="ld-c">' + cat + '</span><div class="q">Do you remember…</div><div class="hint">' + words(r.title) + '</div><span class="tap">TAP TO REVEAL</span></div>' +
-        '<div class="fb"><span class="qm" aria-hidden="true">“</span><span class="ld-c">' + cat + '</span>' +
-        '<span class="t" data-open="' + escHtml(id) + '">' + escHtml(r.title || '') + '</span>' +
-        '<div class="ft"><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' · ' : '') + MyRecall.recalledLine(r) + '</span>' +
-        '<button type="button" class="ok" data-recall="' + escHtml(id) + '"' + (done ? ' disabled' : '') + '>✓ ' + (done ? 'KNEW IT TODAY' : 'I KNEW IT') + '</button></div></div>' +
-        '</div></div>'; }).join('') + '</div><div class="ldhint">TAP THE FRONT CARD TO TURN IT · TAP A SIDE CARD TO BRING IT FORWARD</div></div>';
+  const today = MyRecall.today(), isDone = r => String(r.recalled_on || '').slice(0, 10) === today, N = three.length;
+  ldAt_ = ((ldAt_ % N) + N) % N;
+  const BULB = '<svg class="sym" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>';
+  return '<div class="ld-today"><div class="h"><span class="eb2">TODAY’S THREE</span><span class="prog">✓ ' + three.filter(isDone).length + ' OF 3</span><button type="button" class="sh" id="ldShuffle">↻ SHUFFLE</button></div><div class="t4d" id="ldHand">' +
+    three.map((r, i) => { const id = String(r.id), done = isDone(r);
+      return '<div class="t4c ' + ldT3Pos_(i, ldAt_, N) + '" style="--k:#a8862a"><span class="kl">' + escHtml(String(r.forCat || '').toUpperCase()) + '</span>' + BULB +
+        '<div class="ln" data-open="' + escHtml(id) + '">' + escHtml(r.title || '') + '</div>' +
+        '<div class="src"><span>' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' · ' : '') + MyRecall.recalledLine(r) + '</span></div>' +
+        '<button type="button" class="ok' + (done ? ' on' : '') + '" data-recall="' + escHtml(id) + '"' + (done ? ' disabled' : '') + '>✓ ' + (done ? 'KNEW IT TODAY' : 'I KNEW IT') + '</button></div>'; }).join('') +
+    '</div><div class="t4n"><button type="button" data-t3="-1" aria-label="Previous">‹</button><span class="ct">' + (ldAt_ + 1) + ' / ' + N + '</span><button type="button" data-t3="1" aria-label="Next">›</button></div></div>';
 }
 function ldTodaysWire_(wrap) {
-  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldFront_ = null; ldOpen_ = {}; ldThree_ = await MyRecall.shuffle(ldLive_()); render(); });
-  const hand = el('ldHand'); if (!hand) return;
-  hand.addEventListener('click', async e => {
+  const sh = el('ldShuffle'); if (sh) sh.addEventListener('click', async () => { ldAt_ = 0; ldThree_ = await MyRecall.shuffle(ldLive_()); render(); });
+  const box = wrap.querySelector('.ld-today'); if (!box) return;
+  box.addEventListener('click', async e => {
     const ok = e.target.closest('[data-recall]');
     if (ok) { e.stopPropagation(); if (ok.disabled) return; const r = rows.find(x => String(x.id) === String(ok.dataset.recall)); if (!r) return;
-      await ldMarkRecalled_(r); ldThree_ = await MyRecall.todays(ldLive_()); render();   // shows it ticked in front first
-      const today = MyRecall.today(), next = (ldThree_ || []).find(x => String(x.recalled_on || '').slice(0, 10) !== today);
-      if (next) setTimeout(() => { ldFront_ = String(next.id); if (activeSection === 'learning') render(); }, 650);   // then the next card is dealt forward
+      await ldMarkRecalled_(r); ldThree_ = await MyRecall.todays(ldLive_()); render();   // shows it ticked first
+      setTimeout(() => { ldAt_++; if (activeSection === 'learning') render(); }, 650);   // then the next card comes forward
       return; }
-    const t = e.target.closest('.fb .t[data-open]'); if (t) { openReader(t.dataset.open); return; }   // the line itself opens it in the reader
-    const c = e.target.closest('.ldc'); if (!c) return;
-    const id = c.dataset.rid;
-    if (c.classList.contains('p1')) { if (!c.classList.contains('done')) { ldOpen_[id] = !ldOpen_[id]; c.classList.toggle('flip', !!ldOpen_[id]); } return; }
-    ldFront_ = id; render();
+    const nv = e.target.closest('[data-t3]'); if (nv) { ldAt_ += +nv.dataset.t3; render(); return; }
+    const t = e.target.closest('.t4c.s0 .ln[data-open]'); if (t) { openReader(t.dataset.open); return; }   // the line itself opens it in the reader
   });
+  let x0 = null;
+  box.addEventListener('touchstart', e => { x0 = e.target.closest('.t4d') ? [e.touches[0].clientX, e.touches[0].clientY] : null; }, { passive: true });
+  box.addEventListener('touchend', e => { if (!x0) return; const t = e.changedTouches[0], dx = t.clientX - x0[0], dy = t.clientY - x0[1]; x0 = null; if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { ldAt_ += dx < 0 ? 1 : -1; render(); } }, { passive: true });
 }
 async function ldMarkRecalled_(r) {
   const today = MyRecall.today();

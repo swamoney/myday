@@ -234,6 +234,24 @@
   .rhint { text-align:center; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin-top:2px; }
   @media (max-width:560px) { .rhand { height:252px; } .rhc { width:64%; left:18%; height:220px; } .rhc.p0 { transform:translateX(-22%) rotate(-5deg); } .rhc.p2 { transform:translateX(22%) rotate(5deg); } .rhc .fb .t { font-size:0.95rem; margin-right:12px; } .rhc .fb { padding:14px 14px; } }
   @media (prefers-reduced-motion:reduce) { .rhc, .rhc .fi { transition:none; } }
+  /* T4 (17 Nov 2026): Today's four as a stack of open prints - one on top, two peeking (tilted), ‹ n / 4 ›; all cards share one grid cell */
+  .t4d { display:grid; max-width:520px; margin:8px auto 0; padding:0 8px 16px; }
+  .t4c { grid-area:1/1; position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; min-height:230px; box-sizing:border-box; padding:34px 18px 16px; background:#fff; border:1.5px solid color-mix(in srgb, var(--k) 55%, #fff); border-radius:16px; box-shadow:0 6px 16px color-mix(in srgb, var(--k) 14%, transparent); transition:transform .35s ease, opacity .35s ease; }
+  .t4c::before { content:''; position:absolute; inset:6px; border:1px solid color-mix(in srgb, var(--k) 30%, #fff); border-radius:11px; pointer-events:none; }
+  .t4c .kl { position:absolute; left:14px; top:12px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.1em; color:var(--k); background:#fff; border:1px solid color-mix(in srgb, var(--k) 35%, #fff); border-radius:6px; padding:3px 6px; }
+  .t4c .sym { color:var(--k); opacity:.75; margin-top:4px; flex:none; }
+  .t4c .ln { font-family:'Fraunces',Georgia,serif; font-style:italic; font-size:1.08rem; line-height:1.4; color:color-mix(in srgb, var(--k) 75%, #222); margin:10px 4px 6px; overflow-wrap:anywhere; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:7; overflow:hidden; }
+  .t4c ul { text-align:left; margin:0 0 6px; padding-left:18px; font-family:'Fraunces',Georgia,serif; font-size:0.9rem; color:#3a4458; align-self:stretch; }
+  .t4c .src { margin-top:auto; padding-top:6px; font-size:0.72rem; color:#5a6680; } .t4c .src b { display:block; font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:0.86rem; color:#1c2331; }
+  .t4c .ok { margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.12em; color:#2f6146; background:#e4efe6; border:none; border-radius:6px; padding:6px 10px; cursor:pointer; position:relative; z-index:2; }
+  .t4c .ok.on { background:#2f6146; color:#fff; cursor:default; }
+  .t4c .op { margin-top:8px; font-size:0.74rem; font-weight:600; color:var(--k); text-underline-offset:3px; position:relative; z-index:2; }
+  .t4c.s0 { z-index:3; } .t4c.s1 { z-index:2; transform:translate(6px,9px) rotate(1.6deg); } .t4c.s2 { z-index:1; transform:translate(-5px,16px) rotate(-1.8deg); }
+  .t4c.s1 > *, .t4c.s2 > * { visibility:hidden; } .t4c.s1, .t4c.s2 { box-shadow:none; }
+  .t4c.sx { z-index:4; opacity:0; transform:translateX(-60%) rotate(-8deg); pointer-events:none; } .t4c.sh { z-index:0; opacity:0; pointer-events:none; }
+  .t4n { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:4px; }
+  .t4n button { width:34px; height:34px; border-radius:50%; border:1px solid #d7dde8; background:#fff; font-size:1.1rem; line-height:1; color:#1f4e5f; cursor:pointer; }
+  .t4n .ct { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; font-weight:600; letter-spacing:0.14em; color:#5a6680; min-width:52px; text-align:center; }
   .spine { position:relative; padding-left:34px; margin-top:6px; }
   .spine::before { content:''; position:absolute; left:11px; top:0; bottom:0; width:3px; border-radius:2px; background:linear-gradient(180deg,#7a63c6 0 var(--yr, 0%), #cfd6e4 var(--yr, 0%)); }
   .srow { display:block; position:relative; padding:14px 0 16px; border-bottom:1px dotted #cfd6e4; text-decoration:none; color:inherit; cursor:pointer; }
@@ -285,7 +303,7 @@
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20261110a"></script>
 <script src="attachments.js?v=20260903a"></script>
-<script src="recall.js?v=20260911a"></script>
+<script src="recall.js?v=20261117a"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
@@ -331,9 +349,8 @@
   </div>
 
   <div class="recall hidden" id="hubRecall">
-    <div class="h"><span class="eb2">TODAY&rsquo;S THREE &middot; FROM THE LEARNING DIARY</span><span class="prog" id="hubRecallProg"></span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div>
-    <div class="rhand" id="hubRecallCards"></div>
-    <div class="rhint">TAP THE FRONT CARD TO TURN IT &middot; TAP A SIDE CARD TO BRING IT FORWARD</div>
+    <div class="h"><span class="eb2">TODAY&rsquo;S FOUR &middot; FROM YOUR LIBRARY</span><span class="prog" id="hubRecallProg"></span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div>
+    <div class="t4" id="hubRecallCards"></div>
   </div>
 
   <div class="spine" id="hubSpine">
@@ -615,70 +632,92 @@ function paintPulses(v, prefs) {
   if (prefs && prefs.album_has_photos) kp.push(lastAlbum && String(lastAlbum).slice(0, 7) === ym ? 'ALBUM COPIED' : '<b>ALBUM COPY DUE</b>');
   set('pulseKeep', kp.join(' \u00B7 '));
 }
-// LD-13 (R1): today's three from the Learning Diary
-let recallRows_ = [];
+// T4 (17 Nov 2026): the front door's own TODAY'S FOUR - one book highlight, one podcast snip, one Mental model, one Timeless truth -
+// as a stack of open prints (B): one on top, two peeking, ‹ n / 4 ›, swipe. Kept apart from the Learning Diary's three (prefs.recall_hub).
+// Archived learnings, books and episodes ('__arch') never come up. ✓ I KNEW IT on the learnings (counts in the diary too); Open › on the highlights.
+let recallRows_ = [], hubHls_ = [], hubFour_ = [], hubAt_ = 0;
+function hubHlsOf_(r) {   // a book's / episode's highlight lines, read from its note (the Highlights section)
+  const box = document.createElement('div'); box.innerHTML = r.note || ''; const out = []; let on = false;
+  [...box.children].forEach(n => {
+    if (/^H[1-6]$/.test(n.tagName)) { on = /^(my\s+)?(highlights?|quotes?|lines?)\b/i.test(n.textContent.trim()); return; }
+    if (!on) return;
+    if (/^(UL|OL)$/.test(n.tagName)) [...n.children].forEach(li => out.push(li.textContent.trim()));
+    else out.push((n.tagName === 'DIV' && n.children.length ? [...n.children].map(c => c.textContent.trim()).join(' ') : n.textContent).replace(/\s+/g, ' ').trim());   // BK-G1 rich highlight: its paragraphs, spaced
+  });
+  return out.filter(Boolean);
+}
 async function loadRecall() {
   try {
     const s = await supa.auth.getSession();
     const uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
     if (!uid || !window.MyRecall) return;
-    const all = async cols => {   // LOAD-ALL (16 Nov 2026): Supabase gives at most 1,000 rows per ask - read in pages
+    const all = async (cols, secs) => {   // LOAD-ALL (16 Nov 2026): Supabase gives at most 1,000 rows per ask - read in pages
       const out = [];
       for (let from = 0; ; from += 1000) {
-        const r = await supa.from('bookmarks').select(cols).eq('user_id', uid).eq('section', 'learning').order('id', { ascending: true }).range(from, from + 999);
+        const r = await supa.from('bookmarks').select(cols).eq('user_id', uid).in('section', secs).order('id', { ascending: true }).range(from, from + 999);
         if (r.error) return { error: r.error }; out.push(...(r.data || [])); if (!r.data || r.data.length < 1000) break;
       }
       return { data: out };
     };
-    let q = await all('id, title, category, learned_on, recall_count, recalled_on, recall_off, tags');
-    if (q && q.error) {   // migrate_recall.sql not run yet: read without the log columns (all count as never recalled)
-      console.warn('recall: log columns missing - run migrate_recall.sql', q.error.message);
-      q = await all('id, title, category, learned_on, tags');
-    }
+    let q = await all('id, title, category, learned_on, recall_count, recalled_on, recall_off, tags', ['learning']);
+    if (q && q.error) { console.warn('recall: log columns missing - run migrate_recall.sql', q.error.message); q = await all('id, title, category, learned_on, tags', ['learning']); }
     if (!q || q.error) { console.warn('recall: could not read the diary', q && q.error); return; }
-    recallRows_ = (q.data || []).filter(r => !(r.tags || []).includes('__arch'));   // LD-A1: archived learnings stay out of Today's three
-    if (!window.MyRecall) { console.warn('recall.js is not loaded'); return; }
-    MyRecall.setStore(MyRecall.prefsStore(supa, uid));   // the same three on every device
-    paintRecall(await MyRecall.todays(recallRows_));
-  } catch (e) {}
+    recallRows_ = (q.data || []).filter(r => !(r.tags || []).includes('__arch'));   // LD-A1: archived learnings stay out
+    const h = await all('id, title, type, category, section, note, tags', ['books', 'podcasts']);
+    hubHls_ = [];
+    ((h && h.data) || []).filter(r => !(r.tags || []).includes('__arch')).forEach(r => {
+      hubHlsOf_(r).forEach(t => hubHls_.push({ key: r.id + '#' + MyRecall.hash32(t.replace(/[★⭐]/g, '').trim()), kind: r.section === 'podcasts' ? 'pod' : 'book', t, row: r }));
+    });
+    MyRecall.setStore(MyRecall.prefsStore(supa, uid, 'recall_hub'), 'hub');   // the same four on every device - its own, not the diary's
+    hubFour_ = await MyRecall.hubTodays(recallRows_, hubHls_); hubAt_ = 0; paintRecall();
+  } catch (e) { console.warn('recall', e); }
 }
-let recallFront_ = null, recallOpen_ = {};   // HT-M1: which card is in front, which have been turned over (this visit)
-function paintRecall(three) {
+const T4_K = { bk: ['FROM A BOOK', '#1f4e5f', 'M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5zM12 6.5v13'],
+  pd: ['FROM A PODCAST', '#5b4a86', 'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21'],
+  mm: ['MENTAL MODEL', '#a8862a', 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'],
+  tt: ['TIMELESS TRUTH', '#a8862a', 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'] };
+function t4Pos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 's0' : o === 1 ? 's1' : o === 2 ? 's2' : o === N - 1 ? 'sx' : 'sh'; }
+function t4Card_(slot, v) {
+  const [lbl, col, icon] = T4_K[slot], today = MyRecall.today();
+  let line = '', pts = '', src = '', sub = '', act = '';
+  if (slot === 'bk' || slot === 'pd') {
+    const r = v.row, raw = v.t.replace(/[★⭐]/g, '').trim();
+    if (slot === 'pd') { const m = raw.match(/^\[([A-Za-z ]{2,20})\]\s*([\s\S]*)$/), body = m ? m[2] : raw, i = body.indexOf(' — ');
+      line = _esc((i > -1 ? body.slice(0, i) : body).trim()); const P = i > -1 ? body.slice(i + 3).split(/\s+•\s+/).filter(Boolean).slice(0, 3) : [];
+      if (P.length) pts = '<ul>' + P.map(x => '<li>' + _esc(x) + '</li>').join('') + '</ul>';
+      src = String(r.title || '').replace(/\s*[·-]?\s*#\d+\s*$/, ''); sub = [r.type, r.category].filter(Boolean).join(' · '); }
+    else { const m = raw.match(/\s*[—–-]+\s*(p\.?\s*\d+[\w\s.,-]*|page\s*\d+[\w\s.,-]*|ch(apter)?\.?\s*\d+[\w\s.,-]*)$/i), q = m ? raw.slice(0, m.index).trim() : raw;
+      line = '“' + _esc(q.replace(/^[“"]|[”"]$/g, '')) + '”'; src = r.title || ''; sub = [r.type, m ? m[1].replace(/^p\.?\s*/i, 'p. ') : ''].filter(Boolean).join(' · '); }
+    act = '<a class="op" href="' + ROOMS.favourites + '?open=' + encodeURIComponent(r.id) + '">Open ›</a>';
+  } else {
+    const done = String(v.recalled_on || '').slice(0, 10) === today;
+    line = _esc(v.title || ''); src = 'My Learning Diary'; sub = (v.learned_on ? MyRecall.ago(v.learned_on) + ' · ' : '') + MyRecall.recalledLine(v);
+    act = '<button type="button" class="ok' + (done ? ' on' : '') + '" data-recall="' + _esc(String(v.id)) + '"' + (done ? ' disabled' : '') + '>✓ ' + (done ? 'KNEW IT TODAY' : 'I KNEW IT') + '</button>';
+  }
+  return '<div class="t4c" style="--k:' + col + '"><span class="kl">' + lbl + '</span><svg class="sym" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="' + icon + '"/></svg>' +
+    '<div class="ln">' + line + '</div>' + pts + '<div class="src"><b>' + _esc(src) + '</b><span>' + _esc(sub) + '</span></div>' + act + '</div>';
+}
+function paintRecall() {
   const box = el('hubRecall'); if (!box) return;
-  if (!three || three.length < 3) { box.classList.add('hidden'); return; }
+  const cards = (hubFour_ || []).filter(([, v]) => v);
+  if (cards.length < 2) { box.classList.add('hidden'); return; }
   box.classList.remove('hidden');
-  const today = MyRecall.today();
-  const isDone = r => String(r.recalled_on || '').slice(0, 10) === today;
-  const ids = three.map(r => String(r.id));
-  if (!ids.includes(String(recallFront_))) { const f = three.find(r => !isDone(r)) || three[1]; recallFront_ = String(f.id); }
-  // the front card sits in the middle; the other two keep their order at the sides
-  const fi = ids.indexOf(String(recallFront_)), others = ids.filter(x => x !== String(recallFront_));
-  const pos = {}; pos[ids[fi]] = 1; pos[others[0]] = 0; pos[others[1]] = 2;
-  const words = t => { const w = String(t || '').split(/\s+/); return _esc(w.slice(0, 3).join(' ')) + (w.length > 3 ? ' <span>' + _esc(w.slice(3).join(' ')) + '</span>' : ''); };
-  el('hubRecallCards').innerHTML = three.map(r => {
-    const id = String(r.id), done = isDone(r), open = done || !!recallOpen_[id];
-    const cat = _esc(String(r.forCat || '').toUpperCase());
-    return '<div class="rhc p' + pos[id] + (open ? ' flip' : '') + (done ? ' done' : '') + '" data-rid="' + _esc(id) + '"><div class="fi">'
-      + '<div class="fa"><span class="c">' + cat + '</span><div class="q">Do you remember…</div><div class="hint">' + words(r.title) + '</div><span class="tap">TAP TO REVEAL</span></div>'
-      + '<div class="fb"><span class="qm" aria-hidden="true">“</span><span class="c">' + cat + '</span>'
-      + '<a class="t" href="' + ROOMS.favourites + '?open=' + encodeURIComponent(r.id) + '">' + _esc(r.title || '') + '</a>'
-      + '<div class="ft"><span class="ago">' + (r.learned_on ? MyRecall.ago(r.learned_on) + ' · ' : '') + MyRecall.recalledLine(r) + '</span>'
-      + '<button type="button" class="ok" data-recall="' + _esc(id) + '"' + (done ? ' disabled' : '') + '>✓ ' + (done ? 'KNEW IT TODAY' : 'I KNEW IT') + '</button></div></div>'
-      + '</div></div>';
-  }).join('');
-  el('hubRecallProg').textContent = three.filter(isDone).length + ' OF 3';
+  const N = cards.length; hubAt_ = ((hubAt_ % N) + N) % N;
+  const today = MyRecall.today(), learn = cards.filter(([k]) => k === 'mm' || k === 'tt');
+  el('hubRecallCards').innerHTML = '<div class="t4d">' + cards.map(([k, v], i) => t4Card_(k, v).replace('class="t4c"', 'class="t4c ' + t4Pos_(i, hubAt_, N) + '"')).join('') + '</div>' +
+    '<div class="t4n"><button type="button" data-t4="-1" aria-label="Previous">‹</button><span class="ct">' + (hubAt_ + 1) + ' / ' + N + '</span><button type="button" data-t4="1" aria-label="Next">›</button></div>';
+  el('hubRecallProg').textContent = learn.length ? '✓ ' + learn.filter(([, v]) => String(v.recalled_on || '').slice(0, 10) === today).length + ' OF ' + learn.length : '';
 }
-// one listener: tap the front card to turn it, a side card to bring it forward; the line itself opens the diary
 document.addEventListener('DOMContentLoaded', () => {
   const box = el('hubRecallCards'); if (!box) return;
   box.addEventListener('click', e => {
     const ok = e.target.closest('[data-recall]'); if (ok) { e.preventDefault(); if (!ok.disabled) markRecalled(ok.dataset.recall); return; }
-    if (e.target.closest('a.t')) return;
-    const c = e.target.closest('.rhc'); if (!c) return;
-    const id = c.dataset.rid;
-    if (c.classList.contains('p1')) { if (!c.classList.contains('done')) { recallOpen_[id] = !recallOpen_[id]; c.classList.toggle('flip', !!recallOpen_[id]); } return; }
-    recallFront_ = id; MyRecall.todays(recallRows_).then(paintRecall);
+    const nv = e.target.closest('[data-t4]'); if (nv) { hubAt_ += +nv.dataset.t4; paintRecall(); }
   });
+  let x0 = null;
+  box.addEventListener('touchstart', e => { x0 = e.target.closest('.t4d') ? [e.touches[0].clientX, e.touches[0].clientY] : null; }, { passive: true });
+  box.addEventListener('touchend', e => { if (!x0) return; const t = e.changedTouches[0], dx = t.clientX - x0[0], dy = t.clientY - x0[1]; x0 = null; if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { hubAt_ += dx < 0 ? 1 : -1; paintRecall(); } }, { passive: true });
+  const b = el('hubRecallShuffle'); if (b) b.addEventListener('click', async () => { hubFour_ = await MyRecall.hubTodays(recallRows_, hubHls_, true); hubAt_ = 0; paintRecall(); });
 });
 async function markRecalled(id) {
   const r = recallRows_.find(x => String(x.id) === String(id)); if (!r) return;
@@ -688,13 +727,10 @@ async function markRecalled(id) {
   const patch = { recall_count: (Number(r.recall_count) || 0) + 1, recalled_on: today };
   const { error } = await supa.from('bookmarks').update(patch).eq('id', r.id).eq('user_id', uid);
   if (error) { console.error(error); return; }
-  Object.assign(r, patch);
-  const three = await MyRecall.todays(recallRows_);
-  paintRecall(three);   // shows it ticked in front first
-  const next = (three || []).find(x => String(x.recalled_on || '').slice(0, 10) !== today);
-  if (next) setTimeout(() => { recallFront_ = String(next.id); paintRecall(three); }, 650);   // HT-M1: then the next card is dealt forward
+  Object.assign(r, patch); hubFour_.forEach(x => { if (x[1] && String(x[1].id) === String(id) && x[1] !== r) Object.assign(x[1], patch); });
+  paintRecall();
+  setTimeout(() => { hubAt_++; paintRecall(); }, 650);   // then the next card comes forward
 }
-document.addEventListener('DOMContentLoaded', () => { const b = el('hubRecallShuffle'); if (b) b.addEventListener('click', async () => { recallFront_ = null; recallOpen_ = {}; paintRecall(await MyRecall.shuffle(recallRows_)); }); });
 
 async function refreshPulses() {
   try {
