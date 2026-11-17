@@ -1757,6 +1757,12 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .bk-hle .bk-r2 { flex-direction:column; align-items:stretch; gap:10px; } .bk-hle .bk-r2 > div:first-child { flex:none; max-width:200px; } .bk-hle .bk-r2 > .bk-chks { flex:none; }
   .bk-chks .bk-chk, .bk-form > .bk-chk { padding:6px 0; flex-wrap:nowrap; white-space:nowrap; } .bk-chk small { overflow:hidden; text-overflow:ellipsis; }
   .bkp .hl.hlm::after { opacity:0 !important; }   /* HL-P1: the card's corner ornament steps aside for ★ / 📌 */
+  /* RP-P1 / Q-A (17 Nov 2026): ☆ beside ⤴ on the quiz / Replay card; the Replay-pick tag on a snip in Edit */
+  .bkp #bkS_rc .rc-ic .rc-stb { position:absolute; right:48px; top:10px; width:30px; height:30px; padding:0; border-radius:50%; border:1px solid #e3dcf0; background:rgba(255,255,255,.94); color:#b0b8c8; font-size:.9rem; line-height:1; display:grid; place-items:center; z-index:3; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .bkp #bkS_rc .rc-ic .rc-stb.on { color:#c9a227; border-color:#e2c36a; background:#fff8e1; }
+  .bkp #bkS_rc .rc-stack.sn .rc-ic:not(.b1):not(.b2)::after { right:88px; }
+  .bkp #bkS_rc .rc-stack:not(.sn) .rc-ic .t { padding-right:80px; } .bkp #bkS_rc .rc-stack.sn .tt2 { padding-right:84px; }
+  .bkp .hl.hlm .hb-rp { display:inline-block; margin-top:8px; font-size:.48rem; font-weight:700; letter-spacing:.12em; color:#5b4a86; background:#efeaf7; border-radius:4px; padding:2px 6px; position:relative; z-index:3; }
 </style>
 </head>
 <body>
@@ -3211,14 +3217,15 @@ document.addEventListener('DOMContentLoaded', () => { const a = el('bkAuthor'); 
 // ===== BP-H1 (11 Nov 2026): a book's own page, the My Circle way =====
 // The note keeps being one note; headings in it (Highlights / Takeaways / Lived it) make the sections. Display only.
 const BK_SECS = [
-  { k:'hd', re:/^heading\s+line\b/i },   // HL-P1: the one line chosen for the page's heading
+  { k:'hd', re:/^heading\s+line\b/i },
+  { k:'rp', re:/^replay\s+picks?\b/i },   // RP-P1: a snip's title + its first point, kept from Replay   // HL-P1: the one line chosen for the page's heading
   { k:'hl', re:/^(my\s+)?(highlights?|quotes?|lines?)\b/i },
   { k:'tk', re:/^(my\s+)?(takeaways?|learnings?|lessons?|key\s+ideas?)\b/i },
   { k:'lv', re:/^(lived\s+it|put\s+to\s+use|applied|what\s+i\s+changed|in\s+practice|acted\s+on)\b/i }
 ];
 function bkParse_(html) {
   const box = document.createElement('div'); box.innerHTML = html || '';
-  const out = { hl:[], hlh:[], tk:[], lv:[], tr:[], hd:[], notes:'' }; let cur = null; const rest = [];
+  const out = { hl:[], hlh:[], tk:[], lv:[], tr:[], hd:[], rp:[], notes:'' }; let cur = null; const rest = [];
   const items = n => {
     if (/^(UL|OL)$/.test(n.tagName)) return [...n.children].map(li => li.textContent.trim()).filter(Boolean);
     if (n.tagName === 'BLOCKQUOTE' && n.querySelector('p')) return [...n.querySelectorAll('p')].map(x => x.textContent.trim()).filter(Boolean);
@@ -3724,7 +3731,7 @@ function frNoteHtml_() { const n = NoteEditor.sanitize(el('frBodyInp').innerHTML
 function bkEditSplit_() {
   const r0 = rows.find(x => String(x.id) === String(frId)); if (isMv_(r0)) return mvSplit_();   // MV-1
   const P = bkParse_(NoteEditor.sanitize(el('frBodyInp').innerHTML));
-  bkEd_ = { hl: bkHlItems_(P), tr: P.tr,
+  bkEd_ = { hl: bkHlItems_(P), tr: P.tr, rp: (P.rp || []).slice(),
             tk: P.tk.map(t => t.replace(/^[-•*]\s*/, '')),
             lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
   let notes = P.notes;
@@ -3738,7 +3745,7 @@ async function bkTkMigrate_(r) {
   if (!r || isPod_(r) || isMv_(r) || isMr_(r) || isDoc(r.note)) return false;
   const P = bkParse_(r.note || ''); if (!P.tk.length) return false;
   const was = bkEd_;
-  bkEd_ = { hl: bkHlItems_(P), tr: P.tr, tk: [],
+  bkEd_ = { hl: bkHlItems_(P), tr: P.tr, rp: (P.rp || []).slice(), tk: [],
             lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
   let note; try { note = NoteEditor.sanitize(bkCompose_(bkTkNotes_(P.tk) + (P.notes || ''))); } finally { bkEd_ = was; }
   const { data, error } = await supa.from('bookmarks').update({ note, updated_at: new Date().toISOString() }).eq('id', r.id).eq('user_id', userId).select('id');
@@ -3752,6 +3759,9 @@ function bkCompose_(notes) {
   if (hl.length) out.push('<h3>Highlights</h3>' + hl.map(x => { if (x.h) { const ref = bkPageRef_(x.t)[1]; return '<div>' + (x.star ? '<p>★</p>' : '') + x.h + (ref ? '<p>— ' + e(ref) + '</p>' : '') + '</div>'; }   // BK-G1
     return '<p>' + (x.star ? '★ ' : '') + e(x.t.trim()) + '</p>'; }).join(''));
   const pn = hl.find(x => x.pin); if (pn) out.push('<h3>Heading line</h3><p>' + e(pn.t.trim()) + '</p>');   // HL-P1
+  { const tks = new Set(hl.map(x => bkHdKey_((pdSnip_(x.t) || { title: x.t }).title)));   // RP-P1: keep only picks whose snip is still there
+    const rp = (E.rp || []).filter(x => String(x).trim() && tks.has(bkHdKey_(rpTitleOf_(x))));
+    if (rp.length) out.push('<h3>Replay picks</h3>' + rp.map(x => '<p>' + e(String(x).trim()) + '</p>').join('')); }
   if (tk.length) out.push('<h3>Takeaways</h3><ul>' + tk.map(x => '<li>' + e(x.trim()) + '</li>').join('') + '</ul>');
   if (lv.length) out.push('<h3>Lived it</h3>' + lv.map(x => '<p>' + (x.st === 'd' ? '✓ ' : x.st === 't' ? '◷ ' : '') + e(x.t.trim()) + '</p>').join(''));
   const box = document.createElement('div'); box.innerHTML = notes || '';
@@ -3768,7 +3778,8 @@ function bkHlMarks_(pg, r) {
   pg.querySelectorAll('[data-it^="hl:"]').forEach(c => { const i = +c.dataset.it.split(':')[1], x = E.hl[i]; if (!x) return;
     c.classList.add('hlm'); if (x.star) c.classList.add('stg');
     c.insertAdjacentHTML('beforeend', '<span class="hlb"><button type="button" class="hb-st' + (x.star ? ' on' : '') + '" data-hla="star:' + i + '" title="Bookmark (★)" aria-label="Bookmark">' + (x.star ? '★' : '☆') + '</button>' +
-      '<button type="button" class="hb-pn' + (x.pin ? ' on' : '') + '" data-hla="pin:' + i + '" title="Use as the heading line" aria-label="Heading line">📌</button></span>' + (i === hi ? '<span class="hb-hd mono">HEADING</span>' : '')); });
+      '<button type="button" class="hb-pn' + (x.pin ? ' on' : '') + '" data-hla="pin:' + i + '" title="Use as the heading line" aria-label="Heading line">📌</button></span>' + (i === hi ? '<span class="hb-hd mono">HEADING</span>' : '') +
+      (E.rp && rpHas_(E.rp, rpKeyOf_(x.t)) ? '<span class="hb-rp mono">↻ ★ REPLAY PICK</span>' : '')); });   // RP-P1
   pg.querySelectorAll('[data-hla]').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault();
     const [a, i] = b.dataset.hla.split(':'), x = E.hl[+i]; if (!x) return;
     if (a === 'star') x.star = !x.star; else { const on = !x.pin; E.hl.forEach(y => { y.pin = false; }); x.pin = on; }
@@ -5496,7 +5507,7 @@ async function pdSave_(R, mode, target, ov, cb, quiet) {   // quiet (PD-M2): bat
       bkEd_.hl.push(...hl); bkEd_.tk.push(...tk); bkEd_.tr = (bkEd_.tr || []).concat(trOf(bkEd_.tr || [])); scheduleFrSave(); ov.classList.add('hidden'); bkRender_(); toast('Added ' + (hl.length + tk.length)); return;
     }
     const P = bkParse_(target.note || '');
-    const was = bkEd_; bkEd_ = { hl: bkHlItems_(P).map(x => ({ star: x.star, pin: x.pin, t: x.t, h: x.h })).concat(hl), tr: P.tr.concat(trOf(P.tr)), tk: P.tk.concat(tk), lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
+    const was = bkEd_; bkEd_ = { hl: bkHlItems_(P).map(x => ({ star: x.star, pin: x.pin, t: x.t, h: x.h })).concat(hl), rp: (P.rp || []).slice(), tr: P.tr.concat(trOf(P.tr)), tk: P.tk.concat(tk), lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
     const note = NoteEditor.sanitize(bkCompose_(P.notes)); bkEd_ = was;
     const { error } = await supa.from('bookmarks').update({ note, updated_at: new Date().toISOString() }).eq('id', target.id).eq('user_id', userId);
     if (error) { if (quiet) { console.error(error); return false; } toast('Could not save'); if (btn) btn.disabled = false; return; }
@@ -5860,6 +5871,23 @@ function rcCloze_(text, blanks, shown) {
 // ===== RQ-S2 (17 Nov 2026): share a Margin quiz / Replay card as a picture - the card answered, the hidden words marked in yellow =====
 // "FROM MY MARGIN QUIZ" / "FROM MY REPLAY" over the card (book: lined paper with its colour on top; podcast: the snip card), the book or episode at the foot.
 // Drawn on the device, nothing uploaded; the same Save image / Share sheet as highlights.
+// ===== RP-P1 (17 Nov 2026): Replay picks - a ★ on a Replay card keeps that card's title + its one line (the snip's first point),
+// apart from the snip's own ★. Kept in the note as <h3>Replay picks</h3><p>title — point</p>; both count, separately, for the Hub's Today's four.
+// Q-A: a ★ on a Margin quiz card is the highlight's own ★ (the card IS the highlight).
+function rpTitleOf_(x) { const i = String(x).indexOf(' — '); return i > -1 ? String(x).slice(0, i) : String(x); }
+function rpKeyOf_(t) { const sn = pdSnip_(t); if (!sn) { const x = String(t).replace(/[★⭐]/g, '').trim(); return x; } return sn.title.trim() + (sn.pts.length ? ' — ' + sn.pts[0].trim() : ''); }
+function rpHas_(rp, key) { const k = bkHdKey_(key); return (rp || []).some(x => bkHdKey_(x) === k); }
+async function bkNoteSave_(r, mutate) {   // change a book / episode's note from the reading page (no editor open): parse, change, compose, save
+  if (!r || isDoc(r.note)) return false;
+  const P = bkParse_(r.note || ''), was = bkEd_;
+  bkEd_ = { hl: bkHlItems_(P), tr: P.tr, rp: (P.rp || []).slice(), tk: P.tk.slice(), lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
+  let note; try { mutate(bkEd_); note = NoteEditor.sanitize(bkCompose_(P.notes || '')); } finally { bkEd_ = was; }
+  const { data, error } = await supa.from('bookmarks').update({ note, updated_at: new Date().toISOString() }).eq('id', r.id).eq('user_id', userId).select('id');
+  if (error || !data || !data.length) { console.warn('note not saved', error); toast('Could not save - try again'); return false; }
+  r.note = note; const row = rows.find(x => String(x.id) === String(r.id)); if (row && row !== r) row.note = note;
+  if (String(frId) === String(r.id) && el('frBody')) { el('frBody').innerHTML = note; el('frBody').classList.remove('empty'); if (el('frBodyInp') && !bkEd_) el('frBodyInp').innerHTML = note; }   // the editor opens from frBodyInp
+  return true;
+}
 function rcShareCanvas_(r, it, bl, pod) {
   const S = 2, W = 540, PAD = 28, CP = 22, TW = W - 2 * PAD - 2 * CP, ink = it.ink || '#7086a8';
   const F = { q: '400 19px Fraunces, Georgia, serif', qb: '700 19px Fraunces, Georgia, serif', tt: '600 19px Fraunces, Georgia, serif', m: '700 9px "IBM Plex Mono", monospace', hd: '700 10px "IBM Plex Mono", monospace', ep: '600 16px Fraunces, Georgia, serif', sh: '400 12.5px "IBM Plex Sans", system-ui, sans-serif' };
@@ -5912,9 +5940,9 @@ function rcShareOpen_(r, it, bl, pod) { try { prShareSheet_(rcShareCanvas_(r, it
 function rcInit_(r, P) {
   const box = el('bkS_rc').querySelector('.rcb'), pod = isPod_(r), guest = (r.category || '').trim();
   const items = P.hl.map((t, i) => {
-    if (pod) { const sn = pdSnip_(t); if (sn) return { kind: sn.k, title: sn.title, ans: sn.pts.length ? sn.pts[0] : sn.title, ink: pdInk_(sn.k), titleOnly: !sn.pts.length };
-      return { kind: '', title: '', ans: rcPlain_(t), ink: '#7086a8', titleOnly: true }; }
-    const [q, ref] = bkPageRef_(rcPlain_(t)); return { ans: q.replace(/^[“"]|[”"]$/g, ''), ref, ink: BK_INK[i % BK_INK.length] };
+    if (pod) { const sn = pdSnip_(t); if (sn) return { kind: sn.k, title: sn.title, ans: sn.pts.length ? sn.pts[0] : sn.title, ink: pdInk_(sn.k), titleOnly: !sn.pts.length, rpk: rpKeyOf_(t) };
+      return { kind: '', title: '', ans: rcPlain_(t), ink: '#7086a8', titleOnly: true, rpk: rpKeyOf_(t) }; }
+    const [q, ref] = bkPageRef_(rcPlain_(t)); return { ans: q.replace(/^[“"]|[”"]$/g, ''), ref, ink: BK_INK[i % BK_INK.length], hi: i };
   }).filter(x => x.ans);
   if (items.length < 2) { el('bkS_rc').remove(); return; }
   const S = { q: [], got: 0, open: false, salt: 1, hist: [] };
@@ -5936,7 +5964,9 @@ function rcInit_(r, P) {
     } else {
       h = '<div class="rc-stack"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.ref ? escHtml(it.ref.toUpperCase()) + ' · ' : '') + 'CARD ' + Math.min(pos, items.length) + ' OF ' + items.length + '</div><div class="q">“' + rcCloze_(text, bl, S.open) + '”</div></div></div>';
     }
-    const SHR = '<button type="button" class="rc-shb" data-rc="share" title="Share this card as a picture" aria-label="Share this card">⤴</button>';   // RQ-S2 + L1: a small ⤴ in the card's top-right corner
+    const P0 = bkParse_(r.note || ''), stOn = pod ? rpHas_(P0.rp, it.rpk) : /[★⭐]/.test(P0.hl[it.hi] || '');   // RP-P1 / Q-A
+    const SHR = '<button type="button" class="rc-stb' + (stOn ? ' on' : '') + '" data-rc="star" title="' + (pod ? 'Keep this Replay card (★) for Today’s four' : 'Bookmark this highlight (★)') + '" aria-label="Bookmark">' + (stOn ? '★' : '☆') + '</button>' +
+      '<button type="button" class="rc-shb" data-rc="share" title="Share this card as a picture" aria-label="Share this card">⤴</button>';   // RQ-S2 + L1: ☆ and ⤴ in the card's top-right corner
     h = h.replace(/<\/div><\/div>$/, SHR + '</div></div>');
     h += '<div class="rc-ctl lr">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '<span class="rc-sp"></span>') +   // A: Back left, count middle, Next right
       '<span class="rc-prog mono">' + (items.length - left) + ' OF ' + items.length + ' DONE</span>' +
@@ -5944,6 +5974,10 @@ function rcInit_(r, P) {
     box.innerHTML = h;
     const act = a => {
       if (a === 'share') { rcShareOpen_(r, it, bl, pod); return; }   // RQ-S2: this card, answered, as a picture
+      if (a === 'star') { (async () => { let on = false;
+          const ok = await bkNoteSave_(r, E => { if (pod) { const k = bkHdKey_(it.rpk); on = !(E.rp || []).some(x => bkHdKey_(x) === k); E.rp = (E.rp || []).filter(x => bkHdKey_(x) !== k); if (on) E.rp.push(it.rpk); }
+            else { const x = E.hl[it.hi]; if (x) { x.star = !x.star; on = x.star; } } });
+          if (ok) { toast(on ? '★ Kept - it can now come up in Today’s four' : 'Bookmark removed'); draw(); } })(); return; }
       if (a === 'back') { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); return; }   // ‹ Back: the previous card, shown answered
       if (a === 'got' || a === 'again') S.hist.push({ q: S.q.slice(), got: S.got, i: S.q[0], ag: it.again });
       if (a === 'reveal') S.open = true;

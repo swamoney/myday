@@ -249,6 +249,7 @@
   .t4c.s0 { z-index:3; } .t4c.s1 { z-index:2; transform:translate(6px,9px) rotate(1.6deg); } .t4c.s2 { z-index:1; transform:translate(-5px,16px) rotate(-1.8deg); }
   .t4c.s1 > *, .t4c.s2 > * { visibility:hidden; } .t4c.s1, .t4c.s2 { box-shadow:none; }
   .t4c.sx { z-index:4; opacity:0; transform:translateX(-60%) rotate(-8deg); pointer-events:none; } .t4c.sh { z-index:0; opacity:0; pointer-events:none; }
+  .t4c .sym.rp { font-size:1.15rem; line-height:20px; } .t4c .one { font-family:'Fraunces',Georgia,serif; font-size:1rem; line-height:1.5; color:#2b2347; margin:0 6px 6px; }   /* RP-P1: a Replay pick */
   .t4n { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:4px; }
   .t4n button { width:34px; height:34px; border-radius:50%; border:1px solid #d7dde8; background:#fff; font-size:1.1rem; line-height:1; color:#1f4e5f; cursor:pointer; }
   .t4n .ct { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; font-weight:600; letter-spacing:0.14em; color:#5a6680; min-width:52px; text-align:center; }
@@ -636,10 +637,11 @@ function paintPulses(v, prefs) {
 // as a stack of open prints (B): one on top, two peeking, ‹ n / 4 ›, swipe. Kept apart from the Learning Diary's three (prefs.recall_hub).
 // Archived learnings, books and episodes ('__arch') never come up. ✓ I KNEW IT on the learnings (counts in the diary too); Open › on the highlights.
 let recallRows_ = [], hubHls_ = [], hubFour_ = [], hubAt_ = 0;
-function hubHlsOf_(r) {   // a book's / episode's highlight lines, read from its note (the Highlights section)
+function hubHlsOf_(r, sec) {   // a book's / episode's highlight lines (sec 'hl') or Replay picks (sec 'rp'), read from its note
   const box = document.createElement('div'); box.innerHTML = r.note || ''; const out = []; let on = false;
+  const RE = sec === 'rp' ? /^replay\s+picks?\b/i : /^(my\s+)?(highlights?|quotes?|lines?)\b/i;
   [...box.children].forEach(n => {
-    if (/^H[1-6]$/.test(n.tagName)) { on = /^(my\s+)?(highlights?|quotes?|lines?)\b/i.test(n.textContent.trim()); return; }
+    if (/^H[1-6]$/.test(n.tagName)) { on = RE.test(n.textContent.trim()); return; }
     if (!on) return;
     if (/^(UL|OL)$/.test(n.tagName)) [...n.children].forEach(li => out.push(li.textContent.trim()));
     else out.push((n.tagName === 'DIV' && n.children.length ? [...n.children].map(c => c.textContent.trim()).join(' ') : n.textContent).replace(/\s+/g, ' ').trim());   // BK-G1 rich highlight: its paragraphs, spaced
@@ -666,7 +668,9 @@ async function loadRecall() {
     const h = await all('id, title, type, category, section, note, tags', ['books', 'podcasts']);
     hubHls_ = [];
     ((h && h.data) || []).filter(r => !(r.tags || []).includes('__arch')).forEach(r => {
-      hubHlsOf_(r).forEach(t => hubHls_.push({ key: r.id + '#' + MyRecall.hash32(t.replace(/[★⭐]/g, '').trim()), kind: r.section === 'podcasts' ? 'pod' : 'book', t, row: r }));
+      // E1 (17 Nov 2026): only ★ bookmarked highlights / snips - and, for podcasts, the Replay picks (title + one line) as entries of their own
+      hubHlsOf_(r, 'hl').filter(t => /[★⭐]/.test(t)).forEach(t => hubHls_.push({ key: r.id + '#' + MyRecall.hash32(t.replace(/[★⭐]/g, '').trim()), kind: r.section === 'podcasts' ? 'pod' : 'book', t, row: r }));
+      if (r.section === 'podcasts') hubHlsOf_(r, 'rp').forEach(t => hubHls_.push({ key: r.id + '#rp' + MyRecall.hash32(t.trim()), kind: 'pod', rp: true, t, row: r }));
     });
     MyRecall.setStore(MyRecall.prefsStore(supa, uid, 'recall_hub'), 'hub');   // the same four on every device - its own, not the diary's
     hubFour_ = await MyRecall.hubTodays(recallRows_, hubHls_); hubAt_ = 0; paintRecall();
@@ -682,7 +686,10 @@ function t4Card_(slot, v) {
   let line = '', pts = '', src = '', sub = '', act = '';
   if (slot === 'bk' || slot === 'pd') {
     const r = v.row, raw = v.t.replace(/[★⭐]/g, '').trim();
-    if (slot === 'pd') { const m = raw.match(/^\[([A-Za-z ]{2,20})\]\s*([\s\S]*)$/), body = m ? m[2] : raw, i = body.indexOf(' — ');
+    if (slot === 'pd' && v.rp) {   // RP-P1: a Replay pick - the title and its one line
+      const i = raw.indexOf(' — '); line = _esc(i > -1 ? raw.slice(0, i) : raw); if (i > -1) pts = '<div class="one">' + _esc(raw.slice(i + 3)) + '</div>';
+      src = String(r.title || '').replace(/\s*[·-]?\s*#\d+\s*$/, ''); sub = [r.type, r.category].filter(Boolean).join(' · '); }
+    else if (slot === 'pd') { const m = raw.match(/^\[([A-Za-z ]{2,20})\]\s*([\s\S]*)$/), body = m ? m[2] : raw, i = body.indexOf(' — ');
       line = _esc((i > -1 ? body.slice(0, i) : body).trim()); const P = i > -1 ? body.slice(i + 3).split(/\s+•\s+/).filter(Boolean).slice(0, 3) : [];
       if (P.length) pts = '<ul>' + P.map(x => '<li>' + _esc(x) + '</li>').join('') + '</ul>';
       src = String(r.title || '').replace(/\s*[·-]?\s*#\d+\s*$/, ''); sub = [r.type, r.category].filter(Boolean).join(' · '); }
@@ -694,7 +701,8 @@ function t4Card_(slot, v) {
     line = _esc(v.title || ''); src = 'My Learning Diary'; sub = (v.learned_on ? MyRecall.ago(v.learned_on) + ' · ' : '') + MyRecall.recalledLine(v);
     act = '<button type="button" class="ok' + (done ? ' on' : '') + '" data-recall="' + _esc(String(v.id)) + '"' + (done ? ' disabled' : '') + '>✓ ' + (done ? 'KNEW IT TODAY' : 'I KNEW IT') + '</button>';
   }
-  return '<div class="t4c" style="--k:' + col + '"><span class="kl">' + lbl + '</span><svg class="sym" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="' + icon + '"/></svg>' +
+  const rpk = slot === 'pd' && v && v.rp;
+  return '<div class="t4c" style="--k:' + col + '"><span class="kl">' + lbl + (rpk ? ' · REPLAY' : '') + '</span>' + (rpk ? '<span class="sym rp">↻</span>' : '<svg class="sym" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="' + icon + '"/></svg>') +
     '<div class="ln">' + line + '</div>' + pts + '<div class="src"><b>' + _esc(src) + '</b><span>' + _esc(sub) + '</span></div>' + act + '</div>';
 }
 function paintRecall() {
