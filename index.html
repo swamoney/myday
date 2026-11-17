@@ -250,6 +250,7 @@
   .t4c.s1 > *, .t4c.s2 > * { visibility:hidden; } .t4c.s1, .t4c.s2 { box-shadow:none; }
   .t4c.sx { z-index:4; opacity:0; transform:translateX(-60%) rotate(-8deg); pointer-events:none; } .t4c.sh { z-index:0; opacity:0; pointer-events:none; }
   .t4c .sym.rp { font-size:1.15rem; line-height:20px; } .t4c .one { font-family:'Fraunces',Georgia,serif; font-size:1rem; line-height:1.5; color:#2b2347; margin:0 6px 6px; }   /* RP-P1: a Replay pick */
+  .t4c .who { font-family:'IBM Plex Mono',monospace; font-size:0.55rem; font-weight:700; letter-spacing:0.16em; color:var(--k); margin:0 0 6px; }   /* T5: a dialogue's speaker */
   .t4n { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:4px; }
   .t4n button { width:34px; height:34px; border-radius:50%; border:1px solid #d7dde8; background:#fff; font-size:1.1rem; line-height:1; color:#1f4e5f; cursor:pointer; }
   .t4n .ct { font-family:'IBM Plex Mono',monospace; font-size:0.7rem; font-weight:600; letter-spacing:0.14em; color:#5a6680; min-width:52px; text-align:center; }
@@ -304,7 +305,7 @@
 <script src="config.js?v=20260802b"></script>
 <script src="note-editor.js?v=20261110a"></script>
 <script src="attachments.js?v=20260903a"></script>
-<script src="recall.js?v=20261117a"></script>
+<script src="recall.js?v=20261117b"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
 <div class="auth-overlay hidden" id="authOverlay">
@@ -350,7 +351,7 @@
   </div>
 
   <div class="recall hidden" id="hubRecall">
-    <div class="h"><span class="eb2">TODAY&rsquo;S FOUR &middot; FROM YOUR LIBRARY</span><span class="prog" id="hubRecallProg"></span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div>
+    <div class="h"><span class="eb2">TODAY&rsquo;S FIVE &middot; FROM YOUR LIBRARY</span><span class="prog" id="hubRecallProg"></span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div>
     <div class="t4" id="hubRecallCards"></div>
   </div>
 
@@ -639,7 +640,7 @@ function paintPulses(v, prefs) {
 let recallRows_ = [], hubHls_ = [], hubFour_ = [], hubAt_ = 0;
 function hubHlsOf_(r, sec) {   // a book's / episode's highlight lines (sec 'hl') or Replay picks (sec 'rp'), read from its note
   const box = document.createElement('div'); box.innerHTML = r.note || ''; const out = []; let on = false;
-  const RE = sec === 'rp' ? /^replay\s+picks?\b/i : /^(my\s+)?(highlights?|quotes?|lines?)\b/i;
+  const RE = sec === 'rp' ? /^replay\s+picks?\b/i : sec === 'dl' ? /^dialog|^dialogue/i : /^(my\s+)?(highlights?|quotes?|lines?)\b/i;   // T5: 'dl' = a movie's Dialogues
   [...box.children].forEach(n => {
     if (/^H[1-6]$/.test(n.tagName)) { on = RE.test(n.textContent.trim()); return; }
     if (!on) return;
@@ -665,11 +666,12 @@ async function loadRecall() {
     if (q && q.error) { console.warn('recall: log columns missing - run migrate_recall.sql', q.error.message); q = await all('id, title, category, learned_on, tags', ['learning']); }
     if (!q || q.error) { console.warn('recall: could not read the diary', q && q.error); return; }
     recallRows_ = (q.data || []).filter(r => !(r.tags || []).includes('__arch'));   // LD-A1: archived learnings stay out
-    const h = await all('id, title, type, category, section, note, tags', ['books', 'podcasts']);
+    const h = await all('id, title, type, category, section, note, tags', ['books', 'podcasts', 'movies']);
     hubHls_ = [];
     ((h && h.data) || []).filter(r => !(r.tags || []).includes('__arch')).forEach(r => {
       // E1 (17 Nov 2026): only ★ bookmarked highlights / snips - and, for podcasts, the Replay picks (title + one line) as entries of their own
-      hubHlsOf_(r, 'hl').filter(t => /[★⭐]/.test(t)).forEach(t => hubHls_.push({ key: r.id + '#' + MyRecall.hash32(t.replace(/[★⭐]/g, '').trim()), kind: r.section === 'podcasts' ? 'pod' : 'book', t, row: r }));
+      if (r.section !== 'movies') hubHlsOf_(r, 'hl').filter(t => /[★⭐]/.test(t)).forEach(t => hubHls_.push({ key: r.id + '#' + MyRecall.hash32(t.replace(/[★⭐]/g, '').trim()), kind: r.section === 'podcasts' ? 'pod' : 'book', t, row: r }));
+      if (r.section === 'movies') { hubHlsOf_(r, 'dl').filter(t => /^(📌\s*)?[★⭐]/.test(t)).forEach(t => hubHls_.push({ key: r.id + '#mv' + MyRecall.hash32(t.replace(/[📌★⭐]/g, '').trim()), kind: 'mv', t, row: r })); return; }   // T5: ★ dialogues
       if (r.section === 'podcasts') hubHlsOf_(r, 'rp').forEach(t => hubHls_.push({ key: r.id + '#rp' + MyRecall.hash32(t.trim()), kind: 'pod', rp: true, t, row: r }));
     });
     MyRecall.setStore(MyRecall.prefsStore(supa, uid, 'recall_hub'), 'hub');   // the same four on every device - its own, not the diary's
@@ -679,12 +681,19 @@ async function loadRecall() {
 const T4_K = { bk: ['FROM A BOOK', '#1f4e5f', 'M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5c-3.5-.5-6.5 0-8.5 1.5zM12 6.5v13'],
   pd: ['FROM A PODCAST', '#5b4a86', 'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21'],
   mm: ['MENTAL MODEL', '#a8862a', 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'],
+  mv: ['FROM A MOVIE', '#2f6577', 'M4 5h16v14H4zM8 5v14M16 5v14M4 9h4M4 15h4M16 9h4M16 15h4'],
   tt: ['TIMELESS TRUTH', '#a8862a', 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'] };
 function t4Pos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 's0' : o === 1 ? 's1' : o === 2 ? 's2' : o === N - 1 ? 'sx' : 'sh'; }
 function t4Card_(slot, v) {
   const [lbl, col, icon] = T4_K[slot], today = MyRecall.today();
   let line = '', pts = '', src = '', sub = '', act = '';
-  if (slot === 'bk' || slot === 'pd') {
+  if (slot === 'mv') {   // T5: a ★ dialogue - the line, "— WHO", the title, director · language
+    const r = v.row, raw = v.t.replace(/[📌★⭐]/g, '').trim(), m = raw.match(/^[“"]([\s\S]*?)[”"]\s*(?:[—–-]\s*(.*))?$/), i = raw.lastIndexOf(' — ');
+    const q = m ? m[1] : (i > 0 ? raw.slice(0, i) : raw), who = m ? (m[2] || '') : (i > 0 ? raw.slice(i + 3) : '');
+    line = '“' + _esc(q.trim()) + '”'; if (who.trim()) pts = '<div class="who">— ' + _esc(who.trim().toUpperCase()) + '</div>';
+    src = r.title || ''; sub = [r.type, r.category].filter(Boolean).join(' · ');
+    act = '<a class="op" href="' + ROOMS.favourites + '?open=' + encodeURIComponent(r.id) + '">Open ›</a>';
+  } else if (slot === 'bk' || slot === 'pd') {
     const r = v.row, raw = v.t.replace(/[★⭐]/g, '').trim();
     if (slot === 'pd' && v.rp) {   // RP-P1: a Replay pick - the title and its one line
       const i = raw.indexOf(' — '); line = _esc(i > -1 ? raw.slice(0, i) : raw); if (i > -1) pts = '<div class="one">' + _esc(raw.slice(i + 3)) + '</div>';
