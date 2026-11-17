@@ -1743,6 +1743,17 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .ld-today .t4n { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:4px; }
   .ld-today .t4n button { width:34px; height:34px; border-radius:50%; border:1px solid #d7dde8; background:#fff; font-size:1.1rem; line-height:1; color:#1f4e5f; cursor:pointer; }
   .ld-today .t4n .ct { font-family:var(--mono); font-size:0.7rem; font-weight:600; letter-spacing:0.14em; color:#5a6680; min-width:52px; text-align:center; }
+  /* HL-P1 (17 Nov 2026): ★ (bookmark, many) and 📌 (heading line, one) on each highlight / snip in Edit */
+  .bkp .hl.hlm { position:relative; padding-right:76px !important; }
+  .bkp .hl.hlm .hlb { position:absolute; right:10px; top:10px; display:flex; gap:4px; z-index:3; }
+  .bkp .hl.hlm .hlb button { width:30px; height:30px; border-radius:50%; border:1px solid #dfe5ee; background:#fff; color:#8a97b3; font-size:.85rem; line-height:1; padding:0; display:grid; place-items:center; cursor:pointer; }
+  .bkp .hl.hlm .hlb .hb-st.on { color:#c9a227; border-color:#e2c36a; background:#fff8e1; }
+  .bkp .hl.hlm .hlb .hb-pn { filter:grayscale(1); opacity:.45; } .bkp .hl.hlm .hlb .hb-pn.on { filter:none; opacity:1; border-color:#1f4e5f; background:#eaf1f3; }
+  .bkp .hl.hlm .hb-hd { position:absolute; right:12px; top:46px; font-size:.48rem; font-weight:700; letter-spacing:.12em; color:#fff; background:#1f4e5f; border-radius:4px; padding:2px 6px; z-index:3; }
+  body.fr-pod .bkp .hl.hlm .hb-hd { background:#5b4a86; }
+  .bkp .hl.hlm.stg { box-shadow:0 0 0 1.5px #e2c36a inset; }
+  .bk-chks { display:flex; flex-direction:column; gap:6px; } .bk-chk small { color:#8a97b3; font-size:.72em; margin-left:4px; }
+  .bkp .hl.hlm::after { opacity:0 !important; }   /* HL-P1: the card's corner ornament steps aside for ★ / 📌 */
 </style>
 </head>
 <body>
@@ -3147,7 +3158,7 @@ function bkShelfLine_(r) {
   if (isDoc(r.note)) return r.essence || '';
   const pl = t => String(t || '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
   const P = bkParse_(r.note || ''), nop = t => { const sn = pdSnip_(t); return sn ? sn.title : pl(t).replace(/[★⭐]/g, '').replace(/\s+[—–-]\s*p\.?\s*\d+\S*\s*$/i, '').trim(); };   // PD-1: a snip shows its title
-  const st = P.hl.find(t => /[★⭐]/.test(t));
+  const st = P.hl[bkHeadIdx_(P)];   // HL-P1: the 📌 line, else the first ★
   return (st && nop(st)) || (r.essence || '').trim() || (P.hl[0] && nop(P.hl[0])) || pl(P.any ? P.notes : NoteEditor.toPlain(r.note || ''));
 }
 function renderBooks_(list, wrap) {
@@ -3197,13 +3208,14 @@ document.addEventListener('DOMContentLoaded', () => { const a = el('bkAuthor'); 
 // ===== BP-H1 (11 Nov 2026): a book's own page, the My Circle way =====
 // The note keeps being one note; headings in it (Highlights / Takeaways / Lived it) make the sections. Display only.
 const BK_SECS = [
+  { k:'hd', re:/^heading\s+line\b/i },   // HL-P1: the one line chosen for the page's heading
   { k:'hl', re:/^(my\s+)?(highlights?|quotes?|lines?)\b/i },
   { k:'tk', re:/^(my\s+)?(takeaways?|learnings?|lessons?|key\s+ideas?)\b/i },
   { k:'lv', re:/^(lived\s+it|put\s+to\s+use|applied|what\s+i\s+changed|in\s+practice|acted\s+on)\b/i }
 ];
 function bkParse_(html) {
   const box = document.createElement('div'); box.innerHTML = html || '';
-  const out = { hl:[], hlh:[], tk:[], lv:[], tr:[], notes:'' }; let cur = null; const rest = [];
+  const out = { hl:[], hlh:[], tk:[], lv:[], tr:[], hd:[], notes:'' }; let cur = null; const rest = [];
   const items = n => {
     if (/^(UL|OL)$/.test(n.tagName)) return [...n.children].map(li => li.textContent.trim()).filter(Boolean);
     if (n.tagName === 'BLOCKQUOTE' && n.querySelector('p')) return [...n.querySelectorAll('p')].map(x => x.textContent.trim()).filter(Boolean);
@@ -3245,7 +3257,13 @@ function bkHlRich_(div) {
   const h = kids.map(k => k.outerHTML).join(''), t = bkHlPlain_(h);
   return { t: (star ? '★ ' : '') + t + (ref ? ' — ' + ref : ''), h };
 }
-function bkHlItems_(P) { return P.hl.map((t, i) => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim(), h: (P.hlh && P.hlh[i]) || '' })); }
+// ===== HL-P1 (17 Nov 2026): ★ bookmarks many highlights (gold print, first in the stack); 📌 picks the ONE heading line.
+// The pin is kept in the note as its own little section - <h3>Heading line</h3><p>the line</p> - no SQL. No pin: the first ★, else the first line (as before).
+function bkHdKey_(t) { return String(t || '').replace(/[★⭐]/g, '').replace(/[“”"]/g, '').replace(/\s+/g, ' ').trim().toLowerCase(); }
+function bkHeadIdx_(P) { if (!P.hl.length) return -1; const k = P.hd && P.hd[0] ? bkHdKey_(P.hd[0]) : ''; let i = k ? P.hl.findIndex(t => bkHdKey_(t) === k) : -1;
+  if (i < 0) i = P.hl.findIndex(t => /[★⭐]/.test(t)); return i < 0 ? 0 : i; }
+function bkEdHeadIdx_(E) { if (!E || !E.hl.length) return -1; let i = E.hl.findIndex(x => x.pin); if (i < 0) i = E.hl.findIndex(x => x.star); return i < 0 ? 0 : i; }
+function bkHlItems_(P) { const k = P.hd && P.hd[0] ? bkHdKey_(P.hd[0]) : ''; let got = false; return P.hl.map((t, i) => { const pin = !got && !!k && bkHdKey_(t) === k; if (pin) got = true; return { star: /[★⭐]/.test(t), pin, t: t.replace(/[★⭐]/g, '').trim(), h: (P.hlh && P.hlh[i]) || '' }; }); }
 function bkHlOpen_(i, r, pg) {   // the highlight editor: a small rich box (B, I, lists, quote), the page, ☆ top line
   const ov = pdOv_('bkHlOv'), E = bkEd_, isNew = i < 0, it = isNew ? null : E.hl[i], e = escHtml;
   const [q0, ref0] = it ? bkPageRef_(it.t) : ['', ''];
@@ -3254,7 +3272,8 @@ function bkHlOpen_(i, r, pg) {   // the highlight editor: a small rich box (B, I
     '<div class="ld-htb ld-ntb">' + btn('bold', '<b>B</b>') + btn('italic', '<i>I</i>') + btn('underline', '<u>U</u>') + btn('hl', '<span class="hlx">A</span>') + '<span class="sep"></span>' + btn('insertUnorderedList', '&bull;&#8801;') + btn('insertOrderedList', '1&#8801;') + btn('quote', '&#8220;') + '<span class="sep"></span>' + btn('clear', 'T<sub>x</sub>') + '</div>' +
     '<div class="box" id="bkHlT" contenteditable="true" data-ph="The line, or a few paragraphs and a list…"></div>' +
     '<div class="bk-r2"><div><label class="mono">PAGE (OPTIONAL)</label><input type="text" id="bkHlP" value="' + e(ref0.replace(/^p\.?\s*/i, '')) + '" maxlength="30" placeholder="e.g. 34"></div>' +
-    '<label class="bk-chk"><input type="checkbox" id="bkHlS"' + (it && it.star ? ' checked' : '') + '> ★ Make it the top line</label></div>' +
+    '<div class="bk-chks"><label class="bk-chk"><input type="checkbox" id="bkHlS"' + (it && it.star ? ' checked' : '') + '> ★ Bookmark it <small>gold print, comes first</small></label>' +
+    '<label class="bk-chk"><input type="checkbox" id="bkHlPin"' + (it && it.pin ? ' checked' : '') + '> 📌 Use as the heading line <small>only one</small></label></div></div>' +
     '<div class="bk-acts">' + (isNew ? '' : '<button type="button" class="dl" id="bkHlD">Delete</button>') + '<span style="flex:1"></span><button type="button" id="bkHlN">Cancel</button><button type="button" class="sv" id="bkHlK">Save</button></div></div>';
   ov.classList.remove('hidden');
   const box = el('bkHlT'); document.execCommand('defaultParagraphSeparator', false, 'p');
@@ -3289,8 +3308,8 @@ function bkHlOpen_(i, r, pg) {   // the highlight editor: a small rich box (B, I
     if (!plain) { if (!isNew) { E.hl.splice(i, 1); scheduleFrSave(); } close(); bkRenderEdit_(r, pg); return; }
     const one = d.children.length === 1 && d.firstElementChild.tagName === 'P' && !ldHasInline_(html);   // a plain line stays a plain line
     const pv = el('bkHlP').value.trim(), withPage = x => pv ? x + ' — ' + (/^\d/.test(pv) ? 'p. ' + pv : pv) : x;
-    const item = { star: el('bkHlS').checked, t: withPage(one ? d.textContent.replace(/\s+/g, ' ').trim() : plain), h: one ? '' : html };
-    if (item.star) E.hl.forEach(x => { x.star = false; });
+    const item = { star: el('bkHlS').checked, pin: el('bkHlPin').checked, t: withPage(one ? d.textContent.replace(/\s+/g, ' ').trim() : plain), h: one ? '' : html };
+    if (item.pin) E.hl.forEach(x => { x.pin = false; });   // HL-P1: ★ can be on many; 📌 on one
     if (isNew) E.hl.push(item); else E.hl.splice(i, 1, item);
     scheduleFrSave(); close(); bkRenderEdit_(r, pg);
   };
@@ -3306,8 +3325,7 @@ function bkRender_() {
   const P = bkParse_(el('frBody').classList.contains('empty') ? '' : el('frBody').innerHTML);
   document.body.classList.toggle('bk-struct', P.any);
   const strip = t => t.replace(/[★⭐]/g, '').trim();
-  const starred = P.hl.find(t => /[★⭐]/.test(t));
-  const heroRaw = starred || P.hl[0] || '';
+  const heroRaw = P.hl[bkHeadIdx_(P)] || '';   // HL-P1: the 📌 heading line, else the first ★, else the first
   let heroBase = strip(heroRaw); { const hi = P.hl.indexOf(heroRaw); if (hi > -1 && P.hlh[hi]) { const d = document.createElement('div'); d.innerHTML = P.hlh[hi];   // BK-G1: a rich top line shows its first paragraph
     const rf = bkPageRef_(heroBase)[1]; heroBase = ((d.firstElementChild || d).textContent || '').replace(/\s+/g, ' ').trim() + (rf ? ' — ' + rf : ''); } }
   const [heroT, heroRef] = bkPageRef_(heroBase);
@@ -3730,6 +3748,7 @@ function bkCompose_(notes) {
   const hl = E.hl.filter(x => x.t.trim()), tk = E.tk.filter(x => x.trim()), lv = E.lv.filter(x => x.t.trim());
   if (hl.length) out.push('<h3>Highlights</h3>' + hl.map(x => { if (x.h) { const ref = bkPageRef_(x.t)[1]; return '<div>' + (x.star ? '<p>★</p>' : '') + x.h + (ref ? '<p>— ' + e(ref) + '</p>' : '') + '</div>'; }   // BK-G1
     return '<p>' + (x.star ? '★ ' : '') + e(x.t.trim()) + '</p>'; }).join(''));
+  const pn = hl.find(x => x.pin); if (pn) out.push('<h3>Heading line</h3><p>' + e(pn.t.trim()) + '</p>');   // HL-P1
   if (tk.length) out.push('<h3>Takeaways</h3><ul>' + tk.map(x => '<li>' + e(x.trim()) + '</li>').join('') + '</ul>');
   if (lv.length) out.push('<h3>Lived it</h3>' + lv.map(x => '<p>' + (x.st === 'd' ? '✓ ' : x.st === 't' ? '◷ ' : '') + e(x.t.trim()) + '</p>').join(''));
   const box = document.createElement('div'); box.innerHTML = notes || '';
@@ -3740,12 +3759,24 @@ function bkCompose_(notes) {
   if (tr.length) out.push('<h3>Transcripts</h3>' + tr.map(x => '<p><b>📚 ' + (x.time ? e(x.time) + ' · ' : '') + e(x.title) + '</b></p>' + x.html).join(''));
   return out.join('');
 }
+// HL-P1: in Edit, every highlight / snip gets ☆/★ (bookmark - many) and 📌 (the heading line - one); a HEADING tag marks the line on top
+function bkHlMarks_(pg, r) {
+  const E = bkEd_; if (!E || !E.hl || E.mv) return; const hi = bkEdHeadIdx_(E);
+  pg.querySelectorAll('[data-it^="hl:"]').forEach(c => { const i = +c.dataset.it.split(':')[1], x = E.hl[i]; if (!x) return;
+    c.classList.add('hlm'); if (x.star) c.classList.add('stg');
+    c.insertAdjacentHTML('beforeend', '<span class="hlb"><button type="button" class="hb-st' + (x.star ? ' on' : '') + '" data-hla="star:' + i + '" title="Bookmark (★)" aria-label="Bookmark">' + (x.star ? '★' : '☆') + '</button>' +
+      '<button type="button" class="hb-pn' + (x.pin ? ' on' : '') + '" data-hla="pin:' + i + '" title="Use as the heading line" aria-label="Heading line">📌</button></span>' + (i === hi ? '<span class="hb-hd mono">HEADING</span>' : '')); });
+  pg.querySelectorAll('[data-hla]').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); ev.preventDefault();
+    const [a, i] = b.dataset.hla.split(':'), x = E.hl[+i]; if (!x) return;
+    if (a === 'star') x.star = !x.star; else { const on = !x.pin; E.hl.forEach(y => { y.pin = false; }); x.pin = on; }
+    scheduleFrSave(); bkRenderEdit_(r, pg); }));
+}
 function bkRenderEdit_(r, pg) {
   if (isMr_(r)) return mrRender_(r, pg);   // MR-1
   if (isMv_(r)) return mvRenderEdit_(r, pg);   // MV-1
   if (isPod_(r)) return pdRenderEdit_(r, pg);   // PD-1
   const E = bkEd_, e = escHtml, auth = r.type || '', kind = bkKind_(r);
-  const star = E.hl.find(x => x.star) || E.hl[0];
+  const star = E.hl[bkEdHeadIdx_(E)];   // HL-P1
   const [heroT] = star ? bkPageRef_(star.t) : [''];
   let h = '<div class="bkeh mono">✎ EDITING — TAP ANY DASHED TEXT, OR ANY LINE, TO CHANGE IT</div>' +
     '<div class="bk1"><div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · BOOKS' + (kind ? ' · ' + (kind === 'f' ? 'FICTION' : 'NON-FICTION') : '') + '</div>' +
@@ -3754,7 +3785,7 @@ function bkRenderEdit_(r, pg) {
       '<button type="button" class="addt" id="bkeTagAdd">+ tag</button></div>' +
     '<div class="ul"></div>' + (auth ? '<div class="by">' + e(auth) + '</div>' : '') + '</div>' +
     '<div class="cv"><div class="t">' + e(r.title || '') + '</div><div class="a">' + e(auth) + '</div></div></div>' +
-    '<div class="hero ep"><div class="orn">❦</div><div class="q">' + (heroT ? e(heroT) : '<span class="ph">your ★ highlight shows here</span>') + '</div><div class="by">— your ★ highlight</div></div>' +   // BK-P1
+    '<div class="hero ep"><div class="orn">❦</div><div class="q">' + (heroT ? e(heroT) : '<span class="ph">📌 a highlight to show it here</span>') + '</div><div class="by">— your 📌 heading line</div></div>' +   // BK-P1
     '<div class="take"><div class="l mono">MY TAKE IN ONE LINE</div><div class="v" contenteditable="true" id="bkeK" data-ph="your verdict on the book, in one line">' + e(r.essence || '') + '</div></div></div>';
   h += '<div class="facts bkef" style="grid-template-columns:repeat(3,1fr);margin-top:14px"><div><div class="l mono">AUTHOR</div><input type="text" id="bkeA" placeholder="who wrote it" value="' + e(auth) + '" maxlength="120"></div>' +
     '<div><div class="l mono">KIND</div><div class="bkseg sm"><button type="button" data-kind="n" class="' + (kind === 'n' ? 'on' : '') + '">Non-fiction</button><button type="button" data-kind="f" class="' + (kind === 'f' ? 'on f' : 'f') + '">Fiction</button></div></div>' +
@@ -3762,13 +3793,13 @@ function bkRenderEdit_(r, pg) {
   const fr = (n, title, sub, meta, inner, add, k) => '<div class="bkfr"><span class="bl"></span><span class="br"></span><div class="sh"><span class="n">' + n + '</span><h3>' + title + '</h3>' + (meta ? '<span class="m mono">' + meta + '</span>' : '') + '</div>' +
     (sub ? '<div class="sub">' + sub + '</div>' : '') + inner + '<button type="button" class="bkadd" data-new="' + k + '">＋ ' + add + '</button></div>';
   h += fr('I', 'Highlights', E.hl.length ? '' : 'in the book’s words', E.hl.length ? E.hl.length + (E.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS' : '',
-    E.hl.length ? '<div class="thr pd-mus bk-mus">' + E.hl.map((x, i) => { const [q, ref] = bkPageRef_(x.t); return '<div class="hl tap" data-it="hl:' + i + '" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span>' + (x.h ? '<div class="q rich">' + x.h + '</div>' : '<div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>') + ((ref || x.star) ? '<div class="s mono">' + e(ref) + (ref && x.star ? ' · ' : '') + (x.star ? '★ TOP LINE' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '',
+    E.hl.length ? '<div class="thr pd-mus bk-mus">' + E.hl.map((x, i) => { const [q, ref] = bkPageRef_(x.t); return '<div class="hl tap" data-it="hl:' + i + '" style="--mti:' + BK_INK[i % BK_INK.length] + '"><span class="d">' + (i + 1) + '</span>' + (x.h ? '<div class="q rich">' + x.h + '</div>' : '<div class="q">“' + e(q.replace(/^[“"]|[”"]$/g, '')) + '”</div>') + ((ref || x.star) ? '<div class="s mono">' + e(ref) + (ref && x.star ? ' · ' : '') + (x.star ? '★' : '') + '</div>' : '') + '</div>'; }).join('') + '</div>' : '',
     'Add a highlight', 'hl');
   h += '<div class="bkfr sec ch-sec" id="bkS_ch" data-n="II" data-ed="1"></div>';   // BK-E1 / BK-X1: Chapters (with ＋) where My takeaways was
   h += fr('III', 'Lived it', E.lv.length ? '' : 'what I changed because of it', E.lv.length ? E.lv.length + ' · WHAT I CHANGED' : '',
     E.lv.length ? '<div class="use">' + E.lv.map((x, i) => '<div class="tap ' + (x.st === 'd' ? '' : x.st === 't' ? 'tr' : 'nn') + '" data-it="lv:' + i + '"><b>' + (x.st === 'd' ? '✓ DONE' : x.st === 't' ? '◷ TRYING' : 'NOTED') + '</b>' + e(x.t) + '</div>').join('') + '</div>' : '', 'Add something I changed', 'lv');
   h += '<div class="bklong" id="bkLong" role="button" tabindex="0"><h3>The long note</h3><span class="m"></span><span class="tg"></span></div>';
-  pg.innerHTML = h;
+  pg.innerHTML = h; bkHlMarks_(pg, r);   // HL-P1
   bkWireEdit_(r, pg); bkLongSet_(); chLoad_(r);
   const L = el('bkLong'), tog = () => { bkLnOpen_ = !bkLnOpen_; bkLongSet_(); if (bkLnOpen_) { try { el('frBodyInp').focus(); } catch (e) {} } };
   L.addEventListener('click', tog); L.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); tog(); } });
@@ -3813,7 +3844,7 @@ function bkItemOpen_(K, i, r, pg) {
   let st = it && K === 'lv' ? it.st : 'd', star = !!(it && it.star);
   ov.innerHTML = '<div class="bk-form"><div class="bk-fh">' + (isNew ? NM[0] : NM[1]) + '</div><div class="bk-fs mono">' + NM[2] + '</div>' +
     '<label class="mono">' + NM[3].toUpperCase() + '</label><textarea id="bkIt" rows="3" placeholder="' + (isNew ? 'one per line — several lines add several' : '') + '">' + e(text) + '</textarea>' +
-    (K === 'hl' ? '<div class="bk-r2"><div><label class="mono">PAGE (OPTIONAL)</label><input type="text" id="bkPg" value="' + e(page) + '" maxlength="30" placeholder="e.g. 34"></div><label class="bk-chk"><input type="checkbox" id="bkStar"' + (star ? ' checked' : '') + '> ★ Make this the top line</label></div>' : '') +
+    (K === 'hl' ? '<div class="bk-r2"><div><label class="mono">PAGE (OPTIONAL)</label><input type="text" id="bkPg" value="' + e(page) + '" maxlength="30" placeholder="e.g. 34"></div><label class="bk-chk"><input type="checkbox" id="bkStar"' + (star ? ' checked' : '') + '> ★ Bookmark it</label></div>' : '') +
     (K === 'lv' ? '<label class="mono">WHERE IT STANDS</label><div class="bkseg"><button type="button" data-s="d" class="' + (st === 'd' ? 'on' : '') + '">✓ Done</button><button type="button" data-s="t" class="' + (st === 't' ? 'on' : '') + '">◷ Trying</button></div>' : '') +
     '<div class="bk-acts">' + (isNew ? '' : '<button type="button" class="dl" id="bkItDel">Delete</button>') + '<span style="flex:1"></span><button type="button" id="bkItNo">Cancel</button><button type="button" class="sv" id="bkItOk">Save</button></div></div>';
   ov.classList.remove('hidden');
@@ -3830,7 +3861,8 @@ function bkItemOpen_(K, i, r, pg) {
     const withPage = x => pgv ? x + ' — ' + (/^\d/.test(pgv) ? 'p. ' + pgv : pgv) : x;
     const mk = (x, one) => K === 'tk' ? x.replace(/^[-•*]\s*/, '') : K === 'lv' ? { st, t: x } : { star: false, t: one ? withPage(x.replace(/^[“"]|[”"]$/g, '')) : x };
     const items = lines.length === 1 ? [mk(lines[0], true)] : lines.map(x => mk(x, false));
-    if (K === 'hl' && lines.length === 1 && el('bkStar').checked) { E.hl.forEach(x => { x.star = false; }); items[0].star = true; }
+    if (K === 'hl' && lines.length === 1 && el('bkStar').checked) items[0].star = true;   // HL-P1: ★ no longer unstars the others
+    if (K === 'hl' && !isNew && it && it.pin && items[0]) items[0].pin = true;   // an edited pinned line stays the heading
     if (isNew) E[K].push(...items); else E[K].splice(i, 1, ...items);
     scheduleFrSave(); close(); bkRenderEdit_(r, pg);
   });
@@ -5245,7 +5277,7 @@ function pdParse_(title, lines) {
 // ===== PD-N1 (16 Nov 2026): two more layouts - Snipd's "AI Notes" email, and a Notion export of Snipd (with transcripts) =====
 // The "Your snips for" email (the usual one) is read exactly as before; these run only when its markers are missing.
 function pdTrKey_(t) { return String(t || '').toLowerCase().replace(/[⭐★️]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
-function pdStar1_(R) { let one = false; R.snips.forEach(s => { if (s.st && !one && s.act !== 'skip') { s.star = true; one = true; } }); }
+function pdStar1_(R) { R.snips.forEach(s => { if (s.st && s.act !== 'skip') s.star = true; }); }   // HL-P1: every ★ from the export stays a ★ (bookmarks); the heading is 📌
 function pdParseAny_(title, lines) {
   const L = lines.map(x => String(x).replace(/ /g, ' ').trim());
   if (L.includes('Your snips') && L.some(x => /^Snips \d+$/.test(x) || /share\.snipd\.com\/episode\//.test(x)) && L.some(x => /^\[\d{1,2}:\d{2}/.test(x))) return pdParseNotion_(title, L);
@@ -5358,7 +5390,7 @@ async function pdImport_(file, into, cb) {   // cb (PD-M2): called with true/fal
     h += '<div class="pd-found">' + F('pdS', 'SHOW', R.show, 'Which podcast?') + F('pdE', 'EPISODE', R.ep, 'Episode title') + F('pdG', 'GUEST', R.guest, 'Who was on it') + F('pdN', 'EP # · DATE', (R.no ? '#' + R.no : '') + (R.date ? (R.no ? ' · ' : '') + pdMon_(R.date) : ''), '#123') + '</div>';
     h += '<div class="pd-cnt mono"><span>' + R.snips.length + ' FOUND · ' + kept + ' KEEP · ' + tk + ' TAKEAWAY · ' + sk + ' SKIP</span><span><button type="button" data-all="keep">ALL KEEP</button> · <button type="button" data-all="skip">ALL SKIP</button></span></div><div class="pd-snips">';
     h += R.snips.map((s, i) => '<div class="pd-sn' + (s.act === 'skip' ? ' off' : '') + '"><div class="hd"><span class="k" style="--k:' + pdKindCol_(s.k) + '">' + escHtml(s.k.toUpperCase()) + '</span>' +
-      '<button type="button" class="st' + (s.star ? ' on' : '') + '" data-star="' + i + '" title="Top line">' + (s.star ? '★' : '☆') + '</button>' +
+      '<button type="button" class="st' + (s.star ? ' on' : '') + '" data-star="' + i + '" title="Bookmark (★)">' + (s.star ? '★' : '☆') + '</button>' +
       (s.had ? '<span class="nt mono">ALREADY ON THE PAGE</span>' : s.rep ? '<span class="nt mono">LOOKS LIKE A REPEAT</span>' : '') + '</div>' +
       '<div class="tt" contenteditable="true" data-tt="' + i + '">' + escHtml(s.title) + '</div>' + (s.pts.length ? '<ul>' + s.pts.map(p => '<li>' + escHtml(p) + '</li>').join('') + '</ul>' : '') +
       '<div class="ac"><button type="button" data-act="keep:' + i + '"' + (s.act === 'keep' ? ' class="on"' : '') + '>Keep</button><button type="button" data-act="take:' + i + '"' + (s.act === 'take' ? ' class="on t"' : ' class="t"') + '>Takeaway</button><button type="button" data-act="skip:' + i + '"' + (s.act === 'skip' ? ' class="on x"' : ' class="x"') + '>Skip</button></div></div>').join('');
@@ -5367,7 +5399,7 @@ async function pdImport_(file, into, cb) {   // cb (PD-M2): called with true/fal
     const keepVals = () => { if (mode === 'add') return; R.show = el('pdS').value.trim(); R.ep = el('pdE').value.trim(); R.guest = el('pdG').value.trim(); const v = el('pdN').value; const n = v.match(/#?\s*(\d+)/); R.no = n ? n[1] : ''; };
     ov.querySelectorAll('[data-tt]').forEach(n => n.addEventListener('input', () => { R.snips[+n.dataset.tt].title = n.textContent.replace(/\s+/g, ' ').trim(); }));
     ov.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => { keepVals(); const [a, i] = b.dataset.act.split(':'); R.snips[+i].act = a; draw(); }));
-    ov.querySelectorAll('[data-star]').forEach(b => b.addEventListener('click', () => { keepVals(); const i = +b.dataset.star, on = !R.snips[i].star; R.snips.forEach(s => { s.star = false; }); R.snips[i].star = on; if (on && R.snips[i].act === 'skip') R.snips[i].act = 'keep'; draw(); }));
+    ov.querySelectorAll('[data-star]').forEach(b => b.addEventListener('click', () => { keepVals(); const i = +b.dataset.star, on = !R.snips[i].star; R.snips[i].star = on;   /* HL-P1: ★ on as many as you like */ if (on && R.snips[i].act === 'skip') R.snips[i].act = 'keep'; draw(); }));
     ov.querySelectorAll('[data-all]').forEach(b => b.addEventListener('click', () => { keepVals(); R.snips.forEach(s => { if (!s.had) s.act = b.dataset.all; }); draw(); }));
     if (el('pdAskAdd')) el('pdAskAdd').onclick = () => { keepVals(); mode = 'add'; draw(); };
     if (el('pdAskNew')) el('pdAskNew').onclick = () => { keepVals(); mode = 'new'; target = null; R.snips.forEach(s => { if (s.had) { s.had = false; s.act = s.rep ? 'skip' : 'keep'; } }); draw(); };
@@ -5458,12 +5490,10 @@ async function pdSave_(R, mode, target, ov, cb, quiet) {   // quiet (PD-M2): bat
   if (mode === 'add' && target) {
     const open = !quiet && bkEd_ && String(target.id) === String(frId);
     if (open) {   // the page is open in edit mode: add to it in place
-      if (hl.some(x => x.star)) bkEd_.hl.forEach(x => { x.star = false; });
       bkEd_.hl.push(...hl); bkEd_.tk.push(...tk); bkEd_.tr = (bkEd_.tr || []).concat(trOf(bkEd_.tr || [])); scheduleFrSave(); ov.classList.add('hidden'); bkRender_(); toast('Added ' + (hl.length + tk.length)); return;
     }
     const P = bkParse_(target.note || '');
-    const was = bkEd_; bkEd_ = { hl: P.hl.map(t => ({ star: /[★⭐]/.test(t), t: t.replace(/[★⭐]/g, '').trim() })).concat(hl), tr: P.tr.concat(trOf(P.tr)), tk: P.tk.concat(tk), lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
-    if (hl.some(x => x.star)) bkEd_.hl.forEach((x, i) => { if (i < P.hl.length) x.star = false; });
+    const was = bkEd_; bkEd_ = { hl: bkHlItems_(P).map(x => ({ star: x.star, pin: x.pin, t: x.t, h: x.h })).concat(hl), tr: P.tr.concat(trOf(P.tr)), tk: P.tk.concat(tk), lv: P.lv.map(t => ({ st: /^[✓✔✅]/.test(t) ? 'd' : /^[◷⏳⌛]/.test(t) ? 't' : '', t: t.replace(/^[✓✔✅◷⏳⌛]\s*/, '') })) };
     const note = NoteEditor.sanitize(bkCompose_(P.notes)); bkEd_ = was;
     const { error } = await supa.from('bookmarks').update({ note, updated_at: new Date().toISOString() }).eq('id', target.id).eq('user_id', userId);
     if (error) { if (quiet) { console.error(error); return false; } toast('Could not save'); if (btn) btn.disabled = false; return; }
@@ -5527,7 +5557,7 @@ function pdAddOpen_() {
 // ---- C1: the podcast page (reading) - the book page's bones, a square show tile, snips as cards ----
 function pdHead_(r, P) {
   const e = escHtml, show = (r.type || '').trim(), [ep, no] = pdNum_(r.title), guest = (r.category || '').trim(), take = (r.essence || '').trim(), link = (r.source_url || '').trim();
-  const st = P.hl.find(t => /[★⭐]/.test(t)) || P.hl[0] || '', sn = st ? pdSnip_(st) : null, heroT = sn ? sn.title : st.replace(/[★⭐]/g, '').trim();
+  const st = P.hl[bkHeadIdx_(P)] || '', sn = st ? pdSnip_(st) : null, heroT = sn ? sn.title : st.replace(/[★⭐]/g, '').trim();   // HL-P1
   const tags = bkTagsShown_(r).map(t => '<span class="chip"><i></i>' + e(t) + '</span>').join('');
   return '<div class="bk1"><div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · PODCASTS' + (show ? ' · ' + e(show.toUpperCase()) : '') + '</div>' +
     '<h1>' + e(ep) + '</h1>' + (tags ? '<div>' + tags + '</div>' : '') + '<div class="ul"></div>' +
@@ -5555,7 +5585,7 @@ function pdSnipHtml_(t, i, tapKey, trs) {
       (foot ? '<div class="bm mono">' + foot + '</div>' : '') + fold + '<button type="button" class="pd-shb" data-shr="' + i + '">\u2934 Share</button></div></div>';
   }
   if (!sn) return '<div class="hl' + attr + '" style="--mti:#7086a8"><span class="d">' + (i + 1) + '</span><div class="q">“' + e(t.replace(/[★⭐]/g, '').trim().replace(/^[“"]|[”"]$/g, '')) + '”</div>' + (star ? '<div class="s mono">★ TOP LINE</div>' : '') + '</div>';
-  return '<div class="hl sn' + attr + '" style="--mti:' + pdInk_(sn.k) + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★ TOP LINE</b>' : '') + (tr && tr.time ? ' <span class="tm">· ' + e(tr.time) + '</span>' : '') + '</div>' +
+  return '<div class="hl sn' + attr + '" style="--mti:' + pdInk_(sn.k) + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★</b>' : '') + (tr && tr.time ? ' <span class="tm">· ' + e(tr.time) + '</span>' : '') + '</div>' +
     '<div class="q">' + e(sn.title) + '</div>' + (sn.pts.length ? '<ul class="pts">' + sn.pts.map(p => '<li>' + e(p) + '</li>').join('') + '</ul>' : '') + fold + '</div>';
 }
 // ===== BK-S3 (17 Nov 2026): a book's highlights as a stack - one print on top, two peeking behind, ‹ n / N ›, swipe; ★ lines first.
@@ -5743,7 +5773,7 @@ document.addEventListener('click', ev => { const b = ev.target.closest('[data-ld
 // ---- C1: editing - the book editor, with show / guest / link and "add more from a PDF" ----
 function pdRenderEdit_(r, pg) {
   const E = bkEd_, e = escHtml, show = r.type || '', [, no] = pdNum_(r.title);
-  const st = E.hl.find(x => x.star) || E.hl[0], sn = st ? pdSnip_(st.t) : null, heroT = sn ? sn.title : (st ? st.t : '');
+  const st = E.hl[bkEdHeadIdx_(E)], sn = st ? pdSnip_(st.t) : null, heroT = sn ? sn.title : (st ? st.t : '');   // HL-P1
   let h = '<div class="bkeh mono">✎ EDITING — TAP ANY DASHED TEXT, OR ANY SNIP, TO CHANGE IT</div>' +
     '<div class="bk1"><div class="row1"><div class="mm"><div class="bkeb mono">MY LIBRARY · PODCASTS</div>' +
     '<h1 contenteditable="true" id="bkeT" data-ph="Episode title">' + e(r.title || '') + '</h1>' +
@@ -5751,7 +5781,7 @@ function pdRenderEdit_(r, pg) {
       '<button type="button" class="addt" id="bkeTagAdd">+ tag</button></div>' +
     '<div class="ul"></div>' + (r.category ? '<div class="by">with ' + e(r.category) + '</div>' : '') + '</div>' +
     '<div class="cv sq"><div class="t">' + e(show || r.title || '') + '</div><div class="a">' + (no ? '#' + e(no) : 'EP') + '</div></div></div>' +
-    '<div class="hero"><div class="q"><em>✦</em> ' + (heroT ? e(heroT) : '<span class="ph">your ★ snip shows here</span>') + ' <em>✦</em></div><div class="s mono">YOUR ★ SNIP</div></div>' +
+    '<div class="hero"><div class="q"><em>✦</em> ' + (heroT ? e(heroT) : '<span class="ph">📌 a snip to show it here</span>') + ' <em>✦</em></div><div class="s mono">YOUR 📌 HEADING LINE</div></div>' +
     '<div class="take"><div class="l mono">MY TAKE IN ONE LINE</div><div class="v" contenteditable="true" id="bkeK" data-ph="what this episode left me with, in one line">' + e(r.essence || '') + '</div></div></div>';
   h += '<div class="facts bkef" style="grid-template-columns:repeat(3,1fr);margin-top:14px"><div><div class="l mono">SHOW</div><input type="text" id="bkeA" placeholder="which podcast" value="' + e(show) + '" maxlength="120" list="pdShowList"><datalist id="pdShowList">' + pdShows_().map(s => '<option value="' + e(s) + '">').join('') + '</datalist></div>' +
     '<div><div class="l mono">GUEST</div><input type="text" id="bkeF" placeholder="who was on it" value="' + e(r.category || '') + '" maxlength="120"></div>' +
@@ -5766,7 +5796,7 @@ function pdRenderEdit_(r, pg) {
   h += fr('III', 'Lived it', E.lv.length ? '' : 'what I changed because of it', E.lv.length ? E.lv.length + ' · WHAT I CHANGED' : '',
     E.lv.length ? '<div class="use">' + E.lv.map((x, i) => '<div class="tap ' + (x.st === 'd' ? '' : x.st === 't' ? 'tr' : 'nn') + '" data-it="lv:' + i + '"><b>' + (x.st === 'd' ? '✓ DONE' : x.st === 't' ? '◷ TRYING' : 'NOTED') + '</b>' + e(x.t) + '</div>').join('') + '</div>' : '', 'Add something I changed', 'lv');
   h += '<div class="bklong" id="bkLong" role="button" tabindex="0"><h3>The long note</h3><span class="m"></span><span class="tg"></span></div>';
-  pg.innerHTML = h;
+  pg.innerHTML = h; bkHlMarks_(pg, r);   // HL-P1
   bkWireEdit_(r, pg); bkLongSet_();
   const lk = el('bkeL'); lk.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); lk.blur(); } });
   lk.addEventListener('change', () => { const v = lk.value.trim(); bkSaveField_('source_url', v ? normalizeUrl(v) : ''); });
@@ -5784,7 +5814,8 @@ function pdItemOpen_(i, r, pg) {
     '<label class="mono">KIND</label><div class="pd-ks">' + KS.concat(['']).map(x => '<button type="button" data-k="' + x + '" style="--k:' + pdKindCol_(x) + '"' + (x.toLowerCase() === String(k).toLowerCase() ? ' class="on"' : '') + '>' + (x || 'None') + '</button>').join('') + '</div>' +
     '<label class="mono">TITLE</label><input type="text" id="pdIT" value="' + e(sn.title) + '" maxlength="200" placeholder="The idea, in a few words">' +
     '<label class="mono">POINTS · ONE PER LINE</label><textarea id="pdIP" rows="6" placeholder="What was said">' + e(sn.pts.join('\n')) + '</textarea>' +
-    '<label class="bk-chk"><input type="checkbox" id="pdIS"' + (it && it.star ? ' checked' : '') + '> ★ Make this the top line</label>' +
+    '<label class="bk-chk"><input type="checkbox" id="pdIS"' + (it && it.star ? ' checked' : '') + '> ★ Bookmark it <small>gold print, comes first</small></label>' +
+    '<label class="bk-chk"><input type="checkbox" id="pdIPin"' + (it && it.pin ? ' checked' : '') + '> 📌 Use as the heading line <small>only one</small></label>' +
     '<div class="bk-acts">' + (isNew ? '' : '<button type="button" class="dl" id="pdIDel">Delete</button>') + '<span style="flex:1"></span><button type="button" id="pdINo">Cancel</button><button type="button" class="sv" id="pdIOk">Save</button></div></div>';
   ov.classList.remove('hidden'); el('pdIT').focus();
   ov.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => { k = b.dataset.k; ov.querySelectorAll('[data-k]').forEach(x => x.classList.toggle('on', x === b)); }));
@@ -5795,8 +5826,8 @@ function pdItemOpen_(i, r, pg) {
     const title = el('pdIT').value.replace(/\s+/g, ' ').trim(), pts = el('pdIP').value.split(/\r?\n/).map(x => x.replace(/\s+/g, ' ').replace(/^[-•*]\s*/, '').trim()).filter(Boolean);
     if (!title && !pts.length) { if (!isNew) { E.hl.splice(i, 1); scheduleFrSave(); } close(); bkRenderEdit_(r, pg); return; }
     const t = (k || pts.length) ? pdSnipStr_({ k: k || 'Note', title: title || pts.shift(), pts }) : title;
-    const star = el('pdIS').checked; if (star) E.hl.forEach(x => { x.star = false; });
-    const item = { star, t };
+    const star = el('pdIS').checked, pin = el('pdIPin').checked; if (pin) E.hl.forEach(x => { x.pin = false; });   // HL-P1
+    const item = { star, pin, t };
     if (isNew) E.hl.push(item); else E.hl.splice(i, 1, item);
     scheduleFrSave(); close(); bkRenderEdit_(r, pg);
   };
