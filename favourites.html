@@ -1680,6 +1680,24 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   .fav-seg > span[data-sec='all-time'], .fav-seg > span[data-sec='learning'], .fav-seg > span[data-sec='lenses'] { order:0; flex:1 1 auto; white-space:nowrap; padding:7px 8px; }
   .fav-seg::before { content:''; order:1; flex:0 0 100%; height:0; border-top:1px solid rgba(30,45,80,.1); margin:0 2px; }
   @media (max-width:640px) { .fav-seg > span[data-sec='all-time'] svg, .fav-seg > span[data-sec='learning'] svg, .fav-seg > span[data-sec='lenses'] svg { display:none; } }
+  /* BK-S3 (17 Nov 2026): book highlights as a stack (all prints share one grid cell, so the deck is as tall as its tallest print) */
+  html body .bkp .bk-stk { margin:4px 0 6px; }
+  html body .bkp .bk-stk .bk-deck { display:grid !important; max-width:560px !important; margin:6px auto 0 !important; padding:0 8px 16px !important; box-sizing:border-box; }
+  html body .bkp .bk-stk .bk-deck > .hl.pr { grid-area:1/1; margin:0 !important; width:auto !important; max-width:none !important; transition:transform .35s ease, opacity .35s ease; display:flex !important; flex-direction:column; }
+  html body .bkp .bk-stk .bk-deck > .hl.pr > .in { flex:1 1 auto; display:flex !important; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box; }
+  html body .bkp .bk-stk .bk-deck > .sp0 { z-index:3; }
+  html body .bkp .bk-stk .bk-deck > .sp1 { z-index:2; transform:translate(6px,9px) rotate(1.6deg); }
+  html body .bkp .bk-stk .bk-deck > .sp2 { z-index:1; transform:translate(-5px,16px) rotate(-1.8deg); }
+  html body .bkp .bk-stk .bk-deck > .sp1 > *, html body .bkp .bk-stk .bk-deck > .sp2 > * { visibility:hidden; }
+  html body .bkp .bk-stk .bk-deck > .sp1, html body .bkp .bk-stk .bk-deck > .sp2 { box-shadow:none; }
+  html body .bkp .bk-stk .bk-deck > .spx { z-index:4; opacity:0; transform:translateX(-60%) rotate(-8deg); pointer-events:none; }
+  html body .bkp .bk-stk .bk-deck > .sph { z-index:0; opacity:0; pointer-events:none; }
+  html body .bkp .bk-stk .bk-snav { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:10px; }
+  html body .bkp .bk-stk .bk-snav button { width:34px; height:34px; border-radius:50%; border:1px solid #d7dde8; background:#fff; font-size:1.1rem; line-height:1; color:var(--bc,#1f4e5f); cursor:pointer; }
+  html body .bkp .bk-stk .bk-snav .ct { font-size:.7rem; font-weight:600; letter-spacing:.14em; color:#5a6680; min-width:52px; text-align:center; }
+  html body .bkp .bk-stk .bk-sall { display:block; margin:10px auto 0; border:none; background:none; font-weight:600; font-size:.78rem; color:var(--bc,#1f4e5f); text-decoration:underline; text-underline-offset:4px; cursor:pointer; }
+  html body .bkp .bk-stk.all .bk-deck, html body .bkp .bk-stk.all .bk-snav { display:none; }
+  html body .bkp .bk-stk .bk-slist { margin-top:16px; } html body .bkp .bk-stk .bk-slist[hidden] { display:none; }
 </style>
 </head>
 <body>
@@ -3271,8 +3289,8 @@ function bkRender_() {
   if (F.length) h += '<div class="facts" style="grid-template-columns:repeat(' + F.length + ',1fr)">' + F.map(x => '<div><div class="l mono">' + x[0] + '</div><div class="v">' + escHtml(x[1]) + '</div></div>').join('') + '</div>';
   const roman = ['I','II','III','IV','V','VI']; let n = 0;
   if (P.hl.length && isPod_(r)) h += pdHlSec_(P.hl, roman[n++], P.tr);
-  else if (P.hl.length) h += '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Highlights</h3><span class="m mono">' + P.hl.length + (P.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS</span></div><div class="thr pd-mus bk-mus pd-pr">' +
-    P.hl.map((t, i) => bkPrintHtml_(t, i, P.hlh[i])).join('') + '</div></div>';   // PD-Y1: book highlights as prints, with ⤴ Share
+  else if (P.hl.length) h += '<div class="sec" id="bkS_hl"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Highlights</h3><span class="m mono">' + P.hl.length + (P.hl.length === 1 ? ' LINE' : ' LINES') + ' · IN THE BOOK’S WORDS</span></div>' +
+    (P.hl.length >= 2 ? bkStackHtml_(P.hl, P.hlh) : '<div class="thr pd-mus bk-mus pd-pr">' + P.hl.map((t, i) => bkPrintHtml_(t, i, P.hlh[i])).join('') + '</div>') + '</div>';   // PD-Y1 prints; BK-S3: 2+ lines as a stack
   if (!isPod_(r) && !frHasDoc) h += '<div class="sec ch-sec" id="bkS_ch" data-n="' + roman[n++] + '"></div>';   // BK-CH: chapters, filled when they arrive
   if (P.tk.length && isPod_(r)) h += '<div class="sec" id="bkS_tk"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>My takeaways</h3><span class="m mono">' + P.tk.length + ' · IN MY WORDS</span></div><ol class="tk">' + P.tk.map(t => '<li>' + escHtml(t.replace(/^[-•*]\s*/, '')) + '</li>').join('') + '</ol></div>';
   if (P.lv.length) h += '<div class="sec" id="bkS_lv"><div class="sh"><span class="n">' + roman[n++] + '</span><h3>Lived it</h3><span class="m mono">' + P.lv.length + ' · WHAT I CHANGED</span></div><div class="use">' +
@@ -5502,6 +5520,31 @@ function pdSnipHtml_(t, i, tapKey, trs) {
   return '<div class="hl sn' + attr + '" style="--mti:' + pdInk_(sn.k) + '"><span class="d">' + (i + 1) + '</span><div class="k mono" style="--k:' + pdKindCol_(sn.k) + '">' + e(sn.k.toUpperCase()) + (star ? ' <b>★ TOP LINE</b>' : '') + (tr && tr.time ? ' <span class="tm">· ' + e(tr.time) + '</span>' : '') + '</div>' +
     '<div class="q">' + e(sn.title) + '</div>' + (sn.pts.length ? '<ul class="pts">' + sn.pts.map(p => '<li>' + e(p) + '</li>').join('') + '</ul>' : '') + fold + '</div>';
 }
+// ===== BK-S3 (17 Nov 2026): a book's highlights as a stack - one print on top, two peeking behind, ‹ n / N ›, swipe; ★ lines first.
+// "See all N ↓" opens the full list of prints (the old view), "Back to the stack ↑" closes it. Same prints, same ⤴ Share (by index).
+function bkStackHtml_(hl, hlh) {
+  const ord = hl.map((t, i) => i).sort((a, b) => (/[★⭐]/.test(hl[b]) ? 1 : 0) - (/[★⭐]/.test(hl[a]) ? 1 : 0) || a - b), N = hl.length;
+  return '<div class="bk-stk" data-at="0" data-n="' + N + '"><div class="thr pd-mus bk-mus pd-pr bk-deck">' + ord.map((i, k) => bkPrintHtml_(hl[i], i, hlh[i]).replace('class="hl pr bkq', 'class="hl pr bkq ' + bkStkPos_(k, 0, N))).join('') + '</div>' +
+    '<div class="bk-snav"><button type="button" data-sk="-1" aria-label="Previous">‹</button><span class="ct mono">1 / ' + N + '</span><button type="button" data-sk="1" aria-label="Next">›</button></div>' +
+    '<button type="button" class="bk-sall">See all ' + N + ' ↓</button>' +
+    '<div class="thr pd-mus bk-mus pd-pr bk-slist" hidden>' + ord.map(i => bkPrintHtml_(hl[i], i, hlh[i])).join('') + '</div></div>';
+}
+function bkStkPos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 'sp0' : o === 1 ? 'sp1' : (o === 2 && N > 3) || (o === 2 && N === 3) ? 'sp2' : o === N - 1 ? 'spx' : 'sph'; }
+function bkStkGo_(st, d) {
+  const N = +st.dataset.n, at = ((+st.dataset.at + d) % N + N) % N; st.dataset.at = at;
+  [...st.querySelector('.bk-deck').children].forEach((c, k) => { c.classList.remove('sp0', 'sp1', 'sp2', 'spx', 'sph'); c.classList.add(bkStkPos_(k, at, N)); });
+  st.querySelector('.ct').textContent = (at + 1) + ' / ' + N;
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest('.bk-stk [data-sk]'); if (b) { bkStkGo_(b.closest('.bk-stk'), +b.dataset.sk); return; }
+  const a = ev.target.closest('.bk-stk .bk-sall'); if (!a) return;
+  const st = a.closest('.bk-stk'), l = st.querySelector('.bk-slist'), open = l.hidden; l.hidden = !open; st.classList.toggle('all', open);
+  a.textContent = open ? 'Back to the stack ↑' : 'See all ' + st.dataset.n + ' ↓'; if (!open) st.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+});
+let bkStkX_ = null;
+document.addEventListener('touchstart', ev => { const d = ev.target.closest && ev.target.closest('.bk-deck'); bkStkX_ = d ? [ev.touches[0].clientX, ev.touches[0].clientY] : null; }, { passive: true });
+document.addEventListener('touchend', ev => { if (!bkStkX_) return; const d = ev.target.closest && ev.target.closest('.bk-deck'), t = ev.changedTouches[0], dx = t.clientX - bkStkX_[0], dy = t.clientY - bkStkX_[1]; bkStkX_ = null;
+  if (d && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) bkStkGo_(d.closest('.bk-stk'), dx < 0 ? 1 : -1); }, { passive: true });
 function bkPrintHtml_(t, i, rich) {   // PD-Y1 (16 Nov 2026): a book highlight as a Learning-Diary print - book symbol, the line centred in italic, page at the foot
   const e = escHtml, star = /[★⭐]/.test(t), [q, ref] = bkPageRef_(t.replace(/[★⭐]/g, '').trim());
   const STAR = '<span class="tab"><svg viewBox="0 0 24 24" width="12" height="12" fill="#c9a227" aria-hidden="true"><polygon points="12 2.6 15 9 22 9.8 16.8 14.5 18.3 21.4 12 17.9 5.7 21.4 7.2 14.5 2 9.8 9 9"/></svg></span>';
