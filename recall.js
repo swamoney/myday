@@ -104,7 +104,7 @@
     };
   }
 
-  // ===== T4 (17 Nov 2026): the front door's four - one book highlight, one podcast snip, one Mental model, one Timeless truth =====
+  // ===== T4 (17 Nov 2026): the front door's four - one book highlight, one podcast snip, one Mental model, one Timeless truth; T5: + one ★ movie dialogue =====
   // learn: the Learning Diary rows (archived already left out by the page); hls: [{ key, kind:'book'|'pod', ... }] from the page.
   // Learnings: the least recently recalled in that category (as draw); highlights: a seeded pick, none shown in the last ~60 days of picks.
   function inCat(r, name) { return cats(r).some(c => c.toLowerCase() === name); }
@@ -118,19 +118,20 @@
   function anyOf(items, seed, ex) { const c = items.filter(x => !ex.has(x.key)); const pool = c.length ? c : items; if (!pool.length) return null; return pool[Math.floor(rng(seed)() * pool.length)]; }
   function hubDraw(learn, hls, seed, ex) {
     return { bk: (anyOf(hls.filter(x => x.kind === 'book'), seed + '|bk', ex) || {}).key || '', pd: (anyOf(hls.filter(x => x.kind === 'pod'), seed + '|pd', ex) || {}).key || '',
+      mv: (anyOf(hls.filter(x => x.kind === 'mv'), seed + '|mv', ex) || {}).key || '',   // T5: a ★ movie / show dialogue
       mm: String((bestIn(learn, 'mental model', seed, ex) || {}).id || ''), tt: String((bestIn(learn, 'timeless truth', seed, ex) || {}).id || '') };
   }
   function hubResolve(learn, hls, ids) {
     const L = id => learn.find(r => String(r.id) === String(id) && !r.recall_off), H = k => hls.find(x => x.key === k);
-    return [['bk', H(ids.bk)], ['pd', H(ids.pd)], ['mm', L(ids.mm)], ['tt', L(ids.tt)]];
+    return [['bk', H(ids.bk)], ['pd', H(ids.pd)], ['mv', H(ids.mv)], ['mm', L(ids.mm)], ['tt', L(ids.tt)]];
   }
   async function hubTodays(learn, hls, fresh) {
     let s = await readToday('hub'); const ids0 = s && s.ids ? s.ids : null;
     if (!fresh && ids0) { const got = hubResolve(learn, hls, ids0); if (got.every(([k, v]) => v || !ids0[k])) return got; }
     const n = s ? (s.n || 0) + (fresh ? 1 : 0) : 0, hist = (s && s.hist) || [], ex = new Set(hist.concat(s && s.shown ? s.shown : []).map(String));
     const ids = hubDraw(learn, hls, today() + '#hub' + n, ex);
-    const keys = [ids.bk, ids.pd, ids.mm, ids.tt].filter(Boolean);
-    await writeToday({ date: today(), n, ids, shown: ((s && s.shown) || []).concat(keys), hist: hist.concat([ids.bk, ids.pd].filter(Boolean)).slice(-120) }, 'hub');
+    const keys = [ids.bk, ids.pd, ids.mv, ids.mm, ids.tt].filter(Boolean);
+    await writeToday({ date: today(), n, ids, shown: ((s && s.shown) || []).concat(keys), hist: hist.concat([ids.bk, ids.pd, ids.mv].filter(Boolean)).slice(-120) }, 'hub');
     return hubResolve(learn, hls, ids);
   }
   function ago(iso) {
