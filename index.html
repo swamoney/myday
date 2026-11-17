@@ -225,6 +225,12 @@
   .rhc.done .fb { border-color:#2f6146; box-shadow:0 0 0 2px #e4efe6, 0 10px 24px rgba(35,47,69,0.12); }
   .rhc.p0 { transform:translateX(-58%) rotate(-7deg); z-index:1; } .rhc.p1 { z-index:3; } .rhc.p2 { transform:translateX(58%) rotate(7deg); z-index:2; }
   .rhc.p0 .fa, .rhc.p2 .fa { filter:brightness(0.92); }
+  /* HT-F1 (17 Nov 2026): a long learning (a whole paragraph as its title) spilled its blurred hint out under the card - the "shadow".
+     The face now clips, and the hint stops at 3 lines (2 on a phone) so TAP TO REVEAL stays inside the gold line. */
+  .rhc .fa { overflow:hidden; }
+  .rhc .fa .hint { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; overflow:hidden; flex:none; }
+  .rhc .fa .tap { flex:none; position:relative; z-index:1; }
+  @media (max-width:560px) { .rhc .fa .hint { -webkit-line-clamp:2; } }
   .rhint { text-align:center; font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.14em; color:#8a97b3; margin-top:2px; }
   @media (max-width:560px) { .rhand { height:252px; } .rhc { width:64%; left:18%; height:220px; } .rhc.p0 { transform:translateX(-22%) rotate(-5deg); } .rhc.p2 { transform:translateX(22%) rotate(5deg); } .rhc .fb .t { font-size:0.95rem; margin-right:12px; } .rhc .fb { padding:14px 14px; } }
   @media (prefers-reduced-motion:reduce) { .rhc, .rhc .fi { transition:none; } }
@@ -616,10 +622,18 @@ async function loadRecall() {
     const s = await supa.auth.getSession();
     const uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
     if (!uid || !window.MyRecall) return;
-    let q = await supa.from('bookmarks').select('id, title, category, learned_on, recall_count, recalled_on, recall_off, tags').eq('user_id', uid).eq('section', 'learning').limit(5000);
+    const all = async cols => {   // LOAD-ALL (16 Nov 2026): Supabase gives at most 1,000 rows per ask - read in pages
+      const out = [];
+      for (let from = 0; ; from += 1000) {
+        const r = await supa.from('bookmarks').select(cols).eq('user_id', uid).eq('section', 'learning').order('id', { ascending: true }).range(from, from + 999);
+        if (r.error) return { error: r.error }; out.push(...(r.data || [])); if (!r.data || r.data.length < 1000) break;
+      }
+      return { data: out };
+    };
+    let q = await all('id, title, category, learned_on, recall_count, recalled_on, recall_off, tags');
     if (q && q.error) {   // migrate_recall.sql not run yet: read without the log columns (all count as never recalled)
       console.warn('recall: log columns missing - run migrate_recall.sql', q.error.message);
-      q = await supa.from('bookmarks').select('id, title, category, learned_on, tags').eq('user_id', uid).eq('section', 'learning').limit(5000);
+      q = await all('id, title, category, learned_on, tags');
     }
     if (!q || q.error) { console.warn('recall: could not read the diary', q && q.error); return; }
     recallRows_ = (q.data || []).filter(r => !(r.tags || []).includes('__arch'));   // LD-A1: archived learnings stay out of Today's three
