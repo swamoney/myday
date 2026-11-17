@@ -1,4 +1,4 @@
-// recall.js - the daily three (LD-13, Sep 2026)
+// recall.js - the daily three (LD-13, Sep 2026); T4 (17 Nov 2026): + the front door's own four (hubTodays), kept apart from the diary's three
 // One law, shared by the front door and the Learning Diary shelf:
 //   - seeded by the date, so the same three hold all day on every device
 //   - three DIFFERENT categories, drawn with weight by size
@@ -52,17 +52,18 @@
 
   // Where today's picks are kept: the ACCOUNT (user_prefs.prefs.recall_today) so phone and
   // desktop show the same three; the device keeps a copy for the moment before prefs load.
-  let store = null;   // { load: async () => obj|null, save: async (obj) => {} } - set by the page
-  function setStore(s) { store = s; }
-  function readCache() { try { const s = JSON.parse(localStorage.getItem(KEY) || 'null'); return s && s.date === today() ? s : null; } catch (e) { return null; } }
-  function writeCache(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
-  async function readToday() {
-    let s = null;
-    if (store) { try { s = await store.load(); } catch (e) { s = null; } }
-    if (!(s && s.date === today())) s = readCache();
+  // T4 (17 Nov 2026): two separate day-states - 'diary' (prefs.recall_today, the Learning Diary's three) and 'hub' (prefs.recall_hub, the front door's four)
+  const stores = {}, KEYS = { diary: KEY, hub: 'myday_recall_hub' };
+  function setStore(s, ns) { stores[ns || 'diary'] = s; }
+  function readCache(ns) { try { const s = JSON.parse(localStorage.getItem(KEYS[ns || 'diary']) || 'null'); return s && s.date === today() ? s : null; } catch (e) { return null; } }
+  function writeCache(s, ns) { try { localStorage.setItem(KEYS[ns || 'diary'], JSON.stringify(s)); } catch (e) {} }
+  async function readToday(ns) {
+    let s = null; const st = stores[ns || 'diary'];
+    if (st) { try { s = await st.load(); } catch (e) { s = null; } }
+    if (!(s && s.date === today())) s = readCache(ns);
     return s && s.date === today() ? s : null;
   }
-  async function writeToday(s) { writeCache(s); if (store) { try { await store.save(s); } catch (e) {} } }
+  async function writeToday(s, ns) { writeCache(s, ns); const st = stores[ns || 'diary']; if (st) { try { await st.save(s); } catch (e) {} } }
   function fromState(rows, s) {
     const byId = {}; rows.forEach(r => { byId[String(r.id)] = r; });
     if (!(s && s.ids && s.ids.length === 3 && s.ids.every(id => byId[id] && !byId[id].recall_off))) return null;
@@ -70,36 +71,67 @@
   }
   // The day's three: kept once drawn; re-drawn only when a pick vanished (deleted / retired).
   async function todays(rows) {
-    let s = await readToday();
+    let s = await readToday('diary');
     const held = fromState(rows, s);
     if (held) return held;
     const shown = s && s.shown ? s.shown : [];
     const picked = draw(rows, today() + '#' + (s ? (s.n || 0) : 0), shown);
     if (picked.length < 3) return [];
     s = { date: today(), n: s ? (s.n || 0) : 0, ids: picked.map(r => String(r.id)), cats: picked.map(r => r.forCat), shown: shown.concat(picked.map(r => String(r.id))) };
-    await writeToday(s);
+    await writeToday(s, 'diary');
     return picked;
   }
   // Shuffle: three more, none shown today; wraps to a fresh sweep when everything eligible was shown.
   async function shuffle(rows) {
-    const s = (await readToday()) || { date: today(), n: 0, ids: [], cats: [], shown: [] };
+    const s = (await readToday('diary')) || { date: today(), n: 0, ids: [], cats: [], shown: [] };
     let picked = draw(rows, today() + '#' + (s.n + 1), s.shown);
     let shown = s.shown;
     if (picked.length < 3) { shown = []; picked = draw(rows, today() + '#' + (s.n + 1), []); }
     if (picked.length < 3) return [];
-    await writeToday({ date: today(), n: s.n + 1, ids: picked.map(r => String(r.id)), cats: picked.map(r => r.forCat), shown: shown.concat(picked.map(r => String(r.id))) });
+    await writeToday({ date: today(), n: s.n + 1, ids: picked.map(r => String(r.id)), cats: picked.map(r => r.forCat), shown: shown.concat(picked.map(r => String(r.id))) }, 'diary');
     return picked;
   }
   // a prefs-backed store any page can hand over: reads prefs.recall_today, writes it back merged
-  function prefsStore(supa, userId) {
+  function prefsStore(supa, userId, field) {
+    field = field || 'recall_today';
     return {
-      load: async () => { const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle(); return q && q.data && q.data.prefs ? (q.data.prefs.recall_today || null) : null; },
+      load: async () => { const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle(); return q && q.data && q.data.prefs ? (q.data.prefs[field] || null) : null; },
       save: async (obj) => {
         const q = await supa.from('user_prefs').select('prefs').eq('user_id', userId).maybeSingle();
-        const prefs = Object.assign({}, (q && q.data && q.data.prefs) || {}, { recall_today: obj });
+        const prefs = Object.assign({}, (q && q.data && q.data.prefs) || {}, { [field]: obj });
         await supa.from('user_prefs').upsert({ user_id: userId, prefs, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
       }
     };
+  }
+
+  // ===== T4 (17 Nov 2026): the front door's four - one book highlight, one podcast snip, one Mental model, one Timeless truth =====
+  // learn: the Learning Diary rows (archived already left out by the page); hls: [{ key, kind:'book'|'pod', ... }] from the page.
+  // Learnings: the least recently recalled in that category (as draw); highlights: a seeded pick, none shown in the last ~60 days of picks.
+  function inCat(r, name) { return cats(r).some(c => c.toLowerCase() === name); }
+  function bestIn(rows, name, seed, ex) {
+    let cand = rows.filter(r => !r.recall_off && !ex.has(String(r.id)) && inCat(r, name));
+    if (!cand.length && ex.size) return bestIn(rows, name, seed, new Set());   // all shown already: start the sweep again
+    cand.sort((a, b) => { const la = a.recalled_on || '', lb = b.recalled_on || ''; if (la !== lb) return la < lb ? -1 : 1;
+      const na = Number(a.recall_count) || 0, nb = Number(b.recall_count) || 0; if (na !== nb) return na - nb; return hash32(seed + '|' + a.id) - hash32(seed + '|' + b.id); });
+    return cand[0] || null;
+  }
+  function anyOf(items, seed, ex) { const c = items.filter(x => !ex.has(x.key)); const pool = c.length ? c : items; if (!pool.length) return null; return pool[Math.floor(rng(seed)() * pool.length)]; }
+  function hubDraw(learn, hls, seed, ex) {
+    return { bk: (anyOf(hls.filter(x => x.kind === 'book'), seed + '|bk', ex) || {}).key || '', pd: (anyOf(hls.filter(x => x.kind === 'pod'), seed + '|pd', ex) || {}).key || '',
+      mm: String((bestIn(learn, 'mental model', seed, ex) || {}).id || ''), tt: String((bestIn(learn, 'timeless truth', seed, ex) || {}).id || '') };
+  }
+  function hubResolve(learn, hls, ids) {
+    const L = id => learn.find(r => String(r.id) === String(id) && !r.recall_off), H = k => hls.find(x => x.key === k);
+    return [['bk', H(ids.bk)], ['pd', H(ids.pd)], ['mm', L(ids.mm)], ['tt', L(ids.tt)]];
+  }
+  async function hubTodays(learn, hls, fresh) {
+    let s = await readToday('hub'); const ids0 = s && s.ids ? s.ids : null;
+    if (!fresh && ids0) { const got = hubResolve(learn, hls, ids0); if (got.every(([k, v]) => v || !ids0[k])) return got; }
+    const n = s ? (s.n || 0) + (fresh ? 1 : 0) : 0, hist = (s && s.hist) || [], ex = new Set(hist.concat(s && s.shown ? s.shown : []).map(String));
+    const ids = hubDraw(learn, hls, today() + '#hub' + n, ex);
+    const keys = [ids.bk, ids.pd, ids.mm, ids.tt].filter(Boolean);
+    await writeToday({ date: today(), n, ids, shown: ((s && s.shown) || []).concat(keys), hist: hist.concat([ids.bk, ids.pd].filter(Boolean)).slice(-120) }, 'hub');
+    return hubResolve(learn, hls, ids);
   }
   function ago(iso) {
     if (!iso) return '';
@@ -116,5 +148,5 @@
     const M = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     return (last === today() ? 'RECALLED TODAY' : 'RECALLED ' + (n === 1 ? 'ONCE' : n + ' TIMES') + (t && !isNaN(t) ? ' \u00B7 LAST ' + M[t.getMonth()] + ' ' + t.getFullYear() : ''));
   }
-  global.MyRecall = { draw, todays, shuffle, ago, recalledLine, cats, today, KEY, setStore, prefsStore };
+  global.MyRecall = { draw, todays, shuffle, ago, recalledLine, cats, today, KEY, setStore, prefsStore, hubTodays, hash32 };
 })(window);
