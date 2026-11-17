@@ -127,7 +127,19 @@
   }
   async function hubTodays(learn, hls, fresh) {
     let s = await readToday('hub'); const ids0 = s && s.ids ? s.ids : null;
-    if (!fresh && ids0) { const got = hubResolve(learn, hls, ids0); if (got.every(([k, v]) => v || !ids0[k])) return got; }
+    if (!fresh && ids0) {
+      const got = hubResolve(learn, hls, ids0);
+      if (got.every(([k, v]) => v || !ids0[k])) {
+        // T5 fix (17 Nov 2026): a slot that is empty in today's saved set - new (the movie card) or nothing ★ when it was drawn - is filled now if it can be
+        const miss = got.filter(([k, v]) => !v && !ids0[k]).map(([k]) => k);
+        if (!miss.length) return got;
+        const ex = new Set(((s.hist || []).concat(s.shown || [])).map(String)), add = hubDraw(learn, hls, today() + '#hub' + (s.n || 0) + '+' + miss.join(''), ex), ids = Object.assign({}, ids0);
+        let changed = false; miss.forEach(k => { if (add[k]) { ids[k] = add[k]; changed = true; } });
+        if (!changed) return got;
+        await writeToday(Object.assign({}, s, { ids, shown: (s.shown || []).concat(miss.map(k => ids[k]).filter(Boolean)), hist: (s.hist || []).concat(['bk', 'pd', 'mv'].filter(k => miss.includes(k) && ids[k]).map(k => ids[k])).slice(-120) }), 'hub');
+        return hubResolve(learn, hls, ids);
+      }
+    }
     const n = s ? (s.n || 0) + (fresh ? 1 : 0) : 0, hist = (s && s.hist) || [], ex = new Set(hist.concat(s && s.shown ? s.shown : []).map(String));
     const ids = hubDraw(learn, hls, today() + '#hub' + n, ex);
     const keys = [ids.bk, ids.pd, ids.mv, ids.mm, ids.tt].filter(Boolean);
