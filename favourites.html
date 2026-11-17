@@ -1713,6 +1713,15 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.fr-pod:not(.fr-editing) .bkp :is(.sec,.bkfr) > .sh h3::after{transform:scaleX(-1)}
   body.fr-pod:not(.fr-editing) .bkp :is(.sec,.bkfr) > .sh .m{font:italic 400 .88rem var(--serif);letter-spacing:0;text-transform:lowercase;color:#8a8278}
   @media(max-width:640px){body.fr-pod:not(.fr-editing) .bkp :is(.sec,.bkfr) > .sh h3{font-size:1.3rem;gap:10px}}
+  /* RQ-F1 (17 Nov 2026): a book's Margin quiz card grows to fit its text too (it was a fixed 220/240px, so a long highlight ran past the card's foot on a phone) - as RP-R1 did for podcasts */
+  .bkp .rcs .rc-stack { height:auto !important; min-height:200px; }
+  .bkp .rcs .rc-stack .rc-ic:not(.b1):not(.b2) { position:relative; inset:auto; min-height:200px; box-sizing:border-box; }
+  .bkp .rcs .rc-stack .rc-ic.b1, .bkp .rcs .rc-stack .rc-ic.b2 { position:absolute; inset:0; }
+  /* RQ-S2 (17 Nov 2026): ⤴ Share on the left of the quiz / Replay controls (a round ⤴ when ‹ Back sits there too) */
+  .bkp .rc-ctl.lr .rc-lf { display:flex; gap:6px; align-items:center; min-width:84px; }
+  .bkp .rc-ctl button.rc-shb { border:1px solid #e3dcf0; background:#f4f0fb; color:#5b4a86; padding:7px 13px; font-size:.78rem; }
+  .bkp .rc-ctl button.rc-shb.sm { width:36px; height:36px; padding:0; display:grid; place-items:center; font-size:.95rem; }
+  @media (max-width:640px) { .bkp .rc-ctl.lr .rc-lf { gap:4px; } .bkp .rc-ctl.lr .rc-lf .bk { padding:8px 11px; } .bkp .rc-ctl button.rc-shb.sm { width:32px; height:32px; } }
 </style>
 </head>
 <body>
@@ -5800,6 +5809,58 @@ function rcCloze_(text, blanks, shown) {
   blanks.forEach(b => { out += escHtml(text.slice(i, b.at)) + (shown ? '<span class="rc-rv">' + escHtml(b.w) + '</span>' : '<span class="rc-bl" aria-label="blank">' + '_'.repeat(Math.min(10, b.w.length)) + '</span>'); i = b.at + b.w.length; });
   return out + escHtml(text.slice(i));
 }
+// ===== RQ-S2 (17 Nov 2026): share a Margin quiz / Replay card as a picture - the card answered, the hidden words marked in yellow =====
+// "FROM MY MARGIN QUIZ" / "FROM MY REPLAY" over the card (book: lined paper with its colour on top; podcast: the snip card), the book or episode at the foot.
+// Drawn on the device, nothing uploaded; the same Save image / Share sheet as highlights.
+function rcShareCanvas_(r, it, bl, pod) {
+  const S = 2, W = 540, PAD = 28, CP = 22, TW = W - 2 * PAD - 2 * CP, ink = it.ink || '#7086a8';
+  const F = { q: '400 19px Fraunces, Georgia, serif', qb: '700 19px Fraunces, Georgia, serif', tt: '600 19px Fraunces, Georgia, serif', m: '700 9px "IBM Plex Mono", monospace', hd: '700 10px "IBM Plex Mono", monospace', ep: '600 16px Fraunces, Georgia, serif', sh: '400 12.5px "IBM Plex Sans", system-ui, sans-serif' };
+  const cv = document.createElement('canvas'), c = cv.getContext('2d');
+  const text = it.ans || '', toks = [];   // words, the blanked ones marked
+  let i = 0; (bl || []).forEach(b => { text.slice(i, b.at).split(/\s+/).filter(Boolean).forEach(w => toks.push({ w })); toks.push({ w: b.w, m: 1 }); i = b.at + b.w.length; });
+  text.slice(i).split(/\s+/).filter(Boolean).forEach(w => toks.push({ w }));
+  // glue punctuation that follows a marked word ("word," → marked "word" + ",")
+  const T = []; toks.forEach(t => { if (!t.m && T.length && T[T.length - 1].m && /^[^\w“"]/.test(t.w) && !/\s/.test(t.w)) { const m2 = t.w.match(/^[^\w“"]+/)[0]; T[T.length - 1].tail = m2; t.w = t.w.slice(m2.length); if (!t.w) return; } T.push(t); });
+  if (!pod && T.length) { T[0].pre = '“'; T[T.length - 1].tail ? T[T.length - 1].tail += '”' : (T[T.length - 1].w += '”'); }
+  const lines = []; { let line = [], lw = 0; c.font = F.q; const sp = c.measureText(' ').width;
+    T.forEach(t => { c.font = t.m ? F.qb : F.q; let ww = c.measureText(t.w).width; c.font = F.q; const tw = t.tail ? c.measureText(t.tail).width : 0, pw = t.pre ? c.measureText(t.pre).width : 0; t.ww = ww; t.tw = tw; t.pw = pw;
+      const add = (line.length ? sp : 0) + pw + ww + tw; if (lw + add > TW && line.length) { lines.push(line); line = []; lw = 0; } lw += (line.length ? sp : 0) + pw + ww + tw; line.push(t); });
+    if (line.length) lines.push(line); }
+  const wrap = (txt, font, w) => { c.font = font; const out = []; let ln = ''; String(txt).split(/\s+/).forEach(wd => { const tt = ln ? ln + ' ' + wd : wd; if (c.measureText(tt).width > w && ln) { out.push(ln); ln = wd; } else ln = tt; }); if (ln) out.push(ln); return out; };
+  const ttl = pod && !it.titleOnly ? wrap(it.title || '', F.tt, TW) : [];
+  const [ep, no] = pod ? pdNum_(r.title) : [r.title || '', ''];
+  const epL = wrap(ep, F.ep, W - 2 * PAD - 20), sub = pod ? [(r.type || '').trim() + (no ? ' #' + no : ''), (r.category || '').trim()].filter(Boolean).join(' · ') : [(r.type || '').trim(), it.ref ? it.ref.replace(/^p\.?\s*/i, 'p. ') : ''].filter(Boolean).join(' · ');
+  const LH = pod ? 30 : 26, cardH = CP + 14 + (ttl.length ? 10 + ttl.length * 26 + 4 : 0) + 18 + lines.length * LH + CP - 4;
+  const head = 70, h = PAD + head + cardH + 30 + epL.length * 22 + (sub ? 20 : 0) + 30 + PAD;
+  cv.width = W * S; cv.height = h * S; c.scale(S, S);
+  c.fillStyle = '#fff'; c.fillRect(0, 0, W, h);
+  const rr = (x, y, w, hh, rad) => { c.beginPath(); c.moveTo(x + rad, y); c.arcTo(x + w, y, x + w, y + hh, rad); c.arcTo(x + w, y + hh, x, y + hh, rad); c.arcTo(x, y + hh, x, y, rad); c.arcTo(x, y, x + w, y, rad); c.closePath(); };
+  c.textAlign = 'center'; let y = PAD + 4;
+  { const ic = new Path2D(PR_ICON[pod ? 'p' : 'b']); c.save(); c.translate(W / 2 - 12, y); c.scale(1, 1); c.strokeStyle = '#8a7a68'; c.lineWidth = 1.6; c.lineCap = 'round'; c.lineJoin = 'round'; c.globalAlpha = .65; c.stroke(ic); c.restore(); }
+  y += 44; c.font = F.hd; c.fillStyle = '#8a7a68'; c.letterSpacing = '3px'; c.fillText(pod ? 'FROM MY REPLAY' : 'FROM MY MARGIN QUIZ', W / 2, y); c.letterSpacing = '0px';
+  const cx = PAD, cy = PAD + head, cw = W - 2 * PAD;
+  c.save(); c.shadowColor = 'rgba(20,25,40,.14)'; c.shadowBlur = 18; c.shadowOffsetY = 6;
+  if (pod) { rr(cx, cy, cw, cardH, 16); c.fillStyle = '#fff'; c.fill(); } else { c.fillStyle = '#fffef9'; c.fillRect(cx, cy, cw, cardH); }
+  c.restore();
+  if (pod) { const g = c.createLinearGradient(cx, cy, cx + cw * .7, cy + cardH); g.addColorStop(0, ink + '24'); g.addColorStop(1, ink + '00'); rr(cx, cy, cw, cardH, 16); c.fillStyle = g; c.fill(); c.lineWidth = 1.5; c.strokeStyle = ink + '73'; c.stroke(); }
+  else { c.fillStyle = ink; c.fillRect(cx, cy, cw, 4); }
+  c.textAlign = 'left'; let ty = cy + CP + 8; const lbl = pod ? (it.kind || '').toUpperCase() : (it.ref || '').toUpperCase();
+  if (lbl) { c.font = F.m; c.fillStyle = ink; c.letterSpacing = '2px'; c.fillText(lbl, cx + CP, ty); c.letterSpacing = '0px'; }
+  if (ttl.length) { ty += 10; c.font = F.tt; c.fillStyle = '#2b2347'; ttl.forEach(l => { ty += 26; c.fillText(l, cx + CP, ty); const lw = c.measureText(l).width; c.fillStyle = ink + '99'; c.fillRect(cx + CP, ty + 5, lw, 1.5); c.fillStyle = '#2b2347'; }); ty += 4; }
+  ty += 18;
+  lines.forEach(line => { ty += LH - (pod ? 4 : 0); let x = cx + CP; c.font = F.q; const sp = c.measureText(' ').width;
+    if (!pod) { c.strokeStyle = '#dfe6f2'; c.lineWidth = 1; c.beginPath(); c.moveTo(cx, ty + 8.5); c.lineTo(cx + cw, ty + 8.5); c.stroke(); }   // the ruled paper: a line under each line of text
+    line.forEach((t, k) => { if (k) x += sp; if (t.pre) { c.fillStyle = '#232f45'; c.fillText(t.pre, x, ty); x += t.pw; } if (t.m) { c.fillStyle = '#f8dd8a'; c.fillRect(x - 2, ty - 8, t.ww + 4, 10); c.font = F.qb; c.fillStyle = '#1c2331'; c.fillText(t.w, x, ty); c.font = F.q; } else { c.fillStyle = '#232f45'; c.fillText(t.w, x, ty); }
+      x += t.ww; if (t.tail) { c.fillStyle = '#232f45'; c.fillText(t.tail, x, ty); x += t.tw; } });
+    ty += pod ? 4 : 0; });
+  c.textAlign = 'center'; y = cy + cardH + 30;
+  c.font = F.ep; c.fillStyle = '#1c2331'; epL.forEach(l => { y += 22; c.fillText(l, W / 2, y); });
+  if (sub) { y += 20; c.font = F.sh; c.fillStyle = '#5a6680'; c.fillText(sub, W / 2, y); }
+  c.font = F.m; c.fillStyle = '#a3abbd'; c.letterSpacing = '2px'; c.fillText(pod ? 'MY LIBRARY · PODCASTS' : 'MY LIBRARY · BOOKS', W / 2, h - PAD + 4); c.letterSpacing = '0px';
+  const ansTxt = T.map(t => t.w + (t.tail || '')).join(' ');
+  return { cv, name: (ep || 'card').replace(/[^\w\- ]+/g, '').trim().slice(0, 40).replace(/\s+/g, '-') + (pod ? '-replay' : '-quiz') + '.png', text: ansTxt + '\n— ' + ep };
+}
+function rcShareOpen_(r, it, bl, pod) { try { prShareSheet_(rcShareCanvas_(r, it, bl, pod), pod ? 'Share this Replay card' : 'Share this quiz card'); } catch (e) { console.error(e); toast('Could not draw the picture'); } }
 function rcInit_(r, P) {
   const box = el('bkS_rc').querySelector('.rcb'), pod = isPod_(r), guest = (r.category || '').trim();
   const items = P.hl.map((t, i) => {
@@ -5827,11 +5888,13 @@ function rcInit_(r, P) {
     } else {
       h = '<div class="rc-stack"><div class="rc-ic b2"></div><div class="rc-ic b1"></div><div class="rc-ic" style="--mti:' + it.ink + '"><div class="t mono">' + (it.ref ? escHtml(it.ref.toUpperCase()) + ' · ' : '') + 'CARD ' + Math.min(pos, items.length) + ' OF ' + items.length + '</div><div class="q">“' + rcCloze_(text, bl, S.open) + '”</div></div></div>';
     }
-    h += '<div class="rc-ctl lr">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '<span class="rc-sp"></span>') +   // A: Back left, count middle, Next right
+    const SHR = S.hist.length ? '<button type="button" class="rc-shb sm" data-rc="share" title="Share this card as a picture" aria-label="Share">⤴</button>' : '<button type="button" class="rc-shb" data-rc="share" title="Share this card as a picture">⤴ Share</button>';   // RQ-S2
+    h += '<div class="rc-ctl lr"><span class="rc-lf">' + (S.hist.length ? '<button type="button" class="bk" data-rc="back" title="Previous card">‹ Back</button>' : '') + SHR + '</span>' +   // A: Back left, count middle, Next right
       '<span class="rc-prog mono">' + (items.length - left) + ' OF ' + items.length + ' DONE</span>' +
       (S.open ? '<button type="button" class="go" data-rc="got">Next ›</button>' : '<button type="button" class="go" data-rc="reveal">' + 'Reveal' + '</button>') + '</div>';
     box.innerHTML = h;
     const act = a => {
+      if (a === 'share') { rcShareOpen_(r, it, bl, pod); return; }   // RQ-S2: this card, answered, as a picture
       if (a === 'back') { const p = S.hist.pop(); if (p) { S.q = p.q; S.got = p.got; items[p.i].again = p.ag; S.open = true; } draw(); return; }   // ‹ Back: the previous card, shown answered
       if (a === 'got' || a === 'again') S.hist.push({ q: S.q.slice(), got: S.got, i: S.q[0], ag: it.again });
       if (a === 'reveal') S.open = true;
