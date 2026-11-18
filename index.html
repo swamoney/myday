@@ -195,6 +195,15 @@
   /* LD-13 (R1): today's three - parchment cards between the knock line and the spine */
   .recall { background:#fff; border:1px solid #dfe5ee; border-radius:16px; padding:14px 16px; margin:12px 0 6px; }
   .recall.hidden { display:none; }
+  /* T5-H1 + T1 (18 Nov 2026): the Today's five heading as a small title page; the dots follow the cards */
+  #hubRecall .h1 { display:block; text-align:center; margin:0 0 12px; position:relative; }
+  .h1 .top { display:flex; justify-content:space-between; margin-bottom:6px; }
+  .h1 .ey { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.22em; color:#9aa3b6; }
+  .h1 .tt { font-family:'Fraunces',Georgia,serif; font-size:1.65rem; line-height:1.1; color:#1d2433; margin-top:4px; letter-spacing:-0.01em; }
+  .h1 .tt em { font-style:italic; background:linear-gradient(90deg,#1f4e5f,#5b4a86 30%,#2f6577 55%,#a8862a 75%,#9b4058); -webkit-background-clip:text; background-clip:text; color:transparent; padding-right:2px; }
+  .h1 .fd { display:flex; justify-content:center; gap:7px; margin-top:7px; } .h1 .fd i { width:6px; height:6px; border-radius:50%; background:var(--k); }
+  #hubRecall .t5h { display:none; }
+
   .recall .h { display:flex; align-items:baseline; gap:10px; margin-bottom:10px; }
   .recall .eb2 { font-family:'IBM Plex Mono',monospace; font-size:0.5313rem; letter-spacing:0.18em; color:#8a97b3; flex:1; }
   .recall .sh { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; letter-spacing:0.12em; color:#3D4866; background:none; border:none; cursor:pointer; }
@@ -380,7 +389,7 @@
   </div>
 
   <div class="recall hidden" id="hubRecall">
-    <div class="h"><span class="eb2">TODAY&rsquo;S FIVE &middot; FROM YOUR LIBRARY</span><span class="prog" id="hubRecallProg"></span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div>
+    <div class="h h1"><div class="top"><span class="prog" id="hubRecallProg"></span><button type="button" class="sh" id="hubRecallShuffle">&#8635; SHUFFLE</button></div><div class="ey">FROM YOUR LIBRARY<span id="hubT5Date"></span></div><div class="tt">Today&rsquo;s <em>five</em></div><span class="fd" id="hubT5Dots"></span></div>
     <div class="t4" id="hubRecallCards"></div>
   </div>
 
@@ -711,7 +720,7 @@ const T4_K = { bk: ['FROM A BOOK', '#1f4e5f', 'M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.
   pd: ['FROM A PODCAST', '#5b4a86', 'M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21'],
   mm: ['MENTAL MODEL', '#a8862a', 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'],
   mv: ['FROM A MOVIE', '#2f6577', 'M4 5h16v14H4zM8 5v14M16 5v14M4 9h4M4 15h4M16 9h4M16 15h4'],
-  tt: ['TIMELESS TRUTH', '#a8862a', 'M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z'] };
+  tt: ['TIMELESS TRUTH', '#9b4058', 'M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9'] };   // T1: Truth has its own wine-rose and an hourglass (Model keeps gold + bulb)
 function t4Pos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 's0' : o === 1 ? 's1' : o === 2 ? 's2' : o === N - 1 ? 'sx' : 'sh'; }
 function t4Card_(slot, v) {
   const [lbl, col, icon] = T4_K[slot], today = MyRecall.today();
@@ -781,6 +790,8 @@ function paintRecall() {
     pop.addEventListener('touchend', e => { if (!x0) return; const t = e.changedTouches[0], dx = t.clientX - x0[0], dy = t.clientY - x0[1]; x0 = null;
       if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1); }, { passive: true }); }
   document.body.classList.toggle('t5-pop', !!open);
+  const dn = new Date(); el('hubT5Date').textContent = ' · ' + dn.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', '').toUpperCase();   // H1
+  el('hubT5Dots').innerHTML = cards.map(([k]) => '<i style="--k:' + T4_K[k][1] + '"></i>').join('');
   el('hubRecallProg').textContent = learn.length ? '✓ ' + learn.filter(([, v]) => String(v.recalled_on || '').slice(0, 10) === today).length + ' OF ' + learn.length : '';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && hubOpen_) { hubOpen_ = null; paintRecall(); } });
