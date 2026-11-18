@@ -235,6 +235,25 @@
   @media (max-width:560px) { .rhand { height:252px; } .rhc { width:64%; left:18%; height:220px; } .rhc.p0 { transform:translateX(-22%) rotate(-5deg); } .rhc.p2 { transform:translateX(22%) rotate(5deg); } .rhc .fb .t { font-size:0.95rem; margin-right:12px; } .rhc .fb { padding:14px 14px; } }
   @media (prefers-reduced-motion:reduce) { .rhc, .rhc .fi { transition:none; } }
   /* T4 (17 Nov 2026): Today's four as a stack of open prints - one on top, two peeking (tilted), ‹ n / 4 ›; all cards share one grid cell */
+  /* T5-R1 · Today's five as a row of five little decks; one opens under the row */
+  .t5r { display:flex; gap:8px; max-width:560px; margin:10px auto 0; padding:0 4px; }
+  .t5m { all:unset; box-sizing:border-box; cursor:pointer; position:relative; flex:1; height:72px; -webkit-tap-highlight-color:transparent; }
+  .t5m .k1, .t5m .k2 { position:absolute; inset:0; background:#fff; border:1px solid color-mix(in srgb, var(--k) 38%, #fff); border-radius:12px; }
+  .t5m .k1 { transform:rotate(-5deg) translate(-2px,3px); } .t5m .k2 { transform:rotate(4deg) translate(2px,2px); }
+  .t5m .f { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; background:#fff; color:var(--k); border:1.5px solid color-mix(in srgb, var(--k) 60%, #fff); border-radius:12px; box-shadow:0 3px 9px color-mix(in srgb, var(--k) 14%, transparent); transition:background .2s, color .2s, transform .2s; }
+  .t5m .f b { font-family:'IBM Plex Mono',monospace; font-size:0.5rem; font-weight:700; letter-spacing:0.09em; }
+  .t5m .f i { position:absolute; top:4px; right:6px; font-style:normal; font-size:0.62rem; color:#3d8a5a; }
+  .t5m .f .rp { font-size:1rem; line-height:18px; }
+  .t5m:hover .f { transform:translateY(-2px); }
+  .t5m.done .f { opacity:.55; }
+  .t5m.on .f { background:var(--k); color:#fff; opacity:1; } .t5m.on .f i { color:#fff; }
+  .t5m.on::after { content:''; position:absolute; left:50%; bottom:-13px; margin-left:-7px; border:7px solid transparent; border-top-color:var(--k); }
+  .t5o { max-width:440px; margin:18px auto 0; padding:0 4px; display:grid; animation:t5in .25s ease; }
+  .t5o .t4c { position:relative; transform:none; opacity:1; }
+  .t5x { all:unset; cursor:pointer; display:block; text-align:center; margin:10px auto 2px; font-family:'IBM Plex Mono',monospace; font-size:0.6rem; font-weight:600; letter-spacing:0.1em; color:#8a93a6; }
+  .t5h { text-align:center; font-family:'Fraunces',Georgia,serif; font-style:italic; font-size:0.8rem; color:#9aa2b3; margin:12px 0 2px; }
+  @keyframes t5in { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+  @media (min-width:700px) { .t5m { height:84px; } .t5m .f b { font-size:0.56rem; } }
   .t4d { display:grid; max-width:520px; margin:8px auto 0; padding:0 8px 16px; }
   .t4c { grid-area:1/1; position:relative; display:flex; flex-direction:column; align-items:center; text-align:center; min-height:230px; box-sizing:border-box; padding:34px 18px 16px; background:#fff; border:1.5px solid color-mix(in srgb, var(--k) 55%, #fff); border-radius:16px; box-shadow:0 6px 16px color-mix(in srgb, var(--k) 14%, transparent); transition:transform .35s ease, opacity .35s ease; }
   .t4c::before { content:''; position:absolute; inset:6px; border:1px solid color-mix(in srgb, var(--k) 30%, #fff); border-radius:11px; pointer-events:none; }
@@ -714,6 +733,7 @@ function t4Card_(slot, v) {
   return '<div class="t4c" style="--k:' + col + '"><span class="kl">' + lbl + (rpk ? ' · REPLAY' : '') + '</span>' + (rpk ? '<span class="sym rp">↻</span>' : '<svg class="sym" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="' + icon + '"/></svg>') +
     '<div class="ln">' + line + '</div>' + pts + '<div class="src"><b>' + _esc(src) + '</b><span>' + _esc(sub) + '</span></div>' + act + '</div>';
 }
+let hubOpen_ = null;
 function paintRecall() {
   const box = el('hubRecall'); if (!box) return;
   const cards = (hubFour_ || []).filter(([, v]) => v);
@@ -721,14 +741,22 @@ function paintRecall() {
   box.classList.remove('hidden');
   const N = cards.length; hubAt_ = ((hubAt_ % N) + N) % N;
   const today = MyRecall.today(), learn = cards.filter(([k]) => k === 'mm' || k === 'tt');
-  el('hubRecallCards').innerHTML = '<div class="t4d">' + cards.map(([k, v], i) => t4Card_(k, v).replace('class="t4c"', 'class="t4c ' + t4Pos_(i, hubAt_, N) + '"')).join('') + '</div>' +
-    '<div class="t4n"><button type="button" data-t4="-1" aria-label="Previous">‹</button><span class="ct">' + (hubAt_ + 1) + ' / ' + N + '</span><button type="button" data-t4="1" aria-label="Next">›</button></div>';
+  const T5S = { bk:'BOOK', pd:'PODCAST', mv:'MOVIE', mm:'MODEL', tt:'TRUTH' };
+  const isDone = ([k, v]) => (k === 'mm' || k === 'tt') && String(v.recalled_on || '').slice(0, 10) === today;
+  if (hubOpen_ && !cards.some(([k]) => k === hubOpen_)) hubOpen_ = null;
+  const open = cards.find(([k]) => k === hubOpen_);
+  el('hubRecallCards').innerHTML = '<div class="t5r">' + cards.map(c => { const [k, v] = c, [, col, icon] = T4_K[k], rp = k === 'pd' && v.rp;
+      return '<button type="button" class="t5m' + (k === hubOpen_ ? ' on' : '') + (isDone(c) ? ' done' : '') + '" data-t5o="' + k + '" style="--k:' + col + '" aria-label="' + T4_K[k][0] + '"><span class="k1"></span><span class="k2"></span><span class="f">' +
+        (rp ? '<span class="rp">↻</span>' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="' + icon + '"/></svg>') +
+        '<b>' + (rp ? 'REPLAY' : T5S[k]) + '</b>' + (isDone(c) ? '<i>✓</i>' : '') + '</span></button>'; }).join('') + '</div>' +
+    (open ? '<div class="t5o">' + t4Card_(open[0], open[1]) + '<button type="button" class="t5x" data-t5o="">▴ CLOSE</button></div>' : '<div class="t5h">tap one to read it</div>');
   el('hubRecallProg').textContent = learn.length ? '✓ ' + learn.filter(([, v]) => String(v.recalled_on || '').slice(0, 10) === today).length + ' OF ' + learn.length : '';
 }
 document.addEventListener('DOMContentLoaded', () => {
   const box = el('hubRecallCards'); if (!box) return;
   box.addEventListener('click', e => {
     const ok = e.target.closest('[data-recall]'); if (ok) { e.preventDefault(); if (!ok.disabled) markRecalled(ok.dataset.recall); return; }
+    const o = e.target.closest('[data-t5o]'); if (o) { hubOpen_ = o.dataset.t5o && o.dataset.t5o !== hubOpen_ ? o.dataset.t5o : null; paintRecall(); return; }
     const nv = e.target.closest('[data-t4]'); if (nv) { hubAt_ += +nv.dataset.t4; paintRecall(); }
   });
   let x0 = null;
@@ -746,7 +774,6 @@ async function markRecalled(id) {
   if (error) { console.error(error); return; }
   Object.assign(r, patch); hubFour_.forEach(x => { if (x[1] && String(x[1].id) === String(id) && x[1] !== r) Object.assign(x[1], patch); });
   paintRecall();
-  setTimeout(() => { hubAt_++; paintRecall(); }, 650);   // then the next card comes forward
 }
 
 async function refreshPulses() {
