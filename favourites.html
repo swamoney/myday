@@ -490,6 +490,7 @@
   body.fr-book .fr-headbtns { align-self:flex-end; }
   body.fr-book .fr-sticky { position:static; }   /* the book page is long; nothing sticks over it */
   .bkp [contenteditable] { outline:1.5px dashed color-mix(in srgb, var(--bc) 40%, #fff); outline-offset:3px; border-radius:6px; background:rgba(255,255,255,.55); cursor:text; min-width:40px; }
+  .bkp figure.md-fig[contenteditable="false"] { outline:none; background:none; cursor:default; }   /* MR-F1: a picture on a reading page is not an edit box */
   .bkp [contenteditable]:focus { outline:2px solid color-mix(in srgb, var(--bc) 70%, #fff); background:#fff; }
   .bkp [contenteditable]:empty::before { content:attr(data-ph); color:#a9b2c4; font-style:italic; }
   .bkp .bkeh { font-size:.6rem; color:#8a6f2f; margin:0 0 10px; }
@@ -4154,7 +4155,7 @@ function openReader(id, keepNav, forcePage) {
   }, 600000);
   setFrEditing(false);
   if (window.MyAlbum && userId) MyAlbum.mount({ host: el('frAlbum'), room: 'library', entryId: id,
-    watch: [el('frBody'), el('frBodyInp')], editing: false });
+    watch: [el('frBody'), el('frBodyInp'), el('bkPage')], editing: false });   // MR-F1: the reading page (a copy of the body) gets its pictures too
   frUpdateNav_();
   frUpdateWc_();
   nk.closePopovers();
@@ -6376,6 +6377,7 @@ function mrRender_(r, pg) {
   if (body) h += '<div class="mr-end mono"><span>' + (src || host ? 'मूळ स्रोत: ' + e(src || '') + (src && host ? ' · ' : '') + e(host) : '') + '</span><span>COPY KEPT ON ' + e(new Date(r.created_at || Date.now()).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }).toUpperCase()) + '</span></div>';
   pg.innerHTML = h;
   pg.dataset.ft = r.title || '';
+  pg.querySelectorAll('.mr-art figure[data-at]').forEach(f => { delete f.dataset.mdfDressed; f.innerHTML = ''; });   // MR-F1: the album dresses the copy afresh
   const first = pg.querySelector('.mr-art > p'); if (first) first.classList.add('first');
 }
 
