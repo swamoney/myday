@@ -238,15 +238,14 @@
   /* T5-P1 · the picked card opens as a pop-up over the page */
   body.t5-pop { overflow:hidden; }
   .t5pop { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center; padding:18px; background:rgba(22,30,46,.48); backdrop-filter:blur(2px); -webkit-backdrop-filter:blur(2px); animation:t5fade .2s ease; }
-  .t5pop .in { width:100%; max-width:420px; display:grid; animation:t5up .25s ease; }
-  .t5pop .t4c { grid-area:auto; position:relative; transform:none; opacity:1; min-height:260px; box-shadow:0 18px 40px rgba(10,20,40,.28); }
-  .t5pop .bar { display:flex; align-items:center; justify-content:space-between; margin-top:14px; }
-  .t5pop .bar button { all:unset; cursor:pointer; width:40px; height:40px; border-radius:50%; background:#fff; color:#1f4e5f; display:flex; align-items:center; justify-content:center; font-size:1.2rem; box-shadow:0 4px 12px rgba(0,0,0,.15); }
-  .t5pop .bar .ct { font-family:'IBM Plex Mono',monospace; font-size:0.66rem; font-weight:600; letter-spacing:0.14em; color:#fff; }
-  .t5pop .cl { all:unset; cursor:pointer; display:block; margin:14px auto 0; font-family:'IBM Plex Mono',monospace; font-size:0.62rem; font-weight:700; letter-spacing:0.12em; color:#fff; padding:8px 16px; border:1px solid rgba(255,255,255,.55); border-radius:999px; }
-  .t5pop .dots { display:flex; gap:6px; justify-content:center; margin-bottom:12px; }
-  .t5pop .dots i { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.4); } .t5pop .dots i.on { background:#fff; }
+  .t5pop .in { width:100%; max-width:460px; animation:t5up .25s ease; }
   @keyframes t5fade { from { opacity:0; } to { opacity:1; } } @keyframes t5up { from { transform:translateY(14px); opacity:0; } to { transform:none; opacity:1; } }
+  /* T5-S · the pop-up holds the five as a stack of prints, like book / podcast highlights */
+  .t5pop .t5ph { display:flex; align-items:center; justify-content:space-between; margin:0 4px 6px; font-family:'IBM Plex Mono',monospace; font-size:0.6rem; font-weight:600; letter-spacing:0.14em; color:#8a93a6; }
+  .t5pop .t5ph button { all:unset; cursor:pointer; width:30px; height:30px; border-radius:50%; border:1px solid #d7dde8; background:#fff; color:#5a6680; display:flex; align-items:center; justify-content:center; font-size:0.85rem; }
+  .t5pop.still, .t5pop.still .in { animation:none; }
+  .t5pop .t4d { margin-top:14px; } .t5pop .t4d .t4c { grid-area:1/1; min-height:250px; }
+  .t5pop .in { background:#f7f8fb; border-radius:22px; padding:16px 12px 18px; box-shadow:0 24px 60px rgba(10,20,40,.35); }
   /* T5-R1 · Today's five as a row of five little decks; one opens under the row */
   .t5r { display:flex; gap:8px; max-width:560px; margin:10px auto 0; padding:0 4px; }
   .t5m { all:unset; box-sizing:border-box; cursor:pointer; position:relative; flex:1; height:72px; -webkit-tap-highlight-color:transparent; }
@@ -762,20 +761,26 @@ function paintRecall() {
         (rp ? '<span class="rp">↻</span>' : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="' + icon + '"/></svg>') +
         '<b>' + (rp ? 'REPLAY' : T5S[k]) + '</b>' + (isDone(c) ? '<i>✓</i>' : '') + '</span></button>'; }).join('') + '</div>' +
     '<div class="t5h">tap one to read it</div>';
-  let pop = document.getElementById('t5Pop'); if (pop) pop.remove();
-  if (open) { const i = cards.indexOf(open);
-    pop = document.createElement('div'); pop.id = 't5Pop'; pop.className = 't5pop';
-    pop.innerHTML = '<div class="in"><div class="dots">' + cards.map((c, j) => '<i' + (j === i ? ' class="on"' : '') + '></i>').join('') + '</div>' + t4Card_(open[0], open[1]) +
-      '<div class="bar"><button type="button" data-t5m="-1" aria-label="Previous">‹</button><span class="ct">' + (i + 1) + ' / ' + cards.length + '</span><button type="button" data-t5m="1" aria-label="Next">›</button></div><button type="button" class="cl" data-t5c>✕ CLOSE</button></div>';
+  let pop = document.getElementById('t5Pop'); const had = !!pop; if (pop) pop.remove();
+  if (open) { let i = cards.indexOf(open); const n = cards.length;
+    pop = document.createElement('div'); pop.id = 't5Pop'; pop.className = 't5pop' + (had ? ' still' : '');
+    pop.innerHTML = '<div class="in"><div class="t5ph"><span>TODAY’S FIVE · ' + (i + 1) + ' OF ' + cards.length + '</span><button type="button" data-t5c aria-label="Close">✕</button></div>' +
+      '<div class="t4d">' + cards.map(([k, v], j) => t4Card_(k, v).replace('class="t4c"', 'class="t4c ' + t4Pos_(j, i, cards.length) + '"')).join('') + '</div>' +
+      '<div class="t4n"><button type="button" data-t5m="-1" aria-label="Previous">‹</button><span class="ct">' + (i + 1) + ' / ' + cards.length + '</span><button type="button" data-t5m="1" aria-label="Next">›</button></div></div>';
     document.body.appendChild(pop);
+    const step = d => {   // S1: the stack turns in place (no repaint), like the book highlights' deck
+      i = (i + d + n) % n; hubOpen_ = cards[i][0];
+      [...pop.querySelectorAll('.t4d > .t4c')].forEach((c, j) => { c.classList.remove('s0', 's1', 's2', 'sx', 'sh'); c.classList.add(t4Pos_(j, i, n)); });
+      pop.querySelector('.t4n .ct').textContent = (i + 1) + ' / ' + n; pop.querySelector('.t5ph span').textContent = 'TODAY’S FIVE · ' + (i + 1) + ' OF ' + n;
+      document.querySelectorAll('#hubRecallCards .t5m').forEach(b => b.classList.toggle('on', b.dataset.t5o === hubOpen_)); };
     pop.addEventListener('click', e => {
       const ok = e.target.closest('[data-recall]'); if (ok) { e.preventDefault(); if (!ok.disabled) markRecalled(ok.dataset.recall); return; }
-      const mv = e.target.closest('[data-t5m]'); if (mv) { const n = cards.length; hubOpen_ = cards[(i + +mv.dataset.t5m + n) % n][0]; paintRecall(); return; }
+      const mv = e.target.closest('[data-t5m]'); if (mv) { step(+mv.dataset.t5m); return; }
       if (e.target.closest('[data-t5c]') || e.target === pop) { hubOpen_ = null; paintRecall(); } });
     let x0 = null;   // swipe left / right = next / previous
     pop.addEventListener('touchstart', e => { x0 = [e.touches[0].clientX, e.touches[0].clientY]; }, { passive: true });
     pop.addEventListener('touchend', e => { if (!x0) return; const t = e.changedTouches[0], dx = t.clientX - x0[0], dy = t.clientY - x0[1]; x0 = null;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { const n = cards.length; hubOpen_ = cards[(i + (dx < 0 ? 1 : -1) + n) % n][0]; paintRecall(); } }, { passive: true }); }
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1); }, { passive: true }); }
   document.body.classList.toggle('t5-pop', !!open);
   el('hubRecallProg').textContent = learn.length ? '✓ ' + learn.filter(([, v]) => String(v.recalled_on || '').slice(0, 10) === today).length + ' OF ' + learn.length : '';
 }
