@@ -1789,6 +1789,16 @@ body.fr-pod .bkp .bk1 .hero .q em{display:none}
   body.fr-mv:not(.fr-editing) .bkp #mvS_sc .mv-sc .no{position:static;display:inline-flex;margin:0 auto 6px}
   body.fr-mv:not(.fr-editing) .bkp #mvS_sc .mv-sc .st,body.fr-mv:not(.fr-editing) .bkp #mvS_sc .mv-sc .sx{text-align:center}
   body.fr-mv:not(.fr-editing) .bkp #mvS_sc .mv-sc .mv-wpill{margin-left:auto;margin-right:auto}
+  /* MR-P1 / MR-I1 (18 Nov 2026): From a PDF (pages, progress, tap a page for a picture) and Import articles */
+  .mr-pbar { height:6px; background:#eef1f5; border-radius:3px; margin:10px 0 6px; overflow:hidden; } .mr-pbar i { display:block; height:100%; background:#6b8a6e; border-radius:3px; transition:width .3s; }
+  .mr-pst { font-size:.55rem; letter-spacing:.14em; color:#8a97b3; } .mr-pdf .tiny { font-size:.78rem; color:#6a7690; line-height:1.4; }
+  .mr-pgs { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0 6px; max-height:46vh; overflow:auto; }
+  .mr-pg { position:relative; width:52px; height:72px; padding:0; border-radius:4px; border:1.5px solid #d8d2c2; background:#f1efe8; overflow:hidden; cursor:pointer; }
+  .mr-pg img { width:100%; height:100%; object-fit:cover; opacity:.55; } .mr-pg.ok { border-color:#6b8a6e; } .mr-pg.ok img { opacity:1; }
+  .mr-pg span { position:absolute; left:0; right:0; bottom:0; background:rgba(255,255,255,.85); font-size:.55rem; font-family:var(--mono); color:#5a6680; }
+  .mr-pg.pic { outline:2.5px solid #c9a227; outline-offset:1px; } .mr-pg.pic::after { content:'🖼'; position:absolute; top:2px; right:2px; font-size:.7rem; }
+  .mr-imp { display:flex; flex-direction:column; gap:6px; max-height:52vh; overflow:auto; margin:10px 0; }
+  .mr-imi { display:flex; gap:10px; align-items:flex-start; border:1px solid #e3e7ee; border-radius:10px; padding:8px 10px; cursor:pointer; } .mr-imi b { display:block; font-family:var(--serif); font-weight:600; } .mr-imi small { color:#6a7690; font-size:.76rem; } .mr-imi i { color:#b07a1e; }
 </style>
 </head>
 <body>
@@ -5224,7 +5234,9 @@ function pdMenuOpen_(btn) {
     window.addEventListener('scroll', () => m.classList.add('hidden'), { passive: true }); }
   const mr = activeSection === 'marathi';   // MR-1: the same + menu offers link / type for Marathi articles
   m.innerHTML = mr ? '<button type="button" data-a="pdf"><i>🔗</i><span><b>From a link</b><small>paste a link — the article is kept for you</small></span></button>' +
-    '<button type="button" data-a="hand"><i>✎</i><span><b>Type it myself</b><small>title, author, the text</small></span></button>'
+    '<button type="button" data-a="hand"><i>✎</i><span><b>Type it myself</b><small>title, author, the text</small></span></button>' +
+    '<button type="button" data-a="mpdf"><i>⇪</i><span><b>From a PDF</b><small>a scan or an old-font PDF — read on your phone</small></span></button>' +
+    '<button type="button" data-a="mimp"><i>⇣</i><span><b>Import articles</b><small>a ready file (.json) — e.g. from Claude</small></span></button>'   // MR-P1 / MR-I1
     : '<button type="button" data-a="pdf"><i>⇪</i><span><b>From a highlights PDF</b><small>the page is made for you</small></span></button>' +
     '<button type="button" data-a="hand"><i>✎</i><span><b>Type it myself</b><small>show, episode, highlights</small></span></button>';
   const r = btn.getBoundingClientRect(), w = 260;
@@ -5232,6 +5244,8 @@ function pdMenuOpen_(btn) {
   m.classList.remove('hidden');
   m.querySelector('[data-a=pdf]').addEventListener('click', () => { m.classList.add('hidden'); if (mr) mrAddOpen_(); else pdPickPdf_(); });
   m.querySelector('[data-a=hand]').addEventListener('click', () => { m.classList.add('hidden'); if (mr) mrAddOpen_('hand'); else pdAddOpen_(); });
+  if (mr) { m.querySelector('[data-a=mpdf]').addEventListener('click', () => { m.classList.add('hidden'); mrPdfPick_(); });
+    m.querySelector('[data-a=mimp]').addEventListener('click', () => { m.classList.add('hidden'); mrImpPick_(); }); }
 }
 function pdPickPdf_(into) {
   let fi = el('pdFile');
@@ -6116,9 +6130,130 @@ function mrGuessAuthor_(B) {
   for (const b of B.slice(0, 14)) { const m = b.plain.match(/^(?:लेखक|लेखिका|by|written by|शब्दांकन)\s*[:：-]?\s*(.{3,40})$/i); if (m) { b.junk = true; return m[1].replace(/[|,].*$/, '').trim(); } }
   return '';
 }
-function mrAddOpen_(mode) {
+// ===== MR-P1 (18 Nov 2026): a Marathi article from a PDF - read on the device =====
+// A scan or an old (pre-Unicode) font PDF is read from the page PICTURES with Tesseract.js (Marathi, loaded once from jsDelivr / its data site);
+// a PDF with real Marathi text is read straight from its text. Pages can be kept as pictures (a portrait, a cover) - they go on top of the article.
+// Then the usual Check & save (title, author, source, date, tap a line to drop it). Nothing leaves the phone except the saved article.
+let mrTess_ = null;
+function mrLoadTess_() {
+  if (mrTess_) return mrTess_;
+  mrTess_ = new Promise((ok, no) => { if (window.Tesseract) return ok(window.Tesseract);
+    const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+    sc.onload = () => ok(window.Tesseract); sc.onerror = () => { mrTess_ = null; no(new Error('the Marathi reader did not load')); }; document.head.appendChild(sc); });
+  return mrTess_;
+}
+const MR_DEV_ = /[ऀ-ॿ]/g;
+function mrOcrParas_(data) {   // the reader's paragraphs → clean paragraphs (lines joined, page numbers / stray marks dropped)
+  const P = [];
+  if (data && data.paragraphs && data.paragraphs.length) data.paragraphs.forEach(p => { const L = (p.lines || []).map(l => String(l.text || '').trim()).filter(Boolean);
+      if (L.length > 1 && L.every(l => l.length < 45) && p.text.length < 90) L.forEach(l => P.push(l)); else P.push(p.text); });   // a title over an author: two short lines, kept apart
+  else P.push(...String((data && data.text) || '').split(/\n\s*\n/));
+  return P.map(t => String(t).replace(/-\s*\n\s*(?=\S)/g, '-').replace(/\s*\n\s*/g, ' ').replace(/[|_]{1,}\s*/g, ' ').replace(/\s+/g, ' ').trim())
+    .filter(t => t && (t.match(MR_DEV_) || []).length >= 3 && !/^[\d०-९\s.,:;\-–—|]+$/.test(t));
+}
+function mrTextParas_(tc) {   // a PDF with real text: lines from the text items, a new paragraph after a short line or a bigger gap
+  const L = []; let cur = '', lastY = null, gaps = [];
+  tc.items.forEach(it => { const y = it.transform ? it.transform[5] : 0; if (lastY !== null && Math.abs(y - lastY) > 2) { if (cur.trim()) L.push({ t: cur.trim(), y: lastY }); cur = ''; } cur += it.str; lastY = y; if (it.hasEOL) { if (cur.trim()) L.push({ t: cur.trim(), y }); cur = ''; lastY = null; } });
+  if (cur.trim()) L.push({ t: cur.trim(), y: lastY || 0 });
+  for (let i = 1; i < L.length; i++) gaps.push(Math.abs(L[i - 1].y - L[i].y)); const g = gaps.slice().sort((a, b) => a - b)[Math.floor(gaps.length / 2)] || 14;
+  const maxLen = Math.max(1, ...L.map(x => x.t.length)), out = []; let buf = [];
+  L.forEach((x, i) => { buf.push(x.t); const nx = L[i + 1]; if (!nx || x.t.length < maxLen * 0.7 || Math.abs(x.y - nx.y) > g * 1.6) { out.push(buf.join(' ')); buf = []; } });
+  return out.map(t => t.replace(/\s+/g, ' ').trim()).filter(t => t && !/^[\d०-९\s.,:;\-–—|]+$/.test(t));
+}
+function mrPdfPick_() { const f = document.createElement('input'); f.type = 'file'; f.accept = 'application/pdf,.pdf'; f.onchange = () => { if (f.files && f.files[0]) mrPdfOpen_(f.files[0]); }; f.click(); }
+async function mrPdfOpen_(file) {
+  const ov = pdOv_('mrAddOv'), e = escHtml, P = []; let stop = false, worker = null, err = '', done = false, mode = '';
+  const draw = (msg) => {
+    const n = P.filter(x => x.done).length, tot = P.length || 1;
+    ov.innerHTML = '<div class="bk-form mr-form mr-pdf"><div class="bk-fh">From a PDF</div><div class="bk-fs mono">' + e(file.name.slice(0, 60)) + '</div>' +
+      '<div class="mr-pbar"><i style="width:' + Math.round(100 * n / tot) + '%"></i></div><div class="mono mr-pst">' + (err ? '<b style="color:#b03a2e">' + e(err) + '</b>' : done ? 'ALL ' + P.length + ' PAGES READ' + (mode ? ' · ' + mode : '') : e(msg || 'GETTING READY…')) + '</div>' +
+      '<div class="mr-pgs">' + P.map((x, i) => '<button type="button" class="mr-pg' + (x.done ? ' ok' : '') + (x.pic ? ' pic' : '') + '" data-pg="' + i + '" title="Tap to keep this page as a picture">' + (x.thumb ? '<img alt="" src="' + x.thumb + '">' : '') + '<span>' + (i + 1) + '</span></button>').join('') + '</div>' +
+      '<div class="tiny">Tap a page to keep it as a picture (🖼) on top of the article — a portrait, a cover.</div>' +
+      '<div class="bk-acts"><button type="button" id="mrPNo">Cancel</button><span style="flex:1"></span><button type="button" class="sv" id="mrPGo"' + (done && !err ? '' : ' disabled') + '>Check the text →</button></div></div>';
+    ov.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { const x = P[+b.dataset.pg]; x.pic = !x.pic; draw(msg); });
+    el('mrPNo').onclick = () => { stop = true; if (worker) try { worker.terminate(); } catch (x) {} ov.classList.add('hidden'); };
+    el('mrPGo').onclick = async () => {
+      const paras = [].concat(...P.map(x => x.paras || []));
+      let title = '', author = '';
+      if (paras[0] && paras[0].length < 70) title = paras.shift();
+      if (paras[0] && paras[0].length < 40 && !/[.।?!]$/.test(paras[0])) author = paras.shift();
+      const pics = []; for (const x of P.filter(x => x.pic && x.big)) pics.push(x.big);
+      mrAddOpen_('pdf', { title, author, source: '', text: paras.join('\n'), pics });
+    };
+  };
+  ov.classList.remove('hidden'); draw();
+  try {
+    const lib = await pdLoadLib_(), doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    for (let i = 1; i <= doc.numPages; i++) P.push({ done: false, pic: false, paras: [] });
+    draw('PAGE 1 OF ' + doc.numPages);
+    for (let i = 1; i <= doc.numPages && !stop; i++) {
+      const pg = await doc.getPage(i), x = P[i - 1];
+      const vs = pg.getViewport({ scale: 0.25 }), tcv = document.createElement('canvas'); tcv.width = vs.width; tcv.height = vs.height;
+      await pg.render({ canvasContext: tcv.getContext('2d'), viewport: vs }).promise; x.thumb = tcv.toDataURL('image/jpeg', 0.6);
+      const vb = pg.getViewport({ scale: 1.4 }), bcv = document.createElement('canvas'); bcv.width = vb.width; bcv.height = vb.height;   // kept small - only for a picture page
+      await pg.render({ canvasContext: bcv.getContext('2d'), viewport: vb }).promise; x.big = await new Promise(ok => bcv.toBlob(ok, 'image/jpeg', 0.85));
+      const tc = await pg.getTextContent(), txt = tc.items.map(t => t.str).join('');
+      if ((txt.match(MR_DEV_) || []).length >= 40) { x.paras = mrTextParas_(tc); mode = mode || 'READ FROM THE TEXT'; }
+      else {
+        if (!worker) { draw('LOADING THE MARATHI READER (ONCE, ~4 MB)…'); const T = await mrLoadTess_(); worker = await T.createWorker('mar'); try { await worker.setParameters({ tessedit_pageseg_mode: '3' }); } catch (x) {} }   // 3 = find the columns
+        draw('READING PAGE ' + i + ' OF ' + doc.numPages + '…');
+        const vo = pg.getViewport({ scale: 2.6 }), ocv = document.createElement('canvas'); ocv.width = vo.width; ocv.height = vo.height;
+        const cx = ocv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, ocv.width, ocv.height);
+        await pg.render({ canvasContext: cx, viewport: vo }).promise;
+        const r = await worker.recognize(ocv); x.paras = mrOcrParas_(r.data); mode = 'READ FROM THE PAGE PICTURES — CHECK THE WORDS';
+        ocv.width = ocv.height = 0;
+      }
+      x.done = true; draw('PAGE ' + Math.min(i + 1, doc.numPages) + ' OF ' + doc.numPages + '…');
+    }
+    done = !stop;
+  } catch (x) { console.error(x); err = (x && x.message) || 'could not read this PDF'; }
+  if (worker) try { await worker.terminate(); } catch (x) {} worker = null;
+  if (!stop) draw();
+}
+// ===== MR-I1 (18 Nov 2026): Import articles - a ready file (.json) of Marathi articles, e.g. converted by Claude =====
+// { "articles": [ { title, author, source, date, link, take, tags:[], html, pics:["data:image/...;base64,..."] } ] } - <figure data-pic="0"></figure> in html marks where picture 0 goes.
+function mrImpPick_() { const f = document.createElement('input'); f.type = 'file'; f.accept = 'application/json,.json'; f.onchange = async () => { const fl = f.files && f.files[0]; if (!fl) return;
+  try { const J = JSON.parse(await fl.text()); const A = Array.isArray(J) ? J : (J.articles || []); if (!A.length) throw new Error('no articles in this file'); mrImpOpen_(A, fl.name); }
+  catch (x) { toast('Could not read that file — ' + ((x && x.message) || '')); } }; f.click(); }
+function mrImpOpen_(A, name) {
+  const ov = pdOv_('mrAddOv'), e = escHtml, on = A.map(() => true);
+  const have = new Set(rows.filter(r => secOf(r) === 'marathi').map(r => (r.title || '').trim()));
+  const draw = (msg) => {
+    const n = on.filter(Boolean).length;
+    ov.innerHTML = '<div class="bk-form mr-form"><div class="bk-fh">Import articles</div><div class="bk-fs mono">' + e(name) + ' · ' + A.length + (A.length === 1 ? ' ARTICLE' : ' ARTICLES') + '</div>' +
+      '<div class="mr-imp">' + A.map((a, i) => { const w = (String(a.html || '').replace(/<[^>]+>/g, ' ').match(/\S+/g) || []).length;
+        return '<label class="mr-imi"><input type="checkbox" data-im="' + i + '"' + (on[i] ? ' checked' : '') + '><span><b>' + e(a.title || '(no title)') + '</b><small>' + e([a.author, a.source].filter(Boolean).join(' · ')) + ' · ' + w.toLocaleString('en-IN') + ' शब्द' + ((a.pics || []).length ? ' · ' + a.pics.length + ' 🖼' : '') + (have.has((a.title || '').trim()) ? ' · <i>already in मराठी</i>' : '') + '</small></span></label>'; }).join('') + '</div>' +
+      (msg ? '<div class="err">' + e(msg) + '</div>' : '') +
+      '<div class="bk-acts"><button type="button" id="mrINo">Cancel</button><span style="flex:1"></span><button type="button" class="sv" id="mrIGo"' + (n ? '' : ' disabled') + '>Add ' + n + (n === 1 ? ' article' : ' articles') + '</button></div></div>';
+    ov.querySelectorAll('[data-im]').forEach(b => b.onchange = () => { on[+b.dataset.im] = b.checked; draw(); });
+    el('mrINo').onclick = () => ov.classList.add('hidden');
+    el('mrIGo').onclick = async () => {
+      const go = el('mrIGo'); go.disabled = true; let k = 0, bad = 0, why = '';
+      for (const [i, a] of A.entries()) { if (!on[i]) continue; go.textContent = 'Adding ' + (++k) + '…';
+        const rec = { user_id: userId, title: String(a.title || 'लेख').trim(), section: 'marathi', url: '', source_url: a.link ? normalizeUrl(a.link) : '', type: a.author || '', category: a.source || '', tags: Array.isArray(a.tags) ? a.tags : [],
+          note: '', essence: a.take || '', learned_on: /^\d{4}-\d{2}-\d{2}$/.test(a.date || '') ? a.date : null, updated_at: new Date().toISOString() };
+        try {
+          const { data, error } = await supa.from('bookmarks').insert(rec).select(); if (error || !data || !data[0]) throw error || new Error('not saved');
+          const id = data[0].id; let html = String(a.html || '');
+          const pics = Array.isArray(a.pics) ? a.pics : [];
+          for (let j = 0; j < pics.length; j++) { let tok = '';
+            if (window.MyAlbum && MyAlbum.addBlob) try { const blob = await (await fetch(pics[j])).blob(); tok = '<figure data-at="' + e(String(await MyAlbum.addBlob('library', id, blob))) + '"></figure>'; } catch (x) { console.warn(x); }
+            html = html.includes('data-pic="' + j + '"') ? html.replace(new RegExp('<figure data-pic="' + j + '"></figure>', 'g'), tok) : tok + html; }
+          const up = await supa.from('bookmarks').update({ note: NoteEditor.sanitize(html) }).eq('id', id).eq('user_id', userId).select('id');
+          if (up.error || !up.data || !up.data.length) throw up.error || new Error('the text did not save');
+        } catch (x) { console.error(x); bad++; why = why || (x && x.message) || 'could not save'; }
+      }
+      await loadRows();
+      if (bad) { draw(bad + ' could not be added: ' + why); return; }
+      ov.classList.add('hidden'); toast('✓ Added ' + k + (k === 1 ? ' article' : ' articles') + ' to मराठी');
+    };
+  };
+  ov.classList.remove('hidden'); draw();
+}
+function mrAddOpen_(mode, pre) {
   const ov = pdOv_('mrAddOv');
-  const S = { url:'', title:'', author:'', source:'', date:'', B:[], take:'' };
+  const S = { url:'', title:'', author:'', source:'', date:'', B:[], take:'', pics:[] };
+  if (pre) { Object.assign(S, { title: pre.title || '', author: pre.author || '', source: pre.source || '', pics: pre.pics || [] }); S.B = mrBlocks_(pre.text || '', false); S.B.forEach(b => { if (b.k === 'p' && b.plain.length >= 12) b.junk = false; }); }   // MR-P1: from a PDF - short OCR crumbs stay removed
   const step1 = (msg, bad) => {
     ov.innerHTML = '<div class="bk-form mr-form"><div class="bk-fh" style="font-size:1.5rem">Add a Marathi article</div><div class="bk-fs mono">KEEP A COPY FOR MY RECORDS</div>' +
       (msg ? '<div class="pd-warn' + (bad ? ' bad' : '') + '">' + msg + '</div>' : '') +
@@ -6177,7 +6312,13 @@ function mrAddOpen_(mode) {
       el('mrSave').disabled = true;
       const rec = { user_id: userId, title: S.title, section: 'marathi', url: '', source_url: S.url ? normalizeUrl(S.url) : '', type: S.author, category: S.source, tags: [], note: NoteEditor.sanitize(mrHtmlFromBlocks_(S.B)), essence: '', learned_on: S.date || null, updated_at: new Date().toISOString() };
       try { const { data, error } = await supa.from('bookmarks').insert(rec).select(); if (error) throw error;
-        const id = data && data[0] && data[0].id; ov.classList.add('hidden'); toast('Saved — ' + S.title.slice(0, 40)); await loadRows(); if (id) openReader(id);
+        const id = data && data[0] && data[0].id;
+        if (id && S.pics.length && window.MyAlbum && MyAlbum.addBlob) {   // MR-P1: the pages you kept as pictures go on top of the article
+          el('mrSave').textContent = 'Adding pictures…'; const figs = [];
+          for (const b of S.pics) { try { figs.push('<figure data-at="' + escHtml(String(await MyAlbum.addBlob('library', id, b))) + '"></figure>'); } catch (x) { console.warn(x); } }
+          if (figs.length) await supa.from('bookmarks').update({ note: NoteEditor.sanitize(figs.join('') + rec.note) }).eq('id', id).eq('user_id', userId);
+        }
+        ov.classList.add('hidden'); toast('Saved — ' + S.title.slice(0, 40)); await loadRows(); if (id) openReader(id);
       } catch (e) { console.error(e); toast('Could not save'); el('mrSave').disabled = false; }
     };
   };
@@ -6198,7 +6339,7 @@ function mrAddOpen_(mode) {
       } catch (e) { toast('Could not save'); el('mrHOk').disabled = false; }
     };
   };
-  if (mode === 'paste') { ov.classList.remove('hidden'); paste(); } else if (mode === 'hand') { ov.classList.remove('hidden'); hand(); } else step1();
+  if (mode === 'pdf' && pre) { ov.classList.remove('hidden'); review(); } else if (mode === 'paste') { ov.classList.remove('hidden'); paste(); } else if (mode === 'hand') { ov.classList.remove('hidden'); hand(); } else step1();
 }
 
 // ---- C1: the article page ----
