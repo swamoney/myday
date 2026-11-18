@@ -116,10 +116,21 @@
     return cand[0] || null;
   }
   function anyOf(items, seed, ex) { const c = items.filter(x => !ex.has(x.key)); const pool = c.length ? c : items; if (!pool.length) return null; return pool[Math.floor(rng(seed)() * pool.length)]; }
+  // D2 (18 Nov 2026): an entry that is both Mental model and Timeless truth takes turns - Model on odd days, Truth on even days - so it never fills both cards;
+  // and Truth never repeats Model's entry or the very same words (a quote saved twice).
+  const normT_ = r => String((r && r.title) || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  function dayOdd_() { return Math.floor(Date.parse(today() + 'T00:00:00Z') / 86400000) % 2 === 1; }
+  function hubLearn_(learn, ex, mmId) {
+    const both = r => inCat(r, 'mental model') && inCat(r, 'timeless truth'), odd = dayOdd_();
+    const mmRows = learn.filter(r => !both(r) || odd), mm = mmId !== undefined ? learn.find(r => String(r.id) === String(mmId)) : bestIn(mmRows, 'mental model', ex.__seed, ex);
+    const ttRows = learn.filter(r => (!both(r) || !odd) && !(mm && (String(r.id) === String(mm.id) || normT_(r) === normT_(mm))));
+    return { mm: mm || null, tt: bestIn(ttRows, 'timeless truth', ex.__seed, ex) };
+  }
   function hubDraw(learn, hls, seed, ex) {
+    ex.__seed = seed; const LT = hubLearn_(learn, ex);
     return { bk: (anyOf(hls.filter(x => x.kind === 'book'), seed + '|bk', ex) || {}).key || '', pd: (anyOf(hls.filter(x => x.kind === 'pod'), seed + '|pd', ex) || {}).key || '',
       mv: (anyOf(hls.filter(x => x.kind === 'mv'), seed + '|mv', ex) || {}).key || '',   // T5: a ★ movie / show dialogue
-      mm: String((bestIn(learn, 'mental model', seed, ex) || {}).id || ''), tt: String((bestIn(learn, 'timeless truth', seed, ex) || {}).id || '') };
+      mm: String((LT.mm || {}).id || ''), tt: String((LT.tt || {}).id || '') };
   }
   function hubResolve(learn, hls, ids) {
     const L = id => learn.find(r => String(r.id) === String(id) && !r.recall_off), H = k => hls.find(x => x.key === k);
@@ -132,9 +143,13 @@
       if (got.every(([k, v]) => v || !ids0[k])) {
         // T5 fix (17 Nov 2026): a slot that is empty in today's saved set - new (the movie card) or nothing ★ when it was drawn - is filled now if it can be
         const miss = got.filter(([k, v]) => !v && !ids0[k]).map(([k]) => k);
+        // D2: a set saved before the fix may hold the same line as Model and Truth - Truth is drawn again
+        const gm = got.find(([k]) => k === 'mm')[1], gt = got.find(([k]) => k === 'tt')[1];
+        if (gm && gt && (String(gm.id) === String(gt.id) || normT_(gm) === normT_(gt))) { ids0.tt = ''; miss.push('tt'); }
         if (!miss.length) return got;
         const ex = new Set(((s.hist || []).concat(s.shown || [])).map(String)), add = hubDraw(learn, hls, today() + '#hub' + (s.n || 0) + '+' + miss.join(''), ex), ids = Object.assign({}, ids0);
-        let changed = false; miss.forEach(k => { if (add[k]) { ids[k] = add[k]; changed = true; } });
+        if (miss.includes('tt') && ids.mm) { ex.__seed = today() + '#hub' + (s.n || 0) + '+tt'; add.tt = String((hubLearn_(learn, ex, ids.mm).tt || {}).id || ''); }
+        let changed = false; miss.forEach(k => { if (add[k] || k === 'tt') { ids[k] = add[k] || ''; changed = true; } });
         if (!changed) return got;
         await writeToday(Object.assign({}, s, { ids, shown: (s.shown || []).concat(miss.map(k => ids[k]).filter(Boolean)), hist: (s.hist || []).concat(['bk', 'pd', 'mv'].filter(k => miss.includes(k) && ids[k]).map(k => ids[k])).slice(-120) }), 'hub');
         return hubResolve(learn, hls, ids);
