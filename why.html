@@ -1796,6 +1796,16 @@
   .bp-tally { display:flex; flex-wrap:wrap; align-items:baseline; gap:6px 18px; background:#fff; border:1px solid #e1e5ec; border-radius:12px; padding:10px 16px; margin:2px 0 14px; font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase; color:#6b7488; }
   .bp-tally b { font-family:var(--serif); font-size:1.15rem; font-weight:600; letter-spacing:0; margin-right:5px; }
   .bp-tally .lived b { color:#2E7A4E; } .bp-tally .wip b { color:#5b4a86; } .bp-tally .ask b { color:#B0721A; } .bp-tally .ahead b { color:#3D6A99; } .bp-tally .canx b { color:#7A6F68; }
+  /* T2 (19 Nov 2026): the phone's count line - four stops on one coloured road, Let go set apart */
+  .bp-road { display:none; background:#fff; border:1px solid #e1e5ec; border-radius:12px; padding:12px 10px 10px; margin:2px 0 14px; align-items:flex-start; }
+  .bp-rd { flex:1; display:grid; grid-template-columns:repeat(4, 1fr); position:relative; }
+  .bp-rd::before { content:''; position:absolute; left:12.5%; right:12.5%; top:14px; height:2px; background:linear-gradient(90deg, #3D6A99, #B0721A, #5b4a86, #2E7A4E); opacity:0.45; }
+  .bp-road span { position:relative; display:block; text-align:center; font-family:var(--mono); font-size:0.47rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#6b7488; line-height:1.35; }
+  .bp-road i { display:grid; place-items:center; width:30px; height:30px; margin:0 auto 5px; border-radius:50%; font-family:var(--serif); font-style:normal; font-weight:600; font-size:0.95rem; color:#fff; letter-spacing:0; }
+  .bp-road .ahead i { background:#3D6A99; } .bp-road .ask i { background:#B0721A; } .bp-road .wip i { background:#5b4a86; } .bp-road .lived i { background:#2E7A4E; }
+  .bp-rdx { width:62px; flex:none; margin-left:6px; border-left:1px dashed #d6dbe6; }
+  .bp-road .canx i { background:#fff; border:1.5px solid #7A6F68; color:#7A6F68; }
+  @media (max-width:640px) { .bp-tally { display:none; } .bp-road { display:flex; } }
   .bp-card.lived { overflow:hidden; } .bp-card.lived .bp-b, .bp-card.lived .bp-seal { position:relative; z-index:1; }
   .bp-yr { position:absolute; right:112px; top:50%; transform:translateY(-50%); font-family:var(--serif); font-size:4.6rem; font-weight:700; line-height:1; color:#2E7A4E; opacity:0.08; pointer-events:none; z-index:0; }
   @media (max-width:640px) { .bp-yr { right:0; top:-6px; transform:none; font-size:2rem; opacity:0.1; } .bp-tally { gap:4px 14px; padding:9px 13px; } }
@@ -3180,6 +3190,9 @@
   .px-kh svg { width:14px; height:14px; flex-shrink:0; }
   .px-kh .n { color:#8B97AC; font-weight:600; }
   .px-dv + .px-kh { margin-top:10px; }
+  /* E2 + B3 (19 Nov 2026): each kind row runs a line in its colour to the count at the right; each box has a clear edge in its kind's colour */
+  .px-kh .px-kl { flex:1; height:2px; border-radius:2px; margin:0 2px 0 4px; background:linear-gradient(90deg, color-mix(in srgb, var(--a) 55%, transparent), transparent); }
+  #placeList .px-c { border:1.5px solid color-mix(in srgb, var(--a) 50%, #fff); }
   @media (max-width:640px) {
     .px-c { padding:12px; gap:10px; }
     .px-nm { font-size:1.12rem; }
@@ -10651,7 +10664,7 @@ function renderPlaces() {
             if (!gk.length) return '';
             return '<div class="px-kh" style="--a:' + PL_KIND_HUES[kk].acc + '">'
               + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + PL_KINDS[kk].icon + '</svg>'
-              + PX_KIND_PL[kk] + ' <span class="n">\u00B7 ' + gk.length + '</span></div>'
+              + PX_KIND_PL[kk] + '<i class="px-kl"></i><span class="n">' + gk.length + '</span></div>'
               + gk.map(p => card(p, true)).join('');
           }).join(''));
   }).join('');
@@ -11634,7 +11647,11 @@ function dcBucketHtml_() {
   { const tl = mine.filter(d => d.status === 'trail'), nCx = tl.filter(dcCanx_).length, parts = [
       [tl.length - nCx, 'Lived', 'lived'], [desk.filter(d => stateOf(d) === 'wip').length, 'On the way', 'wip'],
       [desk.filter(d => stateOf(d) === 'ask').length, 'Making up my mind', 'ask'], [desk.filter(d => stateOf(d) === 'ahead').length, 'Someday', 'ahead'], [nCx, 'Let go', 'canx']];
-    if (mine.length) h += '<div class="bp-tally">' + parts.map(([n, l, c]) => '<span class="' + c + '"><b>' + n + '</b>' + l + '</span>').join('') + '</div>'; }
+    if (mine.length) h += '<div class="bp-tally">' + parts.map(([n, l, c]) => '<span class="' + c + '"><b>' + n + '</b>' + l + '</span>').join('') + '</div>';
+    // T2 (19 Nov 2026): on a phone the line becomes the road - Someday -> Making up my mind -> On the way -> Lived, Let go apart
+    if (mine.length) { const road = [parts[3], parts[2], parts[1], parts[0]];
+      h += '<div class="bp-road"><div class="bp-rd">' + road.map(([n, l, c]) => '<span class="' + c + '"><i>' + n + '</i>' + l + '</span>').join('') + '</div>'
+        + '<div class="bp-rdx"><span class="canx"><i>' + parts[4][0] + '</i>' + parts[4][1] + '</span></div></div>'; } }
   const deskCard = d => {
     const st = stateOf(d), t = d.target_on, k = t ? days(today, t) : null;
     // W1 + E2 (6 Nov 2026): a decided dream is ON THE WAY; in the list the stamp shows when it should happen
