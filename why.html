@@ -1811,6 +1811,15 @@
   @media (max-width:640px) { .bp-yr { right:0; top:-6px; transform:none; font-size:2rem; opacity:0.1; } .bp-tally { gap:4px 14px; padding:9px 13px; } }
   .dcl-dv + .bp-sub { margin-top:4px; }
   .dcl-book > .bp-sub:first-child, .dcl-book > .bp-tally + .bp-sub { margin-top:2px; }
+  /* B3 + E2 (19 Nov 2026), as in Explore List: clear box edges in the stage/state colour; group labels with a coloured line to the count */
+  .bp-card { border:1.5px solid color-mix(in srgb, var(--a) 50%, #fff); }
+  .dcl-row { border:1.5px solid color-mix(in srgb, var(--r) 50%, #fff) !important; }
+  .bp-sub, .dcl-sub { display:flex; align-items:center; gap:7px; }
+  .dcl-sub { font-family:var(--mono); font-size:0.56rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; margin:16px 0 0; }
+  .dcl-sub.pend { color:#b07d1f; } .dcl-sub.wip { color:#5b4a86; }
+  .dcl-book > .dcl-sub:first-child { margin-top:2px; }
+  .bp-sub .ln, .dcl-sub .ln { flex:1; height:2px; border-radius:2px; margin:0 2px 0 4px; background:linear-gradient(90deg, color-mix(in srgb, currentColor 55%, transparent), transparent); }
+  .bp-sub .n, .dcl-sub .n { color:#8B97AC; font-weight:600; }
   /* A4 (6 Nov 2026): a decided dream's pill carries a small live dot that blinks gently */
   .bp-card.wip .bp-cd { position:relative; padding-left:22px; }
   .bp-card.wip .bp-cd:before { content:''; position:absolute; left:9px; top:50%; width:7px; height:7px; margin-top:-3.5px; border-radius:50%; background:#fff; animation:bpLive 1.4s ease-in-out infinite; }
@@ -11591,12 +11600,16 @@ function dcLedgerHtml_() {
   // LD-4 (4 Nov 2026, A): no page title and no 'Ongoing decisions' divider - the open and in-progress decisions
   // simply come first (their stamps say what they are); 'Past decisions' is the one divider.
   let h = '<div class="dcl-book">';
+  // E2 (19 Nov 2026): the open decisions are labelled again, each label with a line in its colour to the count
+  const sub = (cls, name, n) => n ? '<div class="dcl-sub ' + cls + '"><span>' + name + '</span><i class="ln"></i><span class="n">' + n + '</span></div>' : '';
+  h += sub('pend', 'Thinking it through', open.length);
   h += open.map(d => {
     const n = dcAnswered_(d), total = (Array.isArray(d.answers) && d.answers.length) || dcPoints.length;
     let when = 'No date', late = false;
     if (d.target_on) { const k = days(today, d.target_on); late = k < 0; when = (k < 0 ? 'Was due ' : 'Decide by ') + dcFmtS_(d.target_on) + (k > 0 ? ' · <b>' + k + (k === 1 ? ' day' : ' days') + ' left</b>' : k === 0 ? ' · <b>today</b>' : ''); }
     return og('pend', entry(d, 'pend' + (late ? ' late' : ''), '', when + ' · ' + n + ' of ' + total + ' answered', ''));
   }).join('');
+  h += sub('wip', 'Decided \u00B7 on the way', wip.length);
   h += wip.map(d => {
     const v = dcVerdictLong_(d);
     return og('wip', entry(d, 'wip', '', 'Decided' + (d.decided_on ? ' ' + dcFmtS_(d.decided_on) : '') + (v ? ' · ' + v.charAt(0).toLowerCase() + v.slice(1) : ''), ''));
@@ -11665,7 +11678,7 @@ function dcBucketHtml_() {
   // already sorted that way). A group with no dream shows no label.
   [['wip', 'On the way'], ['ask', 'Making up my mind'], ['ahead', 'Someday']].forEach(([g, name]) => {
     const grp = desk.filter(d => stateOf(d) === g); if (!grp.length) return;
-    h += '<div class="bp-sub ' + g + '">' + name + ' \u00B7 ' + grp.length + '</div>' + grp.map(deskCard).join('');
+    h += '<div class="bp-sub ' + g + '"><span>' + name + '</span><i class="ln"></i><span class="n">' + grp.length + '</span></div>' + grp.map(deskCard).join('');   // E2: a line in the stage colour to the count
   });
   if (!desk.length) h += '<div class="dcl-empty">no dream ahead yet \u2014 what do you want to live?</div>';
   const lived = trail.filter(d => !dcCanx_(d));
