@@ -94,6 +94,16 @@
   .rp-tabs button svg { width:15px; height:15px; flex-shrink:0; }
   .rp-tabs button.on { color:var(--a); border-color:var(--a); }
   .rp-tabs:empty { display:none; } .rp-tabs:empty + * { }
+  /* P-B: the pillar dots, a slim strip under the tabs */
+  .rp-dots { display:flex; justify-content:center; border-top:1px solid #eef1f6; margin:0 -22px; padding:1px 0; background:#fbfcfe; }
+  .rp-dots:empty { display:none; }
+  .rp-tabs:empty + .rp-dots { margin-top:12px; }   /* the Whiteboard page has no tabs */
+  .rp-dots .pchip { width:34px; height:30px; border:none; padding:0; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .rp-dots .pchip i { display:block; width:14px; height:14px; border-radius:50%; transition:transform .15s; }
+  .rp-dots .pchip:hover i { transform:scale(1.25); }
+  @media (max-width:640px) { .rp-dots { margin:0 -12px; } .rp-dots .pchip { width:38px; height:32px; } .rp-dots .pchip i { width:15px; height:15px; } }
+  html.rp-in #pchips, html.rp-in #pchipsCap { display:none !important; }
+  html.iw-on .rmw.show { z-index:1100; }   /* a roadmap opened from an Inner Life room shows above it */
   html.rp-in .room > .why-head, html.rp-in .room > #m3nav, html.rp-in .room > .xs-bar, html.rp-in .room > #xsWrap { display:none !important; }
   html.rp-in .lib-shell > .lib-hero, html.rp-in .lib-body > #m3nav { display:none !important; }
   html.rp-home .room > :not(.why-head):not(#m3nav):not(.xs-bar):not(#xsWrap):not(.rp-bar) { display:none !important; }
@@ -13322,8 +13332,13 @@ boot();
   const host = inner ? document.querySelector('.lib-shell') : nav.parentElement;
   const wbEl = nav.querySelector('.m3wb');
   const rbar = document.createElement('div'); rbar.className = 'rp-bar';
-  rbar.innerHTML = '<div class="rp-top"><button type="button" class="rp-bk">&larr; MY WHY</button><span class="rp-gn"></span><button type="button" class="rp-wb">' + (wbEl ? wbEl.innerHTML : 'My Whiteboard') + '</button></div><div class="rp-tabs"></div>';
+  rbar.innerHTML = '<div class="rp-top"><button type="button" class="rp-bk">&larr; MY WHY</button><span class="rp-gn"></span><button type="button" class="rp-wb">' + (wbEl ? wbEl.innerHTML : 'My Whiteboard') + '</button></div><div class="rp-tabs"></div><div class="rp-dots" aria-label="My why pillars"></div>';
   if (host) host.insertBefore(rbar, host.firstChild);
+  // P-B (19 Nov 2026): the why-pillar dots ride in the bar of every room - a copy of My Why's own row (#pchips), kept in step
+  const dotsSrc = () => { try { return (inner ? parent.document : document).getElementById('pchips'); } catch (x) { return null; } };
+  const rpDots = () => { const s = dotsSrc(), d = rbar.querySelector('.rp-dots'); if (s && d) d.innerHTML = s.innerHTML; };
+  rpDots(); { const s0 = dotsSrc(); if (s0) new MutationObserver(rpDots).observe(s0, { childList: true, subtree: true }); }
+  if (inner) document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; try { const w = parent.document.getElementById('roadmapWin'); if (w && w.classList.contains('show')) parent.closeRoadmap(); } catch (x) {} });   // Esc in the frame closes the roadmap too
   const rpPaint = k => {
     const a = nav.querySelector('.m3c[data-k="' + k + '"]'), g = a && a.closest('.m3g');
     rbar.querySelector('.rp-gn').textContent = g ? g.querySelector('.gt').textContent : (k === 'wip' ? 'My Whiteboard' : '');
@@ -13331,6 +13346,7 @@ boot();
     rbar.querySelector('.rp-wb').hidden = k === 'wip';
   };
   rbar.addEventListener('click', e => {
+    const rd = e.target.closest('[data-roadmap]'); if (rd) { try { (inner ? parent : window).openRoadmap(rd.dataset.roadmap); } catch (x) {} return; }
     const t = e.target.closest('[data-rk]'); if (t) { if (!t.classList.contains('on')) { const a = nav.querySelector('.m3c[data-k="' + t.dataset.rk + '"]'); if (a) a.click(); } return; }
     if (e.target.closest('.rp-wb')) { if (wbEl) wbEl.click(); return; }
     if (e.target.closest('.rp-bk')) { if (inner) { try { parent.iwHome_(); } catch (x) {} } else window.rpHome_(); }
@@ -13456,6 +13472,16 @@ boot();
   .rp-tabs button svg { width:15px; height:15px; flex-shrink:0; }
   .rp-tabs button.on { color:var(--a); border-color:var(--a); }
   .rp-tabs:empty { display:none; } .rp-tabs:empty + * { }
+  /* P-B: the pillar dots, a slim strip under the tabs */
+  .rp-dots { display:flex; justify-content:center; border-top:1px solid #eef1f6; margin:0 -22px; padding:1px 0; background:#fbfcfe; }
+  .rp-dots:empty { display:none; }
+  .rp-tabs:empty + .rp-dots { margin-top:12px; }   /* the Whiteboard page has no tabs */
+  .rp-dots .pchip { width:34px; height:30px; border:none; padding:0; background:none; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .rp-dots .pchip i { display:block; width:14px; height:14px; border-radius:50%; transition:transform .15s; }
+  .rp-dots .pchip:hover i { transform:scale(1.25); }
+  @media (max-width:640px) { .rp-dots { margin:0 -12px; } .rp-dots .pchip { width:38px; height:32px; } .rp-dots .pchip i { width:15px; height:15px; } }
+  html.rp-in #pchips, html.rp-in #pchipsCap { display:none !important; }
+  html.iw-on .rmw.show { z-index:1100; }   /* a roadmap opened from an Inner Life room shows above it */
   html.rp-in .room > .why-head, html.rp-in .room > #m3nav, html.rp-in .room > .xs-bar, html.rp-in .room > #xsWrap { display:none !important; }
   html.rp-in .lib-shell > .lib-hero, html.rp-in .lib-body > #m3nav { display:none !important; }
   html.rp-home .room > :not(.why-head):not(#m3nav):not(.xs-bar):not(#xsWrap):not(.rp-bar) { display:none !important; }
@@ -16913,8 +16939,13 @@ boot();
   const host = inner ? document.querySelector('.lib-shell') : nav.parentElement;
   const wbEl = nav.querySelector('.m3wb');
   const rbar = document.createElement('div'); rbar.className = 'rp-bar';
-  rbar.innerHTML = '<div class="rp-top"><button type="button" class="rp-bk">&larr; MY WHY</button><span class="rp-gn"></span><button type="button" class="rp-wb">' + (wbEl ? wbEl.innerHTML : 'My Whiteboard') + '</button></div><div class="rp-tabs"></div>';
+  rbar.innerHTML = '<div class="rp-top"><button type="button" class="rp-bk">&larr; MY WHY</button><span class="rp-gn"></span><button type="button" class="rp-wb">' + (wbEl ? wbEl.innerHTML : 'My Whiteboard') + '</button></div><div class="rp-tabs"></div><div class="rp-dots" aria-label="My why pillars"></div>';
   if (host) host.insertBefore(rbar, host.firstChild);
+  // P-B (19 Nov 2026): the why-pillar dots ride in the bar of every room - a copy of My Why's own row (#pchips), kept in step
+  const dotsSrc = () => { try { return (inner ? parent.document : document).getElementById('pchips'); } catch (x) { return null; } };
+  const rpDots = () => { const s = dotsSrc(), d = rbar.querySelector('.rp-dots'); if (s && d) d.innerHTML = s.innerHTML; };
+  rpDots(); { const s0 = dotsSrc(); if (s0) new MutationObserver(rpDots).observe(s0, { childList: true, subtree: true }); }
+  if (inner) document.addEventListener('keydown', e => { if (e.key !== 'Escape') return; try { const w = parent.document.getElementById('roadmapWin'); if (w && w.classList.contains('show')) parent.closeRoadmap(); } catch (x) {} });   // Esc in the frame closes the roadmap too
   const rpPaint = k => {
     const a = nav.querySelector('.m3c[data-k="' + k + '"]'), g = a && a.closest('.m3g');
     rbar.querySelector('.rp-gn').textContent = g ? g.querySelector('.gt').textContent : (k === 'wip' ? 'My Whiteboard' : '');
@@ -16922,6 +16953,7 @@ boot();
     rbar.querySelector('.rp-wb').hidden = k === 'wip';
   };
   rbar.addEventListener('click', e => {
+    const rd = e.target.closest('[data-roadmap]'); if (rd) { try { (inner ? parent : window).openRoadmap(rd.dataset.roadmap); } catch (x) {} return; }
     const t = e.target.closest('[data-rk]'); if (t) { if (!t.classList.contains('on')) { const a = nav.querySelector('.m3c[data-k="' + t.dataset.rk + '"]'); if (a) a.click(); } return; }
     if (e.target.closest('.rp-wb')) { if (wbEl) wbEl.click(); return; }
     if (e.target.closest('.rp-bk')) { if (inner) { try { parent.iwHome_(); } catch (x) {} } else window.rpHome_(); }
