@@ -133,6 +133,8 @@ Written August 2026.
 
 **X1 (9 Nov 2026) · "Are you sure?" in the app's own voice.** Deleting a knot no longer uses the browser's confirm box. Delete (in the knot form, or the × on a loop in Edit) opens a soft rose strip right under it (mmAskDelete_): "Delete '<title>' for good? Its desk and notes go too. If it's simply over, settling it keeps the record." (the settling line is shown only for open loops), with **Keep it** and a red **Delete**. mmDelete_ now refuses unless it has been asked. No SQL.
 
+**CT-1 · Circle page: jump pills and Key facts centred (20 Nov 2026).** why.html only, no SQL. The jump pills row and the Key facts row (reading) are centred, like the PART headings below them; Edit keeps the facts boxes left-aligned for typing.
+
 **P1 · Their people: pinned first, no Family / Others labels (20 Nov 2026).** why.html only, no SQL. The chips flow as one set: the pinned people (📌) first, then family (spouse, children, parents, siblings… or your ▲▼ order), then everyone else. The FAMILY · n / OTHERS · n labels are gone. Edit's ▲▼ arrows still move a person within family or within others. Trap: no visible line where family ends.
 
 **C2 · Circle page: Their people as name chips (20 Nov 2026).** why.html only, no SQL. PART V's small polaroids become compact rounded chips that wrap: a coloured initial (the relation colour), the name, the relation in small caps, the age, and 🎂 "turns 9 on 2 Dec" when a birthday is near; Family and Others keep their group labels; ＋ Add someone stays below. The one-line note and IN MY CIRCLE → are no longer on the chip - a tap opens the person's form as before; Edit's ▲▼ arrows sit at the chip's left. Trap: less warm than the polaroids; the note needs a tap.
