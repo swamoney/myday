@@ -1063,7 +1063,7 @@
   .msrc { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.06em; color:var(--sha,#a0603c); margin-top:9px; }
   .mcard.add { background:transparent; border:1.5px dashed #cdd6e3; box-shadow:none; color:#8189a0; font-style:italic; text-align:center; padding:14px; cursor:pointer; display:none; }
   /* MT-D2 (10 Nov 2026): Mantras · Musings - a switch, tiles and a journal, on the common My Why background */
-  #secMantra { --mto:#63682f; --mtu:#6b6f88; }
+  #secMantra { --mto:#2f4f8a; --mtu:#6a4c93; }   /* MM-C2: My Mind's navy and violet */
   #mantraList.mgrid { display:block; }
   .mt-seg { display:inline-flex; background:#fff; border:1px solid #dfe3ea; border-radius:999px; padding:4px; margin:4px 0 18px; }
   .mt-seg button { font-family:var(--sans,system-ui); font-size:0.875rem; font-weight:600; padding:8px 18px; border-radius:999px; border:none; background:none; color:#6b7488; cursor:pointer; }
@@ -1079,7 +1079,7 @@
   .mt-bar { display:block; width:34px; height:4px; border-radius:2px; background:var(--mti); margin-bottom:10px; }
   .mt-tile .m-body { padding-right:0; }
   .mt-tile .mtext { font-size:1.25rem; font-weight:500; line-height:1.32; letter-spacing:-0.005em; padding-right:30px; white-space:normal; }
-  .mt-tile .mmean { font-style:italic; font-size:0.95rem; line-height:1.45; color:#5b6150; margin-top:8px; padding-top:0; border-top:none; }
+  .mt-tile .mmean { font-style:italic; font-size:0.95rem; line-height:1.45; color:#5a6478; margin-top:8px; padding-top:0; border-top:none; }
   .mt-tile .msrc { font-size:0.5625rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mti); margin-top:10px; }
   /* MT-T1: musings hang on one violet thread - a dot per musing, each a white card, the line in italic, no year */
   .mt-jl { border-left:2px solid color-mix(in srgb, var(--mtu) 35%, transparent); margin-left:8px; padding-left:20px; }
@@ -1126,6 +1126,19 @@
   @media (max-width:640px) { .mt-tiles { grid-template-columns:1fr; gap:10px; } .mt-seg { display:flex; } .mt-seg button { flex:1; padding:8px 6px; } .mt-tile .mtext { font-size:1.05rem; } }
   body.editing .mcard.add { display:block; }
   .m-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
+  /* MM-1 (19 Nov 2026): Mantras & Musings as two shelves - a tool row, the shared gold-underlined headings, a + New line pop-up */
+  .mt-toolrow { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:16px 0 4px; }
+  #mantraList .mt-search { margin-left:0; }
+  .pl-addbtn.mt-addbtn { background:var(--mto); border-color:var(--mto); }
+  #mantraList .mt-dv { margin:16px 0 14px; }
+  .mt-gap { height:14px; }
+  #mantraList .mt-more.mu { color:var(--mtu); border-color:color-mix(in srgb, var(--mtu) 40%, transparent); }
+  @media (max-width:640px) { .mt-toolrow { flex-wrap:nowrap; } #mantraList .mt-search { flex:1; min-width:0; font-size:0.75rem; } .mt-tiles { grid-template-columns:1fr; } }
+  .mt-kindseg { display:flex; gap:6px; background:#ECF1F7; border-radius:10px; padding:4px; }
+  .mt-kindseg button { flex:1; font-family:var(--mono); font-size:0.5625rem; font-weight:700; letter-spacing:0.1em; padding:9px 6px; border-radius:7px; color:#3D4866; background:none; border:none; cursor:pointer; }
+  .mt-kindseg button.on { background:#2f4f8a; color:#fff; } .mt-kindseg.mu button.on { background:#6a4c93; }
+  #mmNewModal .modal-title u { text-decoration-color:#d9b84a; text-decoration-thickness:3px; text-underline-offset:5px; }
+  #mmNewModal .btn-primary { background:#2f4f8a; } #mmNewModal.mu .btn-primary { background:#6a4c93; }
   /* Circle */
   .bhead { display:flex; align-items:center; gap:10px; margin:18px 0 4px; }
   .bhead:first-child { margin-top:0; }
@@ -3881,6 +3894,25 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="mmNewModal">
+  <div class="modal">
+    <div class="modal-title"><u>A new line</u></div>
+    <div class="modal-sub" id="mmNSub">something I hold to</div>
+    <div class="fld"><label>Mantra or musing?</label>
+      <div class="mt-kindseg" id="mmNKind">
+        <button type="button" data-nk="mantra" class="on">&#10077; A MANTRA</button>
+        <button type="button" data-nk="musing">&#10022; A MUSING</button>
+      </div></div>
+    <div class="fld"><label id="mmNLineLbl">The mantra</label><input id="mmNLine" maxlength="400" placeholder="e.g. Do the next right thing"></div>
+    <div class="fld"><label id="mmNMeanLbl">What it means to me (optional)</label><textarea id="mmNMean" placeholder="e.g. Small steps beat big plans"></textarea></div>
+    <div class="fld" id="mmNSrcFld"><label>Source (optional)</label><input id="mmNSrc" maxlength="200" placeholder="e.g. Marcus Aurelius"></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="mmNSave" type="button">Save mantra</button>
+      <button class="btn-ghost" id="mmNCancel" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hidden" id="dcNewModal">
   <div class="modal dcf" id="dcFBox">
     <span class="dcf-pv" id="dcFPv" aria-hidden="true"></span>
@@ -5336,7 +5368,7 @@ function xsOpenWhy_(sec, id, wait) {
     const arr = pick[sec]() || [];
     const hit = arr.find(r => String(r.id) === String(id));
     if (hit) {
-      if (sec === 'mantra') { mmFilter = hit.kind === 'musing' ? 'u' : 'm'; try { localStorage.setItem('mt_side', mmFilter); } catch (e) {} }   // AUD-1: land on the hit's side of the switch
+      if (sec === 'mantra') { mmMore_[hit.kind === 'musing' ? 'u' : 'm'] = true; }   // MM-1: unfold the hit's shelf
       showSection(sec); if (sec === 'mantra' && typeof renderMantras === 'function') renderMantras(); open[sec](id); return;
     }
     if (wait && ++tries < 40) setTimeout(go, 150);
@@ -6577,13 +6609,14 @@ function mtRich(m, field) {
   return plain ? escHtml(plain).replace(/\n/g, '<br>') : '';
 }
 // Six near-white shades — wash, border, ink — cycling in the order written.
+// MM-C2 (19 Nov 2026): My Mind's deep inks (MM_HUE), in place of the old pale rose/sage/sky/gold/plum/teal
 const M_SHADES = [
-  { w2:'#fdfafb', bd:'#f1e1e4', acc:'#c0707e' },   // rose (MT-C1, 10 Nov 2026: was linen #b08a76, read muddy)
-  { w2:'#fbfdfc', bd:'#e2ece8', acc:'#6f9a86' },   // sage
-  { w2:'#fbfcfe', bd:'#e4eaf3', acc:'#7086a8' },   // sky
-  { w2:'#fdfcf7', bd:'#efe9d9', acc:'#a8935f' },   // gold
-  { w2:'#fdfbfd', bd:'#ece2ee', acc:'#96789e' },   // plum
-  { w2:'#fafdfd', bd:'#dfebea', acc:'#5f938c' },   // teal
+  { acc:'#2f5187' },   // navy (Anxiety)
+  { acc:'#9c3f4a' },   // wine (Insecurity)
+  { acc:'#2E6640' },   // green (Challenge)
+  { acc:'#a06a2c' },   // amber (Obstacle)
+  { acc:'#6a4c93' },   // violet (Overload)
+  { acc:'#2f6b70' },   // teal (Dilemma)
 ];
 function mtSorted_() {
   return mantras.slice().sort((a, b) => {
@@ -6599,61 +6632,72 @@ function mtSorted_() {
 // The editor's highlights, bold and colours show as written. Each side folds (9 tiles / 6 musings) until Edit or "more".
 let mmMore_ = { m: false, u: false };
 try { const v = localStorage.getItem('mt_side'); if (v === 'm' || v === 'u') mmFilter = v; } catch (e) {}
+// MM-1 (19 Nov 2026): no switch - two shelves on one page, like Bucket List and Decisions: a search and "+ New line"
+// at the top right, then Mantras (tiles) and Musings (the thread), each under the gold-underlined heading (.dcl-dv).
+// Each shelf folds (6 mantras, 3 on a phone; 3 musings) with "N MORE"; Edit or a search shows everything.
+let mmQ_ = '';
 function renderMantras() {
   const wrap = el('mantraList'); if (!wrap) return;
-  if (mmFilter !== 'm' && mmFilter !== 'u') mmFilter = 'm';
-  mmAddKind = mmFilter === 'm' ? 'mantra' : 'musing';
-  wrap.classList.toggle('mt-u', mmFilter === 'u');   // MT-T1: the musing side's more / add rows in violet
   const all = mmAll_();
-  const side = all.filter(x => x.t === mmFilter);
-  const nM = all.filter(x => x.t === 'm').length, nU = all.length - nM;
   const editing = document.body.classList.contains('editing');
-  const cap = side.length, fold = false;   // MT-I2b: everything shows, no fold
-  const shown = fold ? side.slice(0, cap) : side;
-  let html = '<div class="mt-seg" role="tablist">'
-    + '<button type="button" data-mmf="m" class="' + (mmFilter === 'm' ? 'on' : '') + '">Mantras<small>' + nM + '</small></button>'
-    + '<button type="button" data-mmf="u" class="mu' + (mmFilter === 'u' ? ' on' : '') + '">Musings<small>' + nU + '</small></button></div>'
-    + '<div class="mt-hh"><h3>' + (mmFilter === 'm' ? 'My Mantras' : 'My Musings') + '</h3><span' + (mmFilter === 'u' ? ' class="mu"' : '') + '>' + side.length + ' · ' + (mmFilter === 'm' ? 'LINES I LIVE BY' : 'THINGS I’VE NOTICED') + '</span></div>';
+  const phone = window.matchMedia && window.matchMedia('(max-width:640px)').matches;
+  const q = mmQ_.trim().toLowerCase();
+  const hit = x => { if (!q) return true; const r = x.r; return [r.text, r.title, r.meaning, r.source, r.body].some(v => v && NoteEditor.toPlain(String(v)).toLowerCase().includes(q)); };
   const star = r => r && r.favourite ? '<span class="m-star" title="Starred" aria-label="Starred">★</span> ' : '';
   let posN = 0;
   const tools = id => '<span class="mt-pos">' + (++posN) + '</span><button class="m-grip" data-mgrip="' + id + '" type="button" aria-label="Drag to reorder" title="Drag to reorder">' + M_GRIP + '</button>';
-  const items = shown.map(x => {
+  const LEAF_ = '<span class="mt-leaf" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z" fill="currentColor"/><path d="M8 40 L30 18" stroke="#fff" stroke-width="2" fill="none"/></svg></span>';
+  const card = (x, i) => {
+    const ink = M_SHADES[i % M_SHADES.length].acc;   // each line its own ink, in its shelf's order
     if (x.t === 'u' && x.src === 'iw') {
       const r = x.r, id = 'u:' + escHtml(String(r.id));
       const body = r.body && NoteEditor.toPlain(r.body).trim() ? NoteEditor.sanitize(r.body) : '';   // MT-B1: the whole page
-      const inkU = M_SHADES[side.indexOf(x) % M_SHADES.length].acc;   // MT-S4a: each musing its own ink too
-      return '<div class="mcard mu mt-jr" data-mid="' + id + '" data-mopen="' + escHtml(String(r.id)) + '" style="--mti:' + inkU + '">' + tools(id) + '<span class="mt-leaf" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z" fill="currentColor"/><path d="M8 40 L30 18" stroke="#fff" stroke-width="2" fill="none"/></svg></span><span class="mt-bar" aria-hidden="true"></span>'
+      return '<div class="mcard mu mt-jr" data-mid="' + id + '" data-mopen="' + escHtml(String(r.id)) + '" style="--mti:' + ink + '">' + tools(id) + LEAF_ + '<span class="mt-bar" aria-hidden="true"></span>'
         + '<div class="m-body"><div class="mtext">' + star(r) + escHtml(r.title || '') + '</div>' + (body ? '<div class="mmean nk-content">' + body + '</div>' : '') + '</div>'
         + '</div>';
     }
     const m = x.r, mean = mtRich(m, 'meaning');
-    const yr = !m.source && m.created_at ? String(m.created_at).slice(0, 4) : '';
     const ctl = '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>'
       + '<button class="m-x" data-mx="' + m.id + '" type="button" aria-label="Delete">&times;</button>';
-    if (x.t === 'u') return '<div class="mcard mu mt-jr" data-mid="' + m.id + '" style="--mti:' + M_SHADES[side.indexOf(x) % M_SHADES.length].acc + '">' + tools(m.id) + '<span class="mt-leaf" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z" fill="currentColor"/><path d="M8 40 L30 18" stroke="#fff" stroke-width="2" fill="none"/></svg></span><span class="mt-bar" aria-hidden="true"></span>'
+    if (x.t === 'u') return '<div class="mcard mu mt-jr" data-mid="' + m.id + '" style="--mti:' + ink + '">' + tools(m.id) + LEAF_ + '<span class="mt-bar" aria-hidden="true"></span>'
       + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '') + '</div>'
       + ctl + '</div>';
-    const ink = M_SHADES[side.indexOf(x) % M_SHADES.length].acc;   // MT-I2b: each mantra its own ink, in the order written
-    return '<div class="mcard mt-tile" data-mid="' + m.id + '" style="--mti:' + ink + '">' + tools(m.id) + '<span class="mt-qm" aria-hidden="true">\u201C</span><span class="mt-bar" aria-hidden="true"></span>'
+    return '<div class="mcard mt-tile" data-mid="' + m.id + '" style="--mti:' + ink + '">' + tools(m.id) + '<span class="mt-qm" aria-hidden="true">“</span><span class="mt-bar" aria-hidden="true"></span>'
       + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '')
       + (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') + '</div>' + ctl + '</div>';
-  }).join('');
-  html += side.length ? '<div class="' + (mmFilter === 'm' ? 'mt-tiles' : 'mt-jl') + '">' + items + '</div>'
-    : '<div class="m-empty">' + (mmFilter === 'm' ? 'No mantras yet — write the first one below.' : 'No musings yet — write the first one below.') + '</div>';
-  if (fold) html += '<button type="button" class="mt-more" data-mtmore="1">' + (side.length - cap) + ' MORE ▾</button>';
+  };
+  const shelf = (t, label, ct, cap, box, empty) => {
+    const full = all.filter(x => x.t === t), list = full.filter(hit);
+    const fold = !editing && !q && !mmMore_[t] && list.length > cap;
+    const shown = fold ? list.slice(0, cap) : list;
+    let h = '<div class="dcl-dv mt-dv' + (t === 'u' ? ' mu' : '') + '"><span class="lb">' + label + '</span><i></i><span class="ct">' + (q ? list.length + ' OF ' + full.length : full.length) + ' · ' + ct + '</span></div>';
+    h += shown.length ? '<div class="' + box + '">' + shown.map(x => card(x, full.indexOf(x))).join('') + '</div>'
+      : '<div class="m-empty">' + (q ? 'Nothing here matches “' + escHtml(mmQ_.trim()) + '”.' : empty) + '</div>';
+    if (fold) h += '<button type="button" class="mt-more' + (t === 'u' ? ' mu' : '') + '" data-mtmore="' + t + '">' + (list.length - cap) + ' MORE ▾</button>';
+    return h;
+  };
+  let html = '<div class="mt-toolrow"><input type="search" id="mmSearch" class="dc-search mt-search" placeholder="search lines…" aria-label="Search mantras and musings" value="' + escHtml(mmQ_) + '">'
+    + '<button class="pl-addbtn mt-addbtn" id="mmNewBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>New line</span></button></div>';
+  html += shelf('m', 'Mantras', 'LINES I LIVE BY', phone ? 3 : 6, 'mt-tiles', 'No mantras yet — tap + New line.');
+  html += '<div class="mt-gap"></div>';
+  html += shelf('u', 'Musings', 'THINGS I’VE NOTICED', 3, 'mt-jl', 'No musings yet — tap + New line.');
   html += '<div class="mcard add" id="mantraAdd">+ New mantra</div>';   // kept hidden: the drag code anchors on it
-  html += '<div class="mm-qa mt-qa"><input id="mmQ" type="text" placeholder="+ a ' + mmAddKind + '… Enter saves it" autocomplete="off"></div>';
+  const hadFocus = document.activeElement && document.activeElement.id === 'mmSearch';
+  const caret = hadFocus ? document.activeElement.selectionStart : null;
   wrap.innerHTML = html;
+  if (hadFocus) { const i = el('mmSearch'); if (i) { i.focus(); try { i.setSelectionRange(caret, caret); } catch (e) {} } }
 }
 // the quick-add: a new line lands at the top of its kind (top of the whole list once you have arranged them)
-async function mmQuickAdd_(text) {
+async function mmQuickAdd_(text, meaning, source) {
+  meaning = (meaning || '').trim(); source = (source || '').trim();
+  const mHtml = meaning ? escHtml(meaning).replace(/\n/g, '<br>') : '';
   const all = mmAll_();
   const pool = mmMixed ? all : all.filter(x => x.t === (mmAddKind === 'mantra' ? 'm' : 'u'));
   // R3: once why_mantras has its kind column, a new musing is born here too (kind 'musing'); a mantra says so
   if (mmHasKind) {
     const used2 = pool.map(x => x.r.sort_order).filter(v => v != null);
     const so2 = used2.length ? Math.min.apply(null, used2) - 1 : (mmAddKind === 'mantra' ? 0 : null);
-    const rec = { user_id: userId, kind: mmAddKind, text, text_html: escHtml(text), meaning: '', meaning_html: '', source: '' };
+    const rec = { user_id: userId, kind: mmAddKind, text, text_html: escHtml(text), meaning, meaning_html: mHtml, source: mmAddKind === 'mantra' ? source : '' };
     if (so2 != null) rec.sort_order = so2;
     const { error } = await supa.from('why_mantras').insert(rec);
     if (error) { console.error(error); toast('Could not save: ' + (error.message || '')); return false; }
@@ -6665,12 +6709,12 @@ async function mmQuickAdd_(text) {
   let so = used.length ? Math.min.apply(null, used) - 1 : (mmAddKind === 'mantra' ? 0 : null);
   if (mmMixed && !used.length) so = 0;
   if (mmAddKind === 'mantra') {
-    const rec = { user_id: userId, text, text_html: escHtml(text), meaning: '', meaning_html: '', source: '' };
+    const rec = { user_id: userId, text, text_html: escHtml(text), meaning, meaning_html: mHtml, source };
     if (so != null) rec.sort_order = so;
     const { error } = await supa.from('why_mantras').insert(rec);
     if (error) { console.error(error); toast('Could not save: ' + (error.message || '')); return false; }
   } else {
-    const rec = { user_id: userId, kind: 'introspection', title: text, status: '', essence: '', tags: [], body: '', updated_at: new Date().toISOString() };
+    const rec = { user_id: userId, kind: 'introspection', title: text, status: '', essence: '', tags: [], body: mHtml ? '<p>' + mHtml + '</p>' : '', updated_at: new Date().toISOString() };
     if (so != null) rec.sort_order = so;
     const { error } = await supa.from('iw_entries').insert(rec);
     if (error) { console.error(error); toast('Could not save: ' + (error.message || '')); return false; }
@@ -6679,6 +6723,38 @@ async function mmQuickAdd_(text) {
   toast(mmAddKind === 'mantra' ? 'Kept as a mantra' : 'Kept as a musing');
   return true;
 }
+// MM-1: + New line - pick mantra or musing, then write
+function mmNewKind_(k) {
+  const m = k === 'mantra'; mmAddKind = k;
+  el('mmNKind').querySelectorAll('[data-nk]').forEach(b => b.classList.toggle('on', b.dataset.nk === k));
+  el('mmNKind').classList.toggle('mu', !m); el('mmNewModal').classList.toggle('mu', !m);
+  el('mmNSub').textContent = m ? 'something I hold to' : 'something I noticed';
+  el('mmNLineLbl').textContent = m ? 'The mantra' : 'The musing';
+  el('mmNLine').placeholder = m ? 'e.g. Do the next right thing' : 'e.g. Rain makes the city honest';
+  el('mmNMeanLbl').textContent = m ? 'What it means to me (optional)' : 'A note (optional)';
+  el('mmNMean').placeholder = m ? 'e.g. Small steps beat big plans' : 'e.g. Pune in July - everyone slows down.';
+  el('mmNSrcFld').classList.toggle('hidden', !m);
+  el('mmNSave').textContent = m ? 'Save mantra' : 'Save musing';
+}
+function mmNewOpen_() {
+  ['mmNLine', 'mmNMean', 'mmNSrc'].forEach(id => { el(id).value = ''; });
+  mmNewKind_('mantra'); el('mmNSave').disabled = false;
+  el('mmNewModal').classList.remove('hidden');
+  setTimeout(() => el('mmNLine').focus(), 40);
+}
+el('mmNKind').addEventListener('click', e => { const b = e.target.closest('[data-nk]'); if (b) { mmNewKind_(b.dataset.nk); el('mmNLine').focus(); } });
+el('mmNCancel').addEventListener('click', () => el('mmNewModal').classList.add('hidden'));
+el('mmNewModal').addEventListener('click', e => { if (e.target.id === 'mmNewModal') el('mmNewModal').classList.add('hidden'); });
+el('mmNLine').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el('mmNSave').click(); } });
+el('mmNSave').addEventListener('click', async () => {
+  const t = el('mmNLine').value.trim(); if (!t) { el('mmNLine').focus(); return; }
+  el('mmNSave').disabled = true;
+  const ok = await mmQuickAdd_(t, el('mmNMean').value, el('mmNSrc').value);
+  el('mmNSave').disabled = false;
+  if (ok) el('mmNewModal').classList.add('hidden');
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !el('mmNewModal').classList.contains('hidden')) el('mmNewModal').classList.add('hidden'); });
+el('mantraList').addEventListener('input', e => { if (e.target.id === 'mmSearch') { mmQ_ = e.target.value; renderMantras(); } });
 el('mantraList').addEventListener('keydown', async e => {
   if (e.target.id !== 'mmQ' || e.key !== 'Enter') return;
   const t = e.target.value.trim(); if (!t) return;
@@ -6759,8 +6835,9 @@ el('mantraList').addEventListener('click', e => {
     });
     return;
   }
-  const f = e.target.closest('[data-mmf]'); if (f) { mmFilter = f.dataset.mmf; try { localStorage.setItem('mt_side', mmFilter); } catch (x) {} renderMantras(); return; }
-  if (e.target.closest('[data-mtmore]')) { mmMore_[mmFilter] = true; renderMantras(); return; }
+  const mo_ = e.target.closest('[data-mtmore]'); if (mo_) { mmMore_[mo_.dataset.mtmore] = true; renderMantras(); return; }
+  if (e.target.closest('#mmNewBtn')) { mmNewOpen_(); return; }
+  if (e.target.closest('.mt-toolrow')) return;
   const k = e.target.closest('[data-mmk]');
   if (k) { mmAddKind = k.dataset.mmk; el('mantraList').querySelectorAll('[data-mmk]').forEach(b => b.classList.toggle('on', b === k)); const q = el('mmQ'); if (q) q.focus(); return; }
   if (e.target.closest('.mm-qa')) return;
