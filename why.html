@@ -3604,6 +3604,24 @@
     body #personWin #pWho .w-rows { grid-template-columns:1fr; }
     #personWin .p-lsst b { font-size:1.15rem; }
   }
+
+  /* PR1 (20 Nov 2026): printing a person prints the page as it is on screen */
+  @media print {
+    @page { size:A4; margin:12mm 10mm; }
+    body.p-print, html:has(body.p-print) { background:#fff !important; overflow:visible !important; height:auto !important; }
+    body.p-print > *:not(#personWin) { display:none !important; }
+    body.p-print #personWin { position:static !important; display:block !important; inset:auto !important; height:auto !important; overflow:visible !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body.p-print #personWin .pscroll { overflow:visible !important; height:auto !important; padding-top:0 !important; }
+    body.p-print #personWin .pbar, body.p-print #personWin .p-jump, body.p-print #personWin .pfoot, body.p-print #personWin .p-empty, body.p-print #personWin .pn-addrow,
+    body.p-print #personWin .nt-cv, body.p-print #personWin #pLedgerSec, body.p-print #personWin .pr-hint, body.p-print #personWin #pToolbar, body.p-print #personWin #pEssay,
+    body.p-print #personWin .pp-addrow, body.p-print #personWin .p-pan .p-cb, body.p-print #personWin .psa { display:none !important; }
+    body.p-print #personWin #psNote .ps-body, body.p-print #personWin #psNote #pDates { display:block !important; }
+    body.p-print #personWin .pin { max-width:none !important; padding:0 !important; }
+    body.p-print #personWin .phero, body.p-print #personWin .p-q, body.p-print #personWin .p-ln, body.p-print #personWin .mo, body.p-print #personWin .w-dd > div,
+    body.p-print #personWin .w-row, body.p-print #personWin .pp-row, body.p-print #personWin .pr-li, body.p-print #personWin .p-kf { break-inside:avoid; }
+    body.p-print #personWin .psh, body.p-print #personWin .p-panh { break-after:avoid; }
+    body.p-print #personWin #psLrn, body.p-print #personWin #psMom, body.p-print #personWin #pPanTp, body.p-print #personWin #pPanPri, body.p-print #personWin #psNote { break-inside:avoid; }
+  }
 </style>
 </head>
 <body>
@@ -8717,7 +8735,17 @@ function prLedger_(items, QMAP, esc, heading) {
       + (t.outcome ? '<br><span class="meta">' + esc(t.outcome) + '</span>' : '') + '</li>';
   }).join('') + '</ul>';
 }
+// PR1 (20 Nov 2026): Print prints the page as it is on screen - the long note opened, the ledger and the buttons left out
+function pPrintScreen_() {
+  const wasOpen = pNoteOpen; pNoteOpen = true; pNoteFold_();
+  document.body.classList.add('p-print');
+  const done = () => { document.body.classList.remove('p-print'); pNoteOpen = wasOpen; pNoteFold_(); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  const go = () => setTimeout(() => { window.print(); setTimeout(() => { if (document.body.classList.contains('p-print')) done(); }, 1500); }, 60);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(go); else go();
+}
 el('pPrint').addEventListener('click', () => {
+  pPrintScreen_(); return;   // PR1: the old plain print below is kept but no longer used
   const p = pPerson_();
   const b = BANDS.find(x => x.key === p.band) || BANDS[0];
   const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
