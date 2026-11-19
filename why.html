@@ -2075,7 +2075,7 @@
     border-top:4px solid var(--p-acc,#35786f); border-radius:0 0 16px 16px; background:linear-gradient(180deg, #fff, var(--p-wash,#eef7f6));
     padding:20px 22px 22px; }
   #personWin .pav { display:none !important; }
-  #personWin { background:color-mix(in srgb, var(--p-wash,#eef7f6) 55%, #fbfcfe); }   /* CL-G2: the page takes the ring's wash at half strength */
+  #personWin { background:color-mix(in srgb, var(--p-wash,#eef7f6) 25%, #fdfeff); }   /* BG1 (20 Nov 2026): the ring's wash at quarter strength (was half) */   /* CL-G2: the page takes the ring's wash at half strength */
   #personWin .pb { display:flex; flex-direction:column; align-items:stretch; }
   #personWin .peyebrow { order:0; color:var(--p-acc,#35786f); font-weight:600; padding-right:170px; }
   #personWin .peyebrow .over { color:#a8443e; }
@@ -3507,10 +3507,10 @@
   body #personWin #psAdv .p-qs::before { display:none !important; }
   body #personWin #psAdv .p-q { position:relative; background:#fff; border:1.5px solid color-mix(in srgb, var(--p-acc,#35786f) 45%, #fff) !important; border-radius:20px 20px 20px 6px; padding:16px 22px 14px !important; margin:0 0 22px 16px; box-shadow:0 6px 16px rgba(30,40,60,.06); font-style:italic !important; }
   body #personWin #psAdv .p-q span { font-style:normal !important; letter-spacing:0.12em; text-transform:uppercase; color:#a08b55 !important; margin-top:8px; }
-  body #personWin #psAdv .p-q::before { content:var(--pini,'\00B7'); left:-16px; top:auto; bottom:-14px; width:32px; height:32px; font-size:0.9rem; border:3px solid color-mix(in srgb, var(--p-wash,#eef7f6) 55%, #fbfcfe); box-shadow:none; }
+  body #personWin #psAdv .p-q::before { content:var(--pini,'\00B7'); left:-16px; top:auto; bottom:-14px; width:32px; height:32px; font-size:0.9rem; border:3px solid color-mix(in srgb, var(--p-wash,#eef7f6) 25%, #fdfeff); box-shadow:none; }
   body #personWin #psAdv .p-q.p-pinned { border-color:color-mix(in srgb, #c9a227 70%, #fff) !important; }
   /* moments: a heart on the line, how long ago under the date */
-  body #personWin #pMoments .mo::before { content:'\2665'; background:none; color:var(--p-acc,#35786f); font-size:1.05rem; box-shadow:0 0 0 4px color-mix(in srgb, var(--p-wash,#eef7f6) 55%, #fbfcfe); border-radius:50%; }
+  body #personWin #pMoments .mo::before { content:'\2665'; background:none; color:var(--p-acc,#35786f); font-size:1.05rem; box-shadow:0 0 0 4px color-mix(in srgb, var(--p-wash,#eef7f6) 25%, #fdfeff); border-radius:50%; }
   #personWin .mo-ago { display:block; font-family:var(--mono); font-size:0.52rem; letter-spacing:0.12em; color:#9aa3b6; margin-top:2px; }
   @media (max-width:640px) {
     body #personWin .phero { border-left-width:7px !important; padding:18px 14px 16px !important; }
@@ -3589,7 +3589,7 @@
   body #personWin .p-lslist { position:relative; max-width:640px; margin:0 auto; padding-left:36px; }
   body #personWin .p-lslist::before { content:''; position:absolute; left:11px; top:8px; bottom:8px; width:2px; background:color-mix(in srgb, var(--p-acc,#35786f) 35%, #fff); }
   body #personWin .p-lsi { position:relative; display:flex; flex-direction:column; gap:3px; background:#fff; border:1px solid #e3e8f0 !important; border-radius:14px; padding:10px 34px 10px 14px !important; margin-bottom:10px; }
-  body #personWin .p-lsi::before { content:''; position:absolute; left:-31px; top:13px; width:12px; height:12px; border-radius:50%; background:var(--p-acc,#35786f); box-shadow:0 0 0 4px color-mix(in srgb, var(--p-wash,#eef7f6) 55%, #fbfcfe); }
+  body #personWin .p-lsi::before { content:''; position:absolute; left:-31px; top:13px; width:12px; height:12px; border-radius:50%; background:var(--p-acc,#35786f); box-shadow:0 0 0 4px color-mix(in srgb, var(--p-wash,#eef7f6) 25%, #fdfeff); }
   body #personWin .p-lsi > i { font-style:normal; font-family:var(--mono); font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:#a08b55; }
   body #personWin .p-lsi > span { font-family:var(--serif); font-size:1.05rem; color:#1f2a44; }
   body #personWin .p-lsi .p-lsx { position:absolute; right:8px; top:8px; }
@@ -8336,7 +8336,11 @@ function renderMoments() {
   // CL-M1b (8 Nov 2026): the timeline in reading and Edit; tap a moment (or + Add a moment, Edit only) for the form
   const ed = document.body.classList.contains('p-editing');
   (pData.moments || []).forEach(m => { if (m && !m.id) m.id = pUid_(); });
-  const rows = (pData.moments || []).map(m => !String(m.t || '').trim() ? '' :
+  // M1 (20 Nov 2026): shown oldest first by date (the story from where it began); undated last; the saved order is left alone
+  const mk_ = m => moIso_(m.y) || '';
+  const sorted_ = (pData.moments || []).map((m, i) => [m, i]).sort((a, b) => { const A = mk_(a[0]), B = mk_(b[0]);
+    if (!A && !B) return a[1] - b[1]; if (!A) return 1; if (!B) return -1; return A.localeCompare(B) || a[1] - b[1]; }).map(x => x[0]);
+  const rows = sorted_.map(m => !String(m.t || '').trim() ? '' :
     '<div class="mo pn-tap" data-pnform="mom:' + escHtml(m.id) + '">' +
       '<span class="mo-y ro">' + (m.y ? escHtml(moShow_(m.y)) + moAgo_(m.y) : '') + '</span>' +
       '<span class="mo-tr">' + escHtml(m.t || '') + '</span>' +
