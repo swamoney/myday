@@ -1142,6 +1142,14 @@
   /* Circle */
   .bhead { display:flex; align-items:center; gap:10px; margin:18px 0 4px; }
   .bhead:first-child { margin-top:0; }
+  /* U3 (19 Nov 2026): each ring a proper heading - serif name in its colour, a line in its colour to the count, the seats or bar on their own line */
+  .bhead { flex-wrap:wrap; row-gap:6px; margin-top:26px; }
+  .bhead .bt { font-family:var(--serif); font-size:1.0625rem; font-weight:700; letter-spacing:0; text-transform:none; }
+  .bhead .bt i { font-family:var(--mono); font-size:0.56rem; letter-spacing:0.1em; font-weight:600; margin-left:4px; }
+  .bhead .ln { flex:1; height:2px; border-radius:2px; margin:0 2px; background:linear-gradient(90deg, color-mix(in srgb, var(--hc) 55%, transparent), transparent); }
+  .bhead .bc { order:3; }
+  .bhead .bbar, .bhead .cl-seats { order:4; flex-basis:100%; }
+  .bhead .bbar.bare { display:none; }
   .bt { font-family:var(--mono); font-size:0.5938rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; white-space:nowrap; }
   .bt i { font-style:normal; opacity:0.6; letter-spacing:0.08em; }
   /* The descriptions teach the framework — useful while you are placing people,
@@ -1165,8 +1173,8 @@
   /* Card rows — no table, so it reflows cleanly on a phone. */
   .crow { display:flex; align-items:center; gap:13px; padding:14px 16px; margin-bottom:9px; cursor:pointer;
           /* CL-K1 (8 Nov 2026): white cards like the other rooms, fading to a faint touch of the ring's colour */
-          background:linear-gradient(180deg, #fff 0%, #fff 45%, color-mix(in srgb, var(--cw2,#eef2f8) 70%, #fff) 100%);
-          border:1.5px solid color-mix(in srgb, var(--cacc,#8a94a8) 40%, #fff); border-radius:16px;   /* CL-B1: a soft ring-colour border */
+          background:linear-gradient(150deg, color-mix(in srgb, var(--cacc,#8a94a8) 11%, #fff) 0%, #fff 62%);   /* U3 (19 Nov 2026): the Mantras tile's wash */
+          border:1.5px solid color-mix(in srgb, var(--cacc,#8a94a8) 50%, #fff); border-radius:16px;   /* CL-B1: a soft ring-colour border */
           box-shadow:0 6px 18px rgba(30,47,82,0.05); transition:transform .15s, box-shadow .2s; }
   .crow:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(30,47,82,0.1); }
   .c-kind { font-family:var(--mono); font-size:0.5rem; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:var(--cacc,#8a94a8); margin-bottom:2px; }
@@ -7058,8 +7066,8 @@ function renderCircle() {
     const seats = seated ? '<span class="cl-seats" style="--sa:' + b.acc + '" title="' + people.length + ' of ' + b.cap + ' seats taken">'
           + Array.from({ length: b.cap }, (_, j) => '<i class="' + (j < people.length ? 'f' : '') + '"></i>').join('')
           + (people.length > b.cap ? '<b>+' + (people.length - b.cap) + '</b>' : '') + '</span>' : '';
-    html += '<div class="bhead' + (seated ? ' seated' : '') + '"><span class="bt" style="color:' + b.acc + ';">' + escHtml(b.lbl)
-          + ' <i>(' + b.range + ')</i></span>'
+    html += '<div class="bhead' + (seated ? ' seated' : '') + '" style="--hc:' + b.acc + '"><span class="bt" style="color:' + b.acc + ';">' + escHtml(b.lbl)
+          + ' <i>(' + b.range + ')</i></span><i class="ln" aria-hidden="true"></i>'   // U3: the ring's line to the count
           + '<span class="bc">' + count + '</span>'
           + (seated ? seats
              : capped && !circleTag ? '<span class="bbar"><span style="width:' + pct + '%;background:' + b.acc + ';"></span></span>'
@@ -7070,7 +7078,7 @@ function renderCircle() {
     // and no empty edit cells cutting the panel edge in read mode.
     html += people.map((p, pi) =>
       '<div class="crow" data-open="' + p.id + '" style="--cw1:' + b.w1 + ';--cw2:' + b.bg + ';--cacc:' + b.acc + '">' +
-        '<span class="c-av" style="background:' + b.bg + ';color:' + b.acc + ';">' + escHtml((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
+        '<span class="c-av" style="background:' + b.acc + ';color:#fff;">' + escHtml((p.name || '?').trim().charAt(0).toUpperCase()) + '</span>' +
         '<span class="c-mid">' +
           '<span class="c-kind">' + escHtml(b.lbl) + '</span>' +
           '<span class="c-nmrow"><span class="c-name">' + escHtml(p.name || '') + '</span>' +
