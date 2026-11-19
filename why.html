@@ -3580,6 +3580,12 @@
   #personWin .pr-qtag { font-family:var(--mono); font-size:0.52rem; font-weight:700; letter-spacing:0.12em; color:#fff; background:var(--q); border-radius:5px; padding:3px 7px; white-space:nowrap; }
   body #personWin #pPanPri .pr-hint { text-align:center; }
   body #personWin #pPanPri .p-sub { max-width:660px; margin:14px auto 0; }
+  /* LG-1: the ledger folded behind its heading; ADD-1: + Add someone only in Edit */
+  #personWin #pLedgerHead { cursor:pointer; user-select:none; }
+  #personWin #pLedgerHead .p-lgcv { display:inline-block; margin-right:6px; color:var(--p-acc,#35786f); transition:transform .15s; }
+  #personWin #pLedgerSec:not(.fold) #pLedgerHead .p-lgcv { transform:rotate(90deg); }
+  #personWin #pLedgerSec.fold #pIntArchive { display:none; }
+  body:not(.p-editing) #personWin #pPpl .pp-addrow { display:none !important; }
   /* VII - our conversations: three numbers, then the talks on a line */
   #personWin .p-lsst { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; max-width:660px; margin:0 auto 16px; }
   #personWin .p-lsst > div { background:#fff; border:1px solid color-mix(in srgb, var(--p-acc,#35786f) 25%, #fff); border-radius:14px; padding:10px 8px; text-align:center; }
@@ -4755,7 +4761,7 @@
         <div class="p-stack" id="pIntMatrix"></div>
         <div class="pr-hint">TAP THE CIRCLE TO CLOSE &nbsp;&middot;&nbsp; TAP THE WORDS TO EDIT</div>
         <div class="p-sub" id="pLedgerSec">
-          <div class="p-subh"><span class="p-subl">The ledger</span><span class="p-cn" id="pIntArchCount"></span></div>
+          <div class="p-subh" id="pLedgerHead" role="button" tabindex="0" aria-expanded="false"><span class="p-lgcv" aria-hidden="true">▸</span><span class="p-subl">The ledger</span><span class="p-cn" id="pIntArchCount"></span></div>
           <div id="pIntArchive"></div>
         </div>
       </div>
@@ -8032,12 +8038,16 @@ function renderIntents() {
   mx.innerHTML = rows.join('') || '<div class="pr-qempty">nothing open — tap Add</div>';
   renderIntArchive();
 }
+let pLedgerOpen_ = false;
 function renderIntArchive() {
   const wrap = el('pIntArchive'); if (!wrap) return;
   const closed = (pData.intents || []).filter(t => t.status && t.status !== 'open')
     .sort((a, b) => String(b.on || '').localeCompare(String(a.on || '')));
   const cnt = el('pIntArchCount');
   if (cnt) cnt.textContent = closed.length ? (closed.length + (closed.length === 1 ? ' CLOSED' : ' CLOSED')) : '';
+  // LG-1 (20 Nov 2026): the ledger stays folded until you tap its heading; with nothing closed it is not shown at all
+  { const sec = el('pLedgerSec'); if (sec) { sec.classList.toggle('hidden', !closed.length); sec.classList.toggle('fold', !pLedgerOpen_);
+      const h = el('pLedgerHead'); if (h) h.setAttribute('aria-expanded', pLedgerOpen_ ? 'true' : 'false'); } }
   // Collapsed rather than hidden: the heading tells you the section is empty,
   // and gives you somewhere to look when it is not.
   if (!closed.length) { wrap.innerHTML = ''; return; }
@@ -8188,7 +8198,7 @@ function openPerson(id) {
   el('pName').textContent = p.name || '';
   const talksAll = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
   const lastTalk = talksAll[talksAll.length - 1];
-  pPan = null; pOpenSecs = new Set(); pFactsEdit = false; pMore = {}; pNoteOpen = false;
+  pPan = null; pOpenSecs = new Set(); pFactsEdit = false; pMore = {}; pNoteOpen = false; pLedgerOpen_ = false;
   const rh = rhythmOf(p.rhythm), rEl = el('pRhythm');
   if (rEl) {
     let over = false;
@@ -8515,6 +8525,8 @@ el('pIntCloseSave').addEventListener('click', () => {
   el('pIntCloseModal').classList.add('hidden'); closingInt = null;
   renderIntents(); schedulePersonSave(); renderPersona();
 });
+el('pLedgerHead').addEventListener('click', () => { pLedgerOpen_ = !pLedgerOpen_; renderIntArchive(); });
+el('pLedgerHead').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el('pLedgerHead').click(); } });
 el('pIntMatrix').addEventListener('click', e => {
   if (!document.body.classList.contains('p-editing')) return;   // read mode is read-only
   const c = e.target.closest('[data-intclose]');
