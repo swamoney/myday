@@ -3529,6 +3529,9 @@
   body #personWin .p-pan { display:block !important; position:static !important; transform:none !important; width:auto !important; max-height:none !important; overflow:visible !important;
     background:none !important; border:none !important; box-shadow:none !important; padding:0 !important; margin:38px 0 10px !important; z-index:auto !important; border-radius:0 !important; }
   body #personWin .p-pan.p-none { display:none !important; }
+  /* K1 (20 Nov 2026): Conversations is gone from the page - past talks stay saved (and in Export / Print); the rhythm is a plain word, never red */
+  body #personWin #pPanConv { display:none !important; }
+  body #personWin .peyebrow .over { color:inherit !important; }
   body #personWin .p-pan .p-panh { display:grid !important; grid-template-columns:1fr auto 1fr; align-items:center; column-gap:14px; row-gap:4px; padding:20px 0 0 !important; margin:0 0 18px !important; border:none !important; }
   body #personWin .p-pan .p-panh::before, body #personWin .p-pan .p-panh::after { content:''; grid-row:1; height:1px; width:min(160px, 100%); background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--p-acc,#35786f) 45%, #fff)); }
   body #personWin .p-pan .p-panh::before { grid-column:1; justify-self:end; }
@@ -7537,7 +7540,6 @@ function renderPersona() {
       ['pPanWho', '\uD83E\uDDED Who they are', (pData.who || []).length + (pData.deal || []).length, pR1Has_('who') || ed],
       ['pPanTp', '\uD83D\uDC6A Their people', (pData.people || []).filter(x => !x.past).length, pR1Has_('tp') || ed],
       ['pPanPri', '\u25A6 For them', (pData.intents || []).filter(t => (t.status || 'open') === 'open').length, pR1Has_('pri') || ed],
-      ['pPanConv', '\uD83D\uDCAC Our talks', (pData.contacts || []).length, pR1Has_('conv') || ed],
       ['psNote', '\uD83D\uDCDD Long note', 0, !!NoteEditor.toPlain(pData.essay || '').trim()]].filter(x => x[3]);
     [['who', 'pPanWho'], ['tp', 'pPanTp'], ['pri', 'pPanPri'], ['conv', 'pPanConv']].forEach(([k, id]) => el(id).classList.toggle('p-none', !ed && !pR1Has_(k)));
     el('pJump').innerHTML = J.length > 1 ? J.map(x => '<button type="button" data-pjump="' + x[0] + '">' + x[1] + (x[2] ? ' <b>' + x[2] + '</b>' : '') + '</button>').join('') : ''; }
