@@ -1719,11 +1719,11 @@
   /* moments and the long note sit in the same grammar */
   #psMom .mo { border-bottom-color:var(--ps-hair2); }
   #psNote .ps-body { max-width:660px; }
-  body:not(.p-editing) #psNote .psh { cursor:pointer; }
+  #psNote .psh { cursor:pointer; }
   #psNote .nt-cv { font-size:0.8rem; color:var(--ps-faint); transition:transform .15s; }
   #psNote.col .nt-cv { transform:rotate(-90deg); }
-  body.p-editing #psNote .nt-cv { display:none; }
-  body:not(.p-editing) #psNote.col .ps-body, body:not(.p-editing) #psNote.col #pDates { display:none; }
+  /* NF-1: the fold arrow shows in Edit too */
+  #psNote.col .ps-body, #psNote.col #pDates { display:none; }   /* NF-1: folded in Edit too */
   #psNote .essay-date { margin:-6px 0 12px; }
   @media (max-width:720px) {
     #personWin .pname { font-size:1.9rem; }
@@ -8295,14 +8295,14 @@ function renderPersonRead() {
 let pNoteOpen = false;
 function pNoteFold_() {
   const n = el('psNote'); if (!n) return;
-  const col = !pNoteOpen && !document.body.classList.contains('p-editing');
+  const col = !pNoteOpen;   // NF-1 (20 Nov 2026): folded in Edit too, until you tap its heading
   n.classList.toggle('col', col);
   const h = el('pNoteHead'); if (h) h.setAttribute('aria-expanded', col ? 'false' : 'true');
 }
 el('pJump').addEventListener('click', e => { const b = e.target.closest('[data-pjump]'); if (!b) return;
   if (b.dataset.pjump === 'psNote' && !pNoteOpen) { pNoteOpen = true; pNoteFold_(); }
   const t = el(b.dataset.pjump); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-el('pNoteHead').addEventListener('click', () => { if (document.body.classList.contains('p-editing')) return; pNoteOpen = !pNoteOpen; pNoteFold_(); });
+el('pNoteHead').addEventListener('click', () => { pNoteOpen = !pNoteOpen; pNoteFold_(); });
 el('pNoteHead').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el('pNoteHead').click(); } });
 function setPersonEditing(on) {
   document.body.classList.toggle('p-editing', !!on);

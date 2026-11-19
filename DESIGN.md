@@ -133,6 +133,8 @@ Written August 2026.
 
 **X1 (9 Nov 2026) · "Are you sure?" in the app's own voice.** Deleting a knot no longer uses the browser's confirm box. Delete (in the knot form, or the × on a loop in Edit) opens a soft rose strip right under it (mmAskDelete_): "Delete '<title>' for good? Its desk and notes go too. If it's simply over, settling it keeps the record." (the settling line is shown only for open loops), with **Keep it** and a red **Delete**. mmDelete_ now refuses unless it has been asked. No SQL.
 
+**NF-1 · Circle page: the long note stays folded in Edit (20 Nov 2026).** why.html only, no SQL. Pressing Edit no longer opens the long note; it stays folded (with its ▸ arrow) until you tap its heading, in reading and in Edit alike; tapping again folds it. A jump pill to Long note still opens it. Trap: to write in the long note you tap its heading first.
+
 **LG-1 + ADD-1 · Circle page: the ledger folds; + Add someone only in Edit (20 Nov 2026).** why.html only, no SQL. In PART VI What I want to do for them, the ledger (closed items, by year) is folded behind its heading - "▸ THE LEDGER · 1 CLOSED" - and opens only when tapped (▾); it folds again on each new person, and is not shown at all when nothing is closed. In PART V Their people, the "+ Add someone" box shows only in Edit; reading shows the chips alone. Trap: to add a person you now press Edit first.
 
 **CT-1 · Circle page: jump pills and Key facts centred (20 Nov 2026).** why.html only, no SQL. The jump pills row and the Key facts row (reading) are centred, like the PART headings below them; Edit keeps the facts boxes left-aligned for typing.
