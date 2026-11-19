@@ -3473,7 +3473,11 @@
   /* the jump pills and the four drop-downs, in the book's pill style */
   #personWin .p-jump { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
   #personWin .p-jump:empty { display:none; }
-  #personWin .p-jump { justify-content:center; }   /* 20 Nov 2026: centred, like the PART headings */
+  #personWin .p-jump { justify-content:center; }
+  /* AU-3 (20 Nov 2026): a long name wraps instead of running under the polaroid; the one-line note shows on a phone too; a little air under the eyebrow */
+  #personWin .pname { overflow-wrap:anywhere; }
+  @media (max-width:640px) { #personWin .p-sticky .pnote { display:inline !important; } }
+  #personWin .peyebrow { margin-bottom:4px; }   /* 20 Nov 2026: centred, like the PART headings */
   body #personWin .p-kf:not(.editing) { justify-content:center; text-align:center; }
   #personWin .p-jump button { display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid #dfe5ee; border-radius:10px; padding:9px 13px; font-family:var(--mono); font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:#26324a; cursor:pointer; }
   #personWin .p-jump button:hover { border-color:var(--p-acc,#35786f); }
@@ -7457,7 +7461,7 @@ const P_WHO = [
   { k: 'bias',  lbl: 'Biases',     ink: '#9a6a55', ph: 'add a bias…' }
 ];
 const P_FACTS = [['bday', 'Birthday', '14 Feb'], ['family', 'Family', 'Partner, children…'], ['work', 'Work', 'Role, company'], ['met', 'How we met', 'Where, when']];
-const P_EMPTY_LBL = { facts: 'Key facts', ppl: 'Their people', who: 'Who they are', adv: 'Direct advice', lrn: 'My indirect learning & introspection', mom: 'Important moments' };
+const P_EMPTY_LBL = { facts: 'Key facts', ppl: 'Their people', who: 'Who they are', adv: 'In their words', lrn: 'What I learnt from them', mom: 'Our moments' };   // AU-2: the page's own names
 function pEditing_() { return document.body.classList.contains('p-editing'); }
 // *words* in the one-line read carry a soft highlight.
 function pReadHtml_(t) { return escHtml(t).replace(/\*([^*]+)\*/g, '<em>$1</em>'); }
@@ -8290,7 +8294,10 @@ function openPerson(id) {
   renderPersona();
   el('personWin').classList.add('show');
   document.body.style.overflow = 'hidden';
+  // AU-1 (20 Nov 2026): a person's page owns one history step, so the phone's Back closes it (and stays in My Circle)
+  if (!(history.state && history.state.pw)) { try { history.pushState(Object.assign({}, history.state || {}, { pw: 1 }), ''); } catch (e) {} }
 }
+window.addEventListener('popstate', () => { if (el('personWin').classList.contains('show') && !(history.state && history.state.pw)) closePerson(); });
 function closePerson() {
   if (pPan) pPanClose_();   // CL-M1
   pCommitPending_();
@@ -8438,8 +8445,8 @@ async function savePersonCore_(force) {
   } catch (e) { pDirty = true; el('pSave').textContent = 'Not saved'; }
   finally { NoteEditor.guard.end(); }
 }
-el('pBack').addEventListener('click', closePerson);
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('personWin').classList.contains('show')) closePerson(); });
+el('pBack').addEventListener('click', () => { if (history.state && history.state.pw) history.back(); else closePerson(); });   // AU-1
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('personWin').classList.contains('show') && !document.querySelector('.modal-overlay:not(.hidden), .pp-ov:not(.hidden)')) el('pBack').click(); });   // AU-1: Esc = Back (not while a form is open)
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('bkWin').classList.contains('show')) closeDream(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && el('mtWin').classList.contains('show')) closeMantra(); });
 el('pEssay').addEventListener('blur', () => savePerson_());
@@ -8652,8 +8659,8 @@ function pMarkdown_() {
       md += '\n**' + g.lbl + '**\n\n' + g.items.map(x => '- ' + x.t + (x.seen ? ' \u2014 _seen: ' + x.seen + '_' : '') + (x.on ? ' (' + pMon_(x.on) + ')' : '')).join('\n') + '\n';
     });
   }
-  if (ps.advice.length) md += '\n## Direct advice\n\n' + ps.advice.map(a => '> \u201C' + a.t + '\u201D  \n> \u2014 ' + [a.about ? 'on ' + a.about : '', a.on ? pMon_(a.on) : '', a.pin ? 'pinned' : ''].filter(Boolean).join(' \u00B7 ')).join('\n\n') + '\n';
-  if (ps.learn.length) md += '\n## My indirect learning and introspection\n\n' + ps.learn.map(x => '- ' + x.t + (x.seen ? ' \u2014 _' + x.seen + '_' : '') + (x.on ? ' (' + pMon_(x.on) + ')' : '')).join('\n') + '\n';
+  if (ps.advice.length) md += '\n## In their words\n\n' + ps.advice.map(a => '> \u201C' + a.t + '\u201D  \n> \u2014 ' + [a.about ? 'on ' + a.about : '', a.on ? pMon_(a.on) : '', a.pin ? 'pinned' : ''].filter(Boolean).join(' \u00B7 ')).join('\n\n') + '\n';
+  if (ps.learn.length) md += '\n## What I learnt from them\n\n' + ps.learn.map(x => '- ' + x.t + (x.seen ? ' \u2014 _' + x.seen + '_' : '') + (x.on ? ' (' + pMon_(x.on) + ')' : '')).join('\n') + '\n';
   if (ps.ok.length || ps.no.length) {
     md += '\n## How to deal with them\n';
     if (ps.ok.length) md += '\n**\u2713 Works**\n\n' + ps.ok.map(d => '- ' + d.t).join('\n') + '\n';
@@ -8661,7 +8668,7 @@ function pMarkdown_() {
   }
 
   if (open.length) {
-    md += '\n## What is next\n';
+    md += '\n## What I want to do for them\n';
     ['q1','q2','q3','q4'].forEach(q => {
       const rows = open.filter(t => (t.q || 'q2') === q);
       if (!rows.length) return;
@@ -8677,8 +8684,8 @@ function pMarkdown_() {
     }).join('\n') + '\n';
   }
   if (ms.length) {
-    md += '\n## Important moments\n\n'
-        + ms.map(m => '- **' + moShow_(m.y) + '** \u2014 ' + (m.t || '')).join('\n') + '\n';
+    md += '\n## Our moments\n\n'
+        + ms.slice().sort((a, b) => (moIso_(a.y) || '9999').localeCompare(moIso_(b.y) || '9999')).map(m => '- **' + moShow_(m.y) + '** \u2014 ' + (m.t || '')).join('\n') + '\n';
   }
   if (talks.length) {
     md += '\n## Recent conversation\n\n'
