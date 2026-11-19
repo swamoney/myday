@@ -7591,8 +7591,9 @@ function renderPersona() {
       + (x.note ? '<div class="pp-ln">' + escHtml(x.note) + '</div>' : '') + '</div>'
       + (l ? '<button type="button" class="tp-lk" data-pplopen="' + escHtml(l.id) + '">IN MY CIRCLE →</button>' : '') + '<span class="pp-go">›</span></div>'; };
   let ph = '';
-  if (fam.length) ph += '<div class="pp-gh"><span class="pp-gc fam">FAMILY · ' + fam.length + '</span></div>' + fam.map(pplRow).join('');
-  if (oth.length) ph += '<div class="pp-gh"><span class="pp-gc oth">OTHERS · ' + oth.length + '</span></div>' + oth.map(pplRow).join('');
+  // P1 (20 Nov 2026): one flow, no FAMILY / OTHERS labels - the pinned first, then family, then others (the arrows still move within family / others)
+  const flow_ = [...fam.map((x, i) => [x, i, fam]), ...oth.map((x, i) => [x, i, oth])];
+  ph += flow_.filter(e => e[0].pin).concat(flow_.filter(e => !e[0].pin)).map(([x, i, arr]) => pplRow(x, i, arr)).join('');
   if (!live.length) ph += '<div class="w-none" style="padding:4px 0 8px">nobody here yet</div>';
   if (gone.length) ph += '<div class="tp-past">In memory · ' + gone.map(x => '<button type="button" class="pp-gone" data-pplform="' + escHtml(x.id) + '">' + (x.r ? escHtml(String(x.r).charAt(0).toUpperCase() + String(x.r).slice(1)) + ' · ' : '') + '<b>' + escHtml(x.n) + '</b>' + (x.pastOn ? ' (' + escHtml(x.pastOn) + ')' : '') + '</button>').join(' · ') + '</div>';
   ph += '<button type="button" class="pp-addrow" data-pplform="new">＋ Add someone</button>';
