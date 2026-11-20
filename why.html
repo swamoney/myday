@@ -6370,7 +6370,7 @@ function ppSkGo_(st, d) {
   st.querySelector('.sk-ct').textContent = (at + 1) + ' / ' + N;
 }
 function ppStackInit_() {
-  [['now', '#ppS_now > .pp-rows'], ['toward', '#ppS_toward > .pp-notes'], ['park', '#ppS_park > .pp-rows']].forEach(([sec, q]) => {
+  [['toward', '#ppS_now > .pp-rows'], ['now', '#ppS_toward > .pp-notes'], ['park', '#ppS_park > .pp-rows']].forEach(([sec, q]) => {   // SW-1: ids follow the look (ppS_now = the cards)
     const box = document.querySelector('#roadmapWin ' + q); if (!box) return;
     const N = [...box.children].filter(c => c.classList.contains('pp-itrow')).length; if (N < 2) return;
     if ((ppSk_.at[sec] || 0) >= N) ppSk_.at[sec] = 0;
@@ -6416,22 +6416,25 @@ function renderPp() {
   if (lg2) { lg2.style.setProperty('--pp-sw', 'transparent'); lg2.style.setProperty('--pp-sol', hue.solid); }   // M1: clean trail lines
   const tg = el('rmxArchTg'); if (tg) { tg.style.setProperty('--pp-sol', hue.solid); }
   // SS-1 (20 Nov 2026): a focus can carry steps - its own small checklist; the big circle still moves the whole focus to the trail
+  // SW-1 (20 Nov 2026): the designs are swapped - the long game wears the coloured cards, Current focus the sticky notes.
+  // The data and actions stay with their section; only the look moves. isCard(sec) = the card look.
+  const isCard = sec => sec === 'toward';
   const stepsOf = (o, sec) => { if (sec !== 'now' && sec !== 'toward') return '';   // LG-S: the long game has steps too
     const st = Array.isArray(o.steps) ? o.steps : [], d = st.filter(x => x.done).length;
     return (st.length ? '<div class="pp-sprog">' + d + ' OF ' + st.length + ' STEPS</div><div class="pp-sbar"><i style="width:' + (d / st.length * 100) + '%"></i></div>'
-      : (sec === 'now' ? '<div class="pp-sprog pp-nosteps">NO STEPS YET</div><div class="pp-sbar"><i style="width:0"></i></div>' : ''))   // AL-2: a placeholder keeps the row aligned
-      + '<ul class="pp-steps">' + st.map((x, k) => [x, k]).sort((A, B) => sec === 'now' ? (B[0].done ? 1 : 0) - (A[0].done ? 1 : 0) : 0).map(([x, k]) => '<li class="' + (x.done ? 'done' : '') + '"><button type="button" class="pp-stk" data-ppstep="' + o.id + ':' + k + '" aria-label="Tick this step"><span class="pp-sbx">' + (x.done ? '\u2713' : '') + '</span><span class="pp-stt">' + escHtml(x.t) + '</span></button>'
+      : (isCard(sec) ? '<div class="pp-sprog pp-nosteps">NO STEPS YET</div><div class="pp-sbar"><i style="width:0"></i></div>' : ''))   // AL-2: a placeholder keeps the row aligned
+      + '<ul class="pp-steps">' + st.map((x, k) => [x, k]).sort((A, B) => isCard(sec) ? (B[0].done ? 1 : 0) - (A[0].done ? 1 : 0) : 0).map(([x, k]) => '<li class="' + (x.done ? 'done' : '') + '"><button type="button" class="pp-stk" data-ppstep="' + o.id + ':' + k + '" aria-label="Tick this step"><span class="pp-sbx">' + (x.done ? '\u2713' : '') + '</span><span class="pp-stt">' + escHtml(x.t) + '</span></button>'
         + '<button type="button" class="pp-sdel" data-ppsdel="' + o.id + ':' + k + '" aria-label="Delete this step">\u00D7</button></li>').join('') + '</ul>'
       + '<input class="pp-sadd" data-ppsadd="' + o.id + '" maxlength="160" placeholder="+ add a step, press Enter" aria-label="Add a step">'
       + (st.length && d === st.length ? '<div class="pp-sall">\u2713 ALL STEPS DONE \u2014 tick the circle to move it to the trail</div>' : ''); };
-  const ringOf = (o, sec) => { if (sec !== 'now') return ''; const st = Array.isArray(o.steps) ? o.steps : []; if (!st.length) return '';
+  const ringOf = (o, sec) => { if (!isCard(sec)) return ''; const st = Array.isArray(o.steps) ? o.steps : []; if (!st.length) return '';
     const c = 2 * Math.PI * 27, f = st.filter(x => x.done).length / st.length;
     return '<svg class="pp-ring" viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="none" stroke="#eef1f6" stroke-width="4"/>' + (f > 0 ? '<circle cx="30" cy="30" r="27" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * f).toFixed(1) + ' ' + c.toFixed(1) + '"/>' : '') + '</svg>'; };
   // CF-1 (20 Nov 2026): each Current focus takes its own My Why colour, by its place in the list - a soft wash, band, ring, bar and ticks in it
   const CF_ORDER = [4, 3, 2, 6, 1, 5, 0], cfMix = (h, a) => 'color-mix(in srgb, ' + h + ' ' + a + '%, #fff)';
-  const cfStyle = (sec, i2) => { if (sec !== 'now') return ''; const c = RAINBOW[CF_ORDER[i2 % 7]];
+  const cfStyle = (sec, i2) => { if (!isCard(sec)) return ''; const c = RAINBOW[CF_ORDER[i2 % 7]];
     return ' style="--cf-fill:' + cfMix(c.lt, 22) + ';--cf-band:' + c.deep + ';--cf-acc:' + c.solid + ';--cf-track:' + cfMix(c.lt, 45) + ';--cf-dash:' + cfMix(c.deep, 30) + '"'; };
-  const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow' + (sec === 'now' ? ' pp-cf' : '') + '" data-ppi="' + sec + ':' + i2 + '"' + cfStyle(sec, i2) + '><span class="pp-grip" data-ppgrip="' + sec + ':' + i2 + '" aria-label="Drag to move" title="Drag to move">\u283F</span>'
+  const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow' + (isCard(sec) ? ' pp-cf' : '') + '" data-ppi="' + sec + ':' + i2 + '"' + cfStyle(sec, i2) + '><span class="pp-grip" data-ppgrip="' + sec + ':' + i2 + '" aria-label="Drag to move" title="Drag to move">\u283F</span>'
     + '<span class="pp-cwrap">' + ringOf(o, sec) + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button></span>'
     + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + ((sec === 'now' || sec === 'toward') ? '<span class="pp-itin">' + escHtml(o.t) + '</span>' : escHtml(o.t)) + '</span></button>' + stepsOf(o, sec)
     + '<span class="pp-arr"><button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':-1" aria-label="Move up">\u25B2</button>'
@@ -6454,12 +6457,12 @@ function renderPp() {
     + (foldable ? '<span class="pp-ptg">' + (ppFoldOpen_[sec] ? '▾ HIDE' : '▸ OPEN') + '</span>' : '') + '</div>';
   const nW = (n, one, many) => n + ' ' + (n === 1 ? one : many);
   const parts = [];
-  if (pp.now.length) parts.push('<div class="pp-sec pp-part pp-nowsec" id="ppS_now">' + partH('now', pp.nowLbl, nW(pp.now.length, 'habit', 'habits') + (pp.since ? ' · since ' + ppMonth_(pp.since) : ''), false) + '<div class="pp-rows">' + items(pp.now, 'now') + '</div></div>');
-  if (pp.toward.length) parts.push('<div class="pp-sec pp-part pp-tosec" id="ppS_toward">' + partH('toward', pp.toLbl, nW(pp.toward.length, 'goal', 'goals') + ' · next', false) + '<div class="pp-notes">' + items(pp.toward, 'toward') + '</div></div>');
+  if (pp.now.length) parts.push('<div class="pp-sec pp-part pp-tosec" id="ppS_toward">' + partH('now', pp.nowLbl, nW(pp.now.length, 'habit', 'habits') + (pp.since ? ' · since ' + ppMonth_(pp.since) : ''), false) + '<div class="pp-notes">' + items(pp.now, 'now') + '</div></div>');   // SW-1: Current focus as sticky notes
+  if (pp.toward.length) parts.push('<div class="pp-sec pp-part pp-nowsec" id="ppS_now">' + partH('toward', pp.toLbl, nW(pp.toward.length, 'goal', 'goals') + ' · next', false) + '<div class="pp-rows">' + items(pp.toward, 'toward') + '</div></div>');   // SW-1: the long game as coloured cards
   if (pp.park.length) parts.push('<div class="pp-sec pp-part pp-parksec' + (ppFoldOpen_.park ? ' open' : '') + '" id="ppS_park">' + partH('park', pp.parkLbl, nW(pp.park.length, 'parked', 'parked'), true) + '<div class="pp-rows pp-fbody">' + items(pp.park, 'park') + '</div></div>');
   { const tr = el('rmxArchT'); if (tr) tr.dataset.part = 'PART ' + ROM[pn]; }
   { const lg = pp.log || [], ess = !!NoteEditor.toPlain(rmData.essay || '').trim();
-    const J = [['ppS_now', '● ' + pp.nowLbl, pp.now.length], ['ppS_toward', '➔ ' + pp.toLbl, pp.toward.length], ['ppS_park', '⏸ ' + pp.parkLbl, pp.park.length],
+    const J = [['ppS_toward', '● ' + pp.nowLbl, pp.now.length], ['ppS_now', '➔ ' + pp.toLbl, pp.toward.length], ['ppS_park', '⏸ ' + pp.parkLbl, pp.park.length],
       ['ppS_trail', '✦ The trail', lg.length], ['rmNoteHead', '📝 Long note', ess ? -1 : 0]].filter(x => x[2]);
     el('rmJump').innerHTML = J.length > 1 ? J.map(x => '<button type="button" data-rmj="' + x[0] + '">' + escHtml(x[1]) + (x[2] > 0 ? ' <b>' + x[2] + '</b>' : '') + '</button>').join('') : '';
     const ns = el('rmSince'); if (ns) ns.textContent = pp.since ? 'since ' + ppShort_(pp.since) : '';
