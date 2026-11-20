@@ -3628,7 +3628,13 @@
   }
 
   /* ===== PL-2 (20 Nov 2026): a Why Pillar page in the Circle page's style ===== */
-  body #roadmapWin { background:color-mix(in srgb, var(--rm-lt,#eef2f8) 12%, #fdfeff); }
+  body #roadmapWin { background:#fbfcfe; }   /* BG-P (20 Nov 2026): the podcast page's paper - flat cool near-white, the same for every pillar (was B2's 3% tint) */
+  /* F2: Copy / Download / Print fold behind one quiet line */
+  #roadmapWin .rm-foot { display:flex; flex-direction:column; align-items:center; gap:8px; border-top:none; background:none; }
+  #roadmapWin .rm-share { font-family:var(--mono); font-size:0.58rem; font-weight:600; letter-spacing:0.16em; color:#a3abbb; background:none; border:none; border-top:1px dashed #e3e8f0; padding:8px 14px; cursor:pointer; }
+  #roadmapWin .rm-share:hover, #roadmapWin .rm-share[aria-expanded="true"] { color:#5a6478; }
+  #roadmapWin .rm-foot:not(.open) .foot-r { display:none !important; }
+  #roadmapWin .rm-foot.open .foot-r { justify-content:center; }
   body #roadmapWin .rm-sticky { border-bottom:none; }
   body #roadmapWin .rm-mural .rm-hero { border:1px solid color-mix(in srgb, var(--rm-deep,#95a4bb) 22%, #fff); border-left:10px solid var(--rm-deep,#95a4bb); border-top-width:1px;
     border-radius:4px 18px 18px 4px; background:linear-gradient(160deg, color-mix(in srgb, var(--rm-deep,#95a4bb) 8%, #fff), #fff 65%); padding:22px 26px 22px; }
@@ -4753,6 +4759,7 @@
         <div class="rm-essay inp" id="rmEssay" contenteditable="true" data-placeholder="Write the long view for this why&#8230;"></div>
       </div>
       <div class="rm-foot">
+        <button class="rm-share" id="rmShare" type="button" aria-expanded="false">&#8943; SHARE &middot; SAVE</button>
         <div class="foot-r">
           <button class="eb" id="rmCopy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span class="eb-label">Copy</span></button>
           <button class="eb" id="rmMd" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg><span class="eb-label">Download .md</span></button>
@@ -6024,6 +6031,7 @@ function openRoadmap(id) {
     seal.style.boxShadow = '0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40';
     ppTrailOpen_(false);   // PL-2b (20 Nov 2026): the trail starts folded - tap its heading to open
     rmNoteOpen_ = false;
+    { const f = el('rmShare'); if (f) { f.parentElement.classList.remove('open'); f.setAttribute('aria-expanded', 'false'); } }   // F2: folds again on each pillar
     el('roadmapWin').style.setProperty('--rm-lt', hue.lt); el('roadmapWin').style.setProperty('--rm-dp', hue.deep);
     ppFoldOpen_ = { toward: false, park: true };   // PL-2b: Parked for later starts open
     const rmxT = el('rmxArchT');
@@ -6809,6 +6817,7 @@ el('rmPicTools').addEventListener('click', async e => {
 // in Edit a tap on the polaroid sets where the picture centres (Fill); reading, a tap opens the picture large as before
 { const box = el('rmPolTools'), t = el('rmPicTools'), a = el('rmPicAsk'), h = el('rmPicHint');
   if (box && t) box.appendChild(t); if (box && a) box.appendChild(a); if (box && h) box.appendChild(h); }
+el('rmShare').addEventListener('click', () => { const f = el('rmShare').parentElement, o = !f.classList.contains('open'); f.classList.toggle('open', o); el('rmShare').setAttribute('aria-expanded', o ? 'true' : 'false'); });
 el('rmPolPic').addEventListener('click', e => {
   if (!rmCover_ || !rmCover_.url) return;
   if (!document.body.classList.contains('rm-editing')) { el('rmPic').click(); return; }
