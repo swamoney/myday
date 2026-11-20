@@ -4002,6 +4002,27 @@
   .smark.pc.is3:after { display:none; }
   .smark.pc.is3 .ist { position:absolute; inset:0; width:100%; height:100%; }
   .smark.pc.is3 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
+
+  /* LG-A (20 Nov 2026): long-game goals under a coloured banner - flag, white title, circle and ring in the corner; steps on the card below.
+     Every banner is the same height (ppAlign_), title centred in it. */
+  #roadmapWin #ppS_now .pp-itrow { padding:0 0 12px !important; overflow:hidden; text-align:left; align-items:stretch !important; gap:8px; }
+  #roadmapWin #ppS_now .pp-cwrap { position:absolute !important; top:12px; right:12px; width:44px; height:44px; z-index:2; }
+  #roadmapWin #ppS_now .pp-cwrap .pp-circ { width:30px !important; height:30px !important; min-width:30px !important; background:rgba(255,255,255,.9) !important; border-color:#fff !important; }
+  #roadmapWin #ppS_now .pp-ring { width:44px !important; height:44px !important; margin:-22px 0 0 -22px !important; color:#fff !important; }
+  #roadmapWin #ppS_now .pp-ring circle:first-child { stroke:rgba(255,255,255,.35) !important; }
+  #roadmapWin #ppS_now .pp-ittxt { background:var(--cf-acc); padding:16px 64px 16px 18px !important; justify-content:flex-start !important; align-items:center !important; text-align:left; box-sizing:border-box; }
+  #roadmapWin #ppS_now .pp-ittxt::before { content:'\2691'; color:#fff; opacity:.85; margin-right:10px; font-size:1.1rem; }
+  #roadmapWin #ppS_now .pp-itin { background:none !important; padding:0 !important; color:#fff !important; font-size:1.15rem; }
+  #roadmapWin #ppS_now :is(.pp-sprog,.pp-sbar,.pp-steps,.pp-sadd,.pp-sall) { margin-left:18px !important; margin-right:18px !important; text-align:left; }
+  #roadmapWin #ppS_now .pp-sbar { align-self:stretch; }
+  body.rm-editing #roadmapWin #ppS_now .pp-grip { z-index:3; color:#fff; }
+  /* PC-1 (20 Nov 2026): Park as small dashed grey chips, all visible - no stack */
+  #roadmapWin #ppS_park .pp-rows { display:flex !important; flex-wrap:wrap !important; justify-content:center; gap:10px !important; max-width:640px !important; margin:6px auto 0 !important; padding:0 8px !important; grid-template-columns:none !important; }
+  #roadmapWin #ppS_park .pp-itrow { flex-direction:row !important; align-items:center; gap:8px !important; padding:7px 14px 7px 9px !important; width:auto !important; border-radius:999px !important; min-height:0 !important; background:#f6f7fa !important; border:1.3px dashed #c9d0dc !important; box-shadow:none !important; }
+  #roadmapWin #ppS_park .pp-circ { width:14px !important; height:14px !important; min-width:14px !important; border-width:1.3px !important; }
+  #roadmapWin #ppS_park .pp-itxt { font-size:.9rem !important; }
+  #roadmapWin #ppS_park .pp-ittxt { text-align:left; }
+  body.rm-editing #roadmapWin #ppS_park .pp-grip { position:static !important; transform:none !important; margin:0 -2px 0 0; color:#a3abbb; }
 </style>
 </head>
 <body>
@@ -6351,12 +6372,10 @@ function ppFrom_(pp, targets) {
   return out;
 }
 // AL-2 (20 Nov 2026): every Current focus heading in a row grows to the tallest one, so the steps line up across the row
-function ppAlign_() {
+function ppAlign_() {   // AL-2, LG-A (20 Nov 2026): every long-game banner as tall as the tallest one - in the stack, in See all, on a phone
   const ts = [...document.querySelectorAll('#ppS_now .pp-ittxt')]; if (!ts.length) return;
   ts.forEach(t => { t.style.minHeight = ''; });
-  if (window.matchMedia('(max-width:640px)').matches) return;   // MB-1: on a phone each card is only as tall as its own title
-  const rows = {}; ts.forEach(t => { const k = t.closest('.pp-itrow').offsetTop; (rows[k] = rows[k] || []).push(t); });
-  Object.values(rows).forEach(g => { if (g.length < 2) return; const m = Math.max(...g.map(t => t.offsetHeight)); g.forEach(t => { t.style.minHeight = m + 'px'; }); });
+  const m = Math.max(...ts.map(t => t.offsetHeight)); if (m > 0) ts.forEach(t => { t.style.minHeight = m + 'px'; });
 }
 window.addEventListener('resize', () => { clearTimeout(ppAlign_.t); ppAlign_.t = setTimeout(ppAlign_, 120); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ppAlign_());
@@ -6370,7 +6389,7 @@ function ppSkGo_(st, d) {
   st.querySelector('.sk-ct').textContent = (at + 1) + ' / ' + N;
 }
 function ppStackInit_() {
-  [['toward', '#ppS_now > .pp-rows'], ['now', '#ppS_toward > .pp-notes'], ['park', '#ppS_park > .pp-rows']].forEach(([sec, q]) => {   // SW-1: ids follow the look (ppS_now = the cards)
+  [['toward', '#ppS_now > .pp-rows'], ['now', '#ppS_toward > .pp-notes']].forEach(([sec, q]) => {   // SW-1: ids follow the look (ppS_now = the cards)
     const box = document.querySelector('#roadmapWin ' + q); if (!box) return;
     const N = [...box.children].filter(c => c.classList.contains('pp-itrow')).length; if (N < 2) return;
     if ((ppSk_.at[sec] || 0) >= N) ppSk_.at[sec] = 0;
@@ -6470,7 +6489,7 @@ function renderPp() {
   box.classList.toggle('hidden', !parts.length);
   box.classList.remove('n1', 'n2', 'n3');
   box.innerHTML = parts.join('');
-  ppStackInit_(); ppAlign_(); requestAnimationFrame(ppAlign_);
+  ppStackInit_(); ppAlign_(); requestAnimationFrame(ppAlign_); setTimeout(ppAlign_, 400);   // again once fonts settle
   const aj = el('ppJourney');
   if (aj) {   // A1 ghost: hairline in the pillar's solid, text in its ink
     aj.style.setProperty('--aj-sol', hue.solid);
