@@ -3996,6 +3996,12 @@
     #roadmapWin #ppS_now .pp-itxt { font-size:1.02rem !important; }
     #roadmapWin #ppS_now .pp-steps li { font-size:.9rem; }
   }
+
+  /* IS-3 (20 Nov 2026): Why Pillars index - the coins become the pillar page's dark-blue ink stamp, ringed in the pillar's colour */
+  .smark.pc.is3 { background:none; color:transparent; box-shadow:0 0 0 3px #fff, 0 0 0 5px var(--hd); border-radius:50%; transform:rotate(-8deg); }
+  .smark.pc.is3:after { display:none; }
+  .smark.pc.is3 .ist { position:absolute; inset:0; width:100%; height:100%; }
+  .smark.pc.is3 .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); }
 </style>
 </head>
 <body>
@@ -5371,6 +5377,16 @@ function hueFor(i, total) {
 // A (6 Nov 2026): a pillar's code is its priority - P1, P2, P3 - worked out from its place
 // in the list every time, never stored. Moving a pillar renumbers all of them at once; the
 // old typed letters stay in the code column, untouched, so this can be undone.
+// IS-3 (20 Nov 2026): the pillar page's dark-blue ink stamp, small, for the Why Pillars index
+function pStampSvg_(p) {
+  const k = String(p.id).replace(/[^a-zA-Z0-9]/g, ''), code = escHtml(pCode_(p));
+  let since = '\u00B7 \u00B7 \u00B7'; try { const r = rmParse(p.roadmap); if (r && r.pp && r.pp.since) since = 'SINCE ' + String(r.pp.since).slice(0, 4); } catch (e) {}
+  return '<svg class="ist" viewBox="0 0 120 120" aria-hidden="true"><defs><filter id="isInk' + k + '" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="4" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.3 1.75" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in" result="g"/><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="9" result="w"/><feDisplacementMap in="g" in2="w" scale="2.2"/></filter>'
+    + '<path id="isA' + k + '" d="M60,60 m-42,0 a42,42 0 1,1 84,0 a42,42 0 1,1 -84,0" fill="none"/></defs><g filter="url(#isInk' + k + ')"><circle cx="60" cy="60" r="57" fill="#1f3a6e"/><circle cx="60" cy="60" r="50" fill="none" stroke="#fbfcfe" stroke-width="1.6"/><circle cx="60" cy="60" r="34" fill="none" stroke="#fbfcfe" stroke-width="1.2"/>'
+    + '<text font-family="IBM Plex Mono, monospace" font-weight="700" font-size="8.5" letter-spacing="2.4" fill="#fbfcfe"><textPath href="#isA' + k + '" startOffset="25%" text-anchor="middle">MY WHY</textPath></text>'
+    + '<text font-family="IBM Plex Mono, monospace" font-weight="700" font-size="8.5" letter-spacing="2.4" fill="#fbfcfe"><textPath href="#isA' + k + '" startOffset="75%" text-anchor="middle">' + since + '</textPath></text>'
+    + '<text x="60" y="71" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-weight="700" font-size="30" fill="#fbfcfe">' + code + '</text></g></svg><span class="sr-only">' + code + '</span>';
+}
 function pCode_(p) {
   const i = pillars.findIndex(x => String(x.id) === String(p && p.id));
   return i < 0 ? '' : 'P' + (i + 1);
@@ -5397,7 +5413,7 @@ function renderSpine() {
         '<button class="nt" data-up="' + p.id + '" title="Move up">&#9650;</button>' +
         '<button class="nt" data-down="' + p.id + '" title="Move down">&#9660;</button>' +
       '</div>' +
-      '<div class="smark pc" style="background:radial-gradient(circle at 38% 34%, ' + hue.lt + ', ' + hue.mid + ' 62%, ' + hue.deep + ');color:' + hue.ink + ';box-shadow:0 6px 16px ' + hue.deep + '59, inset 0 -3px 6px ' + hue.deep + '40;">' + pCode_(p) + '</div>' +
+      '<div class="smark pc is3" style="--hd:' + pillC + '">' + pStampSvg_(p) + '</div>' +   // IS-3: the pillar page's ink stamp, ringed in the pillar's colour
       '<div class="scontent">' +
         '<div class="y2-hd"><span class="y2-pl" style="background:' + pillC + '">' + escHtml(p.num || p.label || 'Untitled') + '</span>' +
           (p.brk ? '<span class="y2-brk" style="color:' + hue.deep + ';border-color:' + hue.deep + '">' + escHtml(p.brk) + '</span>' : '') + '</div>' +
