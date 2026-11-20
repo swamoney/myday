@@ -3897,6 +3897,26 @@
   #roadmapWin .pp-trs li.nd::before { content:'\25CB'; color:#b9c1cf; }
   #roadmapWin .pp-trf { display:block; margin-top:6px; background:none; border:none; padding:0; cursor:pointer; font-family:var(--mono); font-size:0.52rem; font-weight:600; letter-spacing:0.12em; color:var(--rm-dp,#95a4bb); }
   @media (max-width:640px) { #roadmapWin #ppLedger .pp-row { flex-wrap:wrap; } #roadmapWin #ppLedger .pp-row .pp-w { flex-basis:100%; order:3; } }
+
+  /* SU-A (20 Nov 2026): the long-game circle as a thin faint ring; "all steps done" as one small grey line */
+  #roadmapWin .pp-notes .pp-circ { width:20px !important; height:20px !important; min-width:20px !important; border:1.2px solid rgba(90,80,50,.35) !important; background:transparent !important; color:transparent !important; opacity:.7; }
+  #roadmapWin .pp-notes .pp-circ:hover { opacity:1; color:#6b5f3a !important; }
+  #roadmapWin .pp-sall { background:none !important; color:#9aa3b6 !important; font-size:0.48rem !important; letter-spacing:0.14em; padding:2px 0 !important; text-align:center; }
+  #roadmapWin .pp-notes .pp-sall { color:#9a8f6c !important; }
+
+  /* AL-2 (20 Nov 2026): Current focus headings share one height per row; NO STEPS YET placeholder */
+  #roadmapWin .pp-nowsec .pp-ittxt { display:flex !important; align-items:center; justify-content:center; box-sizing:border-box; }
+  #roadmapWin .pp-nowsec .pp-nosteps { color:#b8c0d0; }
+
+  /* CF-1 (20 Nov 2026): each Current focus card in its own My Why colour - soft wash, band, ring, bar, ticks */
+  #roadmapWin .pp-nowsec .pp-itrow.pp-cf { background:var(--cf-fill) !important; border-top-color:var(--cf-band) !important; --rm-dp:var(--cf-acc); }
+  #roadmapWin .pp-nowsec .pp-cf .pp-circ { border-color:var(--cf-acc) !important; background:#fff; }
+  #roadmapWin .pp-nowsec .pp-cf .pp-sbar { background:var(--cf-track); }
+  #roadmapWin .pp-nowsec .pp-cf .pp-ring circle:first-child { stroke:var(--cf-track); }
+  #roadmapWin .pp-nowsec .pp-cf .pp-steps { border-top-color:var(--cf-dash); }
+  #roadmapWin .pp-nowsec .pp-cf .pp-sadd { border-bottom-color:var(--cf-dash); }
+  #roadmapWin .pp-nowsec .pp-cf .pp-sbx { background:rgba(255,255,255,.75); }
+  #roadmapWin .pp-nowsec .pp-cf .pp-steps li.done .pp-sbx { background:var(--cf-acc); border-color:var(--cf-acc); }
 </style>
 </head>
 <body>
@@ -6235,6 +6255,15 @@ function ppFrom_(pp, targets) {
   });
   return out;
 }
+// AL-2 (20 Nov 2026): every Current focus heading in a row grows to the tallest one, so the steps line up across the row
+function ppAlign_() {
+  const ts = [...document.querySelectorAll('#ppS_now .pp-ittxt')]; if (!ts.length) return;
+  ts.forEach(t => { t.style.minHeight = ''; });
+  const rows = {}; ts.forEach(t => { const k = t.closest('.pp-itrow').offsetTop; (rows[k] = rows[k] || []).push(t); });
+  Object.values(rows).forEach(g => { if (g.length < 2) return; const m = Math.max(...g.map(t => t.offsetHeight)); g.forEach(t => { t.style.minHeight = m + 'px'; }); });
+}
+window.addEventListener('resize', () => { clearTimeout(ppAlign_.t); ppAlign_.t = setTimeout(ppAlign_, 120); });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ppAlign_());
 function renderPp() {
   const box = el('ppStanding'); if (!box) return;
   const pp = rmData.pp || (rmData.pp = ppFrom_(null, rmData.targets));
@@ -6252,7 +6281,8 @@ function renderPp() {
   // SS-1 (20 Nov 2026): a focus can carry steps - its own small checklist; the big circle still moves the whole focus to the trail
   const stepsOf = (o, sec) => { if (sec !== 'now' && sec !== 'toward') return '';   // LG-S: the long game has steps too
     const st = Array.isArray(o.steps) ? o.steps : [], d = st.filter(x => x.done).length;
-    return (st.length ? '<div class="pp-sprog">' + d + ' OF ' + st.length + ' STEPS</div><div class="pp-sbar"><i style="width:' + (d / st.length * 100) + '%"></i></div>' : '')
+    return (st.length ? '<div class="pp-sprog">' + d + ' OF ' + st.length + ' STEPS</div><div class="pp-sbar"><i style="width:' + (d / st.length * 100) + '%"></i></div>'
+      : (sec === 'now' ? '<div class="pp-sprog pp-nosteps">NO STEPS YET</div><div class="pp-sbar"><i style="width:0"></i></div>' : ''))   // AL-2: a placeholder keeps the row aligned
       + '<ul class="pp-steps">' + st.map((x, k) => '<li class="' + (x.done ? 'done' : '') + '"><button type="button" class="pp-stk" data-ppstep="' + o.id + ':' + k + '" aria-label="Tick this step"><span class="pp-sbx">' + (x.done ? '\u2713' : '') + '</span><span class="pp-stt">' + escHtml(x.t) + '</span></button>'
         + '<button type="button" class="pp-sdel" data-ppsdel="' + o.id + ':' + k + '" aria-label="Delete this step">\u00D7</button></li>').join('') + '</ul>'
       + '<input class="pp-sadd" data-ppsadd="' + o.id + '" maxlength="160" placeholder="+ add a step, press Enter" aria-label="Add a step">'
@@ -6260,7 +6290,11 @@ function renderPp() {
   const ringOf = (o, sec) => { if (sec !== 'now') return ''; const st = Array.isArray(o.steps) ? o.steps : []; if (!st.length) return '';
     const c = 2 * Math.PI * 27, f = st.filter(x => x.done).length / st.length;
     return '<svg class="pp-ring" viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="27" fill="none" stroke="#eef1f6" stroke-width="4"/>' + (f > 0 ? '<circle cx="30" cy="30" r="27" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * f).toFixed(1) + ' ' + c.toFixed(1) + '"/>' : '') + '</svg>'; };
-  const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow" data-ppi="' + sec + ':' + i2 + '"><span class="pp-grip" data-ppgrip="' + sec + ':' + i2 + '" aria-label="Drag to move" title="Drag to move">\u283F</span>'
+  // CF-1 (20 Nov 2026): each Current focus takes its own My Why colour, by its place in the list - a soft wash, band, ring, bar and ticks in it
+  const CF_ORDER = [4, 3, 2, 6, 1, 5, 0], cfMix = (h, a) => 'color-mix(in srgb, ' + h + ' ' + a + '%, #fff)';
+  const cfStyle = (sec, i2) => { if (sec !== 'now') return ''; const c = RAINBOW[CF_ORDER[i2 % 7]];
+    return ' style="--cf-fill:' + cfMix(c.lt, 22) + ';--cf-band:' + c.deep + ';--cf-acc:' + c.solid + ';--cf-track:' + cfMix(c.lt, 45) + ';--cf-dash:' + cfMix(c.deep, 30) + '"'; };
+  const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow' + (sec === 'now' ? ' pp-cf' : '') + '" data-ppi="' + sec + ':' + i2 + '"' + cfStyle(sec, i2) + '><span class="pp-grip" data-ppgrip="' + sec + ':' + i2 + '" aria-label="Drag to move" title="Drag to move">\u283F</span>'
     + '<span class="pp-cwrap">' + ringOf(o, sec) + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button></span>'
     + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + escHtml(o.t) + '</span></button>' + stepsOf(o, sec)
     + '<span class="pp-arr"><button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':-1" aria-label="Move up">\u25B2</button>'
@@ -6296,6 +6330,7 @@ function renderPp() {
   box.classList.toggle('hidden', !parts.length);
   box.classList.remove('n1', 'n2', 'n3');
   box.innerHTML = parts.join('');
+  ppAlign_(); requestAnimationFrame(ppAlign_);
   const aj = el('ppJourney');
   if (aj) {   // A1 ghost: hairline in the pillar's solid, text in its ink
     aj.style.setProperty('--aj-sol', hue.solid);
