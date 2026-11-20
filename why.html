@@ -3921,6 +3921,12 @@
   /* DL-1 (20 Nov 2026): the step bar becomes a plain dark line in the card's colour - the ring shows progress */
   #roadmapWin .pp-nowsec .pp-cf .pp-sbar { background:var(--cf-band); height:2px; opacity:.85; }
   #roadmapWin .pp-nowsec .pp-cf .pp-sbar i { display:none; }
+
+  /* TF-3 (20 Nov 2026): focus and long-game titles as solid labels - white words on the card's own deep colour */
+  #roadmapWin .pp-itin { color:#fff !important; -webkit-box-decoration-break:clone; box-decoration-break:clone; }
+  #roadmapWin .pp-nowsec .pp-cf .pp-itin { background:var(--cf-acc); border-radius:8px; padding:2px 10px 3px; line-height:1.75; }
+  #roadmapWin .pp-notes .pp-itrow .pp-itin { background:#7a6420; border-radius:4px; padding:0 6px; }
+  #roadmapWin .pp-notes .pp-itrow:nth-child(even) .pp-itin { background:#8a4636; }
 </style>
 </head>
 <body>
@@ -6300,7 +6306,7 @@ function renderPp() {
     return ' style="--cf-fill:' + cfMix(c.lt, 22) + ';--cf-band:' + c.deep + ';--cf-acc:' + c.solid + ';--cf-track:' + cfMix(c.lt, 45) + ';--cf-dash:' + cfMix(c.deep, 30) + '"'; };
   const items = (a, sec) => a.map((o, i2) => '<div class="pp-itrow' + (sec === 'now' ? ' pp-cf' : '') + '" data-ppi="' + sec + ':' + i2 + '"' + cfStyle(sec, i2) + '><span class="pp-grip" data-ppgrip="' + sec + ':' + i2 + '" aria-label="Drag to move" title="Drag to move">\u283F</span>'
     + '<span class="pp-cwrap">' + ringOf(o, sec) + '<button class="pp-circ" type="button" data-ppdone="' + sec + ':' + i2 + '" aria-label="Complete into the trail">\u2713</button></span>'
-    + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + escHtml(o.t) + '</span></button>' + stepsOf(o, sec)
+    + '<button class="pp-ittxt" type="button" data-ppitem="' + o.id + '"><span class="pp-itxt">' + ((sec === 'now' || sec === 'toward') ? '<span class="pp-itin">' + escHtml(o.t) + '</span>' : escHtml(o.t)) + '</span></button>' + stepsOf(o, sec)
     + '<span class="pp-arr"><button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':-1" aria-label="Move up">\u25B2</button>'
     + '<button class="pp-ab" type="button" data-ppmv="' + sec + ':' + i2 + ':1" aria-label="Move down">\u25BC</button></span>'
     + '</div>').join('');
