@@ -4023,6 +4023,19 @@
   #roadmapWin #ppS_park .pp-itxt { font-size:.9rem !important; }
   #roadmapWin #ppS_park .pp-ittxt { text-align:left; }
   body.rm-editing #roadmapWin #ppS_park .pp-grip { position:static !important; transform:none !important; margin:0 -2px 0 0; color:#a3abbb; }
+
+  /* BN-2 (20 Nov 2026): long-game cards laid out as wide as the sticky notes (255px, desktop and phone), a smaller banner,
+     and the circle with its ring in the card's bottom-right corner, like the notes - the title gets the whole banner */
+  #roadmapWin #ppS_now .sk-stk.all .pp-rows, body.rm-editing #roadmapWin #ppS_now .pp-rows { max-width:none !important; justify-content:center !important; }
+  #roadmapWin #ppS_now .sk-stk.all .pp-rows > .pp-itrow, body.rm-editing #roadmapWin #ppS_now .pp-rows > .pp-itrow { flex:0 0 255px !important; width:255px !important; max-width:255px !important; }
+  #roadmapWin #ppS_now .pp-ittxt { padding:12px 14px !important; }
+  #roadmapWin #ppS_now .pp-itin { font-size:1.02rem !important; }
+  #roadmapWin #ppS_now .pp-ittxt::before { font-size:.95rem !important; margin-right:8px !important; }
+  #roadmapWin #ppS_now .pp-cwrap { top:auto !important; bottom:10px; right:10px; width:34px !important; height:34px !important; }
+  #roadmapWin #ppS_now .pp-cwrap .pp-circ { width:22px !important; height:22px !important; min-width:22px !important; background:#fff !important; border-color:var(--cf-acc) !important; }
+  #roadmapWin #ppS_now .pp-ring { width:34px !important; height:34px !important; margin:-17px 0 0 -17px !important; color:var(--cf-acc) !important; }
+  #roadmapWin #ppS_now .pp-ring circle:first-child { stroke:var(--cf-track) !important; }
+  #roadmapWin #ppS_now .pp-itrow { padding-bottom:46px !important; }
 </style>
 </head>
 <body>
@@ -6381,7 +6394,7 @@ window.addEventListener('resize', () => { clearTimeout(ppAlign_.t); ppAlign_.t =
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ppAlign_());
 // SK-1 + PK-3 (20 Nov 2026): Current focus, the long game and Park as a stack, like a book's highlights - one card on top,
 // two peeking behind, ‹ n / N › or swipe, "See all N ↓" for the full view. Display only; the place and the open view survive re-renders.
-const ppSk_ = { at: {}, all: {} };
+const ppSk_ = { at: {}, all: { now: true, toward: true } };   // BN-2 (20 Nov 2026): both open by default; 'Back to the stack' folds them
 function ppSkPos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 'sp0' : o === 1 ? 'sp1' : o === 2 ? 'sp2' : o === N - 1 ? 'spx' : 'sph'; }
 function ppSkGo_(st, d) {
   const sec = st.dataset.sksec, N = +st.dataset.n, at = (((ppSk_.at[sec] || 0) + d) % N + N) % N; ppSk_.at[sec] = at;
