@@ -3938,6 +3938,31 @@
   #roadmapWin .pp-notes .pp-circ { width:10px !important; height:10px !important; min-width:10px !important; border-width:1px !important; opacity:.3 !important; }
   #roadmapWin .pp-notes .pp-itrow:hover .pp-circ, #roadmapWin .pp-notes .pp-circ:focus-visible { opacity:.8 !important; }
   #roadmapWin .pp-notes .pp-circ::after { content:''; position:absolute; inset:-12px; }   /* a thumb-sized tap area round the tiny circle */
+
+  /* SK-1 + PK-3 (20 Nov 2026): the three lists as stacks (one card on top, two peeking); Edit and "See all" show them laid out */
+  #roadmapWin .sk-nav { display:none; align-items:center; justify-content:center; gap:16px; margin-top:10px; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-nav { display:flex; }
+  #roadmapWin .sk-nav button { width:34px; height:34px; border-radius:50%; border:1px solid #d7dde8; background:#fff; font-size:1.1rem; line-height:1; color:#16264d; cursor:pointer; }
+  #roadmapWin .sk-ct { font-family:var(--mono); font-size:.7rem; font-weight:600; letter-spacing:.14em; color:#5a6680; min-width:52px; text-align:center; }
+  #roadmapWin .sk-all { display:block; margin:10px auto 0; border:none; background:none; font-family:var(--sans); font-weight:600; font-size:.78rem; color:#16264d; text-decoration:underline; text-underline-offset:4px; cursor:pointer; }
+  body.rm-editing #roadmapWin .sk-all { display:none; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck { display:grid !important; grid-template-columns:1fr !important; max-width:460px !important; margin:6px auto 0 !important; padding:0 8px 16px !important; gap:0 !important; flex-wrap:nowrap !important; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all).sk-park .sk-deck { max-width:340px !important; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > .pp-itrow { grid-area:1/1; width:auto !important; max-width:none !important; margin:0 !important; flex:none !important; transition:transform .35s ease, opacity .35s ease; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > .sp0 { z-index:3; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > .sp1 { z-index:2; transform:translate(6px,9px) rotate(1.6deg) !important; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > .sp2 { z-index:1; transform:translate(-5px,16px) rotate(-1.8deg) !important; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > :is(.sp1,.sp2) > * { visibility:hidden; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > :is(.sp1,.sp2)::before { visibility:hidden; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > .spx { z-index:4; opacity:0; transform:translateX(-60%) rotate(-8deg) !important; pointer-events:none; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck > .sph { z-index:0; opacity:0; pointer-events:none; }
+  #roadmapWin .pp-parksec:not(.open) .sk-stk { display:none; }
+  /* PK-3: parked items as grey dashed tiles, the dashed circle on top (a grid in See all / Edit, a stack otherwise) */
+  #roadmapWin #ppS_park .pp-rows { display:grid !important; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:14px; max-width:700px; margin:0 auto; }
+  #roadmapWin #ppS_park .pp-itrow { flex-direction:column; align-items:center; justify-content:flex-start; text-align:center; gap:10px; padding:16px 12px 14px !important; background:#f6f7fa !important; border:1.5px dashed #c9d0dc !important; border-radius:14px !important; box-shadow:none; }
+  #roadmapWin #ppS_park .pp-circ { width:30px !important; height:30px !important; min-width:30px !important; margin:0 !important; }
+  #roadmapWin #ppS_park .pp-ittxt { text-align:center; flex:none; }
+  #roadmapWin #ppS_park .pp-itxt { font-family:var(--serif); font-size:1rem !important; color:#6b7589 !important; }
 </style>
 </head>
 <body>
@@ -6285,6 +6310,38 @@ function ppAlign_() {
 }
 window.addEventListener('resize', () => { clearTimeout(ppAlign_.t); ppAlign_.t = setTimeout(ppAlign_, 120); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => ppAlign_());
+// SK-1 + PK-3 (20 Nov 2026): Current focus, the long game and Park as a stack, like a book's highlights - one card on top,
+// two peeking behind, ‹ n / N › or swipe, "See all N ↓" for the full view. Display only; the place and the open view survive re-renders.
+const ppSk_ = { at: {}, all: {} };
+function ppSkPos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 'sp0' : o === 1 ? 'sp1' : o === 2 ? 'sp2' : o === N - 1 ? 'spx' : 'sph'; }
+function ppSkGo_(st, d) {
+  const sec = st.dataset.sksec, N = +st.dataset.n, at = (((ppSk_.at[sec] || 0) + d) % N + N) % N; ppSk_.at[sec] = at;
+  [...st.querySelector('.sk-deck').children].filter(c => c.classList.contains('pp-itrow')).forEach((c, k) => { c.classList.remove('sp0', 'sp1', 'sp2', 'spx', 'sph'); c.classList.add(ppSkPos_(k, at, N)); });
+  st.querySelector('.sk-ct').textContent = (at + 1) + ' / ' + N;
+}
+function ppStackInit_() {
+  [['now', '#ppS_now > .pp-rows'], ['toward', '#ppS_toward > .pp-notes'], ['park', '#ppS_park > .pp-rows']].forEach(([sec, q]) => {
+    const box = document.querySelector('#roadmapWin ' + q); if (!box) return;
+    const N = [...box.children].filter(c => c.classList.contains('pp-itrow')).length; if (N < 2) return;
+    if ((ppSk_.at[sec] || 0) >= N) ppSk_.at[sec] = 0;
+    const st = document.createElement('div'); st.className = 'sk-stk' + (sec === 'park' ? ' sk-park' : '') + (ppSk_.all[sec] ? ' all' : ''); st.dataset.sksec = sec; st.dataset.n = N;
+    box.parentNode.insertBefore(st, box); st.appendChild(box); box.classList.add('sk-deck');
+    st.insertAdjacentHTML('beforeend', '<div class="sk-nav"><button type="button" data-skd="-1" aria-label="Previous">\u2039</button><span class="sk-ct">1 / ' + N + '</span><button type="button" data-skd="1" aria-label="Next">\u203A</button></div>'
+      + '<button type="button" class="sk-all">' + (ppSk_.all[sec] ? 'Back to the stack \u2191' : 'See all ' + N + ' \u2193') + '</button>');
+    ppSkGo_(st, 0);
+  });
+}
+document.addEventListener('click', ev => {
+  const b = ev.target.closest && ev.target.closest('#roadmapWin .sk-stk [data-skd]'); if (b) { ppSkGo_(b.closest('.sk-stk'), +b.dataset.skd); return; }
+  const a = ev.target.closest && ev.target.closest('#roadmapWin .sk-stk .sk-all'); if (!a) return;
+  const st = a.closest('.sk-stk'), sec = st.dataset.sksec, open = !st.classList.contains('all'); ppSk_.all[sec] = open; st.classList.toggle('all', open);
+  a.textContent = open ? 'Back to the stack \u2191' : 'See all ' + st.dataset.n + ' \u2193'; ppAlign_();
+  if (!open) st.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+});
+let ppSkX_ = null;
+document.addEventListener('touchstart', ev => { const d = ev.target.closest && ev.target.closest('#roadmapWin .sk-stk:not(.all) .sk-deck'); ppSkX_ = d ? [ev.touches[0].clientX, ev.touches[0].clientY] : null; }, { passive: true });
+document.addEventListener('touchend', ev => { if (!ppSkX_ || document.body.classList.contains('rm-editing')) { ppSkX_ = null; return; } const d = ev.target.closest && ev.target.closest('#roadmapWin .sk-deck'), t = ev.changedTouches[0], dx = t.clientX - ppSkX_[0], dy = t.clientY - ppSkX_[1]; ppSkX_ = null;
+  if (d && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) ppSkGo_(d.closest('.sk-stk'), dx < 0 ? 1 : -1); }, { passive: true });
 function renderPp() {
   const box = el('ppStanding'); if (!box) return;
   const pp = rmData.pp || (rmData.pp = ppFrom_(null, rmData.targets));
@@ -6351,7 +6408,7 @@ function renderPp() {
   box.classList.toggle('hidden', !parts.length);
   box.classList.remove('n1', 'n2', 'n3');
   box.innerHTML = parts.join('');
-  ppAlign_(); requestAnimationFrame(ppAlign_);
+  ppStackInit_(); ppAlign_(); requestAnimationFrame(ppAlign_);
   const aj = el('ppJourney');
   if (aj) {   // A1 ghost: hairline in the pillar's solid, text in its ink
     aj.style.setProperty('--aj-sol', hue.solid);
