@@ -3985,6 +3985,17 @@
   body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck.hl > .sp0 { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><circle cx='13' cy='13' r='10' fill='rgba(255,255,255,.9)' stroke='%23b4bccb' stroke-width='1'/><path d='M14 9 L10 13 L14 17' fill='none' stroke='%237a8396' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") 13 13, pointer; }
   body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck.hr > .sp0 { cursor:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26'><circle cx='13' cy='13' r='10' fill='rgba(255,255,255,.9)' stroke='%23b4bccb' stroke-width='1'/><path d='M11 9 L15 13 L11 17' fill='none' stroke='%237a8396' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/></svg>") 13 13, pointer; }
   body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck .sk-hint { display:none; }
+
+  /* MB-1 (20 Nov 2026): Current focus on a phone - space each side of the stack, a smaller circle, tighter card */
+  @media (max-width:640px) {
+    body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck { max-width:none !important; margin:6px 18px 0 !important; padding:0 6px 16px !important; }
+    #roadmapWin #ppS_now .pp-itrow { padding:14px 16px 12px !important; gap:8px; }
+    #roadmapWin #ppS_now .pp-circ { width:36px !important; height:36px !important; min-width:36px !important; }
+    #roadmapWin #ppS_now .pp-ring { width:48px !important; height:48px !important; margin:-24px 0 0 -24px !important; }
+    #roadmapWin #ppS_now .pp-cwrap { width:48px; height:48px; }
+    #roadmapWin #ppS_now .pp-itxt { font-size:1.02rem !important; }
+    #roadmapWin #ppS_now .pp-steps li { font-size:.9rem; }
+  }
 </style>
 </head>
 <body>
@@ -6327,6 +6338,7 @@ function ppFrom_(pp, targets) {
 function ppAlign_() {
   const ts = [...document.querySelectorAll('#ppS_now .pp-ittxt')]; if (!ts.length) return;
   ts.forEach(t => { t.style.minHeight = ''; });
+  if (window.matchMedia('(max-width:640px)').matches) return;   // MB-1: on a phone each card is only as tall as its own title
   const rows = {}; ts.forEach(t => { const k = t.closest('.pp-itrow').offsetTop; (rows[k] = rows[k] || []).push(t); });
   Object.values(rows).forEach(g => { if (g.length < 2) return; const m = Math.max(...g.map(t => t.offsetHeight)); g.forEach(t => { t.style.minHeight = m + 'px'; }); });
 }
