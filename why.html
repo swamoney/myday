@@ -3917,6 +3917,10 @@
   #roadmapWin .pp-nowsec .pp-cf .pp-sadd { border-bottom-color:var(--cf-dash); }
   #roadmapWin .pp-nowsec .pp-cf .pp-sbx { background:rgba(255,255,255,.75); }
   #roadmapWin .pp-nowsec .pp-cf .pp-steps li.done .pp-sbx { background:var(--cf-acc); border-color:var(--cf-acc); }
+
+  /* DL-1 (20 Nov 2026): the step bar becomes a plain dark line in the card's colour - the ring shows progress */
+  #roadmapWin .pp-nowsec .pp-cf .pp-sbar { background:var(--cf-band); height:2px; opacity:.85; }
+  #roadmapWin .pp-nowsec .pp-cf .pp-sbar i { display:none; }
 </style>
 </head>
 <body>
@@ -6283,7 +6287,7 @@ function renderPp() {
     const st = Array.isArray(o.steps) ? o.steps : [], d = st.filter(x => x.done).length;
     return (st.length ? '<div class="pp-sprog">' + d + ' OF ' + st.length + ' STEPS</div><div class="pp-sbar"><i style="width:' + (d / st.length * 100) + '%"></i></div>'
       : (sec === 'now' ? '<div class="pp-sprog pp-nosteps">NO STEPS YET</div><div class="pp-sbar"><i style="width:0"></i></div>' : ''))   // AL-2: a placeholder keeps the row aligned
-      + '<ul class="pp-steps">' + st.map((x, k) => '<li class="' + (x.done ? 'done' : '') + '"><button type="button" class="pp-stk" data-ppstep="' + o.id + ':' + k + '" aria-label="Tick this step"><span class="pp-sbx">' + (x.done ? '\u2713' : '') + '</span><span class="pp-stt">' + escHtml(x.t) + '</span></button>'
+      + '<ul class="pp-steps">' + st.map((x, k) => [x, k]).sort((A, B) => sec === 'now' ? (B[0].done ? 1 : 0) - (A[0].done ? 1 : 0) : 0).map(([x, k]) => '<li class="' + (x.done ? 'done' : '') + '"><button type="button" class="pp-stk" data-ppstep="' + o.id + ':' + k + '" aria-label="Tick this step"><span class="pp-sbx">' + (x.done ? '\u2713' : '') + '</span><span class="pp-stt">' + escHtml(x.t) + '</span></button>'
         + '<button type="button" class="pp-sdel" data-ppsdel="' + o.id + ':' + k + '" aria-label="Delete this step">\u00D7</button></li>').join('') + '</ul>'
       + '<input class="pp-sadd" data-ppsadd="' + o.id + '" maxlength="160" placeholder="+ add a step, press Enter" aria-label="Add a step">'
       + (st.length && d === st.length ? '<div class="pp-sall">\u2713 ALL STEPS DONE \u2014 tick the circle to move it to the trail</div>' : ''); };
