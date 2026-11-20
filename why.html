@@ -3974,6 +3974,14 @@
   #roadmapWin .rm-share { font-size:.48rem; color:#cfd5df; border-top:none; padding:6px 10px; letter-spacing:.2em; }
   #roadmapWin .rm-share:hover, #roadmapWin .rm-share[aria-expanded="true"] { color:#7a8396; }
   body:not(.rm-editing) #roadmapWin #rmEssayRO:empty::before { content:'Nothing written yet \2014 tap Edit to write the long note.'; font-family:var(--serif); font-style:italic; color:#a3abbb; }
+
+  /* SZ-1 (20 Nov 2026): all three stacks one width; faint ‹ › at the edge the mouse is on (click there to go back / ahead) */
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck, body:not(.rm-editing) #roadmapWin .sk-stk:not(.all).sk-park .sk-deck { max-width:380px !important; position:relative; }
+  #roadmapWin .sk-hint { display:none; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-hint { display:block; position:absolute; top:50%; transform:translateY(-50%); z-index:9; font-size:1.3rem; color:#a3abbb; opacity:0; transition:opacity .15s; pointer-events:none; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-hint.l { left:-10px; } body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-hint.r { right:-10px; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck.hl .sk-hint.l, body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck.hr .sk-hint.r { opacity:1; }
+  body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck.hl > .sp0 { cursor:w-resize; } body:not(.rm-editing) #roadmapWin .sk-stk:not(.all) .sk-deck.hr > .sp0 { cursor:e-resize; }
 </style>
 </head>
 <body>
@@ -6337,6 +6345,7 @@ function ppStackInit_() {
     if ((ppSk_.at[sec] || 0) >= N) ppSk_.at[sec] = 0;
     const st = document.createElement('div'); st.className = 'sk-stk' + (sec === 'park' ? ' sk-park' : '') + (ppSk_.all[sec] ? ' all' : ''); st.dataset.sksec = sec; st.dataset.n = N;
     box.parentNode.insertBefore(st, box); st.appendChild(box); box.classList.add('sk-deck');
+    box.insertAdjacentHTML('beforeend', '<span class="sk-hint l" aria-hidden="true">\u2039</span><span class="sk-hint r" aria-hidden="true">\u203A</span>');   // SZ-1: edge hints
     st.insertAdjacentHTML('beforeend', '<div class="sk-nav"><button type="button" data-skd="-1" aria-label="Previous">\u2039</button><span class="sk-ct">1 / ' + N + '</span><button type="button" data-skd="1" aria-label="Next">\u203A</button></div>'
       + '<button type="button" class="sk-all">' + (ppSk_.all[sec] ? 'Back to the stack \u2191' : 'See all ' + N + ' \u2193') + '</button>');
     ppSkGo_(st, 0);
@@ -6349,6 +6358,14 @@ document.addEventListener('click', ev => {
   a.textContent = open ? 'Back to the stack \u2191' : 'See all ' + st.dataset.n + ' \u2193'; ppAlign_();
   if (!open) st.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 });
+// SZ-1 (20 Nov 2026): a click on the left or right fifth of the top card goes back or ahead (never on a button, step, input or the title)
+function ppSkZone_(c, e) { const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width; return x < 0.2 ? -1 : x > 0.8 ? 1 : 0; }
+function ppSkTop_(e) { if (document.body.classList.contains('rm-editing') || !e.target.closest) return null;
+  const c = e.target.closest('#roadmapWin .sk-stk:not(.all) .sk-deck > .pp-itrow.sp0'); if (!c || e.target.closest('button,input,a,label,li,.pp-ittxt,.pp-grip')) return null; return c; }
+document.addEventListener('click', e => { const c = ppSkTop_(e); if (!c) return; const z = ppSkZone_(c, e); if (z) ppSkGo_(c.closest('.sk-stk'), z); });
+document.addEventListener('mousemove', e => { const d = e.target.closest && e.target.closest('#roadmapWin .sk-deck');
+  document.querySelectorAll('#roadmapWin .sk-deck.hl, #roadmapWin .sk-deck.hr').forEach(x => { if (x !== d) x.classList.remove('hl', 'hr'); });
+  if (!d) return; const c = ppSkTop_(e), z = c ? ppSkZone_(c, e) : 0; d.classList.toggle('hl', z < 0); d.classList.toggle('hr', z > 0); });
 let ppSkX_ = null;
 document.addEventListener('touchstart', ev => { const d = ev.target.closest && ev.target.closest('#roadmapWin .sk-stk:not(.all) .sk-deck'); ppSkX_ = d ? [ev.touches[0].clientX, ev.touches[0].clientY] : null; }, { passive: true });
 document.addEventListener('touchend', ev => { if (!ppSkX_ || document.body.classList.contains('rm-editing')) { ppSkX_ = null; return; } const d = ev.target.closest && ev.target.closest('#roadmapWin .sk-deck'), t = ev.changedTouches[0], dx = t.clientX - ppSkX_[0], dy = t.clientY - ppSkX_[1]; ppSkX_ = null;
