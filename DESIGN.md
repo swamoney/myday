@@ -151,6 +151,8 @@ Written August 2026.
 
 **CX-1 · Let-go passes get a CANCELLED stamp (22 Nov 2026).** .bp-card.canx::after: a small double-ruled CANCELLED rubber stamp, tilted -12deg, faded rose #a8323f at 50%, beside the title (desktop: inside the tear line; phone: top right).
 
+**PS-2 · Let-go dream page gets the CANCELLED stamp, stamped across (22 Nov 2026).** #dcPlate.bp.canx .dc-plate-b::after: the CX-1 stamp at page size (1.25rem, 32% faded rose, -14deg) across the middle of the pass over the journey line; phone centred (.95rem). Only let-go dreams.
+
 **BT-1 + Today-only handwriting (21 Nov 2026).** why.html only, no SQL. The dream board's "The life I'm building" is quieter: 1.15rem, weight 500, slate #5a6680 (was 1.9rem navy), with "— one goal at a time —" kept above. In My Priority only Today's to-do keeps the sticky-note handwriting; tasks in the four quadrants are back in the normal font.
 
 **SG-1 + TS-1 removed (21 Nov 2026).** why.html only, no SQL. SG-1: when the long game has a single goal, the dream board's hero tile sits in the middle (columns 2-5 of 6) instead of the left two-thirds; phone unchanged. My Priority's faint time sheet (TS-1) is removed - element, image and glow gone - and the quadrant cards are solid white again.
