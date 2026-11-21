@@ -4156,6 +4156,27 @@
     #duHead b { font-size:2.1rem; }
   }
 
+
+  /* WS-3 (22 Nov 2026): Why Pillars index cards as square folios - set back from the spine with a dashed tie to the stamp, P1 · eyebrow, folded outer corner, faint P numeral */
+  #secPillars #spine .y2-pl::before { content:attr(data-w) '  \00B7  '; opacity:.75; }
+  #secPillars #spine .y2-hd::after { content:''; position:absolute; top:-4px; width:24px; height:24px; z-index:1; }
+  #secPillars #spine .scontent::before { content:attr(data-w); position:absolute; bottom:6px; right:20px; font:700 3.4rem/1 Fraunces, Georgia, serif; color:var(--hd); opacity:.16; pointer-events:none; }
+  @media (min-width:641px) {
+    #secPillars #spine .snode.y2 .scontent, #secPillars #spine .snode.y2:nth-child(n) .scontent { border-radius:12px !important; width:calc(100% - 70px) !important; max-width:400px !important; padding-left:22px !important; padding-right:22px !important; }
+    #secPillars #spine .snode.y2:nth-child(odd) .scontent { margin-right:70px !important; margin-left:auto !important; }
+    #secPillars #spine .snode.y2:nth-child(even) .scontent { margin-left:70px !important; }
+    #secPillars #spine .snode.y2 .scontent::after { content:''; position:absolute; top:39px; width:70px; border-top:2px dashed var(--hd); opacity:.7; }
+    #secPillars #spine .snode.y2:nth-child(odd) .scontent::after { right:-72px; }
+    #secPillars #spine .snode.y2:nth-child(even) .scontent::after { left:-72px; }
+    #secPillars #spine .snode.y2:nth-child(odd) .y2-hd::after { left:-1px; background:linear-gradient(135deg,#f4f6fa 50%,color-mix(in srgb,var(--hd) 40%,#fff) 50%); border-radius:0 0 7px 0; }
+    #secPillars #spine .snode.y2:nth-child(even) .y2-hd::after { right:-1px; background:linear-gradient(225deg,#f4f6fa 50%,color-mix(in srgb,var(--hd) 40%,#fff) 50%); border-radius:0 0 0 7px; }
+  }
+  @media (max-width:640px) {
+    #secPillars #spine .snode.y2:nth-child(odd) .y2-hd::after { right:-1px; background:linear-gradient(225deg,#f4f6fa 50%,color-mix(in srgb,var(--hd) 40%,#fff) 50%); border-radius:0 0 0 7px; }
+    #secPillars #spine .snode.y2:nth-child(even) .y2-hd::after { left:-1px; background:linear-gradient(135deg,#f4f6fa 50%,color-mix(in srgb,var(--hd) 40%,#fff) 50%); border-radius:0 0 7px 0; }
+    #secPillars #spine .snode.y2:nth-child(even) .scontent { padding-left:26px !important; }
+    #secPillars #spine .scontent::before { right:14px; font-size:2.6rem; }
+  }
   /* PR-3 + handwriting + folded closed + TS-1 (21 Nov 2026): My Priority restyled - a title, stamp-headed quadrant cards,
      tasks in the sticky-note handwriting, What I closed folded behind a long-note box, a faint time sheet behind */
   #secPriority { position:relative; }
@@ -5757,7 +5778,8 @@ function pFocusN_(p) {
   catch (e) { return 0; }
 }
 // HF-2 (20 Nov 2026): each index card's head (name and line) on a soft wash of its pillar colour - the wash stops above the status
-function pHeadFill_() { document.querySelectorAll('#secPillars #spine .scontent').forEach(c => { const f = c.querySelector('.y2-ft'); if (f) c.style.setProperty('--hbh', (f.offsetTop - 4) + 'px'); }); }
+function pHeadFill_() { document.querySelectorAll('#secPillars #spine .snode.y2').forEach((n, i) => { const w = 'P' + (i + 1), pl = n.querySelector('.y2-pl'), sc = n.querySelector('.scontent'); if (pl) pl.dataset.w = w; if (sc) sc.dataset.w = w; });   // WS-3
+  document.querySelectorAll('#secPillars #spine .scontent').forEach(c => { const f = c.querySelector('.y2-ft'); if (f) c.style.setProperty('--hbh', (f.offsetTop - 4) + 'px'); }); }
 window.addEventListener('resize', () => { clearTimeout(pHeadFill_.t); pHeadFill_.t = setTimeout(pHeadFill_, 120); });
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => pHeadFill_());
 function renderSpine() {
