@@ -147,6 +147,8 @@ Written August 2026.
 
 **PT-3 · My Priority as a dispatch desk (22 Nov 2026).** Each quadrant box is a work-order slip: a coloured strip on top ("Q1 · DO FIRST · 2 OPEN", Q2 DECIDE A TIME, Q3 HAND IT OFF, Q4 PARK IT; set as data-strip in renderPriority) with two punch holes, replacing the small label inside; squarer top corners; ruled lines under the tasks (a rule under each task plus one blank ruled line). Faint grid paper behind the four boxes. The Today card is a memo pinned with a red pin, tilted -0.6deg (flat in print).
 
+**NT-1 · Bucket List loses its count strip (22 Nov 2026).** .bp-tally (desktop) and .bp-road (phone) hidden in bucket mode; the title leads straight into the flight path and each group chip keeps its count.
+
 **BT-1 + Today-only handwriting (21 Nov 2026).** why.html only, no SQL. The dream board's "The life I'm building" is quieter: 1.15rem, weight 500, slate #5a6680 (was 1.9rem navy), with "— one goal at a time —" kept above. In My Priority only Today's to-do keeps the sticky-note handwriting; tasks in the four quadrants are back in the normal font.
 
 **SG-1 + TS-1 removed (21 Nov 2026).** why.html only, no SQL. SG-1: when the long game has a single goal, the dream board's hero tile sits in the middle (columns 2-5 of 6) instead of the left two-thirds; phone unchanged. My Priority's faint time sheet (TS-1) is removed - element, image and glow gone - and the quadrant cards are solid white again.
