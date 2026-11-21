@@ -141,6 +141,8 @@ Written August 2026.
 
 **TL-2 · Bucket List text clears the tear line; tinted stub (21 Nov 2026).** Desktop: the k2 zigzag padding (58px) was beating the boarding-pass padding, so text ran under the dashed tear line. The stub side now has 96px padding (text starts 23px past the line) and the 74px stub gets a 9% wash of the card colour. Phone unchanged (no tear line there).
 
+**HP-2 · A dream's page heading is its boarding pass (21 Nov 2026).** #dcPlate.bp only (decisions untouched): route strip on top with the same NOW BOARDING / FLIGHT code as its list card (looked up by data-dc in #dcDeskList; no code if the list isn't rendered), a 200px tinted stub on the right with a dashed tear line and two half-circle notches, the stamp centred in it with GATE + barcode, the date as DEPARTS, the four steps as a dashed flight path with a plane on the current step and mono capitals, and the index's faint map behind the page (.dc-pgwrap:has(> #dcPlate.bp)). Phone: strip on top, stamp top right, no stub.
+
 **BT-1 + Today-only handwriting (21 Nov 2026).** why.html only, no SQL. The dream board's "The life I'm building" is quieter: 1.15rem, weight 500, slate #5a6680 (was 1.9rem navy), with "— one goal at a time —" kept above. In My Priority only Today's to-do keeps the sticky-note handwriting; tasks in the four quadrants are back in the normal font.
 
 **SG-1 + TS-1 removed (21 Nov 2026).** why.html only, no SQL. SG-1: when the long game has a single goal, the dream board's hero tile sits in the middle (columns 2-5 of 6) instead of the left two-thirds; phone unchanged. My Priority's faint time sheet (TS-1) is removed - element, image and glow gone - and the quadrant cards are solid white again.
