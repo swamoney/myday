@@ -139,6 +139,8 @@ Written August 2026.
 
 **SP-3 · Bucket List gets room to breathe (21 Nov 2026).** 46px between passes (phone 40px), group chips 38px above / 32px below (phone 34/28). On desktop the stamp sits at the vertical middle of its pass, not the top corner, so it never crowds the chip or the pass above. Rules sit right after the BK-J block, same .bkj scope.
 
+**TL-2 · Bucket List text clears the tear line; tinted stub (21 Nov 2026).** Desktop: the k2 zigzag padding (58px) was beating the boarding-pass padding, so text ran under the dashed tear line. The stub side now has 96px padding (text starts 23px past the line) and the 74px stub gets a 9% wash of the card colour. Phone unchanged (no tear line there).
+
 **BT-1 + Today-only handwriting (21 Nov 2026).** why.html only, no SQL. The dream board's "The life I'm building" is quieter: 1.15rem, weight 500, slate #5a6680 (was 1.9rem navy), with "— one goal at a time —" kept above. In My Priority only Today's to-do keeps the sticky-note handwriting; tasks in the four quadrants are back in the normal font.
 
 **SG-1 + TS-1 removed (21 Nov 2026).** why.html only, no SQL. SG-1: when the long game has a single goal, the dream board's hero tile sits in the middle (columns 2-5 of 6) instead of the left two-thirds; phone unchanged. My Priority's faint time sheet (TS-1) is removed - element, image and glow gone - and the quadrant cards are solid white again.
