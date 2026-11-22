@@ -157,6 +157,8 @@ Written August 2026.
 
 **RM-2 · Roomier My Decisions road (22 Nov 2026).** 64px between boxes (phone 48px), group chips 22px above / 40px below, Past decisions chip 40/44px; road markers stay centred on their box via --pb.
 
+**BG-1 · Why Pillars: one background, not two (22 Nov 2026).** The blue wash (.ms-bg) started with a hard top edge under the title. .ms-bg now fades in over 180px (mask), and each Leonardo sheet (.ms-bg i) fades out at its edges (radial mask).
+
 **BT-1 + Today-only handwriting (21 Nov 2026).** why.html only, no SQL. The dream board's "The life I'm building" is quieter: 1.15rem, weight 500, slate #5a6680 (was 1.9rem navy), with "— one goal at a time —" kept above. In My Priority only Today's to-do keeps the sticky-note handwriting; tasks in the four quadrants are back in the normal font.
 
 **SG-1 + TS-1 removed (21 Nov 2026).** why.html only, no SQL. SG-1: when the long game has a single goal, the dream board's hero tile sits in the middle (columns 2-5 of 6) instead of the left two-thirds; phone unchanged. My Priority's faint time sheet (TS-1) is removed - element, image and glow gone - and the quadrant cards are solid white again.
