@@ -159,6 +159,8 @@ Written August 2026.
 
 **BG-1 · Why Pillars: one background, not two (22 Nov 2026).** The blue wash (.ms-bg) started with a hard top edge under the title. .ms-bg now fades in over 180px (mask), and each Leonardo sheet (.ms-bg i) fades out at its edges (radial mask).
 
+**DB-1 · Key points under a decision's title (22 Nov 2026).** New column why_decisions.points (jsonb array of strings; SQL: `alter table why_decisions add column if not exists points jsonb not null default '[]'::jsonb;`). Title stays the heading; under it a bullet list in the state's ink. Index (ledger rows, live and past): first 3 points + "+N MORE". Page heading (#dcPts, decisions only, never dreams): all points; "+ ADD THE KEY POINTS" when empty opens an input (Enter adds); with points, Edit mode shows the add row and a x per point. Saved per change (dcPtsSave_); without the column it toasts "Key points need the one-line Supabase update first". Included in the export JSON, both print/PDF views and Download .md.
+
 **BT-1 + Today-only handwriting (21 Nov 2026).** why.html only, no SQL. The dream board's "The life I'm building" is quieter: 1.15rem, weight 500, slate #5a6680 (was 1.9rem navy), with "— one goal at a time —" kept above. In My Priority only Today's to-do keeps the sticky-note handwriting; tasks in the four quadrants are back in the normal font.
 
 **SG-1 + TS-1 removed (21 Nov 2026).** why.html only, no SQL. SG-1: when the long game has a single goal, the dream board's hero tile sits in the middle (columns 2-5 of 6) instead of the left two-thirds; phone unchanged. My Priority's faint time sheet (TS-1) is removed - element, image and glow gone - and the quadrant cards are solid white again.

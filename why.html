@@ -4486,6 +4486,25 @@
 #dcDeskList.dcj .dcl-book .dcl-dv{padding:40px 0 44px !important}
 #dcDeskList.dcj .dcl-book .dcl-og::after{top:calc((100% - var(--pb)) / 2)}
 @media (max-width:640px){ #dcDeskList.dcj .dcl-book{--pb:48px} #dcDeskList.dcj .dcl-book .dcl-og, #dcDeskList.dcj .dcl-book .dcl-jn{padding-bottom:48px !important} }
+/* DB-1 (22 Nov 2026): a decision's key points as a bullet list under its title - index (first 3 + more) and page (all) */
+.dpt { list-style:none; margin:8px 0 6px; padding:0; }
+.dpt li { position:relative; padding-left:16px; font:400 .92rem/1.45 Newsreader, Georgia, serif; color:#3c465c; margin:3px 0; }
+.dpt li::before { content:''; position:absolute; left:3px; top:.62em; width:6px; height:6px; border-radius:50%; background:var(--r, #7686a3); }
+.dpt li.more { font:700 .55rem 'IBM Plex Mono', monospace; letter-spacing:.16em; color:#8b95a8; text-transform:uppercase; margin-top:6px; }
+.dpt li.more::before { display:none; }
+#dcPts { margin:12px 0 14px; max-width:620px; }
+#dcPts .dpt li { font-size:1.08rem; }
+#dcPts .dpt li::before { background:var(--dc-ink, #7686a3); }
+#dcPts .dpt-x { display:none; margin-left:8px; border:none; background:none; color:#a8323f; font-size:1rem; cursor:pointer; padding:0 4px; vertical-align:baseline; }
+#dcWin.dc-editing #dcPts .dpt-x { display:inline-block; }
+#dcPts .dpt-ask { border:none; background:none; padding:2px 0; font:700 .58rem 'IBM Plex Mono', monospace; letter-spacing:.18em; color:var(--dc-ink, #5b6680); opacity:.7; cursor:pointer; }
+#dcPts .dpt-ask:hover { opacity:1; }
+#dcPts .dpt-add { display:none; gap:8px; align-items:center; margin-top:6px; }
+#dcWin.dc-editing #dcPts .dpt-add, #dcPts.asking .dpt-add { display:flex; }
+#dcWin.dc-editing #dcPts .dpt-ask, #dcPts.asking .dpt-ask { display:none; }
+#dcPts .dpt-add input { flex:1; min-width:0; border:none; border-bottom:1.5px dashed color-mix(in srgb, var(--dc-ink, #7686a3) 50%, #fff); background:transparent; font:400 1rem Newsreader, Georgia, serif; padding:4px 2px; outline:none; color:#16213a; }
+#dcPts .dpt-add button { border:1px solid var(--dc-ink, #5b6680); color:var(--dc-ink, #5b6680); background:#fff; border-radius:999px; padding:4px 12px; font:700 .58rem 'IBM Plex Mono', monospace; letter-spacing:.14em; cursor:pointer; }
+@media print { #dcPts .dpt-ask, #dcPts .dpt-add, #dcPts .dpt-x { display:none !important; } }
 /* NT-1 (22 Nov 2026): no count strip (desktop) or count road (phone) on the Bucket List; counts live on the group chips */
 #dcDeskList.bkj :is(.bp-tally,.bp-road){display:none !important}
 /* SP-3 (21 Nov 2026): roomier gaps; stamp centred on the pass (desktop) */
@@ -4903,6 +4922,7 @@
     <div class="dc-hrow"><div class="dc-hl">
     <div class="dc-eyebrow" id="dcEyebrow"></div>
     <div><span class="dc-name" id="dcName"></span><button type="button" class="dm-pen hidden" id="dmPen" title="Edit name &amp; dates" aria-label="Edit name and dates">&#9998;</button></div>
+    <div class="dpt-box hidden" id="dcPts"></div>
     <span class="bp-cd hidden" id="dcCd"></span>
     <button type="button" class="dc-frommind hidden" id="dcFromMind"></button>
     <!-- S-1: the line looking back sits under the name as the page's epigraph (lived pages) -->
@@ -6008,7 +6028,7 @@ async function exportWhy() {
     zip.file('dreams-and-decisions.json', JSON.stringify(dcRows.map(r => ({
       title: r.title, kind: r.kind || 'decision', status: r.status, pending: !!r.pending, qset: r.qset,
       answers: r.answers, target_on: r.target_on, made: r.made, decided_on: r.decided_on, happened_on: r.happened_on,
-      satisfaction: r.satisfaction, rating_note: r.rating_note, note_html: r.note_html, created_at: r.created_at
+      satisfaction: r.satisfaction, rating_note: r.rating_note, note_html: r.note_html, points: r.points || [], created_at: r.created_at
     })), null, 2));
     zip.file('explore-list.json', JSON.stringify(places.map(p => ({
       name: p.name, city: p.city, kind: p.kind, note: p.note,
@@ -6198,6 +6218,7 @@ async function exportWhy() {
         + xEsc_(dcIsDream_(d) ? dmSummary_(d) : dcSummary_(d))
         + (pend && qa.length ? ' \u00B7 ' + dcAnswered_(d) + ' of ' + qa.length + ' answered' : '')
         + ((d.rating_note || '').trim() ? '<br><em>' + xEsc_(d.rating_note) + '</em>' : '') + '</p>';
+      if (!dcIsDream_(d) && dcPts_(d).length) body += '<ul>' + dcPts_(d).map(t => '<li>' + xEsc_(t) + '</li>').join('') + '</ul>';   // DB-1
       const answered = qa.filter(x => x && String(x.a || '').trim());
       if (answered.length) body += '<ul>' + answered.map(x =>
         '<li><strong>' + xEsc_(x.q) + '</strong> \u2014 ' + xEsc_(x.a) + '</li>').join('') + '</ul>';
@@ -6452,6 +6473,7 @@ function printSection() {
         const qa = Array.isArray(d.answers) ? d.answers : [];
         body += '<h3>' + e(d.title) + '</h3><p class="meta">' + e(sum(d))
           + ((d.rating_note || '').trim() ? '<br><em>' + e(d.rating_note) + '</em>' : '') + '</p>';
+        if (!dcIsDream_(d) && dcPts_(d).length) body += '<ul>' + dcPts_(d).map(t => '<li>' + e(t) + '</li>').join('') + '</ul>';   // DB-1
         const answered = qa.filter(x => x && String(x.a || '').trim());
         if (answered.length) body += '<ul>' + answered.map(x =>
           '<li><strong>' + e(x.q) + '</strong><br><span class="meta">' + e(x.a) + '</span></li>').join('') + '</ul>';
@@ -12951,7 +12973,7 @@ function dcLedgerHtml_() {
   // LD-3: no numbers; the looking-back stars sit under the stamp
   const entry = (d, st, eb, meta, q) => '<div class="dcl-row ' + st + '" data-dc="' + d.id + '">'
     // C1 + X1 (6 Nov 2026): no eyebrow, at most one small line; a decided decision wears a calendar leaf, not a stamp
-    + '<div class="dcl-b">' + (eb ? '<div class="dcl-eb">' + eb + '</div>' : '') + '<div class="dcl-tt">' + escHtml(d.title) + '</div>' + (meta ? '<div class="dcl-m">' + meta + '</div>' : '')
+    + '<div class="dcl-b">' + (eb ? '<div class="dcl-eb">' + eb + '</div>' : '') + '<div class="dcl-tt">' + escHtml(d.title) + '</div>' + dcPtsList_(d, 3) + (meta ? '<div class="dcl-m">' + meta + '</div>' : '')
     + (q ? '<div class="dcl-q">“' + escHtml(q) + '”</div>' : '') + '</div>'
     + '<span class="dcl-mk">' + (st.indexOf('wip') === 0 ? dcLeaf_(d) : '<span class="dcl-stamp">' + dcStampFor_(d, d.status === 'trail', dcIsWip_(d), null) + '</span>')
     + (d.status === 'trail' && Number(d.satisfaction) ? dcStarsRO_(d) + '<span class="dcl-lb">Looking back</span>' : '') + '</span>' + x(d) + '</div>';
@@ -13626,6 +13648,7 @@ function openDecision(id) {
     if (fk) { fm.innerHTML = '\u25C6 FROM MY MIND \u00B7 ' + escHtml(((MM_DOORS[fk.door] || {}).lbl || '').toUpperCase()) + (fk.settled_on ? ' \u00B7 ' + escHtml(mmFmt_(fk.settled_on)).toUpperCase() : '') + ' \u203A'; fm.dataset.knot = fk.id; fm.classList.remove('hidden'); }
     else { fm.classList.add('hidden'); delete fm.dataset.knot; } }
   el('dcName').classList.toggle('short', String(d.title || '').length <= 40);   // T1: a short title keeps the big size
+  dcPtsPaint_(d);   // DB-1
   dcPaintCover_();
   // DC-D (D1): on an open decision the target is a full-width gold band under the
   // heading, red once the date has passed; sealed pages keep their small pills.
@@ -13817,6 +13840,7 @@ function dcMd_(d) {
   const qa = Array.isArray(d.answers) ? d.answers : [];
   const sealed = d.status === 'trail';
   let md = '# ' + d.title + '\n\n' + dcSummary_(d) + '\n\n' + ((d.rating_note || '').trim() ? '> ' + dcText_(d.rating_note) + '\n\n' : '');   // DA-1/2
+  if (dcPts_(d).length) md += dcPts_(d).map(t => '- ' + t).join('\n') + '\n\n';   // DB-1
   qa.forEach((x, i) => {
     md += (i + 1) + '. **' + x.q + '**\n';
     md += '   ' + (String(x.a || '').trim() || '_(unanswered)_') + '\n\n';
@@ -14031,6 +14055,46 @@ el('dcBand').addEventListener('click', () => el('dcDetailsBtn').click());
 el('dcCd').addEventListener('click', () => { if (el('dcCd').classList.contains('m1')) el('dcDetailsBtn').click(); });   // H1: the date pill takes over the band's tap
 el('dcEUndecide').addEventListener('click', () => { el('dcEditModal').classList.add('hidden'); el('dcUndecideBtn').click(); });
 el('dcFromMind').addEventListener('click', () => { const id = el('dcFromMind').dataset.knot; if (!id) return; const cb = el('dcBack'); if (cb) cb.click(); showSection('mind'); openMmPage(id); });
+// DB-1 (22 Nov 2026): a decision's key points - a short bullet list under its title, on the index (first 3) and the page (all).
+// Stored in why_decisions.points (jsonb array of strings). Edited on the page: "+ ADD THE KEY POINTS" when empty, else via Edit.
+function dcPts_(d) { return Array.isArray(d.points) ? d.points.map(t => String(t || '').trim()).filter(Boolean) : []; }
+function dcPtsList_(d, max) {
+  if (dcIsDream_(d)) return '';
+  const a = dcPts_(d); if (!a.length) return '';
+  const s = max ? a.slice(0, max) : a;
+  return '<ul class="dpt">' + s.map(t => '<li>' + escHtml(t) + '</li>').join('') + (max && a.length > max ? '<li class="more">+' + (a.length - max) + ' more</li>' : '') + '</ul>';
+}
+function dcPtsPaint_(d) {
+  const box = el('dcPts'); if (!box) return;
+  box.classList.remove('asking');
+  if (!d || dcIsDream_(d)) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+  box.classList.remove('hidden');
+  const a = dcPts_(d);
+  box.innerHTML = (a.length ? '<ul class="dpt">' + a.map((t, i) => '<li>' + escHtml(t) + '<button type="button" class="dpt-x" data-dpt-x="' + i + '" title="Remove this point" aria-label="Remove this point">×</button></li>').join('') + '</ul>'
+      : '<button type="button" class="dpt-ask" data-dpt="ask">+ ADD THE KEY POINTS</button>')
+    + '<div class="dpt-add"><input id="dcPtIn" maxlength="140" placeholder="' + (a.length ? 'Add another point' : 'One key point about this decision') + '"><button type="button" data-dpt="add">Add</button></div>';
+}
+async function dcPtsSave_(d, arr) {
+  const prev = d.points; d.points = arr; dcPtsPaint_(d);
+  const { error } = await supa.from('why_decisions').update({ points: arr }).eq('id', d.id).eq('user_id', userId);
+  if (error) { console.error(error); d.points = prev; dcPtsPaint_(d); toast(/points/i.test(error.message || '') ? 'Key points need the one-line Supabase update first' : 'Could not save that'); return false; }
+  try { renderDecisions(); } catch (e) {}
+  return true;
+}
+function dcPtsCur_() { return dcRows.find(x => String(x.id) === String(dcId)); }
+async function dcPtsAdd_() {
+  const d = dcPtsCur_(), inp = el('dcPtIn'); if (!d || !inp) return;
+  const t = inp.value.trim(); if (!t) { inp.focus(); return; }
+  if (await dcPtsSave_(d, dcPts_(d).concat([t]))) { const n = el('dcPtIn'); if (n) { el('dcPts').classList.add('asking'); n.focus(); } }
+}
+el('dcPts').addEventListener('click', e => {
+  const x = e.target.closest('[data-dpt-x]');
+  if (x) { const d = dcPtsCur_(); if (!d) return; const a = dcPts_(d); a.splice(+x.dataset.dptX, 1); dcPtsSave_(d, a); return; }
+  const b = e.target.closest('[data-dpt]'); if (!b) return;
+  if (b.dataset.dpt === 'ask') { el('dcPts').classList.add('asking'); const n = el('dcPtIn'); if (n) n.focus(); }
+  else if (b.dataset.dpt === 'add') dcPtsAdd_();
+});
+el('dcPts').addEventListener('keydown', e => { if (e.target.id === 'dcPtIn' && e.key === 'Enter') { e.preventDefault(); dcPtsAdd_(); } if (e.target.id === 'dcPtIn' && e.key === 'Escape') el('dcPts').classList.remove('asking'); });
 el('dcName').addEventListener('click', () => { if (el('dcWin').classList.contains('dc-editing')) el('dcDetailsBtn').click(); });
 el('dcDetailsBtn').addEventListener('click', () => {
   const d = dcRow_(); if (!d) return;
