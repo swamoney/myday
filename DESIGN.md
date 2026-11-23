@@ -173,6 +173,8 @@ Written August 2026.
 
 **UG-3 · Mantras & Musings upgrade, two colours (23 Nov 2026).** One colour per section: Mantras navy #2f4f8a (--cm), Musings violet #6a4c93 (--cu) - stage wash, frame, eyebrow, quote mark / leaf, numerals, chosen row and the section heading. Stage: corner flourishes inside the frame, line 2.6rem (musings 2.2rem), ‹ › step buttons with dots (an n / N count past 14 lines) via data-mxstep; the fleuron goes. Roll: white index cards with a coloured left edge, round number badge (filled on the chosen one), lift on hover.
 
+**MC-2 · Musings get a watercolour wash (23 Nov 2026).** Each torn musing scrap: linear-gradient(150deg) from 26% of its ink over cream at the top-left to 9% by 70%; the leaf mark up to 32%. Mantra tablets untouched.
+
 **HB-1 · Mantras & Musings heading and ruled-notebook background (23 Nov 2026).** #mmHead above #mantraList: HOW I THINK / Lines I live by / and the things I keep noticing (same type as #bkHead / #dcHead). #secMantra::before: faint ruled notebook paper (lines every 34px, 20% slate) with a double red margin line, masked to fade in over 160px under the title and out after 70%. Hidden in print.
 
 **MZ-C · Mantras as tablets in the zigzag (23 Nov 2026).** Replaces the MX-1 stage in normal view (Search / Edit keep the grid / list). Mantras use the Musings layout (.mt-jl.mzm: dashed centre line, cards alternating left / right, a dotted tie to a seal) but read as mantras: cream #fbf8f0 tablets with a 3px double border in each mantra's ink, centred upright serif line under a small fleuron, meaning in italic, author in its ink; the seal is a star in its ink (Musings keep torn paper and leaf seals). All mantras show, no fold. A tap opens the mantra (data-mxopen).
