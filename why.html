@@ -8292,6 +8292,15 @@ document.addEventListener('keydown', e => {
   mtSkFlip_(st, e.key === 'ArrowRight' ? 1 : -1);
 });
 // the quick-add: a new line lands at the top of its kind (top of the whole list once you have arranged them)
+// 24 Nov 2026: new mantras and musings join at the END of their line-up. The next sort_order is one past the largest;
+// if nothing in the line-up has a place yet, the current order is written down first (0, 1, 2...) so the new one lands last.
+async function mmNextLast_(pool) {
+  const used = pool.map(x => x.r.sort_order).filter(v => v != null);
+  if (used.length === pool.length) return used.length ? Math.max.apply(null, used) + 1 : 0;
+  const ups = pool.map((x, i) => ({ x, i }));
+  await Promise.all(ups.map(({ x, i }) => { x.r.sort_order = i; return supa.from(x.src === 'iw' ? 'iw_entries' : 'why_mantras').update({ sort_order: i }).eq('id', x.r.id).eq('user_id', userId); }));
+  return pool.length;
+}
 async function mmQuickAdd_(text, meaning, source) {
   meaning = (meaning || '').trim(); source = (source || '').trim();
   const mHtml = meaning ? escHtml(meaning).replace(/\n/g, '<br>') : '';
@@ -8299,8 +8308,7 @@ async function mmQuickAdd_(text, meaning, source) {
   const pool = mmMixed ? all : all.filter(x => x.t === (mmAddKind === 'mantra' ? 'm' : 'u'));
   // R3: once why_mantras has its kind column, a new musing is born here too (kind 'musing'); a mantra says so
   if (mmHasKind) {
-    const used2 = pool.map(x => x.r.sort_order).filter(v => v != null);
-    const so2 = used2.length ? Math.min.apply(null, used2) - 1 : (mmAddKind === 'mantra' ? 0 : null);
+    const so2 = await mmNextLast_(pool);   // 24 Nov 2026: a new line always joins at the end
     const rec = { user_id: userId, kind: mmAddKind, text, text_html: escHtml(text), meaning, meaning_html: mHtml, source };
     if (so2 != null) rec.sort_order = so2;
     const { error } = await supa.from('why_mantras').insert(rec);
@@ -8309,9 +8317,7 @@ async function mmQuickAdd_(text, meaning, source) {
     toast(mmAddKind === 'mantra' ? 'Kept as a mantra' : 'Kept as a musing');
     return true;
   }
-  const used = pool.map(x => x.r.sort_order).filter(v => v != null);
-  let so = used.length ? Math.min.apply(null, used) - 1 : (mmAddKind === 'mantra' ? 0 : null);
-  if (mmMixed && !used.length) so = 0;
+  const so = await mmNextLast_(pool);   // 24 Nov 2026: a new line always joins at the end
   if (mmAddKind === 'mantra') {
     const rec = { user_id: userId, text, text_html: escHtml(text), meaning, meaning_html: mHtml, source };
     if (so != null) rec.sort_order = so;
@@ -12785,7 +12791,7 @@ async function saveMantraCore_() {
 }
 async function newMantra() {
   const { data, error } = await supa.from('why_mantras')
-    .insert({ user_id: userId, text: '', text_html: '', meaning: '', meaning_html: '', source: '' })
+    .insert(Object.assign({ user_id: userId, text: '', text_html: '', meaning: '', meaning_html: '', source: '' }, await (async () => { const so = await mmNextLast_(mmAll_().filter(x => x.t === 'm')); return so == null ? {} : { sort_order: so }; })()))
     .select().single();
   if (error) { console.error(error); toast('Could not create'); return; }
   await loadMantras();
