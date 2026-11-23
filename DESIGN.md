@@ -173,6 +173,8 @@ Written August 2026.
 
 **UG-3 · Mantras & Musings upgrade, two colours (23 Nov 2026).** One colour per section: Mantras navy #2f4f8a (--cm), Musings violet #6a4c93 (--cu) - stage wash, frame, eyebrow, quote mark / leaf, numerals, chosen row and the section heading. Stage: corner flourishes inside the frame, line 2.6rem (musings 2.2rem), ‹ › step buttons with dots (an n / N count past 14 lines) via data-mxstep; the fleuron goes. Roll: white index cards with a coloured left edge, round number badge (filled on the chosen one), lift on hover.
 
+**TB-2 · Space above add buttons + underline search (24 Nov 2026).** + New decision / + New dream / + Add a task / + Add a place sat flush on the colour-dot bar; .dc-toolrow, .pr-tb, .pl-tb now get 26px above (20px phone). The search box (.dc-search) loses its white pill: transparent, thin #c9d1e0 underline, turns blue on focus.
+
 **EV-3 · You've been here before, as a note (24 Nov 2026).** #mmAid's three boxes become one cream note (A note from you, to you … — you): "This year you have settled N loops." / "Of your fears, you have settled N of 3. Settle three and you will see how many never came true." (once three are settled: "Of the fears you settled, N/M never happened.") / "What helps you most:" + the chips. Dots, bars and captions hidden. CSS only (pseudo-content on the existing markup).
 
 **GP-2 · Room above the HOW I THINK titles (24 Nov 2026).** #mnHead and #dcHead 34px, #mmHead 40px above (they sat ~6px under the colour-dot strip).
