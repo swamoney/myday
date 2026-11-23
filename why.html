@@ -1160,6 +1160,14 @@
   #mtWin.mu-pg .mt-line { font-style:italic; padding-right:56px; }
   #mtWin.mu-pg .mt-hero::after { content:''; position:absolute; right:22px; top:22px; width:46px; height:46px; opacity:.22; background:var(--mti); -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat; mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat; pointer-events:none; }
   @media print { #mtWin.mu-pg .mt-hero, body #mantraList .mcard.mt-jr { -webkit-mask:none !important; mask:none !important; box-shadow:none !important; } }
+  /* PT-B + TC-3 (23 Nov 2026): the book page turn and the soft side chevrons */
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck { perspective:1600px; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .mcard.turning { transform-origin:left center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sp1.rev { transform:none !important; z-index:2; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sp1.rev > * { visibility:visible !important; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck::before, body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck::after { position:absolute; top:50%; z-index:5; transform:translateY(-60%); font-size:1.3rem; color:#a3abbb; opacity:0; transition:opacity .2s; pointer-events:none; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck::before { content:'\2039'; left:20px; } body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck::after { content:'\203A'; right:22px; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck.zl::before, body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck.zr::after { opacity:1; }
   /* MZ-1 + clear border (23 Nov 2026): Musings like the Why pillar index - a dashed centre line, the torn scraps zigzag left / right,
      each tied by a dotted line to a leaf seal in its own ink; a clear border in its ink on the sides and bottom. Phone: line on the left. */
 
@@ -8076,18 +8084,75 @@ function mtSkGo_(st, d) {
   [...st.querySelector('.mk-deck').children].forEach((c, k) => { c.classList.remove('sp0', 'sp1', 'sp2', 'spx', 'sph'); c.classList.add(mtSkPos_(k, at, N)); });
   st.querySelector('.mk-ct').textContent = (at + 1) + ' / ' + N;
 }
+// PT-B + TC-3 (23 Nov 2026): turning a mantra is a book page turn - the top tile lifts from its left edge and turns over (1s, eased),
+// the next one already showing beneath; going back, the previous page turns back over onto it. Tap the right / left third, the small
+// arrows, keyboard ← →, or drag the tile; a soft ‹ / › fades in on the side you hover (no special cursor).
+let mtSkBusy_ = false, mtSkDrag_ = null, mtSkSwallow_ = false;
+const MT_TURN = 1000, MT_EASE = 'cubic-bezier(.42,0,.22,1)';
+function mtSkReset_(c) { ['transform', 'transition', 'boxShadow', 'opacity', 'zIndex', 'visibility'].forEach(k => { c.style[k] = ''; }); c.classList.remove('turning', 'rev'); }
+function mtSkFlip_(st, d) {
+  if (mtSkBusy_ || !st) return; const deck = st.querySelector('.mk-deck'); if (!deck) return;
+  const done = () => { deck.querySelectorAll('.mcard').forEach(mtSkReset_); mtSkGo_(st, d); mtSkBusy_ = false; };
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { mtSkGo_(st, d); return; }
+  mtSkBusy_ = true;
+  if (d > 0) {
+    const c = deck.querySelector('.sp0'), n = deck.querySelector('.sp1'); if (!c) { mtSkBusy_ = false; return; }
+    if (n) n.classList.add('rev'); c.classList.add('turning');
+    c.style.transition = 'transform ' + MT_TURN + 'ms ' + MT_EASE + ', box-shadow ' + MT_TURN + 'ms ' + MT_EASE;
+    c.style.transform = 'rotateY(-178deg)'; c.style.boxShadow = '-30px 10px 40px rgba(30,40,60,.18)';
+  } else {
+    const pv = deck.querySelector('.spx'); if (!pv) { mtSkBusy_ = false; mtSkGo_(st, d); return; }
+    pv.classList.add('turning'); pv.style.transition = 'none'; pv.style.visibility = 'visible'; pv.style.opacity = '1'; pv.style.zIndex = '6'; pv.style.transform = 'rotateY(-178deg)'; void pv.offsetWidth;
+    pv.style.transition = 'transform ' + MT_TURN + 'ms ' + MT_EASE; pv.style.transform = 'rotateY(0deg)';
+  }
+  setTimeout(done, MT_TURN + 20);
+}
 document.addEventListener('click', e => {
   if (!e.target.closest) return;
-  const b = e.target.closest('#mantraList .mk-stk [data-mkd]'); if (b) { mtSkGo_(b.closest('.mk-stk'), +b.dataset.mkd); return; }
+  if (mtSkSwallow_ && e.target.closest('#mantraList .mk-deck')) { mtSkSwallow_ = false; e.stopPropagation(); e.preventDefault(); return; }
+  const b = e.target.closest('#mantraList .mk-stk [data-mkd]'); if (b) { mtSkFlip_(b.closest('.mk-stk'), +b.dataset.mkd); return; }
   const a = e.target.closest('#mantraList .mk-stk .mk-all');
   if (a) { const st = a.closest('.mk-stk'); mtSk_.all = !st.classList.contains('all'); st.classList.toggle('all', mtSk_.all);
     a.textContent = mtSk_.all ? 'Back to the stack ↑' : 'See all ' + st.dataset.n + ' ↓'; if (!mtSk_.all) st.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
   const c = e.target.closest('#mantraList .mk-stk:not(.all) .mk-deck > .mcard.sp0');
   if (c && !document.body.classList.contains('editing') && !e.target.closest('button,a,input')) {
     const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
-    if (x < 0.2 || x > 0.8) { e.stopPropagation(); mtSkGo_(c.closest('.mk-stk'), x < 0.2 ? -1 : 1); }
+    if (x < 0.35 || x > 0.65) { e.stopPropagation(); mtSkFlip_(c.closest('.mk-stk'), x < 0.35 ? -1 : 1); }
   }
 }, true);
+document.addEventListener('pointerdown', e => {
+  if (!e.target.closest || mtSkBusy_ || document.body.classList.contains('editing')) return;
+  const c = e.target.closest('#mantraList .mk-stk:not(.all) .mk-deck > .mcard.sp0'); if (!c || e.target.closest('button,a,input')) return;
+  mtSkDrag_ = { c, x0: e.clientX, y0: e.clientY, dx: 0, on: false };
+});
+document.addEventListener('pointermove', e => {
+  const g = mtSkDrag_; if (!g) return; g.dx = e.clientX - g.x0;
+  if (!g.on) { if (Math.abs(g.dx) < 8 || Math.abs(g.dx) < Math.abs(e.clientY - g.y0)) return; g.on = true; }
+  const w = g.c.offsetWidth, n = g.c.parentNode.querySelector('.sp1');
+  if (g.dx < 0) { if (n) n.classList.add('rev'); g.c.classList.add('turning'); g.c.style.transition = 'none'; g.c.style.transform = 'rotateY(' + Math.max(-170, g.dx / w * 180) + 'deg)'; g.c.style.boxShadow = '-20px 10px 30px rgba(30,40,60,.14)'; }
+  else { g.c.style.transition = 'none'; g.c.style.transform = 'rotateY(' + Math.min(14, g.dx / w * 30) + 'deg)'; }
+});
+const mtSkUp_ = () => {
+  const g = mtSkDrag_; mtSkDrag_ = null; if (!g || !g.on) return;
+  mtSkSwallow_ = true; setTimeout(() => { mtSkSwallow_ = false; }, 400);
+  const st = g.c.closest('.mk-stk'), w = g.c.offsetWidth;
+  if (g.dx < -w * 0.2) { mtSkFlip_(st, 1); return; }
+  g.c.style.transition = 'transform .4s ease, box-shadow .4s ease'; g.c.style.transform = ''; g.c.style.boxShadow = '';
+  setTimeout(() => { mtSkReset_(g.c); const n = st && st.querySelector('.sp1.rev'); if (n) n.classList.remove('rev'); if (g.dx > w * 0.2) mtSkFlip_(st, -1); }, 420);
+};
+document.addEventListener('pointerup', mtSkUp_); document.addEventListener('pointercancel', () => { const g = mtSkDrag_; mtSkDrag_ = null; if (g) mtSkReset_(g.c); });
+document.addEventListener('mousemove', e => {
+  const d = e.target.closest && e.target.closest('#mantraList .mk-stk:not(.all) .mk-deck');
+  document.querySelectorAll('#mantraList .mk-deck.zl, #mantraList .mk-deck.zr').forEach(x => { if (x !== d) x.classList.remove('zl', 'zr'); });
+  if (!d) return; const c = d.querySelector('.sp0'); d.classList.remove('zl', 'zr'); if (!c || !c.contains(e.target) || document.body.classList.contains('editing')) return;
+  const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width; if (x > 0.65) d.classList.add('zr'); else if (x < 0.35) d.classList.add('zl');
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  const a = document.activeElement; if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return;
+  const st = document.querySelector('#mantraList .mk-stk:not(.all)'); if (!st || !st.offsetParent || document.querySelector('.pw.show')) return;
+  mtSkFlip_(st, e.key === 'ArrowRight' ? 1 : -1);
+});
 // the quick-add: a new line lands at the top of its kind (top of the whole list once you have arranged them)
 async function mmQuickAdd_(text, meaning, source) {
   meaning = (meaning || '').trim(); source = (source || '').trim();
