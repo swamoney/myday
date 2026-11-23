@@ -173,6 +173,8 @@ Written August 2026.
 
 **UG-3 · Mantras & Musings upgrade, two colours (23 Nov 2026).** One colour per section: Mantras navy #2f4f8a (--cm), Musings violet #6a4c93 (--cu) - stage wash, frame, eyebrow, quote mark / leaf, numerals, chosen row and the section heading. Stage: corner flourishes inside the frame, line 2.6rem (musings 2.2rem), ‹ › step buttons with dots (an n / N count past 14 lines) via data-mxstep; the fleuron goes. Roll: white index cards with a coloured left edge, round number badge (filled on the chosen one), lift on hover.
 
+**MZ-C · Mantras as tablets in the zigzag (23 Nov 2026).** Replaces the MX-1 stage in normal view (Search / Edit keep the grid / list). Mantras use the Musings layout (.mt-jl.mzm: dashed centre line, cards alternating left / right, a dotted tie to a seal) but read as mantras: cream #fbf8f0 tablets with a 3px double border in each mantra's ink, centred upright serif line under a small fleuron, meaning in italic, author in its ink; the seal is a star in its ink (Musings keep torn paper and leaf seals). All mantras show, no fold. A tap opens the mantra (data-mxopen).
+
 **FS-2 · My Mantras font two steps smaller (23 Nov 2026).** Stage line 1.2rem (phone 1.08), quote mark 2.6rem, meaning .88rem, roll text .86rem. Box, inks and layout unchanged.
 
 **SZ-A (again) · MX-1 mantra card scaled down (23 Nov 2026).** Stage padding 26/34/20 (phone 20/18/16), line 1.55rem (phone 1.3), quote mark 3.2rem, meaning 1rem; roll rows 7px 10px, text .95rem. Each mantra keeps its own ink; Musings untouched.

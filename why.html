@@ -1204,6 +1204,21 @@
   #mantraList .mx1:not(.mxu) .mx1-roll li .t { font-size:.86rem !important; }
   #mantraList .mx1:not(.mxu) .mx1-q { font-size:2.6rem !important; height:16px !important; }
   @media (max-width:640px) { #mantraList .mx1:not(.mxu) .mx1-t { font-size:1.08rem !important; } }
+  /* MZ-C (23 Nov 2026): Mantras in the Musings zigzag, as tablets - cream, double border in its ink, centred serif line under a fleuron, a star seal */
+body:not(.editing) #mantraList .mzm .mcard.mzm-c{-webkit-mask:none !important;mask:none !important;padding-top:18px !important}
+body:not(.editing) #mantraList .mzm .mcard.mzm-c::after{display:none !important}
+body:not(.editing) #mantraList .mzm .mzm-c .mtext{font-style:normal !important;font-family:Fraunces,Georgia,serif !important;font-weight:600 !important;font-size:1.08rem !important;line-height:1.35 !important}
+body:not(.editing) #mantraList .mzm .mzm-c .mmean{font-style:italic;font-size:.9rem !important;margin-top:6px !important}
+body:not(.editing) #mantraList .mzm .mzm-c .msrc{font:700 .55rem 'IBM Plex Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--mti);margin-top:8px}
+body:not(.editing) #mantraList .mzm .mzm-c .mt-bar{display:none}
+body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{background-image:none !important;content:attr(data-n) !important;color:#fff;display:grid;place-items:center;font:700 .78rem Fraunces,Georgia,serif}
+body:not(.editing) #mantraList .mzm .mcard.mzm-c{background:#fbf8f0 !important;border:3px double color-mix(in srgb,var(--mti) 55%,#fff) !important;border-radius:4px !important;box-shadow:0 8px 18px rgba(60,50,30,.07) !important;text-align:center;padding:18px 22px 16px !important}
+body:not(.editing) #mantraList .mzm .mzm-c .mtext{color:#2a2418 !important}
+body:not(.editing) #mantraList .mzm .mzm-c .m-body::before{content:'\2766';display:block;color:var(--mti);opacity:.55;font-size:.9rem;margin-bottom:4px}
+body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{content:'\2726' !important;font-size:.95rem}
+body:not(.editing) #mantraList .mzm .mzm-c .mtext{padding-right:0 !important}
+body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;width:34px !important;box-sizing:border-box}
+
   /* PT-B + TC-3 (23 Nov 2026): the book page turn and the soft side chevrons */
   body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck { perspective:1600px; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
   body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .mcard.turning { transform-origin:left center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
@@ -8097,7 +8112,12 @@ function renderMantras() {
     const fold = !stack && !editing && !q && !mmMore_[t] && list.length > cap;
     const shown = fold ? list.slice(0, cap) : list;
     const h0 = () => '<div class="dcl-dv mt-dv' + (t === 'u' ? ' mu' : '') + '"><span class="lb">' + label + '</span><i></i><span class="ct">' + (q ? list.length + ' OF ' + full.length : full.length) + ' · ' + ct + '</span></div>';
-    if (t === 'm' && !editing && !q && list.length) return h0() + mxStage_(t, full);   // musings keep their torn-paper zigzag (MZ-1)   // MX-1 + MS-A (23 Nov 2026): one on the stage, the rest as a numbered roll
+    if (t === 'm' && !editing && !q && list.length) return h0() + '<div class="mt-jl mzm">' + full.map((x, i) => {   // MZ-C (23 Nov 2026): mantras zigzag like musings, as tablets
+      const m = x.r, mean = mtRich(m, 'meaning'), n = mxRoman_(i + 1);
+      return '<div class="mcard mt-jr mzm-c" data-n="' + n + '" data-mxopen="' + escHtml(String(m.id)) + '" style="--mti:' + M_SHADES[i % M_SHADES.length].acc + '"><span class="mt-bar" aria-hidden="true"></span>'
+        + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '')
+        + (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') + '</div></div>';
+    }).join('') + '</div>';   // MX-1 + MS-A (23 Nov 2026): one on the stage, the rest as a numbered roll
     let h = h0();
     const N = shown.length;
     if (stack) h += '<div class="mk-stk' + (mtSk_.all ? ' all' : '') + '" data-n="' + N + '"><div class="' + box + ' mk-deck">' + shown.map(x => card(x, full.indexOf(x))).join('') + '</div>'
