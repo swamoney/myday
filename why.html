@@ -1126,6 +1126,23 @@
   @media (max-width:640px) { .mt-tiles { grid-template-columns:1fr; gap:10px; } .mt-seg { display:flex; } .mt-seg button { flex:1; padding:8px 6px; } .mt-tile .mtext { font-size:1.05rem; } }
   body.editing .mcard.add { display:block; }
   .m-empty { text-align:center; color:#9aa4ba; font-style:italic; padding:26px 10px; }
+  /* ST-1 (23 Nov 2026): Mantras as a stack - the same tiles, piled; See all = today's grid */
+  .mk-nav, .mk-all { display:none; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck { display:grid !important; grid-template-columns:1fr !important; max-width:480px; margin:6px auto 0 !important; padding:0 10px 18px !important; gap:0 !important; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .mcard { grid-area:1/1; margin:0 !important; transition:transform .35s ease, opacity .35s ease; background-color:#fff; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sp0 { z-index:3; box-shadow:0 8px 20px rgba(30,40,60,.08); }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sp1 { z-index:2; transform:translate(7px,10px) rotate(1.6deg); }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sp2 { z-index:1; transform:translate(-6px,17px) rotate(-1.8deg); }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > :is(.sp1,.sp2) > * { visibility:hidden; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .spx { z-index:4; opacity:0; visibility:hidden; transform:translateX(-60%) rotate(-8deg); pointer-events:none; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sph { z-index:0; opacity:0; visibility:hidden; pointer-events:none; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-nav { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:6px; }
+  body:not(.editing) #mantraList .mk-nav button { width:22px; height:22px; border:none; background:none; font-size:.95rem; color:#a3abbb; cursor:pointer; }
+  body:not(.editing) #mantraList .mk-nav button:hover, body:not(.editing) #mantraList .mk-all:hover { color:#5a6478; }
+  body:not(.editing) #mantraList .mk-ct { font:600 .52rem var(--mono); letter-spacing:.14em; color:#a3abbb; min-width:36px; text-align:center; }
+  body:not(.editing) #mantraList .mk-all { display:block; margin:4px auto 0; border:none; background:none; font:600 .52rem var(--mono); letter-spacing:.14em; text-transform:uppercase; color:#a3abbb; cursor:pointer; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sp0 { cursor:pointer; }
+  @media print { .mk-nav, .mk-all { display:none !important; } #mantraList .mk-deck > .mcard { grid-area:auto !important; transform:none !important; opacity:1 !important; visibility:visible !important; } #mantraList .mk-deck > .mcard > * { visibility:visible !important; } #mantraList .mk-deck { display:grid !important; grid-template-columns:1fr 1fr !important; gap:14px !important; max-width:none !important; } }
   /* MM-1 (19 Nov 2026): Mantras & Musings as two shelves - a tool row, the shared gold-underlined headings, a + New line pop-up */
   .mt-toolrow { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:16px 0 4px; }
   #mantraList .mt-search { margin-left:0; }
@@ -4497,8 +4514,8 @@
 #dcPts .dpt li::before { background:var(--dc-ink, #7686a3); }
 #dcPts .dpt-x { display:none; margin-left:8px; border:none; background:none; color:#a8323f; font-size:1rem; cursor:pointer; padding:0 4px; vertical-align:baseline; }
 #dcWin.dc-editing #dcPts .dpt-x { display:inline-block; }
-#dcPts .dpt-ask { border:none; background:none; padding:2px 0; font:700 .58rem 'IBM Plex Mono', monospace; letter-spacing:.18em; color:var(--dc-ink, #5b6680); opacity:.7; cursor:pointer; }
-#dcPts .dpt-ask:hover { opacity:1; }
+#dcPts .dpt-ask { border:1.5px dashed color-mix(in srgb, var(--dc-ink, #5b6680) 55%, #fff); background:rgba(255,255,255,.6); border-radius:999px; padding:7px 16px; font:700 .66rem 'IBM Plex Mono', monospace; letter-spacing:.16em; color:var(--dc-ink, #5b6680); cursor:pointer; }
+#dcPts .dpt-ask:hover { background:#fff; border-style:solid; }
 #dcPts .dpt-add { display:none; gap:8px; align-items:center; margin-top:6px; }
 #dcWin.dc-editing #dcPts .dpt-add, #dcPts.asking .dpt-add { display:flex; }
 #dcWin.dc-editing #dcPts .dpt-ask, #dcPts.asking .dpt-ask { display:none; }
@@ -7982,10 +7999,15 @@ function renderMantras() {
   };
   const shelf = (t, label, ct, cap, box, empty) => {
     const full = all.filter(x => x.t === t), list = full.filter(hit);
-    const fold = !editing && !q && !mmMore_[t] && list.length > cap;
+    const stack = t === 'm' && !editing && !q && list.length >= 2;   // ST-1: Mantras as a stack - every mantra in it, no fold
+    const fold = !stack && !editing && !q && !mmMore_[t] && list.length > cap;
     const shown = fold ? list.slice(0, cap) : list;
     let h = '<div class="dcl-dv mt-dv' + (t === 'u' ? ' mu' : '') + '"><span class="lb">' + label + '</span><i></i><span class="ct">' + (q ? list.length + ' OF ' + full.length : full.length) + ' · ' + ct + '</span></div>';
-    h += shown.length ? '<div class="' + box + '">' + shown.map(x => card(x, full.indexOf(x))).join('') + '</div>'
+    const N = shown.length;
+    if (stack) h += '<div class="mk-stk' + (mtSk_.all ? ' all' : '') + '" data-n="' + N + '"><div class="' + box + ' mk-deck">' + shown.map(x => card(x, full.indexOf(x))).join('') + '</div>'
+      + '<div class="mk-nav"><button type="button" data-mkd="-1" aria-label="Previous">\u2039</button><span class="mk-ct"></span><button type="button" data-mkd="1" aria-label="Next">\u203A</button></div>'
+      + '<button type="button" class="mk-all">' + (mtSk_.all ? 'Back to the stack \u2191' : 'See all ' + N + ' \u2193') + '</button></div>';
+    else h += shown.length ? '<div class="' + box + '">' + shown.map(x => card(x, full.indexOf(x))).join('') + '</div>'
       : '<div class="m-empty">' + (q ? 'Nothing here matches “' + escHtml(mmQ_.trim()) + '”.' : empty) + '</div>';
     if (fold) h += '<button type="button" class="mt-more' + (t === 'u' ? ' mu' : '') + '" data-mtmore="' + t + '">' + (list.length - cap) + ' MORE ▾</button>';
     return h;
@@ -7999,8 +8021,31 @@ function renderMantras() {
   const hadFocus = document.activeElement && document.activeElement.id === 'mmSearch';
   const caret = hadFocus ? document.activeElement.selectionStart : null;
   wrap.innerHTML = html;
+  { const st = wrap.querySelector('.mk-stk'); if (st) mtSkGo_(st, 0); }   // ST-1
   if (hadFocus) { const i = el('mmSearch'); if (i) { i.focus(); try { i.setSelectionRange(caret, caret); } catch (e) {} } }
 }
+// ST-1 (23 Nov 2026): Mantras as a stack, like the Why pillar page - the same tiles piled up, one on top and two peeking behind;
+// ‹ n / N › or a click on the tile's left / right edge flips, See all opens today's two-across grid. Display only; the place survives re-renders.
+const mtSk_ = { at: 0, all: false };
+function mtSkPos_(k, at, N) { const o = (k - at + N) % N; return o === 0 ? 'sp0' : o === 1 ? 'sp1' : o === 2 ? 'sp2' : o === N - 1 ? 'spx' : 'sph'; }
+function mtSkGo_(st, d) {
+  const N = +st.dataset.n; if (!N) return;
+  const at = ((mtSk_.at + d) % N + N) % N; mtSk_.at = at;
+  [...st.querySelector('.mk-deck').children].forEach((c, k) => { c.classList.remove('sp0', 'sp1', 'sp2', 'spx', 'sph'); c.classList.add(mtSkPos_(k, at, N)); });
+  st.querySelector('.mk-ct').textContent = (at + 1) + ' / ' + N;
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest) return;
+  const b = e.target.closest('#mantraList .mk-stk [data-mkd]'); if (b) { mtSkGo_(b.closest('.mk-stk'), +b.dataset.mkd); return; }
+  const a = e.target.closest('#mantraList .mk-stk .mk-all');
+  if (a) { const st = a.closest('.mk-stk'); mtSk_.all = !st.classList.contains('all'); st.classList.toggle('all', mtSk_.all);
+    a.textContent = mtSk_.all ? 'Back to the stack ↑' : 'See all ' + st.dataset.n + ' ↓'; if (!mtSk_.all) st.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+  const c = e.target.closest('#mantraList .mk-stk:not(.all) .mk-deck > .mcard.sp0');
+  if (c && !document.body.classList.contains('editing') && !e.target.closest('button,a,input')) {
+    const r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+    if (x < 0.2 || x > 0.8) { e.stopPropagation(); mtSkGo_(c.closest('.mk-stk'), x < 0.2 ? -1 : 1); }
+  }
+}, true);
 // the quick-add: a new line lands at the top of its kind (top of the whole list once you have arranged them)
 async function mmQuickAdd_(text, meaning, source) {
   meaning = (meaning || '').trim(); source = (source || '').trim();
