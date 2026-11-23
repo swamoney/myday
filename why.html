@@ -1233,6 +1233,37 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
   /* MC-2 (23 Nov 2026): a musing's colour washes in from the top-left (26%) and settles to a light tint, like watercolour on paper */
   body:not(.editing) #mantraList .mt-jl:not(.mzm) .mcard.mt-jr { background:linear-gradient(150deg, color-mix(in srgb, var(--mti) 26%, #fffdf8) 0%, color-mix(in srgb, var(--mti) 9%, #fffdf8) 70%) !important; }
   body:not(.editing) #mantraList .mt-jl:not(.mzm) .mt-jr .mt-leaf { opacity:.32; }
+  /* SR-1 + TP-1 + ED-1 (24 Nov 2026): the line's page - Source / Reference box + MANTRA | MUSING switch (Edit only);
+     a mantra's heading is its index tablet (cream, double border in its ink, star seal on the top edge, centred);
+     while editing, only the formatting toolbar pins - above the heading - and the heading scrolls away. */
+  .mt-ro-src { font:700 .58rem var(--mono); letter-spacing:.2em; text-transform:uppercase; color:var(--mti,#a0603c); margin-top:10px; }
+  .mt-ro-src:empty { display:none; }
+  body.p-editing .mt-ro-src { display:none; }
+  .mt-mv, .mt-sr { display:none; }
+  body.p-editing .mt-mv { display:block; margin:12px 0 2px; }
+  body.p-editing .mt-sr { display:block; margin-top:14px; }
+  .mt-mv .seg { display:inline-flex; border:1px solid #d7dde8; border-radius:999px; padding:3px; background:#fff; gap:2px; }
+  .mt-mv .seg button { border:none; background:none; font:700 .56rem var(--mono); letter-spacing:.16em; padding:6px 14px; border-radius:999px; color:#7a849a; cursor:pointer; }
+  .mt-mv .seg button.on { background:#2f4f8a; color:#fff; } .mt-mv .seg button.on.mu { background:#6a4c93; }
+  .mt-mv .mv-note { font:italic .82rem var(--serif); color:#8b95a8; margin-left:10px; }
+  .mt-sr .sr-l { font:700 .56rem var(--mono); letter-spacing:.2em; color:#8b95a8; margin-bottom:6px; }
+  .mt-sr .sr-in { width:100%; max-width:420px; box-sizing:border-box; border:1px solid #d7dde8; border-radius:10px; background:#fff; padding:9px 12px; font:400 .95rem var(--serif); color:#16213a; outline:none; }
+  .mt-sr .sr-in:focus { border-color:var(--mti,#7686a3); box-shadow:0 0 0 3px color-mix(in srgb, var(--mti,#7686a3) 15%, transparent); }
+  .mt-sr .sr-in::placeholder { color:#a7b0c0; font-style:italic; }
+  #mtWin:not(.mu-pg) .mt-hero { position:relative; background:#fbf8f0; border:3px double color-mix(in srgb, var(--mti) 55%, #fff); border-radius:4px; box-shadow:0 10px 22px rgba(60,50,30,.08); padding:30px 30px 22px !important; margin:14px 0 8px; text-align:center; }
+  #mtWin:not(.mu-pg) .mt-eyebrow { color:var(--mti); }
+  #mtWin:not(.mu-pg) .mt-eyebrow::after { content:'\2766'; display:block; font-size:1rem; letter-spacing:0; margin-top:8px; opacity:.6; }
+  #mtWin:not(.mu-pg) .mt-line { color:#2a2418; }
+  #mtWin:not(.mu-pg) .mt-hero::after { content:'\2726'; position:absolute; top:-17px; left:50%; margin-left:-17px; width:34px; height:34px; border-radius:50%; background:var(--mti); color:#fff; display:grid; place-items:center; font-size:.95rem; box-shadow:0 0 0 4px #f8fafd; }
+  #mtWin:not(.mu-pg) .mt-mv, #mtWin:not(.mu-pg) .sr-l { text-align:center; }
+  #mtWin:not(.mu-pg) .mt-sr .sr-in { margin:0 auto; display:block; text-align:center; }
+  body.p-editing #mtWin .mt-line { text-align:left; }
+  #mtWin .pin { display:flex; flex-direction:column; }
+  #mtWin .pin > * { flex:none; }
+  #mtWin .p-sticky { display:contents; }
+  #mtWin .mt-hero { margin-bottom:18px !important; }
+  body.p-editing #mtWin .mt-tools { order:-1; position:sticky; top:0; z-index:9; margin:0 0 18px; background:#f8fafd; padding:8px 0; border-bottom:1px solid rgba(20,30,60,.08); box-shadow:0 -40px 0 #f8fafd; }
+  @media print { .mt-mv, .mt-sr { display:none !important; } #mtWin:not(.mu-pg) .mt-hero::after { display:none; } }
   /* PT-B + TC-3 (23 Nov 2026): the book page turn and the soft side chevrons */
   body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck { perspective:1600px; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
   body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .mcard.turning { transform-origin:left center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
@@ -3401,7 +3432,7 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
   .mt-srcrow { margin-top:11px; }
   .mt-src { font-family:var(--mono); font-size:0.625rem; letter-spacing:0.06em; color:#a0603c; outline:none; }
   .mt-src:empty::before { content:'\2014 source (optional)'; color:#c9b3a6; }
-  body:not(.p-editing) .mt-src:empty { display:none; }
+  .mt-srcrow { display:none; }
   body.p-editing .mt-src { border-bottom:1px solid #e8cdbf; padding-bottom:2px; }
   .mt-del-row { margin-top:34px; padding-top:14px; border-top:1px solid #eef1f6; }
   .mt-del { border:none; background:none; font-family:var(--mono); font-size:0.5312rem; letter-spacing:0.1em; color:#c9b3a6; cursor:pointer; }
@@ -5150,7 +5181,7 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
       </div></div>
     <div class="fld"><label id="mmNLineLbl">The mantra</label><input id="mmNLine" maxlength="400" placeholder="e.g. Do the next right thing"></div>
     <div class="fld"><label id="mmNMeanLbl">What it means to me (optional)</label><textarea id="mmNMean" placeholder="e.g. Small steps beat big plans"></textarea></div>
-    <div class="fld" id="mmNSrcFld"><label>Source (optional)</label><input id="mmNSrc" maxlength="200" placeholder="e.g. Marcus Aurelius"></div>
+    <div class="fld" id="mmNSrcFld"><label>Source / reference (optional)</label><input id="mmNSrc" maxlength="200" placeholder="A book, a person, a talk, a link&hellip;"></div>
     <div class="modal-actions">
       <button class="btn-primary" id="mmNSave" type="button">Save mantra</button>
       <button class="btn-ghost" id="mmNCancel" type="button">Cancel</button>
@@ -5641,7 +5672,9 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
           <div class="mt-eyebrow" id="mtEyebrow"></div>
           <div class="mt-line" id="mtLineRO"></div>
           <div class="mt-line" id="mtLine" contenteditable="true" data-placeholder="The line you live by&hellip;"></div>
-          <div class="mt-srcrow"><span class="mt-src" id="mtSrc" contenteditable="true"></span></div>
+          <div class="mt-ro-src" id="mtSrcRO"></div>
+          <div class="mt-mv" id="mtMv"><span class="seg"><button type="button" data-mtkind="mantra">MANTRA</button><button type="button" data-mtkind="musing">MUSING</button></span><span class="mv-note">tap to move it</span></div>
+          <div class="mt-sr"><div class="sr-l">SOURCE / REFERENCE</div><input class="sr-in" id="mtSrc" maxlength="200" autocomplete="off" placeholder="A book, a person, a talk, a link&hellip;"></div>
         </div>
         <div class="mt-tools">
           <div class="mt-tools-cap" id="mtToolsCap">FORMATTING THE MANTRA</div>
@@ -8114,7 +8147,8 @@ function renderMantras() {
     const ctl = '<button class="m-edit" data-medit="' + m.id + '" type="button" aria-label="Edit">' + M_PEN + '</button>'
       + '<button class="m-x" data-mx="' + m.id + '" type="button" aria-label="Delete">&times;</button>';
     if (x.t === 'u') return '<div class="mcard mu mt-jr" data-mid="' + m.id + '" style="--mti:' + ink + '">' + tools(m.id) + LEAF_ + '<span class="mt-bar" aria-hidden="true"></span>'
-      + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '') + '</div>'
+      + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '')
+      + (m.source ? '<div class="msrc">&mdash; ' + escHtml(m.source) + '</div>' : '') + '</div>'
       + ctl + '</div>';
     return '<div class="mcard mt-tile" data-mid="' + m.id + '" style="--mti:' + ink + '">' + tools(m.id) + '<span class="mt-qm" aria-hidden="true">“</span><span class="mt-bar" aria-hidden="true"></span>'
       + '<div class="m-body"><div class="mtext nk-content">' + star(m) + mtRich(m, 'text') + '</div>' + (mtHasText_(mean) ? '<div class="mmean nk-content">' + mean + '</div>' : '')
@@ -8267,7 +8301,7 @@ async function mmQuickAdd_(text, meaning, source) {
   if (mmHasKind) {
     const used2 = pool.map(x => x.r.sort_order).filter(v => v != null);
     const so2 = used2.length ? Math.min.apply(null, used2) - 1 : (mmAddKind === 'mantra' ? 0 : null);
-    const rec = { user_id: userId, kind: mmAddKind, text, text_html: escHtml(text), meaning, meaning_html: mHtml, source: mmAddKind === 'mantra' ? source : '' };
+    const rec = { user_id: userId, kind: mmAddKind, text, text_html: escHtml(text), meaning, meaning_html: mHtml, source };
     if (so2 != null) rec.sort_order = so2;
     const { error } = await supa.from('why_mantras').insert(rec);
     if (error) { console.error(error); toast('Could not save: ' + (error.message || '')); return false; }
@@ -8303,7 +8337,7 @@ function mmNewKind_(k) {
   el('mmNLine').placeholder = m ? 'e.g. Do the next right thing' : 'e.g. Rain makes the city honest';
   el('mmNMeanLbl').textContent = m ? 'What it means to me (optional)' : 'A note (optional)';
   el('mmNMean').placeholder = m ? 'e.g. Small steps beat big plans' : 'e.g. Pune in July - everyone slows down.';
-  el('mmNSrcFld').classList.toggle('hidden', !m);
+  el('mmNSrcFld').classList.toggle('hidden', !m && !mmHasKind);   // SR-1: musings take a source too
   el('mmNSave').textContent = m ? 'Save mantra' : 'Save musing';
 }
 function mmNewOpen_() {
@@ -12625,11 +12659,13 @@ function openMantra(id) {
   }
   el('mtLine').innerHTML = mtRich(m, 'text');
   el('mtMean').innerHTML = mtRich(m, 'meaning');
-  el('mtSrc').textContent = m.source || '';
+  el('mtSrc').value = m.source || ''; mtSrcRO_();
+  { const iM = mmAll_().filter(x => x.t === 'm').findIndex(x => String(x.r.id) === String(id)); if (m.kind !== 'musing') el('mtWin').style.setProperty('--mti', M_SHADES[Math.max(0, iM) % M_SHADES.length].acc); }   // TP-1: its index ink
+  mtKindPaint_(m);
   mtStarPaint_(m);
   mtLineBase = NoteEditor.sanitize(el('mtLine').innerHTML);
   mtMeanBase = NoteEditor.sanitize(el('mtMean').innerHTML);
-  mtSrcBase = el('mtSrc').textContent;
+  mtSrcBase = el('mtSrc').value;
   el('mtTitleBar').innerHTML = (m.kind === 'musing' ? 'My Musing' : 'My Mantra') + ' &middot; ' + escHtml(NoteEditor.toPlain(mtLineBase).slice(0, 60));
   el('mtSave').textContent = '';
   if (window.MyAlbum && userId) MyAlbum.mount({ host: el('mtAlbum'), room: 'mantra', entryId: id,
@@ -12676,7 +12712,6 @@ function setMtEditing(on) {
   el('mtLineRO').style.display = on ? 'none' : '';
   const b = el('mtEdit'); if (b) b.classList.toggle('hot', !!on);
   const l = el('mtEditLabel'); if (l) l.textContent = on ? 'Done' : 'Edit';
-  el('mtSrc').contentEditable = on ? 'true' : 'false';
   if (!on) {
     const line = NoteEditor.sanitize(el('mtLine').innerHTML);
     const mean = NoteEditor.sanitize(el('mtMean').innerHTML);
@@ -12718,7 +12753,7 @@ async function saveMantraCore_() {
   let mean = NoteEditor.sanitize(el('mtMean').innerHTML);
   if (!mtHasText_(line)) line = '';        // don't bank an empty <br>
   if (!mtHasText_(mean)) mean = '';
-  const src = (el('mtSrc').textContent || '').trim();
+  const src = (el('mtSrc').value || '').trim();
   if (m.text_html === line && m.meaning_html === mean && (m.source || '') === src) {
     mtDirty = false; el('mtSave').textContent = 'Saved'; renderMantras(); return;
   }
@@ -12768,7 +12803,28 @@ el('mtEdit').addEventListener('click', async () => {
 el('mtLine').addEventListener('blur', () => saveMantraPage_());
 el('mtMean').addEventListener('blur', () => saveMantraPage_());
 el('mtSrc').addEventListener('blur', () => saveMantraPage_());
-el('mtSrc').addEventListener('input', scheduleMtSave);
+el('mtSrc').addEventListener('input', () => { mtSrcRO_(); scheduleMtSave(); });
+el('mtSrc').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); el('mtSrc').blur(); } });
+// SR-1 (24 Nov 2026): Source / Reference is a proper box (mantras and musings), read as "— source" under the line; and a
+// MANTRA | MUSING switch moves the line between the two shelves (needs why_mantras.kind; Inner-world musings can't move).
+function mtSrcRO_() { const v = (el('mtSrc').value || '').trim(); el('mtSrcRO').textContent = v ? '\u2014 ' + v : ''; }
+function mtKindPaint_(m) {
+  const box = el('mtMv'); if (!box) return;
+  box.style.display = mmHasKind ? '' : 'none';
+  const k = m && m.kind === 'musing' ? 'musing' : 'mantra';
+  box.querySelectorAll('[data-mtkind]').forEach(b => { b.classList.toggle('on', b.dataset.mtkind === k); b.classList.toggle('mu', b.dataset.mtkind === 'musing'); });
+}
+el('mtMv').addEventListener('click', async e => {
+  const b = e.target.closest('[data-mtkind]'); if (!b) return;
+  const m = mtRow(); if (!m || !mmHasKind) return;
+  const to = b.dataset.mtkind, from = m.kind === 'musing' ? 'musing' : 'mantra'; if (to === from) return;
+  await saveMantraPage_(true);
+  const { error } = await supa.from('why_mantras').update({ kind: to }).eq('id', mtId).eq('user_id', userId);
+  if (error) { console.error(error); toast('Could not move it'); return; }
+  m.kind = to; renderMantras();
+  const keepEdit = mtEditing_(); openMantra(m.id); if (keepEdit) setMtEditing(true);
+  toast(to === 'musing' ? 'Moved to Musings' : 'Moved to Mantras');
+});
 el('mtDel').addEventListener('click', async () => {
   const m = mtRow(); if (!m) return;
   if (!confirm('Delete this mantra? This cannot be undone.')) return;
