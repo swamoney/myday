@@ -1160,6 +1160,32 @@
   #mtWin.mu-pg .mt-line { font-style:italic; padding-right:56px; }
   #mtWin.mu-pg .mt-hero::after { content:''; position:absolute; right:22px; top:22px; width:46px; height:46px; opacity:.22; background:var(--mti); -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat; mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat; pointer-events:none; }
   @media print { #mtWin.mu-pg .mt-hero, body #mantraList .mcard.mt-jr { -webkit-mask:none !important; mask:none !important; box-shadow:none !important; } }
+  /* MX-1 + MS-A (23 Nov 2026): a framed stage for one line + the numbered roll */
+/* ---------- MX-1 MANTRA OF THE DAY ---------- */
+.mx1{margin:6px 0 8px}
+.mx1-hero{position:relative;text-align:center;padding:44px 48px 34px;border-radius:18px;background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--k) 12%,#fff) 0%,#fff 70%);border:1px solid color-mix(in srgb,var(--k) 22%,#fff);box-shadow:0 18px 40px rgba(30,40,60,.08);overflow:hidden}
+.mx1-hero::before{content:'';position:absolute;inset:10px;border:1px solid color-mix(in srgb,var(--k) 25%,transparent);border-radius:12px;pointer-events:none}
+.mx1-eb{font:700 .6rem 'IBM Plex Mono',monospace;letter-spacing:.32em;color:var(--k)}
+.mx1-q{font:700 5.5rem/0.6 Fraunces,Georgia,serif;color:var(--k);opacity:.25;margin:22px 0 0;height:36px}
+.mx1-t{font:600 2.35rem/1.18 Fraunces,Georgia,serif;color:#16213a;max-width:640px;margin:0 auto;letter-spacing:-.01em;text-wrap:balance}
+.mx1-m{font:italic 400 1.15rem/1.5 Newsreader,Georgia,serif;color:#5a6478;margin:16px auto 0;max-width:520px}
+.mx1-s{font:700 .6rem 'IBM Plex Mono',monospace;letter-spacing:.22em;color:var(--k);text-transform:uppercase;margin-top:14px}
+.mx1-orn{color:var(--k);opacity:.5;font-size:1.2rem;margin-top:16px}
+.mx1-roll{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 28px}
+.mx1-roll li{display:flex;gap:12px;align-items:baseline;padding:9px 10px;border-bottom:1px dashed #dfe5ee;cursor:pointer;border-radius:6px}
+.mx1-roll li:hover{background:#fff}
+.mx1-hero{cursor:pointer} .mx1-hero:focus-visible{outline:2px solid var(--k);outline-offset:3px} .mx1-t p,.mx1-m p{margin:0} .mxu{margin-top:4px}
+.mx1-roll li .n{font:700 .7rem Fraunces,Georgia,serif;color:var(--k);min-width:28px}
+.mx1-roll li .t{font:400 1rem/1.35 Newsreader,Georgia,serif;color:#3c465c}
+.mx1-roll li.on{background:color-mix(in srgb,var(--k) 9%,#fff)} .mx1-roll li.on .t{color:#16213a;font-weight:600}
+.mxu-hero{--k:#5f6b85;background:radial-gradient(ellipse at 50% 0%,#e9edf4 0%,#fff 70%) !important;border-color:#dde3ec !important}
+.mxu-hero::before{border-color:#d3dae6 !important}
+.mxu-hero .mx1-t{font-style:italic;font-weight:500}
+.mxu-leaf{width:34px;height:34px;margin:18px auto 10px;opacity:.3;background:#5f6b85;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat}
+.mxu-roll li{--k:#5f6b85} .mxu-roll li .t{font-style:italic}
+.mxu-roll li.on{background:#eef1f6 !important}
+@media (max-width:640px){ .mx1-hero{padding:34px 22px 26px} .mx1-t{font-size:1.65rem} .mx1-m{font-size:1rem} .mx1-roll{grid-template-columns:1fr} }
+@media print { .mx1-roll { display:none; } .mx1-hero { box-shadow:none; } }
   /* PT-B + TC-3 (23 Nov 2026): the book page turn and the soft side chevrons */
   body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck { perspective:1600px; touch-action:pan-y; user-select:none; -webkit-user-select:none; }
   body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .mcard.turning { transform-origin:left center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
@@ -8052,7 +8078,9 @@ function renderMantras() {
     const stack = t === 'm' && !editing && !q && list.length >= 2;   // ST-1: Mantras as a stack - every mantra in it, no fold
     const fold = !stack && !editing && !q && !mmMore_[t] && list.length > cap;
     const shown = fold ? list.slice(0, cap) : list;
-    let h = '<div class="dcl-dv mt-dv' + (t === 'u' ? ' mu' : '') + '"><span class="lb">' + label + '</span><i></i><span class="ct">' + (q ? list.length + ' OF ' + full.length : full.length) + ' · ' + ct + '</span></div>';
+    const h0 = () => '<div class="dcl-dv mt-dv' + (t === 'u' ? ' mu' : '') + '"><span class="lb">' + label + '</span><i></i><span class="ct">' + (q ? list.length + ' OF ' + full.length : full.length) + ' · ' + ct + '</span></div>';
+    if (!editing && !q && list.length) return h0() + mxStage_(t, full);   // MX-1 + MS-A (23 Nov 2026): one on the stage, the rest as a numbered roll
+    let h = h0();
     const N = shown.length;
     if (stack) h += '<div class="mk-stk' + (mtSk_.all ? ' all' : '') + '" data-n="' + N + '"><div class="' + box + ' mk-deck">' + shown.map(x => card(x, full.indexOf(x))).join('') + '</div>'
       + '<div class="mk-nav"><button type="button" data-mkd="-1" aria-label="Previous">\u2039</button><span class="mk-ct"></span><button type="button" data-mkd="1" aria-label="Next">\u203A</button></div>'
@@ -8073,6 +8101,30 @@ function renderMantras() {
   wrap.innerHTML = html;
   { const st = wrap.querySelector('.mk-stk'); if (st) mtSkGo_(st, 0); }   // ST-1
   if (hadFocus) { const i = el('mmSearch'); if (i) { i.focus(); try { i.setSelectionRange(caret, caret); } catch (e) {} } }
+}
+// MX-1 + MS-A (23 Nov 2026): Mantras and Musings each put one line on a framed stage - today's by default (it turns
+// through the list day by day), any other by a tap on the numbered roll below. Mantras in their own ink and Roman numerals;
+// Musings in one quiet slate, italic, with a leaf. A tap on the stage opens the line's page. Search and Edit keep the old grid / list.
+const mxPick_ = { m: null, u: null };
+function mxRoman_(n) { if (n > 39) return String(n); const r = [['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]]; let o = ''; r.forEach(([s, v]) => { while (n >= v) { o += s; n -= v; } }); return o; }
+function mxToday_(N) { const d = new Date(Date.now() + 5.5 * 36e5); return Math.floor(d.getTime() / 864e5) % N; }
+function mxStage_(t, full) {
+  const N = full.length, today = mxToday_(N);
+  let at = mxPick_[t]; if (at == null || at >= N) at = today;
+  const x = full[at], r = x.r, iw = x.t === 'u' && x.src === 'iw';
+  const num = i => t === 'm' ? mxRoman_(i + 1) : String(i + 1);
+  const ink = t === 'm' ? M_SHADES[at % M_SHADES.length].acc : '#5f6b85';
+  const line = iw ? escHtml(r.title || '') : mtRich(r, 'text');
+  const mean = iw ? (r.body && NoteEditor.toPlain(r.body).trim() ? NoteEditor.sanitize(r.body) : '') : mtRich(r, 'meaning');
+  const src = t === 'm' && r.source ? '<div class="mx1-s">&mdash; ' + escHtml(r.source) + '</div>' : '';
+  const open = iw ? ' data-mopen="' + escHtml(String(r.id)) + '"' : ' data-mxopen="' + escHtml(String(r.id)) + '"';
+  const eb = (at === today ? 'TODAY’S ' : '') + (t === 'm' ? 'MANTRA' : 'MUSING') + ' · ' + num(at) + ' OF ' + num(N - 1 + 0);
+  const plain = y => { const v = y.t === 'u' && y.src === 'iw' ? (y.r.title || '') : NoteEditor.toPlain(String(y.r.text_html || y.r.text || '')); return escHtml(v); };
+  return '<div class="mx1' + (t === 'u' ? ' mxu' : '') + '"><div class="mx1-hero' + (t === 'u' ? ' mxu-hero' : '') + '" style="--k:' + ink + '"' + open + ' role="button" tabindex="0">'
+    + '<div class="mx1-eb">' + eb + '</div>' + (t === 'm' ? '<div class="mx1-q">“</div>' : '<div class="mxu-leaf"></div>')
+    + '<div class="mx1-t nk-content">' + line + '</div>' + (mtHasText_(mean) ? '<div class="mx1-m nk-content">' + mean + '</div>' : '') + src
+    + '<div class="mx1-orn">❦</div></div>'
+    + '<ol class="mx1-roll' + (t === 'u' ? ' mxu-roll' : '') + '">' + full.map((y, i) => '<li class="' + (i === at ? 'on' : '') + '" data-mxpick="' + t + ':' + i + '" style="--k:' + (t === 'm' ? M_SHADES[i % M_SHADES.length].acc : '#5f6b85') + '"><span class="n">' + num(i) + '</span><span class="t">' + plain(y) + '</span></li>').join('') + '</ol></div>';
 }
 // ST-1 (23 Nov 2026): Mantras as a stack, like the Why pillar page - the same tiles piled up, one on top and two peeking behind;
 // ‹ n / N › or a click on the tile's left / right edge flips, See all opens today's two-across grid. Display only; the place survives re-renders.
@@ -8301,6 +8353,8 @@ el('mantraList').addEventListener('click', e => {
     });
     return;
   }
+  const px = e.target.closest('[data-mxpick]'); if (px) { const [t, i] = px.dataset.mxpick.split(':'); mxPick_[t] = +i; renderMantras(); const st = el('mantraList').querySelector(t === 'u' ? '.mxu .mx1-hero' : '.mx1:not(.mxu) .mx1-hero'); if (st && st.getBoundingClientRect().top < 0) st.scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
+  const hx = e.target.closest('[data-mxopen]'); if (hx) { openMantra(hx.dataset.mxopen); return; }
   const mo_ = e.target.closest('[data-mtmore]'); if (mo_) { mmMore_[mo_.dataset.mtmore] = true; renderMantras(); return; }
   if (e.target.closest('#mmNewBtn')) { mmNewOpen_(); return; }
   if (e.target.closest('.mt-toolrow')) return;
