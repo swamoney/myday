@@ -1143,6 +1143,23 @@
   body:not(.editing) #mantraList .mk-all { display:block; margin:4px auto 0; border:none; background:none; font:600 .52rem var(--mono); letter-spacing:.14em; text-transform:uppercase; color:#a3abbb; cursor:pointer; }
   body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .sp0 { cursor:pointer; }
   @media print { .mk-nav, .mk-all { display:none !important; } #mantraList .mk-deck > .mcard { grid-area:auto !important; transform:none !important; opacity:1 !important; visibility:visible !important; } #mantraList .mk-deck > .mcard > * { visibility:visible !important; } #mantraList .mk-deck { display:grid !important; grid-template-columns:1fr 1fr !important; gap:14px !important; max-width:none !important; } }
+  /* FIT (23 Nov 2026): each mantra tile in the stack is its own height; the ones behind take the top tile's size */
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck { display:block !important; position:relative; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .mcard { grid-area:auto; position:absolute !important; left:10px; right:10px; top:0; bottom:18px; }
+  body:not(.editing) #mantraList .mk-stk:not(.all) .mk-deck > .mcard.sp0 { position:relative !important; left:auto; right:auto; top:auto; bottom:auto; }
+  /* MU-3a (23 Nov 2026): a musing is a scrap torn from a page, tinted with its own ink - set apart from the mantra tiles */
+  body:not(.editing) #mantraList .mcard.mt-jr { background:color-mix(in srgb, var(--mti) 8%, #fffdf8) !important; border:none !important; border-radius:0 !important; box-shadow:0 10px 12px -8px rgba(60,50,30,.16); padding-top:28px !important; }
+  /* the torn top edge is drawn in the page colour, so the timeline dot outside the scrap still shows */
+  body:not(.editing) #mantraList .mcard.mt-jr::after { content:''; position:absolute; left:0; right:0; top:-1px; height:10px; pointer-events:none; background:linear-gradient(135deg, #f0f3f9 50%, transparent 50%) 0 0/16px 10px repeat-x, linear-gradient(225deg, #f0f3f9 50%, transparent 50%) 0 0/16px 10px repeat-x; }
+  body:not(.editing) #mantraList .mt-jr .mt-bar { background:none; border-top:2px dotted var(--mti); height:0; }
+  body:not(.editing) #mantraList .mt-jr .mtext { font-style:italic; color:#1f2638 !important; }
+  body:not(.editing) #mantraList .mt-jr .mmean { color:#4a5469 !important; }
+  #mtWin.mu-pg .mt-hero { position:relative; padding:30px 30px 22px !important; margin:0 0 6px; background:color-mix(in srgb, var(--mti) 8%, #fffdf8); box-shadow:0 8px 18px rgba(60,50,30,.08); -webkit-mask:conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/14px 8px repeat-x,linear-gradient(#000 0 0) 0 7px/100% calc(100% - 7px) no-repeat; mask:conic-gradient(from 135deg at top,#0000,#000 1deg 89deg,#0000 90deg) top/14px 8px repeat-x,linear-gradient(#000 0 0) 0 7px/100% calc(100% - 7px) no-repeat; }
+  #mtWin.mu-pg .mt-eyebrow { color:var(--mti); }
+  #mtWin.mu-pg .mt-eyebrow::after { content:''; display:block; width:34px; border-top:2px dotted var(--mti); margin-top:10px; }
+  #mtWin.mu-pg .mt-line { font-style:italic; padding-right:56px; }
+  #mtWin.mu-pg .mt-hero::after { content:''; position:absolute; right:22px; top:22px; width:46px; height:46px; opacity:.22; background:var(--mti); -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat; mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><path d='M8 40 C8 18 22 6 42 6 C42 26 30 40 8 40Z'/></svg>") center/contain no-repeat; pointer-events:none; }
+  @media print { #mtWin.mu-pg .mt-hero, body #mantraList .mcard.mt-jr { -webkit-mask:none !important; mask:none !important; box-shadow:none !important; } }
   /* MM-1 (19 Nov 2026): Mantras & Musings as two shelves - a tool row, the shared gold-underlined headings, a + New line pop-up */
   .mt-toolrow { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin:16px 0 4px; }
   #mantraList .mt-search { margin-left:0; }
@@ -12404,6 +12421,12 @@ function openMantra(id) {
   const ordered = mantras.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   const no = ordered.findIndex(x => String(x.id) === String(id)) + 1;
   el('mtEyebrow').textContent = 'MY MANTRA \u00B7 N\u00BA ' + String(no).padStart(2, '0');
+  { // MU-3a (23 Nov 2026): a musing's page says so, and wears its torn-paper heading in its own ink
+    const isMu = m.kind === 'musing', w = el('mtWin'); w.classList.toggle('mu-pg', isMu);
+    if (isMu) { const U = mmAll_().filter(x => x.t === 'u'), i = U.findIndex(x => x.src !== 'iw' && String(x.r.id) === String(id));
+      w.style.setProperty('--mti', M_SHADES[Math.max(0, i) % M_SHADES.length].acc);
+      el('mtEyebrow').textContent = 'MY MUSING \u00B7 N\u00BA ' + String(Math.max(0, i) + 1).padStart(2, '0'); }
+  }
   el('mtLine').innerHTML = mtRich(m, 'text');
   el('mtMean').innerHTML = mtRich(m, 'meaning');
   el('mtSrc').textContent = m.source || '';
@@ -12411,7 +12434,7 @@ function openMantra(id) {
   mtLineBase = NoteEditor.sanitize(el('mtLine').innerHTML);
   mtMeanBase = NoteEditor.sanitize(el('mtMean').innerHTML);
   mtSrcBase = el('mtSrc').textContent;
-  el('mtTitleBar').innerHTML = 'My Mantra &middot; ' + escHtml(NoteEditor.toPlain(mtLineBase).slice(0, 60));
+  el('mtTitleBar').innerHTML = (m.kind === 'musing' ? 'My Musing' : 'My Mantra') + ' &middot; ' + escHtml(NoteEditor.toPlain(mtLineBase).slice(0, 60));
   el('mtSave').textContent = '';
   if (window.MyAlbum && userId) MyAlbum.mount({ host: el('mtAlbum'), room: 'mantra', entryId: id,
     watch: [el('mtMeanRO'), el('mtMean')], editing: false });
