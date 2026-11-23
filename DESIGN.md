@@ -173,6 +173,8 @@ Written August 2026.
 
 **UG-3 · Mantras & Musings upgrade, two colours (23 Nov 2026).** One colour per section: Mantras navy #2f4f8a (--cm), Musings violet #6a4c93 (--cu) - stage wash, frame, eyebrow, quote mark / leaf, numerals, chosen row and the section heading. Stage: corner flourishes inside the frame, line 2.6rem (musings 2.2rem), ‹ › step buttons with dots (an n / N count past 14 lines) via data-mxstep; the fleuron goes. Roll: white index cards with a coloured left edge, round number badge (filled on the chosen one), lift on hover.
 
+**GP-2 · Room above the HOW I THINK titles (24 Nov 2026).** #mnHead and #dcHead 34px, #mmHead 40px above (they sat ~6px under the colour-dot strip).
+
 **YR-B + DP-3 · Year chip on phone; Right now I… as one sentence (24 Nov 2026).** Phone: the Closed loops year (.mm2-yr) is a green pill on the line, count beside it, no rule. The room's door picker (#mmDoors only; the pop-up picker unchanged): one white sheet, a small key (ROUND - INSIDE ME · SQUARE - OUT IN THE WORLD), group labels hidden, every ending inline as a tinted pill (inside me round, out in the world 14px corners), Not sure on the next line.
 
 **LB-2 + phone line fix · Open loops glow (24 Nov 2026).** Open loop cards: no edge, 22px radius, a radial glow of the door colour from the side facing the line, title 1.25rem, the next-step chip becomes an arrow link with a dashed underline, age in the door colour. Phone: the brainwave line is a straight 2px thread. Fix: the zigzag rules were also catching the "Right now I…" room (it also uses .mm2-in) and drew the line through it - now scoped to .mm2-closed .mm2-in.
