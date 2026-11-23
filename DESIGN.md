@@ -173,6 +173,8 @@ Written August 2026.
 
 **UG-3 · Mantras & Musings upgrade, two colours (23 Nov 2026).** One colour per section: Mantras navy #2f4f8a (--cm), Musings violet #6a4c93 (--cu) - stage wash, frame, eyebrow, quote mark / leaf, numerals, chosen row and the section heading. Stage: corner flourishes inside the frame, line 2.6rem (musings 2.2rem), ‹ › step buttons with dots (an n / N count past 14 lines) via data-mxstep; the fleuron goes. Roll: white index cards with a coloured left edge, round number badge (filled on the chosen one), lift on hover.
 
+**SZ-A · Mantras & Musings scaled down (23 Nov 2026).** The UG-3 stage and roll were too big. Stage padding 26/34/20 (phone 20/18/16), line 1.55rem mantras / 1.4rem musings (phone 1.3 / 1.2), quote mark 3.2rem, leaf 22px, step buttons 26px; roll cards 8px 12px, text .95rem, number badge 22px.
+
 **BT-1 + Today-only handwriting (21 Nov 2026).** why.html only, no SQL. The dream board's "The life I'm building" is quieter: 1.15rem, weight 500, slate #5a6680 (was 1.9rem navy), with "— one goal at a time —" kept above. In My Priority only Today's to-do keeps the sticky-note handwriting; tasks in the four quadrants are back in the normal font.
 
 **SG-1 + TS-1 removed (21 Nov 2026).** why.html only, no SQL. SG-1: when the long game has a single goal, the dream board's hero tile sits in the middle (columns 2-5 of 6) instead of the left two-thirds; phone unchanged. My Priority's faint time sheet (TS-1) is removed - element, image and glow gone - and the quadrant cards are solid white again.
