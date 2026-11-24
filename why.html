@@ -17079,6 +17079,13 @@ boot();
 .ltD-shelf .books::-webkit-scrollbar{height:6px}.ltD-shelf .books::-webkit-scrollbar-thumb{background:#d8c49c;border-radius:3px}
 .bk2:focus{outline:none} .bk2:focus-visible{box-shadow:0 0 0 3px #16264d}
 body.av-trip .toolbar:has(#searchInput){display:none !important}
+  /* BS-1 + DC-0 (25 Nov 2026): shelf starts at the first book, no decade bookends, current chapter stands straight, open book ringed not lifted, roomier, titles max two lines */
+  .ltD-shelf .books{justify-content:flex-start !important;gap:10px !important;padding-left:14px;padding-right:14px}
+  .ltD-shelf .books > :first-child{margin-left:auto} .ltD-shelf .books > :last-child{margin-right:auto}
+  .bk2.live,.bk2.live.sel{transform:none} .bk2.live:hover{transform:translateY(-6px)}
+  .bk2.sel{transform:none;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--k),0 8px 12px rgba(22,38,77,.22)}
+  .bk2:hover{transform:translateY(-6px)}
+  .bk2 .tt{overflow:hidden;max-height:170px;font-size:.88rem;line-height:1.15;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:calc(var(--wd) - 14px)}
   /* CP-1 desktop + CP-3 phone (25 Nov 2026): a chapter's page as its book */
   .cp-spine,.cp-facts{display:none}
   .rd-sticky.chbk::before,.rd-sticky.chbk::after{display:none !important}
@@ -17998,7 +18005,6 @@ function renderTimeline(list, wrap) {
     const decs = {}; sorted.forEach(r => { const d = r.years_from ? Math.floor(r.years_from / 10) * 10 : 'none'; (decs[d] = decs[d] || []).push(r); });
     let sh = '<div class="ltD-room"><div class="ltD-shelf"><div class="books">';
     Object.keys(decs).sort().forEach(d => {
-      sh += '<div class="end"><span>' + (d === 'none' ? 'undated' : d + 's') + '</span></div>';
       decs[d].forEach(r => {
         const i = idx[r.id] || 0, live = r.years_from && !r.years_to, n = r.years_from ? Math.max(1, (r.years_to || nowY) - r.years_from) : 2;
         sh += '<div class="bk2' + (live ? ' live' : '') + '" data-lt="' + escHtml(r.id) + '" role="button" tabindex="0" style="--k:' + CH_INK[i % CH_INK.length] + ';--wd:' + Math.min(130, 46 + n * 6) + 'px;--h:' + (250 + (i * 37 % 40)) + 'px">'
