@@ -1525,6 +1525,14 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
   .ci-nm .tx small{text-transform:none !important;letter-spacing:.02em !important;font:500 .66rem var(--sans) !important;color:#8a93a8 !important;margin:3px 0 0 0 !important;gap:5px !important}
   .ci-nm .tx small::before{width:5px !important;height:5px !important}
   .ci-nm .tx small + small{margin-left:8px !important}
+  /* KP-3c (25 Nov 2026): Keepers vs Want to try - a tab on the top edge of each object */
+  .ztab{display:inline-flex;align-items:center;gap:5px;position:absolute;left:50%;top:-13px;transform:translateX(-50%);z-index:3;pointer-events:none;font:800 .55rem var(--mono);letter-spacing:.18em;border-radius:999px;padding:6px 12px;white-space:nowrap;background:#fff;color:#8a93a8;border:1.5px dashed #b3bacb}
+  .ztab.on{background:var(--k);color:#fff;border:0;box-shadow:0 4px 10px rgba(22,38,77,.18)}
+  .ztab svg{width:12px;height:12px}
+  .zrc .ztab{top:8px} .zrc[data-st="keeper"] .zrc-h,.zrc[data-st="not_yet"] .zrc-h{margin-top:24px}
+  .zcs .ztab{top:4px}
+  .ztk .ztab{top:6px;left:110px} .ztk[data-st="keeper"] .ztk-a,.ztk[data-st="not_yet"] .ztk-a{margin-top:22px}
+  .zky .ztab{top:-12px}
   /* EX-2 (25 Nov 2026): My Explore List - things you bring home (bill, coaster, key tag, ticket) */
 #plChips,#plCount,#secExplore .pl-tb{display:none !important}
 .ex-tools{display:flex;justify-content:flex-end;margin:26px 0 0}
@@ -12794,8 +12802,12 @@ function renderPlaces() {
     const sty = PL_STAY_TYPES[p.stay_type] || '';
     const acts = '<div class="zact"><button class="zmap" type="button" data-pmap="' + p.id + '" aria-label="Open on the map">' + pin + 'MAP</button>'
       + (st === 'keeper' ? '<button class="p-went px-went" type="button" data-pwent="' + p.id + '">+ Went today</button>' : '') + '</div>';
-    const del = '<button class="p-x zx" data-px="' + p.id + '" type="button" aria-label="Delete">&times;</button>';
-    const base = ' data-place="' + p.id + '" role="button" tabindex="0" style="--k:' + hue.acc + ';--w:' + hue.c2 + '"';
+    const tick = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    // KP-3c (25 Nov 2026): a tab on the top edge - solid "KEEPER · n×" for a keeper, hollow dashed "TO TRY" for one still to try
+    const del = '<button class="p-x zx" data-px="' + p.id + '" type="button" aria-label="Delete">&times;</button>'
+      + (st === 'keeper' ? '<span class="ztab on">' + tick + 'KEEPER' + (S.times ? ' \u00B7 ' + S.times + '\u00D7' : '') + '</span>'
+        : st === 'not_yet' ? '<span class="ztab">\u25CB TO TRY</span>' : '');
+    const base = ' data-st="' + st + '" data-place="' + p.id + '" role="button" tabindex="0" style="--k:' + hue.acc + ';--w:' + hue.c2 + '"';
     if (k === 'eat') return '<div class="zob zrc"' + base + '>' + del + '<div class="zrc-h">' + ic(k) + '<span>' + (ct || 'RESTAURANT').toUpperCase() + '</span></div><div class="zrc-n">' + nm + '</div><div class="zrc-d"></div>'
       + (fv ? '<div class="zrc-r"><span>★ ' + fv + '</span><span>1</span></div>' : '') + (nt ? '<div class="zrc-nt">' + nt + '</div>' : '')
       + '<div class="zrc-d"></div><div class="zrc-r tot"><span>' + (st === 'keeper' ? 'VISITS' : st === 'been' ? 'LAST' : 'STATUS') + '</span><span>' + escHtml(mark).toUpperCase() + '</span></div><div class="zrc-th">thank you, come again</div>' + acts + '</div>';
