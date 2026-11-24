@@ -8,6 +8,18 @@ Written August 2026.
 
 ---
 
+## NC-1 · New chapter opens as a blank-book pop-up (25 Nov 2026, why.html, inner page)
+- Three buttons now open the pop-up #ncPop instead of the old inline form (#chAsk): "+ New chapter", the shelf's empty ghost slot, and "Add a chapter" on an empty shelf.
+- The pop-up is an open book:
+  - **Left page:** "CHAPTER N" with the next number, and the new book's spine. The spine builds as you type: the name runs down it, the years sit at the foot ("now" when still living it), and it takes the colour you pick.
+  - **Right page:** its name (required), the years, a "✎ still living it" toggle (which clears and greys out the end year), one line beneath it, and a colour from CH_INK. The colour defaults to the next one in order.
+  - "Put it on the shelf →" saves through quickInsert('experience', …) with the same columns as before (title, years_from, years_to, essence).
+  - The pop-up then closes, the shelf redraws, the new book is selected, and its open spread scrolls to the middle of the screen and glows (the same as SC-2).
+- On phone the two pages stack, with the spine on top.
+- Keys: Esc or a tap outside cancels; Enter saves. An end year before the start year is refused with a toast.
+- **Colour storage:** the chosen colour is saved in user_prefs.prefs.ch_ink { chapterId: index }. This is a read-merge-write, so other prefs are kept, and no SQL was needed. chK_(r, i) returns that pick and otherwise falls back to the order colour. It is used by the shelf books, the open spread, the chapter page (chBookPaint_) and chInk_. loadChInk_ runs once when the timeline first draws.
+- The old #chAsk markup and the chGo handler are left in place, unused.
+
 ## PH-HEAD + PH-Q · A lived dream's photo sits in its heading; sharper covers (7 Nov 2026, why.html + attachments.js)
 - why.html: on a lived dream the poster (#dcPoster) moves into the heading plate. It goes into #dmCvSlot under the line looking back, where "Add a photo from it" sits (dmPlacePoster_). It returns home before the flow is redrawn (dmPosterHome_) and on every decision page.
 - Inside the heading it is a white frame (.dc-poster.inhead): 10px mat, sizes M/L/XL 220/300/420px (phone 150/200/270). The Edit tools (change, fill/fit, size, caption, remove, tap-to-centre) are unchanged.
