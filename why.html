@@ -16688,6 +16688,30 @@ boot();
     .tp-pic i { height:190px; } .tp-pic[data-size="m"] i { height:150px; } .tp-pic[data-size="xl"] i { height:260px; }
     body.rd-trip .rd-sticky.plate .rd-mark .tpc-post { width:64px; height:72px; } body.rd-trip .rd-sticky.plate .rd-mark .tpc-post b { font-size:1.4rem; }
   }
+  /* PG-1 (24 Nov 2026): trip page heading as a luggage tag (matches the TR-2 index) */
+  .pg-eye,.pg-band,.pg-code,.pg-bar{display:none}
+  .rd-sticky.plate.tagpg{background:linear-gradient(#f9f1e2,#f3e7cf) !important;border:1px solid #e0cfae !important;border-radius:8px 18px 18px 8px !important;box-shadow:0 14px 30px rgba(22,38,77,.10) !important;
+    clip-path:polygon(34px 0,100% 0,100% 100%,34px 100%,0 calc(100% - 34px),0 34px);padding-left:120px !important;padding-right:28px !important;position:relative}
+  .rd-sticky.plate.tagpg::before,.rd-sticky.plate.tagpg::after{display:none !important}
+  .rd-sticky.plate.tagpg .rd-mark{display:none !important}
+  .tagpg > .pg-eye{display:block;position:absolute;left:20px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;background:#f4f6fa;box-shadow:inset 0 1px 3px rgba(0,0,0,.25),0 0 0 4px #d8c49c}
+  .tagpg > .pg-band{display:flex;align-items:center;justify-content:center;position:absolute;left:56px;top:0;bottom:0;width:34px;background:var(--co);color:#fff;font:700 .6rem var(--mono);letter-spacing:.28em;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap}
+  .tagpg .pg-code{display:block;font:900 3.4rem 'Archivo Black','Arial Black',Impact,sans-serif;letter-spacing:.04em;color:#2F6B8A;line-height:.9;margin:4px 0 12px}
+  .tagpg .reader-kind .rk-years{color:#3d4866}
+  .tagpg .reader-sig{background:#d8c49c !important;opacity:.7}
+  .tagpg .rd-where{color:#8a7a5c !important;border-color:#d8c49c !important}
+  .tagpg .reader-lead{border-top-color:#d8c49c !important;color:#4a4436 !important}
+  .tagpg .reader-h1,.tagpg .reader-lead,.tagpg .reader-kind{padding-right:0 !important;max-width:none !important}
+  .tagpg .pg-bar{display:block;height:20px;margin-top:16px;width:min(320px,60%);background:repeating-linear-gradient(90deg,#3d4866 0 2px,transparent 2px 4px,#3d4866 4px 5px,transparent 5px 8px,#3d4866 8px 11px,transparent 11px 12px);opacity:.4}
+  body.rd-editing .tagpg .pg-bar{display:none}
+  @media (max-width:640px){
+    .rd-sticky.plate.tagpg{padding-left:78px !important;padding-right:14px !important;clip-path:polygon(24px 0,100% 0,100% 100%,24px 100%,0 calc(100% - 24px),0 24px)}
+    .tagpg > .pg-eye{left:12px;width:14px;height:14px;margin-top:-7px}
+    .tagpg > .pg-band{left:36px;width:26px;font-size:.5rem}
+    .tagpg .pg-code{font-size:2.5rem}
+    body.rd-trip .rd-sticky.plate.tagpg .reader-h1{padding-right:0 !important}
+    .tagpg .rd-meta-in,.tagpg #rdToolbar{max-width:none !important;width:100% !important;box-sizing:border-box}
+  }
   /* TR-2 (24 Nov 2026): My Trips index - luggage tags on a dashed line */
 .tr-tools{display:flex;justify-content:flex-end;margin:26px 0 0}
 .tr-new{background:#2F6B8A !important;border-color:#2F6B8A !important}
@@ -17665,6 +17689,18 @@ async function tpPaintCover_(r) {
   box.classList.remove('hidden');
   tpWiden_();
 }
+// PG-1 (24 Nov 2026): a trip page's heading as its luggage tag - eyelet, who-with band, three-letter code, barcode
+function tpTagPaint_(r) {
+  const st = el('rdSticky'); if (!st) return;
+  const co = r.company && TRIP_COMPANY[r.company] ? r.company : '';
+  st.classList.add('tagpg');
+  st.style.setProperty('--co', co ? TRIP_COMPANY_INK[co] : '#2F6B8A');
+  let eye = st.querySelector(':scope > .pg-eye'); if (!eye) { st.insertAdjacentHTML('afterbegin', '<span class="pg-eye" aria-hidden="true"></span><div class="pg-band" aria-hidden="true"></div>'); }
+  st.querySelector(':scope > .pg-band').textContent = co ? TRIP_COMPANY[co] : 'TRIP';
+  let cd = st.querySelector('.pg-code'); if (!cd) { el('readerKind').insertAdjacentHTML('beforebegin', '<div class="pg-code" aria-hidden="true"></div>'); cd = st.querySelector('.pg-code'); }
+  cd.textContent = tripCode_(r);
+  if (!st.querySelector('.pg-bar')) el('readerLead').insertAdjacentHTML('afterend', '<div class="pg-bar" aria-hidden="true"></div>');
+}
 // PH-ALL: on a phone the photo runs the plate's full width once it sits below the stamp
 function tpWiden_() {
   const box = el('tpCover'), st = el('rdSticky'), mk = el('rdMark'); if (!box || !st) return;
@@ -18316,6 +18352,7 @@ function openReader(id, keepNav) {
       el('rdSticky').classList.remove('stamped');
       el('rdSticky').style.setProperty('--pa', sh); el('rdSticky').style.setProperty('--pw1', sh + '0d'); el('rdSticky').style.setProperty('--pw', sh + '26'); el('rdSticky').style.setProperty('--pb', sh + '40');
       el('readerKind').style.color = sh;
+      tpTagPaint_(r);   // PG-1 (24 Nov 2026): the heading is the trip's luggage tag, as in the index
       tpPaintCover_(r);   // TP-HEAD (7 Nov 2026): the photo inside the heading, as on a lived dream
     } else if (dk === 'diary' || dk === 'writing') {
       // PG-H2 (Nov 2026): the page wears its index row's stamp on a plate in the room's colour -
@@ -18351,6 +18388,7 @@ function openReader(id, keepNav) {
       el('rdSticky').classList.remove('ch', 'plate', 'stamped', 'pl-left');
       el('readerKind').style.color = '';
     }
+    if (dk !== 'trip') el('rdSticky').classList.remove('tagpg');
     if (dk !== 'diary') el('rdSticky').classList.remove('pl-left');
     if (dk !== 'writing') el('rdSticky').classList.remove('pl-wr');
   })();
