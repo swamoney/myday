@@ -17086,6 +17086,8 @@ body.av-trip .toolbar:has(#searchInput){display:none !important}
   .bk2.sel{transform:none;box-shadow:0 0 0 3px #fff,0 0 0 5px var(--k),0 8px 12px rgba(22,38,77,.22)}
   .bk2:hover{transform:translateY(-6px)}
   .bk2 .tt{overflow:hidden;max-height:170px;font-size:.88rem;line-height:1.15;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;max-width:calc(var(--wd) - 14px)}
+  @keyframes spGlow{0%{box-shadow:0 0 0 0 var(--k),0 18px 40px rgba(22,38,77,.12)}40%{box-shadow:0 0 0 6px color-mix(in srgb,var(--k) 35%,transparent),0 18px 40px rgba(22,38,77,.12)}100%{box-shadow:0 18px 40px rgba(22,38,77,.12)}}
+  .ltD-open.glow .sp{animation:spGlow 1.4s ease}
   /* CP-1 desktop + CP-3 phone (25 Nov 2026): a chapter's page as its book */
   .cp-spine,.cp-facts{display:none}
   .rd-sticky.chbk::before,.rd-sticky.chbk::after{display:none !important}
@@ -18042,7 +18044,12 @@ function renderTimeline(list, wrap) {
     '<div class="by-row">' + (birthYear() ? 'birth year ' + birthYear() + ' \u00b7 ' : '') +
       '<span class="by-set" id="bySet">' + (birthYear() ? 'change' : 'set birth year for age labels') + '</span></div>';
   wrap.innerHTML = html;
-  wrap.querySelectorAll('[data-lt]').forEach(x => x.addEventListener('click', () => window.__ltOpen(x.dataset.lt)));
+  // SC-2 (25 Nov 2026): tapping a book scrolls to its open spread (middle of the screen) and the spread glows once in the chapter's ink
+  wrap.querySelectorAll('[data-lt]').forEach(x => x.addEventListener('click', () => {
+    window.__ltOpen(x.dataset.lt);
+    const t = el('ltOpen'); t.classList.remove('glow'); void t.offsetWidth; t.classList.add('glow');
+    t.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }));
   if (list.length && window.__ltOpen) window.__ltOpen(null);
   const ltAdd = () => { el('chAsk').classList.remove('hidden'); el('chName').focus(); el('chAsk').scrollIntoView({ block:'center', behavior:'smooth' }); };
   if (el('ltNew')) el('ltNew').addEventListener('click', ltAdd);
