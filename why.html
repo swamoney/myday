@@ -1525,6 +1525,35 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
   .ci-nm .tx small{text-transform:none !important;letter-spacing:.02em !important;font:500 .66rem var(--sans) !important;color:#8a93a8 !important;margin:3px 0 0 0 !important;gap:5px !important}
   .ci-nm .tx small::before{width:5px !important;height:5px !important}
   .ci-nm .tx small + small{margin-left:8px !important}
+  /* AP-1 (25 Nov 2026): Add a place - tap, don't type */
+  #placeModal .ap1{max-width:560px;border-radius:22px}
+  .ap-hide{position:absolute !important;width:1px;height:1px;opacity:0;pointer-events:none}
+  .ap-lab{font:700 .55rem var(--mono);letter-spacing:.2em;color:#8a93a8;margin:16px 0 7px}
+  .ap-kinds{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .ap-kd{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border:1.5px solid #e3e7ef;border-radius:14px;background:#fff;cursor:pointer;font:600 .7rem var(--sans,inherit);color:#5a6478;transition:all .15s}
+  .ap-kd svg{width:22px;height:22px;color:var(--c)}
+  .ap-kd.on{border-color:var(--c);background:var(--cw);color:#16264d;box-shadow:0 4px 12px rgba(22,38,77,.08)}
+  .ap-name{width:100%;box-sizing:border-box;font:700 1.35rem var(--serif);border:0;border-bottom:2px solid #e3e7ef;padding:8px 2px;color:#16264d;background:none;outline:none}
+  .ap-name:focus{border-bottom-color:var(--k,#2f6f6a)} .ap-name::placeholder{color:#b3bacb}
+  .ap-chips,#placeModal .pl-stay-chips{display:flex;gap:7px;flex-wrap:wrap}
+  .ap-chip,#placeModal .pl-stay-chips button{font:500 .82rem var(--sans,inherit);color:#4a5570;background:#f1f3f7;border:1.5px solid transparent;border-radius:999px;padding:8px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+  .ap-chip svg{width:12px;height:12px;color:#9aa3b8}
+  .ap-chip.on,#placeModal .pl-stay-chips button.on{background:#fff;border-color:var(--k,#2f6f6a);color:var(--k,#2f6f6a)}
+  .ap-new input{border:0;background:none;font:inherit;width:110px;outline:none;color:#16264d;padding:0}
+  .ap-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .ap-sb{border:1.5px solid #e3e7ef;background:#fff;border-radius:14px;padding:11px 8px;cursor:pointer;text-align:center;font:600 .84rem var(--sans,inherit);color:#5a6478}
+  .ap-sb small{display:block;font:500 .66rem var(--sans,inherit);color:#9aa3b8;margin-top:2px}
+  .ap-sb.on{border-color:var(--k,#2f6f6a);background:var(--w,#eef6f5);color:#16264d}
+  .ap-sb[data-aps="keeper"].on{background:var(--k,#2f6f6a);color:#fff} .ap-sb[data-aps="keeper"].on small{color:rgba(255,255,255,.85)}
+  .ap-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ap-row2 .fld,#fVisitsWrap{margin:0}
+  .ap-inp{width:100%;box-sizing:border-box;border:1.5px solid #e3e7ef;border-radius:12px;padding:11px 13px;font:.95rem var(--sans,inherit);color:#16264d;background:#fff}
+  #placeModal .ap-inp{border:1.5px solid #e3e7ef !important;background:#fff !important;border-radius:12px !important} #placeModal .ap-inp:focus{border-color:var(--k,#2f6f6a) !important;outline:none}
+  .ap-more{margin-top:16px;border-top:1px dashed #e3e7ef;padding-top:12px}
+  .ap-more summary{cursor:pointer;font:600 .8rem var(--sans,inherit);color:#5a6478;list-style:none} .ap-more summary::-webkit-details-marker{display:none}
+  .ap-more summary::before{content:'+ ';color:var(--k,#2f6f6a)} .ap-more[open] summary::before{content:'\2212  '}
+  .ap-act{margin-top:22px} .ap-act #placeSave{flex:1} .ap-act #placeDel{margin-right:auto}
+  @media (max-width:640px){ .ap-kinds{gap:6px} .ap-kd{font-size:.58rem;padding:10px 2px} .ap-kd svg{width:18px;height:18px} .ap-row2{grid-template-columns:1fr} }
   /* CT-1 + SF-3 (25 Nov 2026): city soft pills and a SHOW line of tick boxes on the Explore List */
   .ex-cities.ct1{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
   .ex-cities.ct1 button{display:inline-flex;align-items:center;gap:6px;font:500 .82rem var(--sans,inherit);letter-spacing:0;text-transform:none;color:#4a5570;background:#f1f3f7;border:1px solid transparent;border-radius:999px;padding:9px 16px;cursor:pointer}
@@ -5928,44 +5957,43 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
 </div>
 
 <div class="modal-overlay hidden" id="placeModal">
-  <div class="modal">
+  <!-- AP-1 (25 Nov 2026): tap, don't type - kind tiles, name, city pills, three status buttons; extras appear only when they matter -->
+  <div class="modal ap1">
     <div class="modal-title" id="placeModalTitle">Add a place</div>
     <div class="modal-sub">somewhere worth going</div>
-    <div class="fld"><label>Name</label><input id="fPlace" placeholder="e.g. Vohuman Cafe"></div>
-    <div class="fld"><label>City</label><input id="fCity" placeholder="e.g. Pune" list="plCityList">
-      <datalist id="plCityList"></datalist>
+    <div class="ap-lab">WHAT KIND</div>
+    <div class="ap-kinds" id="fKindTiles"></div>
+    <select id="fKind" class="ap-hide" aria-hidden="true" tabindex="-1">
+      <option value="eat">Restaurant</option><option value="pub">Pub &amp; bar</option><option value="stay">Stay</option><option value="see">Sight</option><option value="event">Event</option>
+    </select>
+    <div class="ap-lab">NAME</div>
+    <input id="fPlace" class="ap-name" placeholder="e.g. Vohuman Cafe">
+    <div class="fld" id="fStayWrap"><div class="ap-lab">TYPE OF STAY</div><div class="pl-stay-chips ap-chips" id="fStayChips"></div></div>
+    <div class="ap-lab">CITY</div>
+    <div class="ap-chips" id="fCityPills"></div>
+    <input id="fCity" class="ap-hide" aria-hidden="true" tabindex="-1">
+    <datalist id="plCityList"></datalist>
+    <div class="ap-lab">WHERE IT STANDS</div>
+    <div class="ap-st" id="fStatusBtns"></div>
+    <select id="fPlaceStatus" class="ap-hide" aria-hidden="true" tabindex="-1">
+      <option value="not_yet">Not yet</option><option value="been">Been</option><option value="keeper">Keeper</option>
+    </select>
+    <div class="ap-row2">
+      <div class="fld" id="fLastWrap"><div class="ap-lab">LAST WENT</div><input type="date" id="fLastOn" class="ap-inp"></div>
+      <div class="fld" id="fFaveWrap"><div class="ap-lab">&#9733; WHAT YOU ORDER</div><input id="fFave" class="ap-inp" placeholder="e.g. bun maska"></div>
     </div>
-    <div class="fld"><label>Kind</label>
-      <select id="fKind">
-        <option value="eat">Restaurant</option>
-        <option value="pub">Pub &amp; bar</option>
-        <option value="stay">Stay</option>
-        <option value="see">Sight</option>
-        <option value="event">Event</option>
-      </select>
-    </div>
-    <div class="fld" id="fStayWrap"><label>Stay type</label><div class="pl-stay-chips" id="fStayChips"></div></div>
-    <div class="fld"><label>Note (optional)</label><input id="fPlaceNote" placeholder="e.g. go before 9, no parking"></div>
-    <div class="fld"><label>Map link (optional)</label><input id="fMapUrl" type="url" inputmode="url" placeholder="paste from Google Maps &rarr; Share">
-      <div class="fld-hint" id="fMapHint">Leave empty and the pin searches the name and city.</div></div>
-    <div class="fld"><label>Where it stands</label>
-      <select id="fPlaceStatus">
-        <option value="not_yet">Not yet &mdash; still to try</option>
-        <option value="been">Been</option>
-        <option value="keeper">Keeper &mdash; worth returning to</option>
-      </select>
-    </div>
-    <div class="fld pl-gold" id="fFaveWrap"><label>&#9733; What's good there</label><input id="fFave" placeholder="e.g. the cheese omelette, nothing else"></div>
-    <div class="fld pl-gold" id="fVisitsWrap"><label>Earlier visits, undated</label>
+    <div class="fld" id="fVisitsWrap"><div class="ap-lab">EARLIER VISITS, UNDATED</div>
       <div class="pl-step"><button type="button" id="fVisitsDn" aria-label="One fewer">&minus;</button><input type="number" id="fVisits" min="0" step="1" inputmode="numeric" placeholder="&mdash;"><button type="button" id="fVisitsUp" aria-label="One more">+</button></div>
     </div>
-    <div class="fld" id="fLastWrap"><label>Last went</label><input type="date" id="fLastOn">
-      <div class="fld-hint">A new date here becomes a visit line on the place's page.</div></div>
-    <div class="modal-actions">
+    <details class="ap-more" id="fApMore"><summary>Note and map link</summary>
+      <div class="ap-lab">NOTE</div><input id="fPlaceNote" class="ap-inp" placeholder="e.g. go before 9, no parking">
+      <div class="ap-lab">MAP LINK</div><input id="fMapUrl" class="ap-inp" type="url" inputmode="url" placeholder="paste from Google Maps &rarr; Share">
+      <div class="fld-hint" id="fMapHint">Leave empty and the pin searches the name and city.</div>
+    </details>
+    <div class="modal-actions ap-act">
       <button class="btn-danger hidden" id="placeDel" type="button">Delete</button>
-      <span style="flex:1"></span>
       <button class="btn-ghost" id="placeCancel" type="button">Cancel</button>
-      <button class="btn-primary" id="placeSave" type="button">Save</button>
+      <button class="btn-primary" id="placeSave" type="button">Add place</button>
     </div>
   </div>
 </div>
@@ -12938,10 +12966,34 @@ function openPlaceModal(id) {
   el('fVisits').value = p && p.visits_before != null ? p.visits_before : '';
   el('plCityList').innerHTML = plCities().map(c => '<option value="' + escHtml(c) + '"></option>').join('');
   el('placeDel').classList.toggle('hidden', !p);
+  el('placeSave').textContent = p ? 'Save' : 'Add place';
+  el('fApMore').open = !!(p && ((p.note || '').trim() || (p.map_url || '').trim()));
   plPaintStay_();
   plToggleDate_();
+  plApPaint_();
   el('placeModal').classList.remove('hidden');
+  if (!p) setTimeout(() => el('fPlace').focus(), 60);
 }
+// AP-1: the tiles, pills and buttons write into the plain fields the save code already reads
+function plApPaint_() {
+  const kind = el('fKind').value, st = el('fPlaceStatus').value, city = el('fCity').value.trim();
+  const pal = PL_KIND_HUES[kind] || PL_KIND_HUES.eat;
+  el('placeModal').style.setProperty('--k', pal.acc); el('placeModal').style.setProperty('--w', pal.c2);
+  const LB = { eat:'Restaurant', pub:'Bar', stay:'Stay', see:'Sight', event:'Event' };
+  el('fKindTiles').innerHTML = Object.keys(PL_KINDS).map(k => '<button type="button" class="ap-kd' + (k === kind ? ' on' : '') + '" data-apk="' + k + '" style="--c:' + PL_KIND_HUES[k].acc + ';--cw:' + PL_KIND_HUES[k].c2 + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + PL_KINDS[k].icon + '</svg>' + LB[k] + '</button>').join('');
+  const cs = plCities(), known = cs.some(c => c.toLowerCase() === city.toLowerCase());
+  const pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
+  el('fCityPills').innerHTML = cs.map(c => '<button type="button" class="ap-chip' + (c.toLowerCase() === city.toLowerCase() ? ' on' : '') + '" data-apc="' + escHtml(c) + '">' + pin + escHtml(c) + '</button>').join('')
+    + '<span class="ap-chip ap-new' + (city && !known ? ' on' : '') + '">+ <input id="fCityNew" list="plCityList" placeholder="new city" value="' + (city && !known ? escHtml(city) : '') + '"></span>';
+  const ST = [['not_yet', '\u25CB To try', 'still on the list'], ['been', 'Been', 'went once'], ['keeper', '\u2713 Keeper', 'I go back']];
+  el('fStatusBtns').innerHTML = ST.map(x => '<button type="button" class="ap-sb' + (x[0] === st ? ' on' : '') + '" data-aps="' + x[0] + '">' + x[1] + '<small>' + x[2] + '</small></button>').join('');
+}
+el('fKindTiles').addEventListener('click', e => { const b = e.target.closest('[data-apk]'); if (!b) return; el('fKind').value = b.dataset.apk; plPaintStay_(); plApPaint_(); });
+el('fStatusBtns').addEventListener('click', e => { const b = e.target.closest('[data-aps]'); if (!b) return; el('fPlaceStatus').value = b.dataset.aps; plToggleDate_(); plApPaint_(); });
+el('fCityPills').addEventListener('click', e => { const b = e.target.closest('[data-apc]'); if (!b) return; el('fCity').value = el('fCity').value === b.dataset.apc ? '' : b.dataset.apc; plApPaint_(); });
+el('fCityPills').addEventListener('input', e => { if (e.target.id !== 'fCityNew') return; el('fCity').value = e.target.value;
+  el('fCityPills').querySelectorAll('[data-apc]').forEach(x => x.classList.toggle('on', x.dataset.apc.toLowerCase() === e.target.value.trim().toLowerCase()));
+  e.target.parentElement.classList.toggle('on', !!e.target.value.trim()); });
 function closePlaceModal() { el('placeModal').classList.add('hidden'); editingPlace = null; }
 function plPaintStay_() {
   const isStay = el('fKind').value === 'stay';
