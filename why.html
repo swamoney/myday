@@ -1475,6 +1475,7 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
   .ci-seat{cursor:pointer;transition:transform .2s;transform-box:fill-box;transform-origin:center}
   .ci-seat:hover{transform:scale(1.12)}
   .ci-seat:focus{outline:none} .ci-seat:focus-visible circle:nth-of-type(2){stroke:#16264d;stroke-width:3}
+  .ci-seat text{paint-order:stroke;stroke:rgba(22,38,77,.25);stroke-width:1.2px}   /* MT-1: initial stays readable across a split seat */
   .ci-more{display:inline-block;margin-top:-4px;font:700 .55rem var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--a);background:#fff;border:1px dashed var(--a);border-radius:999px;padding:4px 10px;opacity:.85}
   .ci-more.full{border-style:solid}
   .ci-card{flex:1;min-width:0;position:relative;background:linear-gradient(#fffdf8,#fff);border:1px solid #e8e1d2;border-radius:14px;padding:16px 18px 14px;box-shadow:0 8px 22px rgba(22,38,77,.07)}
@@ -9111,8 +9112,13 @@ function renderCircleIndex_(wrap) {
       + '<text x="120" y="145" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="9.5" letter-spacing="1" fill="#7a8399">' + (b.cap > 0 ? n + ' OF ' + b.cap + ' SEATS' : n + (n === 1 ? ' GUEST' : ' GUESTS')) + '</text>';
     for (let i = 0; i < S; i++) {
       const t = i / S * Math.PI * 2 - Math.PI / 2, x = (cx + R * Math.cos(t)).toFixed(1), y = (cy + R * Math.sin(t)).toFixed(1), y2 = (cy + R * Math.sin(t) + 4.5).toFixed(1), p = seatsP[i];
-      if (p) { const t1 = clTags(p.tag)[0], k = [t1 || '', t1 ? tagColour(t1).ink : '#8a93a8'];
-        sv += '<g class="ci-seat" data-cseat="' + p.id + '" role="button" tabindex="0"><title>' + escHtml(p.name || '') + (k[0] ? ' \u00B7 ' + escHtml(k[0]) : '') + '</title><circle cx="' + x + '" cy="' + (+y + 2) + '" r="17" fill="#16264d" opacity=".08"/><circle cx="' + x + '" cy="' + y + '" r="17" fill="#fff" stroke="' + k[1] + '" stroke-width="2"/><circle cx="' + x + '" cy="' + y + '" r="12.5" fill="' + k[1] + '"/><text x="' + x + '" y="' + y2 + '" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="12.5" font-weight="700" fill="#fff">' + ini(p) + '</text></g>';
+      if (p) { const tg = clTags(p.tag), a = tg[0] ? tagColour(tg[0]).ink : '#8a93a8', b2 = tg[1] ? tagColour(tg[1]).ink : '';
+        // MT-1 (24 Nov 2026): two or more tags split the seat - left half the first tag, right half the second
+        const X = +x, Y = +y, arc = (r, sw, col, w) => '<path d="M' + X + ' ' + (Y - r) + ' A' + r + ' ' + r + ' 0 0 ' + sw + ' ' + X + ' ' + (Y + r) + '" fill="none" stroke="' + col + '" stroke-width="' + w + '"/>',
+              half = (r, sw, col) => '<path d="M' + X + ' ' + (Y - r) + ' A' + r + ' ' + r + ' 0 0 ' + sw + ' ' + X + ' ' + (Y + r) + ' Z" fill="' + col + '"/>';
+        const body = b2 ? '<circle cx="' + x + '" cy="' + y + '" r="17" fill="#fff"/>' + arc(16, 0, a, 2.2) + arc(16, 1, b2, 2.2) + half(12.5, 0, a) + half(12.5, 1, b2)
+                        : '<circle cx="' + x + '" cy="' + y + '" r="17" fill="#fff" stroke="' + a + '" stroke-width="2"/><circle cx="' + x + '" cy="' + y + '" r="12.5" fill="' + a + '"/>';
+        sv += '<g class="ci-seat" data-cseat="' + p.id + '" role="button" tabindex="0"><title>' + escHtml(p.name || '') + (tg.length ? ' \u00B7 ' + escHtml(tg.join(', ')) : '') + '</title><circle cx="' + x + '" cy="' + (+y + 2) + '" r="17" fill="#16264d" opacity=".08"/>' + body + '<text x="' + x + '" y="' + y2 + '" text-anchor="middle" font-family="Fraunces,Georgia,serif" font-size="12.5" font-weight="700" fill="#fff">' + ini(p) + '</text></g>';
       } else if (extra && i === seatsP.length) {
         sv += '<g><circle cx="' + x + '" cy="' + y + '" r="16" fill="#fff" stroke="' + b.acc + '" stroke-width="1.5"/><text x="' + x + '" y="' + (+y + 4).toFixed(1) + '" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" font-weight="700" fill="' + b.acc + '">+' + extra + '</text></g>';
       } else {
