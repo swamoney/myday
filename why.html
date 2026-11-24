@@ -1525,6 +1525,20 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
   .ci-nm .tx small{text-transform:none !important;letter-spacing:.02em !important;font:500 .66rem var(--sans) !important;color:#8a93a8 !important;margin:3px 0 0 0 !important;gap:5px !important}
   .ci-nm .tx small::before{width:5px !important;height:5px !important}
   .ci-nm .tx small + small{margin-left:8px !important}
+  /* CT-1 + SF-3 (25 Nov 2026): city soft pills and a SHOW line of tick boxes on the Explore List */
+  .ex-cities.ct1{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
+  .ex-cities.ct1 button{display:inline-flex;align-items:center;gap:6px;font:500 .82rem var(--sans,inherit);letter-spacing:0;text-transform:none;color:#4a5570;background:#f1f3f7;border:1px solid transparent;border-radius:999px;padding:9px 16px;cursor:pointer}
+  .ex-cities.ct1 button svg{width:13px;height:13px;color:#9aa3b8}
+  .ex-cities.ct1 button em{font:600 .66rem var(--mono);font-style:normal;color:#9aa3b8;opacity:1}
+  .ex-cities.ct1 button.on{background:#fff;border-color:#2f6f6a;color:#2f6f6a;box-shadow:0 2px 8px rgba(47,111,106,.12)}
+  .ex-cities.ct1 button.on svg{color:#2f6f6a}
+  .sf3{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;margin:16px 0 4px}
+  .sf3 .lb{font:700 .55rem var(--mono);letter-spacing:.22em;color:#9aa3b8}
+  .sf3 button{display:inline-flex;align-items:center;gap:7px;font:600 .8rem var(--sans,inherit);color:#8a93a8;cursor:pointer;background:none;border:0;padding:4px 0}
+  .sf3 button em{font:600 .62rem var(--mono);font-style:normal;color:#a3abbd}
+  .sf3 .bx{width:18px;height:18px;border-radius:5px;border:1.5px solid #c9d0de;display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;background:#fff}
+  .sf3 button.on{color:#16264d} .sf3 button.on .bx{background:#2f6f6a;border-color:#2f6f6a;color:#fff}
+  @media (max-width:640px){ .ex-cities.ct1{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;padding:0 4px 6px} .ex-cities.ct1 button{flex:none} .sf3{gap:12px} }
   /* BX-2 (25 Nov 2026): every Explore List object outlined in its kind's own colour, following its real shape */
   .zcs{border-color:var(--k) !important;box-shadow:0 0 0 1.5px var(--k),0 10px 22px rgba(22,38,77,.1) !important}
   .ztk{border:1.5px solid var(--k) !important} .ztk .ztk-m{border-right-color:var(--k) !important}
@@ -12844,6 +12858,7 @@ function pxSeal_(p, S, when) {
 // EX-2 (25 Nov 2026): My Explore List index as things you bring home - a restaurant is its bill, a bar its coaster,
 // a stay its room-key tag, a sight or event its ticket stub - hanging on a dashed line in Want to try / Keepers / Been there.
 let plKind_ = '';
+let plShow_ = new Set(['not_yet', 'keeper', 'been']);   // SF-3 (25 Nov 2026): which statuses show
 function renderPlaces() {
   const wrap = el('placeList'); if (!wrap) return;
   const cities = plCities();
@@ -12856,16 +12871,20 @@ function renderPlaces() {
   if (plKind_ && !kc[plKind_]) plKind_ = '';
   const cc = {}; places.forEach(p => { const c = (p.city || '').trim(); if (c) cc[c] = (cc[c] || 0) + 1; });
   const keepers = places.filter(p => p.status === 'keeper').length;
-  const shown = places.filter(p => (placeCity === 'All' || (p.city || '').trim() === placeCity) && (!plKind_ || kindOf(p) === plKind_))
+  const sc = { not_yet: 0, keeper: 0, been: 0 }; places.forEach(p => { sc[p.status || 'not_yet'] = (sc[p.status || 'not_yet'] || 0) + 1; });
+  const shown = places.filter(p => (placeCity === 'All' || (p.city || '').trim() === placeCity) && (!plKind_ || kindOf(p) === plKind_) && plShow_.has(p.status || 'not_yet'))
     .sort((a, b) => (KO.indexOf(kindOf(a)) - KO.indexOf(kindOf(b))) || (new Date(a.created_at) - new Date(b.created_at)));
   let html = '<div class="ex-tools"><button class="pl-addbtn ex-add" type="button" data-padd="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>Add a place</span></button></div>'
     + '<div class="ex-head"><small>PEOPLE &amp; PLACES</small><b>Places worth going</b><i>tables, bars and beds I want to know by heart</i><span class="ex-rule"></span></div>';
   if (places.length) {
-    html += '<div class="ex-sum"><span><b>' + places.length + '</b>' + (places.length === 1 ? ' place' : ' places') + '</span><span><b>' + keepers + '</b>' + (keepers === 1 ? ' keeper' : ' keepers') + '</span><span><b>' + cities.length + '</b>' + (cities.length === 1 ? ' city' : ' cities') + '</span></div>'
+    // CT-1 + SF-3 (25 Nov 2026): cities first in the numbers; a SHOW line of tick boxes; cities as soft pills
+    html += '<div class="ex-sum"><span><b>' + cities.length + '</b>' + (cities.length === 1 ? ' city' : ' cities') + '</span><span><b>' + places.length + '</b>' + (places.length === 1 ? ' place' : ' places') + '</span><span><b>' + keepers + '</b>' + (keepers === 1 ? ' keeper' : ' keepers') + '</span></div>'
+      + '<div class="sf3"><span class="lb">SHOW</span>' + [['not_yet', 'Want to try'], ['keeper', 'Keepers'], ['been', 'Been there']].map(x => '<button type="button" data-pshow="' + x[0] + '"' + (plShow_.has(x[0]) ? ' class="on"' : '') + ' aria-pressed="' + plShow_.has(x[0]) + '"><span class="bx">\u2713</span>' + x[1] + ' <em>' + sc[x[0]] + '</em></button>').join('') + '</div>'
       + '<div class="ex-leg"><button type="button" data-pkind=""' + (plKind_ ? '' : ' class="on"') + '>All <em>' + places.length + '</em></button>'
       + KO.filter(k => kc[k]).map(k => '<button type="button" data-pkind="' + k + '" style="--k:' + PL_KIND_HUES[k].acc + '"' + (plKind_ === k ? ' class="on"' : '') + '>' + ic(k) + KN[k] + ' <em>' + kc[k] + '</em></button>').join('') + '</div>';
-    if (cities.length > 1) html += '<div class="ex-cities"><button type="button" data-city="All"' + (placeCity === 'All' ? ' class="on"' : '') + '>All cities</button>'
-      + cities.slice().sort((a, b) => (cc[b] - cc[a]) || a.localeCompare(b)).map(c => '<button type="button" data-city="' + escHtml(c) + '"' + (placeCity === c ? ' class="on"' : '') + '>' + escHtml(c) + ' <em>' + cc[c] + '</em></button>').join('') + '</div>';
+    const pinI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
+    if (cities.length > 1) html += '<div class="ex-cities ct1"><button type="button" data-city="All"' + (placeCity === 'All' ? ' class="on"' : '') + '>All cities</button>'
+      + cities.slice().sort((a, b) => (cc[b] - cc[a]) || a.localeCompare(b)).map(c => '<button type="button" data-city="' + escHtml(c) + '"' + (placeCity === c ? ' class="on"' : '') + '>' + pinI + escHtml(c) + '<em>' + cc[c] + '</em></button>').join('') + '</div>';
   }
   const SEC = { not_yet:'Want to try', keeper:'Keepers', been:'Been there' };
   const pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
@@ -13262,6 +13281,7 @@ el('plChips').addEventListener('click', e => {
 el('placeList').addEventListener('click', e => {
   const ad = e.target.closest('[data-padd]'); if (ad) { openPlaceModal(null); return; }
   const pk = e.target.closest('[data-pkind]'); if (pk) { plKind_ = pk.dataset.pkind || ''; renderPlaces(); return; }
+  const sh = e.target.closest('[data-pshow]'); if (sh) { const k = sh.dataset.pshow; if (plShow_.has(k) && plShow_.size > 1) plShow_.delete(k); else plShow_.add(k); renderPlaces(); return; }
   const pc = e.target.closest('.ex-cities [data-city]'); if (pc) { placeCity = pc.dataset.city; renderPlaces(); return; }
   const x = e.target.closest('[data-px]');
   if (x) { e.stopPropagation(); plDeletePlace_(x.dataset.px); return; }
