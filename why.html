@@ -1419,6 +1419,27 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
   .ce-row button:hover:not(:disabled){border-color:var(--a);color:var(--a)}
   .ce-row button:disabled{opacity:.3;cursor:default}
   .ce-row .ed{color:#98455a}
+  /* EB-1 (24 Nov 2026): ghost buttons - no boxes, light grey, tint to the circle on hover */
+  .ce-row button{border:0 !important;background:transparent !important;color:#b3bacb !important}
+  .ce-row button:hover:not(:disabled){background:color-mix(in srgb,var(--bg) 80%,#fff) !important;color:var(--a) !important}
+  .ce-row button:disabled{opacity:.25}
+  .ce-row button.ed{color:#9aa3b8 !important} .ce-row button.ed svg{width:13px;height:13px}
+  /* CP-1: tag colour chips in Edit + the colour card */
+  .tcx-row{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin:20px 0 4px}
+  .tcx-lb{font:700 .56rem var(--mono);letter-spacing:.22em;color:#8a93a8;margin-right:4px}
+  .tcx-chip{font:600 .68rem var(--mono);letter-spacing:.06em;border:1px dashed #c9d0de;background:#fff;color:#3d4866;border-radius:999px;padding:6px 12px;display:inline-flex;align-items:center;gap:7px;cursor:pointer}
+  .tcx-chip:hover{border-style:solid;border-color:#8a93a8}
+  .tcx-chip em{font-style:normal;opacity:.55}
+  .tcx-chip i{width:12px;height:12px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px #fff,0 0 0 3px #d6dbe6}
+  .tcx-hint{flex-basis:100%;text-align:center;font:italic .78rem var(--serif);color:#8a93a8;margin-top:2px}
+  .tcx-pop{position:absolute;z-index:200;display:none;background:#fff;border:1px solid #e1e5ee;border-radius:14px;box-shadow:0 14px 34px rgba(22,38,77,.16);padding:12px 14px;width:230px}
+  .tcx-pop.on{display:block}
+  .tcx-pop b{display:block;font:700 .9rem var(--serif);color:#16264d;margin-bottom:8px}
+  .tcx-pop div{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .tcx-pop button{width:28px;height:28px;border-radius:50%;border:0;cursor:pointer;box-shadow:0 0 0 2px #fff,0 0 0 3px transparent;transition:transform .15s}
+  .tcx-pop button:hover{transform:scale(1.12)}
+  .tcx-pop button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px #16264d}
+  .tcx-pop small{display:block;font:.62rem var(--mono);color:#9aa3b8;margin-top:9px;letter-spacing:.04em}
   .ce-empty{font:italic .8rem var(--serif);color:#9aa3b8;padding:8px 6px}
   #circleRising{margin-top:16px}
   .ci-nm .tx{display:flex;flex-wrap:wrap;align-items:center;column-gap:0}
@@ -8707,6 +8728,7 @@ async function loadCircle() {
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: true });
   if (error) { console.error(error); return; }
+  if (!loadCircle._tp) { loadCircle._tp = 1; await loadTagPicks_(); }   // CP-1
   circle = data || [];
   // P1: a row still on the retired 'network' key reads as Outer until the SQL has moved it (keys are law; this is the bridge)
   circle.forEach(p => { if (p.band === 'network') p.band = 'outer'; });
@@ -8764,10 +8786,25 @@ async function moveCirclePerson(id, dir) {
 // different from one another. The palette
 // avoids the six My Why chip hues and the five band hues so a tag can never be
 // mistaken for either. Olive deepened to clear 4.5 on its own wash.
-const TAG_PAL = [['#7a4a72','#f7f0f6'], ['#2f6f6a','#eaf4f3'], ['#9c5a2c','#fbf1e8'],
-                 ['#4a5f9c','#eef1f9'], ['#647230','#f2f5e9'], ['#96455f','#fbeff2'],
-                 ['#4d6b8a','#eef3f8'], ['#8a5a2f','#f8f1ea'], ['#3f6b52','#ebf3ee'],
-                 ['#6b4a86','#f2eef8']];
+// TC-A (24 Nov 2026): bright tag colours that never look like a circle colour - no red, orange or yellow
+const TAG_PAL = [["#7b5cd6", "#f1edfc"], ["#0e9fb8", "#e6f6f9"], ["#1f9d6b", "#e7f6ef"], ["#b0509c", "#f8ebf5"], ["#2f86d6", "#e9f2fb"], ["#13a3a3", "#e5f6f6"], ["#5157c9", "#eceefb"], ["#2aa16a", "#e8f6ee"], ["#9a6fe0", "#f3eefc"], ["#0b8fd0", "#e6f3fb"]];
+// CP-1: your own pick per tag (index into TAG_PAL), kept in user_prefs.tag_colours so every device agrees
+let tagPick_ = {};
+async function loadTagPicks_() {
+  try { const { data: rows } = await supa.from('user_prefs').select('prefs').eq('user_id', userId).limit(1);
+    const pr = rows && rows.length ? rows[0].prefs : null; tagPick_ = (pr && pr.tag_colours && typeof pr.tag_colours === 'object') ? pr.tag_colours : {};
+  } catch (e) { console.error('tag colours:', e); }
+}
+async function saveTagPick_(k, i) {
+  tagPick_[k] = i; renderCircle();
+  try { const { data: rows } = await supa.from('user_prefs').select('prefs').eq('user_id', userId).limit(1);
+    const have = rows && rows.length ? rows[0] : null;
+    const prefs = Object.assign({}, (have && have.prefs) || {}); prefs.tag_colours = Object.assign({}, prefs.tag_colours || {}, { [k]: i });
+    const stamp = new Date().toISOString();
+    const r = have ? await supa.from('user_prefs').update({ prefs, updated_at: stamp }).eq('user_id', userId) : await supa.from('user_prefs').insert({ user_id: userId, prefs, updated_at: stamp });
+    if (r.error) throw r.error;
+  } catch (e) { console.error(e); toast('Could not save the colour'); }
+}
 function tagColour(tag) {
   const k = clTagKey(tag);
   if (!k) return { ink:'#5A6478', wash:'#f2f3f6' };
@@ -8775,7 +8812,8 @@ function tagColour(tag) {
   circle.forEach(p => clTagKeys(p.tag).forEach(t => { if (all.indexOf(t) < 0) all.push(t); }));
   all.sort();
   const i = all.indexOf(k);
-  const p = TAG_PAL[(i < 0 ? all.length : i) % TAG_PAL.length];
+  const pk = tagPick_[k];
+  const p = TAG_PAL[(Number.isInteger(pk) && pk >= 0 && pk < TAG_PAL.length) ? pk : (i < 0 ? all.length : i) % TAG_PAL.length];
   return { ink: p[0], wash: p[1] };
 }
 function clTagKey(t) { return (t || '').trim().toLowerCase(); }
@@ -9028,6 +9066,7 @@ el('circleChips').addEventListener('click', e => {
 });
 el('circleList').addEventListener('click', e => {
   const ck = e.target.closest('[data-ckind]'); if (ck) { ciKind_ = ck.dataset.ckind || ''; renderCircle(); return; }
+  const tx = e.target.closest('[data-tcx]'); if (tx) { e.stopPropagation(); tcxOpen_(tx.dataset.tcx, tx); return; }
   const st = e.target.closest('[data-cseat]'); if (st) { const c = el('circleList').querySelector('[data-cpid="' + st.dataset.cseat + '"]'); if (c) { c.scrollIntoView({ block:'center', behavior:'smooth' }); c.classList.remove('ci-flash'); void c.offsetWidth; c.classList.add('ci-flash'); } return; }
   const mv = e.target.closest('[data-cmove]');
   if (mv) { e.stopPropagation(); moveCirclePerson(mv.dataset.cmove, Number(mv.dataset.dir)); return; }
@@ -9098,12 +9137,28 @@ function renderCircleIndex_(wrap) {
 el('ciSearch').addEventListener('input', e => { ciQ_ = e.target.value; renderCircle(); });
 el('ciAddBtn').addEventListener('click', () => openCircleModal(null));
 el('ciEditBtn').addEventListener('click', () => toggleEdit());
+// CP-1: the colour card for one tag
+function tcxOpen_(k, anchor) {
+  let pop = el('tcxPop'); if (!pop) { pop = document.createElement('div'); pop.id = 'tcxPop'; pop.className = 'tcx-pop'; document.body.appendChild(pop);
+    pop.addEventListener('click', e => { const b = e.target.closest('[data-tcxi]'); if (!b) return; pop.classList.remove('on'); saveTagPick_(pop.dataset.k, +b.dataset.tcxi); }); }
+  const lbl = (circle.map(p => clTags(p.tag)).flat().find(t => clTagKey(t) === k)) || k, curInk = tagColour(lbl).ink;
+  pop.dataset.k = k;
+  pop.innerHTML = '<b>' + escHtml(lbl) + '</b><div>' + TAG_PAL.map((c, i) => '<button type="button" data-tcxi="' + i + '" style="background:' + c[0] + '"' + (c[0] === curInk ? ' class="on"' : '') + ' aria-label="Colour ' + (i + 1) + '"></button>').join('') + '</div><small>tap a colour \u00B7 saved to all your devices</small>';
+  const r = anchor.getBoundingClientRect();
+  pop.style.left = Math.max(8, Math.min(window.innerWidth - 248, r.left + window.scrollX - 20)) + 'px';
+  pop.style.top = (r.bottom + window.scrollY + 8) + 'px';
+  pop.classList.add('on');
+}
+document.addEventListener('click', e => { const pop = el('tcxPop'); if (pop && pop.classList.contains('on') && !e.target.closest('#tcxPop') && !e.target.closest('[data-tcx]')) pop.classList.remove('on'); });
 // CE (24 Nov 2026): Edit mode is a plain, compact roll - one thin row per person under a one-line ring header
 function renderCircleEdit_(wrap) {
   renderCircleRising();
   const q = ciQ_.trim().toLowerCase();
   const hit = p => !q || [p.name, p.note, p.tag].join(' ').toLowerCase().indexOf(q) > -1;
-  let h = '<div class="ce-note">Editing \u00B7 tap \u270E to change a person, the arrows to reorder Close, Done when finished</div>';
+  const tc = {}, tl = {}; circle.forEach(p => clTags(p.tag).forEach(one => { const k = clTagKey(one); if (!k) return; tc[k] = (tc[k] || 0) + 1; if (!tl[k]) tl[k] = one; }));
+  const tkeys = Object.keys(tc).sort((a, b) => tc[b] - tc[a] || tl[a].localeCompare(tl[b]));
+  let h = tkeys.length ? '<div class="tcx-row"><span class="tcx-lb">TAG COLOURS</span>' + tkeys.map(k => '<button type="button" class="tcx-chip" data-tcx="' + escHtml(k) + '"><i style="background:' + tagColour(tl[k]).ink + '"></i>' + escHtml(tl[k]) + ' <em>' + tc[k] + '</em></button>').join('') + '<span class="tcx-hint">tap a tag to change its colour</span></div>' : '';
+  h += '<div class="ce-note">Editing \u00B7 tap the pencil to change a person, the arrows to reorder Close, Done when finished</div>';
   BANDS.forEach(b => {
     const all = circle.filter(p => p.band === b.key), ps = all.filter(hit);
     if (!ps.length && q) return;
@@ -9113,7 +9168,7 @@ function renderCircleEdit_(wrap) {
       + '<span class="nm">' + escHtml(p.name || '') + (p.rising_since ? ' <em class="ci-rise">\u2B06</em>' : '') + '</span>'
       + '<span class="tg">' + clTags(p.tag).map(one => '<i style="--k:' + tagColour(one).ink + '">' + escHtml(one) + '</i>').join('') + '</span>'
       + (ALPHA_BANDS.has(b.key) ? '' : '<button type="button" class="mv" data-cmove="' + p.id + '" data-dir="-1" aria-label="Move up"' + (pi === 0 ? ' disabled' : '') + '>\u2191</button><button type="button" class="mv" data-cmove="' + p.id + '" data-dir="1" aria-label="Move down"' + (pi === ps.length - 1 ? ' disabled' : '') + '>\u2193</button>')
-      + '<button type="button" class="ed" data-cedit="' + p.id + '" aria-label="Edit">\u270E</button></div>').join('') + '</div>'
+      + '<button type="button" class="ed" data-cedit="' + p.id + '" aria-label="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>').join('') + '</div>'
       : '<div class="ce-empty">nobody here yet</div>';
     h += '</div>';
   });
