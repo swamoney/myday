@@ -8,6 +8,21 @@ Written August 2026.
 
 ---
 
+## IW-2 + LT-1 · A person's page: their words as a highlight stack; what I learnt as mantra cards (26 Nov 2026, why.html, outer page)
+**Part I, In their words (IW-2), while reading:**
+- One quote card sits on top (white, a left edge in the circle's colour, a soft quote mark), with the person's initial, name, and ON TOPIC · month. Up to two cards peek behind it.
+- **Flipping:** the ‹ › buttons, a tap on the left or right half of the top card, or a swipe on phone. It loops, and the counter shows n / N.
+- **See all:** "SEE ALL N ↓" opens the full tappable list (tap a quote for its form), with "Back to the stack ↑" to fold it.
+- **Edit:** always shows the full list with "+ Add their words".
+- **State:** pIw_ {at, all}, reset when a person opens. The order is unchanged: newest first, pinned last.
+
+**Part II, What I learnt from them (LT-1):**
+- The Mantras index grammar: framed white cards (an outer line in the circle's colour at 40%, offset 3px) with ❦ and the lesson in bold serif.
+- The month and "seen at" sit in small caps; months are written out (JUN 2023).
+- The cards zig-zag down a dashed thread, each with a numbered seal in the circle's colour tied by a dotted line. On phone the thread runs down the left.
+- Tap a card for its form, as before.
+- The old numbered-line rail (#pLrn::before) is off.
+
 ## IP-3 + WH-1 · A person's page: key people, and only what's written in "Who they are" (26 Nov 2026, why.html, outer page)
 **IP-3 key people:**
 - The person form's pin toggle is now "★ Key person". It was 📌 "Show on the button", but that button is no longer shown. The data field is still x.pin.
