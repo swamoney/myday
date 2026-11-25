@@ -8,6 +8,44 @@ Written August 2026.
 
 ---
 
+## DY-4 roomy + DP-3 · My Diary index as a thread of pages; a diary page as a notebook spread (25 Nov 2026, why.html, inner page)
+**Index (renderDiary, rewritten):**
+- **Top:**
+  - The search bar shrinks to a quiet underline on the right (body.av-dy restyles .toolbar). It still searches all of My Why.
+  - "+ Write a page" (#dyWrite → openTonight) sits under it.
+  - Heading "MY DIARY · Pages I kept · written when it mattered".
+  - Count line: pages · years · last written N days ago.
+  - On This Day as quiet centred lines, then the tag filter, centred.
+- **The road (.dy4-road):** a dashed thread down the middle; on phone it runs down the left.
+  - The Tonight card sits at the top (#tonightBtn → openTonight).
+  - Years are pills on the thread. There are no months and no calendar, since writing is occasional.
+  - Pages (.dy4-pg) zig-zag left and right. Each is cream ruled paper with an ink edge, a weekday + date eyebrow, the first line in italic, tags, and ★ (violet).
+  - Each page has a small round date seal on the thread: 48px, 40px on phone, day + month only.
+  - A faint pen / ink-pot / script-loop sketch sits behind.
+  - Roomy spacing: 44px between pages, 30px rules.
+- **Colours:**
+  - Page ink comes from DY_INK (6 blues/teal/violet/plum). dyInk_ counts from the first page, so a new page never repaints old ones.
+  - CHIP_HUES: gold, rust and brown are replaced by teal, blue and violet. The hash is unchanged, so each tag keeps its slot.
+  - The .dy-dv month underline goes from gold to slate.
+  - The favourite star (.rd-star.on) goes from rose to violet.
+- Empty pages read "Nothing written yet" in a faint italic, inside a normal card. The old centred odd row is gone.
+
+**Page (dyPagePaint_, called from openReader for diary; dyPageClear_ for every other kind):**
+- body.rd-dy. On desktop .reader-inner becomes a two-column spread: a 300px left page (the rd-sticky plate) and the right page (#readerBody, and #rdAlbum when it has photos).
+- **Left page:**
+  - "MY DIARY · PAGE n OF N".
+  - A 72px round seal (day, MON ’YY).
+  - The date as "Weekday, / D Month". A title the user wrote shows as written.
+  - Tags, then facts: WRITTEN time, WORDS, THIS YEAR page n of YYYY.
+  - The editable written-date line.
+  - "A YEAR AGO TODAY" (or N YEARS AGO), shown when an earlier page shares the day. It is tappable.
+- **Right page:** the writing on 34px ruled lines; the first line is semibold.
+- **Under the spread:**
+  - Copy / Download / Print as before.
+  - #dyNav: "← EARLIER PAGE / LATER PAGE →" cards, each with its date circle and first line.
+- **Phone:** the left page stacks on top of the writing.
+- **Edit mode (body.rd-editing):** the spread steps aside and the normal editor layout returns.
+
 ## VS-1 · The Life Timeline shelf stands up: one flat pile, newest on top (25 Nov 2026, why.html, inner page)
 - renderTimeline: the horizontal shelf is gone. That means the upright .bk2 books, the sideways scroll, the dashed ghost slot (#ltGhost) and the 5-year age ruler. In their place, .ltS holds one .fb2 per chapter, lying flat. The oldest sits at the bottom on a wooden base (.ltS-base) and the newest is on top.
 - **Each book:** numeral badge, the full name read straight (no head-tilt), and the years on the right. The book takes the chapter's colour (chK_, so an NC-1 pick is kept). A longer chapter makes a thicker book (38px + 3px per year, max 80px). Widths vary from 70% to 91% so the pile looks hand-stacked. A chapter still being lived carries a white ribbon.
