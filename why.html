@@ -4242,6 +4242,14 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
   body #personWin #pPpl .pp-rp { font-family:var(--mono); font-size:0.52rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--c); background:none !important; border:none !important; padding:0 !important; }
   body #personWin #pPpl .pp-ln, body #personWin #pPpl .tp-lk, body #personWin #pPpl .pp-go { display:none; }
   body #personWin #pPpl .pp-mv { display:inline-flex; gap:2px; }
+  /* IP-3 + WH-1 (26 Nov 2026) */
+  body #personWin #pPpl .kp-l{flex:1 1 100%;font:700 .5rem 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#8a93a8;margin:4px 0 0}
+  body #personWin #pPpl .pp-row.key{background:color-mix(in srgb,var(--c) 14%,#fff) !important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,#fff)}
+  body #personWin #pPpl .pp-row.key .pp-nl b::before{content:'\2605  ';color:#5a4f9c;font-size:.7rem}
+  body #personWin #pDeal .w-dd.one{grid-template-columns:1fr !important}
+  body #personWin #pWho .w-rows.w-n1{grid-template-columns:1fr !important}
+  body #personWin #pWho .w-rows.w-n2{grid-template-columns:1fr 1fr !important}
+  @media(max-width:640px){body #personWin #pWho .w-rows.w-n2{grid-template-columns:1fr !important}}
   /* PP-1 (25 Nov 2026): a person's page - one warm paper for every circle (the heading keeps its circle's colour), a small soft tag chip,
      their people as soft tinted chips with a dot, no red; the polaroid caption stays on one line */
   body #personWin{background:#fbf7ee !important}
@@ -6340,7 +6348,7 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
         <div class="pp-dob"><input type="text" id="pplD" inputmode="numeric" maxlength="2" placeholder="day"><select id="pplM"></select><input type="text" id="pplB" inputmode="numeric" maxlength="4" placeholder="year"></div>
         <div class="pp-ageln" id="pplAgeLn"></div>
         <label>ONE LINE</label><input type="text" id="pplL" placeholder="what to remember about them">
-        <div class="pp-tog"><button type="button" class="pp-tg" id="pplPin">📌 Show on the button</button><button type="button" class="pp-tg" id="pplPast">✦ In memory</button>
+        <div class="pp-tog"><button type="button" class="pp-tg" id="pplPin">★ Key person</button><button type="button" class="pp-tg" id="pplPast">✦ In memory</button>
           <input type="text" id="pplPY" class="hidden" inputmode="numeric" maxlength="4" placeholder="year"></div>
         <div class="pp-fb"><button type="button" class="pp-del hidden" id="pplDel">Delete</button><span class="sp"></span><button type="button" class="pp-cn" id="pplCancel">Cancel</button><button type="button" class="pp-sv" id="pplSave">Save</button></div>
       </div></div>
@@ -9608,7 +9616,9 @@ function renderPersona() {
   // --- How to deal (inside its panel)
   // CL-C3: reading - a green DO box and a red DON'T box; Edit keeps the Works / Avoid rows
   // CL-D1 (8 Nov 2026): the green DO / red DON'T boxes in both modes; tap a line for the form, + (Edit) adds
-  el('pDeal').innerHTML = '<div class="p-wk w-dd">' + [['ok', '✓ DO', '#4a6b5a'], ['no', '✗ DON\u2019T', '#9a6a55']].map(([k, lbl, ink]) =>
+  // WH-1 (26 Nov 2026): while reading, only the boxes with something written show; Edit keeps all of them
+  const dealK_ = [['ok', '✓ DO', '#4a6b5a'], ['no', '✗ DON\u2019T', '#9a6a55']].filter(([k]) => ed || (pData.deal || []).some(d => d.k === k));
+  el('pDeal').innerHTML = !dealK_.length ? '' : '<div class="p-wk w-dd' + (dealK_.length === 1 ? ' one' : '') + '">' + dealK_.map(([k, lbl, ink]) =>
     '<div class="w-' + k + '"><div class="p-gl" style="color:' + ink + '">' + lbl + '</div>'
     + (pData.deal || []).filter(d => d.k === k).map(d => '<div class="p-it pn-tap" data-pnform="deal:' + escHtml(d.id) + '"' + (d.why ? ' title="' + escHtml(d.why) + '"' : '') + '>' + escHtml(d.t) + '</div>').join('')
     + (!ed && !(pData.deal || []).some(d => d.k === k) ? '<em class="w-none">nothing yet</em>' : '')
@@ -9662,20 +9672,23 @@ function renderPersona() {
   window.pPplGroups_ = { fam: fam.map(x => x.id), oth: oth.map(x => x.id) };
   const pplInk = r => { const k = famRank(r); return PPL_FAMW.test(r || '') ? ['#2f6f6a', '#2f5f8a', '#5b4a86', '#2f6b8a', '#6d5474'][k] : '#35786f'; };
   const pplRow = (x, i, arr) => { const l = linkOf(x.n), b = pplAge_(x.b), c = pplInk(x.r), bs = pplBdaySoon_(x.b);
-    return '<div class="pp-row" data-pplform="' + escHtml(x.id) + '" style="--c:' + c + '">'
+    return '<div class="pp-row' + (x.pin ? ' key' : '') + '" data-pplform="' + escHtml(x.id) + '" style="--c:' + c + '">'
       + (ed ? '<span class="pp-mv"><button type="button" data-pplmv="' + escHtml(x.id) + ':-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">\u25B2</button>'
         + '<button type="button" data-pplmv="' + escHtml(x.id) + ':1"' + (i === arr.length - 1 ? ' disabled' : '') + ' aria-label="Move down">\u25BC</button></span>' : '')
       + '<span class="pp-av">' + escHtml(String(x.n || '?').trim().charAt(0).toUpperCase()) + '</span>'
       + '<div class="pp-m"><div class="pp-nl"><b>' + escHtml(x.n || '') + '</b>'   // CL-T1: name first, relation after
       + (x.r ? '<span class="pp-rp">' + escHtml(String(x.r).charAt(0).toUpperCase() + String(x.r).slice(1)) + '</span>' : '')
-      + (x.pin ? '<i class="pp-pin" title="On the button">📌</i>' : '') + (b !== null && b >= 0 ? '<span class="pp-age">' + b + '</span>' : '')
+      + (b !== null && b >= 0 ? '<span class="pp-age">' + b + '</span>' : '')
       + (bs ? '<span class="pp-bd">🎂 ' + escHtml(bs) + '</span>' : '') + '</div>'
       + (x.note ? '<div class="pp-ln">' + escHtml(x.note) + '</div>' : '') + '</div>'
       + (l ? '<button type="button" class="tp-lk" data-pplopen="' + escHtml(l.id) + '">IN MY CIRCLE →</button>' : '') + '<span class="pp-go">›</span></div>'; };
   let ph = '';
   // P1 (20 Nov 2026): one flow, no FAMILY / OTHERS labels - the pinned first, then family, then others (the arrows still move within family / others)
   const flow_ = [...fam.map((x, i) => [x, i, fam]), ...oth.map((x, i) => [x, i, oth])];
-  ph += flow_.filter(e => e[0].pin).concat(flow_.filter(e => !e[0].pin)).map(([x, i, arr]) => pplRow(x, i, arr)).join('');
+  { // IP-3 (26 Nov 2026): key people sit in their own first row, everyone else after - the labels only when both are there
+    const kp = flow_.filter(e => e[0].pin), rest = flow_.filter(e => !e[0].pin), both = kp.length && rest.length;
+    ph += (both ? '<div class="kp-l">KEY PEOPLE</div>' : '') + kp.map(([x, i, arr]) => pplRow(x, i, arr)).join('')
+      + (both ? '<div class="kp-l">EVERYONE ELSE</div>' : '') + rest.map(([x, i, arr]) => pplRow(x, i, arr)).join(''); }
   if (!live.length) ph += '<div class="w-none" style="padding:4px 0 8px">nobody here yet</div>';
   if (gone.length) ph += '<div class="tp-past">In memory · ' + gone.map(x => '<button type="button" class="pp-gone" data-pplform="' + escHtml(x.id) + '">' + (x.r ? escHtml(String(x.r).charAt(0).toUpperCase() + String(x.r).slice(1)) + ' · ' : '') + '<b>' + escHtml(x.n) + '</b>' + (x.pastOn ? ' (' + escHtml(x.pastOn) + ')' : '') + '</button>').join(' · ') + '</div>';
   ph += '<button type="button" class="pp-addrow" data-pplform="new">＋ Add someone</button>';
@@ -9702,7 +9715,8 @@ function renderPersona() {
   el('pWhoRd').innerHTML = wr;
   let wh = '';
   if (true) {   // CL-T1 (8 Nov 2026): chip rows in reading and Edit; tap a chip to change it, + (Edit) to add
-    wh = '<div class="w-rows">' + P_WHO.map(g => {
+    const whoG_ = P_WHO.filter(g => ed || who.some(x => x.k === g.k));   // WH-1: reading shows only the written groups
+    wh = !whoG_.length ? '' : '<div class="w-rows w-n' + whoG_.length + '">' + whoG_.map(g => {
       const its = who.filter(x => x.k === g.k);
       const cap = 8, all = !!pMore[g.k] || ed, vis = all ? its : its.slice(0, cap);
       return '<div class="w-row" style="--wc:' + g.ink + '"><span class="w-lbl">' + g.lbl + '</span><span class="w-chips">'

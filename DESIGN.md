@@ -8,6 +8,20 @@ Written August 2026.
 
 ---
 
+## IP-3 + WH-1 · A person's page: key people, and only what's written in "Who they are" (26 Nov 2026, why.html, outer page)
+**IP-3 key people:**
+- The person form's pin toggle is now "★ Key person". It was 📌 "Show on the button", but that button is no longer shown. The data field is still x.pin.
+- In Part V, key people sit in their own first row under a tiny "KEY PEOPLE" label, with ★ before the name and a 14% tint plus a hairline ring.
+- Everyone else follows under "EVERYONE ELSE".
+- The labels appear only when there are both key people and others.
+- The 📌 on the chip is gone.
+
+**WH-1:** while reading, Part IV shows only what is written.
+- An empty DO or DON'T note is hidden. A lone note runs full width (.w-dd.one), and if both are empty the box is not drawn.
+- Traits, Behaviours and Biases rows with nothing in them are hidden. One row left runs full width (.w-n1); two rows sit side by side (.w-n2, stacked on phone).
+- "My read of them" still shows in Part IV when written.
+- In Edit, every box shows as before, so you can add to any of them.
+
 ## PP-1 · A person's page: one warm paper for every circle, quieter chips, no red (25 Nov 2026, why.html, outer page)
 - **Page background (PG-1 + BG-P2):** #personWin is warm paper #fbf7ee for every circle. It was the circle's wash at quarter strength.
   The heading card keeps its circle's colour: left edge, tint, eyebrow, underline.
