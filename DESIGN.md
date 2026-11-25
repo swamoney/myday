@@ -8,6 +8,25 @@ Written August 2026.
 
 ---
 
+## PR-2 · Print / PDF of a chapter, a diary page and a writing follows the screen, set for A4 (25 Nov 2026, why.html, inner page)
+- exportEntryPrint now asks prPr2Html_(r) first. For a life chapter, a diary page or a writing it opens a print sheet in the page's own design. Trips and musings print as before.
+- **Shared:**
+  - A4 with 18mm margins, on white.
+  - Colour only on the small things: the spine, the seal, the kicker and the drop cap. print-color-adjust:exact keeps those.
+  - A fixed footer on every sheet: room · PRINTED date.
+- **Chapter:**
+  - The book spine (numeral, name, years, in the chapter's chK_ colour) sits down the left margin.
+  - Then "MY LIFE TIMELINE · CHAPTER n", the name, and the italic line.
+  - YEARS / AGE / LENGTH / STATUS in one row between rules, then the text.
+- **Diary:**
+  - Header row: the round date seal (dyInk_), "MY DIARY · PAGE n OF N", the date, and WRITTEN time · words · #tags.
+  - Then the writing on 28px ruled lines with an ink edge.
+- **Writing:**
+  - A double rule over "MY WRITINGS · No. n | N MIN READ", the headline, the essence and the #tags.
+  - The text in two columns with a drop cap; blockquotes are side-ruled.
+  - Then ❦ and a one-line colophon: first drafted · last revised · words.
+- Save as PDF comes from the browser's print dialog, as before.
+
 ## WR-2 + ED-3 + NS-2 · My Writings as a magazine; a diary page edits in its own spread (25 Nov 2026, why.html, inner page)
 **NS-2: search rows.** My Diary (body.av-dy) and My Writings (body.av-wr) have no search row, like Trips and the Timeline. Any leftover search is cleared on entering either room.
 

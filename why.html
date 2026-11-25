@@ -19731,8 +19731,87 @@ function tripDaysPrintHtml_(r, esc) {
   });
   return h;
 }
+// PR-2 (25 Nov 2026): a chapter, a diary page and a writing print as their screens do, re-set for A4 -
+// on white, colour only on the small things (spine, seal, kicker, drop cap), a quiet footer on every sheet.
+function prPr2Html_(r) {
+  const dk = displayKind(r.kind);
+  if (dk !== 'experience' && dk !== 'diary' && dk !== 'writing') return null;
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const now = new Date(), printed = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase();
+  const bodyHtml = NoteEditor.toHtml(NoteEditor.sanitize(r.body || '')) || '';
+  const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
+  const room = dk === 'experience' ? 'MY LIFE TIMELINE' : dk === 'diary' ? 'MY DIARY' : 'MY WRITINGS';
+  const css = "@page{size:A4;margin:18mm 18mm 20mm}"
+    + "*{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}"
+    + "body{font-family:'Fraunces',Georgia,serif;color:#1c2331;margin:0 auto;max-width:720px;padding:24px 20px 60px}"
+    + ".k{font:700 9px 'IBM Plex Mono',monospace;letter-spacing:.24em;text-transform:uppercase}"
+    + ".bd{font-size:15px;line-height:1.75}.bd p{margin:0 0 .9em}.bd img{max-width:100%;break-inside:avoid}.bd blockquote{margin:16px 0;padding:4px 0 4px 16px;border-left:3px solid var(--k);font-style:italic;color:#3a3348;break-inside:avoid}"
+    + ".bd h1,.bd h2,.bd h3{break-after:avoid}"
+    + ".foot{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-between;font:600 8px 'IBM Plex Mono',monospace;letter-spacing:.18em;color:#a39882;padding:0 20px}"
+    + "@media print{body{padding:0}.foot{padding:0}}"
+    + ".fx{display:flex;gap:28px;flex-wrap:wrap;margin:16px 0 22px;border-top:1.5px solid #1c2331;border-bottom:1px solid #e6dcc6;padding:8px 0}"
+    + ".fx div span{display:block;font:700 8px 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#a39882}.fx div b{font:600 13px 'Fraunces',Georgia,serif}"
+    + ".spine{position:absolute;left:0;top:0;width:44px;height:240px;border-radius:4px;color:#fff;display:flex;flex-direction:column;align-items:center;padding:12px 0 10px;background:linear-gradient(90deg,color-mix(in srgb,var(--k) 60%,#000),var(--k) 14%,color-mix(in srgb,var(--k) 82%,#fff) 48%,var(--k) 86%,color-mix(in srgb,var(--k) 60%,#000))}"
+    + ".spine .g{width:76%;height:5px;border-top:1.5px solid #e9d9a8;border-bottom:1.5px solid #e9d9a8}.spine .g.b{margin-top:auto}"
+    + ".spine .nm{width:26px;height:26px;border-radius:50%;border:1.5px solid #e9d9a8;display:flex;align-items:center;justify-content:center;font:700 9px 'Fraunces',serif;color:#f6ecd0;margin:8px 0}"
+    + ".spine .tt{writing-mode:vertical-rl;transform:rotate(180deg);font:700 12px 'Fraunces',serif;max-height:120px;overflow:hidden;text-align:center}"
+    + ".spine .yy{font:700 7px 'IBM Plex Mono',monospace;color:#f6ecd0;text-align:center;line-height:1.4;margin-top:6px}"
+    + ".seal{width:64px;height:64px;border-radius:50%;background:var(--k);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;flex:none}"
+    + ".seal:before{content:'';position:absolute;inset:4px;border:1px dashed rgba(255,255,255,.6);border-radius:50%}"
+    + ".seal b{font:700 22px 'Fraunces',serif;line-height:1}.seal small{font:700 7px 'IBM Plex Mono',monospace;letter-spacing:.12em;margin-top:2px}"
+    + ".ruled{border-left:2.5px solid var(--k);padding:2px 0 2px 16px;background-image:linear-gradient(transparent 27px,#e6e0d2 27px,#e6e0d2 28px);background-size:100% 28px;font-size:15px;line-height:28px}"
+    + ".ruled p{margin:0 0 28px}.ruled p:last-child{margin-bottom:0}"
+    + ".dc>p:first-of-type::first-letter{float:left;font:800 54px/.8 'Fraunces',serif;color:var(--k);padding:5px 8px 0 0}"
+    + ".cols{columns:2;column-gap:28px;column-rule:1px solid #ddd}";
+  let main = '', ink = '#6D4E66';
+  if (dk === 'experience') {
+    const chs = rows.filter(x => displayKind(x.kind) === 'experience').sort(chapterSort);
+    const ci = Math.max(0, chs.findIndex(x => x.id === r.id)), nowY = now.getFullYear(), by = birthYear();
+    ink = chK_(r, ci);
+    const live = r.years_from && !r.years_to, n = r.years_from ? Math.max(1, (r.years_to || nowY) - r.years_from) : null;
+    const facts = [['YEARS', r.years_from ? r.years_from + ' – ' + (r.years_to || 'now') : '—'],
+      ['AGE', by && r.years_from ? (r.years_from - by) + ' – ' + ((r.years_to || nowY) - by) : '—'],
+      ['LENGTH', n ? n + (n === 1 ? ' year' : ' years') : '—'], ['STATUS', live ? 'still being written' : 'chapter closed']];
+    main = '<div style="position:relative;padding-left:70px;min-height:240px">'
+      + '<div class="spine"><span class="g"></span><span class="nm">' + romanNum(ci + 1) + '</span><span class="tt">' + esc(r.title) + '</span><span class="g b"></span><span class="yy">' + (r.years_from || '') + '<br>' + (r.years_from ? (r.years_to || 'now') : '') + '</span></div>'
+      + '<div class="k" style="color:var(--k)">MY LIFE TIMELINE · CHAPTER ' + romanNum(ci + 1) + '</div>'
+      + '<h1 style="font:800 32px/1.15 Fraunces,serif;margin:8px 0 6px">' + esc(r.title || 'Untitled') + '</h1>'
+      + (r.essence ? '<div style="font:italic 15px/1.5 Fraunces,serif;color:#5a5040">' + esc(r.essence) + '</div>' : '')
+      + '<div class="fx">' + facts.map(f => '<div><span>' + f[0] + '</span><b>' + esc(f[1]) + '</b></div>').join('') + '</div>'
+      + '<div class="bd">' + bodyHtml + '</div></div>';
+  } else if (dk === 'diary') {
+    const ord = dyOrder_(), i = ord.findIndex(x => x.id === r.id); ink = dyInk_(r, ord);
+    const dt = r.created_at ? new Date(r.created_at) : null, ok = dt && !isNaN(dt);
+    const t = (r.title || '').trim();
+    const ttl = ok && (!t || DY_AUTO_TITLE.test(t)) ? dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(/,/g, ',') : t;
+    const meta = [ok ? 'WRITTEN ' + dt.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase() : '', words.toLocaleString('en-IN') + (words === 1 ? ' WORD' : ' WORDS')]
+      .concat(entryChips(r).map(x => '#' + x.toUpperCase())).filter(Boolean).join(' · ');
+    main = '<div style="display:flex;gap:16px;align-items:center;border-bottom:2px solid var(--k);padding-bottom:14px;margin-bottom:18px">'
+      + (ok ? '<span class="seal"><b>' + dt.getDate() + '</b><small>' + dt.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase() + ' ’' + String(dt.getFullYear()).slice(2) + '</small></span>' : '')
+      + '<div><div class="k" style="color:var(--k)">MY DIARY' + (i >= 0 ? ' · PAGE ' + (ord.length - i) + ' OF ' + ord.length : '') + '</div>'
+      + '<div style="font:700 24px/1.2 Fraunces,serif;margin:4px 0">' + esc(ttl) + '</div>'
+      + '<div class="k" style="color:#a39882;font-size:8px;letter-spacing:.18em">' + esc(meta) + '</div></div></div>'
+      + '<div class="ruled">' + (bodyHtml || '<p style="color:#a39882;font-style:italic">Nothing written yet.</p>') + '</div>';
+  } else {
+    const n = wrNum_(r), mins = Math.max(1, Math.round(words / 230));
+    const fl = d => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+    const colo = [r.created_at ? 'First drafted ' + fl(r.created_at) : '', r.updated_at && fl(r.updated_at) !== fl(r.created_at) ? 'last revised ' + fl(r.updated_at) : '', words ? words.toLocaleString('en-IN') + ' words' : ''].filter(Boolean).join(' · ');
+    main = '<div style="border-top:3px double #1c2331;padding-top:10px;display:flex;justify-content:space-between"><span class="k" style="color:var(--k)">MY WRITINGS · No. ' + n + '</span><span class="k" style="color:#a39882">' + (words ? mins + ' MIN READ' : '') + '</span></div>'
+      + '<h1 style="font:800 34px/1.1 Fraunces,serif;margin:12px 0 8px">' + esc(r.title || 'Untitled') + '</h1>'
+      + (r.essence ? '<div style="font:italic 15px/1.5 Fraunces,serif;color:#55505e;margin-bottom:6px">' + esc(r.essence) + '</div>' : '')
+      + ((r.tags || []).length ? '<div class="k" style="color:var(--k);font-size:8px;letter-spacing:.14em;text-transform:none;margin-bottom:14px">' + esc(r.tags.map(x => '#' + x).join('  ')) + '</div>' : '<div style="height:10px"></div>')
+      + '<div class="bd dc cols">' + bodyHtml + '</div>'
+      + '<div style="font:italic 12px Fraunces,serif;color:#55505e;text-align:center;margin-top:18px"><span style="color:var(--k)">❦</span> &nbsp;' + esc(colo) + '</div>';
+  }
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title || room) + '</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400&family=IBM+Plex+Mono:wght@400;600;700&display=swap" rel="stylesheet">'
+    + '<style>' + css + '</style></head><body style="--k:' + ink + '">' + main
+    + '<div class="foot"><span>' + room + '</span><span>PRINTED ' + printed + '</span></div>'
+    + '<scr' + 'ipt>window.onload=function(){var done=false;var go=function(){if(done)return;done=true;window.print();};if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);setTimeout(go,900);}else{setTimeout(go,300);}};</scr' + 'ipt></body></html>';
+}
 function exportEntryPrint() {
   if (!readerEntry) return; const r = readerEntry; const date = readerDateStr_(r);
+  { const h = prPr2Html_(r); if (h) { NoteEditor.openPrint(h); return; } }   // PR-2
   const esc = function(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
   const head1 = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(r.title||'Entry') + '</title>';
   const fontlink = '<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">';
