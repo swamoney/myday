@@ -8,6 +8,15 @@ Written August 2026.
 
 ---
 
+## VS-1 · The Life Timeline shelf stands up: one flat pile, newest on top (25 Nov 2026, why.html, inner page)
+- renderTimeline: the horizontal shelf is gone. That means the upright .bk2 books, the sideways scroll, the dashed ghost slot (#ltGhost) and the 5-year age ruler. In their place, .ltS holds one .fb2 per chapter, lying flat. The oldest sits at the bottom on a wooden base (.ltS-base) and the newest is on top.
+- **Each book:** numeral badge, the full name read straight (no head-tilt), and the years on the right. The book takes the chapter's colour (chK_, so an NC-1 pick is kept). A longer chapter makes a thicker book (38px + 3px per year, max 80px). Widths vary from 70% to 91% so the pile looks hand-stacked. A chapter still being lived carries a white ribbon.
+- **Tapping a book (or Enter/Space):** rings it (.sel) and opens the existing two-page spread below (#ltOpen, unchanged), with the SC-2 scroll and glow.
+- The newest chapter is open by default.
+- **Phone:** books are 22% wider, names wrap to 2 lines and the gold bands are hidden.
+- New chapters come only from "+ New chapter" (the NC-1 pop-up), or "Add a chapter" when there are none yet.
+- Old shelf CSS (.ltD-shelf, .bk2) is left in place, unused.
+
 ## NC-1 · New chapter opens as a blank-book pop-up (25 Nov 2026, why.html, inner page)
 - Three buttons now open the pop-up #ncPop instead of the old inline form (#chAsk): "+ New chapter", the shelf's empty ghost slot, and "Add a chapter" on an empty shelf.
 - The pop-up is an open book:

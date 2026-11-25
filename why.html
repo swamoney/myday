@@ -17156,6 +17156,19 @@ body.av-trip .toolbar:has(#searchInput){display:none !important}
   .nc-act button{border-radius:12px;padding:12px 18px;font:600 .88rem 'IBM Plex Sans',sans-serif;cursor:pointer;border:1.5px solid #e6dcc6;background:#fff;color:#5a5040}
   .nc-act .pr{flex:1;background:var(--k);color:#fff;border-color:var(--k)}.nc-act .pr:disabled{opacity:.6;cursor:wait}
   @media(max-width:640px){.nc-bk{flex-direction:column}.nc-bk::after{display:none}.nc-pg{padding:22px 20px}.nc-pg.l{padding-bottom:16px}.nc-pg.l .nc-nt{margin-top:6px}.nc-spn{height:190px;width:66px;margin-top:10px}.nc-spn .tt{max-height:95px;font-size:.8rem}.nc-pg.r{border-top:1px dashed #e6dcc6}}
+  /* VS-1 (25 Nov 2026): the shelf stands up - chapters lie flat in one pile, newest on top, oldest on the base */
+  .ltS{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px 0}
+  .fb2{--k:#2f5f8a;position:relative;display:flex;align-items:center;gap:12px;width:var(--w);height:var(--h);max-width:100%;color:#fff;cursor:pointer;border-radius:3px 6px 6px 3px;padding:0 16px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0 2px,transparent 2px 4px),linear-gradient(180deg,color-mix(in srgb,var(--k) 62%,#000) 0,var(--k) 16%,color-mix(in srgb,var(--k) 82%,#fff) 50%,var(--k) 84%,color-mix(in srgb,var(--k) 62%,#000));box-shadow:0 3px 6px rgba(22,38,77,.18);transition:transform .2s}
+  .fb2:hover{transform:translateX(6px)}
+  .fb2 .g{width:6px;align-self:stretch;margin:8px 0;border-left:1.5px solid #e9d9a8;border-right:1.5px solid #e9d9a8;flex:none}
+  .fb2 .nm{min-width:28px;height:28px;padding:0 4px;flex:none;border-radius:14px;border:1.5px solid #e9d9a8;display:flex;align-items:center;justify-content:center;font:700 .66rem 'Fraunces',Georgia,serif;color:#f6ecd0}
+  .fb2 .tt{flex:1;min-width:0;font:700 1rem 'Fraunces',Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+  .fb2 .yy{font:700 .58rem 'IBM Plex Mono',monospace;color:#f6ecd0;letter-spacing:.06em;white-space:nowrap}
+  .fb2.live::after{content:'';position:absolute;right:58px;top:100%;width:8px;height:16px;background:#fff;clip-path:polygon(0 0,100% 0,100% 100%,50% 75%,0 100%);z-index:1}
+  .fb2.sel{outline:2px solid #16264d;outline-offset:2px}
+  .fb2:focus{outline:none}.fb2:focus-visible{box-shadow:0 0 0 3px #16264d}.fb2.sel:focus-visible{outline:2px solid #16264d}
+  .ltS-base{height:14px;background:linear-gradient(#b9a27a,#8a7552);border-radius:3px;margin:4px auto 0;width:92%}
+  @media(max-width:640px){.ltS{padding:4px 0 0}.fb2{width:min(100%,calc(var(--w) + 22%));height:auto;min-height:max(46px,var(--h));padding:6px 10px;gap:8px}.fb2 .tt{font-size:.86rem;line-height:1.2;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}.fb2 .yy{font-size:.52rem;letter-spacing:0}.fb2 .g{display:none}.fb2.live::after{right:40px}}
   /* PG-1 (24 Nov 2026): trip page heading as a luggage tag (matches the TR-2 index) */
   .pg-eye,.pg-band,.pg-code,.pg-bar{display:none}
   .rd-sticky.plate.tagpg{background:linear-gradient(#f9f1e2,#f3e7cf) !important;border:1px solid #e0cfae !important;border-radius:8px 18px 18px 8px !important;box-shadow:0 14px 30px rgba(22,38,77,.10) !important;
@@ -18097,7 +18110,7 @@ function renderTimeline(list, wrap) {
   const lifeYears = Math.max(1, nowY - startY);
   const share = r => r.years_from ? Math.max(3, Math.min(100, Math.round(((r.years_to || nowY) - r.years_from) * 100 / lifeYears))) : 0;
   const rn = r => romanNum((idx[r.id] || 0) + 1);
-  // LT-3+ (25 Nov 2026): the life as a bookshelf - one volume per chapter (thicker for longer), decade bookends,
+  // VS-1 (25 Nov 2026) replaced the horizontal shelf with a flat pile (below). Was LT-3+: the life as a bookshelf - one volume per chapter (thicker for longer), decade bookends,
   // the chapter being written leaning with a ribbon, an empty slot for the next, an age ruler; tap a book to open it below.
   let html = '<div class="lt-tools"><button type="button" class="tp-newbtn lt-new" id="ltNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>New chapter</span></button></div>'
     + '<div class="lt-head"><small>WHAT I LIVED</small><b>The story so far</b><i>a life in chapters, written as I go</i><span class="lt-rule"></span></div>';
@@ -18107,23 +18120,20 @@ function renderTimeline(list, wrap) {
     const by = birthYear();
     const ag = y => by ? y - by : null;
     const decs = {}; sorted.forEach(r => { const d = r.years_from ? Math.floor(r.years_from / 10) * 10 : 'none'; (decs[d] = decs[d] || []).push(r); });
-    let sh = '<div class="ltD-room"><div class="ltD-shelf"><div class="books">';
-    Object.keys(decs).sort().forEach(d => {
-      decs[d].forEach(r => {
-        const i = idx[r.id] || 0, live = r.years_from && !r.years_to, n = r.years_from ? Math.max(1, (r.years_to || nowY) - r.years_from) : 2;
-        sh += '<div class="bk2' + (live ? ' live' : '') + '" data-lt="' + escHtml(r.id) + '" role="button" tabindex="0" style="--k:' + chK_(r, i) + ';--wd:' + Math.min(130, 46 + n * 6) + 'px;--h:' + (250 + (i * 37 % 40)) + 'px">'
-          + '<span class="g1"></span><span class="nm">' + romanNum(i + 1) + '</span><span class="tt">' + escHtml(r.title) + '</span><span class="g2"></span>'
-          + '<span class="yy">' + (r.years_from || '') + '<br>' + (r.years_from ? (r.years_to || 'now') : '') + '</span>' + (live ? '<span class="rb"></span>' : '') + '</div>';
-      });
+    // VS-1 (25 Nov 2026): one pile, newest on top - each book lies flat, its name reads straight; thicker = longer
+    let sh = '<div class="ltD-room"><div class="ltS">';
+    sorted.slice().reverse().forEach(r => {
+      const i = idx[r.id] || 0, live = r.years_from && !r.years_to, n = r.years_from ? Math.max(1, (r.years_to || nowY) - r.years_from) : 2;
+      sh += '<div class="fb2' + (live ? ' live' : '') + '" data-lt="' + escHtml(r.id) + '" role="button" tabindex="0" style="--k:' + chK_(r, i) + ';--w:' + (70 + (i * 13 % 22)) + '%;--h:' + Math.min(80, 38 + n * 3) + 'px">'
+        + '<span class="g"></span><span class="nm">' + romanNum(i + 1) + '</span><span class="tt">' + escHtml(r.title) + '</span>'
+        + '<span class="yy">' + (r.years_from ? r.years_from + ' \u2013 ' + (r.years_to || 'now') : '') + '</span><span class="g"></span></div>';
     });
-    sh += '<div class="ghost" id="ltGhost" title="The next chapter" role="button" tabindex="0"><span>+</span></div></div><div class="plank"></div><div class="ruler">';
-    if (firstY < 9999) { const s0 = Math.floor(startY / 5) * 5; for (let y = s0; y <= nowY; y += 5) sh += '<span>' + y + (by ? '<small>age ' + Math.max(0, y - by) + '</small>' : '') + '</span>'; }
-    sh += '</div></div></div><div class="ltD-open" id="ltOpen"></div>';
+    sh += '</div><div class="ltS-base"></div></div><div class="ltD-open" id="ltOpen"></div>';
     html += sh;
     window.__ltOpen = id => {
       const r = sorted.find(x => String(x.id) === String(id)) || sorted[sorted.length - 1]; if (!r) return;
       const i = idx[r.id] || 0, live = r.years_from && !r.years_to, n = r.years_from ? Math.max(1, (r.years_to || nowY) - r.years_from) : null;
-      document.querySelectorAll('.bk2').forEach(b => b.classList.toggle('sel', b.dataset.lt === String(r.id)));
+      document.querySelectorAll('.fb2').forEach(b => b.classList.toggle('sel', b.dataset.lt === String(r.id)));
       const a1 = r.years_from ? ag(r.years_from) : null, a2 = r.years_from ? ag(r.years_to || nowY) : null;
       el('ltOpen').innerHTML = '<div class="sp" style="--k:' + chK_(r, i) + '"><div class="pg l"><small>CHAPTER ' + romanNum(i + 1) + '</small><b>' + escHtml(r.title) + '</b>' + (r.essence ? '<i>' + escHtml(r.essence) + '</i>' : '') + '<div class="orn">❦</div></div>'
         + '<div class="pg r"><div class="fx"><span>YEARS</span><b>' + (r.years_from ? r.years_from + ' – ' + (r.years_to || 'now') : 'not set') + '</b></div>'
@@ -18147,6 +18157,7 @@ function renderTimeline(list, wrap) {
       '<span class="by-set" id="bySet">' + (birthYear() ? 'change' : 'set birth year for age labels') + '</span></div>';
   wrap.innerHTML = html;
   // SC-2 (25 Nov 2026): tapping a book scrolls to its open spread (middle of the screen) and the spread glows once in the chapter's ink
+  wrap.querySelectorAll('.fb2').forEach(x => x.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); x.click(); } }));
   wrap.querySelectorAll('[data-lt]').forEach(x => x.addEventListener('click', () => {
     window.__ltOpen(x.dataset.lt);
     const t = el('ltOpen'); t.classList.remove('glow'); void t.offsetWidth; t.classList.add('glow');
