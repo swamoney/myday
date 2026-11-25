@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## RB-1 · The restaurant receipt gets warm till paper (25 Nov 2026, why.html, outer page)
+- The Explore List restaurant receipt (.zrc) and the same receipt heading on its place page (#plObj .zrc) change from white to warm cream #fffaf0.
+- The zig-zag edge, the teal outline, the ink and the spacing are unchanged.
+- Reason: plain white floated on the pale page with no body.
+
 ## PR-2 · Print / PDF of a chapter, a diary page and a writing follows the screen, set for A4 (25 Nov 2026, why.html, inner page)
 - exportEntryPrint now asks prPr2Html_(r) first. For a life chapter, a diary page or a writing it opens a print sheet in the page's own design. Trips and musings print as before.
 - **Shared:**
