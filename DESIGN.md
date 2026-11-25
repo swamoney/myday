@@ -8,6 +8,47 @@ Written August 2026.
 
 ---
 
+## WR-2 + ED-3 + NS-2 · My Writings as a magazine; a diary page edits in its own spread (25 Nov 2026, why.html, inner page)
+**NS-2: search rows.** My Diary (body.av-dy) and My Writings (body.av-wr) have no search row, like Trips and the Timeline. Any leftover search is cleared on entering either room.
+
+**WR-2 index (renderShelf, rewritten):**
+- **Top:**
+  - "+ Begin a writing" sits at the top right.
+  - Heading "MY WRITINGS · Pieces I published · words worth keeping".
+  - Count line: pieces · words · minutes of reading (230 wpm).
+- **Contents card (.wr2-toc):** cream paper with a "Contents" masthead under a double rule and "N pieces, newest touched first".
+  - Sections: FAVOURITES ★ and ON THE DESK, each sorted last touched first.
+  - Each line (.wr2-it) shows a big pale number, then the title with ★ and dotted leaders to the minutes ("JUST BEGUN" when empty).
+  - Below the title: the essence in italic, then #tags · words · touched date.
+  - "+ BEGIN A WRITING" sits at the foot, using the same prompt → quickInsert → edit flow as before.
+- The piece number (wrNum_) is the creation order: No. 1 is the first piece ever written, so numbers never shift.
+- Tags in the index no longer act as search links, because the search row is gone.
+
+**WR-2 page (wrPagePaint_ from openReader for writings; wrPageClear_ for other kinds):** body.rd-wr.
+- **Heading:**
+  - The plate drops its box.
+  - Kicker "MY WRITINGS · No. n" and a big left headline.
+  - The essence as an italic standfirst.
+  - A huge pale piece number in the top-right corner.
+  - A byline rule: last revised date (or written date) · words · min read.
+  - Tags (the existing chip row, still editable).
+- **Text:** serif, with a drop cap on the first paragraph. Blockquotes become plum side-ruled pull-quotes. Two columns with a rule at ≥900px; one column below that.
+- **After the text:**
+  - A ❦ end mark.
+  - A COLOPHON: first drafted · last revised. The revision count is not shown, because it would need the history store.
+  - Copy / Download / Print.
+  - "← PREVIOUS PIECE / NEXT PIECE →" in contents order.
+- The old round reading seal (rdMark) is hidden on this page. Edit mode returns to the normal editor.
+
+**ED-3: diary page in Edit (body.rd-dy.rd-editing).**
+- The spread turns into one paper sheet.
+- **Left (96px margin):** the date seal (56px), with "MY DIARY · PAGE n OF N" running up the margin.
+- **Right:**
+  - The title box, photo, tags and date picker, then the formatting row.
+  - Then the writing on 34px ruled lines, and Copy / Download / Print.
+- Facts and "a year ago" step away while editing.
+- **Phone:** the seal and the kicker sit in one row on top, and everything else runs full width.
+
 ## DY-4 roomy + DP-3 · My Diary index as a thread of pages; a diary page as a notebook spread (25 Nov 2026, why.html, inner page)
 **Index (renderDiary, rewritten):**
 - **Top:**
