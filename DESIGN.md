@@ -8,6 +8,17 @@ Written August 2026.
 
 ---
 
+## FR-2 · A person's page goes fresh like the pillar page (26 Nov 2026, why.html, outer page)
+- **Why:** the pillar page reads fresh because it sits on clean cool white and uses many soft colours at once. The person page was on warm beige paper and used one colour throughout.
+- **Background:** #personWin becomes #fbfcfe, the pillar page's white. This replaces BG-P2's #fbf7ee.
+- **Panels:** In their words (#psAdv), What I learnt (#psLrn) and Our moments (#psMom) each sit on a soft multi-tint gradient panel, 20px rounded with a hairline border.
+  - Their words: sky → lavender → blush.
+  - What I learnt: blush → cream → mint → lavender.
+  - Our moments: mint → sky → lilac.
+- **Lesson seals:** they cycle four inks (teal, slate-blue, violet, plum) via --lk, with matching ❦, outline and dotted tie. The cards stay white.
+- The quote cards peeking behind the stack are tinted mint and lavender.
+- The heading, chips and Parts IV to VI are unchanged.
+
 ## IW-2 + LT-1 · A person's page: their words as a highlight stack; what I learnt as mantra cards (26 Nov 2026, why.html, outer page)
 **Part I, In their words (IW-2), while reading:**
 - One quote card sits on top (white, a left edge in the circle's colour, a soft quote mark), with the person's initial, name, and ON TOPIC · month. Up to two cards peek behind it.
