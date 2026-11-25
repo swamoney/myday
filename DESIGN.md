@@ -8,6 +8,14 @@ Written August 2026.
 
 ---
 
+## CB-3 · My Circle gets a people constellation behind it, and place-card tiles (25 Nov 2026, why.html, outer page)
+- **Background sheet:** #secCircle gets a faint drawing behind the room, like the Bucket List's compass sheet.
+  - The drawing: small figures and dots joined by dotted lines, like a star map or family tree, with a little tree sketch at the side.
+  - It is an inline SVG on ::before at inset 80px 0 0, opacity .17, ink #4c6a9a, sized 100% width.
+  - A soft rose radial wash sits behind it.
+- **People tiles:** each person (.ci-nm) becomes a cream place card (#fffaf0) with a 1.5px dashed border in the table's colour (--a at 40%).
+- No glow. Layout, tables, seats, colours and words are unchanged.
+
 ## RB-1 · The restaurant receipt gets warm till paper (25 Nov 2026, why.html, outer page)
 - The Explore List restaurant receipt (.zrc) and the same receipt heading on its place page (#plObj .zrc) change from white to warm cream #fffaf0.
 - The zig-zag edge, the teal outline, the ink and the spacing are unchanged.
