@@ -4242,6 +4242,22 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
   body #personWin #pPpl .pp-rp { font-family:var(--mono); font-size:0.52rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--c); background:none !important; border:none !important; padding:0 !important; }
   body #personWin #pPpl .pp-ln, body #personWin #pPpl .tp-lk, body #personWin #pPpl .pp-go { display:none; }
   body #personWin #pPpl .pp-mv { display:inline-flex; gap:2px; }
+  /* PP-1 (25 Nov 2026): a person's page - one warm paper for every circle (the heading keeps its circle's colour), a small soft tag chip,
+     their people as soft tinted chips with a dot, no red; the polaroid caption stays on one line */
+  body #personWin{background:#fbf7ee !important}
+  #personWin .ptag{background:none !important;padding:0 !important}
+  #personWin .p-tag1{font-size:.62rem !important;padding:1px 8px !important;gap:4px !important;background:color-mix(in srgb,var(--p-acc) 8%,#fff) !important;border:1px solid color-mix(in srgb,var(--p-acc) 18%,#fff)}
+  #personWin .p-tag1 i{width:5px !important;height:5px !important}
+  body #personWin #pPpl{gap:6px}
+  body #personWin #pPpl .pp-row{padding:3px 10px !important;border:0 !important;background:color-mix(in srgb,var(--c) 8%,#fff) !important;gap:6px}
+  body #personWin #pPpl .pp-av{width:7px;height:7px;font-size:0 !important;padding:0}
+  body #personWin #pPpl .pp-nl b{font-size:.8rem;font-family:'IBM Plex Sans',sans-serif !important;font-weight:600}
+  body #personWin #pPpl .pp-rp{font-size:.46rem;color:#8a93a8 !important}
+  body #personWin #pPpl .pp-age{font-size:.6rem}
+  body #personWin #pDeal .w-dd > .w-no{background:#efedf7 !important}
+  #pDeal .w-dd .w-no{border-color:#dcd8ef} #pDeal .w-dd .w-no .p-gl{color:#5a4f9c !important}
+  #personWin .p-polcap{white-space:nowrap;text-overflow:ellipsis;max-height:1.2em;font-size:1.05rem}
+  @media(max-width:640px){#personWin .p-polcap{font-size:.74rem !important}}
   /* VI - what I want to do for them: one list, a coloured edge and a tag */
   body #personWin #pIntMatrix { display:grid !important; grid-template-columns:1fr !important; gap:10px; max-width:660px; margin:0 auto; }
   #personWin .pr-li { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e3e8f0; border-left:5px solid var(--q); border-radius:12px; padding:8px 12px; }
@@ -9494,7 +9510,7 @@ function pMon_(v) {
 const P_WHO = [
   { k: 'trait', lbl: 'Traits',     ink: '#4a6b5a', ph: 'add a trait…' },
   { k: 'beh',   lbl: 'Behaviours', ink: '#4f6690', ph: 'add a behaviour…' },
-  { k: 'bias',  lbl: 'Biases',     ink: '#9a6a55', ph: 'add a bias…' }
+  { k: 'bias',  lbl: 'Biases',     ink: '#7a4f86', ph: 'add a bias…' }
 ];
 const P_FACTS = [['bday', 'Birthday', '14 Feb'], ['family', 'Family', 'Partner, children…'], ['work', 'Work', 'Role, company'], ['met', 'How we met', 'Where, when']];
 const P_EMPTY_LBL = { facts: 'Key facts', ppl: 'Their people', who: 'Who they are', adv: 'In their words', lrn: 'What I learnt from them', mom: 'Our moments' };   // AU-2: the page's own names
@@ -9644,7 +9660,7 @@ function renderPersona() {
   const fam = live.filter(x => PPL_FAMW.test(x.r || '')).sort((a, b) => famRank(a.r) - famRank(b.r)).sort(byO);
   const oth = live.filter(x => !PPL_FAMW.test(x.r || '')).sort((a, b) => String(a.n || '').localeCompare(String(b.n || ''))).sort(byO);
   window.pPplGroups_ = { fam: fam.map(x => x.id), oth: oth.map(x => x.id) };
-  const pplInk = r => { const k = famRank(r); return PPL_FAMW.test(r || '') ? ['#a4553f', '#b08a3e', '#5b4a86', '#2f6b8a', '#6d5474'][k] : '#35786f'; };
+  const pplInk = r => { const k = famRank(r); return PPL_FAMW.test(r || '') ? ['#2f6f6a', '#2f5f8a', '#5b4a86', '#2f6b8a', '#6d5474'][k] : '#35786f'; };
   const pplRow = (x, i, arr) => { const l = linkOf(x.n), b = pplAge_(x.b), c = pplInk(x.r), bs = pplBdaySoon_(x.b);
     return '<div class="pp-row" data-pplform="' + escHtml(x.id) + '" style="--c:' + c + '">'
       + (ed ? '<span class="pp-mv"><button type="button" data-pplmv="' + escHtml(x.id) + ':-1"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move up">\u25B2</button>'
@@ -10887,9 +10903,9 @@ const RHYTHMS = [
 ];
 function rhythmOf(k) { return RHYTHMS.find(r => r.key === (k || '')) || RHYTHMS[0]; }
 const PERSON_Q = {
-  q1: { code:'Q1', sub:'Current priority',      acc:'#9c3f4a', w2:'#fdf3f4' },
+  q1: { code:'Q1', sub:'Current priority',      acc:'#5a4f9c', w2:'#f3f1fa' },   // PP-1 (25 Nov 2026): no red on a person's page
   q2: { code:'Q2', sub:'Next in line',          acc:'#2E6640', w2:'#f2f8f4' },
-  q3: { code:'Q3', sub:'Long game',             acc:'#a06a2c', w2:'#fdf8f0' },
+  q3: { code:'Q3', sub:'Long game',             acc:'#3f6b8a', w2:'#eff4f8' },
   q4: { code:'Q4', sub:'Not thinking, for now', acc:'#5f6b85', w2:'#f6f7fa' }
 };
 // Q1 Q2 / Q3 Q4 — the standard numbering, which is simply reading order.

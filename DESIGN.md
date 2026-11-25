@@ -8,6 +8,23 @@ Written August 2026.
 
 ---
 
+## PP-1 · A person's page: one warm paper for every circle, quieter chips, no red (25 Nov 2026, why.html, outer page)
+- **Page background (PG-1 + BG-P2):** #personWin is warm paper #fbf7ee for every circle. It was the circle's wash at quarter strength.
+  The heading card keeps its circle's colour: left edge, tint, eyebrow, underline.
+- **Tag chip (CS-1):** the chip next to the name (.p-tag1) is a size smaller (.62rem, 1px 8px), on an 8% wash of the circle's colour with a hairline border. The pTag box background is cleared.
+- **Their people (TP-2):** the chips (#pPpl .pp-row) have no border.
+  - Each sits on an 8% wash of the person's colour.
+  - The initial becomes a 7px dot, the name is in sans, and the relation is in soft grey.
+  - Family inks: husband/wife and children change from rust #a4553f and gold #b08a3e to teal #2f6f6a and blue #2f5f8a. Parents, siblings and the rest are unchanged.
+- **No red on a person's page:**
+  - PERSON_Q q1 "Current priority" (the NOW tag and edge) changes from rose #9c3f4a to violet #5a4f9c.
+  - q3 "Long game" changes from amber #a06a2c to slate-blue #3f6b8a.
+  - The Biases ink changes from rust #9a6a55 to plum #7a4f86.
+  - The DON'T note changes from pink to lavender #efedf7, with a violet label.
+  - PRI_Q (the Priority room) is untouched.
+- **Polaroid caption:** the caption stays on one line with an ellipsis (it used to spill over the photo). On phone it is .74rem, so a long caption ends in "…".
+- The CSS block sits after the Part V rules so it wins over them.
+
 ## XF-1 · Explore List: flat background, one Filter bar, three-column panel, soft mint selection (25 Nov 2026, why.html, outer page)
 - **Background:** #secExplore sits on the flat #f8fafc of My Trips instead of the body's darkening blue-grey gradient.
 - **Filter bar (phone and desktop):** SHOW, KIND and CITY fold into one bar (.xf-bar, max 620px, centred) under the counts.
