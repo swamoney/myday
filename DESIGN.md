@@ -8,6 +8,27 @@ Written August 2026.
 
 ---
 
+## ED-2 · Their words and lessons: read-only taps, written in place with the Learning Diary editor (26 Nov 2026, why.html, outer page)
+**Reading:** tapping a quote or lesson never opens a form. The click handler returns early for data-pnform="adv:*" or "lrn:*" while not editing. The stack still flips on tap.
+
+**Edit (Part I, In their words):** each quote is an in-place card (.ed2-q):
+- The text is written straight into the card with NoteEditor.mount, the same toolbar as the Learning Diary page, minus the image and divider buttons.
+- Under the text: topic chips (existing topics plus Family, Friends, Work, Money, Health, and + for a new one), a month input, "✦ Their line" and ✕.
+- "✦ Their line" sets the quote's pin (one at a time) and repaints the line under the name at once (pPaintLine_), highlights included.
+- "+ Add their words" adds a blank card at the top and focuses it.
+
+**Edit (Part II, What I learnt):** each lesson is a numbered card (.ed2-l, seal colours cycling) with the same editor, a month input, "what happened" (seen), and ✕. Order stays newest first by month.
+
+**Behaviour:**
+- Only the card you are in shows the toolbar (.act).
+- Every keystroke updates pData and debounces the save. Blank quotes and lessons are dropped on Done.
+
+**Data:**
+- Advice and learn items gain h (sanitised HTML) only when the text carries formatting.
+- t stays the plain text, so exports, print, search and counts are unchanged.
+- pParse keeps h.
+- Reading renders h through pRichInline_ on the stack card, the See-all list, the lesson cards and the line under the name.
+
 ## FR-2 · A person's page goes fresh like the pillar page (26 Nov 2026, why.html, outer page)
 - **Why:** the pillar page reads fresh because it sits on clean cool white and uses many soft colours at once. The person page was on warm beige paper and used one colour throughout.
 - **Background:** #personWin becomes #fbfcfe, the pillar page's white. This replaces BG-P2's #fbf7ee.
