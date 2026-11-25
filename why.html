@@ -1718,6 +1718,35 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
 .ex-leg button{cursor:pointer}
 .zob{position:relative;flex:none;max-width:100%}
 #bkRoomPlaces{display:flow-root;padding-bottom:36px}
+  /* XF-1 (25 Nov 2026): Explore sits on the flat My Trips background; SHOW / KIND / CITY fold into one Filter bar (phone and desktop);
+     open, they read as three short columns (OF-2) with a soft mint selection (SL-1) */
+  #secExplore{background:#f8fafc}
+  #placeList .xf{max-width:620px;margin:12px auto 16px}
+  #placeList .xf-bar{display:flex;align-items:center;gap:10px;width:100%;background:#fff;border:1px solid #d7dde8;border-radius:14px;padding:10px 14px;font:600 .8rem 'IBM Plex Sans',sans-serif;color:#16264d;cursor:pointer;text-align:left}
+  #placeList .xf.open .xf-bar{border-radius:14px 14px 0 0}
+  #placeList .xf-bar .ic{width:30px;height:30px;border-radius:50%;background:#2f6f6a;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+  #placeList .xf-bar .ic svg{width:15px;height:15px}
+  #placeList .xf-bar .tx{display:flex;flex-direction:column;min-width:0}
+  #placeList .xf-bar .tx small{font:500 .72rem 'IBM Plex Sans',sans-serif;color:#7a8399;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #placeList .xf-bar .go{margin-left:auto;font:700 .55rem 'IBM Plex Mono',monospace;letter-spacing:.16em;color:#2f6f6a;white-space:nowrap}
+  #placeList .xf .xf-box{display:none}
+  #placeList .xf.open .xf-box{display:grid;grid-template-columns:1fr 1.3fr 1fr;background:#fff;border:1px solid #d7dde8;border-top:0;border-radius:0 0 14px 14px;padding:12px 6px 10px}
+  #placeList .xf .xf-box>div{display:flex !important;flex-direction:column !important;flex-wrap:nowrap !important;align-items:flex-start !important;justify-content:flex-start !important;gap:3px !important;margin:0 !important;padding:0 12px !important;border-left:1px solid #edf0f5;overflow:visible !important}
+  #placeList .xf .xf-box>div:first-child{border-left:0}
+  #placeList .xf .xf-box>div::before{content:attr(data-lb);font:700 .5rem 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#8a93a8;margin-bottom:5px}
+  #placeList .xf .xf-box .sf3 .lb{display:none}
+  #placeList .xf .xf-box button{display:flex !important;align-items:center;gap:6px;background:none !important;border:0 !important;box-shadow:none !important;padding:3px 6px !important;font-size:.74rem !important;border-radius:6px !important;width:100%;justify-content:flex-start !important;text-align:left;color:#3a4560 !important;flex:none !important}
+  #placeList .xf .xf-box button em{margin-left:auto}
+  #placeList .xf .xf-box svg{width:13px !important;height:13px !important}
+  #placeList .xf .xf-box button.on{background:#f1f8f6 !important;color:#1f5a55 !important;font-weight:700 !important;box-shadow:inset 3px 0 0 #7fb5ac !important;border-radius:0 6px 6px 0 !important}
+  #placeList .xf .xf-box .sf3 .bx{background:#fff !important;border:1.5px solid #5f9e95 !important;color:transparent !important}
+  #placeList .xf .xf-box .sf3 button.on .bx{background:#5f9e95 !important;color:#fff !important}
+  @media(max-width:640px){
+    #placeList .xf.open .xf-box{grid-template-columns:1fr 1fr;row-gap:12px}
+    #placeList .xf .xf-box>div:last-child{grid-column:1 / -1;border-left:0;border-top:1px solid #edf0f5;padding-top:10px !important;display:grid !important;grid-template-columns:1fr 1fr;column-gap:8px}
+    #placeList .xf .xf-box>div:last-child::before{grid-column:1 / -1}
+  }
+
 #placeList.pl-list{display:block !important;max-width:none !important;columns:auto !important}
 .exB-line{width:100%;max-width:880px}
 body.editing .zrc{-webkit-mask:none;mask:none}
@@ -12892,6 +12921,7 @@ function pxSeal_(p, S, when) {
 // EX-2 (25 Nov 2026): My Explore List index as things you bring home - a restaurant is its bill, a bar its coaster,
 // a stay its room-key tag, a sight or event its ticket stub - hanging on a dashed line in Want to try / Keepers / Been there.
 let plKind_ = '';
+let plFOpen_ = false;   // XF-1: the Filter bar is folded until you open it
 let plShow_ = new Set(['not_yet', 'keeper', 'been']);   // SF-3 (25 Nov 2026): which statuses show
 function renderPlaces() {
   const wrap = el('placeList'); if (!wrap) return;
@@ -12913,12 +12943,14 @@ function renderPlaces() {
   if (places.length) {
     // CT-1 + SF-3 (25 Nov 2026): cities first in the numbers; a SHOW line of tick boxes; cities as soft pills
     html += '<div class="ex-sum"><span><b>' + cities.length + '</b>' + (cities.length === 1 ? ' city' : ' cities') + '</span><span><b>' + places.length + '</b>' + (places.length === 1 ? ' place' : ' places') + '</span><span><b>' + keepers + '</b>' + (keepers === 1 ? ' keeper' : ' keepers') + '</span></div>'
-      + '<div class="sf3"><span class="lb">SHOW</span>' + [['not_yet', 'Want to try'], ['keeper', 'Keepers'], ['been', 'Been there']].map(x => '<button type="button" data-pshow="' + x[0] + '"' + (plShow_.has(x[0]) ? ' class="on"' : '') + ' aria-pressed="' + plShow_.has(x[0]) + '"><span class="bx">\u2713</span>' + x[1] + ' <em>' + sc[x[0]] + '</em></button>').join('') + '</div>'
-      + '<div class="ex-leg"><button type="button" data-pkind=""' + (plKind_ ? '' : ' class="on"') + '>All <em>' + places.length + '</em></button>'
+      + '<div class="xf' + (plFOpen_ ? ' open' : '') + '"><button type="button" class="xf-bar" data-xf="1" aria-expanded="' + plFOpen_ + '"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></span><span class="tx">Filter<small>' + escHtml((plKind_ ? KN[plKind_] : 'All kinds') + ' \u00B7 ' + (placeCity === 'All' ? 'All cities' : placeCity) + ' \u00B7 ' + plShow_.size + ' of 3 shown') + '</small></span><span class="go">' + (plFOpen_ ? 'CLOSE \u25B4' : 'OPEN \u25BE') + '</span></button><div class="xf-box">'
+      + '<div class="sf3" data-lb="SHOW"><span class="lb">SHOW</span>' + [['not_yet', 'Want to try'], ['keeper', 'Keepers'], ['been', 'Been there']].map(x => '<button type="button" data-pshow="' + x[0] + '"' + (plShow_.has(x[0]) ? ' class="on"' : '') + ' aria-pressed="' + plShow_.has(x[0]) + '"><span class="bx">\u2713</span>' + x[1] + ' <em>' + sc[x[0]] + '</em></button>').join('') + '</div>'
+      + '<div class="ex-leg" data-lb="KIND"><button type="button" data-pkind=""' + (plKind_ ? '' : ' class="on"') + '>All <em>' + places.length + '</em></button>'
       + KO.filter(k => kc[k]).map(k => '<button type="button" data-pkind="' + k + '" style="--k:' + PL_KIND_HUES[k].acc + '"' + (plKind_ === k ? ' class="on"' : '') + '>' + ic(k) + KN[k] + ' <em>' + kc[k] + '</em></button>').join('') + '</div>';
     const pinI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
-    if (cities.length > 1) html += '<div class="ex-cities ct1"><button type="button" data-city="All"' + (placeCity === 'All' ? ' class="on"' : '') + '>All cities</button>'
+    if (cities.length > 1) html += '<div class="ex-cities ct1" data-lb="CITY"><button type="button" data-city="All"' + (placeCity === 'All' ? ' class="on"' : '') + '>All cities</button>'
       + cities.slice().sort((a, b) => (cc[b] - cc[a]) || a.localeCompare(b)).map(c => '<button type="button" data-city="' + escHtml(c) + '"' + (placeCity === c ? ' class="on"' : '') + '>' + pinI + escHtml(c) + '<em>' + cc[c] + '</em></button>').join('') + '</div>';
+    html += '</div></div>';   // closes .xf-box and .xf
   }
   const SEC = { not_yet:'Want to try', keeper:'Keepers', been:'Been there' };
   const pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
@@ -13338,6 +13370,7 @@ el('plChips').addEventListener('click', e => {
 });
 el('placeList').addEventListener('click', e => {
   const ad = e.target.closest('[data-padd]'); if (ad) { openPlaceModal(null); return; }
+  const xf = e.target.closest('[data-xf]'); if (xf) { plFOpen_ = !plFOpen_; renderPlaces(); return; }
   const pk = e.target.closest('[data-pkind]'); if (pk) { plKind_ = pk.dataset.pkind || ''; renderPlaces(); return; }
   const sh = e.target.closest('[data-pshow]'); if (sh) { const k = sh.dataset.pshow; if (plShow_.has(k) && plShow_.size > 1) plShow_.delete(k); else plShow_.add(k); renderPlaces(); return; }
   const pc = e.target.closest('.ex-cities [data-city]'); if (pc) { placeCity = pc.dataset.city; renderPlaces(); return; }

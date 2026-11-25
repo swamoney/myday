@@ -8,6 +8,17 @@ Written August 2026.
 
 ---
 
+## XF-1 · Explore List: flat background, one Filter bar, three-column panel, soft mint selection (25 Nov 2026, why.html, outer page)
+- **Background:** #secExplore sits on the flat #f8fafc of My Trips instead of the body's darkening blue-grey gradient.
+- **Filter bar (phone and desktop):** SHOW, KIND and CITY fold into one bar (.xf-bar, max 620px, centred) under the counts.
+  - It reads "Filter" with a funnel icon and a summary line: kind · city · n of 3 shown.
+  - It is folded by default; tap to OPEN, tap again to CLOSE. The state lives in plFOpen_ for the session.
+- **Open panel (OF-2):** three short columns, SHOW | KIND | CITY, labelled from data-lb.
+  - Each column has one item per line with its count on the right.
+  - On phone, SHOW and KIND sit side by side and CITY becomes a two-column list below.
+- **Selection (SL-1):** a soft mint wash #f1f8f6 with a 3px sage bar #7fb5ac and deep-teal text #1f5a55. The tick boxes are soft sage #5f9e95.
+- Filtering logic, chips and data are unchanged; only the wrapping and the look changed.
+
 ## CB-3 · My Circle gets a people constellation behind it, and place-card tiles (25 Nov 2026, why.html, outer page)
 - **Background sheet:** #secCircle gets a faint drawing behind the room, like the Bucket List's compass sheet.
   - The drawing: small figures and dots joined by dotted lines, like a star map or family tree, with a little tree sketch at the side.
