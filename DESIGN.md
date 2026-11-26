@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## PX + IS-1 (26 Nov 2026): Circle person page - pinned strip clears the photo; In their words cards tinted
+- **PX:** on desktop (≥641px) the pinned-line strip (#pQuote) has margin-right 190px, so it stops before the polaroid and a long line wraps instead of running under the photo. On phone the strip already sits below the photo.
+- **IS-1:** the In their words stack cards (.iw-stk > .c) and the See all list (.p-qs .p-q) take the same soft tint as the pinned strip (7% page accent over white). The green side bar and the thin border stay.
+- F3 gap fixed: the See all list (.p-qs .p-q) is now handwritten too (Caveat 1.55rem). It had been left in Fraunces italic.
+
 ## PN-C (26 Nov 2026): Circle person page - pinned line small on a tinted strip
 - Their pinned line in the heading (#pQuote) is now small: Caveat 1.35rem (1.3rem on phone), down from 2.2rem. It sits centred on a soft strip (7% page accent, 12px radius, 10px 16px padding), and the hairlines above and below are gone. "— Name, on topic" stays under it.
 
