@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## F3 (26 Nov 2026): Circle person page - handwritten words, no editor toolbar
+- **Handwritten (Caveat)** for their pinned line under the heading (#pQuote q, 2.2rem; 1.9rem on phone; the "— Name, on topic" line stays small), the In their words stack and See all list (1.75rem), and What I learnt cards (1.45rem). DO/DON'T notes were already Caveat, so the page reads as one set of their notes.
+- **ED-2 editor toolbar removed:** `pEd2Mount_` no longer mounts NoteEditor and `.ed2-tb` is hidden. Cards are plain contenteditable, shown in Caveat while editing. A paste comes in as plain text. `x.t` is now taken from textContent (no &nbsp;). Formatting already saved in `h` still shows.
+- **No yellow:** the person page's active "Done" button (#pEdit.hot) is teal (#e8f3f1 / #2f6f6a), not amber.
+- No font picker: Rahul locked one font (F3) over the per-person picker.
+
 ## DM-B (26 Nov 2026): diary page - the date not the time; desktop reads like the phone
 - The WRITTEN fact in `dyPagePaint_` now shows the date (e.g. "23 Nov 2026") instead of the time. The repeated small "Written <date>" line (#readerDates) is hidden while reading a diary page; it stays in Edit, where it holds the date picker.
 - Desktop (≥641px): the DP-3 two-page spread (300px facts column + page) is retired. The heading plate sits on top and the lined page sits below at full width, as on the phone. The three facts (WRITTEN · WORDS · THIS YEAR) sit in one centred row (max 560px) with dotted dividers.

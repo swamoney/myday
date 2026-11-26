@@ -2414,7 +2414,7 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
     .p-read p { font-size:1.2rem; }
   }
   .fr { display:flex; gap:8px; flex-wrap:wrap; }
-  #pEdit.hot { background:#fdf3d3; border-color:#f4c430; color:#9a7b1a; }
+  #pEdit.hot { background:#e8f3f1; border-color:#2f6f6a; color:#2f6f6a; }   /* F3 (26 Nov 2026): teal, not yellow */
   @media (max-width:640px) { .pscroll { padding-top:20px; } .pin { padding:0 16px 30px; } .pname { font-size:1.625rem; } .pav { width:52px; height:52px; font-size:1.25rem; } }
   /* ===== My Decisions — the checklist before the leap (N3, Aug 2026) ===== */
   /* Warm redesign (Aug 2026): parchment, rust rules, and the locked chips. */
@@ -4311,6 +4311,14 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
   #pLrn .lt-c .sd{background:var(--lk) !important;box-shadow:0 0 0 4px #fff !important}
   #pLrn .lt-c .o{color:var(--lk) !important}
   #pLrn .lt-c .sd::before{border-top-color:color-mix(in srgb,var(--lk) 55%,#fff) !important}
+  /* F3 (26 Nov 2026): their line, In their words and What I learnt are handwritten (Caveat); no editor toolbar */
+  body #personWin #pQuote q, body #personWin #pQuote q *{font-family:'Caveat',cursive !important;font-style:normal !important;font-weight:600 !important}
+  body #personWin #pQuote q{font-size:2.2rem !important;line-height:1.2 !important}
+  body #personWin #pAdv .iw-top p,body #personWin #pAdv .iw-stk p,body #personWin #pAdv .iw-all p{font-family:'Caveat',cursive !important;font-style:normal !important;font-size:1.75rem !important;line-height:1.25 !important}
+  body #personWin #pLrn .lt-c p{font-family:'Caveat',cursive !important;font-style:normal !important;font-size:1.45rem !important;line-height:1.25 !important}
+  body #personWin .ed2-tb{display:none !important}
+  body #personWin #pAdv .ed2-tx,body #personWin #pLrn .ed2-tx{font-family:'Caveat',cursive !important;font-style:normal !important;font-weight:600 !important;font-size:1.5rem !important;line-height:1.3 !important}
+  @media(max-width:640px){body #personWin #pQuote q{font-size:1.9rem !important}body #personWin #pAdv .iw-top p,body #personWin #pAdv .iw-stk p{font-size:1.55rem !important}}
   @media(max-width:640px){body #personWin #psLrn,body #personWin #psAdv,body #personWin #psMom{padding:14px 14px 22px !important;border-radius:16px !important}}
   /* IP-3 + WH-1 (26 Nov 2026) */
   body #personWin #pPpl .kp-l{flex:1 1 100%;font:700 .5rem 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#8a93a8;margin:4px 0 0}
@@ -10637,8 +10645,8 @@ function pEd2Mount_() {
   if (!pEditing_()) return;
   document.querySelectorAll('#pAdv [data-ed2], #pLrn [data-ed2]').forEach(card => {
     const tb = card.querySelector('.ed2-tb'), ed = card.querySelector('.ed2-tx'); if (!tb || !ed) return;
-    try { pEd2Nk_.push(NoteEditor.mount({ toolbar: tb, editor: ed, onChange: () => pEd2Save_(card) })); } catch (e) {}
-    tb.querySelectorAll('[data-nk-act="img"],[data-nk-act="hr"]').forEach(b => b.remove());
+    // F3 (26 Nov 2026): no formatting toolbar - plain typing; a paste comes in as plain text
+    ed.addEventListener('paste', e => { e.preventDefault(); const t = (e.clipboardData || window.clipboardData).getData('text/plain') || ''; document.execCommand('insertText', false, t.replace(/\s+/g, ' ')); });
     ed.addEventListener('input', () => pEd2Save_(card));
     ed.addEventListener('focus', () => { document.querySelectorAll('.ed2-q,.ed2-l').forEach(c => c.classList.toggle('act', c === card)); });
   });
@@ -10646,7 +10654,7 @@ function pEd2Mount_() {
 function pEd2Save_(card) {
   const x = pEd2Find_(card); if (!x) return;
   const h = NoteEditor.sanitize(card.querySelector('.ed2-tx').innerHTML).trim();
-  x.t = NoteEditor.toPlain(h).replace(/\s+/g, ' ').trim(); x.h = /<(b|strong|i|em|u|s|strike|mark|span|a|font)\b/i.test(h) ? h : '';
+  x.t = (card.querySelector('.ed2-tx').textContent || '').replace(/\s+/g, ' ').trim();   // F3: plain text, no &nbsp; x.h = /<(b|strong|i|em|u|s|strike|mark|span|a|font)\b/i.test(h) ? h : '';
   if (x.pin) pPaintLine_();
   schedulePersonSave();
 }
