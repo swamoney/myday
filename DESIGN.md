@@ -8,6 +8,17 @@ Written August 2026.
 
 ---
 
+## EW-ALL (26 Nov 2026): Circle person page - every section edits like In their words
+- In Edit, every section except the long note is a **calm list**: one line each, a small ✎ pen, and one dashed ＋ line at the end. Each ✎ or ＋ opens a **writing room** (`ewRoom2_` is the shared shell; `ewOpen2_(op)` opens one, by `data-ew2` = section:id, via a capture listener on #personWin, Edit only).
+  - **Heading:** a new "✎ My read & key facts" button (#pAboutEd, Edit only) opens "ABOUT ASHA": My read of them (*word* to highlight), Birthday, Work, How we met, and Family only while it still holds text. "Edit details" (name, circle, rhythm, via openCircleModal) stays as before and is linked from the room. In Edit the key-facts row shows as text, no inputs, and the My read input in the Who box is gone.
+  - **Our moments:** the list shows the date and the moment. The room asks "What happened between you and Asha?", with The story (new `st`) and When as day / month / year (stored as yyyy, yyyy-mm or yyyy-mm-dd, as before). In reading, the story shows as an italic line under the moment.
+  - **Who they are:** DO, DON'T, traits, behaviours and biases form one list with a coloured tag each. The room has a "This is a" chip row (Do / Don't / Trait / Behaviour / Bias), and the room takes that colour; changing the kind moves the note between `deal` and `who`. It also has Where I saw it (`seen`) and When (`on`); `deal` now keeps `seen`, `on` and `why`. Reading is unchanged: green DO and lavender DON'T boxes, then the chip rows.
+  - **Their people:** each row is a dot, the name, the relation · age, ★ INNER CIRCLE or IN MEMORY, faint ▲▼ to reorder (kept), and ✎. The room has a big name, relation chips (＋ opens an inline box for any other word), Born as day / month / year, A note, Circle (★ Inner / Not inner) and In memory (with a year). Reading stays as the TC-B2 rings.
+  - **For them:** each row is the tick box (the existing close-it flow and ledger, unchanged), the plan, a NOW / NEXT / LONG GAME / NOT NOW badge and ✎. The room has the plan, Why it matters (new `why`) and When as Q1–Q4 chips, and the room takes that colour.
+- In Edit, the section "+ Add" pills, #pIntAdd, #pMomAdd and the "tap the circle…" hint are hidden, since the ＋ line replaces them.
+- Every room: Save needs words (it refocuses when empty). "Remove this" asks first. Close and Esc ask only if something changed, and Esc stays inside the room.
+- **Data fixes:** pParse now keeps a person's order `o` (the ▲▼ order was being dropped on reload), an intent's `why`, and a deal's `seen`, `on` and `why`.
+
 ## EW-C (26 Nov 2026): Circle person page - a calm writing room for In their words and What I learnt
 - **Edit is now a calm list** (.ew-cl): each quote or lesson is one handwritten line, with a small caps line under it (ON topic · month · ✦ THEIR LINE · ✎ STORY) and a small ✎ pen. At the bottom is one dashed line, "＋ Write what Asha said…" or "＋ Something Asha taught me…". The ED-2 in-place cards (topic chips, month box, Their line and ✕ on every card) are retired. `pEd2Mount_` is now a no-op.
 - **The writing room** (`ewOpen_(k,id)`, #ewRoom, a full-screen overlay at z-index 3000) opens from ✎ or ＋:
