@@ -8,6 +8,26 @@ Written August 2026.
 
 ---
 
+## EW-C (26 Nov 2026): Circle person page - a calm writing room for In their words and What I learnt
+- **Edit is now a calm list** (.ew-cl): each quote or lesson is one handwritten line, with a small caps line under it (ON topic · month · ✦ THEIR LINE · ✎ STORY) and a small ✎ pen. At the bottom is one dashed line, "＋ Write what Asha said…" or "＋ Something Asha taught me…". The ED-2 in-place cards (topic chips, month box, Their line and ✕ on every card) are retired. `pEd2Mount_` is now a no-op.
+- **The writing room** (`ewOpen_(k,id)`, #ewRoom, a full-screen overlay at z-index 3000) opens from ✎ or ＋:
+  - The top bar has "✕ Close", the kicker "IN THEIR WORDS · ASHA" and a Save pill.
+  - The page asks a big Fraunces question ("What did Asha say that stayed with you?" / "What did Asha teach you — by words or by example?") with a soft italic hint, then a lined page in Caveat (textarea).
+  - Below, details are listed: THE STORY (italic textarea), ON (topic chips; ＋ opens an inline "a new topic" box, no browser prompt), WHEN (month), THEIR LINE (✦ Show under Asha's name, exclusive). Quotes only get ON and THEIR LINE.
+  - "Remove this" sits at the foot for an existing item.
+  - Lessons take their seal colour as the room's tint.
+- **Behaviour:**
+  - Save writes plain text (`h` cleared), then re-renders and repaints their line.
+  - Saving with empty words removes the item, after a confirm.
+  - Close or Esc asks only when something was typed. Esc stops there and doesn't also close the person page.
+- **Data:** a quote gains `st` (the story behind it), kept by pParse. A lesson's existing `seen` is its story.
+- **Reading:**
+  - A quote's story shows as a small italic line under the words, both in the stack and in See all.
+  - A lesson's story is now an italic line under the lesson; the small caps line shows only the month, where before it ran "MONTH · STORY" in capitals.
+- **Fixes:**
+  - Since F3, a comment had swallowed the `x.h` update, so edits to a formatted quote could look lost. This is gone with the plain-text room.
+  - A local `const pFirst_` in renderPersona shadows names, so the new helper is `pFirstName_()`.
+
 ## LB-2 (26 Nov 2026): Circle person page - What I learnt boxes tinted by their seal
 - Each lesson card (#pLrn .lt-c) has a 7% tint of its own seal colour (--lk, which cycles teal #2f6f6a, blue #3f6b8a, violet #5a4f9c, plum #7a4f86), in place of white. The outline, border, seal and Caveat text stay as they were.
 
