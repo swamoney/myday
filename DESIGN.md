@@ -8,6 +8,9 @@ Written August 2026.
 
 ---
 
+## PN-C (26 Nov 2026): Circle person page - pinned line small on a tinted strip
+- Their pinned line in the heading (#pQuote) is now small: Caveat 1.35rem (1.3rem on phone), down from 2.2rem. It sits centred on a soft strip (7% page accent, 12px radius, 10px 16px padding), and the hairlines above and below are gone. "— Name, on topic" stays under it.
+
 ## TC-B2 (26 Nov 2026): Circle person page - Their people as their own circle (three slim rings)
 - #pPpl now groups people into three slim bands instead of KEY PEOPLE / EVERYONE ELSE (IP-3): **◉ INNER CIRCLE** (★ key people, x.pin), **◎ FAMILY** (relation matches PPL_FAMW) and **○ WIDER CIRCLE** (everyone else). Tints step down from 13% to 7% to 3% of the page accent; the wider ring is dashed. An empty ring is not shown.
 - Each band is one row: the label on the left (96px), the people as the existing TP-2 dot chips on white. On phone the label sits above the chips.
