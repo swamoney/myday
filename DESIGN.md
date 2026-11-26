@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## MH-B (26 Nov 2026): Circle writing rooms - a warmer moments heading; the line under every heading is a ✦ note strip
+- **Our moments room:** the heading is now "A moment with Asha worth keeping", where before it read "What happened between you and Asha?", which could sound like a fight. The room's colour is teal #2f6f6a, where before it was brownish-gold #8a6d3b, so it stays clear of yellow.
+- The line under the heading (.ew-h.ew-strip) is a soft note strip: ✦, Newsreader italic, an 8% tint of the room's colour, a 3px left bar and a 0 10px 10px 0 radius. It appears in Our moments, In their words, What I learnt, Who they are and For them.
+- **Their people** gets a new strip under the name: "The people who matter to Asha — so you remember them too."
+- **My read & key facts** keeps its plain pointer line ("Name, circle and rhythm live in Edit details"). It is a direction, not a thought, so it has no strip.
+
 ## EW-ALL (26 Nov 2026): Circle person page - every section edits like In their words
 - In Edit, every section except the long note is a **calm list**: one line each, a small ✎ pen, and one dashed ＋ line at the end. Each ✎ or ＋ opens a **writing room** (`ewRoom2_` is the shared shell; `ewOpen2_(op)` opens one, by `data-ew2` = section:id, via a capture listener on #personWin, Edit only).
   - **Heading:** a new "✎ My read & key facts" button (#pAboutEd, Edit only) opens "ABOUT ASHA": My read of them (*word* to highlight), Birthday, Work, How we met, and Family only while it still holds text. "Edit details" (name, circle, rhythm, via openCircleModal) stays as before and is linked from the room. In Edit the key-facts row shows as text, no inputs, and the My read input in the Who box is gone.

@@ -4333,6 +4333,9 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
   body.p-editing #personWin [data-psadd], body.p-editing #pIntAdd, body.p-editing #pMomAdd, body.p-editing #personWin .pr-hint{display:none !important}
   body:not(.p-editing) #pAboutEd{display:none !important}
   .ew-pp.s1{min-height:96px}
+  /* MH-B (26 Nov 2026): the line under each room's heading is a soft ✦ note strip in the room's own colour */
+  .ew-h.ew-strip{display:block;font:italic 1rem/1.5 'Newsreader',Georgia,serif;color:color-mix(in srgb,var(--t) 82%,#1f2a44);background:color-mix(in srgb,var(--t) 8%,#fff);border-left:3px solid var(--t);border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0 22px}
+  .ew-h.ew-strip::before{content:'\2726  ';font-style:normal}
   .ew-big{display:block;width:100%;box-sizing:border-box;border:0;outline:0;background:none;font:600 2rem 'Fraunces',Georgia,serif;color:#1f2a44;border-bottom:2px solid color-mix(in srgb,var(--t) 40%,#fff);padding:4px 0 8px}
   .ew-ln{display:block;width:100%;box-sizing:border-box;border:0;outline:0;background:none;border-bottom:1px dashed #d6dce6;font:1rem 'Newsreader',Georgia,serif;color:#2b3550;padding:6px 0}
   .ew-big::placeholder,.ew-ln::placeholder{color:#aab3c3}
@@ -10749,7 +10752,7 @@ function ewOpen_(k, id) {
   document.body.insertAdjacentHTML('beforeend', '<div class="ew-room" id="ewRoom" style="--t:' + tint + '" role="dialog" aria-label="Write">'
     + '<div class="ew-top"><button type="button" class="ew-cl0" data-ewclose="1">✕ Close</button><b>' + (isQ ? 'IN THEIR WORDS' : 'WHAT I LEARNT') + ' · ' + escHtml(f.toUpperCase()) + '</b><button type="button" class="ew-sv" data-ewsave="1">Save</button></div>'
     + '<div class="ew-pg"><h3>' + (isQ ? 'What did ' + escHtml(f) + ' say that stayed with you?' : 'What did ' + escHtml(f) + ' teach you — by words or by example?') + '</h3>'
-    + '<div class="ew-h">' + (isQ ? 'Write it the way they said it. Take your time.' : 'One line you want to remember. The story can be as long as you like.') + '</div>'
+    + '<div class="ew-h ew-strip">' + (isQ ? 'Write it the way they said it. Take your time.' : 'One line you want to remember. The story can be as long as you like.') + '</div>'
     + '<textarea class="ew-pp" id="ewT" rows="5" placeholder="' + (isQ ? 'Their words…' : 'The lesson…') + '">' + escHtml(it.t || '') + '</textarea>'
     + '<div class="ew-sep"></div><div class="ew-dl">'
     + '<span>THE STORY</span><textarea class="ew-sti" id="ewS" rows="3" placeholder="' + (isQ ? 'When, where, why they said it (optional)' : 'What happened — how you learnt it (optional)') + '">' + escHtml(story) + '</textarea>'
@@ -10883,8 +10886,8 @@ function ewOpen2_(op) {
   }
   if (k === 'mom') {
     const arr = pData.moments || (pData.moments = []), x = nw ? null : arr.find(m => String(m.id) === id); if (!nw && !x) return;
-    ewRoom2_({ tint: '#8a6d3b', kick: 'OUR MOMENTS · ' + F, after,
-      body: '<h3>What happened between you and ' + escHtml(f) + '?</h3><div class="ew-h">A moment you’d want to remember in ten years.</div>'
+    ewRoom2_({ tint: '#2f6f6a', kick: 'OUR MOMENTS · ' + F, after,
+      body: '<h3>A moment with ' + escHtml(f) + ' worth keeping</h3><div class="ew-h ew-strip">A moment you’d want to remember in ten years.</div>'
         + '<textarea class="ew-pp s1" id="ewT" rows="2" data-ewfocus="1" placeholder="The moment…">' + escHtml(x ? x.t : '') + '</textarea><div class="ew-sep"></div>'
         + '<div class="ew-dl"><span>THE STORY</span><textarea class="ew-sti" id="ewS" rows="3" placeholder="What made it matter (optional)">' + escHtml(x && x.st || '') + '</textarea>'
         + '<span>WHEN</span><div id="ewWhen">' + ewDate3_(x ? x.y : '') + '</div></div>',
@@ -10897,7 +10900,7 @@ function ewOpen2_(op) {
     const src = k === 'deal' ? (pData.deal || (pData.deal = [])) : (pData.who || (pData.who = [])), x = nw ? null : src.find(w => String(w.id) === id); if (!nw && !x) return;
     const kind = x ? (k === 'deal' ? x.k : x.k) : 'trait';
     ewRoom2_({ tint: EW_WK[kind][2], kick: 'WHO THEY ARE · ' + F, after,
-      body: '<h3>What do you know about who ' + escHtml(f) + ' is?</h3><div class="ew-h">Something true about them, or what helps between you.</div>'
+      body: '<h3>What do you know about who ' + escHtml(f) + ' is?</h3><div class="ew-h ew-strip">Something true about them, or what helps between you.</div>'
         + '<div class="ew-dl ew-k1"><span>THIS IS A</span>' + ewChips_('k', Object.keys(EW_WK).map(z => [z, EW_WK[z][1]]), kind) + '</div>'
         + '<textarea class="ew-pp s1" id="ewT" rows="2" data-ewfocus="1" placeholder="In one line…">' + escHtml(x ? x.t : '') + '</textarea><div class="ew-sep"></div>'
         + '<div class="ew-dl"><span>WHERE I SAW IT</span><textarea class="ew-sti" id="ewS" rows="3" placeholder="A time it showed (optional)">' + escHtml(x && x.seen || '') + '</textarea>'
@@ -10917,6 +10920,7 @@ function ewOpen2_(op) {
     const rels = PPL_RELS.map(z => [z, z]).concat(r0 && !known ? [[r0, r0.charAt(0).toUpperCase() + r0.slice(1)]] : []).concat([['+', '＋']]);
     ewRoom2_({ tint: 'var(--p-acc,#2f6f6a)', kick: 'THEIR PEOPLE · ' + F, after,
       body: '<div class="ew-h" style="margin:0 0 6px">Someone in ' + escHtml(f) + '’s life</div><input type="text" class="ew-big" id="ewN" data-ewfocus="1" placeholder="Their name" value="' + escHtml(x ? x.n : '') + '">'
+        + '<div class="ew-h ew-strip" style="margin-top:14px">The people who matter to ' + escHtml(f) + ' \u2014 so you remember them too.</div>'
         + '<div class="ew-dl" style="margin-top:18px"><span>WHO TO ' + escHtml(F) + '</span><div class="ew-chs" data-ewg="r" data-ewopt="1">' + rels.map(([v, l]) => '<button type="button" class="ew-ch' + (v !== '+' && v.toLowerCase() === r0.toLowerCase() && r0 ? ' on' : '') + '" data-v="' + escHtml(v) + '">' + escHtml(l) + '</button>').join('') + '<input type="text" class="ew-nt" placeholder="e.g. godmother" maxlength="30" hidden></div>'
         + '<span>BORN</span><div id="ewB">' + ewDate3_(x ? x.b : '') + '</div>'
         + '<span>A NOTE</span><textarea class="ew-sti" id="ewS" rows="2" placeholder="What to remember about them (optional)">' + escHtml(x && x.note || '') + '</textarea>'
@@ -10933,7 +10937,7 @@ function ewOpen2_(op) {
     const arr = pData.intents || (pData.intents = []), x = nw ? null : arr.find(t => String(t.id) === id); if (!nw && !x) return;
     const q0 = x ? (x.q || 'q2') : 'q2';
     ewRoom2_({ tint: PERSON_Q[q0].acc, kick: 'FOR ' + F, after,
-      body: '<h3>What do you want to do for ' + escHtml(f) + '?</h3><div class="ew-h">Small or big — a plan, a gift, a call you keep meaning to make.</div>'
+      body: '<h3>What do you want to do for ' + escHtml(f) + '?</h3><div class="ew-h ew-strip">Small or big — a plan, a gift, a call you keep meaning to make.</div>'
         + '<textarea class="ew-pp s1" id="ewT" rows="2" data-ewfocus="1" placeholder="I want to…">' + escHtml(x ? x.t : '') + '</textarea><div class="ew-sep"></div>'
         + '<div class="ew-dl"><span>WHY IT MATTERS</span><textarea class="ew-sti" id="ewS" rows="2" placeholder="Why this, for them (optional)">' + escHtml(x && x.why || '') + '</textarea>'
         + '<span>WHEN</span>' + ewChips_('q', Object.keys(PERSON_Q).map(z => [z, EW_QL[z] + ' · ' + PERSON_Q[z].sub]), q0) + '</div>',
