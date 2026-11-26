@@ -4386,6 +4386,11 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
   .ew-rm{display:block;margin:36px auto 0;background:none;border:0;font:600 .76rem 'IBM Plex Sans',sans-serif;color:#8a93a8;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
   @media(max-width:640px){.ew-pg{padding:22px 18px 50px}.ew-pg h3{font-size:1.35rem}.ew-dl{grid-template-columns:1fr;gap:4px}.ew-dl>span{padding-top:12px}.ew-top b{font-size:.48rem;letter-spacing:.14em}}
   /* EW-ALL (26 Nov 2026): the calm list rows for the other sections, and the room's extra fields */
+  #personWin .ew-rdc{max-width:640px;margin:0 auto 12px;text-align:center;padding:10px 14px;border:1px dashed color-mix(in srgb,var(--p-acc,#35786f) 35%,#fff);border-radius:14px;background:#fff}
+  #personWin .ew-rdk{font:700 .64rem 'IBM Plex Mono',monospace;letter-spacing:.16em;color:var(--p-acc,#35786f)}
+  #personWin .ew-rdt{font:italic 1.15rem/1.45 'Newsreader',Georgia,serif;color:#26324e;margin-top:4px}
+  #personWin .ew-rdt .ew-pen{font-style:normal;margin-left:4px;vertical-align:2px;padding:2px 9px}
+  #personWin .ew-rdph{color:#a3acbd}
   #personWin .ew-yr{flex:none;min-width:58px;font:700 .72rem 'IBM Plex Mono',monospace;color:#8a6d3b;margin-top:6px}
   #personWin .ew-tg{flex:none;font:700 .5rem 'IBM Plex Mono',monospace;letter-spacing:.12em;border-radius:999px;padding:4px 8px;margin-top:6px;min-width:66px;text-align:center}
   #personWin .ew-dot{flex:none;width:9px;height:9px;border-radius:50%;margin-top:7px}
@@ -10094,7 +10099,7 @@ function renderPersona() {
         + (m ? '<span class="m">' + escHtml(String(m).toUpperCase()) + '</span>' : '') + '<span class="sd">' + (i + 1) + '</span></div>'; }).join('') + '</div>' : '')
     + '<button type="button" class="pn-addrow" data-pnform="lrn:new">\uFF0B Add a lesson</button>';
   pEd2Mount_();
-  if (ed) { el('pDeal').innerHTML = ''; el('pWho').innerHTML = ewWhoList_(); }   // EW-ALL: Who they are in Edit is one calm list
+  if (ed) { el('pDeal').innerHTML = ''; el('pWho').innerHTML = ewReadCard_() + ewWhoList_(); }   // EW-ALL: Who they are in Edit is one calm list
   // --- Important moments (its own rows; adding needs Edit, as before)
   el('psMom').style.display = shown('mom') ? '' : 'none';
   // --- A1: whatever is empty gathers into one line
@@ -10982,6 +10987,12 @@ const EW_WK = { ok: ['✓ DO', 'Do', '#2E6640', '#eaf4ee'], no: ['✗ DON’T', 
 const EW_QL = { q1: 'NOW', q2: 'NEXT', q3: 'LONG GAME', q4: 'NOT NOW' };
 const ewPen_ = op => '<button type="button" class="ew-pen" data-ew2="' + escHtml(op) + '" aria-label="Write">✎</button>';
 const ewNew_ = (op, txt) => '<button type="button" class="ew-new" data-ew2="' + op + '">＋ ' + escHtml(txt) + '</button>';
+// RW-B (27 Nov 2026): My read of them, as a small centred card above the Who list in Edit; its pen opens a room just for this line
+function ewReadCard_() {
+  const r = String(pData.read || '').trim(), f = pFirstName_() || 'them';
+  return '<div class="ew-rdc"><div class="ew-rdk">MY READ OF THEM</div><div class="ew-rdt">'
+    + (r ? pReadHtml_(r) : '<i class="ew-rdph">' + escHtml(f) + ', in one line\u2026</i>') + ' ' + ewPen_('read:0') + '</div></div>';
+}
 function ewMomList_(sorted) {
   const f = pFirstName_() || 'them';
   return '<div class="ew-cl">' + sorted.filter(m => String(m.t || '').trim()).map(m => '<div class="ew-r"><span class="ew-yr">' + escHtml(m.y ? moShow_(m.y) : '') + '</span><p>' + escHtml(m.t)
@@ -11063,6 +11074,13 @@ function ewOpen2_(op) {
         + P_FACTS.filter(([fk]) => fk !== 'family' || String(fx.family || '').trim()).map(([fk, lbl, ph]) => '<span>' + escHtml(lbl.toUpperCase()) + '</span><input type="text" class="ew-ln" data-ewfact="' + fk + '" value="' + escHtml(fx[fk] || '') + '" placeholder="' + escHtml(ph) + '">').join('') + '</div>',
       onSave: room => { pData.read = ewTx_(el('ewRd').value); pData.facts = Object.assign({}, pData.facts || {}); room.querySelectorAll('[data-ewfact]').forEach(i => { pData.facts[i.dataset.ewfact] = i.value.trim(); }); } });
     const cm = document.querySelector('#ewRoom [data-ewcm]'); if (cm) cm.addEventListener('click', () => { el('ewRoom').remove(); document.body.classList.remove('ew-open'); if (pId) openCircleModal(pId); });
+    return;
+  }
+  if (k === 'read') {
+    ewRoom2_({ tint: 'var(--p-acc,#35786f)', kick: 'MY READ \u00B7 ' + F, after,
+      body: '<h3>' + escHtml(f) + ', in one line</h3><div class="ew-h ew-strip">How you\u2019d sum ' + escHtml(f) + ' up to a friend. *word* to highlight.</div>'
+        + '<textarea class="ew-pp s1" id="ewT" rows="2" data-ewfocus="1" placeholder="Calm under pressure; remembers everything\u2026">' + escHtml(pData.read || '') + '</textarea>',
+      onSave: () => { pData.read = ewTx_(el('ewT').value); } });
     return;
   }
   if (k === 'mom') {

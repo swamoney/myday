@@ -8,6 +8,10 @@ Written August 2026.
 
 ---
 
+## RW-B (27 Nov 2026): My read of them is back in Who they are while editing
+- In Edit, a small centred card sits above the Who list (`ewReadCard_`, .ew-rdc): MY READ OF THEM, the line in Newsreader italic with *word* highlights (pReadHtml_), and a ✎. When there is no read yet it shows a grey placeholder ("Asha, in one line…").
+- Its ✎ opens a small room (`ewOpen2_('read:0')`): "Asha, in one line", a ✦ strip ("How you'd sum Asha up to a friend. *word* to highlight."), and one lined line. It saves to `pData.read`, the same field that "My read & key facts" edits.
+
 ## LB-3 (26 Nov 2026): Field labels in the writing rooms and the add-someone card are readable
 - The labels (THE STORY, WHEN, ON, BIRTHDAY, WHICH CIRCLE…) were 0.5rem pale grey. They are now IBM Plex Mono 700 at 0.64rem, letter-spacing .16em, in the room's own colour (--t in .ew-dl > span; --a in .ad-sl and .ad-fg > span), with a short 22×2px rule underneath at 45% of that colour.
 
