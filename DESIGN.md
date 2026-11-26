@@ -8,6 +8,9 @@ Written August 2026.
 
 ---
 
+## LB-2 (26 Nov 2026): Circle person page - What I learnt boxes tinted by their seal
+- Each lesson card (#pLrn .lt-c) has a 7% tint of its own seal colour (--lk, which cycles teal #2f6f6a, blue #3f6b8a, violet #5a4f9c, plum #7a4f86), in place of white. The outline, border, seal and Caveat text stay as they were.
+
 ## PX + IS-1 (26 Nov 2026): Circle person page - pinned strip clears the photo; In their words cards tinted
 - **PX:** on desktop (≥641px) the pinned-line strip (#pQuote) has margin-right 190px, so it stops before the polaroid and a long line wraps instead of running under the photo. On phone the strip already sits below the photo.
 - **IS-1:** the In their words stack cards (.iw-stk > .c) and the See all list (.p-qs .p-q) take the same soft tint as the pinned strip (7% page accent over white). The green side bar and the thin border stay.
