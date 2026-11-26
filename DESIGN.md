@@ -8,6 +8,9 @@ Written August 2026.
 
 ---
 
+## LB-3 (26 Nov 2026): Field labels in the writing rooms and the add-someone card are readable
+- The labels (THE STORY, WHEN, ON, BIRTHDAY, WHICH CIRCLE…) were 0.5rem pale grey. They are now IBM Plex Mono 700 at 0.64rem, letter-spacing .16em, in the room's own colour (--t in .ew-dl > span; --a in .ad-sl and .ad-fg > span), with a short 22×2px rule underneath at 45% of that colour.
+
 ## DL-A (26 Nov 2026): Circle person page - remove someone from their own page
 - **In Edit only**, a quiet link sits at the very end of the page, under Copy / Download / Print: "Remove Asha from my circle" (#pRemove, plum, underlined), with "Asks before removing" in small italics under it. The name is set in openPerson.
 - **It opens a calm confirm card** (`pRemoveAsk_`, #dlCf, z-index 4000): a plum top band, "REMOVE FROM MY CIRCLE", "Remove Asha?", a line saying the page and everything on it go too and it can't be undone, then **Keep Asha** (the teal main button, focused) and a quiet **Remove Asha** link.
