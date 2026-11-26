@@ -394,6 +394,23 @@
      opened from inside one is invisible until you close the page. */
   .modal-overlay { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(18,26,44,0.55); backdrop-filter:blur(4px); }
   .modal { width:100%; max-width:440px; background:#fff; border-radius:18px; padding:26px 24px; box-shadow:0 30px 70px rgba(10,20,40,0.35); max-height:90vh; overflow-y:auto; }
+  /* DL-A (26 Nov 2026): remove from the page - a quiet link at the end (Edit only) and a calm confirm card */
+  .dl-w{max-width:860px;margin:10px auto 30px;border-top:1px dashed #e0d6e4;padding-top:6px;text-align:center}
+  body:not(.p-editing) .dl-w{display:none}
+  .dl-a{display:block;margin:20px auto 4px;background:none;border:0;font:600 .8rem 'IBM Plex Sans',sans-serif;color:#7a4f86;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .dl-w small{display:block;font:italic .85rem 'Newsreader',Georgia,serif;color:#9aa3b5}
+  .dl-ov{position:fixed;inset:0;z-index:4000;background:rgba(28,34,52,.4);display:flex;align-items:center;justify-content:center;padding:16px}
+  .dl-cf{width:min(440px,100%);background:#fbfcfe;border-radius:20px;box-shadow:0 30px 70px rgba(20,25,40,.35);overflow:hidden}
+  .dl-bd{height:6px;background:#7a4f86}.dl-in{padding:22px 24px 20px}
+  .dl-k{font:700 .54rem 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#7a4f86}
+  .dl-cf h3{font:700 1.5rem 'Fraunces',Georgia,serif;margin:8px 0 6px;color:#1f2a44}
+  .dl-cf p{font:italic 1rem/1.5 'Newsreader',Georgia,serif;color:#4a556c;margin:0 0 14px}
+  .dl-alt{background:#eef4f8;border-left:3px solid #5f6b85;border-radius:0 10px 10px 0;padding:10px 14px;font:.86rem/1.45 'IBM Plex Sans',sans-serif;color:#3d465a}
+  .dl-alt b{color:#1f2a44}
+  .dl-mv{background:none;border:0;padding:0;font:600 .86rem 'IBM Plex Sans',sans-serif;color:#3f6b8a;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .dl-ft{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+  .dl-keep{background:#2f6f6a;color:#fff;border:0;border-radius:999px;padding:10px 20px;font:700 .84rem 'IBM Plex Sans',sans-serif;cursor:pointer}
+  .dl-rm{background:none;border:0;padding:0;font:600 .8rem 'IBM Plex Sans',sans-serif;color:#7a4f86;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
   /* AD-1 (26 Nov 2026): the add-someone card - two calm steps in the chosen circle's colour */
   .modal.ad-m{max-width:580px;padding:0;border-radius:22px;background:#fbfcfe;--a:#35786f}
   .ad-band{height:6px;background:var(--a)}
@@ -6653,6 +6670,8 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
           <button class="eb" id="pPrint" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg><span class="eb-label">Print / PDF</span></button>
         </div>
       </div>
+      <!-- DL-A (26 Nov 2026): removing someone - a quiet link at the very end of the page, Edit only; a calm card asks first -->
+      <div class="dl-w" id="pRmW"><button type="button" class="dl-a" id="pRemove">Remove from my circle</button><small>Asks before removing</small></div>
     </div>
   </div>
 </div>
@@ -10601,6 +10620,7 @@ function openPerson(id) {
   pData = pParse(p.page);
   el('pTitle').innerHTML = 'My Circle &middot; ' + escHtml(p.name || '');
   el('pName').textContent = p.name || '';
+  { const rf = String(p.name || '').trim().split(/\s+/)[0]; el('pRemove').textContent = 'Remove ' + (rf || 'them') + ' from my circle'; }   // DL-A
   const talksAll = (pData.contacts || []).slice().sort((a, b) => String(a.on).localeCompare(String(b.on)));
   const lastTalk = talksAll[talksAll.length - 1];
   pPan = null; pOpenSecs = new Set(); pFactsEdit = false; pMore = {}; pNoteOpen = false; pLedgerOpen_ = false;
@@ -10681,6 +10701,45 @@ function openPerson(id) {
   if (!(history.state && history.state.pw)) { try { history.pushState(Object.assign({}, history.state || {}, { pw: 1 }), ''); } catch (e) {} }
 }
 window.addEventListener('popstate', () => { if (el('personWin').classList.contains('show') && !(history.state && history.state.pw)) closePerson(); });
+// DL-A (26 Nov 2026): the calm confirm card - remove, or move to The Wider World and keep the page
+function pRemoveAsk_() {
+  if (pId === null || el('dlCf')) return;
+  const p = circle.find(x => String(x.id) === String(pId)) || {}, nm = String(p.name || '').trim(), f = nm.split(/\s+/)[0] || 'them';
+  const wider = p.band === 'wider';
+  document.body.insertAdjacentHTML('beforeend', '<div class="dl-ov" id="dlCf" role="dialog" aria-label="Remove"><div class="dl-cf"><div class="dl-bd"></div><div class="dl-in">'
+    + '<div class="dl-k">REMOVE FROM MY CIRCLE</div><h3>Remove ' + escHtml(f) + '?</h3>'
+    + '<p>Their page goes too \u2014 their words, what you learnt, your moments, their people. This can\u2019t be undone.</p>'
+    + (wider ? '' : '<div class="dl-alt">Drifted apart? <b>Move ' + escHtml(f) + ' to The Wider World</b> instead \u2014 the page stays, they just leave your closer circles. <button type="button" class="dl-mv" id="dlMove">Move instead \u2192</button></div>')
+    + '<div class="dl-ft"><button type="button" class="dl-rm" id="dlRm">Remove ' + escHtml(f) + '</button><button type="button" class="dl-keep" id="dlKeep">Keep ' + escHtml(f) + '</button></div></div></div></div>');
+  const ov = el('dlCf'), close = () => ov.remove();
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  ov.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } });
+  el('dlKeep').addEventListener('click', close);
+  el('dlRm').addEventListener('click', async () => {
+    const id = pId; if (id === null) return close();
+    try {
+      const { error } = await supa.from('why_circle').delete().eq('id', id).eq('user_id', userId);
+      if (error) throw error;
+      if (window.MyAlbum) MyAlbum.deleteAll('circle', id);
+    } catch (er) { toast('Could not remove'); return; }
+    close(); clearTimeout(pTimer); pDirty = false; pBaseline = null; pId = null;   // nothing may save into a removed page
+    document.body.classList.remove('p-editing'); el('personWin').classList.remove('show'); document.body.style.overflow = '';
+    if (history.state && history.state.pw) history.back();
+    await loadCircle(); toast(f + ' removed');
+  });
+  const mv = el('dlMove');
+  if (mv) mv.addEventListener('click', async () => {
+    const id = pId; if (id === null) return close();
+    try {
+      await savePerson_(true);
+      const { error } = await supa.from('why_circle').update({ band: 'wider', sort_order: null, rising_since: null }).eq('id', id).eq('user_id', userId);
+      if (error) throw error;
+    } catch (er) { toast('Could not move'); return; }
+    close(); await loadCircle(); openPerson(id); toast(f + ' moved to The Wider World');
+  });
+  setTimeout(() => el('dlKeep').focus(), 30);
+}
+el('pRemove').addEventListener('click', pRemoveAsk_);
 function closePerson() {
   if (pPan) pPanClose_();   // CL-M1
   pCommitPending_();

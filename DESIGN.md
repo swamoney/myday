@@ -8,6 +8,13 @@ Written August 2026.
 
 ---
 
+## DL-A (26 Nov 2026): Circle person page - remove someone from their own page
+- **In Edit only**, a quiet link sits at the very end of the page, under Copy / Download / Print: "Remove Asha from my circle" (#pRemove, plum, underlined), with "Asks before removing" in small italics under it. The name is set in openPerson.
+- **It opens a calm confirm card** (`pRemoveAsk_`, #dlCf, z-index 4000): a plum top band, "REMOVE FROM MY CIRCLE", "Remove Asha?", a line saying the page and everything on it go too and it can't be undone, then **Keep Asha** (the teal main button, focused) and a quiet **Remove Asha** link.
+- **A gentler choice in the same card:** "Drifted apart? Move Asha to The Wider World instead — the page stays". It saves the page, sets band 'wider' (sort_order and rising_since cleared) and re-opens the page. It is hidden when they are already in The Wider World.
+- **Remove:** deletes the why_circle row and the photos (MyAlbum.deleteAll), then stops any pending page save (pTimer, pDirty, pBaseline, pId = null) so nothing writes into the removed page. It closes the page (going back in history if the page pushed a step), reloads the circle and toasts "Asha removed".
+- Esc or a tap outside the card closes it and keeps them.
+
 ## AD-1 (26 Nov 2026): Adding someone - name and circle, then a few facts, then their page opens
 - **#circleModal is rebuilt as a calm card** (.ad-m) in the chosen circle's colour (--a = BANDS.acc): a 6px colour band on top, then STEP 1 OF 2.
   - **Step 1 (#adStep1):** the "SOMEONE NEW IN YOUR CIRCLE" kicker, a big Fraunces name field with a live initial avatar, and a ✦ strip ("The people who matter — so you never lose touch."). The circle is six tappable cards with a ring icon (#fBandCards → hidden #fBand), and the band's one-line meaning shows under them. Rhythm is chips (#fRhyChips → hidden #fRhythm). Tags use the existing tag picker plus a small typed line, then an optional one-line note.
