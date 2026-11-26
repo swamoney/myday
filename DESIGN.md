@@ -8,6 +8,19 @@ Written August 2026.
 
 ---
 
+## AD-1 (26 Nov 2026): Adding someone - name and circle, then a few facts, then their page opens
+- **#circleModal is rebuilt as a calm card** (.ad-m) in the chosen circle's colour (--a = BANDS.acc): a 6px colour band on top, then STEP 1 OF 2.
+  - **Step 1 (#adStep1):** the "SOMEONE NEW IN YOUR CIRCLE" kicker, a big Fraunces name field with a live initial avatar, and a ✦ strip ("The people who matter — so you never lose touch."). The circle is six tappable cards with a ring icon (#fBandCards → hidden #fBand), and the band's one-line meaning shows under them. Rhythm is chips (#fRhyChips → hidden #fRhythm). Tags use the existing tag picker plus a small typed line, then an optional one-line note.
+  - "Next — a few facts →" stays disabled until there is a name, and Enter in the name does the same.
+- **Saving a new person:** `insert(...).select('id').single()`, then loadCircle. If no id comes back, it falls back to the newest row with the same name. Then **Step 2 (#adStep2)**:
+  - "Kavya is in your circle" with "Added to My Confidants 6–15 · monthly", and the ✦ strip "A few facts now save guessing later…".
+  - Fields: My read of them (*word* to highlight), Birthday, Work, How we met.
+  - **Skip for now** or **Open Kavya's page →** (`adFinish_`): closes the card and calls `openPerson(id)`. If any facts were typed it writes `pData.read` and `pData.facts` and saves, then toasts "Kavya added to My Confidants".
+  - The person is already saved at step 1, so closing at step 2 keeps them.
+- **Editing someone** (Edit details): the same card, with "EDIT · NAME" as the kicker, no steps, no strip, one step and Save; Delete shows as a quiet link.
+- The ids (fPerson, fBand, fRhythm, fTag, fTagPick, fRel, circleSave, circleCancel, circleDel, circleModalTitle) are kept, so savePerson, deletePerson and renderTagPicker work unchanged.
+- **On phone** the card is a full-screen sheet and the circle cards stack in one column.
+
 ## MH-B (26 Nov 2026): Circle writing rooms - a warmer moments heading; the line under every heading is a ✦ note strip
 - **Our moments room:** the heading is now "A moment with Asha worth keeping", where before it read "What happened between you and Asha?", which could sound like a fight. The room's colour is teal #2f6f6a, where before it was brownish-gold #8a6d3b, so it stays clear of yellow.
 - The line under the heading (.ew-h.ew-strip) is a soft note strip: ✦, Newsreader italic, an 8% tint of the room's colour, a 3px left bar and a 0 10px 10px 0 radius. It appears in Our moments, In their words, What I learnt, Who they are and For them.
