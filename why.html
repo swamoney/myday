@@ -4321,6 +4321,18 @@ body:not(.editing) #mantraList .mcard.mt-jr::after{left:-1px;right:-1px}
   @media(max-width:640px){body #personWin #pQuote q{font-size:1.9rem !important}body #personWin #pAdv .iw-top p,body #personWin #pAdv .iw-stk p{font-size:1.55rem !important}}
   @media(max-width:640px){body #personWin #psLrn,body #personWin #psAdv,body #personWin #psMom{padding:14px 14px 22px !important;border-radius:16px !important}}
   /* IP-3 + WH-1 (26 Nov 2026) */
+  /* TC-B2 (26 Nov 2026): Their people as three slim rings */
+  body #personWin #pPpl > .tc-bd{flex:1 1 100%;display:flex;flex-direction:column;gap:6px;max-width:720px;margin:0 auto 6px;width:100%}
+  body #personWin #pPpl .tc-bn{display:flex;align-items:baseline;gap:12px;padding:8px 14px;border-radius:10px}
+  body #personWin #pPpl .tc-b1{background:color-mix(in srgb,var(--p-acc,#35786f) 13%,#fff)}
+  body #personWin #pPpl .tc-b2{background:color-mix(in srgb,var(--p-acc,#35786f) 7%,#fff)}
+  body #personWin #pPpl .tc-b3{background:color-mix(in srgb,var(--p-acc,#35786f) 3%,#fff);border:1px dashed color-mix(in srgb,var(--p-acc,#35786f) 25%,#fff)}
+  body #personWin #pPpl .tc-bn h5{flex:none;width:96px;margin:0;font:700 .46rem 'IBM Plex Mono',monospace;letter-spacing:.2em;color:color-mix(in srgb,var(--p-acc,#35786f) 75%,#333)}
+  body #personWin #pPpl .tc-cs{display:flex;flex-wrap:wrap;gap:4px 6px;min-width:0}
+  body #personWin #pPpl .tc-bn .pp-row{background:#fff !important}
+  body #personWin #pPpl .tc-bn .pp-row.key{box-shadow:none;background:#fff !important}
+  body #personWin #pPpl .tc-bn .pp-row.key .pp-nl b::before{content:none}
+  @media(max-width:640px){body #personWin #pPpl .tc-bn{flex-direction:column;gap:6px}body #personWin #pPpl .tc-bn h5{width:auto}}
   body #personWin #pPpl .kp-l{flex:1 1 100%;font:700 .5rem 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#8a93a8;margin:4px 0 0}
   body #personWin #pPpl .pp-row.key{background:color-mix(in srgb,var(--c) 14%,#fff) !important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 35%,#fff)}
   body #personWin #pPpl .pp-row.key .pp-nl b::before{content:'\2605  ';color:#5a4f9c;font-size:.7rem}
@@ -9767,9 +9779,10 @@ function renderPersona() {
   // P1 (20 Nov 2026): one flow, no FAMILY / OTHERS labels - the pinned first, then family, then others (the arrows still move within family / others)
   const flow_ = [...fam.map((x, i) => [x, i, fam]), ...oth.map((x, i) => [x, i, oth])];
   { // IP-3 (26 Nov 2026): key people sit in their own first row, everyone else after - the labels only when both are there
-    const kp = flow_.filter(e => e[0].pin), rest = flow_.filter(e => !e[0].pin), both = kp.length && rest.length;
-    ph += (both ? '<div class="kp-l">KEY PEOPLE</div>' : '') + kp.map(([x, i, arr]) => pplRow(x, i, arr)).join('')
-      + (both ? '<div class="kp-l">EVERYONE ELSE</div>' : '') + rest.map(([x, i, arr]) => pplRow(x, i, arr)).join(''); }
+    // TC-B2 (26 Nov 2026): their own circle as three slim rings - Inner circle (key people), Family, Wider circle
+    const band = (cls, ic, lbl, arr) => arr.length ? '<div class="tc-bn ' + cls + '"><h5>' + ic + ' ' + lbl + '</h5><div class="tc-cs">' + arr.map(([x, i, a]) => pplRow(x, i, a)).join('') + '</div></div>' : '';
+    const kp = flow_.filter(e => e[0].pin), fm = flow_.filter(e => !e[0].pin && e[2] === fam), wd = flow_.filter(e => !e[0].pin && e[2] === oth);
+    ph += (live.length ? '<div class="tc-bd">' + band('tc-b1', '\u25C9', 'INNER CIRCLE', kp) + band('tc-b2', '\u25CE', 'FAMILY', fm) + band('tc-b3', '\u25CB', 'WIDER CIRCLE', wd) + '</div>' : ''); }
   if (!live.length) ph += '<div class="w-none" style="padding:4px 0 8px">nobody here yet</div>';
   if (gone.length) ph += '<div class="tp-past">In memory · ' + gone.map(x => '<button type="button" class="pp-gone" data-pplform="' + escHtml(x.id) + '">' + (x.r ? escHtml(String(x.r).charAt(0).toUpperCase() + String(x.r).slice(1)) + ' · ' : '') + '<b>' + escHtml(x.n) + '</b>' + (x.pastOn ? ' (' + escHtml(x.pastOn) + ')' : '') + '</button>').join(' · ') + '</div>';
   ph += '<button type="button" class="pp-addrow" data-pplform="new">＋ Add someone</button>';

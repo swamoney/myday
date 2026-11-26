@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## TC-B2 (26 Nov 2026): Circle person page - Their people as their own circle (three slim rings)
+- #pPpl now groups people into three slim bands instead of KEY PEOPLE / EVERYONE ELSE (IP-3): **◉ INNER CIRCLE** (★ key people, x.pin), **◎ FAMILY** (relation matches PPL_FAMW) and **○ WIDER CIRCLE** (everyone else). Tints step down from 13% to 7% to 3% of the page accent; the wider ring is dashed. An empty ring is not shown.
+- Each band is one row: the label on the left (96px), the people as the existing TP-2 dot chips on white. On phone the label sits above the chips.
+- Taps, the Edit-mode order arrows, "In memory" and "＋ Add someone" all work as before. In a band, a key person's chip drops the tint and ★, because the ring says it.
+
 ## F3 (26 Nov 2026): Circle person page - handwritten words, no editor toolbar
 - **Handwritten (Caveat)** for their pinned line under the heading (#pQuote q, 2.2rem; 1.9rem on phone; the "— Name, on topic" line stays small), the In their words stack and See all list (1.75rem), and What I learnt cards (1.45rem). DO/DON'T notes were already Caveat, so the page reads as one set of their notes.
 - **ED-2 editor toolbar removed:** `pEd2Mount_` no longer mounts NoteEditor and `.ed2-tb` is hidden. Cards are plain contenteditable, shown in Caveat while editing. A paste comes in as plain text. `x.t` is now taken from textContent (no &nbsp;). Formatting already saved in `h` still shows.
