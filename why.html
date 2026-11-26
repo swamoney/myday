@@ -1741,6 +1741,11 @@ body:not(.editing) #mantraList .mzm .mcard.mzm-c::before{height:34px !important;
   #placeList .xf .xf-box button.on{background:#f1f8f6 !important;color:#1f5a55 !important;font-weight:700 !important;box-shadow:inset 3px 0 0 #7fb5ac !important;border-radius:0 6px 6px 0 !important}
   #placeList .xf .xf-box .sf3 .bx{background:#fff !important;border:1.5px solid #5f9e95 !important;color:transparent !important}
   #placeList .xf .xf-box .sf3 button.on .bx{background:#5f9e95 !important;color:#fff !important}
+  #placeList .xf.open .xf-box{border-radius:0}
+  #placeList .xf-ft{display:none}
+  #placeList .xf.open .xf-ft{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #d7dde8;border-top:1px solid #edf0f5;border-radius:0 0 14px 14px;padding:9px 14px}
+  #placeList .xf-clr{background:none;border:0;padding:4px 2px;font:600 .74rem 'IBM Plex Sans',sans-serif;color:#5a6478;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  #placeList .xf-go{background:#2f6f6a;color:#fff;border:0;border-radius:999px;padding:8px 22px;font:700 .76rem 'IBM Plex Sans',sans-serif;letter-spacing:.02em;cursor:pointer}
   @media(max-width:640px){
     #placeList .xf.open .xf-box{grid-template-columns:1fr 1fr;row-gap:12px}
     #placeList .xf .xf-box>div:last-child{grid-column:1 / -1;border-left:0;border-top:1px solid #edf0f5;padding-top:10px !important;display:grid !important;grid-template-columns:1fr 1fr;column-gap:8px}
@@ -13115,6 +13120,7 @@ function pxSeal_(p, S, when) {
 // a stay its room-key tag, a sight or event its ticket stub - hanging on a dashed line in Want to try / Keepers / Been there.
 let plKind_ = '';
 let plFOpen_ = false;   // XF-1: the Filter bar is folded until you open it
+let plPend_ = null;     // AF-1 (26 Nov 2026): ticks in the open panel wait here until Apply
 let plShow_ = new Set(['not_yet', 'keeper', 'been']);   // SF-3 (25 Nov 2026): which statuses show
 function renderPlaces() {
   const wrap = el('placeList'); if (!wrap) return;
@@ -13129,6 +13135,8 @@ function renderPlaces() {
   const cc = {}; places.forEach(p => { const c = (p.city || '').trim(); if (c) cc[c] = (cc[c] || 0) + 1; });
   const keepers = places.filter(p => p.status === 'keeper').length;
   const sc = { not_yet: 0, keeper: 0, been: 0 }; places.forEach(p => { sc[p.status || 'not_yet'] = (sc[p.status || 'not_yet'] || 0) + 1; });
+  if (plFOpen_ && !plPend_) plPend_ = { k: plKind_, c: placeCity, s: new Set(plShow_) };
+  const fK = plFOpen_ ? plPend_.k : plKind_, fC = plFOpen_ ? plPend_.c : placeCity, fS = plFOpen_ ? plPend_.s : plShow_;
   const shown = places.filter(p => (placeCity === 'All' || (p.city || '').trim() === placeCity) && (!plKind_ || kindOf(p) === plKind_) && plShow_.has(p.status || 'not_yet'))
     .sort((a, b) => (KO.indexOf(kindOf(a)) - KO.indexOf(kindOf(b))) || (new Date(a.created_at) - new Date(b.created_at)));
   let html = '<div class="ex-tools"><button class="pl-addbtn ex-add" type="button" data-padd="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span>Add a place</span></button></div>'
@@ -13137,13 +13145,13 @@ function renderPlaces() {
     // CT-1 + SF-3 (25 Nov 2026): cities first in the numbers; a SHOW line of tick boxes; cities as soft pills
     html += '<div class="ex-sum"><span><b>' + cities.length + '</b>' + (cities.length === 1 ? ' city' : ' cities') + '</span><span><b>' + places.length + '</b>' + (places.length === 1 ? ' place' : ' places') + '</span><span><b>' + keepers + '</b>' + (keepers === 1 ? ' keeper' : ' keepers') + '</span></div>'
       + '<div class="xf' + (plFOpen_ ? ' open' : '') + '"><button type="button" class="xf-bar" data-xf="1" aria-expanded="' + plFOpen_ + '"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></span><span class="tx">Filter<small>' + escHtml((plKind_ ? KN[plKind_] : 'All kinds') + ' \u00B7 ' + (placeCity === 'All' ? 'All cities' : placeCity) + ' \u00B7 ' + plShow_.size + ' of 3 shown') + '</small></span><span class="go">' + (plFOpen_ ? 'CLOSE \u25B4' : 'OPEN \u25BE') + '</span></button><div class="xf-box">'
-      + '<div class="sf3" data-lb="SHOW"><span class="lb">SHOW</span>' + [['not_yet', 'Want to try'], ['keeper', 'Keepers'], ['been', 'Been there']].map(x => '<button type="button" data-pshow="' + x[0] + '"' + (plShow_.has(x[0]) ? ' class="on"' : '') + ' aria-pressed="' + plShow_.has(x[0]) + '"><span class="bx">\u2713</span>' + x[1] + ' <em>' + sc[x[0]] + '</em></button>').join('') + '</div>'
-      + '<div class="ex-leg" data-lb="KIND"><button type="button" data-pkind=""' + (plKind_ ? '' : ' class="on"') + '>All <em>' + places.length + '</em></button>'
-      + KO.filter(k => kc[k]).map(k => '<button type="button" data-pkind="' + k + '" style="--k:' + PL_KIND_HUES[k].acc + '"' + (plKind_ === k ? ' class="on"' : '') + '>' + ic(k) + KN[k] + ' <em>' + kc[k] + '</em></button>').join('') + '</div>';
+      + '<div class="sf3" data-lb="SHOW"><span class="lb">SHOW</span>' + [['not_yet', 'Want to try'], ['keeper', 'Keepers'], ['been', 'Been there']].map(x => '<button type="button" data-pshow="' + x[0] + '"' + (fS.has(x[0]) ? ' class="on"' : '') + ' aria-pressed="' + fS.has(x[0]) + '"><span class="bx">\u2713</span>' + x[1] + ' <em>' + sc[x[0]] + '</em></button>').join('') + '</div>'
+      + '<div class="ex-leg" data-lb="KIND"><button type="button" data-pkind=""' + (fK ? '' : ' class="on"') + '>All <em>' + places.length + '</em></button>'
+      + KO.filter(k => kc[k]).map(k => '<button type="button" data-pkind="' + k + '" style="--k:' + PL_KIND_HUES[k].acc + '"' + (fK === k ? ' class="on"' : '') + '>' + ic(k) + KN[k] + ' <em>' + kc[k] + '</em></button>').join('') + '</div>';
     const pinI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
-    if (cities.length > 1) html += '<div class="ex-cities ct1" data-lb="CITY"><button type="button" data-city="All"' + (placeCity === 'All' ? ' class="on"' : '') + '>All cities</button>'
-      + cities.slice().sort((a, b) => (cc[b] - cc[a]) || a.localeCompare(b)).map(c => '<button type="button" data-city="' + escHtml(c) + '"' + (placeCity === c ? ' class="on"' : '') + '>' + pinI + escHtml(c) + '<em>' + cc[c] + '</em></button>').join('') + '</div>';
-    html += '</div></div>';   // closes .xf-box and .xf
+    if (cities.length > 1) html += '<div class="ex-cities ct1" data-lb="CITY"><button type="button" data-city="All"' + (fC === 'All' ? ' class="on"' : '') + '>All cities</button>'
+      + cities.slice().sort((a, b) => (cc[b] - cc[a]) || a.localeCompare(b)).map(c => '<button type="button" data-city="' + escHtml(c) + '"' + (fC === c ? ' class="on"' : '') + '>' + pinI + escHtml(c) + '<em>' + cc[c] + '</em></button>').join('') + '</div>';
+    html += '</div><div class="xf-ft"><button type="button" class="xf-clr" data-xfclr="1">Clear</button><button type="button" class="xf-go" data-xfgo="1">Apply</button></div></div>';   // closes .xf-box, AF-1 footer, .xf
   }
   const SEC = { not_yet:'Want to try', keeper:'Keepers', been:'Been there' };
   const pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.4 7-10.5A7 7 0 0 0 5 10.5C5 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.4"/></svg>';
@@ -13563,10 +13571,13 @@ el('plChips').addEventListener('click', e => {
 });
 el('placeList').addEventListener('click', e => {
   const ad = e.target.closest('[data-padd]'); if (ad) { openPlaceModal(null); return; }
-  const xf = e.target.closest('[data-xf]'); if (xf) { plFOpen_ = !plFOpen_; renderPlaces(); return; }
-  const pk = e.target.closest('[data-pkind]'); if (pk) { plKind_ = pk.dataset.pkind || ''; renderPlaces(); return; }
-  const sh = e.target.closest('[data-pshow]'); if (sh) { const k = sh.dataset.pshow; if (plShow_.has(k) && plShow_.size > 1) plShow_.delete(k); else plShow_.add(k); renderPlaces(); return; }
-  const pc = e.target.closest('.ex-cities [data-city]'); if (pc) { placeCity = pc.dataset.city; renderPlaces(); return; }
+  // AF-1 (26 Nov 2026): ticks are staged; Apply filters and folds the panel; closing without Apply keeps the old filter
+  const xf = e.target.closest('[data-xf]'); if (xf) { plFOpen_ = !plFOpen_; plPend_ = null; renderPlaces(); return; }
+  if (e.target.closest('[data-xfgo]')) { if (plPend_) { plKind_ = plPend_.k; placeCity = plPend_.c; plShow_ = new Set(plPend_.s); } plPend_ = null; plFOpen_ = false; renderPlaces(); return; }
+  if (e.target.closest('[data-xfclr]')) { plPend_ = { k: '', c: 'All', s: new Set(['not_yet', 'keeper', 'been']) }; renderPlaces(); return; }
+  const pk = e.target.closest('[data-pkind]'); if (pk) { if (plPend_) plPend_.k = pk.dataset.pkind || ''; else plKind_ = pk.dataset.pkind || ''; renderPlaces(); return; }
+  const sh = e.target.closest('[data-pshow]'); if (sh) { const k = sh.dataset.pshow, S = plPend_ ? plPend_.s : plShow_; if (S.has(k) && S.size > 1) S.delete(k); else S.add(k); renderPlaces(); return; }
+  const pc = e.target.closest('.ex-cities [data-city]'); if (pc) { if (plPend_) plPend_.c = pc.dataset.city; else placeCity = pc.dataset.city; renderPlaces(); return; }
   const x = e.target.closest('[data-px]');
   if (x) { e.stopPropagation(); plDeletePlace_(x.dataset.px); return; }
   const mp = e.target.closest('[data-pmap]');
@@ -16682,6 +16693,10 @@ boot();
   body.rd-editing .tp-pic[data-fit="fill"] .tp-hint { display:block; }
   /* PH-ALL (7 Nov 2026, B): no photo yet -> the add box shows only in Edit; reading stays clean */
   body:not(.rd-editing) .tp-cover.tp-empty { display:none; }
+  /* PH-A (26 Nov 2026): diary/writing with no photo - a small pill beside the date, Edit only; plum quote line in the editor (no yellow) */
+  .pc-lk { display:none; }
+  body.rd-editing.pc-none .pc-lk { display:inline-flex; align-items:center; gap:5px; margin-left:12px; font:600 .62rem 'IBM Plex Mono',monospace; letter-spacing:.12em; color:#6D4E66; border:1px dashed #cdbfcb; border-radius:999px; padding:3px 10px; background:#fff; cursor:pointer; vertical-align:middle; }
+  body.rd-wr #readerBodyInp blockquote, body.rd-dy #readerBodyInp blockquote { border-left-color:#6D4E66 !important; }
   /* PH-ALL (W1): written / edited - a tiny faint line while reading; the date box only in Edit */
   .rd-wq { font-family:var(--mono); font-size:0.5625rem; letter-spacing:0.08em; text-transform:uppercase; color:#a3acbd; }
   body.rd-editing .rd-wq, body:not(.rd-editing) .rd-wed { display:none; }
@@ -18637,7 +18652,7 @@ async function tpCoverSet_(r, patch) {
 }
 async function tpPaintCover_(r) {
   const box = el('tpCover'); if (!box) return;
-  box.innerHTML = ''; box.classList.add('hidden'); box.classList.remove('tp-empty'); tpCover_ = null;
+  box.innerHTML = ''; box.classList.add('hidden'); box.classList.remove('tp-empty'); tpCover_ = null; document.body.classList.remove('pc-none');
   if (!(window.MyAlbum && MyAlbum.cover && userId)) return;
   let c = null; try { c = await MyAlbum.cover('iw', r.id); } catch (e) { c = null; }
   if (!readerEntry || String(readerEntry.id) !== String(r.id)) return;
@@ -18672,6 +18687,9 @@ async function tpPaintCover_(r) {
         v.addEventListener('click', () => v.remove()); document.body.appendChild(v); }
       v.innerHTML = '<img src="' + escHtml(tpCover_.url) + '" alt="" style="max-width:96vw; max-height:92vh; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,0.5);">';
     });
+  } else if (['diary', 'writing'].includes(displayKind(r.kind))) {
+    // PH-A (26 Nov 2026): no empty photo box in the heading; Edit shows a small pill beside the date
+    document.body.classList.add('pc-none'); return;
   } else {
     box.classList.add('tp-empty');
     box.innerHTML = '<button type="button" class="tp-add"><i aria-hidden="true">\uD83D\uDCF7</i><span><b>Add a photo from it</b><small>One picture you\u2019ll want to see in ten years.</small></span></button>';
@@ -19589,7 +19607,8 @@ function openReader(id, keepNav) {
     if (edited && edited !== made) s += ' \u00b7 edited ' + escHtml(edited);
     // PH-ALL (W1): reading shows a tiny plain line; Edit shows the date box as before
     const q = made ? 'Written ' + escHtml(made) + (edited && edited !== made ? ' \u00b7 edited ' + escHtml(edited) : '') : '';
-    el('readerDates').innerHTML = (q ? '<span class="rd-wq">' + q + '</span>' : '') + (s ? '<span class="rd-wed">' + s + '</span>' : '');
+    el('readerDates').innerHTML = (q ? '<span class="rd-wq">' + q + '</span>' : '') + (s ? '<span class="rd-wed">' + s + '</span>' : '')
+      + (['diary', 'writing'].includes(displayKind(r.kind)) ? '<button type="button" class="pc-lk" data-pcadd="1">\uD83D\uDCF7 ADD A COVER PHOTO</button>' : '');
   })();
   el('readerLead').style.display = r.essence ? '' : 'none';
   // IL-2: the diary page wears its chips; + chip adds, tapping one removes.
@@ -19821,7 +19840,9 @@ function datePhrase_(ymd) {
   return new Date(ymd + 'T12:00:00').toLocaleDateString(undefined,
     { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 }
-el('readerDates').addEventListener('click', e => {
+el('readerDates').addEventListener('click', async e => {
+  const pa = e.target && e.target.closest ? e.target.closest('[data-pcadd]') : null;   // PH-A
+  if (pa) { if (!(window.MyAlbum && MyAlbum.pickCover) || !readerEntry) return; const got = await MyAlbum.pickCover('iw', readerEntry.id); if (got) tpPaintCover_(readerEntry); return; }
   // Some phones don't open the calendar from a styled date input's tap.
   // A click inside the control asks for the picker explicitly.
   const pick = e.target && e.target.closest ? e.target.closest('#rdDatePick') : null;

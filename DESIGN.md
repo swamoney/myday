@@ -8,6 +8,12 @@ Written August 2026.
 
 ---
 
+## AF-1 + PH-A (26 Nov 2026): Explore filter Apply · no empty photo box on diary/writing headings
+- **AF-1 (My Explore List):** the open Filter panel now has a footer, with **Clear** (underlined, left) and a teal **Apply** pill (right). Ticks in SHOW, KIND and CITY are staged in `plPend_ {k,c,s}` and the list does not change. **Apply** commits them to plKind_, placeCity and plShow_ and folds the panel (plFOpen_ = false). **Clear** resets the staged ticks, which still need Apply. Closing the bar without Apply throws the staged ticks away and keeps the old filter. The bar's summary always shows the applied filter.
+- **PH-A (diary + writing pages):** when there is no cover photo, `tpPaintCover_` no longer draws the big dashed "📷 Add a photo from it" box. It sets `body.pc-none` instead, and the date line carries a small dashed "📷 ADD A COVER PHOTO" pill (`.pc-lk`, `data-pcadd`) that shows only in Edit and opens MyAlbum.pickCover. Reading shows nothing. Chapters and trips keep their existing empty-photo box.
+- **No yellow:** the quote line in the diary/writing editor (`#readerBodyInp blockquote`) is plum #6D4E66.
+- Trap: `isWriting()` is a stub that always returns false. Use `displayKind(r.kind) === 'writing'`.
+
 ## ED-2 · Their words and lessons: read-only taps, written in place with the Learning Diary editor (26 Nov 2026, why.html, outer page)
 **Reading:** tapping a quote or lesson never opens a form. The click handler returns early for data-pnform="adv:*" or "lrn:*" while not editing. The stack still flips on tap.
 
