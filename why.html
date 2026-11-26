@@ -17610,6 +17610,21 @@ body.av-trip .toolbar:has(#searchInput){display:none !important}
     body.rd-dy.rd-editing .reader-inner > #rdAlbum,body.rd-dy.rd-editing .reader-inner > .rd-days,body.rd-dy.rd-editing .reader-inner > .reader-body,body.rd-dy.rd-editing .reader-inner > .reader-foot{margin-left:0 !important;padding-left:16px;padding-right:16px}
     body.rd-dy.rd-editing #readerBodyInp{font-size:1.02rem}
   }
+  /* WB-B (26 Nov 2026): the new-writing title card */
+  .wb-ov{position:fixed;inset:0;z-index:600;background:rgba(40,30,45,.28);display:flex;align-items:center;justify-content:center;padding:16px}
+  .wb-cd{width:min(520px,100%);background:#fffdf9;border-top:4px solid #6D4E66;border-radius:6px 6px 14px 14px;box-shadow:0 24px 60px rgba(40,30,45,.28);padding:26px 28px 20px}
+  .wb-k{font:700 .62rem 'IBM Plex Mono',monospace;letter-spacing:.2em;color:#6D4E66}
+  .wb-cd input{display:block;width:100%;box-sizing:border-box;background:none;border:0;outline:0;border-radius:0}
+  .wb-t{font:700 1.9rem/1.15 'Fraunces',Georgia,serif;color:#26203a;border-bottom:1.5px solid #6D4E66 !important;padding:14px 0 8px;margin-bottom:14px}
+  .wb-t::placeholder{color:#b9aab5}
+  .wb-t.wb-need{border-bottom-color:#7a4f86 !important;box-shadow:0 2px 0 #c9b3cf}
+  .wb-s{font:italic 1rem 'Fraunces',Georgia,serif;color:#4a4256;border-bottom:1px dashed #d9ccd5 !important;padding:4px 0 8px}
+  .wb-s::placeholder{color:#a99ca6}
+  .wb-h{font:.72rem 'IBM Plex Sans',sans-serif;color:#8a8090;margin-top:6px}
+  .wb-ft{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
+  .wb-c{background:none;border:0;padding:4px 2px;font:600 .78rem 'IBM Plex Sans',sans-serif;color:#6b6475;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .wb-go{background:#6D4E66;color:#fff;border:0;border-radius:999px;padding:9px 20px;font:700 .8rem 'IBM Plex Sans',sans-serif;cursor:pointer}
+  @media(max-width:640px){.wb-cd{padding:22px 20px 18px}.wb-t{font-size:1.55rem}}
   /* PG-1 (24 Nov 2026): trip page heading as a luggage tag (matches the TR-2 index) */
   .pg-eye,.pg-band,.pg-code,.pg-bar{display:none}
   .rd-sticky.plate.tagpg{background:linear-gradient(#f9f1e2,#f3e7cf) !important;border:1px solid #e0cfae !important;border-radius:8px 18px 18px 8px !important;box-shadow:0 14px 30px rgba(22,38,77,.10) !important;
@@ -19208,6 +19223,36 @@ function dyPageClear_() {
 // ---- Room 4: My Writings - the shelf ----
 // WR-W1 (Nov 2026): the shelf = writing cards on plum paper with a round reading stamp,
 // in two gold-headed sections: Favourites (starred) and On the desk (last touched first).
+// WB-B (26 Nov 2026): "Begin a writing" opens a small magazine title card - headline + optional one-line standfirst - then the page in Edit
+function wbOpen_() {
+  if (el('wbCard')) return;
+  const n = rows.filter(x => displayKind(x.kind) === 'writing').length + 1;
+  document.body.insertAdjacentHTML('beforeend', '<div class="wb-ov" id="wbCard" role="dialog" aria-label="A new piece"><div class="wb-cd">'
+    + '<div class="wb-k">MY WRITINGS \u00b7 NO. ' + String(n).padStart(2, '0') + ' \u00b7 A NEW PIECE</div>'
+    + '<input type="text" class="wb-t" id="wbT" placeholder="The headline\u2026" maxlength="160" autocomplete="off">'
+    + '<input type="text" class="wb-s" id="wbS" placeholder="One line on what it\u2019s about (optional)" maxlength="240" autocomplete="off">'
+    + '<div class="wb-h">You can change both later.</div>'
+    + '<div class="wb-ft"><button type="button" class="wb-c" id="wbX">Cancel</button><button type="button" class="wb-go" id="wbGo">Begin writing \u2192</button></div></div></div>');
+  const ov = el('wbCard'), t = el('wbT'), sf = el('wbS');
+  const close = () => ov.remove();
+  let busy = false;
+  const go = async () => {
+    const tt = t.value.replace(/\s+/g, ' ').trim();
+    if (!tt) { t.classList.add('wb-need'); t.focus(); return; }
+    if (busy) return; busy = true; el('wbGo').textContent = 'Opening\u2026';
+    const id = await quickInsert('writing', tt, { essence: sf.value.replace(/\s+/g, ' ').trim() });
+    close();
+    if (id) { openReader(id); setRdEditing(true); setTimeout(() => rdNk.focusEnd(), 80); }
+  };
+  el('wbX').addEventListener('click', close);
+  ov.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  el('wbGo').addEventListener('click', go);
+  ov.addEventListener('click', e => { if (e.target === ov) close(); });
+  t.addEventListener('input', () => t.classList.remove('wb-need'));
+  t.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); sf.focus(); } });
+  sf.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+  setTimeout(() => t.focus(), 30);
+}
 function wrNum_(r) { const all = rows.filter(x => displayKind(x.kind) === 'writing').sort((a, b) => String(a.created_at || '').localeCompare(String(b.created_at || ''))); return Math.max(0, all.findIndex(x => x.id === r.id)) + 1; }
 function wrWords_(r) { return NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length; }
 function wrOrder_() {   // the contents order: favourites, then the desk, each last touched first
@@ -19246,12 +19291,7 @@ function renderShelf(list, wrap) {
     x.addEventListener('click', () => openReader(x.dataset.open));
     x.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openReader(x.dataset.open); } });
   });
-  const begin = async () => {
-    const t = prompt('The writing’s title:');
-    if (!t || !t.trim()) return;
-    const id = await quickInsert('writing', t.trim());
-    if (id) { openReader(id); setRdEditing(true); setTimeout(() => rdNk.focusEnd(), 80); }
-  };
+  const begin = () => wbOpen_();   // WB-B (26 Nov 2026): a magazine title card, not the browser's prompt
   el('wrAdd').addEventListener('click', begin);
   el('wrAdd').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); begin(); } });
   el('wrAdd2').addEventListener('click', begin);

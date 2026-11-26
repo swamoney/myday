@@ -8,6 +8,13 @@ Written August 2026.
 
 ---
 
+## WB-B (26 Nov 2026): "Begin a writing" opens a magazine title card
+- "+ Begin a writing" (both #wrAdd2 and #wrAdd) no longer uses the browser's prompt() box. `wbOpen_()` opens an in-app card (`.wb-ov`/`.wb-cd`) on a cream #fffdf9 background with a plum top rule.
+- The card shows the kicker "MY WRITINGS · NO. NN · A NEW PIECE", a large serif headline input (#wbT), an optional italic one-line standfirst (#wbS, saved as `essence`), the note "You can change both later.", a Cancel link and a plum "Begin writing →" pill.
+- Enter in the headline moves to the standfirst. Enter in the standfirst begins. Esc, Cancel or a tap outside the card closes it.
+- An empty headline does not begin: the input gets a violet underline (.wb-need) and the cursor goes back to it.
+- On Begin: `quickInsert('writing', title, {essence})`, then the page opens in Edit with the cursor in the text, as the diary does.
+
 ## AF-1 + PH-A (26 Nov 2026): Explore filter Apply · no empty photo box on diary/writing headings
 - **AF-1 (My Explore List):** the open Filter panel now has a footer, with **Clear** (underlined, left) and a teal **Apply** pill (right). Ticks in SHOW, KIND and CITY are staged in `plPend_ {k,c,s}` and the list does not change. **Apply** commits them to plKind_, placeCity and plShow_ and folds the panel (plFOpen_ = false). **Clear** resets the staged ticks, which still need Apply. Closing the bar without Apply throws the staged ticks away and keeps the old filter. The bar's summary always shows the applied filter.
 - **PH-A (diary + writing pages):** when there is no cover photo, `tpPaintCover_` no longer draws the big dashed "📷 Add a photo from it" box. It sets `body.pc-none` instead, and the date line carries a small dashed "📷 ADD A COVER PHOTO" pill (`.pc-lk`, `data-pcadd`) that shows only in Edit and opens MyAlbum.pickCover. Reading shows nothing. Chapters and trips keep their existing empty-photo box.
