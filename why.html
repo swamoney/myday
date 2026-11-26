@@ -17502,16 +17502,17 @@ body.av-trip .toolbar:has(#searchInput){display:none !important}
   .dy-nav small{display:block;font:700 .5rem 'IBM Plex Mono',monospace;letter-spacing:.18em;color:#8a93a8}
   .dy-nav span.l{display:block;font:italic .9rem 'Fraunces',Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dy-nav div{min-width:0}
+  /* DM-B (26 Nov 2026): desktop reads like the phone - heading on top, the lined page below, full width; the three facts in one row */
+  body.rd-dy:not(.rd-editing) #readerDates{display:none !important}
   @media(min-width:641px){
-    body.rd-dy:not(.rd-editing) .reader-inner{display:grid;grid-template-columns:300px minmax(0,1fr);align-items:stretch}
-    body.rd-dy:not(.rd-editing) .reader-inner > *{grid-column:1 / -1}
-    body.rd-dy:not(.rd-editing) .reader-inner > .rd-sticky{grid-column:1;grid-row:1 / span 3;position:relative !important;top:auto !important;border-radius:6px 0 0 6px !important;border-right:0 !important;margin:0 !important;box-shadow:0 18px 40px rgba(22,38,77,.08) !important}
-    body.rd-dy:not(.rd-editing) .reader-inner > #rdAlbum{grid-column:2;grid-row:1;background:#fffdf8;border-top:5px solid var(--k);border-right:1px solid #e6dfcf;margin:0;padding:0 24px}
+    body.rd-dy:not(.rd-editing) .reader-inner > .rd-sticky{border-radius:6px 6px 0 0 !important;position:relative !important;top:auto !important;margin:0 !important;box-shadow:none !important}
+    body.rd-dy:not(.rd-editing) .reader-inner > #rdAlbum{background:#fffdf8;border-left:1px solid #e6dfcf;border-right:1px solid #e6dfcf;margin:0;padding:0 24px}
     body.rd-dy:not(.rd-editing) .reader-inner > #rdAlbum:empty{display:none}
-    body.rd-dy:not(.rd-editing) .reader-inner > #rdAlbum:not(:empty) + .rd-days + #readerBody,body.rd-dy:not(.rd-editing) .reader-inner > #rdAlbum:not(:empty) ~ #readerBody{border-top:0}
-    body.rd-dy:not(.rd-editing) .reader-inner > #readerBody{grid-column:2;grid-row:2 / span 2;border-left:1px solid #ece6d8;border-radius:0 6px 6px 0;margin:0;box-shadow:inset 18px 0 18px -14px rgba(0,0,0,.08),0 18px 40px rgba(22,38,77,.08)}
-    body.rd-dy:not(.rd-editing) .reader-inner > #rdAlbum:empty ~ #readerBody{grid-row:1 / span 3}
+    body.rd-dy:not(.rd-editing) .reader-inner > #readerBody{border-top:1px dashed #e6dfcf;border-radius:0 0 6px 6px;margin:0;box-shadow:0 18px 40px rgba(22,38,77,.08)}
     body.rd-dy:not(.rd-editing) .reader-inner > .reader-foot{margin-top:20px}
+    body.rd-dy:not(.rd-editing) .dy-facts{display:flex !important;max-width:560px;margin-top:16px;border-top:1px dotted #d5c9ae;border-bottom:1px dotted #d5c9ae}
+    body.rd-dy:not(.rd-editing) .dy-facts div{flex:1;flex-direction:column;align-items:center;gap:3px;border-bottom:0;border-left:1px dotted #d5c9ae;padding:10px 0}
+    body.rd-dy:not(.rd-editing) .dy-facts div:first-child{border-left:0}
   }
   @media(max-width:640px){
     body.rd-dy:not(.rd-editing) .rd-sticky.plate{border-radius:6px 6px 0 0 !important;padding:22px 18px 18px !important;position:relative !important;top:auto !important}
@@ -19187,7 +19188,7 @@ function dyPagePaint_(r) {
   st.querySelectorAll(':scope > .dy-facts, :scope > .dy-otd').forEach(x => x.remove());
   const words = NoteEditor.toPlain(r.body || '').trim().split(/\s+/).filter(Boolean).length;
   let fx = '';
-  if (ok) fx += '<div><span>WRITTEN</span><b>' + escHtml(dt.toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true }).replace(/\s/g, ' ').toLowerCase()) + '</b></div>';
+  if (ok) fx += '<div><span>WRITTEN</span><b>' + escHtml(dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })) + '</b></div>';   // DM-B: the date, not the time
   fx += '<div><span>WORDS</span><b>' + words.toLocaleString('en-IN') + '</b></div>';
   if (ok) { const y = String(dt.getFullYear()), inY = ord.filter(x => String(x.created_at || '').slice(0, 4) === y).reverse(), p = inY.findIndex(x => x.id === r.id);
     if (p >= 0) fx += '<div><span>THIS YEAR</span><b>page ' + (p + 1) + ' of ' + y + '</b></div>'; }

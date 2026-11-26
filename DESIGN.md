@@ -8,6 +8,11 @@ Written August 2026.
 
 ---
 
+## DM-B (26 Nov 2026): diary page - the date not the time; desktop reads like the phone
+- The WRITTEN fact in `dyPagePaint_` now shows the date (e.g. "23 Nov 2026") instead of the time. The repeated small "Written <date>" line (#readerDates) is hidden while reading a diary page; it stays in Edit, where it holds the date picker.
+- Desktop (≥641px): the DP-3 two-page spread (300px facts column + page) is retired. The heading plate sits on top and the lined page sits below at full width, as on the phone. The three facts (WRITTEN · WORDS · THIS YEAR) sit in one centred row (max 560px) with dotted dividers.
+- The phone layout and the ED-3 edit view are unchanged.
+
 ## WB-B (26 Nov 2026): "Begin a writing" opens a magazine title card
 - "+ Begin a writing" (both #wrAdd2 and #wrAdd) no longer uses the browser's prompt() box. `wbOpen_()` opens an in-app card (`.wb-ov`/`.wb-cd`) on a cream #fffdf9 background with a plum top rule.
 - The card shows the kicker "MY WRITINGS · NO. NN · A NEW PIECE", a large serif headline input (#wbT), an optional italic one-line standfirst (#wbS, saved as `essence`), the note "You can change both later.", a Cancel link and a plum "Begin writing →" pill.
