@@ -8,6 +8,15 @@ Written August 2026.
 
 ---
 
+## SN-C + PK-A+ + LG-1 (27 Nov 2026): Pillar page - focus notes pinned with P#, Park as a parking lot, the long game the same in Edit
+- **SN-C:** each Current focus sticky note (#ppS_toward .pp-notes > .pp-itrow; the ids are swapped by SW-1) loses its tape. Instead it gets a pin in the pillar's colour (--pp-sol) with a tag "P2 · 1" (`pNo` = P + pillar index + 1, then the note's place), and a big faint Caveat 1, 2… in its lower right. In Edit too.
+- **PK-A+:** Park · not as of now is a parking lot.
+  - Layout: the ✦ strip "Not urgent. They wait here, safe, until you bring one back.", then a grey dotted lot (.pk-lot) with a road-sign **P** and the plate "PARKED · N / no rush, no meter running", white painted bays (three across; stacked on a phone), a kerb stone and a big 01 02 03 under each, and a dashed road edge.
+  - Each goal is a permit inside its .pp-ittxt (click still opens its page): "PARKED · SINCE NOV 2026" with a P badge and a perforated tear line, the goal in Fraunces, then "UNTIL · SOMEDAY" with a months-parked meter (THIS MONTH / 1 MONTH / N MONTHS). The done circle sits at the permit's corner, and the drag grip shows in Edit.
+  - The subline reads "N parked · no rush". The fold (▾ HIDE / ▸ OPEN) is kept.
+  - **New field:** a parked item carries `pk` (YYYY-MM), set the first time it is drawn in Park and cleared when it moves to Focus or the long game; itemize keeps it. Goals already in Park start counting from the month this shipped.
+- **LG-1:** the VB-4 dream board rules now apply in Edit too (`body #roadmapWin`, where before it was `body:not(.rm-editing)`): the "The life I'm building" board, the big first goal, the tilts and the 01/02 numbers. ppAlign_ leaves natural heights in Edit as well. The grip, steps and circle work as before.
+
 ## RW-B (27 Nov 2026): My read of them is back in Who they are while editing
 - In Edit, a small centred card sits above the Who list (`ewReadCard_`, .ew-rdc): MY READ OF THEM, the line in Newsreader italic with *word* highlights (pReadHtml_), and a ✎. When there is no read yet it shows a grey placeholder ("Asha, in one line…").
 - Its ✎ opens a small room (`ewOpen2_('read:0')`): "Asha, in one line", a ✦ strip ("How you'd sum Asha up to a friend. *word* to highlight."), and one lined line. It saves to `pData.read`, the same field that "My read & key facts" edits.
